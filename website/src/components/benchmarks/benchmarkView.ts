@@ -134,6 +134,7 @@ export interface HistoryPoint {
   readonly failed: boolean;
   /** The number of measured runs that completed. */
   readonly completedRuns: number;
+  readonly measuredRuns: number | undefined;
 }
 
 /** One variant's line in the history chart. */
@@ -216,6 +217,7 @@ export function historySeries(
         rps: version.throughput.medianRps,
         failed: version.status === "failed",
         completedRuns: version.throughput.runsRps!.length,
+        measuredRuns: version.measuredRuns,
       })),
     };
   });
@@ -358,12 +360,12 @@ export const isWinner = (row: BenchmarkVariantResult, group: ResultsGroup) =>
 const scenarioRows = (scenario: Pick<BenchmarkScenario, "results">) =>
   scenario.results.flatMap((result) => result.variants);
 
-/** Returns whether the page shows a variant: Fusion only as its stable Native AOT build on .NET 11, every other gateway with all its variants. */
+/** Includes all previews and other gateways; stable Fusion variants must use Native AOT on .NET 11. */
 export function isShownVariant({ gateway, variant }: BenchmarkCatalogEntry) {
   return (
     gateway.id !== "fusion" ||
-    (!isPreview(variant) &&
-      variant.platform.runtime?.version?.split(".")[0] === "11" &&
+    isPreview(variant) ||
+    (variant.platform.runtime?.version?.split(".")[0] === "11" &&
       (variant.platform.features ?? []).some((feature) => feature.id === "aot"))
   );
 }

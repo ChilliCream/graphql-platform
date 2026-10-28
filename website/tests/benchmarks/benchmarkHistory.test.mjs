@@ -116,6 +116,23 @@ test("allows empty result lists and start-time fallback", () => {
   const series = historySeries(parsed.scenarios[0], benchmarkVariants(parsed));
   assert.equal(series[0].points[0].timestamp, Date.parse(result.run.startedAt));
 });
+test("preserves each history point's planned repetition count", () => {
+  // arrange
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = history.scenarios[0];
+  const results = scenario.variants[0].results;
+  results[0].measuredRuns = 9;
+  results[1].measuredRuns = 5;
+
+  // act
+  const series = historySeries(scenario, benchmarkVariants(history));
+
+  // assert
+  assert.deepEqual(
+    series[0].points.map((point) => point.measuredRuns),
+    [9, 5, undefined],
+  );
+});
 test("rejects malformed dates and missing subgraph metadata", () => {
   for (const mutate of [
     (result) => {

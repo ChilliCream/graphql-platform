@@ -137,25 +137,30 @@ test("describes the page with released gateways, Fusion first and without generi
   );
 });
 
-test("shows Fusion only as its stable Native AOT build on .NET 11", () => {
-  const fusion = (id, runtimeVersion, aot, preview) => ({
-    gateway: { id: "fusion" },
-    variant: {
-      id,
-      ...(preview ? { preview } : {}),
-      platform: {
-        language: { name: "C#" },
-        runtime: { name: ".NET", version: runtimeVersion },
-        features: aot ? [{ id: "aot", name: "AOT" }] : [],
+for (const composition of ["graphql-federation", "apollo-federation"]) {
+  test(`shows all Fusion previews and only stable .NET 11 AOT for ${composition}`, () => {
+    // arrange
+    const fusion = (id, runtimeVersion, aot, preview) => ({
+      gateway: { id: "fusion" },
+      variant: {
+        id,
+        composition,
+        ...(preview ? { preview } : {}),
+        platform: {
+          language: { name: "C#" },
+          runtime: { name: ".NET", version: runtimeVersion },
+          features: aot ? [{ id: "aot", name: "AOT" }] : [],
+        },
       },
-    },
-  });
-  assert.deepEqual(
-    [
+    });
+    const entries = [
       fusion("fusion-aot-11", "11.0.0-rc.2", true, false),
       fusion("fusion-net-11", "11.0.0-rc.2", false, false),
       fusion("fusion-aot-10", "10.0.13", true, false),
       fusion("fusion-nightly-aot-11", "11.0.0-rc.2", true, true),
+      fusion("fusion-nightly-net-11", "11.0.0-rc.2", false, true),
+      fusion("fusion-nightly-aot-10", "10.0.13", true, true),
+      fusion("fusion-nightly-net-10", "10.0.13", false, true),
       {
         gateway: { id: "hive-router" },
         variant: {
@@ -163,13 +168,24 @@ test("shows Fusion only as its stable Native AOT build on .NET 11", () => {
           platform: { language: { name: "Rust" } },
         },
       },
-    ].map((entry) => [entry.variant.id, isShownVariant(entry)]),
-    [
+    ];
+
+    // act
+    const visibility = entries.map((entry) => [
+      entry.variant.id,
+      isShownVariant(entry),
+    ]);
+
+    // assert
+    assert.deepEqual(visibility, [
       ["fusion-aot-11", true],
       ["fusion-net-11", false],
       ["fusion-aot-10", false],
-      ["fusion-nightly-aot-11", false],
+      ["fusion-nightly-aot-11", true],
+      ["fusion-nightly-net-11", true],
+      ["fusion-nightly-aot-10", true],
+      ["fusion-nightly-net-10", true],
       ["hive-router", true],
-    ],
-  );
-});
+    ]);
+  });
+}

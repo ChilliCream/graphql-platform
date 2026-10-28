@@ -10,6 +10,7 @@ const RUNTIME_TAGS: Readonly<Record<string, string>> = {
 export const COMPOSITIONS = {
   "apollo-federation": "Apollo Federation",
   "composite-schema": "GraphQL Federation",
+  "graphql-federation": "GraphQL Federation",
 } as const;
 
 export type ScenarioId = "constant-latency" | "burst" | "constant";
@@ -152,6 +153,8 @@ export type BenchmarkHistoryVersion = Omit<
   "variant" | "status"
 > & {
   readonly version: string;
+  /** The planned repetitions for this result, or the scenario count when absent. */
+  readonly measuredRuns?: number;
   /** "failed" when the execution failed but recorded measurements; absent for a completed execution. */
   readonly status?: "failed";
   readonly run: BenchmarkHistoryRun & {
@@ -635,9 +638,12 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
         const throughput = record(version.throughput, ["runsRps"]);
         list(throughput.runsRps, 1);
         platform(version.platform);
+        optional(version.measuredRuns, (value) => integer(value, 1));
         measurement(
           version,
-          version.status === "failed" ? undefined : measuredRuns,
+          version.status === "failed"
+            ? undefined
+            : ((version.measuredRuns as number | undefined) ?? measuredRuns),
         );
       }
     }
@@ -650,14 +656,24 @@ export function benchmarkRunId(report: BenchmarkReport): string | undefined {
   return report.run.url ? RUN_URL.exec(report.run.url)?.[1] : undefined;
 }
 
-/** Returns each catalog variant with its gateway, keyed by variant ID. */
+/** Returns each catalog variant with its gateway and normalized composition, keyed by variant ID. */
 export function benchmarkVariants(
   report: Pick<BenchmarkReport, "gateways">,
 ): ReadonlyMap<string, BenchmarkCatalogEntry> {
   return new Map(
     report.gateways.flatMap((gateway) =>
       gateway.variants.map(
-        (variant) => [variant.id, { gateway, variant }] as const,
+        (variant) =>
+          [
+            variant.id,
+            {
+              gateway,
+              variant:
+                variant.composition === "graphql-federation"
+                  ? { ...variant, composition: "composite-schema" }
+                  : variant,
+            },
+          ] as const,
       ),
     ),
   );
