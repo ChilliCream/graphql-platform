@@ -50,13 +50,10 @@ public sealed class DocumentValidator : IDocumentValidator
         }
 
         _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
-        _allRules = rules.ToArray();
+        _allRules = rules.OrderBy(t => t.Priority).ToArray();
         _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
         _aggregators = resultAggregators.ToArray();
         _maxAllowedErrors = errorOptions.MaxAllowedErrors;
-
-        Array.Sort(_allRules, (a, b) => a.Priority.CompareTo(b.Priority));
-        Array.Sort(_nonCacheableRules, (a, b) => a.Priority.CompareTo(b.Priority));
     }
 
     /// <inheritdoc />

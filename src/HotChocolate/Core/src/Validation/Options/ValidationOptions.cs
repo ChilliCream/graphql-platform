@@ -12,6 +12,7 @@ public sealed class ValidationOptions
     private int _maxErrors = 5;
     private ushort _maxAllowedOfTypeDepth = 16;
     private ushort _maxAllowedListRecursiveDepth = 1;
+    private int _maxAllowedSelectionSetDepth = 200;
 
     /// <summary>
     /// Gets the maximum allowed depth of a query. The default value is
@@ -64,5 +65,18 @@ public sealed class ValidationOptions
     {
         get => _maxAllowedListRecursiveDepth;
         set => _maxAllowedListRecursiveDepth = value > 0 ? value : (ushort)16;
+    }
+
+    /// <summary>
+    /// <para>
+    /// The maximum depth to which the selection sets of an operation can be nested
+    /// when its fragment spreads are followed.
+    /// </para>
+    /// <para>Default: <c>200</c></para>
+    /// </summary>
+    public int MaxAllowedSelectionSetDepth
+    {
+        get => _maxAllowedSelectionSetDepth;
+        set => _maxAllowedSelectionSetDepth = value < 1 ? 200 : value;
     }
 }
