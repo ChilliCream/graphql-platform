@@ -1,0 +1,16 @@
+:global(:root) {
+  --cc-if-light: ;
+  --cc-if-dark: initial;
+}
+
+:global(:root[data-theme="light"]) {
+  --cc-if-light: initial;
+  --cc-if-dark: ;
+}
+
+@media (prefers-color-scheme: light) {
+  :global(:root:not([data-theme])) {
+    --cc-if-light: initial;
+    --cc-if-dark: ;
+  }
+}
