@@ -269,6 +269,7 @@ const meta = {
         "--color-cc-bg": "#0b0f1a",
         "--color-cc-surface": "#0c1322",
         "--color-cc-accent": "#16b9e4",
+        "--color-cc-accent-vivid": "#16b9e4",
         "--color-cc-code-bg": "#0d1117",
       })) {
         expect(root.getPropertyValue(token).trim()).toBe(value);
@@ -282,6 +283,51 @@ const meta = {
         "none",
       );
       expect(root.getPropertyValue("--color-cc-bg").trim()).toBe("#f5f1ea");
+      expect(root.getPropertyValue("--color-cc-accent-vivid").trim()).toBe(
+        "#0aa5cf",
+      );
+      const page = rgba(root.getPropertyValue("--color-cc-bg"));
+      const ratioOn = (token: string, surface: readonly number[]) => {
+        const values = [
+          luminance(rgba(root.getPropertyValue(token))),
+          luminance(surface),
+        ].sort((a, b) => a - b);
+        return (values[1] + 0.05) / (values[0] + 0.05);
+      };
+      const tint = composite(
+        rgba(root.getPropertyValue("--color-cc-accent-vivid")).map((v, i) =>
+          i === 3 ? 0.1 : v,
+        ),
+        rgba("#fdfbf7"),
+      );
+      for (const [token, minimum] of [
+        ["--color-cc-ink", 11],
+        ["--color-cc-ink-dim", 7],
+        ["--color-cc-nav-label", 7],
+        ["--color-cc-accent", 4.5],
+        ["--color-cc-accent-hover", 4.5],
+        ["--color-cc-card-border", 2],
+        ["--color-cc-control-border", 3],
+      ] as const) {
+        expect(
+          ratioOn(token, page),
+          `${token} on the page`,
+        ).toBeGreaterThanOrEqual(minimum);
+      }
+      for (const surface of ["#fdfbf7", "#ebe4d6", "#e8e0d0"]) {
+        expect(
+          ratioOn("--color-cc-accent", rgba(surface)),
+          `accent on ${surface}`,
+        ).toBeGreaterThanOrEqual(4.5);
+      }
+      expect(
+        ratioOn("--color-cc-accent", tint),
+        "accent on the selected tint",
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        ratioOn("--color-cc-selected-description", tint),
+        "selected description on the selected tint",
+      ).toBeGreaterThanOrEqual(4.5);
       for (const element of canvasElement.querySelectorAll(
         "[data-contrast], a, label, [role=tab], .text-cc-danger, .DocSearch-Hit-title, .DocSearch-Hit-path, .DocSearch-Commands li, .DocSearch-Help, .DocSearch-Dropdown p, .font-bold, button:not(:disabled)",
       )) {

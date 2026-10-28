@@ -61,10 +61,16 @@ export const Auto: Story = {
 export const Light: Story = {
   parameters: { preference: "light" },
   play: async ({ canvasElement }) => {
-    expect(
-      within(canvasElement).getByRole("radio", { name: "Light" }),
-    ).toBeChecked();
+    const light = within(canvasElement).getByRole("radio", { name: "Light" });
+    expect(light).toBeChecked();
     expect(document.documentElement.dataset.theme).toBe("light");
+    const probe = document.createElement("span");
+    probe.style.backgroundColor = "rgb(10 165 207 / 0.22)";
+    canvasElement.append(probe);
+    expect(getComputedStyle(light.parentElement!).backgroundColor).toBe(
+      getComputedStyle(probe).backgroundColor,
+    );
+    probe.remove();
   },
 };
 

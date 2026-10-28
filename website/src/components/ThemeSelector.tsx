@@ -29,26 +29,26 @@ const OPTIONS: readonly ThemeOption[] = [
     label: "Light",
     Icon: SunIcon,
     prehydrationHighlight:
-      "[html[data-theme-preference=light]_&]:bg-cc-ink-faint [html[data-theme-preference=light]_&]:text-cc-heading",
+      "[html[data-theme-preference=light]_&]:bg-cc-active-pill [html[data-theme-preference=light]_&]:text-cc-heading",
   },
   {
     value: "dark",
     label: "Dark",
     Icon: MoonIcon,
     prehydrationHighlight:
-      "[html[data-theme-preference=dark]_&]:bg-cc-ink-faint [html[data-theme-preference=dark]_&]:text-cc-heading",
+      "[html[data-theme-preference=dark]_&]:bg-cc-active-pill [html[data-theme-preference=dark]_&]:text-cc-heading",
   },
   {
     value: "auto",
     label: "Auto",
     Icon: SunMoonIcon,
     prehydrationHighlight:
-      "[html:not([data-theme-preference=light]):not([data-theme-preference=dark])_&]:bg-cc-ink-faint [html:not([data-theme-preference=light]):not([data-theme-preference=dark])_&]:text-cc-heading",
+      "[html:not([data-theme-preference=light]):not([data-theme-preference=dark])_&]:bg-cc-active-pill [html:not([data-theme-preference=light]):not([data-theme-preference=dark])_&]:text-cc-heading",
   },
 ];
 
 const CHECKED_HIGHLIGHT =
-  "has-checked:bg-cc-ink-faint has-checked:text-cc-heading";
+  "has-checked:bg-cc-active-pill has-checked:text-cc-heading";
 
 const OPTION_SIZES = {
   compact: {

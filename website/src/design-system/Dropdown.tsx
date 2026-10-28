@@ -41,8 +41,8 @@ export function Dropdown({
             // accent border below (group-open has lower specificity in v4).
             "[details:not([open])>&:hover]:border-cc-card-border-hover",
             // Accent highlight while open, mirroring an input's focus state.
-            "group-open:border-cc-accent group-open:ring-cc-accent/30 group-open:ring-2",
-            "focus-visible:border-cc-accent focus-visible:ring-cc-accent/30 focus-visible:ring-2 focus-visible:outline-hidden",
+            "group-open:border-cc-accent group-open:ring-cc-accent-vivid/30 group-open:ring-2",
+            "focus-visible:border-cc-accent focus-visible:ring-cc-accent-vivid/30 focus-visible:ring-2 focus-visible:outline-hidden",
             "[&::-webkit-details-marker]:hidden",
           ].join(" ")}
         >
@@ -96,7 +96,9 @@ export function DropdownItem({
 }: DropdownItemProps) {
   const className = [
     "block w-full cursor-pointer rounded px-3 py-2 text-left no-underline transition-colors",
-    active ? "bg-cc-accent/10 text-cc-accent" : "text-cc-ink hover:bg-cc-hover",
+    active
+      ? "bg-cc-accent-vivid/10 text-cc-accent"
+      : "text-cc-ink hover:bg-cc-hover",
   ].join(" ");
 
   const content = (

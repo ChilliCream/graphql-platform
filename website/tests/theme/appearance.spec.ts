@@ -1040,6 +1040,144 @@ test.describe("start page detail clarity", () => {
   });
 });
 
+test.describe("Light accent and contrast tokens", () => {
+  const LIGHT = {
+    accent: "#0b6a89",
+    accentVivid: "#0aa5cf",
+    activePill: "#0aa5cf38",
+    tabStrip: "#0f172a14",
+  };
+  const DARK = {
+    accent: "#16b9e4",
+    accentVivid: "#16b9e4",
+    activePill: "#f5f1ea29",
+    tabStrip: "#f5f1ea29",
+  };
+
+  async function accentTokens(page: Page) {
+    return page.evaluate(() => {
+      const styles = getComputedStyle(document.documentElement);
+      const read = (name: string) => styles.getPropertyValue(name).trim();
+      return {
+        accent: read("--color-cc-accent"),
+        accentVivid: read("--color-cc-accent-vivid"),
+        activePill: read("--color-cc-active-pill"),
+        tabStrip: read("--color-cc-tab-strip"),
+      };
+    });
+  }
+
+  const cases: readonly {
+    name: string;
+    options: OpenOptions;
+    expected: typeof LIGHT;
+  }[] = [
+    {
+      name: "StoredLight",
+      options: { system: "dark", stored: "light" },
+      expected: LIGHT,
+    },
+    {
+      name: "AutoOnALightSystem",
+      options: { system: "light" },
+      expected: LIGHT,
+    },
+    {
+      name: "AutoOnALightSystemWithoutJavaScript",
+      options: { system: "light", javaScript: false },
+      expected: LIGHT,
+    },
+    {
+      name: "StoredDark",
+      options: { system: "light", stored: "dark" },
+      expected: DARK,
+    },
+    {
+      name: "AutoOnADarkSystemWithoutJavaScript",
+      options: { system: "dark", javaScript: false },
+      expected: DARK,
+    },
+  ];
+
+  for (const { name, options, expected } of cases) {
+    test(`Should_ResolveAccentTokens_When_${name}`, async ({ open }) => {
+      // arrange
+      const page = await open("/", options);
+
+      // act
+      const tokens = await accentTokens(page);
+
+      // assert
+      expect(tokens).toEqual(expected);
+    });
+  }
+
+  test("Should_KeepLightTextAndMarksReadable_When_UsingTheTunedPalette", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "dark", stored: "light" });
+
+    // act
+    const ratios = await page.evaluate(() => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      const parse = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+      };
+      const channel = (value: number) => {
+        const unit = value / 255;
+        return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = (rgb: number[]) =>
+        channel(rgb[0]) * 0.2126 +
+        channel(rgb[1]) * 0.7152 +
+        channel(rgb[2]) * 0.0722;
+      const styles = getComputedStyle(document.documentElement);
+      const ratio = (token: string, surface: string) => {
+        const [low, high] = [
+          luminance(parse(styles.getPropertyValue(token).trim())),
+          luminance(parse(surface)),
+        ].sort((x, y) => x - y);
+        return Number(((high + 0.05) / (low + 0.05)).toFixed(2));
+      };
+      return {
+        ink: ratio("--color-cc-ink", "#f5f1ea"),
+        muted: ratio("--color-cc-ink-dim", "#f5f1ea"),
+        navLabel: ratio("--color-cc-nav-label", "#f5f1ea"),
+        accentOnPage: ratio("--color-cc-accent", "#f5f1ea"),
+        accentOnRaised: ratio("--color-cc-accent", "#fdfbf7"),
+        accentOnCode: ratio("--color-cc-accent", "#ebe4d6"),
+        accentOnSelected: ratio("--color-cc-accent", "#e8e0d0"),
+        hoverOnPage: ratio("--color-cc-accent-hover", "#f5f1ea"),
+        cardBorder: ratio("--color-cc-card-border", "#f5f1ea"),
+        controlBorder: ratio("--color-cc-control-border", "#f5f1ea"),
+        vividOnPage: ratio("--color-cc-accent-vivid", "#f5f1ea"),
+      };
+    });
+
+    // assert
+    expect(ratios.ink).toBeGreaterThanOrEqual(11);
+    expect(ratios.muted).toBeGreaterThanOrEqual(7);
+    expect(ratios.navLabel).toBeGreaterThanOrEqual(7);
+    expect(
+      [
+        ratios.accentOnPage,
+        ratios.accentOnRaised,
+        ratios.accentOnCode,
+        ratios.accentOnSelected,
+        ratios.hoverOnPage,
+      ].every((value) => value >= 4.5),
+      JSON.stringify(ratios),
+    ).toBe(true);
+    expect(ratios.cardBorder).toBeGreaterThanOrEqual(2);
+    expect(ratios.controlBorder).toBeGreaterThanOrEqual(3);
+    expect(ratios.vividOnPage).toBeLessThan(3);
+  });
+});
+
 test.describe("Light and Dark toggle rules in the production build", () => {
   test("Should_ShipToggleRules_When_LoadingTheFusionPage", async ({ open }) => {
     // arrange

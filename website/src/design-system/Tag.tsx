@@ -21,7 +21,7 @@ export type TagProps = LinkTagProps | StaticTagProps;
 const BASE_CLASSES =
   "inline-flex items-center rounded-full border border-cc-card-border bg-cc-hover px-3 py-1 text-xs font-medium text-cc-ink-dim no-underline transition-colors";
 const INTERACTIVE_CLASSES =
-  "hover:border-cc-accent-hover hover:bg-cc-accent/10 hover:text-cc-accent-hover";
+  "hover:border-cc-accent-hover hover:bg-cc-accent-vivid/10 hover:text-cc-accent-hover";
 
 export function Tag(props: TagProps) {
   const { children, className, title } = props;
