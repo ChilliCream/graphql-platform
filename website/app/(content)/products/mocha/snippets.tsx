@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 
-import { CORAL, CYAN, GREEN, VIOLET } from "@/src/components/mocha/palette";
+import {
+  CORAL_TEXT,
+  CYAN_TEXT,
+  GREEN_TEXT,
+  VIOLET_TEXT,
+} from "@/src/components/mocha/palette";
 
 /* ============================================================================
    Standalone code blocks for the sections. The animated visuals contain no
@@ -63,21 +68,21 @@ function hl(code: string): ReactNode[] {
     if (m[1]) {
       push(m[1], undefined, true); // comment
     } else if (m[2]) {
-      push(m[2], GREEN); // string
+      push(m[2], GREEN_TEXT); // string
     } else if (m[4]) {
       push(m[3], undefined, true); // dot
-      push(m[4], CORAL); // method call
+      push(m[4], CORAL_TEXT); // method call
     } else if (m[6]) {
       push(m[5], undefined, true); // dot
       push(m[6]); // property access
     } else if (m[7]) {
       if (KEYWORDS.test(m[7])) {
-        push(m[7], VIOLET);
+        push(m[7], VIOLET_TEXT);
       } else {
         push(m[7]);
       }
     } else if (m[8]) {
-      push(m[8], CYAN); // type name
+      push(m[8], CYAN_TEXT); // type name
     }
   }
   plain(code.slice(last));

@@ -13,7 +13,7 @@ import { HeroBoard } from "@/src/components/mocha/HeroBoard";
 import {
   CORAL,
   CYAN,
-  GREEN,
+  GREEN_TEXT,
   TEAL,
   VIOLET,
 } from "@/src/components/mocha/palette";
@@ -478,8 +478,9 @@ export function ClientPage() {
                 The inbox and the handler&apos;s changes are committed together,
                 while any outgoing messages are held until that transaction
                 succeeds. For database operations, this provides effectively
-                exactly-once <span style={{ color: GREEN }}>processing</span>{" "}
-                for as long as the inbox record is retained.
+                exactly-once{" "}
+                <span style={{ color: GREEN_TEXT }}>processing</span> for as
+                long as the inbox record is retained.
               </p>
             </Intro>
           }

@@ -21,6 +21,7 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { DARK_STAGE_PROPS } from "@/src/components/darkStage";
+import { lightDark } from "@/src/components/lightDark";
 import { NitroReel } from "@/src/nitro";
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
@@ -1161,7 +1162,9 @@ function SignalsBento() {
             <div className="flex items-baseline gap-2">
               <span
                 className="font-heading text-h4 tabular-nums"
-                style={{ color: "#f0786a" }}
+                style={{
+                  color: lightDark("var(--color-cc-danger)", "#f0786a"),
+                }}
               >
                 0.31%
               </span>
@@ -1322,7 +1325,12 @@ function DeliveryBand() {
                 </div>
                 <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-3 font-mono text-xs">
                   <div className="text-cc-ink-dim">POST /graphql</div>
-                  <div className="mt-1 truncate" style={{ color: "#16b9e4" }}>
+                  <div
+                    className="mt-1 truncate"
+                    style={{
+                      color: lightDark("var(--color-cc-accent)", "#16b9e4"),
+                    }}
+                  >
                     documentId: sha256:7f3a9b2e…
                   </div>
                   <div className="text-cc-success mt-1">

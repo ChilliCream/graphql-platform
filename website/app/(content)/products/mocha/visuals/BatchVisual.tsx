@@ -11,9 +11,10 @@ import {
   AMBER,
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
-  MONO_FONT,
   CYAN_TEXT,
+  MONO_FONT,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -372,7 +373,7 @@ export function BatchVisual() {
           </text>
 
           <text x={L.slotL} y={MID_Y - 20} fontFamily={MONO_FONT} fontSize={10}>
-            <tspan ref={set("cnt")} fill={CORAL_SOFT}>
+            <tspan ref={set("cnt")} fill={CORAL_SOFT_TEXT}>
               48
             </tspan>
             <tspan fill={SILK_SOFT}>{" / 100"}</tspan>
@@ -521,7 +522,7 @@ export function BatchVisual() {
               y={ROW_Y + 21}
               fontFamily={MONO_FONT}
               fontSize={10}
-              fill={CORAL_SOFT}
+              fill={CORAL_SOFT_TEXT}
             >
               {ROW_SEGS.map((s) => s.t).join("")}
             </text>

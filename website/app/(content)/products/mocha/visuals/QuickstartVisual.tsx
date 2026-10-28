@@ -4,8 +4,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   CORAL,
   CORAL_SOFT,
+  CORAL_TEXT,
   CYAN_TEXT,
-  VIOLET,
+  VIOLET_TEXT,
 } from "@/src/components/mocha/palette";
 import { lightDark } from "@/src/components/lightDark";
 
@@ -22,9 +23,9 @@ const TRAIL_R = [1.8, 1.4, 1];
 const TAG_DIM = "var(--color-cc-ink-dim)";
 const ACTIVE_BORDER = "rgba(240,120,106,0.4)";
 
-const KW = { color: VIOLET };
+const KW = { color: VIOLET_TEXT };
 const TY = { color: CYAN_TEXT };
-const MT = { color: CORAL };
+const MT = { color: CORAL_TEXT };
 
 interface Geom {
   readonly x: number;
@@ -188,7 +189,7 @@ export function QuickstartVisual() {
       const tag = tagRefs.current[i];
       const panel = panelRefs.current[i];
       if (tag) {
-        tag.style.color = on ? CORAL : TAG_DIM;
+        tag.style.color = on ? CORAL_TEXT : TAG_DIM;
       }
       if (panel) {
         panel.style.borderColor = on ? ACTIVE_BORDER : "";
@@ -394,7 +395,7 @@ export function QuickstartVisual() {
                 }}
                 className="mb-1.5 font-mono text-[0.7rem] tracking-[0.15em] uppercase"
                 style={{
-                  color: i === 0 ? CORAL : TAG_DIM,
+                  color: i === 0 ? CORAL_TEXT : TAG_DIM,
                   transition: "color .3s",
                 }}
               >

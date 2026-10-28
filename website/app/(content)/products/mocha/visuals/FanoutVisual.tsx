@@ -14,9 +14,10 @@ import {
   ramp,
 } from "@/src/components/mocha/geometry";
 import {
-  AMBER,
+  AMBER_TEXT,
   CORAL,
   CORAL_SOFT,
+  CORAL_TEXT,
   CYAN,
   GREEN_TEXT,
   MONO_FONT,
@@ -83,7 +84,7 @@ const STATIC_LIT = [0.6, 0.3, 0.45] as const;
 
 const NTAGS = [
   { t: "in step", f: SLATE_TEXT, o: 0.55 },
-  { t: "offline", f: AMBER, o: 0.95 },
+  { t: "offline", f: AMBER_TEXT, o: 0.95 },
   { t: "catching up", f: GREEN_TEXT, o: 0.95 },
   { t: "nothing lost", f: GREEN_TEXT, o: 0.6 },
 ] as const;
@@ -650,7 +651,7 @@ export function FanoutVisual() {
               fontFamily={MONO_FONT}
               fontSize={10}
               letterSpacing={1.2}
-              fill={CORAL}
+              fill={CORAL_TEXT}
             >
               ORDERS
             </text>

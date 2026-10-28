@@ -9,14 +9,18 @@ import {
 } from "@/src/components/mocha/geometry";
 import {
   AMBER,
+  AMBER_TEXT,
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
+  CORAL_TEXT,
   CYAN,
   CYAN_TEXT,
   GREEN,
   GREEN_TEXT,
   MONO_FONT,
   VIOLET,
+  VIOLET_TEXT,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -61,11 +65,11 @@ const L_ROW1: readonly Seg[] = [
 ];
 
 const L_ROW2: readonly Seg[] = [
-  { t: "OUTBOX", f: CORAL },
+  { t: "OUTBOX", f: CORAL_TEXT },
   { t: " · ", f: INK },
-  { t: "OrderPlaced", f: CORAL_SOFT },
+  { t: "OrderPlaced", f: CORAL_SOFT_TEXT },
   { t: " · ", f: INK },
-  { t: "7f3a", f: CORAL },
+  { t: "7f3a", f: CORAL_TEXT },
 ];
 
 const R_ROW1: readonly Seg[] = [
@@ -87,7 +91,7 @@ const MAX_CHARS = 27;
 const STATUS = [
   { t: "new", f: DIM },
   { t: "recorded", f: CYAN_TEXT },
-  { t: "seen — skip", f: AMBER },
+  { t: "seen — skip", f: AMBER_TEXT },
 ] as const;
 
 interface Panel {
@@ -1015,7 +1019,7 @@ export function OutboxVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.04em"
-            fill={AMBER}
+            fill={AMBER_TEXT}
             opacity={0}
           >
             redelivery · 7f3a
@@ -1113,7 +1117,7 @@ export function OutboxVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.1em"
-            fill={VIOLET}
+            fill={VIOLET_TEXT}
             opacity={0.85}
           >
             RABBITMQ

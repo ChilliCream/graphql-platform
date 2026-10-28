@@ -15,6 +15,7 @@ import {
 import {
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
   GREEN,
   GREEN_TEXT,
@@ -730,7 +731,7 @@ export function RequestReplyVisual() {
               fontFamily={MONO_FONT}
               fontSize={10}
               letterSpacing="0.04em"
-              fill={CORAL_SOFT}
+              fill={CORAL_SOFT_TEXT}
             >
               GetProductHandler
             </text>

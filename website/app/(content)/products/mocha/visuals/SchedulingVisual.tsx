@@ -10,8 +10,10 @@ import {
 } from "@/src/components/mocha/geometry";
 import {
   AMBER,
+  AMBER_TEXT,
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
   GREEN,
   MONO_FONT,
@@ -490,7 +492,7 @@ export function SchedulingVisual() {
               fontSize={10.5}
             >
               <tspan fill={SILK_SOFT}>{"delivers in "}</tspan>
-              <tspan ref={set("cdNum")} fill={AMBER}>
+              <tspan ref={set("cdNum")} fill={AMBER_TEXT}>
                 12
               </tspan>
               <tspan fill={SILK_SOFT}>{" min"}</tspan>
@@ -594,7 +596,7 @@ export function SchedulingVisual() {
             y={ROW_TOP + 20}
             fontFamily={MONO_FONT}
             fontSize={10}
-            fill={CORAL_SOFT}
+            fill={CORAL_SOFT_TEXT}
           >
             WelcomeEmail
           </text>
@@ -735,7 +737,7 @@ export function SchedulingVisual() {
             y={ROW_TOP + 20}
             fontFamily={MONO_FONT}
             fontSize={10}
-            fill={CORAL_SOFT}
+            fill={CORAL_SOFT_TEXT}
             opacity={0}
           >
             SendWelcomeEmailHandler

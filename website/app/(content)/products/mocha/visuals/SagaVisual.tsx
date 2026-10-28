@@ -5,8 +5,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { easeOutCubic } from "@/src/components/mocha/geometry";
 import {
   AMBER,
+  AMBER_TEXT,
   CORAL,
   CORAL_SOFT,
+  CORAL_TEXT,
   CYAN,
   CYAN_TEXT,
   GREEN,
@@ -67,7 +69,13 @@ const CHIP_STYLES = {
     ledOp: 0,
   },
   active: { text: CYAN_TEXT, edge: CYAN, edgeOp: 0.55, led: CYAN, ledOp: 0.9 },
-  amber: { text: AMBER, edge: AMBER, edgeOp: 0.55, led: AMBER, ledOp: 0.9 },
+  amber: {
+    text: AMBER_TEXT,
+    edge: AMBER,
+    edgeOp: 0.55,
+    led: AMBER,
+    ledOp: 0.9,
+  },
   final: { text: GREEN_TEXT, edge: GREEN, edgeOp: 0.6, led: GREEN, ledOp: 0.9 },
 } as const;
 
@@ -436,7 +444,7 @@ export function SagaVisual() {
             enter: () => {
               setChip(0, "visited");
               showToken(CORAL);
-              setLabel(0, CORAL);
+              setLabel(0, CORAL_TEXT);
             },
           },
           {
@@ -456,7 +464,7 @@ export function SagaVisual() {
             enter: () => {
               setChip(1, "visited");
               showToken(CORAL);
-              setLabel(1, CORAL);
+              setLabel(1, CORAL_TEXT);
             },
           },
           {
@@ -491,7 +499,7 @@ export function SagaVisual() {
             enter: () => {
               setChip(0, "visited");
               showToken(CORAL);
-              setLabel(0, CORAL);
+              setLabel(0, CORAL_TEXT);
             },
           },
           {
@@ -518,7 +526,7 @@ export function SagaVisual() {
             fadeOut: true,
             enter: () => {
               showToken(AMBER);
-              setLabel(2, AMBER);
+              setLabel(2, AMBER_TEXT);
             },
           },
           {

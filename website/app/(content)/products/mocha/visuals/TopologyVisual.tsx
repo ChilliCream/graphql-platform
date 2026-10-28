@@ -16,6 +16,7 @@ import {
 import {
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   GREEN_TEXT,
   MONO_FONT,
   SLATE_TEXT,
@@ -614,7 +615,7 @@ export function TopologyVisual() {
                     y={p.y + 51}
                     fontFamily={MONO_FONT}
                     fontSize={9}
-                    fill={CORAL_SOFT}
+                    fill={CORAL_SOFT_TEXT}
                     opacity={0}
                   >
                     {CONSUMERS[i - 1].handler}

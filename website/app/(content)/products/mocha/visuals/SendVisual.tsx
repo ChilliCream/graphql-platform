@@ -15,6 +15,7 @@ import {
 import {
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
   GREEN,
   GREEN_TEXT,
@@ -705,7 +706,7 @@ export function SendVisual() {
             y={ROW_TOP + 21}
             fontFamily={MONO_FONT}
             fontSize={10}
-            fill={CORAL_SOFT}
+            fill={CORAL_SOFT_TEXT}
             opacity={0}
           >
             ReserveInventoryHandler

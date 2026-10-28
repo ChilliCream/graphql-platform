@@ -16,10 +16,12 @@ import {
 import {
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
   CYAN_TEXT,
   MONO_FONT,
   VIOLET,
+  VIOLET_TEXT,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -445,7 +447,7 @@ export function TransportsVisual() {
             y={R1_TOP + 19}
             fontFamily={MONO_FONT}
             fontSize={L.rowFont}
-            fill={CORAL_SOFT}
+            fill={CORAL_SOFT_TEXT}
             opacity={0}
           >
             OrderPlacedHandler
@@ -706,7 +708,7 @@ export function TransportsVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.12em"
-            fill={VIOLET}
+            fill={VIOLET_TEXT}
             opacity={0.85}
           >
             RABBITMQ
