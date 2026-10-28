@@ -105,7 +105,7 @@ export function VideoStage({
               href={channelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-cc-heading text-cc-surface hover:bg-cc-solid-hover inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium no-underline transition-colors"
+              className="bg-cc-solid text-cc-solid-text hover:bg-cc-solid-hover inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium no-underline transition-colors"
             >
               Subscribe
             </a>
