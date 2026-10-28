@@ -12,7 +12,9 @@ import {
   CORAL,
   CORAL_SOFT,
   CYAN,
+  CYAN_TEXT,
   GREEN,
+  GREEN_TEXT,
   MONO_FONT,
   VIOLET,
 } from "@/src/components/mocha/palette";
@@ -67,9 +69,9 @@ const L_ROW2: readonly Seg[] = [
 ];
 
 const R_ROW1: readonly Seg[] = [
-  { t: "INBOX", f: CYAN },
+  { t: "INBOX", f: CYAN_TEXT },
   { t: " · ", f: INK },
-  { t: "7f3a", f: CYAN },
+  { t: "7f3a", f: CYAN_TEXT },
   { t: " · ", f: INK },
 ];
 
@@ -84,7 +86,7 @@ const MAX_CHARS = 27;
 
 const STATUS = [
   { t: "new", f: DIM },
-  { t: "recorded", f: CYAN },
+  { t: "recorded", f: CYAN_TEXT },
   { t: "seen — skip", f: AMBER },
 ] as const;
 
@@ -701,7 +703,7 @@ export function OutboxVisual() {
               fontFamily={MONO_FONT}
               fontSize={9}
               letterSpacing="0.14em"
-              fill={GREEN}
+              fill={GREEN_TEXT}
             >
               COMMIT
             </text>
@@ -961,7 +963,7 @@ export function OutboxVisual() {
               fontFamily={MONO_FONT}
               fontSize={9}
               letterSpacing="0.14em"
-              fill={GREEN}
+              fill={GREEN_TEXT}
             >
               COMMIT
             </text>

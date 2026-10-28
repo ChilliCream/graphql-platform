@@ -18,9 +18,10 @@ import {
   CORAL,
   CORAL_SOFT,
   CYAN,
-  GREEN,
+  GREEN_TEXT,
   MONO_FONT,
   SLATE,
+  SLATE_TEXT,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -81,10 +82,10 @@ const STATIC_DOTS = [1, 2, 3] as const;
 const STATIC_LIT = [0.6, 0.3, 0.45] as const;
 
 const NTAGS = [
-  { t: "in step", f: SLATE, o: 0.55 },
+  { t: "in step", f: SLATE_TEXT, o: 0.55 },
   { t: "offline", f: AMBER, o: 0.95 },
-  { t: "catching up", f: GREEN, o: 0.95 },
-  { t: "nothing lost", f: GREEN, o: 0.6 },
+  { t: "catching up", f: GREEN_TEXT, o: 0.95 },
+  { t: "nothing lost", f: GREEN_TEXT, o: 0.6 },
 ] as const;
 
 interface Layout {
@@ -113,6 +114,10 @@ function mixColor(a: string, b: string, t: number): string {
     return Math.round(ca + (cb - ca) * t);
   };
   return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`;
+}
+
+function nameTone(t: number): string {
+  return lightDark(mixColor("#4a566c", "#075e75", t), mixColor(SLATE, CYAN, t));
 }
 
 function buildLayout(lw: number): Layout {
@@ -248,6 +253,7 @@ export function FanoutVisual() {
         const glow = E.get(`c${r}g`);
         const name = E.get(`c${r}n`);
         const color = mixColor(SLATE, CYAN, f);
+        const nameColor = nameTone(f);
         if (base) {
           base.setAttribute("stroke", color);
           base.setAttribute(
@@ -259,7 +265,7 @@ export function FanoutVisual() {
           glow.setAttribute("opacity", (0.22 * f).toFixed(3));
         }
         if (name) {
-          name.setAttribute("fill", color);
+          name.setAttribute("fill", nameColor);
           name.setAttribute(
             "fill-opacity",
             ((0.75 + 0.25 * f) * (1 - 0.5 * off)).toFixed(3),
@@ -739,7 +745,7 @@ export function FanoutVisual() {
                   fontFamily={MONO_FONT}
                   fontSize={10}
                   letterSpacing={0.9}
-                  fill={color}
+                  fill={nameTone(lit)}
                   fillOpacity={0.75 + 0.25 * lit}
                 >
                   {s.name}
@@ -778,7 +784,7 @@ export function FanoutVisual() {
                   fontFamily={MONO_FONT}
                   fontSize={9}
                   letterSpacing={1}
-                  fill={r === 2 ? GREEN : SLATE}
+                  fill={r === 2 ? GREEN_TEXT : SLATE_TEXT}
                   opacity={r === 2 ? 0.9 : 0.55}
                   style={{ transition: "fill .3s, opacity .3s" }}
                 >

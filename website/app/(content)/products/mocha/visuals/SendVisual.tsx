@@ -17,8 +17,9 @@ import {
   CORAL_SOFT,
   CYAN,
   GREEN,
+  GREEN_TEXT,
   MONO_FONT,
-  SLATE,
+  SLATE_TEXT,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -565,7 +566,7 @@ export function SendVisual() {
             y={ROW_TOP + 21}
             fontFamily={MONO_FONT}
             fontSize={10}
-            fill={CYAN_SOFT}
+            fill={lightDark("var(--color-cc-accent)", CYAN_SOFT)}
             opacity={0}
           >
             PlaceOrderHandler
@@ -844,7 +845,7 @@ export function SendVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.04em"
-            fill={SLATE}
+            fill={SLATE_TEXT}
             fillOpacity={0.9}
           >
             POST /orders
@@ -856,7 +857,7 @@ export function SendVisual() {
               fontFamily={MONO_FONT}
               fontSize={9}
               letterSpacing="0.04em"
-              fill={GREEN}
+              fill={GREEN_TEXT}
             >
               200 · already returned
             </text>

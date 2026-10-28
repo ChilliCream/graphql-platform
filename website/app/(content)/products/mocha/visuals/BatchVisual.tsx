@@ -13,6 +13,7 @@ import {
   CORAL_SOFT,
   CYAN,
   MONO_FONT,
+  CYAN_TEXT,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
@@ -571,7 +572,7 @@ export function BatchVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.04em"
-            fill={CYAN}
+            fill={CYAN_TEXT}
             opacity={0}
           >
             HandleAsync(batch · 100)

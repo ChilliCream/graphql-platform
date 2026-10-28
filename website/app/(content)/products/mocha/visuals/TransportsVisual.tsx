@@ -17,6 +17,7 @@ import {
   CORAL,
   CORAL_SOFT,
   CYAN,
+  CYAN_TEXT,
   MONO_FONT,
   VIOLET,
 } from "@/src/components/mocha/palette";
@@ -506,7 +507,7 @@ export function TransportsVisual() {
             textAnchor="end"
             fontFamily={MONO_FONT}
             fontSize={L.rowFont}
-            fill={CYAN}
+            fill={CYAN_TEXT}
             style={{ fontVariantNumeric: "tabular-nums" }}
           >
             {fmtCount(COUNT_BASE)}
@@ -752,7 +753,7 @@ export function TransportsVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.12em"
-            fill={CYAN}
+            fill={CYAN_TEXT}
             opacity={0.85}
           >
             EVENT HUB

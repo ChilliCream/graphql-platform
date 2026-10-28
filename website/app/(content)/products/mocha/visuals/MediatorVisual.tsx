@@ -15,7 +15,9 @@ import {
   CORAL,
   CORAL_SOFT,
   CYAN,
+  CYAN_TEXT,
   GREEN,
+  GREEN_TEXT,
   MONO_FONT,
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
@@ -61,7 +63,7 @@ const HAIR = lightDark("rgba(51,65,85,0.22)", "rgba(139,160,188,0.22)");
 const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
 const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
 const INK = lightDark("#334155", "#a1a3af");
-const HANDLER_LIT = "#a5e3f6";
+const HANDLER_LIT = lightDark("var(--color-cc-accent)", "#a5e3f6");
 
 interface Panel {
   readonly label: string;
@@ -575,7 +577,7 @@ export function MediatorVisual() {
               fontFamily={MONO_FONT}
               fontSize={10}
               letterSpacing="0.2em"
-              fill={CYAN}
+              fill={CYAN_TEXT}
               opacity={0.75}
             >
               HANDLER
@@ -704,7 +706,7 @@ export function MediatorVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.02em"
-            fill={GREEN}
+            fill={GREEN_TEXT}
             opacity={0.45}
           >
             PlaceOrderResult

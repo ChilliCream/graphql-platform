@@ -16,9 +16,9 @@ import {
 import {
   CORAL,
   CORAL_SOFT,
-  GREEN,
+  GREEN_TEXT,
   MONO_FONT,
-  SLATE,
+  SLATE_TEXT,
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
@@ -514,7 +514,7 @@ export function TopologyVisual() {
                 textAnchor="middle"
                 fontFamily={MONO_FONT}
                 fontSize={9}
-                fill={SLATE}
+                fill={SLATE_TEXT}
                 fillOpacity={0.85}
               >
                 {CONSUMERS[i].queue}
@@ -530,7 +530,7 @@ export function TopologyVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.04em"
-            fill={GREEN}
+            fill={GREEN_TEXT}
             opacity={0.85}
           >
             ✓ topology validated at startup

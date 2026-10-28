@@ -8,7 +8,9 @@ import {
   CORAL,
   CORAL_SOFT,
   CYAN,
+  CYAN_TEXT,
   GREEN,
+  GREEN_TEXT,
   MONO_FONT,
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
@@ -57,10 +59,16 @@ const IDLE_TEXT = lightDark("#4a566c", "#62748e");
 
 const CHIP_STYLES = {
   idle: { text: IDLE_TEXT, edge: CYAN, edgeOp: 0, led: CYAN, ledOp: 0 },
-  visited: { text: CYAN + "b3", edge: CYAN, edgeOp: 0.2, led: CYAN, ledOp: 0 },
-  active: { text: CYAN, edge: CYAN, edgeOp: 0.55, led: CYAN, ledOp: 0.9 },
+  visited: {
+    text: lightDark("var(--color-cc-accent)", CYAN + "b3"),
+    edge: CYAN,
+    edgeOp: 0.2,
+    led: CYAN,
+    ledOp: 0,
+  },
+  active: { text: CYAN_TEXT, edge: CYAN, edgeOp: 0.55, led: CYAN, ledOp: 0.9 },
   amber: { text: AMBER, edge: AMBER, edgeOp: 0.55, led: AMBER, ledOp: 0.9 },
-  final: { text: GREEN, edge: GREEN, edgeOp: 0.6, led: GREEN, ledOp: 0.9 },
+  final: { text: GREEN_TEXT, edge: GREEN, edgeOp: 0.6, led: GREEN, ledOp: 0.9 },
 } as const;
 
 type ChipState = keyof typeof CHIP_STYLES;
@@ -817,7 +825,7 @@ export function SagaVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.26em"
-            fill={GREEN}
+            fill={GREEN_TEXT}
             opacity={0}
             style={{ transition: "opacity .3s" }}
           >

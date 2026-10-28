@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   CORAL,
   CORAL_SOFT,
-  CYAN,
+  CYAN_TEXT,
   VIOLET,
 } from "@/src/components/mocha/palette";
 import { lightDark } from "@/src/components/lightDark";
@@ -23,7 +23,7 @@ const TAG_DIM = "var(--color-cc-ink-dim)";
 const ACTIVE_BORDER = "rgba(240,120,106,0.4)";
 
 const KW = { color: VIOLET };
-const TY = { color: CYAN };
+const TY = { color: CYAN_TEXT };
 const MT = { color: CORAL };
 
 interface Geom {

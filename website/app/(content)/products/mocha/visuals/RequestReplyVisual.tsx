@@ -17,6 +17,7 @@ import {
   CORAL_SOFT,
   CYAN,
   GREEN,
+  GREEN_TEXT,
   MONO_FONT,
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
@@ -499,7 +500,7 @@ export function RequestReplyVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.02em"
-            fill={GREEN}
+            fill={GREEN_TEXT}
             opacity={0}
           >
             ProductResponse
