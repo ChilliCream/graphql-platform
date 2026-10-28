@@ -1121,6 +1121,32 @@ test.describe("Light accent and contrast tokens", () => {
     });
   }
 
+  test("Should_SizeBloomLayersToThePage_When_FixedAttachmentFallsBack", async ({
+    open,
+  }) => {
+    // arrange
+    const read = (page: Page) =>
+      page.evaluate(() => getComputedStyle(document.body).backgroundSize);
+
+    // act
+    const storedLight = await read(
+      await open("/", { system: "dark", stored: "light" }),
+    );
+    const autoLight = await read(
+      await open("/", { system: "light", javaScript: false }),
+    );
+    const storedDark = await read(
+      await open("/", { system: "light", stored: "dark" }),
+    );
+
+    // assert
+    expect(storedLight).toBe("auto, auto, auto, auto");
+    expect(autoLight).toBe("auto, auto, auto, auto");
+    expect(storedDark).toBe(
+      `${Array(9).fill("1440px 900px").join(", ")}, auto, auto`,
+    );
+  });
+
   test("Should_KeepLightTextAndMarksReadable_When_UsingTheBrightPalette", async ({
     open,
   }) => {

@@ -500,6 +500,16 @@
     background-attachment: fixed;
   }
 
+  :root[data-theme="light"] body {
+    background-size: auto;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) body {
+      background-size: auto;
+    }
+  }
+
   :root[data-theme="light"] :focus-visible {
     outline: 2px solid var(--color-cc-accent);
     outline-offset: 3px;
@@ -559,6 +569,16 @@
     auto,
     auto;
   background-attachment: fixed;
+}
+
+:root[data-theme="light"] .cc-content-dark {
+  background-size: auto;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .cc-content-dark {
+    background-size: auto;
+  }
 }
 
 /* The footer's top margin separates it from regular page content. Docs pages
