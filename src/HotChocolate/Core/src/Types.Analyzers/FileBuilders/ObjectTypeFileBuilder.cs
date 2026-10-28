@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -39,15 +40,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
 
             if (objectType.NodeResolver is not null)
             {
-                Writer.WriteLine();
-                Writer.WriteIndentedLine("descriptor");
-                using (Writer.IncreaseIndent())
-                {
-                    Writer.WriteIndentedLine(".ImplementsNode()");
-                    Writer.WriteIndentedLine(
-                        ".ResolveNode(resolvers.{0}().Resolver!);",
-                        objectType.NodeResolver.Member.Name);
-                }
+                WriteNodeResolver(objectType.NodeResolver);
             }
 
             WriteResolverBindings(objectType);
@@ -58,6 +51,49 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
 
         Writer.WriteIndentedLine("}");
         Writer.WriteLine();
+    }
+
+    private void WriteNodeResolver(Resolver nodeResolver)
+    {
+        Writer.WriteLine();
+
+        var hasDescriptorAttributes = nodeResolver.Member
+            .GetAttributes()
+            .Any(t => t.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.DescriptorAttribute));
+
+        if (!hasDescriptorAttributes)
+        {
+            Writer.WriteIndentedLine("descriptor");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine(".ImplementsNode()");
+                Writer.WriteIndentedLine(
+                    ".ResolveNode(resolvers.{0}().Resolver!);",
+                    nodeResolver.Member.Name);
+            }
+
+            return;
+        }
+
+        Writer.WriteIndentedLine("var nodeDescriptor = descriptor.ImplementsNode();");
+        Writer.WriteIndentedLine(
+            "nodeDescriptor.ResolveNode(resolvers.{0}().Resolver!);",
+            nodeResolver.Member.Name);
+
+        // the descriptor attributes of the node resolver are applied from the member
+        // of the field definition that the node resolver pipeline is compiled from.
+        Writer.WriteIndentedLine(
+            "((global::{0})nodeDescriptor).Extend().Definition.ResolverField!.Member =",
+            WellKnownTypes.NodeDescriptorBase);
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine(
+                "thisType.GetMember(\"{0}\", global::{1})[0];",
+                nodeResolver.Member.Name,
+                nodeResolver.IsStatic
+                    ? WellKnownTypes.StaticMemberFlags
+                    : WellKnownTypes.InstanceMemberFlags);
+        }
     }
 
     public override void WriteResolverFields(IOutputTypeInfo type)

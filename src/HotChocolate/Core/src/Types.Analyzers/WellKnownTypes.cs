@@ -91,6 +91,7 @@ public static class WellKnownTypes
     public const string TypeReference = "HotChocolate.Types.Descriptors.TypeReference";
     public const string IDescriptorContext = "HotChocolate.Types.Descriptors.IDescriptorContext";
     public const string ObjectTypeDefinition = "HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition";
+    public const string NodeDescriptorBase = "HotChocolate.Types.Relay.Descriptors.NodeDescriptorBase";
     public const string NonNullType = "HotChocolate.Types.NonNullType";
     public const string ListType = "HotChocolate.Types.ListType";
     public const string ConnectionFlags = "HotChocolate.Types.Pagination.ConnectionFlags";

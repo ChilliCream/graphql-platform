@@ -1,8 +1,10 @@
 #pragma warning disable RCS1102 // Make class static
+using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -299,6 +301,40 @@ public class NodeResolverTests
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
+    [Fact]
+    public async Task ResolveNodeWith_Should_ApplyResolverDirectives_When_NodeDescriptorIsTyped()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddGlobalObjectIdentification()
+            .AddDirectiveType<UpperCaseDirectiveType>()
+            .AddObjectType<Entity>(d =>
+            {
+                d.ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<EntityResolvers>(t => EntityResolvers.GetEntity(null!));
+            })
+            .AddQueryType<Query>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ node(id: \"RW50aXR5OmZvbw==\") { ... on Entity { name } } }");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": {
+                  "name": "FOO"
+                }
+              }
+            }
+            """);
+    }
+
     public class Query
     {
         public Entity GetEntity(string name) => new Entity { Name = name, };
@@ -327,6 +363,39 @@ public class NodeResolverTests
         }
 
         public string Name { get; set; }
+    }
+
+    public class EntityResolvers
+    {
+        [UpperCase]
+        public static Entity GetEntity(string id) => new() { Name = id };
+    }
+
+    public class UpperCaseDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("upperCase");
+            descriptor.Location(DirectiveLocation.FieldDefinition);
+            descriptor.Use((next, _) => async context =>
+            {
+                await next(context);
+
+                if (context.Result is Entity entity)
+                {
+                    entity.Name = entity.Name.ToUpperInvariant();
+                }
+            });
+        }
+    }
+
+    public class UpperCaseAttribute : ObjectFieldDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
+            => descriptor.Directive("upperCase");
     }
 
     public class Entity2

@@ -2,6 +2,7 @@ namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownAttributes
 {
+    public const string DescriptorAttribute = "HotChocolate.Types.DescriptorAttribute";
     public const string ModuleAttribute = "HotChocolate.ModuleAttribute";
     public const string ExtendObjectTypeAttribute = "HotChocolate.Types.ExtendObjectTypeAttribute";
     public const string ObjectTypeAttribute = "HotChocolate.Types.ObjectTypeAttribute";
