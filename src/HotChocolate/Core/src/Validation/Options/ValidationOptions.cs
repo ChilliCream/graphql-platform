@@ -121,6 +121,7 @@ public sealed class ValidationOptions
     /// Each time a fragment spread is entered counts as one visit.
     /// This prevents adversarial queries with deeply nested or repeated
     /// fragment spreads from consuming unbounded CPU.
+    /// An operation that exceeds the limit is rejected.
     /// </para>
     /// <para>Default: <c>1,000</c></para>
     /// </summary>

@@ -1661,7 +1661,7 @@ builder
 
 ## Fragment visit budget
 
-Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget will have remaining fragments skipped during validation. If you have complex queries with many fragment spreads, increase the limit:
+Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget are rejected with the error code `HC0137`. If you have complex queries with many fragment spreads, increase the limit:
 
 ```csharp
 builder

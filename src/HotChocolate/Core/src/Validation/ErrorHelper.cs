@@ -718,5 +718,18 @@ internal static class ErrorHelper
                     .SetPath(context.CreateErrorPath())
                     .Build());
         }
+
+        public void ReportMaxFragmentVisitsOverflow(ISyntaxNode selection)
+        {
+            context.FatalErrorDetected = true;
+
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage("Maximum allowed fragment visits were exceeded.")
+                    .SetCode(ErrorCodes.Validation.MaxFragmentVisitsOverflow)
+                    .AddLocation(selection)
+                    .SetPath(context.CreateErrorPath())
+                    .Build());
+        }
     }
 }
