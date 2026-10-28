@@ -55,13 +55,14 @@ export function BenchmarkHistoryChart({
   const dateLabel = (timestamp: number) =>
     formatHistoryDate(timestamp, includeYear);
   const maxPoints = Math.max(...series.map((item) => item.points.length));
-  const { measuredRuns } = scenario.config;
-  const failureNote = (point: HistoryPoint) =>
-    !point.failed
+  const failureNote = (point: HistoryPoint) => {
+    const measuredRuns = point.measuredRuns ?? scenario.config.measuredRuns;
+    return !point.failed
       ? undefined
       : measuredRuns !== undefined && point.completedRuns < measuredRuns
         ? `Only ${point.completedRuns} of ${measuredRuns} runs completed`
         : "Failed";
+  };
   const compositionName = (item: HistorySeries) =>
     COMPOSITION_GROUPS.find((group) => group.id === item.composition)?.name;
 
