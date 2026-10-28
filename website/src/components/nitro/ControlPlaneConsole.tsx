@@ -12,10 +12,15 @@ import { useEffect, useRef, useState } from "react";
 
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { lightDark } from "@/src/components/lightDark";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
-const ACCENT = "#5eead4";
+const ACCENT = lightDark("var(--color-cc-success)", "#5eead4");
+
+function lightWash(token: string, percent: number): string {
+  return `color-mix(in srgb, var(${token}) ${percent}%, transparent)`;
+}
 
 interface KpiTileProps {
   readonly label: string;
@@ -236,7 +241,10 @@ function Waterfall({ inView, reduceMotion }: WaterfallProps) {
               y={y + barH / 2 - 0.25}
               width={100}
               height={0.5}
-              fill="rgba(255,255,255,0.04)"
+              fill={lightDark(
+                "var(--color-cc-hover)",
+                "rgba(255,255,255,0.04)",
+              )}
             />
             <motion.rect
               x={lane.start}
@@ -275,9 +283,21 @@ const DIFF_PALETTE: Record<
   DiffKind,
   { fg: string; bg: string; label: string }
 > = {
-  safe: { fg: ACCENT, bg: "rgba(94,234,212,0.12)", label: "Safe" },
-  dangerous: { fg: "#16b9e4", bg: "rgba(22,185,228,0.12)", label: "Dangerous" },
-  breaking: { fg: "#f0786a", bg: "rgba(240,120,106,0.14)", label: "Breaking" },
+  safe: {
+    fg: ACCENT,
+    bg: lightDark(lightWash("--color-cc-success", 12), "rgba(94,234,212,0.12)"),
+    label: "Safe",
+  },
+  dangerous: {
+    fg: lightDark("var(--color-cc-accent)", "#16b9e4"),
+    bg: lightDark(lightWash("--color-cc-accent", 12), "rgba(22,185,228,0.12)"),
+    label: "Dangerous",
+  },
+  breaking: {
+    fg: lightDark("var(--color-cc-danger)", "#f0786a"),
+    bg: lightDark(lightWash("--color-cc-danger", 10), "rgba(240,120,106,0.14)"),
+    label: "Breaking",
+  },
 };
 
 const SCHEMA_DIFFS: ReadonlyArray<DiffEntry> = [
@@ -358,8 +378,7 @@ export function ControlPlaneConsole({ className }: ControlPlaneConsoleProps) {
           <span className="text-cc-ink-dim font-mono text-[10px]">live</span>
         }
         glow={{
-          background:
-            "radial-gradient(50% 50% at 50% 30%, rgba(94,234,212,0.16), transparent 70%)",
+          background: `radial-gradient(50% 50% at 50% 30%, ${lightDark(lightWash("--color-cc-success", 12), "rgba(94,234,212,0.16)")}, transparent 70%)`,
           inset: "-inset-x-10 -inset-y-8",
           blur: "blur-3xl",
           rounded: "rounded-[2.5rem]",
