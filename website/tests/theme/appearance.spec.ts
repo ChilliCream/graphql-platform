@@ -679,11 +679,11 @@ test.describe("appearance selector", () => {
     expect((await root(page)).stored).toBe("light");
   });
 
-  for (const [width, box, bordered] of [
-    [1440, 32, true],
-    [1280, 32, true],
-    [1279, 28, false],
-    [1060, 28, false],
+  for (const [width, box] of [
+    [1440, 32],
+    [1280, 32],
+    [1279, 28],
+    [1060, 28],
   ] as const) {
     test(`Should_FitHeaderWithoutOverflow_When_Width${width}`, async ({
       open,
@@ -729,7 +729,7 @@ test.describe("appearance selector", () => {
         }
       }
       expect(boxes).toEqual([box, box, box]);
-      expect(borderWidth > 0).toBe(bordered);
+      expect(borderWidth).toBeGreaterThan(0);
     });
   }
 

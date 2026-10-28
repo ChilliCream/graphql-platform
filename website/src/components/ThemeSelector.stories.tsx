@@ -55,6 +55,7 @@ export const Auto: Story = {
     });
     expect(within(group).getByRole("radio", { name: "Auto" })).toBeChecked();
     expect(document.documentElement.dataset.theme).toBe(systemTheme());
+    expect(getComputedStyle(group).borderTopWidth).toBe("1px");
   },
 };
 

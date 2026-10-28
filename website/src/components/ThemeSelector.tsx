@@ -52,7 +52,7 @@ const CHECKED_HIGHLIGHT =
 
 const OPTION_SIZES = {
   compact: {
-    group: "max-[1280px]:border-0 max-[1280px]:p-0",
+    group: "",
     box: "h-8 w-8 max-[1280px]:h-7 max-[1280px]:w-7",
     icon: "h-4 w-4",
   },
