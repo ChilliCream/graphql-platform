@@ -17,77 +17,92 @@ internal static class EntitiesResolver
     {
         var tasks = ArrayPool<Task<object?>>.Shared.Rent(representations.Count);
         var result = new object?[representations.Count];
+        var started = 0;
 
-        for (var i = 0; i < representations.Count; i++)
+        try
         {
-            context.RequestAborted.ThrowIfCancellationRequested();
-
-            var current = representations[i];
-
-            if (schema.Types.TryGetType<ObjectType>(current.TypeName, out var objectType)
-                && objectType.Features.TryGet(out ReferenceResolver? entity))
+            for (var i = 0; i < representations.Count; i++)
             {
-                // We clone the resolver context here so that we can split the work
-                // into subtasks that can be awaited in parallel and produce separate results.
-                var entityContext = context.Clone();
+                context.RequestAborted.ThrowIfCancellationRequested();
 
-                entityContext.SetLocalState(TypeField, objectType);
-                entityContext.SetLocalState(DataField, current.Data);
+                var current = representations[i];
 
-                tasks[i] = ResolveEntityAsync(entity.Resolver, entityContext, objectType, current.Data);
-                continue;
-            }
-
-            if (schema.Types.TryGetType<InterfaceType>(current.TypeName, out var interfaceType)
-                && interfaceType.Features.TryGet(out ReferenceResolver? entityInterface))
-            {
-                // We clone the resolver context here so that we can split the work
-                // into subtasks that can be awaited in parallel and produce separate results.
-                var entityContext = context.Clone();
-
-                entityContext.SetLocalState(TypeField, interfaceType);
-                entityContext.SetLocalState(DataField, current.Data);
-
-                tasks[i] = entityInterface.Resolver.Invoke(entityContext).AsTask();
-                continue;
-            }
-
-            throw ThrowHelper.EntityResolver_NoResolverFound();
-        }
-
-        for (var i = 0; i < representations.Count; i++)
-        {
-            context.RequestAborted.ThrowIfCancellationRequested();
-
-            var task = tasks[i];
-            if (task.IsCompleted)
-            {
-                if (task.Exception is null)
+                if (schema.Types.TryGetType<ObjectType>(current.TypeName, out var objectType)
+                    && objectType.Features.TryGet(out ReferenceResolver? entity))
                 {
-                    result[i] = task.Result;
+                    // We clone the resolver context here so that we can split the work
+                    // into subtasks that can be awaited in parallel and produce separate results.
+                    var entityContext = context.Clone();
+
+                    entityContext.SetLocalState(TypeField, objectType);
+                    entityContext.SetLocalState(DataField, current.Data);
+
+                    tasks[i] = ResolveEntityAsync(entity.Resolver, entityContext, objectType, current.Data);
+                    started++;
+                    continue;
+                }
+
+                if (schema.Types.TryGetType<InterfaceType>(current.TypeName, out var interfaceType)
+                    && interfaceType.Features.TryGet(out ReferenceResolver? entityInterface))
+                {
+                    // We clone the resolver context here so that we can split the work
+                    // into subtasks that can be awaited in parallel and produce separate results.
+                    var entityContext = context.Clone();
+
+                    entityContext.SetLocalState(TypeField, interfaceType);
+                    entityContext.SetLocalState(DataField, current.Data);
+
+                    tasks[i] = entityInterface.Resolver.Invoke(entityContext).AsTask();
+                    started++;
+                    continue;
+                }
+
+                throw ThrowHelper.EntityResolver_NoResolverFound();
+            }
+
+            for (var i = 0; i < representations.Count; i++)
+            {
+                context.RequestAborted.ThrowIfCancellationRequested();
+
+                var task = tasks[i];
+                if (task.IsCompleted)
+                {
+                    if (task.Exception is null)
+                    {
+                        result[i] = task.Result;
+                    }
+                    else
+                    {
+                        result[i] = null;
+                        ReportError(context, i, task.Exception);
+                    }
                 }
                 else
                 {
-                    result[i] = null;
-                    ReportError(context, i, task.Exception);
+                    try
+                    {
+                        result[i] = await task;
+                    }
+                    catch (Exception ex)
+                    {
+                        result[i] = null;
+                        ReportError(context, i, ex);
+                    }
                 }
             }
-            else
-            {
-                try
-                {
-                    result[i] = await task;
-                }
-                catch (Exception ex)
-                {
-                    result[i] = null;
-                    ReportError(context, i, ex);
-                }
-            }
-        }
 
-        ArrayPool<Task<object?>>.Shared.Return(tasks, true);
-        return result;
+            return result;
+        }
+        finally
+        {
+            // wait for all started entity resolvers before completing the field.
+            for (var i = 0; i < started; i++)
+            {
+                await ((Task)tasks[i]).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+            }
+
+            ArrayPool<Task<object?>>.Shared.Return(tasks, true);
+        }
     }
 
     private static Task<object?> ResolveEntityAsync(
