@@ -140,6 +140,35 @@ public class NodeFieldSupportTests
     }
 
     [Fact]
+    public async Task Nodes_Should_AwaitStartedNodeResolvers_When_LaterIdIsInvalid()
+    {
+        // arrange
+        var completed = false;
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNode(async (_, id) =>
+                    {
+                        await Task.Delay(250);
+                        completed = true;
+                        return new Bar { Id = id };
+                    }))
+                .BuildRequestExecutorAsync();
+
+        // act
+        await executor.ExecuteAsync("{ nodes(ids: [\"QmFyCmQxMjM=\", \"%%%\"]) { id } }");
+
+        // assert
+        Assert.True(completed);
+    }
+
+    [Fact]
     public async Task Nodes_Get_Many()
     {
         // arrange

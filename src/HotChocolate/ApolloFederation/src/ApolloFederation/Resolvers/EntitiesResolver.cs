@@ -18,65 +18,90 @@ internal static class EntitiesResolver
     {
         var tasks = ArrayPool<Task<object?>>.Shared.Rent(representations.Count);
         var result = new object?[representations.Count];
+        var started = 0;
 
-        for (var i = 0; i < representations.Count; i++)
+        try
         {
-            context.RequestAborted.ThrowIfCancellationRequested();
-
-            var current = representations[i];
-
-            if (schema.TryGetType<ObjectType>(current.TypeName, out var objectType) &&
-                objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
-                value is FieldResolverDelegate resolver)
+            for (var i = 0; i < representations.Count; i++)
             {
-                // We clone the resolver context here so that we can split the work
-                // into sub tasks that can be awaited in parallel and produce separate results.
-                var entityContext = context.Clone();
+                context.RequestAborted.ThrowIfCancellationRequested();
 
-                entityContext.SetLocalState(TypeField, objectType);
-                entityContext.SetLocalState(DataField, current.Data);
+                var current = representations[i];
 
-                tasks[i] = resolver.Invoke(entityContext).AsTask();
-            }
-            else
-            {
-                throw ThrowHelper.EntityResolver_NoResolverFound();
-            }
-        }
-
-        for (var i = 0; i < representations.Count; i++)
-        {
-            context.RequestAborted.ThrowIfCancellationRequested();
-
-            var task = tasks[i];
-            if (task.IsCompleted)
-            {
-                if (task.Exception is null)
+                if (schema.TryGetType<ObjectType>(current.TypeName, out var objectType) &&
+                    objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
+                    value is FieldResolverDelegate resolver)
                 {
-                    result[i] = task.Result;
+                    // We clone the resolver context here so that we can split the work
+                    // into sub tasks that can be awaited in parallel and produce separate results.
+                    var entityContext = context.Clone();
+
+                    entityContext.SetLocalState(TypeField, objectType);
+                    entityContext.SetLocalState(DataField, current.Data);
+
+                    tasks[i] = resolver.Invoke(entityContext).AsTask();
+                    started++;
                 }
                 else
                 {
-                    result[i] = null;
-                    ReportError(context, i, task.Exception);
+                    throw ThrowHelper.EntityResolver_NoResolverFound();
                 }
             }
-            else
+
+            for (var i = 0; i < representations.Count; i++)
             {
+                context.RequestAborted.ThrowIfCancellationRequested();
+
+                var task = tasks[i];
+                if (task.IsCompleted)
+                {
+                    if (task.Exception is null)
+                    {
+                        result[i] = task.Result;
+                    }
+                    else
+                    {
+                        result[i] = null;
+                        ReportError(context, i, task.Exception);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        result[i] = await task;
+                    }
+                    catch (Exception ex)
+                    {
+                        result[i] = null;
+                        ReportError(context, i, ex);
+                    }
+                }
+            }
+
+            return result;
+        }
+        finally
+        {
+            // wait for all started entity resolvers before completing the field.
+            for (var i = 0; i < started; i++)
+            {
+#if NET8_0_OR_GREATER
+                await ((Task)tasks[i]).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+#else
                 try
                 {
-                    result[i] = await task;
+                    await tasks[i].ConfigureAwait(false);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    result[i] = null;
-                    ReportError(context, i, ex);
+                    // the outcome of the task is not used here.
                 }
+#endif
             }
-        }
 
-        ArrayPool<Task<object?>>.Shared.Return(tasks, true);
-        return result;
+            ArrayPool<Task<object?>>.Shared.Return(tasks, true);
+        }
     }
 
     private static void ReportError(IResolverContext context, int item, Exception ex)
