@@ -1,6 +1,6 @@
 import type { BundledTheme } from "shiki";
 
-export const CODE_THEME: BundledTheme = "github-dark";
+export const CODE_THEME_DARK: BundledTheme = "github-dark";
 
 export type LanguageDescriptor = {
   label: string;
@@ -30,14 +30,15 @@ export const LANGUAGES: Record<string, LanguageDescriptor> = {
   yml: { label: "YAML", color: "#cb7676", shiki: "yaml" },
 };
 
-// Colors live in the theme (`--cc-step-*` in globals.css). The chip background
-// and border are derived from each step's base hue via alpha.
+// Colors live in the theme (`--cc-step-*` and `--cc-step-wash` in globals.css).
+// The chip background and border are derived from each step's base hue via
+// alpha.
 function stepColors(
   base: string,
   text: string,
 ): { bg: string; border: string; text: string } {
   return {
-    bg: `color-mix(in srgb, ${base} 18%, transparent)`,
+    bg: `color-mix(in srgb, ${base} var(--cc-step-wash), transparent)`,
     border: `color-mix(in srgb, ${base} 55%, transparent)`,
     text,
   };

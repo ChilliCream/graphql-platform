@@ -100,7 +100,7 @@ function ThemePalette({ scheme, mobile }: ThemePaletteProps) {
         {scheme} palette
       </h1>
       <p className="text-cc-prose mt-3" data-contrast="prose">
-        A cool, quiet surface for documentation and product interfaces.
+        A warm cream surface for documentation and product interfaces.
       </p>
       <p className="text-cc-ink-dim mt-2 text-sm" data-contrast="muted">
         Muted navigation and supporting text remain readable.

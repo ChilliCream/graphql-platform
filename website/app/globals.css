@@ -228,7 +228,7 @@
     --color-cc-ink: #334155;
     --color-cc-prose: #334155;
     --color-cc-ink-dim: #4a566c;
-    --color-cc-ink-faint: rgba(15, 23, 42, 0.18);
+    --color-cc-ink-faint: rgba(15, 23, 42, 0.2);
     --color-cc-hover: rgba(15, 23, 42, 0.07);
     --color-cc-bg: #f5f1ea;
     --color-cc-card-bg: #fdfbf7;
@@ -269,7 +269,7 @@
     --cc-scrollbar: #857a68;
     --cc-scrollbar-thumb: #857a68;
     --cc-scrollbar-hover: #4a566c;
-    --cc-search-soft: rgb(8 107 131 / 0.1);
+    --cc-search-soft: rgb(7 94 117 / 0.1);
     --cc-search-scrim: rgb(15 23 42 / 0.45);
     --cc-search-shadow: 0 12px 32px 0 rgb(15 23 42 / 0.18);
     --cc-search-field: #ebe4d6;
@@ -299,7 +299,7 @@
       --color-cc-ink: #334155;
       --color-cc-prose: #334155;
       --color-cc-ink-dim: #4a566c;
-      --color-cc-ink-faint: rgba(15, 23, 42, 0.18);
+      --color-cc-ink-faint: rgba(15, 23, 42, 0.2);
       --color-cc-hover: rgba(15, 23, 42, 0.07);
       --color-cc-bg: #f5f1ea;
       --color-cc-card-bg: #fdfbf7;
@@ -340,7 +340,7 @@
       --cc-scrollbar: #857a68;
       --cc-scrollbar-thumb: #857a68;
       --cc-scrollbar-hover: #4a566c;
-      --cc-search-soft: rgb(8 107 131 / 0.1);
+      --cc-search-soft: rgb(7 94 117 / 0.1);
       --cc-search-scrim: rgb(15 23 42 / 0.45);
       --cc-search-shadow: 0 12px 32px 0 rgb(15 23 42 / 0.18);
       --cc-search-field: #ebe4d6;
@@ -622,8 +622,10 @@ html[data-smooth-scroll="true"]:has(:target) {
   border-left-color: var(--color-cc-accent);
 }
 
-/* Shiki output styling — neutralize default <pre> background so the figure
-   chrome owns the visuals; wrap each line so highlights span full width. */
+/* Shiki output styling. Neutralize the default <pre> background so the figure
+   chrome owns the visuals; wrap each line so highlights span full width.
+   Highlighted blocks and inline code emit both site themes as --shiki-light
+   and --shiki-dark on every token; the resolved root theme picks one. */
 .shiki-wrapper pre {
   margin: 0;
   padding: 1rem 0;
@@ -631,6 +633,96 @@ html[data-smooth-scroll="true"]:has(:target) {
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+}
+
+pre.shiki-themes {
+  color: var(--shiki-dark);
+}
+
+.shiki-themes span {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
+}
+
+:root[data-theme="light"] pre.shiki-themes {
+  color: var(--shiki-light);
+}
+
+:root[data-theme="light"] .shiki-themes span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) pre.shiki-themes {
+    color: var(--shiki-light);
+  }
+
+  :root:not([data-theme]) .shiki-themes span {
+    color: var(--shiki-light);
+    font-style: var(--shiki-light-font-style);
+    font-weight: var(--shiki-light-font-weight);
+    text-decoration: var(--shiki-light-text-decoration);
+  }
+}
+
+/* A block with an explicit Shiki theme keeps dark chrome and dark step chips
+   in both site themes. */
+[data-code-island] {
+  color-scheme: dark;
+  --color-cc-heading: #f5f0ea;
+  --color-cc-ink: #a1a3af;
+  --color-cc-ink-dim: #94a3b8;
+  --color-cc-code-bg: #0d1117;
+  --color-cc-code-header: #161b22;
+  --color-cc-card-border: rgba(245, 241, 234, 0.12);
+  --color-cc-accent: #16b9e4;
+  --cc-step-1: #14b8a6;
+  --cc-step-1-text: #5eead4;
+  --cc-step-2: #f59e0b;
+  --cc-step-2-text: #fcd34d;
+  --cc-step-3: #38bdf8;
+  --cc-step-3-text: #7dd3fc;
+  --cc-step-4: #8b5cf6;
+  --cc-step-4-text: #c4b5fd;
+}
+
+/* Code chrome mixes. The language badge mixes its hue into the heading ink
+   (Light needs the ink for contrast on the cream header); the step chip wash
+   is the alpha of its hue behind the text. */
+:root {
+  --code-lang-mix: 100%;
+  --cc-step-wash: 18%;
+}
+
+:root[data-theme="light"] {
+  --code-lang-mix: 32%;
+  --cc-step-wash: 10%;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --code-lang-mix: 32%;
+    --cc-step-wash: 10%;
+  }
+}
+
+[data-code-island] {
+  --code-lang-mix: 100%;
+  --cc-step-wash: 18%;
+}
+
+.code-lang-badge {
+  color: color-mix(
+    in srgb,
+    var(--lang-color) var(--code-lang-mix),
+    var(--color-cc-heading)
+  );
+  background-color: color-mix(in srgb, var(--lang-color) 12%, transparent);
 }
 
 .shiki-wrapper code {
@@ -646,7 +738,7 @@ html[data-smooth-scroll="true"]:has(:target) {
 }
 
 .shiki-wrapper .line.line-highlighted {
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-cc-heading) 8%, transparent);
   box-shadow: inset 3px 0 0 var(--color-cc-accent);
 }
 
@@ -707,7 +799,32 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-selected-description: #0e7490;
     --color-cc-nav-text: #1f2937;
     --color-cc-nav-label: #4b5563;
+    --color-cc-code-bg: #f5f1ea;
+    --color-cc-code-header: #ebe4d6;
     --cc-dark-surface: none;
+    --cc-step-1: #0f6651;
+    --cc-step-1-text: #0f6651;
+    --cc-step-2: #854d0e;
+    --cc-step-2-text: #854d0e;
+    --cc-step-3: #075985;
+    --cc-step-3-text: #075985;
+    --cc-step-4: #5b21b6;
+    --cc-step-4-text: #5b21b6;
+    --code-lang-mix: 32%;
+    --cc-step-wash: 10%;
+  }
+
+  :root pre.shiki-themes,
+  :root[data-theme] pre.shiki-themes {
+    color: var(--shiki-light);
+  }
+
+  :root .shiki-themes span,
+  :root[data-theme] .shiki-themes span {
+    color: var(--shiki-light);
+    font-style: var(--shiki-light-font-style);
+    font-weight: var(--shiki-light-font-weight);
+    text-decoration: var(--shiki-light-text-decoration);
   }
 
   html,
