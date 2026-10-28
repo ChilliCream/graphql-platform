@@ -48,7 +48,7 @@ builder.AddMaxExecutionDepthRule(10);
 
 ## Fragment Visits
 
-Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. The total number of fragment visits per operation is capped at **1,000** by default.
+Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. An operation that exceeds the limit is rejected with the error code `HC0137`. The total number of fragment visits per operation is capped at **1,000** by default.
 
 ## Field Merge Comparisons
 
