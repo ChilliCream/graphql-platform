@@ -12,7 +12,19 @@ const MochaTopologyVisualizationInner = dynamic(
   { ssr: false },
 );
 
+// The visualizer paints its own dark canvas in both site themes, so its
+// wrapper pins dark text, controls and focus color instead of inheriting Light.
+const darkIslandStyle = {
+  colorScheme: "dark",
+  color: "#a1a3af",
+  backgroundColor: "#0d1117",
+  printColorAdjust: "exact",
+  WebkitPrintColorAdjust: "exact",
+  "--color-cc-accent": "#16b9e4",
+} as React.CSSProperties;
+
 const containerStyle: React.CSSProperties = {
+  ...darkIslandStyle,
   width: "100%",
   height: 500,
   borderRadius: 8,
@@ -38,8 +50,8 @@ const popupStyle: React.CSSProperties = {
   height: "88vh",
   borderRadius: 12,
   overflow: "hidden",
+  ...darkIslandStyle,
   border: "1px solid #30363d",
-  backgroundColor: "#0d1117",
   position: "relative",
   boxShadow: "0 24px 48px rgba(0, 0, 0, 0.4)",
 };
