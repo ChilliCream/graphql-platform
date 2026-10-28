@@ -5,6 +5,7 @@ import { lightDark } from "@/src/components/lightDark";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
+import { SearchIcon } from "@/src/icons/Search";
 
 const FIELD_STYLE = {
   "--vc-field": lightDark(
@@ -27,7 +28,6 @@ const CHECK_STYLE = {
     "rgba(255, 255, 255, 0.4)",
   ),
 } as CSSProperties;
-import { SearchIcon } from "@/src/icons/Search";
 
 export interface VideoCatalogItem {
   readonly key: string;
