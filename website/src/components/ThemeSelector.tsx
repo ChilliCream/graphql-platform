@@ -52,11 +52,10 @@ const CHECKED_HIGHLIGHT =
 
 const OPTION_SIZES = {
   compact: {
-    group: "",
     box: "h-8 w-8 max-[1280px]:h-7 max-[1280px]:w-7",
     icon: "h-4 w-4",
   },
-  comfortable: { group: "", box: "h-11 w-11", icon: "h-5 w-5" },
+  comfortable: { box: "h-11 w-11", icon: "h-5 w-5" },
 } as const;
 
 function subscribeToNothing() {
@@ -81,7 +80,7 @@ export function ThemeSelector({ size }: ThemeSelectorProps) {
     <div
       role="radiogroup"
       aria-label="Appearance"
-      className={`border-cc-card-border inline-flex flex-none items-center rounded-full border p-0.5 ${sizes.group}`}
+      className="border-cc-card-border inline-flex flex-none items-center rounded-full border p-0.5"
     >
       {OPTIONS.map(({ value, label, Icon, prehydrationHighlight }) => (
         <label
