@@ -47,7 +47,7 @@ interface ChartFrameProps {
 export function ChartFrame({ children, className, style }: ChartFrameProps) {
   return (
     <NitroTheme
-      theme="dark"
+      theme="auto"
       className={className}
       style={{ background: "transparent", ...style }}
     >

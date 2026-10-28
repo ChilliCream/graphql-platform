@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
+
 type ChromeHeader =
   | { readonly variant: "dots" }
   | { readonly variant: "status-dot"; readonly color?: string }
@@ -49,10 +51,10 @@ interface MockWindowChromeProps {
   readonly children?: ReactNode;
 }
 
-const SHADOW_CLASS: Record<ChromeShadow, string> = {
-  "2xl": "shadow-2xl shadow-black/50",
-  soft: "shadow-[0_28px_70px_-28px_rgba(0,0,0,0.7)]",
-  none: "",
+const SHADOW_VALUE: Record<ChromeShadow, string | undefined> = {
+  "2xl": `0 25px 50px -12px ${lightDark("rgba(60,48,30,0.3)", "rgba(0,0,0,0.5)")}`,
+  soft: `0 28px 70px -28px ${lightDark("rgba(60,48,30,0.34)", "rgba(0,0,0,0.7)")}`,
+  none: undefined,
 };
 
 const DOT_COLORS = ["#ff5f57", "#febc2e", "#28c840"];
@@ -129,10 +131,10 @@ export function MockWindowChrome({
           "border-cc-card-border overflow-hidden border",
           surfaceClassName ?? "bg-cc-surface",
           rounded,
-          SHADOW_CLASS[shadow],
         ]
           .filter(Boolean)
           .join(" ")}
+        style={{ boxShadow: SHADOW_VALUE[shadow] }}
       >
         {hasHeader && (
           <div

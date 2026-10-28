@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { THEME_CSS, type ThemeName } from "./tokens";
+import { THEME_CSS, type ThemeSetting } from "./tokens";
 import { AppMotionConfig } from "./motion";
 
 const STYLE_ID = "nt-theme-vars";
@@ -17,7 +17,7 @@ function useThemeStyles() {
 }
 
 export interface ThemeProviderProps {
-  theme?: ThemeName;
+  theme?: ThemeSetting;
   children: ReactNode;
   className?: string;
   style?: CSSProperties;

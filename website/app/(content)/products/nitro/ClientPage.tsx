@@ -20,6 +20,7 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { DARK_STAGE_PROPS } from "@/src/components/darkStage";
 import { NitroReel } from "@/src/nitro";
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
@@ -141,7 +142,7 @@ interface NitroCanvasProps {
 function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
-      theme="dark"
+      theme="auto"
       className={className}
       style={
         {
@@ -1351,7 +1352,10 @@ interface HeroProps {
 
 function Hero({ reduced }: HeroProps) {
   return (
-    <section className="relative left-1/2 isolate -mt-26 w-screen -translate-x-1/2 overflow-hidden">
+    <section
+      className="relative left-1/2 isolate -mt-26 w-screen -translate-x-1/2 overflow-hidden"
+      {...DARK_STAGE_PROPS}
+    >
       <HeroAurora reduced={reduced} />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 pt-24 pb-16 sm:px-12 sm:pt-30">

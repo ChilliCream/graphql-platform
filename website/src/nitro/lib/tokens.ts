@@ -69,6 +69,9 @@ export const token = {
 
 export type ThemeName = "dark" | "light";
 
+/** `auto` follows the resolved appearance of the hosting page. */
+export type ThemeSetting = ThemeName | "auto";
+
 export const CATEGORICAL = [
   "#349d87",
   "#0969da",
@@ -226,6 +229,9 @@ const vars = (o: Record<string, string>) =>
     .map(([k, v]) => `  ${k}: ${v};`)
     .join("\n");
 
+const DARK_SHADOW = "0 1px 3px rgba(2, 6, 16, 0.6)";
+const LIGHT_SHADOW = "0 1px 3px rgba(17, 24, 39, 0.08)";
+
 export const THEME_CSS = `
 .nt-root {
 ${vars(SHARED)}
@@ -237,13 +243,24 @@ ${vars(SHARED)}
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
-.nt-root[data-theme='dark'] {
+.nt-root[data-theme='dark'],
+.nt-root[data-theme='auto'] {
 ${vars(DARK)}
-  --t-shadow: 0 1px 3px rgba(2, 6, 16, 0.6);
+  --t-shadow: ${DARK_SHADOW};
 }
 .nt-root[data-theme='light'] {
 ${vars(LIGHT)}
-  --t-shadow: 0 1px 3px rgba(17, 24, 39, 0.08);
+  --t-shadow: ${LIGHT_SHADOW};
+}
+:root[data-theme='light'] .nt-root[data-theme='auto']:not([data-dark-stage] *) {
+${vars(LIGHT)}
+  --t-shadow: ${LIGHT_SHADOW};
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .nt-root[data-theme='auto']:not([data-dark-stage] *) {
+${vars(LIGHT)}
+    --t-shadow: ${LIGHT_SHADOW};
+  }
 }
 .nt-root *,
 .nt-root *::before,

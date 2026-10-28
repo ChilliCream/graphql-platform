@@ -1,4 +1,5 @@
 import { ButtonRow } from "@/src/components/ButtonRow";
+import { DARK_STAGE_PROPS } from "@/src/components/darkStage";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { HERO } from "../content";
@@ -11,7 +12,10 @@ import Tokamak from "./Tokamak";
  */
 export function FusionHero() {
   return (
-    <div className="border-cc-card-border relative left-1/2 isolate -mt-26 w-screen -translate-x-1/2 overflow-hidden border-b">
+    <div
+      className="border-cc-card-border relative left-1/2 isolate -mt-26 w-screen -translate-x-1/2 overflow-hidden border-b"
+      {...DARK_STAGE_PROPS}
+    >
       <section className="relative flex min-h-[88svh] items-center overflow-hidden">
         <Tokamak />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 sm:px-12">

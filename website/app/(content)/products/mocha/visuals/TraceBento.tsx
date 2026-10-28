@@ -16,7 +16,7 @@ interface NitroCanvasProps {
 function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
-      theme="dark"
+      theme="auto"
       reducedMotion="user"
       className={className}
       style={{ background: "transparent", ...style }}
