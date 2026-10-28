@@ -97,7 +97,7 @@ export function DropdownItem({
   const className = [
     "block w-full cursor-pointer rounded px-3 py-2 text-left no-underline transition-colors",
     active
-      ? "bg-cc-accent-vivid/10 text-cc-accent"
+      ? "bg-cc-accent-vivid/10 text-cc-selected-text"
       : "text-cc-ink hover:bg-cc-hover",
   ].join(" ");
 

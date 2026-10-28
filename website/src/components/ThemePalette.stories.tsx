@@ -100,7 +100,7 @@ function ThemePalette({ scheme, mobile }: ThemePaletteProps) {
         {scheme} palette
       </h1>
       <p className="text-cc-prose mt-3" data-contrast="prose">
-        A warm cream surface for documentation and product interfaces.
+        A bright warm surface for documentation and product interfaces.
       </p>
       <p className="text-cc-ink-dim mt-2 text-sm" data-contrast="muted">
         Muted navigation and supporting text remain readable.
@@ -279,13 +279,14 @@ const meta = {
       );
     }
     if (resolved === "light") {
-      expect(getComputedStyle(canvas.getByRole("main")).backgroundImage).toBe(
-        "none",
-      );
-      expect(root.getPropertyValue("--color-cc-bg").trim()).toBe("#f5f1ea");
+      expect(
+        getComputedStyle(canvas.getByRole("main")).backgroundImage,
+      ).toContain("radial-gradient");
+      expect(root.getPropertyValue("--color-cc-bg").trim()).toBe("#fcfbf8");
       expect(root.getPropertyValue("--color-cc-accent-vivid").trim()).toBe(
         "#0aa5cf",
       );
+      expect(getComputedStyle(solid).backgroundColor).toBe("rgb(10, 165, 207)");
       const page = rgba(root.getPropertyValue("--color-cc-bg"));
       const ratioOn = (token: string, surface: readonly number[]) => {
         const values = [
@@ -298,7 +299,7 @@ const meta = {
         rgba(root.getPropertyValue("--color-cc-accent-vivid")).map((v, i) =>
           i === 3 ? 0.1 : v,
         ),
-        rgba("#fdfbf7"),
+        rgba("#ffffff"),
       );
       for (const [token, minimum] of [
         ["--color-cc-ink", 11],
@@ -314,7 +315,7 @@ const meta = {
           `${token} on the page`,
         ).toBeGreaterThanOrEqual(minimum);
       }
-      for (const surface of ["#fdfbf7", "#ebe4d6", "#e8e0d0"]) {
+      for (const surface of ["#ffffff", "#f4f1ea", "#eeebe3"]) {
         expect(
           ratioOn("--color-cc-accent", rgba(surface)),
           `accent on ${surface}`,

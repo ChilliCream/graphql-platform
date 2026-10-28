@@ -31,9 +31,9 @@ declare global {
   }
 }
 
-const LIGHT_BG = "rgb(245, 241, 234)";
+const LIGHT_BG = "rgb(252, 251, 248)";
 const DARK_BG = "rgb(11, 15, 26)";
-const THEME_COLOR = { light: "#f5f1ea", dark: "#0b0f1a" } as const;
+const THEME_COLOR = { light: "#fcfbf8", dark: "#0b0f1a" } as const;
 const BACKGROUND = { light: LIGHT_BG, dark: DARK_BG } as const;
 const NAMES = { light: "Light", dark: "Dark", auto: "Auto" } as const;
 
@@ -247,7 +247,7 @@ test.describe("server markup", () => {
     // assert
     expect(html.match(/<html[^>]*>/)?.[0]).not.toContain("data-theme");
     expect(html).toContain(
-      '<meta name="theme-color" content="#f5f1ea" media="(prefers-color-scheme: light)"/>',
+      '<meta name="theme-color" content="#fcfbf8" media="(prefers-color-scheme: light)"/>',
     );
     expect(html).toContain(
       '<meta name="theme-color" content="#0b0f1a" media="(prefers-color-scheme: dark)"/>',
@@ -854,7 +854,10 @@ function scanForStages(page: Page) {
         ancestor = ancestor.parentElement
       ) {
         const ancestorStyle = getComputedStyle(ancestor);
-        image ||= ancestorStyle.backgroundImage !== "none";
+        const pageBloom =
+          ancestor === document.body ||
+          ancestor.classList.contains("cc-content-dark");
+        image ||= !pageBloom && ancestorStyle.backgroundImage !== "none";
         const background = parse(ancestorStyle.backgroundColor);
         if (background[3] > 76) {
           surface = luminance(background);
@@ -1045,13 +1048,17 @@ test.describe("Light accent and contrast tokens", () => {
     accent: "#0b6a89",
     accentVivid: "#0aa5cf",
     activePill: "#0aa5cf80",
-    tabStrip: "#0f172a14",
+    tabStrip: "#0aa5cf6b",
+    selectedText: "#0b0f1a",
+    solid: "#0aa5cf",
   };
   const DARK = {
     accent: "#16b9e4",
     accentVivid: "#16b9e4",
     activePill: "#f5f1ea29",
     tabStrip: "#f5f1ea29",
+    selectedText: "#16b9e4",
+    solid: "#f5f0ea",
   };
 
   async function accentTokens(page: Page) {
@@ -1063,6 +1070,8 @@ test.describe("Light accent and contrast tokens", () => {
         accentVivid: read("--color-cc-accent-vivid"),
         activePill: read("--color-cc-active-pill"),
         tabStrip: read("--color-cc-tab-strip"),
+        selectedText: read("--color-cc-selected-text"),
+        solid: read("--color-cc-solid"),
       };
     });
   }
@@ -1112,7 +1121,7 @@ test.describe("Light accent and contrast tokens", () => {
     });
   }
 
-  test("Should_KeepLightTextAndMarksReadable_When_UsingTheTunedPalette", async ({
+  test("Should_KeepLightTextAndMarksReadable_When_UsingTheBrightPalette", async ({
     open,
   }) => {
     // arrange
@@ -1121,11 +1130,13 @@ test.describe("Light accent and contrast tokens", () => {
     // act
     const ratios = await page.evaluate(() => {
       const context = document.createElement("canvas").getContext("2d")!;
+      const pixel = () =>
+        [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
       const parse = (color: string) => {
         context.clearRect(0, 0, 1, 1);
         context.fillStyle = color;
         context.fillRect(0, 0, 1, 1);
-        return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+        return pixel();
       };
       const channel = (value: number) => {
         const unit = value / 255;
@@ -1135,62 +1146,92 @@ test.describe("Light accent and contrast tokens", () => {
         channel(rgb[0]) * 0.2126 +
         channel(rgb[1]) * 0.7152 +
         channel(rgb[2]) * 0.0722;
+      const between = (a: number[], b: number[]) => {
+        const [low, high] = [luminance(a), luminance(b)].sort((x, y) => x - y);
+        return Number(((high + 0.05) / (low + 0.05)).toFixed(2));
+      };
       const styles = getComputedStyle(document.documentElement);
-      const ratio = (token: string, surface: string) => {
-        const [low, high] = [
-          luminance(parse(styles.getPropertyValue(token).trim())),
-          luminance(parse(surface)),
-        ].sort((x, y) => x - y);
-        return Number(((high + 0.05) / (low + 0.05)).toFixed(2));
-      };
-      const accentOnStrip = () => {
+      const token = (name: string) => styles.getPropertyValue(name).trim();
+      const PAGE = "#fcfbf8";
+      const over = (name: string, base: string) => {
         context.clearRect(0, 0, 1, 1);
-        context.fillStyle = "#f5f1ea";
+        context.fillStyle = base;
         context.fillRect(0, 0, 1, 1);
-        context.fillStyle = styles
-          .getPropertyValue("--color-cc-tab-strip")
-          .trim();
+        context.fillStyle = token(name);
         context.fillRect(0, 0, 1, 1);
-        const strip = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
-        const [low, high] = [
-          luminance(parse(styles.getPropertyValue("--color-cc-accent").trim())),
-          luminance(strip),
-        ].sort((x, y) => x - y);
-        return Number(((high + 0.05) / (low + 0.05)).toFixed(2));
+        return pixel();
       };
+      const on = (name: string, surface: string) =>
+        between(parse(token(name)), parse(surface));
+      const strip = over("--color-cc-tab-strip", PAGE);
       return {
-        accentOnTabStrip: accentOnStrip(),
-        ink: ratio("--color-cc-ink", "#f5f1ea"),
-        muted: ratio("--color-cc-ink-dim", "#f5f1ea"),
-        navLabel: ratio("--color-cc-nav-label", "#f5f1ea"),
-        accentOnPage: ratio("--color-cc-accent", "#f5f1ea"),
-        accentOnRaised: ratio("--color-cc-accent", "#fdfbf7"),
-        accentOnCode: ratio("--color-cc-accent", "#ebe4d6"),
-        accentOnSelected: ratio("--color-cc-accent", "#e8e0d0"),
-        hoverOnPage: ratio("--color-cc-accent-hover", "#f5f1ea"),
-        cardBorder: ratio("--color-cc-card-border", "#f5f1ea"),
-        controlBorder: ratio("--color-cc-control-border", "#f5f1ea"),
-        vividOnPage: ratio("--color-cc-accent-vivid", "#f5f1ea"),
+        ink: on("--color-cc-ink", PAGE),
+        muted: on("--color-cc-ink-dim", PAGE),
+        navLabel: on("--color-cc-nav-label", PAGE),
+        cardBorder: on("--color-cc-card-border", PAGE),
+        controlBorder: on("--color-cc-control-border", PAGE),
+        tabStripOnPage: between(strip, parse(PAGE)),
+        bandOnPage: between(over("--color-cc-band", PAGE), parse(PAGE)),
+        accentOnPage: on("--color-cc-accent", PAGE),
+        accentOnRaised: on("--color-cc-accent", "#ffffff"),
+        accentOnCode: on("--color-cc-accent", "#f4f1ea"),
+        accentOnSelected: on("--color-cc-accent", "#eeebe3"),
+        accentOnBand: between(
+          parse(token("--color-cc-accent")),
+          over("--color-cc-band", PAGE),
+        ),
+        hoverOnPage: on("--color-cc-accent-hover", PAGE),
+        selectedTextOnStrip: between(
+          parse(token("--color-cc-selected-text")),
+          strip,
+        ),
+        selectedTextOnTint: between(
+          parse(token("--color-cc-selected-text")),
+          over("--color-cc-accent-vivid", "#ffffff"),
+        ),
+        solidLabelOnFill: between(
+          parse(token("--color-cc-solid-text")),
+          parse(token("--color-cc-solid")),
+        ),
+        solidLabelOnHover: between(
+          parse(token("--color-cc-solid-text")),
+          parse(token("--color-cc-solid-hover")),
+        ),
+        vividOnPage: on("--color-cc-accent-vivid", PAGE),
       };
     });
 
     // assert
-    expect(ratios.ink).toBeGreaterThanOrEqual(11);
-    expect(ratios.muted).toBeGreaterThanOrEqual(7);
-    expect(ratios.navLabel).toBeGreaterThanOrEqual(7);
+    const shortfalls = (minimums: Record<string, number>) =>
+      Object.entries(minimums)
+        .filter(
+          ([key, minimum]) => ratios[key as keyof typeof ratios] < minimum,
+        )
+        .map(([key]) => `${key} ${ratios[key as keyof typeof ratios]}`);
     expect(
-      [
-        ratios.accentOnPage,
-        ratios.accentOnRaised,
-        ratios.accentOnCode,
-        ratios.accentOnSelected,
-        ratios.accentOnTabStrip,
-        ratios.hoverOnPage,
-      ].every((value) => value >= 4.5),
-      JSON.stringify(ratios),
-    ).toBe(true);
-    expect(ratios.cardBorder).toBeGreaterThanOrEqual(2);
-    expect(ratios.controlBorder).toBeGreaterThanOrEqual(3);
+      shortfalls({
+        ink: 11,
+        muted: 7,
+        navLabel: 7,
+        cardBorder: 2,
+        controlBorder: 3,
+        tabStripOnPage: 1.52,
+        bandOnPage: 1.06,
+      }),
+    ).toEqual([]);
+    expect(
+      shortfalls({
+        accentOnPage: 4.5,
+        accentOnRaised: 4.5,
+        accentOnCode: 4.5,
+        accentOnSelected: 4.5,
+        accentOnBand: 4.5,
+        hoverOnPage: 4.5,
+        selectedTextOnStrip: 4.5,
+        solidLabelOnFill: 4.5,
+        solidLabelOnHover: 4.5,
+      }),
+    ).toEqual([]);
     expect(ratios.vividOnPage).toBeLessThan(3);
   });
 });
@@ -1272,7 +1313,7 @@ test.describe("Light and Dark toggle rules in the production build", () => {
 
       // assert
       const base =
-        scheme === "light" ? "rgba(245, 241, 234" : "rgba(11, 15, 26";
+        scheme === "light" ? "rgba(252, 251, 248" : "rgba(11, 15, 26";
       expect(background).toContain(base);
       expect(probe).toBe(scheme === "light" ? "rgb(1, 2, 3)" : "rgb(4, 5, 6)");
     });
@@ -1295,7 +1336,7 @@ test.describe("Light and Dark toggle rules in the production build", () => {
     const dark = await read();
 
     // assert
-    expect(light).toContain("rgba(245, 241, 234");
+    expect(light).toContain("rgba(252, 251, 248");
     expect(dark).toContain("rgba(11, 15, 26");
   });
 });

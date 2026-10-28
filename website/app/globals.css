@@ -58,7 +58,18 @@
   --color-cc-accent-vivid: #16b9e4;
   --color-cc-active-pill: rgba(245, 241, 234, 0.16);
   --color-cc-tab-strip: rgba(245, 241, 234, 0.16);
+  --color-cc-solid: #f5f0ea;
+  --color-cc-solid-text: #0c1322;
   --color-cc-solid-hover: #fff;
+  --color-cc-selected-text: #16b9e4;
+  --color-cc-band: color-mix(
+    in oklab,
+    var(--color-cc-surface) 25%,
+    transparent
+  );
+  --color-cc-tint-cyan: rgb(22 185 228 / 0.12);
+  --color-cc-tint-violet: rgb(124 146 198 / 0.12);
+  --color-cc-tint-coral: rgb(240 120 106 / 0.12);
   --color-cc-control-bg: transparent;
   --color-cc-selected-description: rgb(22 185 228 / 0.8);
   --color-cc-control-border: rgba(245, 241, 234, 0.12);
@@ -177,6 +188,15 @@
         #08101a 100%
       );
 
+    /* Brand spectrum shared by gradient accents (cyan, periwinkle, mauve, coral). */
+    --cc-brand-gradient: linear-gradient(
+      100deg,
+      #16b9e4 0%,
+      #7c92c6 33%,
+      #b681a9 63%,
+      #f0786a 100%
+    );
+
     /* "Get in touch" promo card: fuchsia-500/20 → indigo-500/15 → sky-500/10,
        diagonally to the bottom-right. The stops are the oklab values Tailwind
        emits for those colors, so the blend matches the original design exactly
@@ -238,19 +258,26 @@
     --color-cc-ink-dim: #3b475c;
     --color-cc-ink-faint: rgba(15, 23, 42, 0.26);
     --color-cc-hover: rgba(15, 23, 42, 0.07);
-    --color-cc-bg: #f5f1ea;
-    --color-cc-card-bg: #fdfbf7;
-    --color-cc-card-border: #b3a68d;
+    --color-cc-bg: #fcfbf8;
+    --color-cc-card-bg: #fff;
+    --color-cc-card-border: #aaa392;
     --color-cc-card-border-hover: #3b475c;
     --color-cc-accent: #0b6a89;
     --color-cc-accent-vivid: #0aa5cf;
     --color-cc-accent-hover: #095f7b;
-    --color-cc-solid-hover: #243449;
-    --color-cc-control-bg: #fdfbf7;
+    --color-cc-solid-hover: #3ec6ec;
+    --color-cc-control-bg: #fff;
     --color-cc-selected-description: #0a5f7b;
     --color-cc-active-pill: rgb(10 165 207 / 0.5);
-    --color-cc-tab-strip: rgba(15, 23, 42, 0.08);
-    --color-cc-control-border: #7a6f5c;
+    --color-cc-tab-strip: rgb(10 165 207 / 0.42);
+    --color-cc-selected-text: #0b0f1a;
+    --color-cc-band: rgb(10 165 207 / 0.09);
+    --color-cc-solid: #0aa5cf;
+    --color-cc-solid-text: #0b0f1a;
+    --color-cc-tint-cyan: rgb(22 185 228 / 0.16);
+    --color-cc-tint-violet: rgb(124 146 198 / 0.18);
+    --color-cc-tint-coral: rgb(240 120 106 / 0.14);
+    --color-cc-control-border: #726b5f;
     --color-cc-placeholder: #6b6455;
     --color-cc-cta: #86198f;
     --color-cc-cta-hover: #701a75;
@@ -260,9 +287,9 @@
     --color-cc-warning: #854d0e;
     --color-cc-danger: #b42335;
     --color-cc-info: #5b21b6;
-    --color-cc-surface: #fdfbf7;
-    --color-cc-code-bg: #ebe4d6;
-    --color-cc-code-header: #e0d7c5;
+    --color-cc-surface: #fff;
+    --color-cc-code-bg: #f4f1ea;
+    --color-cc-code-header: #ebe7de;
     --color-cc-electric: #1d4ed8;
     --color-cc-amber: #854d0e;
     --color-cc-status-firing: #b8392b;
@@ -270,7 +297,31 @@
     --color-cc-status-healthy: #0f6651;
     --color-cc-nav-text: #273244;
     --color-cc-nav-label: #3b475c;
-    --cc-dark-surface: none;
+    --cc-dark-surface:
+      radial-gradient(
+        62% 46% at 4% 0%,
+        rgb(22 185 228 / 0.17),
+        rgb(22 185 228 / 0.08) 38%,
+        transparent 72%
+      ),
+      radial-gradient(
+        56% 46% at 98% 14%,
+        rgb(124 146 198 / 0.18),
+        rgb(124 146 198 / 0.08) 38%,
+        transparent 72%
+      ),
+      radial-gradient(
+        52% 42% at 0% 74%,
+        rgb(182 129 169 / 0.11),
+        rgb(182 129 169 / 0.05) 38%,
+        transparent 72%
+      ),
+      radial-gradient(
+        60% 46% at 86% 100%,
+        rgb(240 120 106 / 0.14),
+        rgb(240 120 106 / 0.06) 38%,
+        transparent 72%
+      );
     --cc-highlight: rgba(15, 23, 42, 0.12);
     --cc-step-1: #0f6651;
     --cc-step-1-text: #0f6651;
@@ -280,25 +331,25 @@
     --cc-step-3-text: #075985;
     --cc-step-4: #5b21b6;
     --cc-step-4-text: #5b21b6;
-    --cc-scrollbar: #7a6f5c;
-    --cc-scrollbar-thumb: #7a6f5c;
+    --cc-scrollbar: #726b5f;
+    --cc-scrollbar-thumb: #726b5f;
     --cc-scrollbar-hover: #3b475c;
     --cc-search-soft: rgb(10 165 207 / 0.12);
     --cc-search-scrim: rgb(15 23 42 / 0.45);
     --cc-search-shadow: 0 12px 32px 0 rgb(15 23 42 / 0.18);
-    --cc-search-field: #ebe4d6;
-    --cc-search-field-focus: #fdfbf7;
+    --cc-search-field: #f4f1ea;
+    --cc-search-field-focus: #fff;
     --cc-search-hit: #273244;
-    --cc-search-hit-bg: #fdfbf7;
-    --cc-search-key: #e0d7c5;
+    --cc-search-hit-bg: #fff;
+    --cc-search-key: #ebe7de;
     --cc-search-key-shadow: inset 0 2px 4px rgb(15 23 42 / 0.15);
     --cc-search-footer-shadow:
-      0 -1px 0 0 #b3a68d, 0 -3px 6px 0 rgb(15 23 42 / 0.05);
-    --cc-search-selected: #e8e0d0;
-    --cc-search-border: #7a6f5c;
-    --cc-search-control-border: #7a6f5c;
+      0 -1px 0 0 #aaa392, 0 -3px 6px 0 rgb(15 23 42 / 0.05);
+    --cc-search-selected: #eeebe3;
+    --cc-search-border: #726b5f;
+    --cc-search-control-border: #726b5f;
     --cc-search-chip: rgb(10 165 207 / 0.18);
-    --cc-search-code: #ebe4d6;
+    --cc-search-code: #f4f1ea;
     --cc-search-muted: #3b475c;
     --cc-search-error: #b42335;
     --cc-search-error-soft: rgb(180 35 53 / 0.08);
@@ -315,19 +366,26 @@
       --color-cc-ink-dim: #3b475c;
       --color-cc-ink-faint: rgba(15, 23, 42, 0.26);
       --color-cc-hover: rgba(15, 23, 42, 0.07);
-      --color-cc-bg: #f5f1ea;
-      --color-cc-card-bg: #fdfbf7;
-      --color-cc-card-border: #b3a68d;
+      --color-cc-bg: #fcfbf8;
+      --color-cc-card-bg: #fff;
+      --color-cc-card-border: #aaa392;
       --color-cc-card-border-hover: #3b475c;
       --color-cc-accent: #0b6a89;
       --color-cc-accent-vivid: #0aa5cf;
       --color-cc-accent-hover: #095f7b;
-      --color-cc-solid-hover: #243449;
-      --color-cc-control-bg: #fdfbf7;
+      --color-cc-solid-hover: #3ec6ec;
+      --color-cc-control-bg: #fff;
       --color-cc-selected-description: #0a5f7b;
       --color-cc-active-pill: rgb(10 165 207 / 0.5);
-      --color-cc-tab-strip: rgba(15, 23, 42, 0.08);
-      --color-cc-control-border: #7a6f5c;
+      --color-cc-tab-strip: rgb(10 165 207 / 0.42);
+      --color-cc-selected-text: #0b0f1a;
+      --color-cc-band: rgb(10 165 207 / 0.09);
+      --color-cc-solid: #0aa5cf;
+      --color-cc-solid-text: #0b0f1a;
+      --color-cc-tint-cyan: rgb(22 185 228 / 0.16);
+      --color-cc-tint-violet: rgb(124 146 198 / 0.18);
+      --color-cc-tint-coral: rgb(240 120 106 / 0.14);
+      --color-cc-control-border: #726b5f;
       --color-cc-placeholder: #6b6455;
       --color-cc-cta: #86198f;
       --color-cc-cta-hover: #701a75;
@@ -337,9 +395,9 @@
       --color-cc-warning: #854d0e;
       --color-cc-danger: #b42335;
       --color-cc-info: #5b21b6;
-      --color-cc-surface: #fdfbf7;
-      --color-cc-code-bg: #ebe4d6;
-      --color-cc-code-header: #e0d7c5;
+      --color-cc-surface: #fff;
+      --color-cc-code-bg: #f4f1ea;
+      --color-cc-code-header: #ebe7de;
       --color-cc-electric: #1d4ed8;
       --color-cc-amber: #854d0e;
       --color-cc-status-firing: #b8392b;
@@ -347,7 +405,31 @@
       --color-cc-status-healthy: #0f6651;
       --color-cc-nav-text: #273244;
       --color-cc-nav-label: #3b475c;
-      --cc-dark-surface: none;
+      --cc-dark-surface:
+        radial-gradient(
+          62% 46% at 4% 0%,
+          rgb(22 185 228 / 0.17),
+          rgb(22 185 228 / 0.08) 38%,
+          transparent 72%
+        ),
+        radial-gradient(
+          56% 46% at 98% 14%,
+          rgb(124 146 198 / 0.18),
+          rgb(124 146 198 / 0.08) 38%,
+          transparent 72%
+        ),
+        radial-gradient(
+          52% 42% at 0% 74%,
+          rgb(182 129 169 / 0.11),
+          rgb(182 129 169 / 0.05) 38%,
+          transparent 72%
+        ),
+        radial-gradient(
+          60% 46% at 86% 100%,
+          rgb(240 120 106 / 0.14),
+          rgb(240 120 106 / 0.06) 38%,
+          transparent 72%
+        );
       --cc-highlight: rgba(15, 23, 42, 0.12);
       --cc-step-1: #0f6651;
       --cc-step-1-text: #0f6651;
@@ -357,25 +439,25 @@
       --cc-step-3-text: #075985;
       --cc-step-4: #5b21b6;
       --cc-step-4-text: #5b21b6;
-      --cc-scrollbar: #7a6f5c;
-      --cc-scrollbar-thumb: #7a6f5c;
+      --cc-scrollbar: #726b5f;
+      --cc-scrollbar-thumb: #726b5f;
       --cc-scrollbar-hover: #3b475c;
       --cc-search-soft: rgb(10 165 207 / 0.12);
       --cc-search-scrim: rgb(15 23 42 / 0.45);
       --cc-search-shadow: 0 12px 32px 0 rgb(15 23 42 / 0.18);
-      --cc-search-field: #ebe4d6;
-      --cc-search-field-focus: #fdfbf7;
+      --cc-search-field: #f4f1ea;
+      --cc-search-field-focus: #fff;
       --cc-search-hit: #273244;
-      --cc-search-hit-bg: #fdfbf7;
-      --cc-search-key: #e0d7c5;
+      --cc-search-hit-bg: #fff;
+      --cc-search-key: #ebe7de;
       --cc-search-key-shadow: inset 0 2px 4px rgb(15 23 42 / 0.15);
       --cc-search-footer-shadow:
-        0 -1px 0 0 #b3a68d, 0 -3px 6px 0 rgb(15 23 42 / 0.05);
-      --cc-search-selected: #e8e0d0;
-      --cc-search-border: #7a6f5c;
-      --cc-search-control-border: #7a6f5c;
+        0 -1px 0 0 #aaa392, 0 -3px 6px 0 rgb(15 23 42 / 0.05);
+      --cc-search-selected: #eeebe3;
+      --cc-search-border: #726b5f;
+      --cc-search-control-border: #726b5f;
       --cc-search-chip: rgb(10 165 207 / 0.18);
-      --cc-search-code: #ebe4d6;
+      --cc-search-code: #f4f1ea;
       --cc-search-muted: #3b475c;
       --cc-search-error: #b42335;
       --cc-search-error-soft: rgb(180 35 53 / 0.08);
@@ -803,7 +885,11 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-status-firing: #b8392b;
     --color-cc-status-investigating: #854d0e;
     --color-cc-status-healthy: #0f6651;
+    --color-cc-solid: #0b0f1a;
+    --color-cc-solid-text: #fff;
     --color-cc-solid-hover: #243449;
+    --color-cc-selected-text: #0e7490;
+    --color-cc-band: transparent;
     --color-cc-control-bg: #fff;
     --color-cc-control-border: #857a68;
     --color-cc-placeholder: #6b6455;

@@ -99,7 +99,7 @@ function PageButton({
       <span
         aria-current="page"
         aria-label={ariaLabel}
-        className={`${baseClasses} border-cc-accent bg-cc-accent-vivid/10 text-cc-accent border font-semibold`}
+        className={`${baseClasses} border-cc-accent bg-cc-accent-vivid/10 text-cc-selected-text border font-semibold`}
       >
         {children}
       </span>

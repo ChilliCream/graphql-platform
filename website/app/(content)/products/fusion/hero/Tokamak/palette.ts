@@ -45,7 +45,7 @@ export const DARK_TOKAMAK_PALETTE: TokamakPalette = {
 
 export const LIGHT_TOKAMAK_PALETTE: TokamakPalette = {
   composite: "source-over",
-  base: "#f5f1ea",
+  base: "#fcfbf8",
   tileTone: "#0b0f1a",
   tileGain: 2.4,
   backing: (alpha) => hexToRgba("#d9d0be", alpha),

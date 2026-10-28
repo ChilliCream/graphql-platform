@@ -14,7 +14,7 @@ const {
   new URL("../../src/theme/theme-preference.ts", import.meta.url).href
 );
 
-const LIGHT_METAS = ["#f5f1ea", "#f5f1ea"];
+const LIGHT_METAS = ["#fcfbf8", "#fcfbf8"];
 const DARK_METAS = ["#0b0f1a", "#0b0f1a"];
 
 function environment(saved: string | null, dark: boolean) {
@@ -30,7 +30,7 @@ function environment(saved: string | null, dark: boolean) {
   const metas = [
     {
       media: "(prefers-color-scheme: light)",
-      content: "#f5f1ea",
+      content: "#fcfbf8",
       setAttribute(name: string, value: string) {
         assert.equal(name, "content");
         this.content = value;

@@ -240,7 +240,7 @@ function HeroDiffMock() {
 
 export function HeroSection() {
   return (
-    <DotGridSurface className="border-cc-card-border/50 bg-cc-surface/25 relative left-1/2 -mt-14 w-screen -translate-x-1/2 overflow-hidden border-b py-16 sm:py-24">
+    <DotGridSurface className="border-cc-card-border/50 bg-cc-band relative left-1/2 -mt-14 w-screen -translate-x-1/2 overflow-hidden border-b py-16 sm:py-24">
       <PageSection className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         <div className="min-w-0">
           <h1 className="font-heading text-h2 text-cc-heading font-bold tracking-tight">

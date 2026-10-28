@@ -83,7 +83,7 @@ export const LIGHT_BOARD_PALETTE: BoardPalette = {
   traceAlt: "rgba(51, 65, 85, 0.36)",
   lane: "rgba(51, 65, 85, 0.62)",
   via: "rgba(51, 65, 85, 0.65)",
-  hole: "#f5f1ea",
+  hole: "#fcfbf8",
   msg: "196, 78, 58",
   msgSoft: "214, 92, 70",
   glow: "15, 118, 110",

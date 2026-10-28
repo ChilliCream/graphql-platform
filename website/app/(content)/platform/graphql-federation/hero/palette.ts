@@ -14,7 +14,7 @@ export const CODE = "#c9d4e8";
 export const CARD_BG = "rgba(12, 19, 34, 0.72)";
 export const CARD_BORDER = "rgba(245, 241, 234, 0.14)";
 
-export const LIGHT_SURFACE = "#f5f1ea";
+export const LIGHT_SURFACE = "#fcfbf8";
 export const LIGHT_INK = "#0b0f1a";
 export const LIGHT_CYAN = "#0b7f9e";
 export const LIGHT_TEAL = "#0f766e";

@@ -147,7 +147,7 @@ export function PcbBand({ children, className = "", id }: PcbBandProps) {
   return (
     <div id={id} className={bandClass}>
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="bg-cc-surface/25 absolute inset-0" />
+        <div className="bg-cc-band absolute inset-0" />
         <PcbBoard />
         <div
           className="absolute inset-0"

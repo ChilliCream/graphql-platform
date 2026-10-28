@@ -72,7 +72,7 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
               onClick={() => setActive(i)}
               className={`-mb-px cursor-pointer border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
                 selected
-                  ? "border-cc-accent text-cc-accent"
+                  ? "border-cc-accent text-cc-selected-text"
                   : "text-cc-ink-dim hover:text-cc-ink border-transparent"
               }`}
             >

@@ -18,7 +18,7 @@ export interface ThemeColors {
 }
 
 export const themeColors: ThemeColors = {
-  light: "#f5f1ea",
+  light: "#fcfbf8",
   dark: "#0b0f1a",
 };
 

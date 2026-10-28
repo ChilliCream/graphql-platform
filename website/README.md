@@ -74,7 +74,7 @@ The site offers Auto (default), Light and Dark. The choice is stored in
 storage, means Auto. Only the head bootstrap sets `html[data-theme]` to `light`
 or `dark` and the inline `color-scheme`, so server HTML omits `data-theme` and,
 without JavaScript, Auto follows `prefers-color-scheme` through
-`:root:not([data-theme])`. The `theme-color` meta is `#f5f1ea` in Light and
+`:root:not([data-theme])`. The `theme-color` meta is `#fcfbf8` in Light and
 `#0b0f1a` in Dark.
 
 ```bash

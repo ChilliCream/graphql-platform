@@ -139,7 +139,7 @@ export function PatternBand({
         className="pointer-events-none absolute inset-0"
         style={bgMask}
       >
-        <div className="bg-cc-surface/25 absolute inset-0" />
+        <div className="bg-cc-band absolute inset-0" />
 
         {pattern === "dots" && (
           <>
