@@ -416,6 +416,41 @@ public class OperationCompilerTests : FusionTestBase
     }
 
     [Fact]
+    public void GetSelectionSet_Should_Throw_When_OperationHasTooManySelections()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool) { MaxElementId = 50 };
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 60);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        void Action() => operation.GetSelectionSet(rootSelection);
+
+        // assert
+        var exception = Assert.Throws<GraphQLException>(Action);
+        Assert.Equal(
+            "The operation exceeds the maximum allowed number of selections and selection sets.",
+            exception.Errors[0].Message);
+    }
+
+    [Fact]
+    public void GetSelectionSet_Should_CompileSelections_When_OperationIsWithinSelectionLimit()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool) { MaxElementId = 50 };
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 40);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        var selections = operation.GetSelectionSet(rootSelection).Selections;
+
+        // assert
+        Assert.Equal(40, selections.Length);
+    }
+
+    [Fact]
     public async Task Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
     {
         // arrange
