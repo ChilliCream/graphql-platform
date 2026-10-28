@@ -65,7 +65,7 @@ export const Light: Story = {
     expect(light).toBeChecked();
     expect(document.documentElement.dataset.theme).toBe("light");
     const probe = document.createElement("span");
-    probe.style.backgroundColor = "rgb(10 165 207 / 0.22)";
+    probe.style.backgroundColor = "rgb(10 165 207 / 0.5)";
     canvasElement.append(probe);
     expect(getComputedStyle(light.parentElement!).backgroundColor).toBe(
       getComputedStyle(probe).backgroundColor,

@@ -248,7 +248,7 @@
     --color-cc-solid-hover: #243449;
     --color-cc-control-bg: #fdfbf7;
     --color-cc-selected-description: #0a5f7b;
-    --color-cc-active-pill: rgb(10 165 207 / 0.22);
+    --color-cc-active-pill: rgb(10 165 207 / 0.5);
     --color-cc-tab-strip: rgba(15, 23, 42, 0.08);
     --color-cc-control-border: #7a6f5c;
     --color-cc-placeholder: #6b6455;
@@ -325,7 +325,7 @@
       --color-cc-solid-hover: #243449;
       --color-cc-control-bg: #fdfbf7;
       --color-cc-selected-description: #0a5f7b;
-      --color-cc-active-pill: rgb(10 165 207 / 0.22);
+      --color-cc-active-pill: rgb(10 165 207 / 0.5);
       --color-cc-tab-strip: rgba(15, 23, 42, 0.08);
       --color-cc-control-border: #7a6f5c;
       --color-cc-placeholder: #6b6455;
@@ -811,6 +811,8 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-prose: #1f2937;
     --color-cc-ink-dim: #4b5563;
     --color-cc-ink-faint: rgba(17, 24, 39, 0.16);
+    --color-cc-tab-strip: rgba(17, 24, 39, 0.16);
+    --color-cc-active-pill: rgba(17, 24, 39, 0.16);
     --color-cc-hover: transparent;
     --color-cc-bg: #fff;
     --color-cc-card-bg: #fff;
@@ -818,6 +820,7 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-card-border-hover: rgba(17, 24, 39, 0.25);
     --color-cc-surface: #fff;
     --color-cc-accent: #0e7490;
+    --color-cc-accent-vivid: #0e7490;
     --color-cc-accent-hover: #0e7490;
     --color-cc-selected-description: #0e7490;
     --color-cc-nav-text: #1f2937;

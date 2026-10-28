@@ -1044,7 +1044,7 @@ test.describe("Light accent and contrast tokens", () => {
   const LIGHT = {
     accent: "#0b6a89",
     accentVivid: "#0aa5cf",
-    activePill: "#0aa5cf38",
+    activePill: "#0aa5cf80",
     tabStrip: "#0f172a14",
   };
   const DARK = {
@@ -1143,7 +1143,23 @@ test.describe("Light accent and contrast tokens", () => {
         ].sort((x, y) => x - y);
         return Number(((high + 0.05) / (low + 0.05)).toFixed(2));
       };
+      const accentOnStrip = () => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = "#f5f1ea";
+        context.fillRect(0, 0, 1, 1);
+        context.fillStyle = styles
+          .getPropertyValue("--color-cc-tab-strip")
+          .trim();
+        context.fillRect(0, 0, 1, 1);
+        const strip = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+        const [low, high] = [
+          luminance(parse(styles.getPropertyValue("--color-cc-accent").trim())),
+          luminance(strip),
+        ].sort((x, y) => x - y);
+        return Number(((high + 0.05) / (low + 0.05)).toFixed(2));
+      };
       return {
+        accentOnTabStrip: accentOnStrip(),
         ink: ratio("--color-cc-ink", "#f5f1ea"),
         muted: ratio("--color-cc-ink-dim", "#f5f1ea"),
         navLabel: ratio("--color-cc-nav-label", "#f5f1ea"),
@@ -1168,6 +1184,7 @@ test.describe("Light accent and contrast tokens", () => {
         ratios.accentOnRaised,
         ratios.accentOnCode,
         ratios.accentOnSelected,
+        ratios.accentOnTabStrip,
         ratios.hoverOnPage,
       ].every((value) => value >= 4.5),
       JSON.stringify(ratios),
