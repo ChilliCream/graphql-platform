@@ -30,6 +30,7 @@ public sealed partial class OperationPlanContext
     internal void Initialize(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        int variableIndex,
         IOperationPlan operationPlan,
         CancellationTokenSource cancellationTokenSource,
         MemoryArena? memory = null)
@@ -53,6 +54,7 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = _memorySource;
 
         Variables = variables;
+        _variableIndex = variableIndex;
         OperationPlan = operationPlan;
 
         switch (operationPlan)
@@ -165,6 +167,7 @@ public sealed partial class OperationPlanContext
         _activeNodeSlotCount = 0;
         _usesDynamicSchemaNames = true;
         _usesBatchNodes = true;
+        HasExecutionDeadline = false;
 
         _resultStore.Clean(256, 256);
         _executionState.Clean();

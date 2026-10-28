@@ -255,6 +255,24 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
+        internal static string ThrowHelper_ResponseBodyBuffer_AdvanceNegative {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ResponseBodyBuffer_AdvanceNegative", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ResponseBodyBuffer_AdvancePastBuffer {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ResponseBodyBuffer_AdvancePastBuffer", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ResponseBodyBuffer_WriterCompleted {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ResponseBodyBuffer_WriterCompleted", resourceCulture);
+            }
+        }
+        
         internal static string ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed {
             get {
                 return ResourceManager.GetString("ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed", resourceCulture);
@@ -366,12 +384,6 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ErrorHelper_RequestBatchingNotSupportedForQuery {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequestBatchingNotSupportedForQuery", resourceCulture);
-            }
-        }
-        
-        internal static string ErrorHelper_VariableBatchingNotSupportedForQuery {
-            get {
-                return ResourceManager.GetString("ErrorHelper_VariableBatchingNotSupportedForQuery", resourceCulture);
             }
         }
         

@@ -28,7 +28,8 @@
             "language": {
               "name": "Rust"
             }
-          }
+          },
+          "preview": true
         }
       ]
     },

@@ -47,7 +47,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
-        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: false);
         OperationResultFormatterContext? formatContext = null;
         var scope = Log.FormatOperationResultStart();
 
@@ -83,7 +83,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
-        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
         Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
         List<Task>? streams = null;
@@ -183,7 +183,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
-        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
         using var semaphore = new SemaphoreSlim(1, 1);
 
         try

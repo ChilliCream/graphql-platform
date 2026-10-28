@@ -499,6 +499,110 @@ public class PersistedOperationTests : FusionTestBase
         result.HttpResponseMessage.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Post_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation(
+            "getField",
+            "query GetField($skip: Boolean!) { field @skip(if: $skip) }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql/persisted/getField",
+            new StringContent(
+                """{ "variables": [{ "skip": true }, { "skip": false }] }""",
+                Encoding.UTF8,
+                "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Post_Should_ExecuteSentQuery_When_PreviousRequestSentDocumentId()
+    {
+        // arrange
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        using var firstResponse = await client.PostAsync(
+            "http://localhost:5000/graphql",
+            new StringContent(
+                """{ "id": "388c5f9c43fb589b1c5d1e144121613b", "query": "{ __typename }" }""",
+                Encoding.UTF8,
+                "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql",
+            new StringContent(
+                """{ "query": "{ field }" }""",
+                Encoding.UTF8,
+                "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))
+            .MatchInline(
+                """
+                {"data":{"field":"Query"}}
+                """);
+    }
+
     [Theory]
     [InlineData(HttpTransportVersion.Legacy, "text/plain", HttpStatusCode.NotFound)]
     [InlineData(HttpTransportVersion.Legacy, null, HttpStatusCode.NotFound)]

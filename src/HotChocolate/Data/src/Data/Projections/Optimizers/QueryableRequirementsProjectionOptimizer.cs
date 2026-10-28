@@ -50,7 +50,7 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
 
         foreach (var selection in context.Selections)
         {
-            if (selection.IsInternal)
+            if (selection.IsProjectionRequirement)
             {
                 continue;
             }

@@ -1,6 +1,8 @@
 #if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
 #endif
+using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -149,6 +151,39 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     }
 
     [Fact]
+    public async Task Post_Should_ExecuteSentQuery_When_PreviousRequestSentDocumentId()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        await server.PostAsync(
+            new ClientQueryRequest
+            {
+                Id = "acb8d5d513c260b3cef3e3a12b0e29af",
+                Query = "{ __typename }"
+            });
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ hero { name } }" });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SingleRequest_GetHeroName_Casing_Is_Preserved()
     {
         // arrange
@@ -223,6 +258,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             Vary: Accept
             abc: def
             Content-Type: application/graphql-response+json; charset=utf-8
+            Content-Length: 34
             -------------------------->
             Status Code: OK
             -------------------------->
@@ -810,6 +846,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 24
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -846,6 +883,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 24
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -887,6 +925,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -984,6 +1023,77 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         Assert.NotNull(result.Errors);
         var responseError = Assert.Single(result.Errors);
         Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_WriteRequestIndex_When_ItemFailsValidation()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
+        {
+            Content = new StringContent(
+                """
+                [
+                  { "query": "{ hero(episode: EMPIRE) { name } }" },
+                  { "query": "{ unknownField }" }
+                ]
+                """,
+                Encoding.UTF8,
+                "application/json")
+        };
+        request.Headers.Add("Accept", "application/jsonl");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(
+                result => result.TryGetProperty("requestIndex", out var index)
+                    ? index.GetInt32()
+                    : -1)
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "requestIndex": 0,
+                  "data": {
+                    "hero": {
+                      "name": "Luke Skywalker"
+                    }
+                  }
+                }
+                """,
+                """
+                {
+                  "requestIndex": 1,
+                  "errors": [
+                    {
+                      "message": "The field `unknownField` does not exist on the type `Query`.",
+                      "locations": [
+                        {
+                          "line": 1,
+                          "column": 3
+                        }
+                      ],
+                      "extensions": {
+                        "type": "Query",
+                        "field": "unknownField",
+                        "responseName": "unknownField",
+                        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+                      }
+                    }
+                  ]
+                }
+                """
+            ]);
     }
 
     [Fact]

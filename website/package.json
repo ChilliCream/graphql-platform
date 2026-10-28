@@ -21,8 +21,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build-storybook:test": "storybook build --quiet --output-dir storybook-static",
-    "test:visual": "npm run build-storybook:test && playwright test",
-    "test:visual:update": "npm run build-storybook:test && playwright test --update-snapshots"
+    "test:visual": "npm run build-storybook:test && node scripts/visual-tests-docker.mjs",
+    "test:visual:update": "npm run build-storybook:test && node scripts/visual-tests-docker.mjs --update-snapshots"
   },
   "dependencies": {
     "@chillicream/mocha-visualizer": "file:../src/Mocha/src/mocha-visualizer",

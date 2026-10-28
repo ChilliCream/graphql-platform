@@ -42,5 +42,6 @@
     <Project Path="test/Mocha.Transport.Postgres.Tests/Mocha.Transport.Postgres.Tests.csproj" />
     <Project Path="test/Mocha.Transport.AzureServiceBus.Tests/Mocha.Transport.AzureServiceBus.Tests.csproj" />
     <Project Path="test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
+    <Project Path="test/Mocha.Transport.RabbitMQ3.Tests/Mocha.Transport.RabbitMQ3.Tests.csproj" />
   </Folder>
 </Solution>

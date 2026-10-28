@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  COMPARISON_ARTICLE_PATH,
   generateLlmsFiles,
   isLlmsEligibleUrl,
 } from "./generate-llms-files.mjs";
@@ -110,7 +111,7 @@ function outputPathForPublicUrl(url) {
   if (relative === "") {
     return path.join(OUTPUT_ROOT, "index.html");
   }
-  if (/\.(?:md|txt|xml)$/.test(relative)) {
+  if (/\.(?:md|txt|xml|json)$/.test(relative)) {
     return path.join(OUTPUT_ROOT, relative);
   }
   return path.join(OUTPUT_ROOT, `${relative}.html`);
@@ -157,6 +158,11 @@ for (const url of allSitemapUrls) {
   const pathname = new URL(url).pathname;
   if (BLOG_POST_PATH.test(pathname) && !isLlmsEligibleUrl(url)) {
     throw new Error(`Public blog post was excluded from LLM export: ${url}`);
+  }
+  if (COMPARISON_ARTICLE_PATH.test(pathname) && !isLlmsEligibleUrl(url)) {
+    throw new Error(
+      `Public comparison article was excluded from LLM export: ${url}`,
+    );
   }
 }
 

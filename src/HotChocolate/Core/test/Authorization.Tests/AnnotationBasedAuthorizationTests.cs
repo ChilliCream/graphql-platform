@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -774,7 +775,9 @@ public class AnnotationBasedAuthorizationTests
     {
         // arrange
         var handler = new AuthHandler(
-            resolver: (_, _) => AuthorizeResult.NotAllowed,
+            resolver: (_, d) => d.Policy.EqualsOrdinal("QUERY2")
+                ? AuthorizeResult.Allowed
+                : AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -837,6 +840,81 @@ public class AnnotationBasedAuthorizationTests
                   }
                 }
                 """);
+    }
+
+    [Theory]
+    [InlineData("query($id: ID!) { node(id: $id) { __typename } }", false, "node")]
+    [InlineData("query($id: [ID!]!) { nodes(ids: $id) { __typename } }", true, "nodes[0]")]
+    public async Task Node_Should_ApplyQueryTypePolicy_When_NodeTypeHasNoPolicy(
+        string document,
+        bool isList,
+        string expectedPath)
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, d) => d.Policy.EqualsOrdinal("QUERY2")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var id = Convert.ToBase64String("BlogPage:1"u8);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetDocument(document)
+                    .SetVariableValues(new Dictionary<string, object?>
+                    {
+                        { "id", isList ? new List<string> { id } : id }
+                    }),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Authentication.NotAuthorized, error.Code);
+        Assert.Equal(expectedPath, error.Path?.ToString());
+    }
+
+    [Theory]
+    [InlineData("query($id: ID!) { person(id: $id) { __typename } }", "Person:abc")]
+    [InlineData("query($id: ID!) { node(id: $id) { __typename } }", "Person:abc")]
+    [InlineData("query($id: ID!) { node(id: $id) { __typename } }", "BlogPage:1")]
+    public async Task Node_Should_ApplyQueryTypePolicyOnce_When_NodeIsResolved(
+        string document,
+        string id)
+    {
+        // arrange
+        var count = 0;
+        var handler = new AuthHandler(
+            resolver: (_, d) =>
+            {
+                if (d.Policy.EqualsOrdinal("QUERY2"))
+                {
+                    Interlocked.Increment(ref count);
+                }
+
+                return AuthorizeResult.Allowed;
+            },
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetDocument(document)
+                    .SetVariableValues(new Dictionary<string, object?>
+                    {
+                        { "id", Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) }
+                    }),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Empty(result.ExpectOperationResult().Errors);
+        Assert.Equal(1, count);
     }
 
     [Fact]

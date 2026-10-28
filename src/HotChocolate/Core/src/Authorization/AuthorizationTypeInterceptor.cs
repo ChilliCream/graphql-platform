@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -131,19 +132,25 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnAfterMakeExecutable()
+    public override void OnBeforeMakeExecutable(
+        ITypeCompletionContext completionContext,
+        TypeSystemConfiguration configuration)
     {
-        foreach (var type in _objectTypes)
+        if (completionContext.Type is not ObjectType objectType
+            || configuration is not ObjectTypeConfiguration typeDef)
         {
-            var objectType = (ObjectType)type.TypeReg.Type;
+            return;
+        }
 
-            if (!objectType.TryGetNodeResolver(out var nodeResolverInfo))
+        foreach (var fieldDef in typeDef.Fields)
+        {
+            if (fieldDef.BatchResolver is null
+                || !objectType.Fields.TryGetField(fieldDef.Name, out var field))
             {
                 continue;
             }
 
-            var pipeline = nodeResolverInfo.Pipeline;
-            var directives = objectType.Directives;
+            var directives = field.Directives;
             var length = directives.Count;
             ref var start = ref directives.GetReference();
 
@@ -154,12 +161,63 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 if (directive.Type.Name.EqualsOrdinal(Authorize))
                 {
                     var authDir = directive.ToValue<AuthorizeDirective>();
-                    pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
+
+                    // field directives go in front of the type level authorization,
+                    // in the same order as in the field pipeline.
+                    fieldDef.BatchMiddlewareConfigurations.Insert(
+                        0,
+                        CreateBatchAuthMiddleware(
+                            authDir));
                 }
+            }
+        }
+    }
+
+    public override void OnAfterMakeExecutable()
+    {
+        var queryType = (ObjectType)_queryContext.Type;
+
+        foreach (var type in _objectTypes)
+        {
+            var objectType = (ObjectType)type.TypeReg.Type;
+
+            if (!objectType.TryGetNodeResolver(out var nodeResolverInfo))
+            {
+                continue;
+            }
+
+            var pipeline = ApplyAuthMiddleware(nodeResolverInfo.Pipeline, objectType.Directives);
+
+            // a query field that doubles as node resolver already
+            // applies the authorization of the query type.
+            if (!nodeResolverInfo.IsQueryFieldResolver)
+            {
+                pipeline = ApplyAuthMiddleware(pipeline, queryType.Directives);
             }
 
             objectType.SetNodeResolver(new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline));
         }
+    }
+
+    private static FieldDelegate ApplyAuthMiddleware(
+        FieldDelegate pipeline,
+        DirectiveCollection directives)
+    {
+        var length = directives.Count;
+        ref var start = ref directives.GetReference();
+
+        for (var i = length - 1; i >= 0; i--)
+        {
+            var directive = Unsafe.Add(ref start, i);
+
+            if (directive.Type.Name.EqualsOrdinal(Authorize))
+            {
+                var authDir = directive.ToValue<AuthorizeDirective>();
+                pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
+            }
+        }
+
+        return pipeline;
     }
 
     private void InspectObjectTypesForAuthDirective(State state)
@@ -181,7 +239,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             {
                 foreach (var fieldDef in type.TypeDef.Fields)
                 {
-                    // we are not interested in introspection fields or the node fields.
+                    // we are not interested in introspection fields. the node fields are
+                    // authorized through the node resolver pipelines.
                     if (fieldDef.IsIntrospectionField || fieldDef.IsNodeField())
                     {
                         continue;
@@ -249,7 +308,12 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
             foreach (var memberTypeRef in type.TypeDef.Types)
             {
-                if (state.AuthTypes.Contains(memberTypeRef))
+                // union members can be referenced by name or runtime type,
+                // so we resolve the member type registration first.
+                var memberTypeReg = GetTypeRegistration(memberTypeRef);
+                var objectTypeRef = memberTypeReg.TypeReference;
+
+                if (state.AuthTypes.Contains(objectTypeRef))
                 {
                     foreach (var typeRef in unionTypeReg.References)
                     {
@@ -263,7 +327,10 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                         state.AbstractToConcrete.Add(unionTypeRef, authTypeRefs);
                     }
 
-                    authTypeRefs.Add(memberTypeRef);
+                    if (!authTypeRefs.Contains(objectTypeRef))
+                    {
+                        authTypeRefs.Add(objectTypeRef);
+                    }
                 }
             }
         }
@@ -411,6 +478,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         bool isNodeField)
     {
         var insertPos = 0;
+        var batchInsertPos = 0;
 
         // we try to locate the last auth middleware and insert after it.
         if (fieldDef.MiddlewareConfigurations.Count > 0)
@@ -420,6 +488,22 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 if (fieldDef.MiddlewareConfigurations[i].Key == WellKnownMiddleware.Authorization)
                 {
                     insertPos = i + 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        // we do the same for the batch pipeline.
+        if (fieldDef.BatchResolver is not null)
+        {
+            for (var i = 0; i < fieldDef.BatchMiddlewareConfigurations.Count; i++)
+            {
+                if (fieldDef.BatchMiddlewareConfigurations[i].Key == WellKnownMiddleware.Authorization)
+                {
+                    batchInsertPos = i + 1;
                 }
                 else
                 {
@@ -461,6 +545,14 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                     insertPos++,
                     CreateAuthMiddleware(
                         authDir));
+
+                if (fieldDef.BatchResolver is not null)
+                {
+                    fieldDef.BatchMiddlewareConfigurations.Insert(
+                        batchInsertPos++,
+                        CreateBatchAuthMiddleware(
+                            authDir));
+                }
             }
         }
     }
@@ -479,6 +571,13 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                 return async context => await auth.InvokeAsync(context);
             },
+            isRepeatable: true,
+            key: WellKnownMiddleware.Authorization);
+
+    private static BatchFieldMiddlewareConfiguration CreateBatchAuthMiddleware(
+        AuthorizeDirective directive)
+        => new BatchFieldMiddlewareConfiguration(
+            next => new AuthorizeBatchMiddleware(next, directive).InvokeAsync,
             isRepeatable: true,
             key: WellKnownMiddleware.Authorization);
 
