@@ -15,6 +15,8 @@ import {
   TWITTER_HANDLE,
 } from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
+import { ThemeProvider } from "@/src/theme/ThemeProvider";
+import { ThemeScript } from "@/src/theme/ThemeScript";
 
 const josefinSans = Josefin_Sans({
   subsets: ["latin"],
@@ -59,8 +61,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  colorScheme: "dark",
-  themeColor: "#0b0f1a",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -69,8 +70,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${josefinSans.variable} font-sans`}>
+    <html
+      lang="en"
+      className={`${josefinSans.variable} font-sans`}
+      data-theme="light"
+      suppressHydrationWarning
+    >
       <head>
+        <ThemeScript />
         <link rel="preconnect" href="https://consent.cookiebot.com" />
         <link rel="preconnect" href="https://consentcdn.cookiebot.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
@@ -79,9 +86,11 @@ export default function RootLayout({
       <body className="flex min-h-screen flex-col">
         <AnalyticsScripts />
         <EnableSmoothScroll />
-        <Header />
-        <main className="flex-1 overflow-x-clip">{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <Header />
+          <main className="flex-1 overflow-x-clip">{children}</main>
+          <Footer />
+        </ThemeProvider>
         <Analytics />
         <WebVitals />
       </body>
