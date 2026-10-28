@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { ButtonRow } from "@/src/components/ButtonRow";
+import { lightDark } from "@/src/components/lightDark";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
@@ -189,7 +190,7 @@ export function ClientPage() {
               <span
                 className="bg-clip-text text-transparent"
                 style={{
-                  backgroundImage: `linear-gradient(90deg, ${TEAL}, ${CORAL})`,
+                  backgroundImage: `linear-gradient(90deg, ${lightDark("#0f766e", TEAL)}, ${lightDark("#d14a3a", CORAL)})`,
                 }}
               >
                 within and between services.

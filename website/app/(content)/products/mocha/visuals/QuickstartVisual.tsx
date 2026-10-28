@@ -5,10 +5,11 @@ import {
   CORAL,
   CORAL_SOFT,
   CYAN,
-  NAVY,
   VIOLET,
 } from "@/src/components/mocha/palette";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fdfbf7", "#0b0f1a");
 const STEP = 3.4;
 const PERIOD = STEP * 3;
 const TRAVEL = 0.85;
@@ -334,7 +335,10 @@ export function QuickstartVisual() {
                   y1={geom.ys[0]}
                   x2={geom.x}
                   y2={geom.ys[2]}
-                  stroke="rgba(139,160,188,0.4)"
+                  stroke={lightDark(
+                    "rgba(51,65,85,0.45)",
+                    "rgba(139,160,188,0.4)",
+                  )}
                   strokeWidth={1.5}
                 />
                 {geom.ys.map((y, i) => (
@@ -344,7 +348,10 @@ export function QuickstartVisual() {
                     cy={y}
                     r={2.5}
                     fill={NAVY}
-                    stroke="rgba(164,180,208,0.55)"
+                    stroke={lightDark(
+                      "rgba(51,65,85,0.62)",
+                      "rgba(164,180,208,0.55)",
+                    )}
                     strokeWidth={1.2}
                   />
                 ))}

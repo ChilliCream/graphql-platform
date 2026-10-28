@@ -10,11 +10,11 @@ import {
   CYAN,
   GREEN,
   MONO_FONT,
-  NAVY,
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import { lightDark } from "@/src/components/lightDark";
 
 interface Pt {
   readonly x: number;
@@ -39,20 +39,21 @@ interface Schedule {
   readonly total: number;
 }
 
+const NAVY = lightDark("#fdfbf7", "#0b0f1a");
 const MIN_W = 640;
 const H = 280;
 const RAIL_Y = 100;
 const COMP_Y = 222;
 const PANEL_H = 40;
 
-const SURFACE = "#0c1322";
-const GRID_DOT = "rgba(150,166,194,0.10)";
-const PANEL_STROKE = "rgba(158,176,204,0.44)";
-const LANE_STROKE = "rgba(139,160,188,0.4)";
-const VIA_STROKE = "rgba(164,180,208,0.55)";
-const SILK = "rgba(154,172,200,0.75)";
-const LABEL_DIM = "rgba(154,172,200,0.7)";
-const IDLE_TEXT = "#62748e";
+const SURFACE = lightDark("#fdfbf7", "#0c1322");
+const GRID_DOT = lightDark("rgba(51,65,85,0.16)", "rgba(150,166,194,0.10)");
+const PANEL_STROKE = lightDark("rgba(51,65,85,0.5)", "rgba(158,176,204,0.44)");
+const LANE_STROKE = lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)");
+const VIA_STROKE = lightDark("rgba(51,65,85,0.62)", "rgba(164,180,208,0.55)");
+const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
+const LABEL_DIM = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
+const IDLE_TEXT = lightDark("#4a566c", "#62748e");
 
 const CHIP_STYLES = {
   idle: { text: IDLE_TEXT, edge: CYAN, edgeOp: 0, led: CYAN, ledOp: 0 },

@@ -18,27 +18,28 @@ import {
   CORAL_SOFT,
   GREEN,
   MONO_FONT,
-  NAVY,
   SLATE,
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fdfbf7", "#0b0f1a");
 const T = 12000;
 const REST_T = 10300;
 const H = 300;
 const MIN_W = 560;
 
-const INK = "#a1a3af";
-const SURFACE = "#0c1322";
-const HAIR = "rgba(139,160,188,0.22)";
-const GRID_DOT = "rgba(150,166,194,0.10)";
-const PANEL_STROKE = "rgba(158,176,204,0.44)";
-const LANE_STROKE = "rgba(139,160,188,0.4)";
-const VIA_STROKE = "rgba(164,180,208,0.55)";
-const SILK = "rgba(154,172,200,0.75)";
-const SILK_SOFT = "rgba(154,172,200,0.7)";
+const INK = lightDark("#334155", "#a1a3af");
+const SURFACE = lightDark("#fdfbf7", "#0c1322");
+const HAIR = lightDark("rgba(51,65,85,0.22)", "rgba(139,160,188,0.22)");
+const GRID_DOT = lightDark("rgba(51,65,85,0.16)", "rgba(150,166,194,0.10)");
+const PANEL_STROKE = lightDark("rgba(51,65,85,0.5)", "rgba(158,176,204,0.44)");
+const LANE_STROKE = lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)");
+const VIA_STROKE = lightDark("rgba(51,65,85,0.62)", "rgba(164,180,208,0.55)");
+const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
+const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
 
 const OX = 8;
 const OW = 118;
@@ -547,7 +548,10 @@ export function TopologyVisual() {
                 width={p.w}
                 height={p.h}
                 rx={3}
-                fill="rgba(139,160,188,0.03)"
+                fill={lightDark(
+                  "rgba(51,65,85,0.04)",
+                  "rgba(139,160,188,0.03)",
+                )}
                 stroke={PANEL_STROKE}
                 strokeWidth={1}
               />
@@ -559,14 +563,20 @@ export function TopologyVisual() {
                     y={p.y + p.h - 17}
                     width={8}
                     height={3}
-                    fill="rgba(154,172,200,0.12)"
+                    fill={lightDark(
+                      "rgba(51,65,85,0.14)",
+                      "rgba(154,172,200,0.12)",
+                    )}
                   />
                   <rect
                     x={p.x + p.w - 30}
                     y={p.y + p.h - 11}
                     width={8}
                     height={3}
-                    fill="rgba(154,172,200,0.12)"
+                    fill={lightDark(
+                      "rgba(51,65,85,0.14)",
+                      "rgba(154,172,200,0.12)",
+                    )}
                   />
                 </g>
               ) : (
