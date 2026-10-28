@@ -1,3 +1,5 @@
+import { lightDark } from "@/src/components/lightDark";
+
 export const VB = 300;
 export const CX = VB / 2;
 export const CY = VB / 2;
@@ -160,13 +162,13 @@ const HEADING = "var(--color-cc-heading)";
 
 export const ACCENT = "var(--color-cc-accent)";
 export const ACCENT_BRIGHT = `color-mix(in srgb, ${ACCENT} 78%, ${HEADING})`;
-export const BEZEL = `color-mix(in srgb, ${SLATE} 38%, ${SURFACE})`;
-export const TRACK = `color-mix(in srgb, ${SLATE} 20%, ${SURFACE})`;
+export const BEZEL = `color-mix(in srgb, ${SLATE} ${lightDark("54%", "38%")}, ${SURFACE})`;
+export const TRACK = `color-mix(in srgb, ${SLATE} ${lightDark("33%", "20%")}, ${SURFACE})`;
 export const DANGER = "var(--color-cc-danger)";
 export const DISC_CORE = `color-mix(in srgb, ${ACCENT} 5%, ${SURFACE})`;
 export const DISC_RIM = `color-mix(in srgb, ${SLATE} 8%, ${BG})`;
 export const FACE_CORE = `color-mix(in srgb, ${ACCENT} 4%, ${BG})`;
-export const FACE_RIM = `color-mix(in srgb, ${SLATE} 10%, ${SURFACE})`;
+export const FACE_RIM = `color-mix(in srgb, ${SLATE} ${lightDark("18%", "10%")}, ${SURFACE})`;
 export const NUMERAL_COLOR = `color-mix(in srgb, ${HEADING} 30%, ${SLATE})`;
 export const LABEL_COLOR = `color-mix(in srgb, ${HEADING} 45%, ${SLATE})`;
 export const RING_GLOW = `0 0 9px 1px color-mix(in srgb, ${ACCENT} 18%, transparent)`;
