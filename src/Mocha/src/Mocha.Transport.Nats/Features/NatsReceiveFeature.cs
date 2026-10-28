@@ -36,6 +36,12 @@ public sealed class NatsReceiveFeature : IPooledFeature
     /// </summary>
     public TimeSpan? AckProgressInterval { get; set; }
 
+    /// <summary>
+    /// Gets or sets whether the message has already been settled with the server, so the
+    /// acknowledgement middleware leaves it alone.
+    /// </summary>
+    public bool Settled { get; set; }
+
     /// <inheritdoc />
     public void Initialize(object state) => Reset();
 
@@ -47,5 +53,6 @@ public sealed class NatsReceiveFeature : IPooledFeature
         Body = default;
         DeliveryCount = 0;
         AckProgressInterval = null;
+        Settled = false;
     }
 }

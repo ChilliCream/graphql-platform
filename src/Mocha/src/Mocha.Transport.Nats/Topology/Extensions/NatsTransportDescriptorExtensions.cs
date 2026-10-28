@@ -25,6 +25,19 @@ public static class NatsTransportDescriptorExtensions
             NatsReceiveMiddlewares.Parsing,
             after: NatsReceiveMiddlewares.Acknowledgement.Key);
 
+        // The core middleware redelivers by dispatching to the endpoint's source, and a JetStream
+        // consumer cannot be dispatched to.
+        ((NatsMessagingTransportDescriptor)descriptor).Configuration.ReceivePipelineModifiers.Add(
+            static pipeline =>
+            {
+                var index = pipeline.FindIndex(m => m.Key == ReceiveMiddlewares.Redelivery.Key);
+
+                if (index != -1)
+                {
+                    pipeline[index] = NatsReceiveMiddlewares.Redelivery;
+                }
+            });
+
         return descriptor;
     }
 }
