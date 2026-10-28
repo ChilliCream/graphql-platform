@@ -329,6 +329,38 @@ public class EntitiesResolverForObjectTests
             unobservedExceptions.Select(ex => $"{ex.GetType().Name}: {ex.Message}"));
     }
 
+    [Fact]
+    public async Task ResolveAsync_Should_AwaitStartedEntityResolvers_When_LaterRepresentationHasNoResolver()
+    {
+        // arrange
+        var state = new SlowEntityState();
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(state)
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddType<SlowEntity>()
+            .AddQueryType()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await executor.ExecuteAsync(
+            """
+            query {
+                _entities(representations: [
+                    { id: "1", __typename: "SlowEntity" }
+                    { id: "2", __typename: "Unknown" }
+                ]) {
+                    ... on SlowEntity { id }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(state.Completed);
+    }
+
     private static bool HasNoFault(List<Exception> exceptions)
     {
         lock (exceptions)
@@ -387,6 +419,25 @@ public class EntitiesResolverForObjectTests
 
             return new AsyncEntity { Id = id, SomeField = "SomeField" };
         }
+    }
+
+    [ReferenceResolver(EntityResolver = nameof(Get))]
+    public sealed class SlowEntity
+    {
+        [Key]
+        public string Id { get; set; } = null!;
+
+        public static async Task<SlowEntity> Get(string id, [Service] SlowEntityState state)
+        {
+            await Task.Delay(250);
+            state.Completed = true;
+            return new SlowEntity { Id = id };
+        }
+    }
+
+    public sealed class SlowEntityState
+    {
+        public bool Completed { get; set; }
     }
 
     [ExtendServiceType]

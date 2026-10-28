@@ -151,6 +151,39 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     }
 
     [Fact]
+    public async Task Post_Should_ExecuteSentQuery_When_PreviousRequestSentDocumentId()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        await server.PostAsync(
+            new ClientQueryRequest
+            {
+                Id = "acb8d5d513c260b3cef3e3a12b0e29af",
+                Query = "{ __typename }"
+            });
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ hero { name } }" });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SingleRequest_GetHeroName_Casing_Is_Preserved()
     {
         // arrange

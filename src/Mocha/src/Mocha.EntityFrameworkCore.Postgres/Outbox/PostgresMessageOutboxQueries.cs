@@ -63,7 +63,7 @@ internal sealed class PostgresMessageOutboxQueries
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
                     WHERE "{t.TimesSent}" < {MaxAttempts} AND "{t.CreatedAt}" <= NOW()
-                    ORDER BY "{t.CreatedAt}"
+                    ORDER BY "{t.CreatedAt}", "{t.Id}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1
                 )

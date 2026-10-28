@@ -97,7 +97,7 @@ internal static class CursorKeySerializerHelper
             return success;
         }
 
-        var start = buffer.IndexOf((byte)':');
+        var start = buffer[..written].IndexOf((byte)':');
         return start == -1 ? success : ReplaceColons(buffer, start, written, out written);
     }
 
