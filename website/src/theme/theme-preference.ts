@@ -12,16 +12,34 @@ export interface ThemeStore {
   readonly setPreference: (preference: ThemePreference) => void;
 }
 
+export interface ThemeColors {
+  readonly light: string;
+  readonly dark: string;
+}
+
+export const themeColors: ThemeColors = {
+  light: "#f5f1ea",
+  dark: "#0b0f1a",
+};
+
 declare global {
   interface Window {
     __ccTheme?: ThemeStore;
   }
 }
 
-// Keep this function self-contained: the head script runs the same implementation.
 export function createThemeStore(
   browser: Window,
   document: Document,
+): ThemeStore {
+  return createThemeRuntime(browser, document, themeColors);
+}
+
+// Keep this function self-contained: the head script runs the same implementation.
+function createThemeRuntime(
+  browser: Window,
+  document: Document,
+  colors: ThemeColors,
 ): ThemeStore {
   const storageKey = "cc-theme";
   const systemTheme = browser.matchMedia("(prefers-color-scheme: dark)");
@@ -48,10 +66,9 @@ export function createThemeStore(
     document.documentElement.dataset.theme = state.resolvedTheme;
     document.documentElement.style.colorScheme = state.resolvedTheme;
     document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute(
-        "content",
-        state.resolvedTheme === "dark" ? "#0b0f1a" : "#f5f1ea",
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((meta) =>
+        meta.setAttribute("content", colors[state.resolvedTheme]),
       );
   }
 
@@ -88,4 +105,4 @@ export function createThemeStore(
   };
 }
 
-export const themeScript = `window.__ccTheme=(${createThemeStore.toString()})(window,document);`;
+export const themeScript = `window.__ccTheme=(${createThemeRuntime.toString()})(window,document,${JSON.stringify(themeColors)});`;

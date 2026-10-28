@@ -14,6 +14,9 @@ const {
   new URL("../../src/theme/theme-preference.ts", import.meta.url).href
 );
 
+const LIGHT_METAS = ["#f5f1ea", "#f5f1ea"];
+const DARK_METAS = ["#0b0f1a", "#0b0f1a"];
+
 function environment(saved: string | null, dark: boolean) {
   const values = new Map(saved === null ? [] : [["cc-theme", saved]]);
   const changes: (() => void)[] = [];
@@ -24,21 +27,32 @@ function environment(saved: string | null, dark: boolean) {
       changes.push(listener);
     },
   };
-  const meta = {
-    content: "#f5f1ea",
-    setAttribute(name: string, value: string) {
-      assert.equal(name, "content");
-      this.content = value;
+  const metas = [
+    {
+      media: "(prefers-color-scheme: light)",
+      content: "#f5f1ea",
+      setAttribute(name: string, value: string) {
+        assert.equal(name, "content");
+        this.content = value;
+      },
     },
-  };
+    {
+      media: "(prefers-color-scheme: dark)",
+      content: "#0b0f1a",
+      setAttribute(name: string, value: string) {
+        assert.equal(name, "content");
+        this.content = value;
+      },
+    },
+  ];
   const document = {
     documentElement: {
       dataset: {} as { theme?: string },
       style: { colorScheme: "" },
     },
-    querySelector(selector: string) {
+    querySelectorAll(selector: string) {
       assert.equal(selector, 'meta[name="theme-color"]');
-      return meta;
+      return metas;
     },
   };
   const browser = {
@@ -66,7 +80,7 @@ function environment(saved: string | null, dark: boolean) {
       return {
         theme: document.documentElement.dataset.theme,
         colorScheme: document.documentElement.style.colorScheme,
-        themeColor: meta.content,
+        themeColor: metas.map((meta) => meta.content),
       };
     },
   };
@@ -113,7 +127,7 @@ test("head bootstrap resolves an attribute-absent root", () => {
   assert.deepEqual(env.appearance(), {
     theme: "dark",
     colorScheme: "dark",
-    themeColor: "#0b0f1a",
+    themeColor: DARK_METAS,
   });
 });
 
@@ -139,7 +153,7 @@ for (const bootstrap of [false, true]) {
         assert.deepEqual(env.appearance(), {
           theme: resolvedTheme,
           colorScheme: resolvedTheme,
-          themeColor: resolvedTheme === "dark" ? "#0b0f1a" : "#f5f1ea",
+          themeColor: resolvedTheme === "dark" ? DARK_METAS : LIGHT_METAS,
         });
         assert.equal(env.values.get("cc-theme"), saved ?? undefined);
       });
@@ -176,8 +190,39 @@ for (const bootstrap of [false, true]) {
     assert.deepEqual(env.appearance(), {
       theme: "dark",
       colorScheme: "dark",
-      themeColor: "#0b0f1a",
+      themeColor: DARK_METAS,
     });
+  });
+
+  test(`${implementation} sets every theme-color meta across Auto, explicit overrides and live system changes`, () => {
+    // arrange
+    const env = environment(null, false);
+    const store = start(env, bootstrap);
+    const colors: string[][] = [env.appearance().themeColor];
+
+    // act
+    env.setSystemDark(true);
+    colors.push(env.appearance().themeColor);
+    store.setPreference("light");
+    colors.push(env.appearance().themeColor);
+    env.setSystemDark(false);
+    store.setPreference("dark");
+    colors.push(env.appearance().themeColor);
+    env.setSystemDark(true);
+    env.setSystemDark(false);
+    colors.push(env.appearance().themeColor);
+    store.setPreference("auto");
+    colors.push(env.appearance().themeColor);
+
+    // assert
+    assert.deepEqual(colors, [
+      LIGHT_METAS,
+      DARK_METAS,
+      LIGHT_METAS,
+      DARK_METAS,
+      DARK_METAS,
+      LIGHT_METAS,
+    ]);
   });
 
   test(`${implementation} keeps a stable snapshot when the appearance and preference do not change`, () => {
@@ -229,7 +274,7 @@ for (const bootstrap of [false, true]) {
       assert.deepEqual(env.appearance(), {
         theme: "dark",
         colorScheme: "dark",
-        themeColor: "#0b0f1a",
+        themeColor: DARK_METAS,
       });
     });
   }
