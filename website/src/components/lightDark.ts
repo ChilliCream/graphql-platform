@@ -1,4 +1,4 @@
-import "./lightDark.module.css";
+import "./lightDark.css";
 
 /**
  * CSS value that resolves to `light` under the Light appearance and to `dark`
