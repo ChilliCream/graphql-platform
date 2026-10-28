@@ -13,6 +13,7 @@ import {
   CX,
   CY,
   ACCENT_BRIGHT,
+  ACCENT_GLOW,
   ACCENT_MARK,
   ACCENT_MARK_BRIGHT,
   DANGER,
@@ -173,7 +174,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
               letterSpacing: "-0.02em",
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 4px color-mix(in srgb, ${ACCENT_MARK} 28%, transparent))`,
+              filter: `drop-shadow(0 0 4px color-mix(in srgb, ${ACCENT_GLOW} 28%, transparent))`,
             }}
           >
             {readout}

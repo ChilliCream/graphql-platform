@@ -48,3 +48,7 @@ export const Panel1440Light: Story = {
   ...panelStory(1440, true),
   beforeEach: lightAppearance,
 };
+export const Panel375Light: Story = {
+  ...panelStory(375, true),
+  beforeEach: lightAppearance,
+};

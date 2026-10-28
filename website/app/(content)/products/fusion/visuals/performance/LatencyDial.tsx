@@ -20,6 +20,7 @@ import {
   CLUSTER,
   CX,
   CY,
+  ACCENT_GLOW,
   ACCENT_MARK,
   ACCENT_MARK_BRIGHT,
   LABEL_COLOR,
@@ -91,7 +92,7 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
         d={trackPath}
         pathLength={1}
         fill="none"
-        stroke={ACCENT_MARK}
+        stroke={ACCENT_GLOW}
         strokeWidth={FILL_GLOW_WIDTH}
         strokeLinecap="butt"
         opacity={0.6}
@@ -230,7 +231,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
               lineHeight: 1.2,
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 3px color-mix(in srgb, ${ACCENT_MARK} 24%, transparent))`,
+              filter: `drop-shadow(0 0 3px color-mix(in srgb, ${ACCENT_GLOW} 24%, transparent))`,
             }}
           >
             {readout}

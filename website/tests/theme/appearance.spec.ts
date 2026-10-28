@@ -1482,6 +1482,7 @@ test.describe("Fusion HUD surfaces", () => {
     "--t-card",
     "--t-border",
     "--t-ch-latency",
+    "--hud-mark",
   ] as const;
 
   const SITE = {
@@ -1489,7 +1490,8 @@ test.describe("Fusion HUD surfaces", () => {
     "--t-surface": "#fff",
     "--t-card": "#fff",
     "--t-border": "#aaa392",
-    "--t-ch-latency": "#0aa5cf",
+    "--t-ch-latency": "#0891b2",
+    "--hud-mark": "#0891b2",
   };
   const NITRO_DARK = {
     "--t-bg": "#0b0f1a",
@@ -1497,6 +1499,7 @@ test.describe("Fusion HUD surfaces", () => {
     "--t-card": "#131c30",
     "--t-border": "#242d40",
     "--t-ch-latency": "#5eead4",
+    "--hud-mark": "",
   };
 
   const cases: readonly {
@@ -1538,6 +1541,180 @@ test.describe("Fusion HUD surfaces", () => {
 
       // assert
       expect(tokens).toEqual(expected);
+    });
+  }
+});
+
+test.describe("Light HUD marks and dial faces", () => {
+  test("Should_KeepMarksAtThreeToOneOnWarmFaces_When_Light", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/products/fusion", {
+      system: "dark",
+      stored: "light",
+    });
+    await page.locator(".nt-root.hud-theme").first().waitFor();
+
+    // act
+    const result = await page.evaluate(() => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      const parse = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = "#fff";
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+      };
+      const channel = (value: number) => {
+        const unit = value / 255;
+        return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = (rgb: number[]) =>
+        channel(rgb[0]) * 0.2126 +
+        channel(rgb[1]) * 0.7152 +
+        channel(rgb[2]) * 0.0722;
+      const hud = document.querySelector(".nt-root.hud-theme")!;
+      const faces = [
+        ...hud.querySelectorAll(
+          'radialGradient[id^="disc-"] stop, radialGradient[id^="face-"] stop',
+        ),
+      ].map((stop) => parse(getComputedStyle(stop).stopColor));
+      const marks = [...hud.querySelectorAll("svg [stroke]")]
+        .filter(
+          (element) =>
+            /hud-mark/.test(element.getAttribute("stroke")!) &&
+            !element.hasAttribute("filter"),
+        )
+        .map((element) => parse(getComputedStyle(element).stroke));
+      const darkest = Math.min(...faces.map(luminance));
+      return {
+        faces: faces.length,
+        coolFaces: faces.filter(([r, , b]) => b - r > 1).length,
+        marks: marks.length,
+        weakestMark: Math.min(
+          ...marks.map((mark) => (darkest + 0.05) / (luminance(mark) + 0.05)),
+        ),
+      };
+    });
+
+    // assert
+    expect(result.faces).toBeGreaterThanOrEqual(12);
+    expect(result.coolFaces).toBe(0);
+    expect(result.marks).toBeGreaterThan(20);
+    expect(result.weakestMark).toBeGreaterThanOrEqual(3);
+  });
+});
+
+test.describe("Layered composition outlines", () => {
+  async function effectiveRatios(page: Page) {
+    return page.evaluate(() => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      const parse = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = "#fff";
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+      };
+      const channel = (value: number) => {
+        const unit = value / 255;
+        return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = (rgb: number[]) =>
+        channel(rgb[0]) * 0.2126 +
+        channel(rgb[1]) * 0.7152 +
+        channel(rgb[2]) * 0.0722;
+      const page = parse(getComputedStyle(document.body).backgroundColor);
+      const svg = document.querySelector("main svg.max-w-\\[35rem\\]")!;
+      return [...svg.querySelectorAll("path, line, ellipse")]
+        .map((element) => {
+          const style = getComputedStyle(element);
+          if (
+            style.stroke === "none" ||
+            style.stroke.startsWith("url") ||
+            element.querySelector("animate")
+          ) {
+            return null;
+          }
+          let alpha = Number(style.strokeOpacity);
+          for (
+            let node: Element | null = element;
+            node && node !== svg;
+            node = node.parentElement
+          ) {
+            alpha *= Number(getComputedStyle(node).opacity);
+          }
+          const stroke = parse(style.stroke);
+          const blended = stroke.map(
+            (value, index) => value * alpha + page[index] * (1 - alpha),
+          );
+          const [low, high] = [luminance(blended), luminance(page)].sort(
+            (a, b) => a - b,
+          );
+          return {
+            hairline: Number(style.strokeOpacity) < 0.3,
+            ratio: (high + 0.05) / (low + 0.05),
+          };
+        })
+        .filter((entry) => entry !== null);
+    });
+  }
+
+  test("Should_DrawEveryMeaningfulOutlineAtThreeToOne_When_Light", async ({
+    open,
+  }) => {
+    // arrange
+    const light = await open("/platform/graphql-federation", {
+      system: "dark",
+      stored: "light",
+    });
+    const dark = await open("/platform/graphql-federation", {
+      system: "light",
+      stored: "dark",
+    });
+
+    // act
+    const lightOutlines = await effectiveRatios(light);
+    const darkOutlines = await effectiveRatios(dark);
+
+    // assert
+    expect(lightOutlines).toHaveLength(40);
+    expect(
+      lightOutlines.filter((o) => !o.hairline && o.ratio < 3),
+    ).toHaveLength(0);
+    expect(lightOutlines.filter((o) => o.hairline)).toHaveLength(10);
+    expect(
+      lightOutlines.filter((o, i) => o.ratio < darkOutlines[i].ratio),
+    ).toHaveLength(0);
+  });
+});
+
+test.describe("Agentic hero beams", () => {
+  const cases = [
+    { name: "Light375", scheme: "light", width: 375, opacity: 0.4 },
+    { name: "Light1440", scheme: "light", width: 1440, opacity: 1 },
+    { name: "Dark375", scheme: "dark", width: 375, opacity: 1 },
+  ] as const;
+
+  for (const { name, scheme, width, opacity } of cases) {
+    test(`Should_SetBeamOpacityTo${opacity}_When_${name}`, async ({ open }) => {
+      // arrange
+      const page = await open("/platform/agentic-coding", {
+        system: opposite(scheme),
+        stored: scheme,
+        width,
+      });
+
+      // act
+      const opacities = await page
+        .locator(".ac-beam")
+        .evaluateAll((beams) =>
+          beams.map((beam) => Number(getComputedStyle(beam).opacity)),
+        );
+
+      // assert
+      expect(opacities).toEqual([opacity, opacity, opacity, opacity, opacity]);
     });
   }
 });

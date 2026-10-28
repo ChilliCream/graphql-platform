@@ -3,6 +3,7 @@
 import { useId, type CSSProperties } from "react";
 import { motion, useTransform, type MotionValue } from "motion/react";
 
+import { lightDark } from "@/src/components/lightDark";
 import { token } from "@/src/nitro";
 
 import { DialFace } from "./DialFace";
@@ -14,6 +15,7 @@ import {
   CY,
   ACCENT,
   ACCENT_BRIGHT,
+  ACCENT_GLOW,
   ACCENT_MARK,
   ACCENT_MARK_BRIGHT,
   TRACK,
@@ -87,7 +89,7 @@ function RimArc({ arc, color, offset, glowId }: RimArcProps) {
         d={d}
         pathLength={1}
         fill="none"
-        stroke={color}
+        stroke={lightDark(ACCENT_GLOW, color)}
         strokeWidth={GLOW_WIDTH}
         strokeLinecap="butt"
         opacity={0.55}

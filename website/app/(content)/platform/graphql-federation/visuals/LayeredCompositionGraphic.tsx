@@ -44,6 +44,9 @@ const GROUND = "var(--color-cc-bg)";
 const alpha = (light: number, dark: number) =>
   lightDark(String(light), String(dark));
 
+// Outlines and marks stay fully opaque in Light so they keep 3:1 on the page.
+const depth = (tone: number) => alpha(1, tone);
+
 interface Frame {
   readonly cy: number;
   readonly width: number;
@@ -281,7 +284,13 @@ function NodeDot({
           />
         )}
       </circle>
-      <circle cx={x} cy={y} r={NODE_CORE} fill={color} fillOpacity={tone} />
+      <circle
+        cx={x}
+        cy={y}
+        r={NODE_CORE}
+        fill={color}
+        fillOpacity={depth(tone)}
+      />
       {bright && (
         <circle
           cx={x}
@@ -399,14 +408,30 @@ export function LayeredCompositionGraphic() {
           />
         </linearGradient>
         <linearGradient id={`${uid}-edge`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={ACCENT_EDGE} stopOpacity={0.1} />
+          <stop
+            offset="0%"
+            stopColor={ACCENT_EDGE}
+            stopOpacity={alpha(0.55, 0.1)}
+          />
           <stop offset="50%" stopColor={ACCENT_EDGE} stopOpacity={1} />
-          <stop offset="100%" stopColor={ACCENT_EDGE} stopOpacity={0.1} />
+          <stop
+            offset="100%"
+            stopColor={ACCENT_EDGE}
+            stopOpacity={alpha(0.55, 0.1)}
+          />
         </linearGradient>
         <linearGradient id={`${uid}-edge-active`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={SUCCESS_LINE} stopOpacity={0.1} />
+          <stop
+            offset="0%"
+            stopColor={SUCCESS_LINE}
+            stopOpacity={alpha(0.55, 0.1)}
+          />
           <stop offset="50%" stopColor={SUCCESS_LINE} stopOpacity={1} />
-          <stop offset="100%" stopColor={SUCCESS_LINE} stopOpacity={0.1} />
+          <stop
+            offset="100%"
+            stopColor={SUCCESS_LINE}
+            stopOpacity={alpha(0.55, 0.1)}
+          />
         </linearGradient>
         <radialGradient id={`${uid}-inner`} cx="0.5" cy="0.5" r="0.5">
           <stop
@@ -553,7 +578,7 @@ export function LayeredCompositionGraphic() {
       <path
         d={path([baseCorners[3], baseCorners[0], baseCorners[1]])}
         stroke={ACCENT_LINE}
-        strokeOpacity={alpha(0.7, 0.3)}
+        strokeOpacity={alpha(1, 0.3)}
         strokeWidth={1}
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
@@ -574,7 +599,7 @@ export function LayeredCompositionGraphic() {
           x2={BASE_POINTS[b][0]}
           y2={BASE_POINTS[b][1]}
           stroke={ACCENT_LINE}
-          strokeOpacity={alpha(0.85, 0.55)}
+          strokeOpacity={alpha(1, 0.55)}
           strokeWidth={1}
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
@@ -629,65 +654,67 @@ export function LayeredCompositionGraphic() {
                 />
               )}
             </ellipse>
-            <g opacity={tone}>
-              <path
-                d={path(
-                  [
-                    c[3],
-                    c[2],
-                    [c[2][0], c[2][1] + SLAB],
-                    [c[3][0], c[3][1] + SLAB],
-                  ],
-                  true,
-                )}
-                fill={`url(#${uid}-slab${suffix})`}
-              />
-              <path
-                d={path(
-                  [
-                    c[2],
-                    c[1],
-                    [c[1][0], c[1][1] + SLAB],
-                    [c[2][0], c[2][1] + SLAB],
-                  ],
-                  true,
-                )}
-                fill={`url(#${uid}-slab${suffix})`}
-                fillOpacity={0.55}
-              />
-              <path d={path(c, true)} fill={`url(#${uid}-face${suffix})`} />
-              {active && (
-                <path d={path(c, true)} fill={`url(#${uid}-inner)`}>
-                  {animated && (
-                    <animate
-                      attributeName="fill-opacity"
-                      values="0.6;1;0.6"
-                      dur="6s"
-                      repeatCount="indefinite"
-                    />
+            <g opacity={depth(tone)}>
+              <g opacity={alpha(tone, 1)}>
+                <path
+                  d={path(
+                    [
+                      c[3],
+                      c[2],
+                      [c[2][0], c[2][1] + SLAB],
+                      [c[3][0], c[3][1] + SLAB],
+                    ],
+                    true,
                   )}
-                </path>
-              )}
-              {active && animated && (
-                <g clipPath={`url(#${uid}-clip-active)`}>
-                  <path d={SWEEP.band} fill={`url(#${uid}-sweep)`}>
-                    <animateTransform
-                      attributeName="transform"
-                      type="translate"
-                      values={`0 0; ${SWEEP.travel[0]} ${SWEEP.travel[1]}; ${SWEEP.travel[0]} ${SWEEP.travel[1]}`}
-                      keyTimes="0;0.5;1"
-                      calcMode="spline"
-                      keySplines="0.45 0 0.55 1; 0 0 1 1"
-                      dur="9s"
-                      repeatCount="indefinite"
-                    />
+                  fill={`url(#${uid}-slab${suffix})`}
+                />
+                <path
+                  d={path(
+                    [
+                      c[2],
+                      c[1],
+                      [c[1][0], c[1][1] + SLAB],
+                      [c[2][0], c[2][1] + SLAB],
+                    ],
+                    true,
+                  )}
+                  fill={`url(#${uid}-slab${suffix})`}
+                  fillOpacity={0.55}
+                />
+                <path d={path(c, true)} fill={`url(#${uid}-face${suffix})`} />
+                {active && (
+                  <path d={path(c, true)} fill={`url(#${uid}-inner)`}>
+                    {animated && (
+                      <animate
+                        attributeName="fill-opacity"
+                        values="0.6;1;0.6"
+                        dur="6s"
+                        repeatCount="indefinite"
+                      />
+                    )}
                   </path>
-                </g>
-              )}
+                )}
+                {active && animated && (
+                  <g clipPath={`url(#${uid}-clip-active)`}>
+                    <path d={SWEEP.band} fill={`url(#${uid}-sweep)`}>
+                      <animateTransform
+                        attributeName="transform"
+                        type="translate"
+                        values={`0 0; ${SWEEP.travel[0]} ${SWEEP.travel[1]}; ${SWEEP.travel[0]} ${SWEEP.travel[1]}`}
+                        keyTimes="0;0.5;1"
+                        calcMode="spline"
+                        keySplines="0.45 0 0.55 1; 0 0 1 1"
+                        dur="9s"
+                        repeatCount="indefinite"
+                      />
+                    </path>
+                  </g>
+                )}
+              </g>
               <path
                 d={path([c[3], c[0], c[1]])}
                 stroke={color}
-                strokeOpacity={alpha(0.7, 0.26)}
+                strokeOpacity={alpha(1, 0.26)}
                 strokeWidth={1}
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
@@ -707,7 +734,7 @@ export function LayeredCompositionGraphic() {
                   x2={points[b][0]}
                   y2={points[b][1]}
                   stroke={color}
-                  strokeOpacity={alpha(0.85, 0.5)}
+                  strokeOpacity={alpha(1, 0.5)}
                   strokeWidth={1}
                   strokeLinecap="round"
                   vectorEffect="non-scaling-stroke"
@@ -751,7 +778,7 @@ export function LayeredCompositionGraphic() {
               rx={4.6}
               ry={1.8}
               stroke={active ? SUCCESS_LINE : ACCENT_LINE}
-              strokeOpacity={alpha(0.85, 0.5)}
+              strokeOpacity={alpha(1, 0.5)}
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"
             />

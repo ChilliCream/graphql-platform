@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CopyCommand } from "@/src/components/CopyCommand";
@@ -81,6 +83,9 @@ const BEAMS: readonly BeamSpec[] = [
 // unless the animation runs, so with prefers-reduced-motion the beams
 // simply stay still.
 const DROP_CSS = `
+@media (max-width: 767px) {
+  .ac-beam { opacity: var(--ac-beam-narrow); }
+}
 @media (prefers-reduced-motion: no-preference) {
   .ac-drop { animation: ac-drop-fall 15s linear infinite; }
 }
@@ -122,13 +127,16 @@ function Backdrop() {
       {BEAMS.map((beam) => (
         <div
           key={beam.left}
-          className="absolute top-0 h-full"
-          style={{
-            left: beam.left,
-            width: beam.width,
-            background: beam.background,
-            filter: beam.halo,
-          }}
+          className="ac-beam absolute top-0 h-full"
+          style={
+            {
+              left: beam.left,
+              width: beam.width,
+              background: beam.background,
+              filter: beam.halo,
+              "--ac-beam-narrow": lightDark("0.4", "1"),
+            } as CSSProperties
+          }
         />
       ))}
       <div
