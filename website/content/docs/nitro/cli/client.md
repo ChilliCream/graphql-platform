@@ -150,7 +150,7 @@ nitro client validate \
 
 # `nitro client unpublish`
 
-Nitro: 10.6.0
+Since: 16.7.0, Nitro: 10.6.0
 
 Unpublish one or more client version tags from a stage. The version is not deleted, only removed from the stage.
 

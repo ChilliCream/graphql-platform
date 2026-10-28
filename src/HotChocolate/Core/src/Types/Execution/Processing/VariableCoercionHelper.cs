@@ -191,6 +191,12 @@ internal sealed class VariableCoercionHelper
                             continue;
                         }
 
+                        // like the input parser, we keep the first occurrence of a repeated property.
+                        if (processed[field.Index])
+                        {
+                            continue;
+                        }
+
                         processed[field.Index] = true;
 
                         if (property.Value.ValueKind is JsonValueKind.Null)

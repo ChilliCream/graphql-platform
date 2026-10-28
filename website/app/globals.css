@@ -85,6 +85,8 @@
   --color-cc-youtube: #ff0000;
   --color-cc-youtube-hover: #cc0000;
 
+  /* Fusion performance HUD only. */
+  --color-cc-electric: oklch(64% 0.19 255);
   /* Videos section accent: the amber shared by the ChilliCream TV thumbnails. */
   --color-cc-amber: #f5ad2b;
 

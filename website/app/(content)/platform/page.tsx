@@ -32,10 +32,10 @@ export const metadata = pageMetadata(PAGE);
 
 const PLATFORM_SECTIONS = [
   {
-    href: "/docs/fusion",
-    title: "Federation with Fusion",
+    href: "/platform/graphql-federation",
+    title: "GraphQL Federation",
     description:
-      "Compose independently owned GraphQL services into one gateway artifact before runtime.",
+      "What GraphQL Federation is, why teams adopt it, how it works, and why to choose Fusion for it.",
   },
   {
     href: "/platform/analytics",

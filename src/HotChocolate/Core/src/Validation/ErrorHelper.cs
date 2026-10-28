@@ -170,7 +170,7 @@ internal static class ErrorHelper
 
         public IError LeafFieldsCannotHaveSelections(
             FieldNode node,
-            IComplexTypeDefinition declaringType,
+            ITypeDefinition declaringType,
             IType fieldType)
         {
             return ErrorBuilder.New()

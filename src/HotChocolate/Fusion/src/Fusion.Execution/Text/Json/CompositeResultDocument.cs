@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,8 +11,10 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument : IDisposable
 {
+    private const int InitialSourceCapacity = 32;
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
-    private readonly List<SourceResultDocument> _sources = [];
+    private SourceResultDocument[] _sources = [];
+    private int _sourceCount;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly ulong _deferFlags;
@@ -21,6 +24,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
     private int _layoutVersion;
+    private int _shapeVersion;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -69,6 +73,13 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// replaced. While it is unchanged, every element keeps the path it had when it was read.
     /// </summary>
     internal int LayoutVersion => _layoutVersion;
+
+    /// <summary>
+    /// Gets a version that changes whenever an object or a list is assigned to a value or a value
+    /// that references an object or a list is replaced. While it is unchanged, walking the same
+    /// field path from the root reaches the same objects.
+    /// </summary>
+    internal int ShapeVersion => _shapeVersion;
 
     /// <summary>
     /// Stops this document from renting path segment arrays from the request scoped pool.
@@ -453,7 +464,8 @@ public sealed partial class CompositeResultDocument : IDisposable
             // introspection field). Its concrete type comes from the enclosing selection set,
             // which the merge has already specialized to the runtime type.
             var typeName = _operation.GetSelectionSetById(row.Location).Type.Name;
-            return Utf8StringCache.GetJsonPropertyName(typeName).AsSpan(..^1);
+            var token = Utf8StringCache.GetJsonPropertyName(typeName);
+            return token.AsSpan(0, token.Length - Utf8StringCache.JsonPropertyNamePadding - 1);
         }
 
         throw new NotSupportedException();
@@ -596,6 +608,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             "Only an undefined slot can be initialized.");
 
         var obj = CreateObject(target, selectionSet, out objectContext);
+        _shapeVersion++;
 
         _metaDb.ReplacePreserveParent(
             cursor: target,
@@ -617,6 +630,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             "Only an undefined slot can be initialized.");
 
         var array = CreateArray(target, length);
+        _shapeVersion++;
 
         _metaDb.ReplacePreserveParent(
             cursor: target,
@@ -630,6 +644,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
         TrackValueReplacement(target.Cursor);
+        _shapeVersion++;
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
@@ -651,18 +666,18 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if (parent.Id == -1)
         {
-            Debug.Assert(!_sources.Contains(parent), "The source document is marked as unbound but is already registered.");
-            parent.Id = _sources.Count;
-            _sources.Add(parent);
+            Debug.Assert(!IsSourceRegistered(parent), "The source document is marked as unbound but is already registered.");
+            RegisterSource(parent);
         }
 
-        Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
+        Debug.Assert(IsSourceRegistered(parent), "Expected the source document of the source element to be registered.");
 
         var tokenType = sourceRow.TokenType.ToElementTokenType();
         TrackValueReplacement(target.Cursor);
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
+            _shapeVersion++;
             _metaDb.ReplacePreserveParent(
                 cursor: target.Cursor,
                 tokenType: tokenType,
@@ -830,6 +845,41 @@ public sealed partial class CompositeResultDocument : IDisposable
         return ((selection.Id - selectionSet.Id - 1) * 2) + 2;
     }
 
+    private void RegisterSource(SourceResultDocument source)
+    {
+        var count = _sourceCount;
+
+        if (count == _sources.Length)
+        {
+            GrowSources();
+        }
+
+        source.Id = count;
+        _sources[count] = source;
+        _sourceCount = count + 1;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void GrowSources()
+    {
+        ObjectDisposedException.ThrowIf(_disposed == 1, this);
+
+        var current = _sources;
+        var grown = ArrayPool<SourceResultDocument>.Shared.Rent(
+            current.Length == 0 ? InitialSourceCapacity : current.Length * 2);
+
+        if (current.Length > 0)
+        {
+            current.AsSpan(0, _sourceCount).CopyTo(grown);
+            ArrayPool<SourceResultDocument>.Shared.Return(current, clearArray: true);
+        }
+
+        _sources = grown;
+    }
+
+    private bool IsSourceRegistered(SourceResultDocument source)
+        => Array.IndexOf(_sources, source, 0, _sourceCount) >= 0;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void TrackValueReplacement(Cursor target)
     {
@@ -837,6 +887,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             is ElementTokenType.Reference or ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             _layoutVersion++;
+            _shapeVersion++;
         }
     }
 
@@ -866,5 +917,14 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         _metaDb.Dispose();
+
+        var sources = _sources;
+        _sources = [];
+        _sourceCount = 0;
+
+        if (sources.Length > 0)
+        {
+            ArrayPool<SourceResultDocument>.Shared.Return(sources, clearArray: true);
+        }
     }
 }

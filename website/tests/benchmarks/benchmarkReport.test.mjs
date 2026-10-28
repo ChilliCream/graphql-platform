@@ -519,7 +519,7 @@ test("names and links unknown gateways from the report", () => {
       return [variantName(entry), gatewayLink(entry.gateway)];
     }),
     [
-      ["Fusion", "/docs/fusion"],
+      ["Fusion", "/products/fusion"],
       ["New Router Preview", "https://github.com/example/new-router"],
       ["Unsafe Router", undefined],
     ],
