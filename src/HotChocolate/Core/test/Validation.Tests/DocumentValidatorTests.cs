@@ -1085,6 +1085,84 @@ public class DocumentValidatorTests
         Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(sb.ToString()));
     }
 
+    [Fact]
+    public void Validate_Should_RejectOperation_When_FragmentVisitsAreExhausted()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query a {
+              dog {
+                ...budget
+                ...nameFragment
+              }
+            }
+
+            query b {
+              dog {
+                ...budget
+                ...barkVolumeFragment
+              }
+            }
+
+            fragment budget on Dog {
+              name
+            }
+
+            fragment nameFragment on Dog {
+              name
+              ...barkVolumeFragment
+            }
+
+            fragment barkVolumeFragment on Dog {
+              barkVolume
+            }
+            """);
+
+        var validator = CreateValidator(b => b.ModifyOptions(o => o.MaxAllowedFragmentVisits = 2));
+
+        // act
+        var result = validator.Validate(ValidationUtils.CreateSchema(), document);
+
+        // assert
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("Maximum allowed fragment visits were exceeded.", error.Message);
+        Assert.Equal(ErrorCodes.Validation.MaxFragmentVisitsOverflow, error.Code);
+    }
+
+    [Fact]
+    public void Validate_Should_AcceptDocument_When_SpreadsAfterFragmentVisitLimitWereAlreadyVisited()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              dog {
+                ...nameFragment
+                ...barkVolumeFragment
+                ...nameFragment
+              }
+            }
+
+            fragment nameFragment on Dog {
+              name
+            }
+
+            fragment barkVolumeFragment on Dog {
+              barkVolume
+              ...nameFragment
+            }
+            """);
+
+        var validator = CreateValidator(b => b.ModifyOptions(o => o.MaxAllowedFragmentVisits = 2));
+
+        // act
+        var result = validator.Validate(ValidationUtils.CreateSchema(), document);
+
+        // assert
+        Assert.Empty(result.Errors);
+    }
+
     private static void ExpectValid([StringSyntax("graphql")] string sourceText)
         => ExpectValid(null, null, sourceText);
 

@@ -1,5 +1,3 @@
-import { token } from "@/src/nitro";
-
 export const VB = 300;
 export const CX = VB / 2;
 export const CY = VB / 2;
@@ -155,16 +153,20 @@ export const NETWORK_CHART_WIDTH = `calc(${READOUT_FONT} * ${NETWORK_CHART_EM})`
 export const READOUT_LINE_HEIGHT = 1.15;
 export const CONTENT_GAP = "clamp(3px, 3cqw - 4px, 12px)";
 
-export const ELECTRIC = "var(--color-cc-electric)";
+const BG = "var(--color-cc-bg)";
+const SURFACE = "var(--color-cc-surface)";
+const SLATE = "var(--color-cc-ink-dim)";
+const HEADING = "var(--color-cc-heading)";
+
+export const ACCENT = "var(--color-cc-accent)";
+export const ACCENT_BRIGHT = `color-mix(in srgb, ${ACCENT} 78%, ${HEADING})`;
+export const BEZEL = `color-mix(in srgb, ${SLATE} 38%, ${SURFACE})`;
+export const TRACK = `color-mix(in srgb, ${SLATE} 20%, ${SURFACE})`;
 export const DANGER = "var(--color-cc-danger)";
-export const ELECTRIC_BRIGHT = `color-mix(in oklch, ${ELECTRIC} 55%, var(--color-cc-accent-hover))`;
-export const ELECTRIC_DIM = `color-mix(in srgb, ${ELECTRIC} 30%, transparent)`;
-export const DISC_CORE = `color-mix(in srgb, ${ELECTRIC} 12%, black)`;
-export const DISC_RIM = `color-mix(in srgb, ${ELECTRIC} 48%, black)`;
-export const FACE_CORE = `color-mix(in srgb, ${ELECTRIC} 25%, black)`;
-export const FACE_RIM = `color-mix(in srgb-linear, ${ELECTRIC} 30%, black)`;
-export const ELECTRIC_TEXT = `color-mix(in srgb, ${ELECTRIC} 70%, ${token.textStrong})`;
-export const OPS_NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 80%, ${token.textStrong})`;
-export const LATENCY_NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 30%, ${token.textStrong})`;
-export const LABEL_COLOR = `color-mix(in srgb, ${token.textSecondary} 40%, ${token.textStrong})`;
-export const RING_GLOW = `0 0 16px 2px color-mix(in srgb, ${ELECTRIC} 70%, transparent)`;
+export const DISC_CORE = `color-mix(in srgb, ${ACCENT} 5%, ${SURFACE})`;
+export const DISC_RIM = `color-mix(in srgb, ${SLATE} 8%, ${BG})`;
+export const FACE_CORE = `color-mix(in srgb, ${ACCENT} 4%, ${BG})`;
+export const FACE_RIM = `color-mix(in srgb, ${SLATE} 10%, ${SURFACE})`;
+export const NUMERAL_COLOR = `color-mix(in srgb, ${HEADING} 30%, ${SLATE})`;
+export const LABEL_COLOR = `color-mix(in srgb, ${HEADING} 45%, ${SLATE})`;
+export const RING_GLOW = `0 0 9px 1px color-mix(in srgb, ${ACCENT} 18%, transparent)`;

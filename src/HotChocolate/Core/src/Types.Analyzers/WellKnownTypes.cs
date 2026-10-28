@@ -107,6 +107,7 @@ public static class WellKnownTypes
     public const string ConfigurationHelper = "HotChocolate.Internal.ConfigurationHelper";
     public const string InterfaceFieldDescriptor = "HotChocolate.Types.Descriptors.InterfaceFieldDescriptor";
     public const string ObjectFieldDescriptor = "HotChocolate.Types.Descriptors.ObjectFieldDescriptor";
+    public const string NodeDescriptorBase = "HotChocolate.Types.Relay.Descriptors.NodeDescriptorBase";
     public const string NonNullTypeNode = "HotChocolate.Language.NonNullTypeNode";
     public const string ListTypeNode = "HotChocolate.Language.ListTypeNode";
     public const string NamedTypeNode = "HotChocolate.Language.NamedTypeNode";

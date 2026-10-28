@@ -1,5 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
+import {
+  BURST_FREEZE_MS,
+  TelemetryFreezeContext,
+} from "./performance/useTelemetryClock";
 import { PerformanceWindow } from "./PerformanceWindow";
 
 const PANEL_WIDTHS = {
@@ -23,9 +27,11 @@ function panelStory(viewport: keyof typeof PANEL_WIDTHS): Story {
   return {
     decorators: [
       (Story) => (
-        <div style={{ width: PANEL_WIDTHS[viewport], maxWidth: "100%" }}>
-          <Story />
-        </div>
+        <TelemetryFreezeContext.Provider value={BURST_FREEZE_MS}>
+          <div style={{ width: PANEL_WIDTHS[viewport], maxWidth: "100%" }}>
+            <Story />
+          </div>
+        </TelemetryFreezeContext.Provider>
       ),
     ],
   };
