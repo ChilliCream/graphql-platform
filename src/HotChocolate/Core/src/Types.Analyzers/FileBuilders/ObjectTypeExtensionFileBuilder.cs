@@ -134,17 +134,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
 
             if (objectTypeExtension.NodeResolver is not null)
             {
-                _writer.WriteLine();
-                _writer.WriteIndentedLine("descriptor");
-                using (_writer.IncreaseIndent())
-                {
-                    _writer.WriteIndentedLine(".ImplementsNode()");
-                    _writer.WriteIndentedLine(
-                        ".ResolveNode({0}Resolvers.{1}_{2}().Resolver!);",
-                        objectTypeExtension.Type.ToFullyQualified(),
-                        objectTypeExtension.Type.Name,
-                        objectTypeExtension.NodeResolver.Member.Name);
-                }
+                WriteNodeResolver(objectTypeExtension, objectTypeExtension.NodeResolver);
             }
 
             WriteResolverBindings(objectTypeExtension);
@@ -154,6 +144,50 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) 
         }
 
         _writer.WriteIndentedLine("}");
+    }
+
+    private void WriteNodeResolver(ObjectTypeExtensionInfo objectTypeExtension, Resolver nodeResolver)
+    {
+        _writer.WriteLine();
+
+        var hasDescriptorAttributes = nodeResolver.Member
+            .GetAttributes()
+            .Any(t => t.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.DescriptorAttribute));
+
+        if (!hasDescriptorAttributes)
+        {
+            _writer.WriteIndentedLine("descriptor");
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine(".ImplementsNode()");
+                _writer.WriteIndentedLine(
+                    ".ResolveNode({0}Resolvers.{1}_{2}().Resolver!);",
+                    objectTypeExtension.Type.ToFullyQualified(),
+                    objectTypeExtension.Type.Name,
+                    nodeResolver.Member.Name);
+            }
+
+            return;
+        }
+
+        _writer.WriteIndentedLine("var nodeDescriptor = descriptor.ImplementsNode();");
+        _writer.WriteIndentedLine(
+            "nodeDescriptor.ResolveNode({0}Resolvers.{1}_{2}().Resolver!);",
+            objectTypeExtension.Type.ToFullyQualified(),
+            objectTypeExtension.Type.Name,
+            nodeResolver.Member.Name);
+
+        // the descriptor attributes of the node resolver are applied from the member
+        // of the field definition that the node resolver pipeline is compiled from.
+        _writer.WriteIndentedLine(
+            "((global::{0})nodeDescriptor).Extend().Definition.ResolverField!.Member =",
+            WellKnownTypes.NodeDescriptorBase);
+        using (_writer.IncreaseIndent())
+        {
+            _writer.WriteIndentedLine(
+                "thisType.GetMember(\"{0}\", bindingFlags)[0];",
+                nodeResolver.Member.Name);
+        }
     }
 
     public void WriteRootTypeInitializeMethod(IOutputTypeInfo typeInfo)

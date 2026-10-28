@@ -134,6 +134,31 @@ public class IntegrationTests
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Node_Should_ApplyNodeResolverAttributes_When_ObjectTypeIsGenerated()
+    {
+        // arrange
+        var services = CreateApplicationServices();
+        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var id = Convert.ToBase64String("NodeResolverAttributeProbe:1"u8);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            $$"""{ node(id: "{{id}}") { ... on NodeResolverAttributeProbe { resolvedBy } } }""");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": {
+                  "resolvedBy": "GetNodeResolverAttributeProbeById"
+                }
+              }
+            }
+            """);
+    }
+
     private static IServiceProvider CreateApplicationServices(
         Action<IServiceCollection>? configure = null)
     {

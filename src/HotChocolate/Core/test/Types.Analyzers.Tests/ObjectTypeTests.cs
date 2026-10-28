@@ -40,4 +40,39 @@ public class ObjectTypeTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task CustomAttribute_On_NodeResolver_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Reflection;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Descriptors;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            public sealed class FooAttribute(string name) : ObjectFieldDescriptorAttribute
+            {
+                public string Name { get; } = name;
+
+                protected override void OnConfigure(
+                    IDescriptorContext context,
+                    IObjectFieldDescriptor descriptor,
+                    MemberInfo? member)
+                    => descriptor.Description(Name);
+            }
+
+            public sealed record Product(int Id, string Name);
+
+            [ObjectType<Product>]
+            public static partial class ProductNode
+            {
+                [NodeResolver]
+                [Foo("bar")]
+                public static Product GetProduct(int id) => new(id, "abc");
+            }
+            """).MatchMarkdownAsync();
+    }
 }

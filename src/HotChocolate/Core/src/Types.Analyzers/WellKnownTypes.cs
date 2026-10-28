@@ -73,6 +73,7 @@ public static class WellKnownTypes
     public const string QueryContextGeneric = QueryContext + "<";
     public const string SortDefinition = "GreenDonut.Data.SortDefinition";
     public const string SortDefinitionGeneric = SortDefinition + "<";
+    public const string NodeDescriptorBase = "HotChocolate.Types.Relay.Descriptors.NodeDescriptorBase";
 
     public static HashSet<string> TypeClass { get; } =
     [
