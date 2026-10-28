@@ -675,7 +675,7 @@ test.describe("appearance selector", () => {
     await group.getByRole("radio", { name: "Light", exact: true }).click();
     await expectResolved(page, "light");
     await expectSelected(page, "light", group);
-    expect(await highlighted(group)).toEqual(["Light"]);
+    await expect.poll(() => highlighted(group)).toEqual(["Light"]);
     expect((await root(page)).stored).toBe("light");
   });
 
