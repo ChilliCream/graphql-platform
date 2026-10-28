@@ -33,7 +33,8 @@ internal sealed class ScheduledMessageStoreResolver
 
             if (registration.Transport is not null)
             {
-                if (!ReferenceEquals(registration.Transport, context.Transport))
+                if (!ReferenceEquals(registration.Transport, context.Transport)
+                    || !registration.IsAvailable)
                 {
                     continue;
                 }

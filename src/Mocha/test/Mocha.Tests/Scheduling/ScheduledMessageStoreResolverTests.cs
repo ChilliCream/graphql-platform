@@ -85,6 +85,69 @@ public class ScheduledMessageStoreResolverTests
     }
 
     [Fact]
+    public void TryResolve_Should_UseTransportInstanceStore_When_ItIsAvailable()
+    {
+        // arrange
+        var transport = new TransportA();
+        var specific = new SpecificStore();
+        var fallback = new FallbackStore();
+        using var provider = BuildProvider(
+            specific,
+            fallback,
+            new ScheduledMessageStoreRegistration(transport, "instance:", _ => specific, () => true),
+            new ScheduledMessageStoreRegistration(null, "fallback:", typeof(FallbackStore), isFallback: true));
+        var resolver = provider.GetRequiredService<ScheduledMessageStoreResolver>();
+
+        // act
+        var found = resolver.TryResolve(new DispatchContext { Transport = transport }, out var store);
+
+        // assert
+        Assert.True(found);
+        Assert.Same(specific, store);
+    }
+
+    [Fact]
+    public void TryResolve_Should_UseFallback_When_TheTransportInstanceStoreIsUnavailable()
+    {
+        // arrange
+        var transport = new TransportA();
+        var specific = new SpecificStore();
+        var fallback = new FallbackStore();
+        using var provider = BuildProvider(
+            specific,
+            fallback,
+            new ScheduledMessageStoreRegistration(transport, "instance:", _ => specific, () => false),
+            new ScheduledMessageStoreRegistration(null, "fallback:", typeof(FallbackStore), isFallback: true));
+        var resolver = provider.GetRequiredService<ScheduledMessageStoreResolver>();
+
+        // act
+        var found = resolver.TryResolve(new DispatchContext { Transport = transport }, out var store);
+
+        // assert
+        Assert.True(found);
+        Assert.Same(fallback, store);
+    }
+
+    [Fact]
+    public void TryResolve_Should_ReturnFalse_When_TheTransportInstanceStoreIsUnavailableWithoutFallback()
+    {
+        // arrange
+        var transport = new TransportA();
+        var specific = new SpecificStore();
+        using var provider = BuildProvider(
+            specific,
+            new FallbackStore(),
+            new ScheduledMessageStoreRegistration(transport, "instance:", _ => specific, () => false));
+        var resolver = provider.GetRequiredService<ScheduledMessageStoreResolver>();
+
+        // act
+        var found = resolver.TryResolve(new DispatchContext { Transport = transport }, out _);
+
+        // assert
+        Assert.False(found);
+    }
+
+    [Fact]
     public void TryResolve_Should_ReturnFalse_When_NoStoreMatches()
     {
         using var provider = BuildProvider(
