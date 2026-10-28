@@ -113,10 +113,13 @@ async function openPage(
             const root = document.documentElement;
             paint.theme = root.dataset.theme;
             paint.colorScheme = root.style.colorScheme;
-            paint.themeColor =
-              document
-                .querySelector('meta[name="theme-color"]')
-                ?.getAttribute("content") ?? undefined;
+            paint.themeColor = Array.from(
+              document.querySelectorAll<HTMLMetaElement>(
+                'meta[name="theme-color"]',
+              ),
+            ).find(
+              (meta) => !meta.media || window.matchMedia(meta.media).matches,
+            )?.content;
             observer.disconnect();
           }
         }).observe(document, { childList: true, subtree: true });
@@ -167,9 +170,12 @@ function root(page: Page) {
       scheme: getComputedStyle(element).colorScheme,
       background: getComputedStyle(document.body).backgroundColor,
       themeColor:
-        document
-          .querySelector('meta[name="theme-color"]')
-          ?.getAttribute("content") ?? null,
+        Array.from(
+          document.querySelectorAll<HTMLMetaElement>(
+            'meta[name="theme-color"]',
+          ),
+        ).find((meta) => !meta.media || matchMedia(meta.media).matches)
+          ?.content ?? null,
       stored: (() => {
         try {
           return localStorage.getItem("cc-theme");
@@ -227,7 +233,12 @@ test.describe("server markup", () => {
 
     // assert
     expect(html.match(/<html[^>]*>/)?.[0]).not.toContain("data-theme");
-    expect(html).toContain('<meta name="theme-color" content="#f5f1ea"/>');
+    expect(html).toContain(
+      '<meta name="theme-color" content="#f5f1ea" media="(prefers-color-scheme: light)"/>',
+    );
+    expect(html).toContain(
+      '<meta name="theme-color" content="#0b0f1a" media="(prefers-color-scheme: dark)"/>',
+    );
     expect(html.indexOf("cc-theme")).toBeLessThan(html.indexOf("<body"));
   });
 });
@@ -249,6 +260,7 @@ test.describe("without JavaScript", () => {
         inlineScheme: "",
         scheme: system,
         background: BACKGROUND[system],
+        themeColor: THEME_COLOR[system],
       });
       await expectSelected(page, "auto");
     });
