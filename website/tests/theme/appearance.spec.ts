@@ -1051,6 +1051,12 @@ test.describe("Light accent and contrast tokens", () => {
     tabStrip: "#0aa5cf6b",
     selectedText: "#0b0f1a",
     solid: "#0aa5cf",
+    glow: {
+      cyan: ["#06b6d4", "0 0 4px #06b6d473, 0 0 16px #06b6d459"],
+      violet: ["#8b5cf6", "0 0 4px #8b5cf673, 0 0 16px #8b5cf659"],
+      magenta: ["#d946ef", "0 0 4px #d946ef73, 0 0 16px #d946ef59"],
+      coral: ["#fb7185", "0 0 4px #fb718573, 0 0 16px #fb718559"],
+    },
   };
   const DARK = {
     accent: "#16b9e4",
@@ -1059,6 +1065,12 @@ test.describe("Light accent and contrast tokens", () => {
     tabStrip: "#f5f1ea29",
     selectedText: "#16b9e4",
     solid: "#f5f0ea",
+    glow: {
+      cyan: ["#06b6d4", "0 0 #0000"],
+      violet: ["#8b5cf6", "0 0 #0000"],
+      magenta: ["#d946ef", "0 0 #0000"],
+      coral: ["#fb7185", "0 0 #0000"],
+    },
   };
 
   async function accentTokens(page: Page) {
@@ -1072,6 +1084,12 @@ test.describe("Light accent and contrast tokens", () => {
         tabStrip: read("--color-cc-tab-strip"),
         selectedText: read("--color-cc-selected-text"),
         solid: read("--color-cc-solid"),
+        glow: Object.fromEntries(
+          ["cyan", "violet", "magenta", "coral"].map((hue) => [
+            hue,
+            [read(`--cc-glow-${hue}`), read(`--cc-glow-${hue}-halo`)],
+          ]),
+        ),
       };
     });
   }
@@ -1120,6 +1138,37 @@ test.describe("Light accent and contrast tokens", () => {
       expect(tokens).toEqual(expected);
     });
   }
+
+  test("Should_UseOnlyCleanHighChromaHues_When_PaintingLightBlooms", async ({
+    open,
+  }) => {
+    // arrange
+    const read = (page: Page) =>
+      page.evaluate(() => {
+        const surface = getComputedStyle(document.documentElement)
+          .getPropertyValue("--cc-dark-surface")
+          .match(/#[0-9a-f]{6}(?:[0-9a-f]{2})?\b/gi);
+        const hues = (surface ?? []).map((stop) =>
+          [1, 3, 5].map((offset) =>
+            parseInt(stop.slice(offset, offset + 2), 16),
+          ),
+        );
+        return [...new Set(hues.map((hue) => hue.join(" ")))];
+      });
+
+    // act
+    const storedLight = await read(
+      await open("/", { system: "dark", stored: "light" }),
+    );
+    const autoLight = await read(
+      await open("/", { system: "light", javaScript: false }),
+    );
+
+    // assert
+    const hues = ["6 182 212", "139 92 246", "217 70 239", "251 113 133"];
+    expect(storedLight).toEqual(hues);
+    expect(autoLight).toEqual(hues);
+  });
 
   test("Should_SizeBloomLayersToThePage_When_FixedAttachmentFallsBack", async ({
     open,

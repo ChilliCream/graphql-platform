@@ -243,133 +243,200 @@ const meta = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     const root = getComputedStyle(document.documentElement);
+    const token = (name: string) => root.getPropertyValue(name).trim();
     const resolved =
       args.scheme === "auto"
         ? matchMedia("(prefers-color-scheme: light)").matches
           ? "light"
           : "dark"
         : args.scheme;
-    expect(root.colorScheme).toBe(resolved);
-    expect(root.getPropertyValue("--color-cc-white").trim()).toBe("#fff");
-    expect(root.getPropertyValue("--color-cc-black").trim()).toBe("#000");
+    const failures: string[] = [];
+    const check = (ok: boolean, label: string) => {
+      if (!ok) {
+        failures.push(label);
+      }
+    };
+    const atLeast = (label: string, value: number, minimum: number) =>
+      check(value >= minimum, `${label}: ${value.toFixed(2)} < ${minimum}`);
+    const ratioOn = (color: readonly number[], surface: readonly number[]) => {
+      const values = [luminance(color), luminance(surface)].sort(
+        (a, b) => a - b,
+      );
+      return (values[1] + 0.05) / (values[0] + 0.05);
+    };
+    const tokenRatio = (name: string, surface: readonly number[]) =>
+      ratioOn(rgba(token(name)), surface);
+
     const solid = canvas.getByRole("button", { name: "Book a demo" });
-    expect(contrast(solid)).toBeGreaterThanOrEqual(4.5);
-    expect(solid).toHaveClass("hover:bg-cc-solid-hover");
-    const labelLuminance = luminance(rgba(getComputedStyle(solid).color));
-    const hoverLuminance = luminance(
-      rgba(root.getPropertyValue("--color-cc-solid-hover")),
+    atLeast("solid label", contrast(solid), 4.5);
+    check(
+      solid.classList.contains("hover:bg-cc-solid-hover"),
+      "solid hover class",
     );
-    expect(
-      (Math.max(labelLuminance, hoverLuminance) + 0.05) /
-        (Math.min(labelLuminance, hoverLuminance) + 0.05),
-    ).toBeGreaterThanOrEqual(4.5);
+    atLeast(
+      "solid label on hover",
+      ratioOn(
+        rgba(getComputedStyle(solid).color),
+        rgba(token("--color-cc-solid-hover")),
+      ),
+      4.5,
+    );
+    check(token("--color-cc-white") === "#fff", "--color-cc-white");
+    check(token("--color-cc-black") === "#000", "--color-cc-black");
+
     if (resolved === "dark") {
-      for (const [token, value] of Object.entries({
+      for (const [name, value] of Object.entries({
         "--color-cc-heading": "#f5f0ea",
         "--color-cc-bg": "#0b0f1a",
         "--color-cc-surface": "#0c1322",
         "--color-cc-accent": "#16b9e4",
         "--color-cc-accent-vivid": "#16b9e4",
         "--color-cc-code-bg": "#0d1117",
+        "--cc-glow-cyan-halo": "0 0 #0000",
+        "--cc-glow-coral-halo": "0 0 #0000",
       })) {
-        expect(root.getPropertyValue(token).trim()).toBe(value);
+        check(token(name) === value, name);
       }
-      expect(root.getPropertyValue("--cc-dark-surface")).toContain(
-        "radial-gradient",
+      check(
+        token("--cc-dark-surface").includes("radial-gradient"),
+        "--cc-dark-surface",
       );
     }
     if (resolved === "light") {
-      expect(
-        getComputedStyle(canvas.getByRole("main")).backgroundImage,
-      ).toContain("radial-gradient");
-      expect(root.getPropertyValue("--color-cc-bg").trim()).toBe("#fcfbf8");
-      expect(root.getPropertyValue("--color-cc-accent-vivid").trim()).toBe(
-        "#0aa5cf",
-      );
-      expect(getComputedStyle(solid).backgroundColor).toBe("rgb(10, 165, 207)");
-      const page = rgba(root.getPropertyValue("--color-cc-bg"));
-      const ratioOn = (token: string, surface: readonly number[]) => {
-        const values = [
-          luminance(rgba(root.getPropertyValue(token))),
-          luminance(surface),
-        ].sort((a, b) => a - b);
-        return (values[1] + 0.05) / (values[0] + 0.05);
-      };
-      const tint = composite(
-        rgba(root.getPropertyValue("--color-cc-accent-vivid")).map((v, i) =>
-          i === 3 ? 0.1 : v,
+      check(
+        getComputedStyle(canvas.getByRole("main")).backgroundImage.includes(
+          "radial-gradient",
         ),
-        rgba("#ffffff"),
+        "page blooms",
       );
-      for (const [token, minimum] of [
+      check(token("--color-cc-bg") === "#fcfbf8", "--color-cc-bg");
+      check(
+        token("--color-cc-accent-vivid") === "#0aa5cf",
+        "--color-cc-accent-vivid",
+      );
+      check(
+        getComputedStyle(solid).backgroundColor === "rgb(10, 165, 207)",
+        "solid fill",
+      );
+      for (const hue of ["cyan", "violet", "magenta", "coral"]) {
+        check(
+          token(`--cc-glow-${hue}-halo`).startsWith("0 0 4px"),
+          `--cc-glow-${hue}-halo`,
+        );
+      }
+      const page = rgba(token("--color-cc-bg"));
+      const blooms = [
+        ...token("--cc-dark-surface").matchAll(
+          /#[0-9a-f]{6,8}\b|rgba?\([^)]*\)/gi,
+        ),
+      ].map(([stop]) => {
+        const [r, g, b, alpha] = rgba(stop);
+        return {
+          label: `rgb(${r} ${g} ${b})`,
+          alpha,
+          color: composite([r, g, b, alpha], page),
+        };
+      });
+      check(blooms.length === 8, "bloom stops");
+      const strongest = new Map<
+        string,
+        { alpha: number; color: readonly number[] }
+      >();
+      for (const { label, alpha, color } of blooms) {
+        if (alpha > (strongest.get(label)?.alpha ?? 0)) {
+          strongest.set(label, { alpha, color });
+        }
+      }
+      const selected = canvas.getByRole("button", { name: /Live traffic/ });
+      const selectedTint = rgba(getComputedStyle(selected).backgroundColor)[3];
+      const tintOn = (surface: readonly number[]) =>
+        composite(
+          [...rgba(token("--color-cc-accent-vivid")).slice(0, 3), selectedTint],
+          surface,
+        );
+      const surfaces = new Map<string, readonly number[]>([
+        ["page", page],
+        ["raised", rgba("#ffffff")],
+        ["code", rgba("#f4f1ea")],
+        ["selected", rgba("#eeebe3")],
+        ...[...strongest].map(
+          ([label, { color }]) => [`${label} bloom`, color] as const,
+        ),
+      ]);
+      for (const [name, surface] of surfaces) {
+        atLeast(
+          `accent on ${name}`,
+          tokenRatio("--color-cc-accent", surface),
+          4.5,
+        );
+        atLeast(
+          `ink-dim on ${name}`,
+          tokenRatio("--color-cc-ink-dim", surface),
+          7,
+        );
+        atLeast(
+          `selected text on the /10 tint over ${name}`,
+          tokenRatio("--color-cc-selected-text", tintOn(surface)),
+          4.5,
+        );
+        atLeast(
+          `selected description on the /10 tint over ${name}`,
+          tokenRatio("--color-cc-selected-description", tintOn(surface)),
+          4.5,
+        );
+      }
+      for (const [name, minimum] of [
         ["--color-cc-ink", 11],
-        ["--color-cc-ink-dim", 7],
         ["--color-cc-nav-label", 7],
-        ["--color-cc-accent", 4.5],
         ["--color-cc-accent-hover", 4.5],
         ["--color-cc-card-border", 2],
         ["--color-cc-control-border", 3],
       ] as const) {
-        expect(
-          ratioOn(token, page),
-          `${token} on the page`,
-        ).toBeGreaterThanOrEqual(minimum);
+        atLeast(`${name} on the page`, tokenRatio(name, page), minimum);
       }
-      for (const surface of ["#ffffff", "#f4f1ea", "#eeebe3"]) {
-        expect(
-          ratioOn("--color-cc-accent", rgba(surface)),
-          `accent on ${surface}`,
-        ).toBeGreaterThanOrEqual(4.5);
-      }
-      expect(
-        ratioOn("--color-cc-accent", tint),
-        "accent on the selected tint",
-      ).toBeGreaterThanOrEqual(4.5);
-      expect(
-        ratioOn("--color-cc-selected-description", tint),
-        "selected description on the selected tint",
-      ).toBeGreaterThanOrEqual(4.5);
+      atLeast("selected Dropdown item", contrast(selected), 4.5);
       for (const element of canvasElement.querySelectorAll(
         "[data-contrast], a, label, [role=tab], .text-cc-danger, .DocSearch-Hit-title, .DocSearch-Hit-path, .DocSearch-Commands li, .DocSearch-Help, .DocSearch-Dropdown p, .font-bold, button:not(:disabled)",
       )) {
-        expect(
-          contrast(element),
-          `${element.textContent} contrast`,
-        ).toBeGreaterThanOrEqual(4.5);
+        atLeast(`${element.textContent} contrast`, contrast(element), 4.5);
       }
       const card = canvas.getByRole("heading", {
         name: "Theme-safe controls",
       }).parentElement!;
-      expect(contrast(card, "borderTopColor")).toBeGreaterThanOrEqual(1.5);
+      atLeast("card border", contrast(card, "borderTopColor"), 1.5);
       const outline = canvas.getByRole("button", { name: "Learn more" });
-      expect(contrast(outline, "borderTopColor")).toBeGreaterThanOrEqual(3);
+      atLeast("outline border", contrast(outline, "borderTopColor"), 3);
       const search = canvas.getByRole("textbox", {
         name: "Search documentation",
       });
       search.focus();
-      expect(search).toHaveFocus();
-      expect(
+      check(document.activeElement === search, "search focus");
+      atLeast(
+        "search border",
         contrast(search.closest("form")!, "borderBottomColor"),
-      ).toBeGreaterThanOrEqual(3);
+        3,
+      );
       const email = canvas.getByRole("textbox", { name: "Email" });
-      const placeholderLuminance = luminance(
-        composite(
-          rgba(getComputedStyle(email, "::placeholder").color),
-          rgba(getComputedStyle(email).backgroundColor),
+      const field = rgba(getComputedStyle(email).backgroundColor);
+      atLeast(
+        "placeholder",
+        ratioOn(
+          composite(
+            rgba(getComputedStyle(email, "::placeholder").color),
+            field,
+          ),
+          field,
         ),
+        4.5,
       );
-      const fieldLuminance = luminance(
-        rgba(getComputedStyle(email).backgroundColor),
-      );
-      expect(
-        (Math.max(placeholderLuminance, fieldLuminance) + 0.05) /
-          (Math.min(placeholderLuminance, fieldLuminance) + 0.05),
-      ).toBeGreaterThanOrEqual(4.5);
-      expect(contrast(email, "borderTopColor")).toBeGreaterThanOrEqual(3);
+      atLeast("email border", contrast(email, "borderTopColor"), 3);
       email.focus();
-      expect(email).toHaveFocus();
-      expect(contrast(email, "borderTopColor")).toBeGreaterThanOrEqual(3);
+      check(document.activeElement === email, "email focus");
+      atLeast("focused email border", contrast(email, "borderTopColor"), 3);
     }
+
+    expect(root.colorScheme).toBe(resolved);
+    expect(failures).toEqual([]);
   },
 } satisfies Meta<typeof ThemePalette>;
 

@@ -197,6 +197,17 @@
       #f0786a 100%
     );
 
+    /* Glow pairs for decorations: a stroke color and a halo shadow per hue.
+       Dark components keep their own glows, so the Dark halos are no-ops. */
+    --cc-glow-cyan: #06b6d4;
+    --cc-glow-cyan-halo: 0 0 #0000;
+    --cc-glow-violet: #8b5cf6;
+    --cc-glow-violet-halo: 0 0 #0000;
+    --cc-glow-magenta: #d946ef;
+    --cc-glow-magenta-halo: 0 0 #0000;
+    --cc-glow-coral: #fb7185;
+    --cc-glow-coral-halo: 0 0 #0000;
+
     /* "Get in touch" promo card: fuchsia-500/20 → indigo-500/15 → sky-500/10,
        diagonally to the bottom-right. The stops are the oklab values Tailwind
        emits for those colors, so the blend matches the original design exactly
@@ -274,9 +285,21 @@
     --color-cc-band: rgb(10 165 207 / 0.09);
     --color-cc-solid: #0aa5cf;
     --color-cc-solid-text: #0b0f1a;
-    --color-cc-tint-cyan: rgb(22 185 228 / 0.16);
-    --color-cc-tint-violet: rgb(124 146 198 / 0.18);
-    --color-cc-tint-coral: rgb(240 120 106 / 0.14);
+    --color-cc-tint-cyan: rgb(6 182 212 / 0.16);
+    --color-cc-tint-violet: rgb(139 92 246 / 0.14);
+    --color-cc-tint-coral: rgb(251 113 133 / 0.14);
+    --cc-glow-cyan: #06b6d4;
+    --cc-glow-cyan-halo:
+      0 0 4px rgb(6 182 212 / 0.45), 0 0 16px rgb(6 182 212 / 0.35);
+    --cc-glow-violet: #8b5cf6;
+    --cc-glow-violet-halo:
+      0 0 4px rgb(139 92 246 / 0.45), 0 0 16px rgb(139 92 246 / 0.35);
+    --cc-glow-magenta: #d946ef;
+    --cc-glow-magenta-halo:
+      0 0 4px rgb(217 70 239 / 0.45), 0 0 16px rgb(217 70 239 / 0.35);
+    --cc-glow-coral: #fb7185;
+    --cc-glow-coral-halo:
+      0 0 4px rgb(251 113 133 / 0.45), 0 0 16px rgb(251 113 133 / 0.35);
     --color-cc-control-border: #726b5f;
     --color-cc-placeholder: #6b6455;
     --color-cc-cta: #86198f;
@@ -299,28 +322,28 @@
     --color-cc-nav-label: #3b475c;
     --cc-dark-surface:
       radial-gradient(
-        62% 46% at 4% 0%,
-        rgb(22 185 228 / 0.17),
-        rgb(22 185 228 / 0.08) 38%,
-        transparent 72%
+        44% 34% at 3% 2%,
+        rgb(6 182 212 / 0.22),
+        rgb(6 182 212 / 0.08) 46%,
+        transparent 78%
       ),
       radial-gradient(
-        56% 46% at 98% 14%,
-        rgb(124 146 198 / 0.18),
-        rgb(124 146 198 / 0.08) 38%,
-        transparent 72%
+        40% 34% at 100% 10%,
+        rgb(139 92 246 / 0.18),
+        rgb(139 92 246 / 0.065) 46%,
+        transparent 78%
       ),
       radial-gradient(
-        52% 42% at 0% 74%,
-        rgb(182 129 169 / 0.11),
-        rgb(182 129 169 / 0.05) 38%,
-        transparent 72%
+        36% 30% at 0% 72%,
+        rgb(217 70 239 / 0.15),
+        rgb(217 70 239 / 0.055) 46%,
+        transparent 78%
       ),
       radial-gradient(
-        60% 46% at 86% 100%,
-        rgb(240 120 106 / 0.14),
-        rgb(240 120 106 / 0.06) 38%,
-        transparent 72%
+        42% 32% at 92% 100%,
+        rgb(251 113 133 / 0.18),
+        rgb(251 113 133 / 0.065) 46%,
+        transparent 78%
       );
     --cc-highlight: rgba(15, 23, 42, 0.12);
     --cc-step-1: #0f6651;
@@ -382,9 +405,21 @@
       --color-cc-band: rgb(10 165 207 / 0.09);
       --color-cc-solid: #0aa5cf;
       --color-cc-solid-text: #0b0f1a;
-      --color-cc-tint-cyan: rgb(22 185 228 / 0.16);
-      --color-cc-tint-violet: rgb(124 146 198 / 0.18);
-      --color-cc-tint-coral: rgb(240 120 106 / 0.14);
+      --color-cc-tint-cyan: rgb(6 182 212 / 0.16);
+      --color-cc-tint-violet: rgb(139 92 246 / 0.14);
+      --color-cc-tint-coral: rgb(251 113 133 / 0.14);
+      --cc-glow-cyan: #06b6d4;
+      --cc-glow-cyan-halo:
+        0 0 4px rgb(6 182 212 / 0.45), 0 0 16px rgb(6 182 212 / 0.35);
+      --cc-glow-violet: #8b5cf6;
+      --cc-glow-violet-halo:
+        0 0 4px rgb(139 92 246 / 0.45), 0 0 16px rgb(139 92 246 / 0.35);
+      --cc-glow-magenta: #d946ef;
+      --cc-glow-magenta-halo:
+        0 0 4px rgb(217 70 239 / 0.45), 0 0 16px rgb(217 70 239 / 0.35);
+      --cc-glow-coral: #fb7185;
+      --cc-glow-coral-halo:
+        0 0 4px rgb(251 113 133 / 0.45), 0 0 16px rgb(251 113 133 / 0.35);
       --color-cc-control-border: #726b5f;
       --color-cc-placeholder: #6b6455;
       --color-cc-cta: #86198f;
@@ -407,28 +442,28 @@
       --color-cc-nav-label: #3b475c;
       --cc-dark-surface:
         radial-gradient(
-          62% 46% at 4% 0%,
-          rgb(22 185 228 / 0.17),
-          rgb(22 185 228 / 0.08) 38%,
-          transparent 72%
+          44% 34% at 3% 2%,
+          rgb(6 182 212 / 0.22),
+          rgb(6 182 212 / 0.08) 46%,
+          transparent 78%
         ),
         radial-gradient(
-          56% 46% at 98% 14%,
-          rgb(124 146 198 / 0.18),
-          rgb(124 146 198 / 0.08) 38%,
-          transparent 72%
+          40% 34% at 100% 10%,
+          rgb(139 92 246 / 0.18),
+          rgb(139 92 246 / 0.065) 46%,
+          transparent 78%
         ),
         radial-gradient(
-          52% 42% at 0% 74%,
-          rgb(182 129 169 / 0.11),
-          rgb(182 129 169 / 0.05) 38%,
-          transparent 72%
+          36% 30% at 0% 72%,
+          rgb(217 70 239 / 0.15),
+          rgb(217 70 239 / 0.055) 46%,
+          transparent 78%
         ),
         radial-gradient(
-          60% 46% at 86% 100%,
-          rgb(240 120 106 / 0.14),
-          rgb(240 120 106 / 0.06) 38%,
-          transparent 72%
+          42% 32% at 92% 100%,
+          rgb(251 113 133 / 0.18),
+          rgb(251 113 133 / 0.065) 46%,
+          transparent 78%
         );
       --cc-highlight: rgba(15, 23, 42, 0.12);
       --cc-step-1: #0f6651;
