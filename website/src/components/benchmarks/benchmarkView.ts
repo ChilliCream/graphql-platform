@@ -148,7 +148,7 @@ export interface HistorySeries {
   readonly color: string;
   /** Whether the line is dashed because the palette ran out of colors. */
   readonly dashed: boolean;
-  /** Sampled runs, oldest first: the runs on dates sampled across every series, which include each series' first and latest run, and every failed run. */
+  /** Runs on up to 40 shared sample dates, plus each series' endpoints and every failed run, oldest first. */
   readonly points: readonly HistoryPoint[];
 }
 
@@ -169,8 +169,7 @@ export function historySeries(
   const dates = [
     ...new Set(histories.flatMap(({ versions }) => versions.map(runDate))),
   ].toSorted((a, b) => a - b);
-  const stride = Math.max(1, Math.ceil((dates.length - 1) / 20));
-  const count = Math.ceil((dates.length - 1) / stride) + 1;
+  const count = Math.min(dates.length, 40);
   const sampledDates = new Set([
     ...Array.from(
       { length: count },

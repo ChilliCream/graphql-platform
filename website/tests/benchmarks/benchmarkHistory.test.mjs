@@ -160,7 +160,8 @@ test("includes years when requested for a cross-year axis", async () => {
   );
 });
 
-test("distributes six-month samples evenly without a short final interval", () => {
+test("distributes 40 six-month samples evenly without a short final interval", () => {
+  // arrange
   const history = parseBenchmarkHistory(fixture);
   const scenario = structuredClone(history.scenarios[0]);
   const variant = scenario.variants[0];
@@ -174,17 +175,20 @@ test("distributes six-month samples evenly without a short final interval", () =
       completedAt: new Date(start + index * day).toISOString(),
     },
   }));
+  // act
   const points = historySeries(scenario, benchmarkVariants(history))[0].points;
   const gaps = points
     .slice(1)
     .map((point, index) => (point.timestamp - points[index].timestamp) / day);
+  // assert
   assert.deepEqual(
     [points[0].runNumber, points.at(-1).runNumber, points.length],
-    [1000, 1183, 20],
+    [1000, 1183, 40],
   );
-  assert.ok(gaps.every((gap) => gap === 9 || gap === 10));
+  assert.ok(gaps.every((gap) => gap === 4 || gap === 5));
 });
 test("keeps failed runs that fall between samples", () => {
+  // arrange
   const history = parseBenchmarkHistory(fixture);
   const scenario = structuredClone(history.scenarios[0]);
   const variant = scenario.variants[0];
@@ -193,19 +197,22 @@ test("keeps failed runs that fall between samples", () => {
   const start = Date.parse("2026-04-17T12:00:00Z");
   variant.results = Array.from({ length: 184 }, (_, index) => ({
     ...base,
-    ...(index === 5 ? { status: "failed" } : {}),
+    ...(index === 2 ? { status: "failed" } : {}),
     run: {
       number: 1000 + index,
       completedAt: new Date(start + index * day).toISOString(),
     },
   }));
+  // act
   const points = historySeries(scenario, benchmarkVariants(history))[0].points;
+
+  // assert
   assert.deepEqual(
     [
       points.filter((point) => point.failed).map((point) => point.runNumber),
       points.length,
     ],
-    [[1005], 21],
+    [[1002], 41],
   );
 });
 test("excludes failed runs from the change and latest completed point", () => {
@@ -319,6 +326,7 @@ test("samples the same run dates for every series", () => {
     ]),
     [
       [39, true],
+      [40, true],
       [41, true],
     ],
   );
