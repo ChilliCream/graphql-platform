@@ -11,6 +11,7 @@ public class ValidationOptions
 {
     private int? _maxAllowedExecutionDepth;
     private int _maxErrors = 5;
+    private int _maxAllowedSelectionSetDepth = 200;
 
     /// <summary>
     /// Gets the document rules of the validation.
@@ -58,5 +59,18 @@ public class ValidationOptions
             }
             _maxErrors = value;
         }
+    }
+
+    /// <summary>
+    /// <para>
+    /// The maximum depth to which the selection sets of an operation can be nested
+    /// when its fragment spreads are followed.
+    /// </para>
+    /// <para>Default: <c>200</c></para>
+    /// </summary>
+    public int MaxAllowedSelectionSetDepth
+    {
+        get => _maxAllowedSelectionSetDepth;
+        set => _maxAllowedSelectionSetDepth = value < 1 ? 200 : value;
     }
 }

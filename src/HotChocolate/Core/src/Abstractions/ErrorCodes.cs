@@ -326,6 +326,11 @@ public static class ErrorCodes
         /// The maximum allowed introspection depth was exceeded.
         /// </summary>
         public const string MaxIntrospectionDepthOverflow = "HC0086";
+
+        /// <summary>
+        /// The maximum allowed selection set depth was exceeded.
+        /// </summary>
+        public const string MaxSelectionSetDepthOverflow = "HC0138";
     }
 
     /// <summary>
