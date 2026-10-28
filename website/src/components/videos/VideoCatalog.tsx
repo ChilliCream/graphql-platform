@@ -13,7 +13,7 @@ const FIELD_STYLE = {
     "rgba(255, 255, 255, 0.05)",
   ),
   "--vc-field-ring": lightDark(
-    "rgba(7, 94, 117, 0.25)",
+    "rgba(6, 182, 212, 0.55)",
     "rgba(255, 255, 255, 0.1)",
   ),
 } as CSSProperties;

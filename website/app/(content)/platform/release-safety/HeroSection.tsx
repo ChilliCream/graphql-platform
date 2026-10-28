@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { AppWindow } from "@/src/components/AppWindow";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { DotGridSurface } from "@/src/components/DotGridSurface";
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 import { StatusChip } from "@/src/components/StatusChip";
 import type { ChangeStatus } from "@/src/components/StatusChip";
@@ -267,8 +268,7 @@ export function HeroSection() {
             aria-hidden
             className="absolute -inset-6 -z-10 rounded-3xl opacity-60 blur-2xl"
             style={{
-              background:
-                "radial-gradient(60% 60% at 70% 20%, rgba(124,146,198,0.18), transparent 70%)",
+              background: `radial-gradient(60% 60% at 70% 20%, ${lightDark("rgba(139,92,246,0.28)", "rgba(124,146,198,0.18)")}, transparent 70%)`,
             }}
           />
           <HeroDiffMock />

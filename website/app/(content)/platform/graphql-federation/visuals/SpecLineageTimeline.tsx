@@ -9,8 +9,15 @@ interface LineageMilestone {
 
 const DELAY_CLASSES = ["delay-0", "delay-150", "delay-300"];
 
+const HUE = lightDark("#06b6d4", "var(--color-cc-success)");
+
 const success = (light: number, dark: number) =>
-  `color-mix(in oklab, var(--color-cc-success) ${lightDark(`${light}%`, `${dark}%`)}, transparent)`;
+  `color-mix(in oklab, ${HUE} ${lightDark(`${light}%`, `${dark}%`)}, transparent)`;
+
+const LAST_HALO = lightDark(
+  "0 0 4px rgb(6 182 212 / 0.55), 0 0 14px #06b6d4",
+  "0 0 14px var(--color-cc-success)",
+);
 
 const MILESTONES: readonly LineageMilestone[] = [
   { when: "2019", name: "Apollo Federation" },
@@ -35,12 +42,19 @@ export function SpecLineageTimeline() {
           <li key={name} className="flex gap-4 sm:gap-5">
             <div className="flex shrink-0 flex-col items-center">
               <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full border sm:h-9 sm:w-9 ${
+                className="flex h-8 w-8 items-center justify-center rounded-full border sm:h-9 sm:w-9"
+                style={
                   last
-                    ? "border-cc-success bg-cc-success/20 shadow-[0_0_14px_var(--color-cc-success)]"
-                    : "bg-cc-success/10"
-                }`}
-                style={last ? undefined : { borderColor: success(55, 40) }}
+                    ? {
+                        borderColor: HUE,
+                        backgroundColor: success(20, 20),
+                        boxShadow: LAST_HALO,
+                      }
+                    : {
+                        borderColor: success(80, 40),
+                        backgroundColor: success(10, 10),
+                      }
+                }
               >
                 <RevealOnScroll
                   className={`flex ${DELAY_CLASSES[i]}`}
@@ -49,10 +63,8 @@ export function SpecLineageTimeline() {
                 >
                   <span
                     aria-hidden="true"
-                    className={`rounded-full ${
-                      last ? "bg-cc-success h-3 w-3" : "h-2 w-2"
-                    }`}
-                    style={last ? undefined : { background: success(70, 50) }}
+                    className={`rounded-full ${last ? "h-3 w-3" : "h-2 w-2"}`}
+                    style={{ background: last ? HUE : success(90, 50) }}
                   />
                 </RevealOnScroll>
               </span>
@@ -60,7 +72,7 @@ export function SpecLineageTimeline() {
                 <span
                   aria-hidden="true"
                   className="my-1.5 min-h-6 w-px flex-1"
-                  style={{ background: success(35, 25) }}
+                  style={{ background: success(60, 25) }}
                 />
               )}
             </div>

@@ -1,0 +1,21 @@
+:root[data-theme="light"] .nt-root.hud-theme[data-theme="auto"] {
+  --t-bg: var(--color-cc-bg);
+  --t-surface: var(--color-cc-card-bg);
+  --t-card: var(--color-cc-card-bg);
+  --t-border: var(--color-cc-card-border);
+  --t-border-strong: var(--color-cc-card-border);
+  --t-grid: var(--color-cc-card-border);
+  --t-ch-latency: var(--color-cc-accent-vivid);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .nt-root.hud-theme[data-theme="auto"] {
+    --t-bg: var(--color-cc-bg);
+    --t-surface: var(--color-cc-card-bg);
+    --t-card: var(--color-cc-card-bg);
+    --t-border: var(--color-cc-card-border);
+    --t-border-strong: var(--color-cc-card-border);
+    --t-grid: var(--color-cc-card-border);
+    --t-ch-latency: var(--color-cc-accent-vivid);
+  }
+}

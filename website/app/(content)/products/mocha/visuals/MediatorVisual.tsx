@@ -25,7 +25,7 @@ import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 import { lightDark } from "@/src/components/lightDark";
 
-const NAVY = lightDark("#fdfbf7", "#0b0f1a");
+const NAVY = lightDark("#fff", "#0b0f1a");
 const T = 7200;
 const REST_T = 6350;
 const REQ_DEP = 400;
@@ -50,16 +50,19 @@ const ROW_Y = (REQ_Y + RES_Y) / 2 - ROW_H / 2;
 const MW_LABELS = ["TELEMETRY", "TRANSACTION", "VALIDATION"] as const;
 const HANDLER_ROW = "PlaceOrderCommandHandler";
 
-const SURFACE = lightDark("#fdfbf7", "#0c1322");
-const GRID_DOT = lightDark("rgba(51,65,85,0.16)", "rgba(150,166,194,0.10)");
-const PANEL_STROKE = lightDark("rgba(51,65,85,0.5)", "rgba(158,176,204,0.44)");
-const PANEL_FILL = lightDark("rgba(51,65,85,0.04)", "rgba(139,160,188,0.03)");
-const HANDLER_FILL = lightDark("rgba(8,145,178,0.06)", "rgba(22,185,228,0.04)");
-const LANE_STROKE = lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)");
-const PAD_FILL = lightDark("rgba(51,65,85,0.4)", "rgba(158,176,204,0.34)");
-const VIA_STROKE = lightDark("rgba(51,65,85,0.62)", "rgba(164,180,208,0.55)");
-const CHEV_STROKE = lightDark("rgba(51,65,85,0.65)", "rgba(139,160,188,0.6)");
-const HAIR = lightDark("rgba(51,65,85,0.22)", "rgba(139,160,188,0.22)");
+const SURFACE = lightDark("#fff", "#0c1322");
+const GRID_DOT = lightDark("rgba(6,182,212,0.28)", "rgba(150,166,194,0.10)");
+const PANEL_STROKE = lightDark(
+  "rgba(139,92,246,0.7)",
+  "rgba(158,176,204,0.44)",
+);
+const PANEL_FILL = lightDark("rgba(139,92,246,0.07)", "rgba(139,160,188,0.03)");
+const HANDLER_FILL = lightDark("rgba(6,182,212,0.12)", "rgba(22,185,228,0.04)");
+const LANE_STROKE = lightDark("rgba(6,182,212,0.85)", "rgba(139,160,188,0.4)");
+const PAD_FILL = lightDark("rgba(6,182,212,0.5)", "rgba(158,176,204,0.34)");
+const VIA_STROKE = lightDark("rgba(6,182,212,0.95)", "rgba(164,180,208,0.55)");
+const CHEV_STROKE = lightDark("rgba(139,92,246,0.85)", "rgba(139,160,188,0.6)");
+const HAIR = lightDark("rgba(139,92,246,0.35)", "rgba(139,160,188,0.22)");
 const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
 const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
 const INK = lightDark("#334155", "#a1a3af");
@@ -439,7 +442,7 @@ export function MediatorVisual() {
                     width={8}
                     height={3}
                     fill={lightDark(
-                      "rgba(51,65,85,0.14)",
+                      "rgba(139,92,246,0.22)",
                       "rgba(154,172,200,0.12)",
                     )}
                   />
@@ -449,7 +452,7 @@ export function MediatorVisual() {
                     width={8}
                     height={3}
                     fill={lightDark(
-                      "rgba(51,65,85,0.14)",
+                      "rgba(139,92,246,0.22)",
                       "rgba(154,172,200,0.12)",
                     )}
                   />
@@ -458,7 +461,7 @@ export function MediatorVisual() {
                 <path
                   d={`M${p.x + p.w - 30} ${PANEL_Y + PANEL_H - 8} l7 -7 M${p.x + p.w - 24} ${PANEL_Y + PANEL_H - 8} l7 -7 M${p.x + p.w - 18} ${PANEL_Y + PANEL_H - 8} l7 -7`}
                   stroke={lightDark(
-                    "rgba(51,65,85,0.13)",
+                    "rgba(139,92,246,0.22)",
                     "rgba(154,172,200,0.11)",
                   )}
                   strokeWidth={1}
@@ -542,7 +545,7 @@ export function MediatorVisual() {
             <path
               d={`M${L.hx + L.hw - 30} ${PANEL_Y + PANEL_H - 8} l7 -7 M${L.hx + L.hw - 24} ${PANEL_Y + PANEL_H - 8} l7 -7 M${L.hx + L.hw - 18} ${PANEL_Y + PANEL_H - 8} l7 -7`}
               stroke={lightDark(
-                "rgba(51,65,85,0.13)",
+                "rgba(139,92,246,0.22)",
                 "rgba(154,172,200,0.11)",
               )}
               strokeWidth={1}

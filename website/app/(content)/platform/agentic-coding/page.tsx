@@ -2,6 +2,7 @@ import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CopyCommand } from "@/src/components/CopyCommand";
 import { KeyValueChip } from "@/src/components/KeyValueChip";
+import { lightDark } from "@/src/components/lightDark";
 import { PageHero } from "@/src/components/PageHero";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { SectionHeading } from "@/src/components/SectionHeading";
@@ -41,48 +42,37 @@ export const metadata = pageMetadata(PAGE);
 const SPECTRUM =
   "linear-gradient(100deg,#16b9e4 0%,#7c92c6 33%,#b681a9 63%,#f0786a 100%)";
 
+const CYAN_BEAM = `linear-gradient(180deg, ${lightDark("rgba(6,182,212,0)", "rgba(22,185,228,0)")} 0%, ${lightDark("rgba(6,182,212,0.32)", "rgba(22,185,228,0.10)")} 8%, ${lightDark("rgba(6,182,212,0.16)", "rgba(22,185,228,0.05)")} 40%, transparent 75%)`;
+
+const EDGE_BEAM = `linear-gradient(180deg, ${lightDark("rgba(139,92,246,0)", "rgba(94,234,212,0)")} 0%, ${lightDark("rgba(139,92,246,0.32)", "rgba(94,234,212,0.10)")} 8%, ${lightDark("rgba(139,92,246,0.16)", "rgba(94,234,212,0.04)")} 40%, transparent 75%)`;
+
 /** Used exactly once: the wider center beam behind the hero. */
-const BEAM_SPECTRUM =
-  "linear-gradient(180deg, rgba(22,185,228,0) 0%, rgba(22,185,228,0.10) 6%, rgba(124,146,198,0.09) 38%, rgba(240,120,106,0.06) 60%, rgba(240,120,106,0) 78%)";
+const BEAM_SPECTRUM = `linear-gradient(180deg, ${lightDark("rgba(6,182,212,0)", "rgba(22,185,228,0)")} 0%, ${lightDark("rgba(6,182,212,0.4)", "rgba(22,185,228,0.10)")} 6%, ${lightDark("rgba(139,92,246,0.35)", "rgba(124,146,198,0.09)")} 38%, ${lightDark("rgba(217,70,239,0.25)", "rgba(240,120,106,0.06)")} 60%, ${lightDark("rgba(217,70,239,0)", "rgba(240,120,106,0)")} 78%)`;
+
+const HALO_CYAN = lightDark(
+  "drop-shadow(0 0 4px rgb(6 182 212 / 0.35))",
+  "none",
+);
+const HALO_VIOLET = lightDark(
+  "drop-shadow(0 0 4px rgb(139 92 246 / 0.35))",
+  "none",
+);
 
 interface BeamSpec {
   readonly left: string;
   readonly width: string;
   readonly background: string;
+  readonly halo: string;
 }
 
 /** Five thin beams spread across the full viewport width, teal at the edges,
  * cyan inboard, and the one spectrum beam through the center of the hero. */
 const BEAMS: readonly BeamSpec[] = [
-  {
-    left: "8%",
-    width: "1.5px",
-    background:
-      "linear-gradient(180deg, rgba(94,234,212,0) 0%, rgba(94,234,212,0.10) 8%, rgba(94,234,212,0.04) 40%, transparent 75%)",
-  },
-  {
-    left: "24%",
-    width: "1.5px",
-    background:
-      "linear-gradient(180deg, rgba(22,185,228,0) 0%, rgba(22,185,228,0.10) 8%, rgba(22,185,228,0.05) 40%, transparent 75%)",
-  },
-  {
-    left: "50%",
-    width: "2.5px",
-    background: BEAM_SPECTRUM,
-  },
-  {
-    left: "72%",
-    width: "1.5px",
-    background:
-      "linear-gradient(180deg, rgba(22,185,228,0) 0%, rgba(22,185,228,0.10) 8%, rgba(22,185,228,0.05) 40%, transparent 75%)",
-  },
-  {
-    left: "92%",
-    width: "1.5px",
-    background:
-      "linear-gradient(180deg, rgba(94,234,212,0) 0%, rgba(94,234,212,0.10) 8%, rgba(94,234,212,0.04) 40%, transparent 75%)",
-  },
+  { left: "8%", width: "1.5px", background: EDGE_BEAM, halo: HALO_VIOLET },
+  { left: "24%", width: "1.5px", background: CYAN_BEAM, halo: HALO_CYAN },
+  { left: "50%", width: "2.5px", background: BEAM_SPECTRUM, halo: HALO_VIOLET },
+  { left: "72%", width: "1.5px", background: CYAN_BEAM, halo: HALO_CYAN },
+  { left: "92%", width: "1.5px", background: EDGE_BEAM, halo: HALO_VIOLET },
 ];
 
 // A single white streak falls down one beam at a time: the one animation
@@ -137,6 +127,7 @@ function Backdrop() {
             left: beam.left,
             width: beam.width,
             background: beam.background,
+            filter: beam.halo,
           }}
         />
       ))}
@@ -145,8 +136,8 @@ function Backdrop() {
         style={{
           width: "1.5px",
           height: "60px",
-          background:
-            "linear-gradient(180deg, transparent 0%, rgba(245,241,234,0.9) 100%)",
+          background: `linear-gradient(180deg, transparent 0%, ${lightDark("rgba(6,182,212,1)", "rgba(245,241,234,0.9)")} 100%)`,
+          filter: HALO_CYAN,
         }}
       />
     </div>

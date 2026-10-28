@@ -20,8 +20,8 @@ import {
   CLUSTER,
   CX,
   CY,
-  ACCENT,
-  ACCENT_BRIGHT,
+  ACCENT_MARK,
+  ACCENT_MARK_BRIGHT,
   LABEL_COLOR,
   LATENCY_CHART_WIDTH,
   NUMERAL_COLOR,
@@ -91,7 +91,7 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
         d={trackPath}
         pathLength={1}
         fill="none"
-        stroke={ACCENT}
+        stroke={ACCENT_MARK}
         strokeWidth={FILL_GLOW_WIDTH}
         strokeLinecap="butt"
         opacity={0.6}
@@ -102,7 +102,7 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
         d={trackPath}
         pathLength={1}
         fill="none"
-        stroke={ACCENT}
+        stroke={ACCENT_MARK}
         strokeWidth={TRACK_WIDTH}
         strokeLinecap="butt"
         style={{ strokeDasharray: "1 1", strokeDashoffset: fillOffset }}
@@ -118,7 +118,7 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
         y1={p50y1}
         x2={p50x2}
         y2={p50y2}
-        stroke={ACCENT_BRIGHT}
+        stroke={ACCENT_MARK_BRIGHT}
         strokeWidth={2}
       />
     </>
@@ -230,7 +230,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
               lineHeight: 1.2,
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 3px color-mix(in srgb, ${ACCENT} 24%, transparent))`,
+              filter: `drop-shadow(0 0 3px color-mix(in srgb, ${ACCENT_MARK} 24%, transparent))`,
             }}
           >
             {readout}

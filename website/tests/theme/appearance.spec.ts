@@ -1475,6 +1475,99 @@ test.describe("start page glow decorations", () => {
   }
 });
 
+test.describe("Fusion HUD surfaces", () => {
+  const HUD_TOKENS = [
+    "--t-bg",
+    "--t-surface",
+    "--t-card",
+    "--t-border",
+    "--t-ch-latency",
+  ] as const;
+
+  const SITE = {
+    "--t-bg": "#fcfbf8",
+    "--t-surface": "#fff",
+    "--t-card": "#fff",
+    "--t-border": "#aaa392",
+    "--t-ch-latency": "#0aa5cf",
+  };
+  const NITRO_DARK = {
+    "--t-bg": "#0b0f1a",
+    "--t-surface": "#0f1626",
+    "--t-card": "#131c30",
+    "--t-border": "#242d40",
+    "--t-ch-latency": "#5eead4",
+  };
+
+  const cases: readonly {
+    name: string;
+    options: OpenOptions;
+    expected: typeof SITE;
+  }[] = [
+    {
+      name: "StoredLight",
+      options: { system: "dark", stored: "light" },
+      expected: SITE,
+    },
+    {
+      name: "AutoOnALightSystem",
+      options: { system: "light" },
+      expected: SITE,
+    },
+    {
+      name: "StoredDark",
+      options: { system: "light", stored: "dark" },
+      expected: NITRO_DARK,
+    },
+  ];
+
+  for (const { name, options, expected } of cases) {
+    test(`Should_ResolveHudTokens_When_${name}`, async ({ open }) => {
+      // arrange
+      const page = await open("/products/fusion", options);
+      const hud = page.locator(".nt-root.hud-theme").first();
+      await hud.waitFor({ state: "attached" });
+
+      // act
+      const tokens = await hud.evaluate((el, names) => {
+        const style = getComputedStyle(el);
+        return Object.fromEntries(
+          names.map((n) => [n, style.getPropertyValue(n).trim()]),
+        );
+      }, HUD_TOKENS);
+
+      // assert
+      expect(tokens).toEqual(expected);
+    });
+  }
+});
+
+test.describe("Mocha board visuals", () => {
+  test("Should_PaintBoardsWithoutSlateWashes_When_Light", async ({ open }) => {
+    // arrange
+    const page = await open("/products/mocha", { stored: "light" });
+    await page.locator("svg [stroke], svg [fill]").first().waitFor({
+      state: "attached",
+    });
+
+    // act
+    const washes = await page.evaluate(() => {
+      const slateWash = /^rgba\(51, 65, 85, 0\.[0-6]/;
+      let count = 0;
+      for (const el of document.querySelectorAll("svg *")) {
+        const style = getComputedStyle(el);
+        if (slateWash.test(style.stroke) || slateWash.test(style.fill)) {
+          count++;
+        }
+      }
+      return count;
+    });
+
+    // assert
+    expect(washes).toBe(0);
+  });
+});
+
 test.describe("Light and Dark toggle rules in the production build", () => {
   test("Should_ShipToggleRules_When_LoadingTheFusionPage", async ({ open }) => {
     // arrange

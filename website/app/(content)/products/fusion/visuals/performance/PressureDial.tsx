@@ -14,6 +14,8 @@ import {
   CY,
   ACCENT,
   ACCENT_BRIGHT,
+  ACCENT_MARK,
+  ACCENT_MARK_BRIGHT,
   TRACK,
   VB,
   type Arc,
@@ -114,10 +116,15 @@ function PressureArcs({
 }: PressureArcsProps) {
   return (
     <>
-      <RimArc arc={cpu} color={ACCENT} offset={cpuOffset} glowId={glowId} />
+      <RimArc
+        arc={cpu}
+        color={ACCENT_MARK}
+        offset={cpuOffset}
+        glowId={glowId}
+      />
       <RimArc
         arc={mem}
-        color={ACCENT_BRIGHT}
+        color={ACCENT_MARK_BRIGHT}
         offset={memOffset}
         glowId={glowId}
       />
@@ -171,7 +178,7 @@ function CoreBar({ index, cores }: CoreBarProps) {
     >
       <motion.div
         className="absolute inset-x-0 bottom-0"
-        style={{ height, background: ACCENT, borderRadius: 1 }}
+        style={{ height, background: ACCENT_MARK, borderRadius: 1 }}
       />
     </div>
   );
@@ -268,7 +275,7 @@ export function PressureDial({ telemetry }: PressureDialProps) {
                 width: memWidth,
                 height: "100%",
                 borderRadius: 999,
-                background: ACCENT_BRIGHT,
+                background: ACCENT_MARK_BRIGHT,
               }}
             />
           </div>

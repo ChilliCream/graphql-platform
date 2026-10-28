@@ -12,8 +12,9 @@ import {
   CONTENT_GAP,
   CX,
   CY,
-  ACCENT,
   ACCENT_BRIGHT,
+  ACCENT_MARK,
+  ACCENT_MARK_BRIGHT,
   DANGER,
   NUMERAL_COLOR,
   READOUT_FONT,
@@ -64,7 +65,7 @@ function Segment({ index, fraction }: SegmentProps) {
       y1={y1}
       x2={x2}
       y2={y2}
-      stroke={red ? DANGER : major ? ACCENT_BRIGHT : ACCENT}
+      stroke={red ? DANGER : major ? ACCENT_MARK_BRIGHT : ACCENT_MARK}
       strokeWidth={SEGMENT_WIDTH}
       strokeLinecap="round"
       style={{ opacity }}
@@ -172,7 +173,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
               letterSpacing: "-0.02em",
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 4px color-mix(in srgb, ${ACCENT} 28%, transparent))`,
+              filter: `drop-shadow(0 0 4px color-mix(in srgb, ${ACCENT_MARK} 28%, transparent))`,
             }}
           >
             {readout}

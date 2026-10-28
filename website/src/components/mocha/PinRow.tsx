@@ -6,7 +6,7 @@ export interface Pin {
   readonly side: "left" | "right" | "top" | "bottom";
 }
 
-const PAD_FILL = lightDark("rgba(51,65,85,0.4)", "rgba(158,176,204,0.34)");
+const PAD_FILL = lightDark("rgba(6,182,212,0.5)", "rgba(158,176,204,0.34)");
 
 interface PinRowProps {
   readonly pin: Pin;

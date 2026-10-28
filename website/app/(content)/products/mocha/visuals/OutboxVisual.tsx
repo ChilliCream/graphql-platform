@@ -34,15 +34,21 @@ const MIN_W = 600;
 const INK = lightDark("#334155", "#a1a3af");
 const DIM = lightDark("#4a566c", "#62748e");
 const ACCENT = lightDark("#0f766e", "#5eead4");
-const SURFACE = lightDark("#fdfbf7", "#0c1322");
-const HAIR = lightDark("rgba(51,65,85,0.22)", "rgba(139,160,188,0.22)");
-const PANEL_STROKE = lightDark("rgba(51,65,85,0.5)", "rgba(158,176,204,0.44)");
-const FRAME_STROKE = lightDark("rgba(51,65,85,0.5)", "rgba(139,160,188,0.45)");
-const LANE_STROKE = lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)");
-const PAD_FILL = lightDark("rgba(51,65,85,0.4)", "rgba(158,176,204,0.34)");
+const SURFACE = lightDark("#fff", "#0c1322");
+const HAIR = lightDark("rgba(139,92,246,0.35)", "rgba(139,160,188,0.22)");
+const PANEL_STROKE = lightDark(
+  "rgba(139,92,246,0.7)",
+  "rgba(158,176,204,0.44)",
+);
+const FRAME_STROKE = lightDark(
+  "rgba(139,92,246,0.7)",
+  "rgba(139,160,188,0.45)",
+);
+const LANE_STROKE = lightDark("rgba(6,182,212,0.85)", "rgba(139,160,188,0.4)");
+const PAD_FILL = lightDark("rgba(6,182,212,0.5)", "rgba(158,176,204,0.34)");
 const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
 const SILK_DIM = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
-const GRID_DOT = lightDark("rgba(51,65,85,0.16)", "rgba(150,166,194,0.10)");
+const GRID_DOT = lightDark("rgba(6,182,212,0.28)", "rgba(150,166,194,0.10)");
 
 const PANEL_Y = 16;
 const PANEL_H = 156;
@@ -502,7 +508,7 @@ export function OutboxVisual() {
             width={L.pw}
             height={PANEL_H}
             rx={3}
-            fill={lightDark("rgba(51,65,85,0.04)", "rgba(139,160,188,0.03)")}
+            fill={lightDark("rgba(139,92,246,0.07)", "rgba(139,160,188,0.03)")}
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
@@ -572,7 +578,7 @@ export function OutboxVisual() {
             width={PL.fw}
             height={FRAME_H}
             rx={3}
-            fill={lightDark("rgba(51,65,85,0.05)", "rgba(139,160,188,0.04)")}
+            fill={lightDark("rgba(139,92,246,0.07)", "rgba(139,160,188,0.04)")}
           />
           <path
             d={PL.frameD}
@@ -719,7 +725,7 @@ export function OutboxVisual() {
             width={L.pw}
             height={PANEL_H}
             rx={3}
-            fill={lightDark("rgba(51,65,85,0.04)", "rgba(139,160,188,0.03)")}
+            fill={lightDark("rgba(139,92,246,0.07)", "rgba(139,160,188,0.03)")}
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
@@ -808,7 +814,7 @@ export function OutboxVisual() {
             width={PR.fw}
             height={FRAME_H}
             rx={3}
-            fill={lightDark("rgba(51,65,85,0.05)", "rgba(139,160,188,0.04)")}
+            fill={lightDark("rgba(139,92,246,0.07)", "rgba(139,160,188,0.04)")}
           />
           <path
             d={PR.frameD}

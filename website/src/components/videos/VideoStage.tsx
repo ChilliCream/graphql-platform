@@ -10,7 +10,7 @@ import { formatEpisode, type VideoSummary } from "@/src/helpers/videos";
 import { PlayGlyph } from "@/src/icons/PlayGlyph";
 
 const PANEL_WASH = lightDark(
-  "var(--color-cc-hover)",
+  "rgba(6, 182, 212, 0.08)",
   "rgba(255, 255, 255, 0.05)",
 );
 

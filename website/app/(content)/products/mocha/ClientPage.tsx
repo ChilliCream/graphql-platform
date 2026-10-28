@@ -190,7 +190,7 @@ export function ClientPage() {
               <span
                 className="bg-clip-text text-transparent"
                 style={{
-                  backgroundImage: `linear-gradient(90deg, ${lightDark("#0f766e", TEAL)}, ${lightDark("#d14a3a", CORAL)})`,
+                  backgroundImage: `linear-gradient(90deg, ${lightDark("#0891b2", TEAL)}, ${lightDark("#8b5cf6 50%, #e11d48", CORAL)})`,
                 }}
               >
                 within and between services.

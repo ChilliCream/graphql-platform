@@ -23,17 +23,14 @@ import {
 import { MONO_FONT } from "./palette";
 
 const veil = (alpha: number) =>
-  lightDark(`rgba(245,241,234,${alpha})`, `rgba(11,15,26,${alpha})`);
+  lightDark(`rgba(252,251,248,${alpha})`, `rgba(11,15,26,${alpha})`);
 
-const CHIP_RING = lightDark("rgba(51,65,85,0.55)", "rgba(205,216,232,0.55)");
-const CHIP_RING_HOVER = lightDark(
-  "rgba(196,78,58,0.9)",
-  "rgba(246,202,190,0.9)",
-);
-const CHIP_CORE = lightDark("rgba(51,65,85,0.85)", "rgba(232,238,248,0.9)");
-const CHIP_LABEL = lightDark("rgba(51,65,85,0.85)", "rgba(170,188,214,0.8)");
+const CHIP_RING = lightDark("#0891b2", "rgba(205,216,232,0.55)");
+const CHIP_RING_HOVER = lightDark("#fb7185", "rgba(246,202,190,0.9)");
+const CHIP_CORE = lightDark("#06b6d4", "rgba(232,238,248,0.9)");
+const CHIP_LABEL = lightDark("var(--color-cc-accent)", "rgba(170,188,214,0.8)");
 const CHIP_DESIGNATOR = lightDark(
-  "rgba(51,65,85,0.55)",
+  "var(--color-cc-info)",
   "rgba(154,172,200,0.45)",
 );
 
@@ -54,6 +51,7 @@ function NodeChip({ label, designator, className }: NodeChipProps) {
         style={
           {
             borderColor: CHIP_RING,
+            boxShadow: "var(--cc-glow-cyan-halo)",
             "--chip-ring-hover": CHIP_RING_HOVER,
           } as CSSProperties
         }
@@ -182,7 +180,7 @@ export function HeroBoard() {
       c.setTransform(1, 0, 0, 1, 0, 0);
       c.globalCompositeOperation = "source-over";
       c.clearRect(0, 0, canvas!.width, canvas!.height);
-      c.globalAlpha = BOARD_ALPHA;
+      c.globalAlpha = scheme === "light" ? 1 : BOARD_ALPHA;
       c.drawImage(off, 0, 0);
       c.globalAlpha = 1;
       if (!board) {

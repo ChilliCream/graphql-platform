@@ -28,17 +28,17 @@ import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 import { lightDark } from "@/src/components/lightDark";
 
-const NAVY = lightDark("#fdfbf7", "#0b0f1a");
+const NAVY = lightDark("#fff", "#0b0f1a");
 const T = 16000;
 const REST_T = 10450;
 const H = 240;
 const MIN_W = 560;
 
-const PAD_FILL = lightDark("rgba(51,65,85,0.4)", "rgba(158,176,204,0.34)");
-const VIA_STROKE = lightDark("rgba(51,65,85,0.62)", "rgba(164,180,208,0.55)");
+const PAD_FILL = lightDark("rgba(6,182,212,0.5)", "rgba(158,176,204,0.34)");
+const VIA_STROKE = lightDark("rgba(6,182,212,0.95)", "rgba(164,180,208,0.55)");
 const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
 const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
-const GRID_DOT = lightDark("rgba(51,65,85,0.16)", "rgba(150,166,194,0.10)");
+const GRID_DOT = lightDark("rgba(6,182,212,0.28)", "rgba(150,166,194,0.10)");
 
 const TRUNK_MS = 364;
 const BRANCH_MS = 448;
@@ -494,7 +494,7 @@ export function FanoutVisual() {
           <path
             d={laneD(L.trunk.pts)}
             fill="none"
-            stroke={lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)")}
+            stroke={lightDark("rgba(6,182,212,0.85)", "rgba(139,160,188,0.4)")}
             strokeWidth={1.5}
           />
           {L.branchD.map((d) => (
@@ -502,7 +502,10 @@ export function FanoutVisual() {
               key={d}
               d={d}
               fill="none"
-              stroke={lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)")}
+              stroke={lightDark(
+                "rgba(6,182,212,0.85)",
+                "rgba(139,160,188,0.4)",
+              )}
               strokeWidth={1.5}
               strokeLinejoin="round"
             />
@@ -512,7 +515,10 @@ export function FanoutVisual() {
               key={y}
               d={`M${L.slotR} ${y} H${L.chipX}`}
               fill="none"
-              stroke={lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)")}
+              stroke={lightDark(
+                "rgba(6,182,212,0.85)",
+                "rgba(139,160,188,0.4)",
+              )}
               strokeWidth={1.5}
             />
           ))}
@@ -628,7 +634,7 @@ export function FanoutVisual() {
               width={PUB.w}
               height={PUB.h}
               rx={3}
-              fill={lightDark("#fdfbf7", "#0c1322")}
+              fill={lightDark("#fff", "#0c1322")}
               stroke={CORAL}
               strokeOpacity={0.4}
               strokeWidth={1}
@@ -720,7 +726,7 @@ export function FanoutVisual() {
                   width={CHIP_W}
                   height={CHIP_H}
                   rx={3}
-                  fill={lightDark("#fdfbf7", "#0c1322")}
+                  fill={lightDark("#fff", "#0c1322")}
                   stroke={color}
                   strokeOpacity={0.3 + 0.5 * lit}
                   strokeWidth={1}

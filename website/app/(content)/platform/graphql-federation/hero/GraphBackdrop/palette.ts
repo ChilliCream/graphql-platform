@@ -1,9 +1,8 @@
 import {
   CYAN,
   LIGHT_CYAN,
-  LIGHT_INK,
   LIGHT_SURFACE,
-  LIGHT_TEAL,
+  LIGHT_VIOLET,
   NAVY,
   SLATE,
   TEAL,
@@ -36,11 +35,11 @@ export const DARK_BACKDROP_PALETTE: BackdropPalette = {
 };
 
 export const LIGHT_BACKDROP_PALETTE: BackdropPalette = {
-  tints: [LIGHT_CYAN, LIGHT_TEAL],
-  edge: LIGHT_INK,
-  edgeTint: LIGHT_CYAN,
+  tints: [LIGHT_CYAN, LIGHT_VIOLET],
+  edge: LIGHT_CYAN,
+  edgeTint: LIGHT_VIOLET,
   halo: LIGHT_CYAN,
-  edgeGain: 1.35,
+  edgeGain: 1,
   hubCore: "white",
   surface: LIGHT_SURFACE,
   darkenTo: LIGHT_SURFACE,
