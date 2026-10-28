@@ -19,23 +19,24 @@ import {
   CYAN,
   GREEN,
   MONO_FONT,
-  NAVY,
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fdfbf7", "#0b0f1a");
 const T = 14400;
 const REST_T = 10700;
 const H = 360;
 const MIN_W = 760;
 
-const SURFACE = "#0c1322";
-const GRID_DOT = "rgba(150,166,194,0.10)";
-const PANEL_STROKE = "rgba(158,176,204,0.44)";
-const LANE_STROKE = "rgba(139,160,188,0.4)";
-const VIA_STROKE = "rgba(164,180,208,0.55)";
-const SILK = "rgba(154,172,200,0.75)";
+const SURFACE = lightDark("#fdfbf7", "#0c1322");
+const GRID_DOT = lightDark("rgba(51,65,85,0.16)", "rgba(150,166,194,0.10)");
+const PANEL_STROKE = lightDark("rgba(51,65,85,0.5)", "rgba(158,176,204,0.44)");
+const LANE_STROKE = lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)");
+const VIA_STROKE = lightDark("rgba(51,65,85,0.62)", "rgba(164,180,208,0.55)");
+const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
 
 const REQ_DEP = 300;
 const REQ_ARR = 1800;
@@ -638,7 +639,10 @@ export function WhyMessagingVisual() {
                 width={p.w}
                 height={p.h}
                 rx={3}
-                fill="rgba(139,160,188,0.03)"
+                fill={lightDark(
+                  "rgba(51,65,85,0.04)",
+                  "rgba(139,160,188,0.03)",
+                )}
                 stroke={PANEL_STROKE}
                 strokeWidth={1}
               />
@@ -650,20 +654,29 @@ export function WhyMessagingVisual() {
                     y={p.y + p.h - 17}
                     width={8}
                     height={3}
-                    fill="rgba(154,172,200,0.12)"
+                    fill={lightDark(
+                      "rgba(51,65,85,0.14)",
+                      "rgba(154,172,200,0.12)",
+                    )}
                   />
                   <rect
                     x={p.x + p.w - 30}
                     y={p.y + p.h - 11}
                     width={8}
                     height={3}
-                    fill="rgba(154,172,200,0.12)"
+                    fill={lightDark(
+                      "rgba(51,65,85,0.14)",
+                      "rgba(154,172,200,0.12)",
+                    )}
                   />
                 </g>
               ) : (
                 <path
                   d={`M${p.x + p.w - 30} ${p.y + p.h - 8} l7 -7 M${p.x + p.w - 24} ${p.y + p.h - 8} l7 -7 M${p.x + p.w - 18} ${p.y + p.h - 8} l7 -7`}
-                  stroke="rgba(154,172,200,0.11)"
+                  stroke={lightDark(
+                    "rgba(51,65,85,0.13)",
+                    "rgba(154,172,200,0.11)",
+                  )}
                   strokeWidth={1}
                   fill="none"
                 />

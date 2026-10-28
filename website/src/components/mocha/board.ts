@@ -2,28 +2,94 @@ import { MONO_FONT, NAVY, TEAL } from "./palette";
 
 const GRID = 28;
 
-const PAD_COLOR = "rgba(150, 166, 194, 0.14)";
-const HATCH_COLOR = "rgba(150, 166, 194, 0.13)";
-const HATCH_EDGE = "rgba(150, 166, 194, 0.15)";
-const FOOT_BODY = "#0b1220";
-const FOOT_EDGE = "rgba(158, 176, 204, 0.44)";
-const FOOT_PIN = "rgba(158, 176, 204, 0.34)";
-const PASSIVE_PAD = "rgba(168, 184, 210, 0.5)";
-const PASSIVE_BODY = "rgba(120, 136, 164, 0.32)";
-const RES_BODY = "rgba(150, 166, 194, 0.38)";
-const RES_LAND = "rgba(196, 210, 232, 0.62)";
-const CAN_BODY = "rgba(120, 136, 164, 0.3)";
-const CAN_STRIPE = "rgba(196, 210, 232, 0.5)";
-const COURT_COLOR = "rgba(150, 168, 198, 0.28)";
-const SILK_SCATTER = "rgba(150, 168, 198, 0.42)";
-const TRACE_COLOR = "rgba(139, 160, 188, 0.42)";
-const TRACE_ALT_COLOR = "rgba(139, 160, 188, 0.26)";
-const LANE_COLOR = "rgba(174, 190, 216, 0.5)";
-const VIA_COLOR = "rgba(164, 180, 208, 0.55)";
-export const MSG = "224, 140, 122";
-export const MSG_SOFT = "246, 202, 190";
+export interface BoardPalette {
+  readonly pad: string;
+  readonly hatch: string;
+  readonly hatchEdge: string;
+  readonly footBody: string;
+  readonly footEdge: string;
+  readonly footPin: string;
+  readonly passivePad: string;
+  readonly passiveBody: string;
+  readonly resBody: string;
+  readonly resLand: string;
+  readonly canBody: string;
+  readonly canStripe: string;
+  readonly court: string;
+  readonly silk: string;
+  readonly trace: string;
+  readonly traceAlt: string;
+  readonly lane: string;
+  readonly via: string;
+  readonly hole: string;
+  /** RGB triple of the pulse trail, as `r, g, b`. */
+  readonly msg: string;
+  /** RGB triple of the pulse head, as `r, g, b`. */
+  readonly msgSoft: string;
+  /** RGB triple of the node glow, as `r, g, b`. */
+  readonly glow: string;
+  /** Multiplier on the node glow alpha. */
+  readonly glowGain: number;
+  /** Compositing mode of the glow and pulse layer. */
+  readonly glowComposite: GlobalCompositeOperation;
+}
 
-export const GLOW_RGB = `${parseInt(TEAL.slice(1, 3), 16)}, ${parseInt(TEAL.slice(3, 5), 16)}, ${parseInt(TEAL.slice(5, 7), 16)}`;
+const rgbOf = (hex: string) =>
+  `${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}`;
+
+export const DARK_BOARD_PALETTE: BoardPalette = {
+  pad: "rgba(150, 166, 194, 0.14)",
+  hatch: "rgba(150, 166, 194, 0.13)",
+  hatchEdge: "rgba(150, 166, 194, 0.15)",
+  footBody: "#0b1220",
+  footEdge: "rgba(158, 176, 204, 0.44)",
+  footPin: "rgba(158, 176, 204, 0.34)",
+  passivePad: "rgba(168, 184, 210, 0.5)",
+  passiveBody: "rgba(120, 136, 164, 0.32)",
+  resBody: "rgba(150, 166, 194, 0.38)",
+  resLand: "rgba(196, 210, 232, 0.62)",
+  canBody: "rgba(120, 136, 164, 0.3)",
+  canStripe: "rgba(196, 210, 232, 0.5)",
+  court: "rgba(150, 168, 198, 0.28)",
+  silk: "rgba(150, 168, 198, 0.42)",
+  trace: "rgba(139, 160, 188, 0.42)",
+  traceAlt: "rgba(139, 160, 188, 0.26)",
+  lane: "rgba(174, 190, 216, 0.5)",
+  via: "rgba(164, 180, 208, 0.55)",
+  hole: NAVY,
+  msg: "224, 140, 122",
+  msgSoft: "246, 202, 190",
+  glow: rgbOf(TEAL),
+  glowGain: 1,
+  glowComposite: "lighter",
+};
+
+export const LIGHT_BOARD_PALETTE: BoardPalette = {
+  pad: "rgba(51, 65, 85, 0.2)",
+  hatch: "rgba(51, 65, 85, 0.17)",
+  hatchEdge: "rgba(51, 65, 85, 0.22)",
+  footBody: "#ebe4d6",
+  footEdge: "rgba(51, 65, 85, 0.62)",
+  footPin: "rgba(51, 65, 85, 0.5)",
+  passivePad: "rgba(51, 65, 85, 0.62)",
+  passiveBody: "rgba(51, 65, 85, 0.4)",
+  resBody: "rgba(51, 65, 85, 0.46)",
+  resLand: "rgba(51, 65, 85, 0.7)",
+  canBody: "rgba(51, 65, 85, 0.4)",
+  canStripe: "rgba(51, 65, 85, 0.6)",
+  court: "rgba(51, 65, 85, 0.38)",
+  silk: "rgba(51, 65, 85, 0.55)",
+  trace: "rgba(51, 65, 85, 0.55)",
+  traceAlt: "rgba(51, 65, 85, 0.36)",
+  lane: "rgba(51, 65, 85, 0.62)",
+  via: "rgba(51, 65, 85, 0.65)",
+  hole: "#f5f1ea",
+  msg: "196, 78, 58",
+  msgSoft: "214, 92, 70",
+  glow: "15, 118, 110",
+  glowGain: 1.5,
+  glowComposite: "source-over",
+};
 
 export const BOARD_ALPHA = 0.6;
 export const PULSE_TRAIL = 128;
@@ -1412,8 +1478,9 @@ export function paintBoard(
   board: Board,
   w: number,
   h: number,
+  palette: BoardPalette,
 ): void {
-  g.fillStyle = PAD_COLOR;
+  g.fillStyle = palette.pad;
   const pitch = GRID * 2;
   for (let y = 0; y <= h; y += pitch) {
     for (let x = 0; x <= w; x += pitch) {
@@ -1427,7 +1494,7 @@ export function paintBoard(
     g.beginPath();
     g.rect(patch.x, patch.y, patch.w, patch.h);
     g.clip();
-    g.strokeStyle = HATCH_COLOR;
+    g.strokeStyle = palette.hatch;
     g.beginPath();
     for (let x = patch.x - patch.h; x <= patch.x + patch.w; x += 9) {
       g.moveTo(x, patch.y + patch.h);
@@ -1435,7 +1502,7 @@ export function paintBoard(
     }
     g.stroke();
     g.restore();
-    g.strokeStyle = HATCH_EDGE;
+    g.strokeStyle = palette.hatchEdge;
     g.strokeRect(patch.x, patch.y, patch.w, patch.h);
   }
 
@@ -1450,7 +1517,7 @@ export function paintBoard(
     g.stroke();
   };
   g.lineWidth = 1.1;
-  g.strokeStyle = TRACE_ALT_COLOR;
+  g.strokeStyle = palette.traceAlt;
   for (const t of board.traces) {
     if (t.connector || t.layer !== 1) {
       continue;
@@ -1463,16 +1530,16 @@ export function paintBoard(
     }
     if (t.connector) {
       g.lineWidth = 2.2;
-      g.strokeStyle = LANE_COLOR;
+      g.strokeStyle = palette.lane;
     } else {
       g.lineWidth = 1.4;
-      g.strokeStyle = TRACE_COLOR;
+      g.strokeStyle = palette.trace;
     }
     strokeTrace(t);
   }
 
   for (const foot of board.footprints) {
-    g.strokeStyle = TRACE_COLOR;
+    g.strokeStyle = palette.trace;
     g.lineWidth = 1;
     for (const esc of foot.escapes ?? []) {
       g.beginPath();
@@ -1482,23 +1549,23 @@ export function paintBoard(
       }
       g.stroke();
       const e = esc[esc.length - 1];
-      g.fillStyle = VIA_COLOR;
+      g.fillStyle = palette.via;
       g.beginPath();
       g.arc(e.x, e.y, 1.5, 0, Math.PI * 2);
       g.fill();
-      g.fillStyle = NAVY;
+      g.fillStyle = palette.hole;
       g.beginPath();
       g.arc(e.x, e.y, 0.7, 0, Math.PI * 2);
       g.fill();
     }
-    g.fillStyle = FOOT_BODY;
-    g.strokeStyle = FOOT_EDGE;
+    g.fillStyle = palette.footBody;
+    g.strokeStyle = palette.footEdge;
     g.lineWidth = 1.1;
     g.beginPath();
     g.roundRect(foot.x, foot.y, foot.w, foot.h, 3);
     g.fill();
     g.stroke();
-    g.fillStyle = FOOT_PIN;
+    g.fillStyle = palette.footPin;
     for (const pad of foot.pads ?? []) {
       if (pad.ny !== 0) {
         g.fillRect(
@@ -1525,13 +1592,13 @@ export function paintBoard(
     const landH = res ? 4 : 5.6;
     const bodyL = res ? 7 : 5.2;
     const bodyC = res ? 3.5 : 5.2;
-    g.fillStyle = res ? RES_BODY : PASSIVE_BODY;
+    g.fillStyle = res ? palette.resBody : palette.passiveBody;
     if (p.horiz) {
       g.fillRect(p.x - bodyL / 2, p.y - bodyC / 2, bodyL, bodyC);
     } else {
       g.fillRect(p.x - bodyC / 2, p.y - bodyL / 2, bodyC, bodyL);
     }
-    g.fillStyle = res ? RES_LAND : PASSIVE_PAD;
+    g.fillStyle = res ? palette.resLand : palette.passivePad;
     if (p.horiz) {
       g.fillRect(p.x - l, p.y - landH / 2, landW, landH);
       g.fillRect(p.x + l - landW, p.y - landH / 2, landW, landH);
@@ -1542,16 +1609,16 @@ export function paintBoard(
   }
 
   for (const can of board.cans) {
-    g.fillStyle = CAN_BODY;
+    g.fillStyle = palette.canBody;
     g.beginPath();
     g.arc(can.x, can.y, CAN_R, 0, Math.PI * 2);
     g.fill();
-    g.fillStyle = CAN_STRIPE;
+    g.fillStyle = palette.canStripe;
     g.beginPath();
     g.arc(can.x, can.y, CAN_R, can.ang - 0.6, can.ang + 0.6);
     g.closePath();
     g.fill();
-    g.strokeStyle = SILK_SCATTER;
+    g.strokeStyle = palette.silk;
     g.lineWidth = 1;
     g.beginPath();
     g.arc(can.x, can.y, CAN_R, 0, Math.PI * 2);
@@ -1559,22 +1626,22 @@ export function paintBoard(
   }
 
   for (const tp of board.testpoints) {
-    g.fillStyle = VIA_COLOR;
+    g.fillStyle = palette.via;
     g.beginPath();
     g.arc(tp.x, tp.y, 3, 0, Math.PI * 2);
     g.fill();
-    g.fillStyle = NAVY;
+    g.fillStyle = palette.hole;
     g.beginPath();
     g.arc(tp.x, tp.y, 1.6, 0, Math.PI * 2);
     g.fill();
   }
 
   for (const f of board.fiducials) {
-    g.fillStyle = VIA_COLOR;
+    g.fillStyle = palette.via;
     g.beginPath();
     g.arc(f.x, f.y, 1.7, 0, Math.PI * 2);
     g.fill();
-    g.strokeStyle = FOOT_EDGE;
+    g.strokeStyle = palette.footEdge;
     g.lineWidth = 1;
     g.beginPath();
     g.arc(f.x, f.y, 4.5, 0, Math.PI * 2);
@@ -1582,11 +1649,11 @@ export function paintBoard(
   }
 
   for (const m of board.holes) {
-    g.fillStyle = VIA_COLOR;
+    g.fillStyle = palette.via;
     g.beginPath();
     g.arc(m.x, m.y, 7, 0, Math.PI * 2);
     g.fill();
-    g.fillStyle = NAVY;
+    g.fillStyle = palette.hole;
     g.beginPath();
     g.arc(m.x, m.y, 4.2, 0, Math.PI * 2);
     g.fill();
@@ -1594,7 +1661,7 @@ export function paintBoard(
 
   const padR = 2.3;
   for (const via of board.vias) {
-    g.fillStyle = VIA_COLOR;
+    g.fillStyle = palette.via;
     const ax = via.x - via.dx * padR * 2.7;
     const ay = via.y - via.dy * padR * 2.7;
     const px = -via.dy * padR;
@@ -1608,13 +1675,13 @@ export function paintBoard(
     g.beginPath();
     g.arc(via.x, via.y, padR, 0, Math.PI * 2);
     g.fill();
-    g.fillStyle = NAVY;
+    g.fillStyle = palette.hole;
     g.beginPath();
     g.arc(via.x, via.y, 1.05, 0, Math.PI * 2);
     g.fill();
   }
 
-  g.strokeStyle = COURT_COLOR;
+  g.strokeStyle = palette.court;
   g.lineWidth = 1;
   for (const ct of board.courtyards) {
     if (ct.round) {
@@ -1626,7 +1693,7 @@ export function paintBoard(
     }
   }
 
-  g.fillStyle = SILK_SCATTER;
+  g.fillStyle = palette.silk;
   g.textAlign = "left";
   g.font = `7px ${MONO_FONT}`;
   for (const silk of board.silks) {

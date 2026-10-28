@@ -4,14 +4,12 @@ import { useReducedMotion } from "motion/react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useCallback, useRef, useState } from "react";
 
-const DOT_BG =
-  "radial-gradient(circle, rgba(245,241,234,0.12) 1px, transparent 1.2px)";
+import { DOT_BG, HALO_BG } from "@/src/components/DotGridSurface";
+import { lightDark } from "@/src/components/lightDark";
 
-const HALO_BG =
-  "radial-gradient(circle, rgba(94,234,212,0.7) 1px, transparent 1.2px)";
+const GRID_LINE = lightDark("rgba(15,23,42,0.1)", "rgba(245,241,234,0.06)");
 
-const GRID_BG =
-  "linear-gradient(rgba(245,241,234,1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,241,234,1) 1px, transparent 1px)";
+const GRID_BG = `linear-gradient(${GRID_LINE} 1px, transparent 1px), linear-gradient(90deg, ${GRID_LINE} 1px, transparent 1px)`;
 
 const GRID_MASK =
   "radial-gradient(80% 130% at 50% 45%, #000 35%, transparent 82%)";
@@ -25,22 +23,23 @@ const EDGE_FADE =
 const EDGE_FADE_TOP =
   "linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%)";
 
-const SHADOW_TOP =
-  "linear-gradient(to bottom, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
-const SHADOW_BOTTOM =
-  "linear-gradient(to top, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
+const SHADOW_STRONG = lightDark("rgba(60,48,30,0.16)", "rgba(2,6,16,0.7)");
+const SHADOW_SOFT = lightDark("rgba(60,48,30,0.06)", "rgba(2,6,16,0.25)");
 
-const TEAL_GLOW =
-  "radial-gradient(60% 90% at 50% 40%, rgba(94,234,212,0.08), transparent 65%)";
+const SHADOW_TOP = `linear-gradient(to bottom, ${SHADOW_STRONG}, ${SHADOW_SOFT} 55%, transparent)`;
+const SHADOW_BOTTOM = `linear-gradient(to top, ${SHADOW_STRONG}, ${SHADOW_SOFT} 55%, transparent)`;
 
-const SPECTRUM_BEAM =
-  "linear-gradient(180deg, rgba(22,185,228,0) 0%, rgba(22,185,228,0.1) 6%, rgba(124,146,198,0.09) 38%, rgba(240,120,106,0.06) 60%, rgba(240,120,106,0) 78%)";
+const RECESS_SHADOW = `0 20px 30px -18px ${lightDark("rgba(60,48,30,0.28)", "rgba(2,6,16,0.9)")}`;
 
-const CYAN_BEAM =
-  "linear-gradient(180deg, rgba(22,185,228,0) 0%, rgba(22,185,228,0.1) 8%, rgba(22,185,228,0.05) 40%, transparent 75%)";
+const TEAL_GLOW = `radial-gradient(60% 90% at 50% 40%, ${lightDark("rgba(7,94,117,0.07)", "rgba(94,234,212,0.08)")}, transparent 65%)`;
 
-const TEAL_BEAM =
-  "linear-gradient(180deg, rgba(94,234,212,0) 0%, rgba(94,234,212,0.1) 8%, rgba(94,234,212,0.04) 40%, transparent 75%)";
+const SPECTRUM_BEAM = `linear-gradient(180deg, ${lightDark("rgba(8,145,178,0)", "rgba(22,185,228,0)")} 0%, ${lightDark("rgba(8,145,178,0.24)", "rgba(22,185,228,0.1)")} 6%, ${lightDark("rgba(99,110,170,0.22)", "rgba(124,146,198,0.09)")} 38%, ${lightDark("rgba(220,90,76,0.16)", "rgba(240,120,106,0.06)")} 60%, ${lightDark("rgba(220,90,76,0)", "rgba(240,120,106,0)")} 78%)`;
+
+const CYAN_BEAM = `linear-gradient(180deg, ${lightDark("rgba(8,145,178,0)", "rgba(22,185,228,0)")} 0%, ${lightDark("rgba(8,145,178,0.24)", "rgba(22,185,228,0.1)")} 8%, ${lightDark("rgba(8,145,178,0.12)", "rgba(22,185,228,0.05)")} 40%, transparent 75%)`;
+
+const TEAL_BEAM = `linear-gradient(180deg, ${lightDark("rgba(15,118,110,0)", "rgba(94,234,212,0)")} 0%, ${lightDark("rgba(15,118,110,0.24)", "rgba(94,234,212,0.1)")} 8%, ${lightDark("rgba(15,118,110,0.1)", "rgba(94,234,212,0.04)")} 40%, transparent 75%)`;
+
+const BEAM_DROP = `linear-gradient(180deg, transparent 0%, ${lightDark("rgba(7,94,117,0.9)", "rgba(245,241,234,0.9)")} 100%)`;
 
 interface BeamSpec {
   readonly left: string;
@@ -110,9 +109,7 @@ export function PatternBand({
   const bandClass = [
     "border-cc-card-border/50 relative left-1/2 isolate w-screen -translate-x-1/2 overflow-hidden",
     recessed ? "border-y" : "",
-    recessedBottom
-      ? "border-b shadow-[0_20px_30px_-18px_rgba(2,6,16,0.9)]"
-      : "",
+    recessedBottom ? "border-b" : "",
     flush ? "-mt-8" : "",
     className,
   ]
@@ -133,6 +130,7 @@ export function PatternBand({
         {
           "--x": "50%",
           "--y": "50%",
+          boxShadow: recessedBottom ? RECESS_SHADOW : undefined,
         } as CSSProperties
       }
     >
@@ -170,7 +168,7 @@ export function PatternBand({
         {pattern === "grid" && (
           <>
             <div
-              className="absolute inset-0 opacity-[0.06]"
+              className="absolute inset-0"
               style={{
                 backgroundImage: GRID_BG,
                 backgroundSize: "46px 46px",
@@ -203,8 +201,7 @@ export function PatternBand({
               style={{
                 width: "1.5px",
                 height: "60px",
-                background:
-                  "linear-gradient(180deg, transparent 0%, rgba(245,241,234,0.9) 100%)",
+                background: BEAM_DROP,
               }}
             />
           </>

@@ -1,3 +1,4 @@
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 
 interface Source {
@@ -68,8 +69,22 @@ const pctX = (x: number) => `${((x - VIEW.x) / VIEW.w) * 100}%`;
 const pctY = (y: number) => `${((y - VIEW.y) / VIEW.h) * 100}%`;
 
 /** Broad, feathered scrim that dims the streams behind the copy. */
-const SCRIM =
-  "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,15,26,0.9) 0%, rgba(11,15,26,0.82) 38%, rgba(11,15,26,0.5) 62%, rgba(11,15,26,0) 85%)";
+const scrim = (alpha: number) =>
+  lightDark(`rgba(245,241,234,${alpha})`, `rgba(11,15,26,${alpha})`);
+
+const SCRIM = `radial-gradient(ellipse 50% 50% at 50% 50%, ${scrim(0.9)} 0%, ${scrim(0.82)} 38%, ${scrim(0.5)} 62%, ${scrim(0)} 85%)`;
+
+const NODE_CORE = lightDark("#0b0f1a", "#fff");
+const HALO_SOFT_START = lightDark(
+  "rgba(7,94,117,0.3)",
+  "rgba(255,255,255,0.9)",
+);
+const HALO_END = lightDark("rgba(7,94,117,0)", "rgba(14,21,34,0)");
+const HALO_CORE_START = lightDark("rgba(7,94,117,0.55)", "#fff");
+const COMPOSITION_RULE = lightDark(
+  "var(--color-cc-control-border)",
+  "rgba(245,241,234,0.3)",
+);
 
 /**
  * The Fusion narrative, rendered as a top-to-bottom "river": independent
@@ -173,8 +188,8 @@ export function FusionFlow() {
               r={180}
               gradientUnits="userSpaceOnUse"
             >
-              <stop offset="0.09" stopColor="#fff" stopOpacity="0.9" />
-              <stop offset="1" stopColor="#0e1522" stopOpacity="0" />
+              <stop offset="0.09" style={{ stopColor: HALO_SOFT_START }} />
+              <stop offset="1" style={{ stopColor: HALO_END }} />
             </radialGradient>
             <radialGradient
               id="ff-halo-core"
@@ -185,13 +200,13 @@ export function FusionFlow() {
               r={180}
               gradientUnits="userSpaceOnUse"
             >
-              <stop offset="0" stopColor="#fff" />
-              <stop offset="0.4" stopColor="#0e1522" stopOpacity="0" />
+              <stop offset="0" style={{ stopColor: HALO_CORE_START }} />
+              <stop offset="0.4" style={{ stopColor: HALO_END }} />
             </radialGradient>
           </defs>
           <circle cx={GLOW.x} cy={GLOW.y} r={180} fill="url(#ff-halo-soft)" />
           <circle cx={GLOW.x} cy={GLOW.y} r={180} fill="url(#ff-halo-core)" />
-          <circle cx={GLOW.x} cy={GLOW.y} r={15} fill="#fff" />
+          <circle cx={GLOW.x} cy={GLOW.y} r={15} style={{ fill: NODE_CORE }} />
         </svg>
 
         {/* Square markers (CSS so they stay square), centred on each stream. */}
@@ -247,7 +262,10 @@ export function FusionFlow() {
             <span className="text-cc-ink-dim font-mono text-[0.5rem] tracking-[0.15em] whitespace-nowrap uppercase sm:text-sm sm:tracking-[0.2em]">
               Fusion Composition
             </span>
-            <span className="h-px w-10 flex-none border-t border-dashed border-[rgba(245,241,234,0.3)] sm:w-auto sm:flex-1" />
+            <span
+              className="h-px w-10 flex-none border-t border-dashed sm:w-auto sm:flex-1"
+              style={{ borderColor: COMPOSITION_RULE }}
+            />
           </div>
         </div>
       </div>

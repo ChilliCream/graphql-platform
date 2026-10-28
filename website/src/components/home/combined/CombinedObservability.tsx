@@ -2,17 +2,18 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { ArrowLink } from "@/src/components/ArrowLink";
+import { lightDark } from "@/src/components/lightDark";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 
 const HEX = {
-  accent: "#5eead4",
-  coral: "#f0786a",
-  navLabel: "#94a3b8",
-  page: "#0b0f1a",
-  slo: "rgba(245, 241, 234, 0.30)",
+  accent: lightDark("#0f766e", "#5eead4"),
+  coral: lightDark("#d14a3a", "#f0786a"),
+  navLabel: lightDark("var(--color-cc-nav-label)", "#94a3b8"),
+  page: lightDark("var(--color-cc-card-bg)", "#0b0f1a"),
+  slo: lightDark("rgba(15, 23, 42, 0.45)", "rgba(245, 241, 234, 0.30)"),
 } as const;
 
-const TRACK = "rgba(245, 241, 234, 0.1)";
+const TRACK = lightDark("rgba(15, 23, 42, 0.12)", "rgba(245, 241, 234, 0.1)");
 
 const MONO =
   'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace';

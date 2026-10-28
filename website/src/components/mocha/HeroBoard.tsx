@@ -1,13 +1,15 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useEffect, useRef } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
+import { useColorScheme } from "@/src/components/useColorScheme";
 import {
   BOARD_ALPHA,
   Board,
-  GLOW_RGB,
-  MSG,
-  MSG_SOFT,
+  DARK_BOARD_PALETTE,
+  LIGHT_BOARD_PALETTE,
   PULSE_TRAIL,
   Point,
   Pulse,
@@ -19,6 +21,21 @@ import {
   pointAt,
 } from "./board";
 import { MONO_FONT } from "./palette";
+
+const veil = (alpha: number) =>
+  lightDark(`rgba(245,241,234,${alpha})`, `rgba(11,15,26,${alpha})`);
+
+const CHIP_RING = lightDark("rgba(51,65,85,0.55)", "rgba(205,216,232,0.55)");
+const CHIP_RING_HOVER = lightDark(
+  "rgba(196,78,58,0.9)",
+  "rgba(246,202,190,0.9)",
+);
+const CHIP_CORE = lightDark("rgba(51,65,85,0.85)", "rgba(232,238,248,0.9)");
+const CHIP_LABEL = lightDark("rgba(51,65,85,0.85)", "rgba(170,188,214,0.8)");
+const CHIP_DESIGNATOR = lightDark(
+  "rgba(51,65,85,0.55)",
+  "rgba(154,172,200,0.45)",
+);
 
 interface NodeChipProps {
   readonly label: string;
@@ -33,18 +50,24 @@ function NodeChip({ label, designator, className }: NodeChipProps) {
     >
       <span
         data-mocha-node
-        className="pointer-events-auto relative block h-2.5 w-2.5 rounded-full border border-[rgba(205,216,232,0.55)] transition-colors duration-300 hover:border-[rgba(246,202,190,0.9)]"
+        className="pointer-events-auto relative block h-2.5 w-2.5 rounded-full border transition-colors duration-300 hover:border-(--chip-ring-hover)"
+        style={
+          {
+            borderColor: CHIP_RING,
+            "--chip-ring-hover": CHIP_RING_HOVER,
+          } as CSSProperties
+        }
       >
-        <span className="absolute inset-[2.5px] rounded-full bg-[rgba(232,238,248,0.9)]" />
+        <span
+          className="absolute inset-[2.5px] rounded-full"
+          style={{ backgroundColor: CHIP_CORE }}
+        />
       </span>
       <span
         className="font-mono text-[0.68rem] font-semibold tracking-[0.26em] whitespace-nowrap uppercase"
-        style={{ color: "rgba(170,188,214,0.8)", fontFamily: MONO_FONT }}
+        style={{ color: CHIP_LABEL, fontFamily: MONO_FONT }}
       >
-        <span
-          className="font-normal"
-          style={{ color: "rgba(154,172,200,0.45)" }}
-        >
+        <span className="font-normal" style={{ color: CHIP_DESIGNATOR }}>
           {designator}·
         </span>
         {label}
@@ -54,6 +77,7 @@ function NodeChip({ label, designator, className }: NodeChipProps) {
 }
 
 export function HeroBoard() {
+  const scheme = useColorScheme();
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -69,6 +93,8 @@ export function HeroBoard() {
     if (!ctx || !offCtx) {
       return;
     }
+    const palette =
+      scheme === "light" ? LIGHT_BOARD_PALETTE : DARK_BOARD_PALETTE;
     const reducedMql = window.matchMedia("(prefers-reduced-motion: reduce)");
     let reduced = reducedMql.matches;
     const runtime = mulberry32(0x51ed270b);
@@ -148,7 +174,7 @@ export function HeroBoard() {
       const g = offCtx!;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, w, h);
-      paintBoard(g, board, w, h);
+      paintBoard(g, board, w, h, palette);
     }
 
     function render(time: number) {
@@ -163,22 +189,28 @@ export function HeroBoard() {
         return;
       }
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
-      c.globalCompositeOperation = "lighter";
+      c.globalCompositeOperation = palette.glowComposite;
 
       for (let i = 0; i < board.nodes.length; i++) {
         const n = board.nodes[i];
         const breathe = 1 + 0.08 * Math.sin(time / 177 + i * 2.1);
         const level = breathe * (1 + 0.5 * hover[i]);
         const halo = c.createRadialGradient(n.x, n.y, 0, n.x, n.y, 85);
-        halo.addColorStop(0, `rgba(${GLOW_RGB},${0.13 * level})`);
-        halo.addColorStop(1, `rgba(${GLOW_RGB},0)`);
+        halo.addColorStop(
+          0,
+          `rgba(${palette.glow},${0.13 * palette.glowGain * level})`,
+        );
+        halo.addColorStop(1, `rgba(${palette.glow},0)`);
         c.fillStyle = halo;
         c.beginPath();
         c.arc(n.x, n.y, 85, 0, Math.PI * 2);
         c.fill();
         const core = c.createRadialGradient(n.x, n.y, 0, n.x, n.y, 16);
-        core.addColorStop(0, `rgba(${GLOW_RGB},${0.3 * level})`);
-        core.addColorStop(1, `rgba(${GLOW_RGB},0)`);
+        core.addColorStop(
+          0,
+          `rgba(${palette.glow},${0.3 * palette.glowGain * level})`,
+        );
+        core.addColorStop(1, `rgba(${palette.glow},0)`);
         c.fillStyle = core;
         c.beginPath();
         c.arc(n.x, n.y, 16, 0, Math.PI * 2);
@@ -201,7 +233,7 @@ export function HeroBoard() {
             pulse.dist - PULSE_TRAIL + (k * PULSE_TRAIL) / chunks,
           );
           const p = pointAt(pulse.trace, d);
-          c.strokeStyle = `rgba(${MSG},${alpha * Math.pow(k / chunks, 2) * 0.95})`;
+          c.strokeStyle = `rgba(${palette.msg},${alpha * Math.pow(k / chunks, 2) * 0.95})`;
           c.beginPath();
           c.moveTo(prev.x, prev.y);
           c.lineTo(p.x, p.y);
@@ -209,13 +241,13 @@ export function HeroBoard() {
           prev = p;
         }
         const g = c.createRadialGradient(head.x, head.y, 0, head.x, head.y, 9);
-        g.addColorStop(0, `rgba(${MSG_SOFT},${alpha * 0.44})`);
-        g.addColorStop(1, `rgba(${MSG_SOFT},0)`);
+        g.addColorStop(0, `rgba(${palette.msgSoft},${alpha * 0.44})`);
+        g.addColorStop(1, `rgba(${palette.msgSoft},0)`);
         c.fillStyle = g;
         c.beginPath();
         c.arc(head.x, head.y, 9, 0, Math.PI * 2);
         c.fill();
-        c.fillStyle = `rgba(${MSG_SOFT},${alpha})`;
+        c.fillStyle = `rgba(${palette.msgSoft},${alpha})`;
         c.beginPath();
         c.arc(head.x, head.y, 2, 0, Math.PI * 2);
         c.fill();
@@ -227,7 +259,7 @@ export function HeroBoard() {
           continue;
         }
         const n = board.nodes[i];
-        c.strokeStyle = `rgba(${MSG},${0.4 * flash[i]})`;
+        c.strokeStyle = `rgba(${palette.msg},${0.4 * flash[i]})`;
         c.beginPath();
         c.arc(n.x, n.y, 8 + (1 - flash[i]) * 20, 0, Math.PI * 2);
         c.stroke();
@@ -236,7 +268,7 @@ export function HeroBoard() {
         if (rf.life <= 0.02) {
           continue;
         }
-        c.strokeStyle = `rgba(${MSG},${0.4 * rf.life})`;
+        c.strokeStyle = `rgba(${palette.msg},${0.4 * rf.life})`;
         c.beginPath();
         c.arc(rf.x, rf.y, 8 + (1 - rf.life) * 20, 0, Math.PI * 2);
         c.stroke();
@@ -430,7 +462,7 @@ export function HeroBoard() {
         c();
       }
     };
-  }, []);
+  }, [scheme]);
 
   return (
     <div
@@ -472,25 +504,25 @@ export function HeroBoard() {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(90deg, rgba(11,15,26,0.92) 0%, rgba(11,15,26,0.5) 34%, rgba(11,15,26,0) 60%)",
+          background: `linear-gradient(90deg, ${veil(0.92)} 0%, ${veil(0.5)} 34%, ${veil(0)} 60%)`,
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(11,15,26,0) 70%, rgba(11,15,26,0.94) 98%)",
+          background: `linear-gradient(180deg, ${veil(0)} 70%, ${veil(0.94)} 98%)`,
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(11,15,26,0.6) 0%, rgba(11,15,26,0) 14%)",
+          background: `linear-gradient(180deg, ${veil(0.6)} 0%, ${veil(0)} 14%)`,
         }}
       />
-      <div className="absolute inset-0 bg-[#0b0f1a]/45 md:hidden" />
+      <div
+        className="absolute inset-0 md:hidden"
+        style={{ backgroundColor: veil(0.45) }}
+      />
     </div>
   );
 }
