@@ -718,5 +718,33 @@ internal static class ErrorHelper
                     .SetPath(context.CreateErrorPath())
                     .Build());
         }
+
+        public void ReportMaxFragmentVisitsOverflow(ISyntaxNode selection)
+        {
+            context.FatalErrorDetected = true;
+
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage("Maximum allowed fragment visits were exceeded.")
+                    .SetCode(ErrorCodes.Validation.MaxFragmentVisitsOverflow)
+                    .AddLocation(selection)
+                    .SetPath(context.CreateErrorPath())
+                    .Build());
+        }
+
+        public void ReportMaxSelectionSetDepthOverflow(ISyntaxNode node, int maxAllowedSelectionSetDepth)
+        {
+            context.FatalErrorDetected = true;
+
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The document exceeds the maximum allowed selection set depth of {0}.",
+                        maxAllowedSelectionSetDepth)
+                    .SetCode(ErrorCodes.Validation.MaxSelectionSetDepthOverflow)
+                    .AddLocation(node)
+                    .SetPath(context.CreateErrorPath())
+                    .Build());
+        }
     }
 }
