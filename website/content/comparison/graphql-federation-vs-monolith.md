@@ -1,5 +1,5 @@
 ---
-title: "GraphQL Federation vs. a GraphQL Monolith"
+title: "GraphQL Federation vs. GraphQL Monolith"
 metaTitle: "GraphQL Federation vs Monolith: Architecture & Tradeoffs"
 description: "Compare GraphQL Federation and monolithic GraphQL APIs. Explore modular monoliths, independent deployments, domain boundaries, and migration strategies."
 featuredImage: "graphql-federation-vs-graphql-monolith.png"
@@ -135,7 +135,7 @@ This incremental approach avoids the risk of splitting an entire application int
 
 With Fusion, organizations can start with existing GraphQL services and introduce federation incrementally, without requiring a coordinated rewrite.
 
-# GraphQL Federation vs. a GraphQL monolith at a glance
+# GraphQL Federation vs. GraphQL Monolith at a glance
 
 | Capability             | GraphQL Monolith                    | GraphQL Federation                |
 | ---------------------- | ----------------------------------- | --------------------------------- |
