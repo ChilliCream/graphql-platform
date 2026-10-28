@@ -67,6 +67,31 @@ Stories tagged `visual-reduced-motion` capture their authored static state with
 the default media preference. InsightsWindow and ProtectWindow opt in to capture
 complete telemetry and static publish verdicts.
 
+## Appearance tests
+
+The site offers Auto (default), Light and Dark. The choice is stored in
+`localStorage` under `cc-theme`; any other stored value, or unavailable
+storage, means Auto. Only the head bootstrap sets `html[data-theme]` to `light`
+or `dark` and the inline `color-scheme`, so server HTML omits `data-theme` and,
+without JavaScript, Auto follows `prefers-color-scheme` through
+`:root:not([data-theme])`. The `theme-color` meta is `#f5f1ea` in Light and
+`#0b0f1a` in Dark.
+
+```bash
+npm run build
+npm run test:theme
+node --test tests/theme/theme-preference.test.ts
+```
+
+`npm run test:theme` runs `tests/theme/appearance.spec.ts` in host Chromium
+against the static export in `out`, served by `tests/theme/serve-export.mjs` on
+port 3206. Set `THEME_TEST_PORT` to use another port. The server is never
+reused, so the run fails when the port is taken. Requests to other hosts are
+blocked. The config collects only `appearance.spec.ts`; the Node-only
+`theme-preference.test.ts` runs with `node --test`. These tests assert
+behavior and do not replace the Docker visual suite, which owns screenshots:
+Storybook stories render Dark unless a story selects Light or Auto.
+
 ## Authoring Markdown Content
 
 Docs live in `content/docs/<product>/...` as Markdown (`.md`) files and are
