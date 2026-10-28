@@ -16,4 +16,9 @@ public static class NatsReceiveMiddlewares
     /// Turns the raw JetStream message into a message envelope.
     /// </summary>
     public static readonly ReceiveMiddlewareConfiguration Parsing = NatsParsingMiddleware.Create();
+
+    /// <summary>
+    /// Redelivers a failed message to its own consumer after the policy's delay.
+    /// </summary>
+    public static readonly ReceiveMiddlewareConfiguration Redelivery = NatsRedeliveryMiddleware.Create();
 }
