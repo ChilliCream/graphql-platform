@@ -6,8 +6,8 @@ import { LayeredCompositionGraphic } from "./LayeredCompositionGraphic";
 
 const PANEL_WIDTHS = {
   375: 335,
-  1024: 514.65625,
-  1440: 720,
+  1024: 349.3259,
+  1440: 496,
 } as const;
 
 const meta = {
