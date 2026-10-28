@@ -1,3 +1,4 @@
+import { lightDark } from "@/src/components/lightDark";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 
 interface LineageMilestone {
@@ -7,6 +8,9 @@ interface LineageMilestone {
 }
 
 const DELAY_CLASSES = ["delay-0", "delay-150", "delay-300"];
+
+const success = (light: number, dark: number) =>
+  `color-mix(in oklab, var(--color-cc-success) ${lightDark(`${light}%`, `${dark}%`)}, transparent)`;
 
 const MILESTONES: readonly LineageMilestone[] = [
   { when: "2019", name: "Apollo Federation" },
@@ -34,8 +38,9 @@ export function SpecLineageTimeline() {
                 className={`flex h-8 w-8 items-center justify-center rounded-full border sm:h-9 sm:w-9 ${
                   last
                     ? "border-cc-success bg-cc-success/20 shadow-[0_0_14px_var(--color-cc-success)]"
-                    : "border-cc-success/40 bg-cc-success/10"
+                    : "bg-cc-success/10"
                 }`}
+                style={last ? undefined : { borderColor: success(55, 40) }}
               >
                 <RevealOnScroll
                   className={`flex ${DELAY_CLASSES[i]}`}
@@ -45,17 +50,17 @@ export function SpecLineageTimeline() {
                   <span
                     aria-hidden="true"
                     className={`rounded-full ${
-                      last
-                        ? "bg-cc-success h-3 w-3"
-                        : "bg-cc-success/50 h-2 w-2"
+                      last ? "bg-cc-success h-3 w-3" : "h-2 w-2"
                     }`}
+                    style={last ? undefined : { background: success(70, 50) }}
                   />
                 </RevealOnScroll>
               </span>
               {!last && (
                 <span
                   aria-hidden="true"
-                  className="bg-cc-success/25 my-1.5 min-h-6 w-px flex-1"
+                  className="my-1.5 min-h-6 w-px flex-1"
+                  style={{ background: success(35, 25) }}
                 />
               )}
             </div>
