@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -795,6 +796,79 @@ public class AnnotationBasedAuthorizationTests
         Assert.Equal(401, value);
     }
 
+    [Theory]
+    [InlineData("query($id: ID!) { node(id: $id) { __typename } }", false, "/node")]
+    [InlineData("query($id: [ID!]!) { nodes(ids: $id) { __typename } }", true, "/nodes[0]")]
+    public async Task Node_Should_ApplyQueryTypePolicy_When_NodeTypeHasNoPolicy(
+        string document,
+        bool isList,
+        string expectedPath)
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, d) => d.Policy.EqualsOrdinal("QUERY2")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+        var id = Convert.ToBase64String("BlogPage:1"u8);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetDocument(document)
+                    .SetVariableValues(new Dictionary<string, object?>
+                    {
+                        { "id", isList ? new List<string> { id } : id }
+                    }));
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors!);
+        Assert.Equal(ErrorCodes.Authentication.NotAuthorized, error.Code);
+        Assert.Equal(expectedPath, error.Path?.ToString());
+    }
+
+    [Theory]
+    [InlineData("query($id: ID!) { person(id: $id) { __typename } }", "Person:abc")]
+    [InlineData("query($id: ID!) { node(id: $id) { __typename } }", "Person:abc")]
+    [InlineData("query($id: ID!) { node(id: $id) { __typename } }", "BlogPage:1")]
+    public async Task Node_Should_ApplyQueryTypePolicyOnce_When_NodeIsResolved(
+        string document,
+        string id)
+    {
+        // arrange
+        var count = 0;
+        var handler = new AuthHandler(
+            resolver: (_, d) =>
+            {
+                if (d.Policy.EqualsOrdinal("QUERY2"))
+                {
+                    Interlocked.Increment(ref count);
+                }
+
+                return AuthorizeResult.Allowed;
+            },
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetDocument(document)
+                    .SetVariableValues(new Dictionary<string, object?>
+                    {
+                        { "id", Convert.ToBase64String(Encoding.UTF8.GetBytes(id)) }
+                    }));
+
+        // assert
+        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Equal(1, count);
+    }
+
     [Fact]
     public async Task Skip_Authorize_On_Node_Field()
     {
@@ -965,6 +1039,7 @@ public class AnnotationBasedAuthorizationTests
             .AddType<Street>()
             .AddTypeExtension(typeof(StreetExtensions))
             .AddType<City>()
+            .AddType<BlogPage>()
             .AddGlobalObjectIdentification()
             .AddAuthorizationHandler(_ => handler)
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
@@ -1013,6 +1088,14 @@ public class AnnotationBasedAuthorizationTests
 
     [UnionType]
     public interface ICityOrStreet;
+
+    [Node]
+    public sealed record BlogPage(string Id)
+    {
+        [NodeResolver]
+        public static BlogPage GetBlogPageById(string id)
+            => new(id);
+    }
 
     [Node]
     [ExtendObjectType<Street>]
