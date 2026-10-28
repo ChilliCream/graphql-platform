@@ -201,7 +201,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
           style={{
             left: "50%",
             top: "50%",
-            transform: "translate(-50%, -50%)",
+            transform: "translate(-50%, calc(-50% + 0.5px))",
             gap: 2,
           }}
         >
@@ -220,6 +220,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
             className="whitespace-nowrap"
             style={{
               display: "inline-block",
+              margin: "2px 0 1px",
               minWidth: "2ch",
               textAlign: "center",
               fontFamily: token.mono,
