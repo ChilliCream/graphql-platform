@@ -2,6 +2,7 @@
 
 import {
   useId,
+  useSyncExternalStore,
   type ComponentType,
   type ComponentPropsWithoutRef,
 } from "react";
@@ -17,13 +18,37 @@ interface ThemeOption {
   readonly value: ThemePreference;
   readonly label: string;
   readonly Icon: ComponentType<ComponentPropsWithoutRef<"svg">>;
+  readonly prehydrationHighlight: string;
 }
 
+// Until hydration the server-rendered radio is always Auto, so the highlight
+// follows the preference the head bootstrap set on the root element instead.
 const OPTIONS: readonly ThemeOption[] = [
-  { value: "light", label: "Light", Icon: SunIcon },
-  { value: "dark", label: "Dark", Icon: MoonIcon },
-  { value: "auto", label: "Auto", Icon: SunMoonIcon },
+  {
+    value: "light",
+    label: "Light",
+    Icon: SunIcon,
+    prehydrationHighlight:
+      "[html[data-theme-preference=light]_&]:bg-cc-ink-faint [html[data-theme-preference=light]_&]:text-cc-heading",
+  },
+  {
+    value: "dark",
+    label: "Dark",
+    Icon: MoonIcon,
+    prehydrationHighlight:
+      "[html[data-theme-preference=dark]_&]:bg-cc-ink-faint [html[data-theme-preference=dark]_&]:text-cc-heading",
+  },
+  {
+    value: "auto",
+    label: "Auto",
+    Icon: SunMoonIcon,
+    prehydrationHighlight:
+      "[html:not([data-theme-preference=light]):not([data-theme-preference=dark])_&]:bg-cc-ink-faint [html:not([data-theme-preference=light]):not([data-theme-preference=dark])_&]:text-cc-heading",
+  },
 ];
+
+const CHECKED_HIGHLIGHT =
+  "has-checked:bg-cc-ink-faint has-checked:text-cc-heading";
 
 const OPTION_SIZES = {
   compact: {
@@ -34,10 +59,23 @@ const OPTION_SIZES = {
   comfortable: { group: "", box: "h-11 w-11", icon: "h-5 w-5" },
 } as const;
 
+function subscribeToNothing() {
+  return () => {};
+}
+
+function useHydrated() {
+  return useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
+}
+
 export function ThemeSelector({ size }: ThemeSelectorProps) {
   const { preference, setPreference } = useTheme();
   const name = useId();
   const sizes = OPTION_SIZES[size];
+  const hydrated = useHydrated();
 
   return (
     <div
@@ -45,11 +83,11 @@ export function ThemeSelector({ size }: ThemeSelectorProps) {
       aria-label="Appearance"
       className={`border-cc-card-border inline-flex flex-none items-center rounded-full border p-0.5 ${sizes.group}`}
     >
-      {OPTIONS.map(({ value, label, Icon }) => (
+      {OPTIONS.map(({ value, label, Icon, prehydrationHighlight }) => (
         <label
           key={value}
           title={label}
-          className={`text-cc-ink-dim hover:text-cc-heading has-checked:bg-cc-ink-faint has-checked:text-cc-heading has-focus-visible:outline-cc-accent relative inline-flex cursor-pointer items-center justify-center rounded-full transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-1 ${sizes.box}`}
+          className={`text-cc-ink-dim hover:text-cc-heading ${hydrated ? CHECKED_HIGHLIGHT : prehydrationHighlight} has-focus-visible:outline-cc-accent relative inline-flex cursor-pointer items-center justify-center rounded-full transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-1 ${sizes.box}`}
         >
           <input
             type="radio"

@@ -64,6 +64,7 @@ function createThemeRuntime(
 
   function apply() {
     document.documentElement.dataset.theme = state.resolvedTheme;
+    document.documentElement.dataset.themePreference = state.preference;
     document.documentElement.style.colorScheme = state.resolvedTheme;
     document
       .querySelectorAll('meta[name="theme-color"]')

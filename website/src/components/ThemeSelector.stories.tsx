@@ -31,6 +31,7 @@ const meta = {
       }
       window.__ccTheme = undefined;
       root.dataset.theme = "dark";
+      delete root.dataset.themePreference;
       root.style.removeProperty("color-scheme");
     };
   },

@@ -222,6 +222,19 @@ async function expectSelected(
   }
 }
 
+async function highlighted(group: Locator) {
+  return group
+    .locator("label")
+    .evaluateAll((labels) =>
+      labels
+        .filter(
+          (label) =>
+            getComputedStyle(label).backgroundColor !== "rgba(0, 0, 0, 0)",
+        )
+        .map((label) => label.textContent),
+    );
+}
+
 function openMobileMenu(page: Page) {
   return page.getByRole("button", { name: "Open navigation menu" }).click();
 }
@@ -263,6 +276,7 @@ test.describe("without JavaScript", () => {
         themeColor: THEME_COLOR[system],
       });
       await expectSelected(page, "auto");
+      expect(await highlighted(headerGroup(page))).toEqual(["Auto"]);
     });
   }
 });
@@ -332,6 +346,72 @@ test.describe("first paint", () => {
     await expectResolved(page, "light");
     await context.close();
   });
+
+  for (const stored of [undefined, "light", "dark", "banana"] as const) {
+    test(`Should_HighlightStoredOption_When_${stored ?? "nothing"}IsStored_And_HydrationNeverRuns`, async ({
+      browser,
+      problems,
+    }) => {
+      // arrange
+      const { context, page } = await openPage(browser, problems, {
+        system: "dark",
+        stored,
+      });
+      await page.route("**/_next/static/**/*.js", (route) => route.abort());
+      const expected =
+        NAMES[stored === "light" || stored === "dark" ? stored : "auto"];
+
+      // act
+      await page.goto("/");
+
+      // assert
+      expect(
+        await page.evaluate(
+          () => document.documentElement.dataset.themePreference,
+        ),
+      ).toBe(expected.toLowerCase());
+      expect(await highlighted(headerGroup(page))).toEqual([expected]);
+      await expect(radio(page, "auto", headerGroup(page))).toBeChecked();
+      await context.close();
+    });
+
+    test(`Should_KeepHighlightAndLayout_When_${stored ?? "nothing"}IsStored_And_PageHydrates`, async ({
+      browser,
+      open,
+      problems,
+    }) => {
+      // arrange
+      const expected =
+        NAMES[stored === "light" || stored === "dark" ? stored : "auto"];
+      const { context, page: unhydrated } = await openPage(browser, problems, {
+        system: "dark",
+        stored,
+      });
+      await unhydrated.route("**/_next/static/**/*.js", (route) =>
+        route.abort(),
+      );
+      await unhydrated.goto("/");
+      const boxes = (page: Page) =>
+        headerGroup(page)
+          .locator("label")
+          .evaluateAll((labels) =>
+            labels.map((label) => {
+              const { x, y, width, height } = label.getBoundingClientRect();
+              return { x, y, width, height };
+            }),
+          );
+      const before = await boxes(unhydrated);
+      await context.close();
+
+      // act
+      const page = await open("/", { system: "dark", stored });
+
+      // assert
+      expect(await highlighted(headerGroup(page))).toEqual([expected]);
+      await expect(radio(page, expected, headerGroup(page))).toBeChecked();
+      expect(await boxes(page)).toEqual(before);
+    });
+  }
 });
 
 test.describe("system changes", () => {
@@ -595,6 +675,7 @@ test.describe("appearance selector", () => {
     await group.getByRole("radio", { name: "Light", exact: true }).click();
     await expectResolved(page, "light");
     await expectSelected(page, "light", group);
+    expect(await highlighted(group)).toEqual(["Light"]);
     expect((await root(page)).stored).toBe("light");
   });
 

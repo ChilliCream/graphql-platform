@@ -47,7 +47,7 @@ function environment(saved: string | null, dark: boolean) {
   ];
   const document = {
     documentElement: {
-      dataset: {} as { theme?: string },
+      dataset: {} as { theme?: string; themePreference?: string },
       style: { colorScheme: "" },
     },
     querySelectorAll(selector: string) {
@@ -83,6 +83,7 @@ function environment(saved: string | null, dark: boolean) {
         themeColor: metas.map((meta) => meta.content),
       };
     },
+    rootPreference: () => document.documentElement.dataset.themePreference,
   };
 }
 
@@ -156,9 +157,39 @@ for (const bootstrap of [false, true]) {
           themeColor: resolvedTheme === "dark" ? DARK_METAS : LIGHT_METAS,
         });
         assert.equal(env.values.get("cc-theme"), saved ?? undefined);
+        assert.equal(env.rootPreference(), preference);
       });
     }
   }
+
+  test(`${implementation} keeps the root preference attribute in step with every choice`, () => {
+    // arrange
+    const env = environment("dark", false);
+    const store = start(env, bootstrap);
+    const attributes = [env.rootPreference()];
+
+    // act
+    env.setSystemDark(true);
+    attributes.push(env.rootPreference());
+    store.setPreference("light");
+    attributes.push(env.rootPreference());
+    store.setPreference("invalid" as ThemePreference);
+    attributes.push(env.rootPreference());
+    store.setPreference("dark");
+    attributes.push(env.rootPreference());
+    store.setPreference("auto");
+    attributes.push(env.rootPreference());
+
+    // assert
+    assert.deepEqual(attributes, [
+      "dark",
+      "dark",
+      "light",
+      "auto",
+      "dark",
+      "auto",
+    ]);
+  });
 
   test(`${implementation} follows the live system only in Auto and persists Auto itself`, () => {
     // arrange
@@ -276,6 +307,7 @@ for (const bootstrap of [false, true]) {
         colorScheme: "dark",
         themeColor: DARK_METAS,
       });
+      assert.equal(env.rootPreference(), "auto");
     });
   }
 
