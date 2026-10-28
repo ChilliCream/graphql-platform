@@ -615,7 +615,7 @@ export async function generateLlmsFiles() {
 
   const rootCatalog = catalog(
     "ChilliCream",
-    "ChilliCream is a GraphQL platform for .NET teams, with open-source runtimes and the commercial Nitro control plane.",
+    "ChilliCream is a GraphQL federation platform, with open-source runtimes and the commercial Nitro control plane.",
     [
       { title: "Start Here", items: startHere.map(pageListItem) },
       {
