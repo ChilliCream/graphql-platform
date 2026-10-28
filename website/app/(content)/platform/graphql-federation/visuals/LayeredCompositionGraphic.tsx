@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 type Point = readonly [number, number];
@@ -27,11 +28,21 @@ const NODE_HALO = 9;
 const CYCLE = 7.2;
 const PULSE_SPEED = 90;
 
-const ACCENT = "var(--color-cc-accent)";
-const ACCENT_HI = "var(--color-cc-accent-hover)";
-const SUCCESS = "var(--color-cc-success)";
-const SPARK = "var(--color-cc-heading)";
+const ACCENT_LINE = lightDark("#0891b2", "var(--color-cc-accent)");
+const ACCENT_GLOW = lightDark("var(--cc-glow-cyan)", "var(--color-cc-accent)");
+const ACCENT_SLAB = lightDark(
+  "var(--cc-glow-cyan)",
+  "var(--color-cc-accent-hover)",
+);
+const ACCENT_EDGE = lightDark("#0891b2", "var(--color-cc-accent-hover)");
+const SUCCESS_LINE = lightDark("#059669", "var(--color-cc-success)");
+const SUCCESS_GLOW = lightDark("#10b981", "var(--color-cc-success)");
+const SPARK = lightDark("transparent", "var(--color-cc-heading)");
+const PULSE = lightDark("#0891b2", "var(--color-cc-heading)");
 const GROUND = "var(--color-cc-bg)";
+
+const alpha = (light: number, dark: number) =>
+  lightDark(String(light), String(dark));
 
 interface Frame {
   readonly cy: number;
@@ -250,7 +261,7 @@ function NodeDot({
   animated,
 }: NodeDotProps) {
   const { dur, begin } = breathe(index);
-  const color = green ? SUCCESS : ACCENT;
+  const color = green ? SUCCESS_LINE : ACCENT_LINE;
   return (
     <g>
       <circle
@@ -304,59 +315,127 @@ export function LayeredCompositionGraphic() {
     >
       <defs>
         <radialGradient id={`${uid}-halo-accent`}>
-          <stop offset="0%" stopColor={ACCENT} stopOpacity={1} />
-          <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
+          <stop offset="0%" stopColor={ACCENT_GLOW} stopOpacity={1} />
+          <stop
+            offset="40%"
+            stopColor={ACCENT_GLOW}
+            stopOpacity={alpha(0.85, 0.6)}
+          />
+          <stop offset="100%" stopColor={ACCENT_GLOW} stopOpacity={0} />
+        </radialGradient>
+        <radialGradient id={`${uid}-halo-base`}>
+          <stop offset="0%" stopColor={ACCENT_GLOW} stopOpacity={1} />
+          <stop
+            offset="40%"
+            stopColor={ACCENT_GLOW}
+            stopOpacity={alpha(0.85, 0.6)}
+          />
+          <stop
+            offset="88%"
+            stopColor={ACCENT_GLOW}
+            stopOpacity={alpha(0, 0.12)}
+          />
+          <stop offset="100%" stopColor={ACCENT_GLOW} stopOpacity={0} />
         </radialGradient>
         <radialGradient id={`${uid}-halo-success`}>
-          <stop offset="0%" stopColor={SUCCESS} stopOpacity={1} />
-          <stop offset="100%" stopColor={SUCCESS} stopOpacity={0} />
+          <stop offset="0%" stopColor={SUCCESS_GLOW} stopOpacity={1} />
+          <stop
+            offset="40%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.85, 0.6)}
+          />
+          <stop offset="100%" stopColor={SUCCESS_GLOW} stopOpacity={0} />
         </radialGradient>
         <radialGradient id={`${uid}-shadow`}>
           <stop offset="0%" stopColor={GROUND} stopOpacity={0.7} />
           <stop offset="100%" stopColor={GROUND} stopOpacity={0} />
         </radialGradient>
         <linearGradient id={`${uid}-face`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={ACCENT} stopOpacity={0.02} />
-          <stop offset="100%" stopColor={ACCENT} stopOpacity={0.13} />
+          <stop
+            offset="0%"
+            stopColor={ACCENT_GLOW}
+            stopOpacity={alpha(0.06, 0.02)}
+          />
+          <stop
+            offset="100%"
+            stopColor={ACCENT_GLOW}
+            stopOpacity={alpha(0.28, 0.13)}
+          />
         </linearGradient>
         <linearGradient id={`${uid}-face-active`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={SUCCESS} stopOpacity={0.02} />
-          <stop offset="100%" stopColor={SUCCESS} stopOpacity={0.08} />
+          <stop
+            offset="0%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.06, 0.02)}
+          />
+          <stop
+            offset="100%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.24, 0.08)}
+          />
         </linearGradient>
         <linearGradient id={`${uid}-slab`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={ACCENT_HI} stopOpacity={0.34} />
-          <stop offset="100%" stopColor={ACCENT} stopOpacity={0.05} />
+          <stop
+            offset="0%"
+            stopColor={ACCENT_SLAB}
+            stopOpacity={alpha(0.7, 0.34)}
+          />
+          <stop
+            offset="100%"
+            stopColor={ACCENT_GLOW}
+            stopOpacity={alpha(0.14, 0.05)}
+          />
         </linearGradient>
         <linearGradient id={`${uid}-slab-active`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={SUCCESS} stopOpacity={0.4} />
-          <stop offset="100%" stopColor={SUCCESS} stopOpacity={0.05} />
+          <stop
+            offset="0%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.7, 0.4)}
+          />
+          <stop
+            offset="100%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.14, 0.05)}
+          />
         </linearGradient>
         <linearGradient id={`${uid}-edge`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={ACCENT_HI} stopOpacity={0.1} />
-          <stop offset="50%" stopColor={ACCENT_HI} stopOpacity={1} />
-          <stop offset="100%" stopColor={ACCENT_HI} stopOpacity={0.1} />
+          <stop offset="0%" stopColor={ACCENT_EDGE} stopOpacity={0.1} />
+          <stop offset="50%" stopColor={ACCENT_EDGE} stopOpacity={1} />
+          <stop offset="100%" stopColor={ACCENT_EDGE} stopOpacity={0.1} />
         </linearGradient>
         <linearGradient id={`${uid}-edge-active`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={SUCCESS} stopOpacity={0.1} />
-          <stop offset="50%" stopColor={SUCCESS} stopOpacity={1} />
-          <stop offset="100%" stopColor={SUCCESS} stopOpacity={0.1} />
+          <stop offset="0%" stopColor={SUCCESS_LINE} stopOpacity={0.1} />
+          <stop offset="50%" stopColor={SUCCESS_LINE} stopOpacity={1} />
+          <stop offset="100%" stopColor={SUCCESS_LINE} stopOpacity={0.1} />
         </linearGradient>
         <radialGradient id={`${uid}-inner`} cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0%" stopColor={SUCCESS} stopOpacity={0.3} />
-          <stop offset="70%" stopColor={SUCCESS} stopOpacity={0.06} />
-          <stop offset="100%" stopColor={SUCCESS} stopOpacity={0} />
+          <stop
+            offset="0%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.55, 0.3)}
+          />
+          <stop
+            offset="70%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.16, 0.06)}
+          />
+          <stop offset="100%" stopColor={SUCCESS_GLOW} stopOpacity={0} />
         </radialGradient>
         <radialGradient id={`${uid}-base-inner`} cx="0.5" cy="0.55" r="0.5">
-          <stop offset="0%" stopColor={ACCENT} stopOpacity={0.24} />
-          <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
+          <stop
+            offset="0%"
+            stopColor={ACCENT_GLOW}
+            stopOpacity={alpha(0.45, 0.24)}
+          />
+          <stop offset="100%" stopColor={ACCENT_GLOW} stopOpacity={0} />
         </radialGradient>
         <linearGradient id={`${uid}-trail`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={ACCENT} stopOpacity={0} />
-          <stop offset="100%" stopColor={ACCENT} stopOpacity={0.9} />
+          <stop offset="0%" stopColor={ACCENT_LINE} stopOpacity={0} />
+          <stop offset="100%" stopColor={ACCENT_LINE} stopOpacity={0.9} />
         </linearGradient>
         <linearGradient id={`${uid}-trail-active`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={SUCCESS} stopOpacity={0} />
-          <stop offset="100%" stopColor={SUCCESS} stopOpacity={0.9} />
+          <stop offset="0%" stopColor={SUCCESS_LINE} stopOpacity={0} />
+          <stop offset="100%" stopColor={SUCCESS_LINE} stopOpacity={0.9} />
         </linearGradient>
         {LINES.map(({ x, y1, y2, active }, i) => (
           <linearGradient
@@ -370,18 +449,18 @@ export function LayeredCompositionGraphic() {
           >
             <stop
               offset="0%"
-              stopColor={active ? SUCCESS : ACCENT}
-              stopOpacity={0.15}
+              stopColor={active ? SUCCESS_LINE : ACCENT_LINE}
+              stopOpacity={alpha(0.3, 0.15)}
             />
             <stop
               offset="55%"
-              stopColor={active ? SUCCESS : ACCENT}
-              stopOpacity={0.4}
+              stopColor={active ? SUCCESS_LINE : ACCENT_LINE}
+              stopOpacity={alpha(0.65, 0.4)}
             />
             <stop
               offset="100%"
-              stopColor={active ? SUCCESS : ACCENT}
-              stopOpacity={0.75}
+              stopColor={active ? SUCCESS_LINE : ACCENT_LINE}
+              stopOpacity={alpha(0.95, 0.75)}
             />
           </linearGradient>
         ))}
@@ -393,10 +472,18 @@ export function LayeredCompositionGraphic() {
           x2={SWEEP.to[0]}
           y2={SWEEP.to[1]}
         >
-          <stop offset="0%" stopColor={SUCCESS} stopOpacity={0} />
-          <stop offset="82%" stopColor={SUCCESS} stopOpacity={0.14} />
-          <stop offset="96%" stopColor={SUCCESS} stopOpacity={0.32} />
-          <stop offset="100%" stopColor={SUCCESS} stopOpacity={0} />
+          <stop offset="0%" stopColor={SUCCESS_GLOW} stopOpacity={0} />
+          <stop
+            offset="82%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.24, 0.14)}
+          />
+          <stop
+            offset="96%"
+            stopColor={SUCCESS_GLOW}
+            stopOpacity={alpha(0.5, 0.32)}
+          />
+          <stop offset="100%" stopColor={SUCCESS_GLOW} stopOpacity={0} />
         </linearGradient>
         <clipPath id={`${uid}-clip-active`}>
           <path d={path(ACTIVE_PLANE.corners, true)} />
@@ -408,8 +495,8 @@ export function LayeredCompositionGraphic() {
         cy={BASE_Y + 18}
         rx={BASE_WIDTH / 2 + 36}
         ry={BASE_HEIGHT / 2 + 30}
-        fill={`url(#${uid}-halo-accent)`}
-        fillOpacity={0.14}
+        fill={`url(#${uid}-halo-base)`}
+        fillOpacity={alpha(0.3, 0.14)}
       />
       <path
         d={path(
@@ -456,8 +543,8 @@ export function LayeredCompositionGraphic() {
             y1={a[1]}
             x2={b[0]}
             y2={b[1]}
-            stroke={ACCENT}
-            strokeOpacity={0.07}
+            stroke={ACCENT_LINE}
+            strokeOpacity={alpha(0.22, 0.07)}
             strokeWidth={1}
             vectorEffect="non-scaling-stroke"
           />
@@ -465,8 +552,8 @@ export function LayeredCompositionGraphic() {
       })}
       <path
         d={path([baseCorners[3], baseCorners[0], baseCorners[1]])}
-        stroke={ACCENT}
-        strokeOpacity={0.3}
+        stroke={ACCENT_LINE}
+        strokeOpacity={alpha(0.7, 0.3)}
         strokeWidth={1}
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
@@ -486,8 +573,8 @@ export function LayeredCompositionGraphic() {
           y1={BASE_POINTS[a][1]}
           x2={BASE_POINTS[b][0]}
           y2={BASE_POINTS[b][1]}
-          stroke={ACCENT}
-          strokeOpacity={0.55}
+          stroke={ACCENT_LINE}
+          strokeOpacity={alpha(0.85, 0.55)}
           strokeWidth={1}
           strokeLinecap="round"
           vectorEffect="non-scaling-stroke"
@@ -511,7 +598,7 @@ export function LayeredCompositionGraphic() {
         const { corners: c, points, links, active, frame, tone } = plane;
         const index = PLANES.indexOf(plane);
         const suffix = active ? "-active" : "";
-        const color = active ? SUCCESS : ACCENT;
+        const color = active ? SUCCESS_LINE : ACCENT_LINE;
         return (
           <g key={index}>
             <ellipse
@@ -527,7 +614,11 @@ export function LayeredCompositionGraphic() {
               rx={PLANE_WIDTH * 0.46}
               ry={PLANE_HEIGHT * 0.56}
               fill={`url(#${uid}-halo-${active ? "success" : "accent"})`}
-              fillOpacity={(active ? 0.13 : 0.09) * tone}
+              fillOpacity={
+                active
+                  ? alpha(0.28 * tone, 0.13 * tone)
+                  : alpha(0.2 * tone, 0.09 * tone)
+              }
             >
               {animated && active && (
                 <animate
@@ -596,7 +687,7 @@ export function LayeredCompositionGraphic() {
               <path
                 d={path([c[3], c[0], c[1]])}
                 stroke={color}
-                strokeOpacity={0.26}
+                strokeOpacity={alpha(0.7, 0.26)}
                 strokeWidth={1}
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
@@ -616,7 +707,7 @@ export function LayeredCompositionGraphic() {
                   x2={points[b][0]}
                   y2={points[b][1]}
                   stroke={color}
-                  strokeOpacity={0.5}
+                  strokeOpacity={alpha(0.85, 0.5)}
                   strokeWidth={1}
                   strokeLinecap="round"
                   vectorEffect="non-scaling-stroke"
@@ -659,8 +750,8 @@ export function LayeredCompositionGraphic() {
               cy={py}
               rx={4.6}
               ry={1.8}
-              stroke={active ? SUCCESS : ACCENT}
-              strokeOpacity={0.5}
+              stroke={active ? SUCCESS_LINE : ACCENT_LINE}
+              strokeOpacity={alpha(0.85, 0.5)}
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"
             />
@@ -689,7 +780,12 @@ export function LayeredCompositionGraphic() {
                   fill={`url(#${uid}-halo-${active ? "success" : "accent"})`}
                   fillOpacity={0.7}
                 />
-                <circle cx={x} cy={0} r={1.6} fill={active ? SUCCESS : SPARK} />
+                <circle
+                  cx={x}
+                  cy={0}
+                  r={1.6}
+                  fill={active ? SUCCESS_LINE : PULSE}
+                />
                 <animateTransform
                   attributeName="transform"
                   type="translate"
@@ -713,7 +809,7 @@ export function LayeredCompositionGraphic() {
                 cy={target[1]}
                 rx={NODE_CORE}
                 ry={NODE_CORE * 0.45}
-                stroke={active ? SUCCESS : ACCENT_HI}
+                stroke={active ? SUCCESS_LINE : ACCENT_EDGE}
                 strokeWidth={1}
                 strokeOpacity={0}
                 vectorEffect="non-scaling-stroke"
