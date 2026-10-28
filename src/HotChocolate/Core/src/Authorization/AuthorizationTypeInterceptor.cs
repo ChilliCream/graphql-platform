@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -174,6 +175,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     public override void OnAfterMakeExecutable()
     {
+        var queryType = (ObjectType)_queryContext.Type;
+
         foreach (var type in _objectTypes)
         {
             var objectType = (ObjectType)type.TypeReg.Type;
@@ -183,24 +186,38 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 continue;
             }
 
-            var pipeline = nodeResolverInfo.Pipeline;
-            var directives = objectType.Directives;
-            var length = directives.Count;
-            ref var start = ref directives.GetReference();
+            var pipeline = ApplyAuthMiddleware(nodeResolverInfo.Pipeline, objectType.Directives);
 
-            for (var i = length - 1; i >= 0; i--)
+            // a query field that doubles as node resolver already
+            // applies the authorization of the query type.
+            if (!nodeResolverInfo.IsQueryFieldResolver)
             {
-                var directive = Unsafe.Add(ref start, i);
-
-                if (directive.Type.Name.EqualsOrdinal(Authorize))
-                {
-                    var authDir = directive.ToValue<AuthorizeDirective>();
-                    pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
-                }
+                pipeline = ApplyAuthMiddleware(pipeline, queryType.Directives);
             }
 
             objectType.SetNodeResolver(new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline));
         }
+    }
+
+    private static FieldDelegate ApplyAuthMiddleware(
+        FieldDelegate pipeline,
+        DirectiveCollection directives)
+    {
+        var length = directives.Count;
+        ref var start = ref directives.GetReference();
+
+        for (var i = length - 1; i >= 0; i--)
+        {
+            var directive = Unsafe.Add(ref start, i);
+
+            if (directive.Type.Name.EqualsOrdinal(Authorize))
+            {
+                var authDir = directive.ToValue<AuthorizeDirective>();
+                pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
+            }
+        }
+
+        return pipeline;
     }
 
     private void InspectObjectTypesForAuthDirective(State state)
@@ -222,7 +239,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             {
                 foreach (var fieldDef in type.TypeDef.Fields)
                 {
-                    // we are not interested in introspection fields or the node fields.
+                    // we are not interested in introspection fields. the node fields are
+                    // authorized through the node resolver pipelines.
                     if (fieldDef.IsIntrospectionField || fieldDef.IsNodeField())
                     {
                         continue;
