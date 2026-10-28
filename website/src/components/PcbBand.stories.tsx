@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { lightAppearance } from "@/src/components/lightAppearance";
 
 import { PcbBand } from "./PcbBand";
 import { SectionHeading } from "./SectionHeading";
@@ -46,4 +47,8 @@ export const CompactPadding: Story = {
   args: {
     className: "pb-8 sm:pb-12",
   },
+};
+
+export const Light: Story = {
+  beforeEach: lightAppearance,
 };
