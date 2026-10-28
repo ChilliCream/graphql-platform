@@ -38,9 +38,9 @@ export function MoonIcon(props: ComponentPropsWithoutRef<"svg">) {
 export function SunMoonIcon(props: ComponentPropsWithoutRef<"svg">) {
   return (
     <ThemeGlyph {...props}>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 8a4 4 0 0 1 0 8z" fill="currentColor" />
-      <path d={RAYS} />
+      <circle cx="8" cy="8" r="2.5" />
+      <path d="M8 2v1M2 8h1M3.8 3.8l.7.7M12.2 3.8l-.7.7M3.8 12.2l.7-.7" />
+      <path d="M22 17.2A5.4 5.4 0 1 1 16.2 11.3 4.2 4.2 0 0 0 22 17.2z" />
     </ThemeGlyph>
   );
 }
