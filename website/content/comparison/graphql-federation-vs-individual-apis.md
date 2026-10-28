@@ -106,7 +106,7 @@ For applications consuming only a small number of independent APIs, this additio
 
 The value of federation grows when multiple clients need access to connected data distributed across independently owned services.
 
-# GraphQL Federation vs. individual APIs at a glance
+# GraphQL Federation vs. Individual APIs at a glance
 
 | Capability              | Individual APIs                              | GraphQL Federation                                |
 | ----------------------- | -------------------------------------------- | ------------------------------------------------- |
