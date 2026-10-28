@@ -274,7 +274,12 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
             foreach (var memberTypeRef in type.TypeDef.Types)
             {
-                if (state.AuthTypes.Contains(memberTypeRef))
+                // union members can be referenced by name or runtime type,
+                // so we resolve the member type registration first.
+                var memberTypeReg = GetTypeRegistration(memberTypeRef);
+                var objectTypeRef = memberTypeReg.TypeReference;
+
+                if (state.AuthTypes.Contains(objectTypeRef))
                 {
                     foreach (var typeRef in unionTypeReg.References)
                     {
@@ -288,7 +293,10 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                         state.AbstractToConcrete.Add(unionTypeRef, authTypeRefs);
                     }
 
-                    authTypeRefs.Add(memberTypeRef);
+                    if (!authTypeRefs.Contains(objectTypeRef))
+                    {
+                        authTypeRefs.Add(objectTypeRef);
+                    }
                 }
             }
         }
