@@ -94,6 +94,37 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Node_Should_ApplyNodeResolverAttributes_When_ObjectTypeIsGenerated()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .AddGlobalObjectIdentification()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var id = Convert.ToBase64String("NodeResolverAttributeProbe:1"u8);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            $$"""{ node(id: "{{id}}") { ... on NodeResolverAttributeProbe { resolvedBy } } }""",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": {
+                  "resolvedBy": "GetNodeResolverAttributeProbeById"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task DeclaringType_Should_Tag_Only_Own_Partial_Fields_When_TypeSplitAcrossPartials()
     {
         // arrange
