@@ -1297,6 +1297,42 @@ public class VariableCoercionHelperTests
         Assert.Same(literal, second["episode"].ValueLiteral);
     }
 
+    [Fact]
+    public void CoerceVariableValues_Should_KeepFirstOccurrence_When_PropertyIsRepeated()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("review"),
+                description: null,
+                new NonNullTypeNode(new NamedTypeNode("ReviewInput")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse(
+            """{"review":{"stars":1,"stars":2,"st\u0061rs":null,"commentary":"a"}}""");
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Equal(1, Assert.IsType<Review>(coercedValues["review"].RuntimeValue).Stars);
+        coercedValues["review"].ValueLiteral.ToString().MatchInlineSnapshot(
+            """
+            { stars: 1, commentary: "a" }
+            """);
+    }
+
     private class MockFeatureProvider : IFeatureProvider
     {
         public IFeatureCollection Features { get; } = new FeatureCollection();

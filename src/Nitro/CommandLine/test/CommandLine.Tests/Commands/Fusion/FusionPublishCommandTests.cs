@@ -1525,6 +1525,86 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettings_OverridesArchiveSettings()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings(
+            new StageCompositionSettings
+            {
+                AllowNonResolvableInterfaceObjects = true,
+                DefaultListSize = 25,
+                EnumValuesMergeBehavior = CompositionEnumValuesMergeBehavior.Union,
+                ShareableFieldRuntimeTypeRouting = CompositionShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
+            });
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "merger": {
+                "defaultListSize": 10,
+                "enumValuesMergeBehavior": "Strict"
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": false,
+                "shareableFieldRuntimeTypeRouting": "SourceLocal"
+              }
+            }
+            """);
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        settings.RootElement.ToString().MatchInlineSnapshot(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": null
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": null,
+                "defaultListSize": 25,
+                "enableGlobalObjectIdentification": null,
+                "enumValuesMergeBehavior": "Union",
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": null,
+                "tagMergeBehavior": null
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": true,
+                "shareableFieldRuntimeTypeRouting": "CommonRuntimeTypes"
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task WithSourceSchemaFile_StageCompositionSettingsThrows_ReturnsError()
     {
         // arrange

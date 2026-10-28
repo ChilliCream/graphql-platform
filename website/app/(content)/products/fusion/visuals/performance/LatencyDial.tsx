@@ -20,13 +20,12 @@ import {
   CLUSTER,
   CX,
   CY,
-  ELECTRIC,
-  ELECTRIC_BRIGHT,
-  ELECTRIC_DIM,
+  ACCENT,
+  ACCENT_BRIGHT,
   LABEL_COLOR,
   LATENCY_CHART_WIDTH,
-  LATENCY_NUMERAL_COLOR,
-  NUMERAL_GLOW,
+  NUMERAL_COLOR,
+  TRACK,
   VB,
   type Arc,
 } from "./hud";
@@ -84,7 +83,7 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
       <path
         d={trackPath}
         fill="none"
-        stroke={ELECTRIC_DIM}
+        stroke={TRACK}
         strokeWidth={TRACK_WIDTH}
         strokeLinecap="butt"
       />
@@ -92,7 +91,7 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
         d={trackPath}
         pathLength={1}
         fill="none"
-        stroke={ELECTRIC}
+        stroke={ACCENT}
         strokeWidth={FILL_GLOW_WIDTH}
         strokeLinecap="butt"
         opacity={0.6}
@@ -103,7 +102,7 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
         d={trackPath}
         pathLength={1}
         fill="none"
-        stroke={ELECTRIC}
+        stroke={ACCENT}
         strokeWidth={TRACK_WIDTH}
         strokeLinecap="butt"
         style={{ strokeDasharray: "1 1", strokeDashoffset: fillOffset }}
@@ -119,7 +118,7 @@ function LatencyScale({ arc, fillOffset, glowId }: LatencyScaleProps) {
         y1={p50y1}
         x2={p50x2}
         y2={p50y2}
-        stroke={ELECTRIC_BRIGHT}
+        stroke={ACCENT_BRIGHT}
         strokeWidth={2}
       />
     </>
@@ -135,7 +134,7 @@ function LatencyNumerals({ arc }: LatencyNumeralsProps) {
           angle={sweepAngle(latencyFraction(ms), arc.start, arc.end)}
           label={String(ms)}
           edge={NUMERAL_EDGE}
-          color={LATENCY_NUMERAL_COLOR}
+          color={NUMERAL_COLOR}
         />
       ))}
     </>
@@ -202,7 +201,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
           style={{
             left: "50%",
             top: "50%",
-            transform: "translate(-50%, -50%)",
+            transform: "translate(-50%, calc(-50% + 0.5px))",
             gap: 2,
           }}
         >
@@ -221,6 +220,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
             className="whitespace-nowrap"
             style={{
               display: "inline-block",
+              margin: "2px 0 1px",
               minWidth: "2ch",
               textAlign: "center",
               fontFamily: token.mono,
@@ -230,7 +230,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
               lineHeight: 1.2,
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 8px ${NUMERAL_GLOW})`,
+              filter: `drop-shadow(0 0 3px color-mix(in srgb, ${ACCENT} 24%, transparent))`,
             }}
           >
             {readout}

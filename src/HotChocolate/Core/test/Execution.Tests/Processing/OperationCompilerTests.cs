@@ -2199,6 +2199,76 @@ public class OperationCompilerTests
                     .Resolve("foo"))
             .Create();
 
+    [Fact]
+    public async Task GetSelectionSet_Should_Throw_When_OperationHasTooManySelections()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Foo>()
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var document = Utf8GraphQLParser.Parse(CreateDocumentWithManySelections());
+        var operation = OperationCompiler.Compile("opid", document, schema);
+
+        // act
+        void Action()
+        {
+            foreach (var selection in operation.RootSelectionSet.Selections)
+            {
+                operation.GetSelectionSet(selection);
+            }
+        }
+
+        // assert
+        var exception = Assert.Throws<GraphQLException>(Action);
+        Assert.Equal(
+            "The operation exceeds the maximum allowed number of selections and selection sets.",
+            exception.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ReturnError_When_OperationHasTooManySelections()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Foo>()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            CreateDocumentWithManySelections(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Contains(
+            result.ExpectOperationResult().Errors,
+            e => e.Message
+                == "The operation exceeds the maximum allowed number of selections and selection sets.");
+    }
+
+    private static string CreateDocumentWithManySelections()
+    {
+        var sourceText = new StringBuilder("{");
+
+        for (var i = 0; i < 200; i++)
+        {
+            sourceText.Append($" a{i}: bar {{ ...Fields }}");
+        }
+
+        sourceText.Append(" } fragment Fields on Bar {");
+
+        for (var i = 0; i < 200; i++)
+        {
+            sourceText.Append($" f{i}: text");
+        }
+
+        return sourceText.Append(" }").ToString();
+    }
+
     private static void MatchSnapshot(DocumentNode original, IOperation compiled)
     {
         var sb = new StringBuilder();

@@ -170,7 +170,7 @@ internal static class ErrorHelper
 
         public IError LeafFieldsCannotHaveSelections(
             FieldNode node,
-            IComplexTypeDefinition declaringType,
+            ITypeDefinition declaringType,
             IType fieldType)
         {
             return ErrorBuilder.New()
@@ -715,6 +715,34 @@ internal static class ErrorHelper
                     .SetMessage("Maximum allowed coordinate cycle depth was exceeded.")
                     .SetCode(ErrorCodes.Validation.MaxCoordinateCycleDepthOverflow)
                     .AddLocation(selection)
+                    .SetPath(context.CreateErrorPath())
+                    .Build());
+        }
+
+        public void ReportMaxFragmentVisitsOverflow(ISyntaxNode selection)
+        {
+            context.FatalErrorDetected = true;
+
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage("Maximum allowed fragment visits were exceeded.")
+                    .SetCode(ErrorCodes.Validation.MaxFragmentVisitsOverflow)
+                    .AddLocation(selection)
+                    .SetPath(context.CreateErrorPath())
+                    .Build());
+        }
+
+        public void ReportMaxSelectionSetDepthOverflow(ISyntaxNode node, int maxAllowedSelectionSetDepth)
+        {
+            context.FatalErrorDetected = true;
+
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The document exceeds the maximum allowed selection set depth of {0}.",
+                        maxAllowedSelectionSetDepth)
+                    .SetCode(ErrorCodes.Validation.MaxSelectionSetDepthOverflow)
+                    .AddLocation(node)
                     .SetPath(context.CreateErrorPath())
                     .Build());
         }

@@ -45,7 +45,7 @@ nitro fusion upload \
 
 # `nitro fusion publish`
 
-Since: 16.6.0, Nitro: 10.6.0
+Since: 16.7.0, Nitro: 10.6.3
 
 Publish a Fusion configuration to a stage.
 
@@ -116,7 +116,7 @@ A multi-step publish is driven by a single request ID. `begin` allocates a deplo
 
 ## `nitro fusion publish begin`
 
-Nitro: 10.6.0
+Since: 16.7.0, Nitro: 10.6.0
 
 Begin a Fusion configuration publish by requesting a deployment slot for a stage. The returned request ID identifies the publish for every subsequent step.
 
@@ -190,7 +190,7 @@ nitro fusion publish cancel --request-id "<request-id>"
 
 # `nitro fusion validate`
 
-Nitro: 10.6.0
+Since: 16.7.0, Nitro: 10.6.0
 
 Validate a Fusion configuration against a stage. Composes the supplied source schemas (or uses a pre-composed archive) and runs the same checks as `publish` without requesting a deployment slot.
 

@@ -130,23 +130,6 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
         return Continue;
     }
 
-    protected override ISyntaxVisitorAction VisitChildren(
-        FragmentSpreadNode node,
-        DocumentValidatorContext context)
-    {
-        if (context.Fragments.TryEnter(node, out var fragment))
-        {
-            var result = Visit(fragment, node, context);
-
-            if (result.IsBreak())
-            {
-                return Break;
-            }
-        }
-
-        return DefaultAction;
-    }
-
     private static bool HasFields(SelectionSetNode selectionSet)
     {
         for (var i = 0; i < selectionSet.Selections.Count; i++)

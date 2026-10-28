@@ -387,12 +387,6 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
-        internal static string ErrorHelper_VariableBatchingNotSupportedForQuery {
-            get {
-                return ResourceManager.GetString("ErrorHelper_VariableBatchingNotSupportedForQuery", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_RequestBodyHasNoRequestForQuery {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequestBodyHasNoRequestForQuery", resourceCulture);

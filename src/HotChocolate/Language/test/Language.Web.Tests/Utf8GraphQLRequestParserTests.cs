@@ -550,6 +550,39 @@ public class Utf8GraphQLRequestParserTests
     }
 
     [Fact]
+    public void Parse_Should_UseDocumentHashAsId_When_QuerySpansSegmentsWithPersistedQueryHash()
+    {
+        // arrange
+        // the query is long enough that the split in the middle of the request falls inside it.
+        var query = "{" + new string(' ', 200) + "__typename }";
+        var source = SequenceHelper.CreateMultiSegment(
+            Encoding.UTF8.GetBytes(
+                $$"""
+                {
+                  "query": "{{query}}",
+                  "extensions": {
+                    "persistedQuery": {
+                      "version": 1,
+                      "md5Hash": "acb8d5d513c260b3cef3e3a12b0e29af"
+                    }
+                  }
+                }
+                """));
+
+        var requestParser = new Utf8GraphQLRequestParser(
+            new ParserOptions(),
+            new DocumentCache(),
+            new MD5DocumentHashProvider(HashFormat.Hex));
+
+        // act
+        var batch = requestParser.Parse(source);
+
+        // assert
+        var request = Assert.Single(batch);
+        Assert.Equal("646e8290b92bb4b6742a6e88c4f52535", request.DocumentId?.Value);
+    }
+
+    [Fact]
     public void Parse_Invalid_Query()
     {
         // assert

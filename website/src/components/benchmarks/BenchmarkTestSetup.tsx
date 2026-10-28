@@ -150,7 +150,7 @@ export function BenchmarkTestSetup({
       </div>
       <p className="text-caption text-cc-ink-dim mt-4">
         Published by ChilliCream, the team behind{" "}
-        <Link href={facts.links.fusionDocs}>Fusion</Link>. Built on{" "}
+        <Link href={facts.links.fusion}>Fusion</Link>. Built on{" "}
         <Link href={facts.links.guild}>
           The Guild&apos;s gateway benchmarks
         </Link>{" "}

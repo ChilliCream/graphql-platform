@@ -5,13 +5,21 @@ namespace ChilliCream.Nitro.Client.FusionConfiguration;
 /// </summary>
 public sealed record StageCompositionSettings
 {
+    public bool? AllowNonResolvableInterfaceObjects { get; init; }
+
     public CompositionDirectiveMergeBehavior? CacheControlMergeBehavior { get; init; }
 
+    public int? DefaultListSize { get; init; }
+
     public bool? EnableGlobalObjectIdentification { get; init; }
+
+    public CompositionEnumValuesMergeBehavior? EnumValuesMergeBehavior { get; init; }
 
     public IReadOnlyList<string>? ExcludeByTag { get; init; }
 
     public bool? RemoveUnreferencedDefinitions { get; init; }
+
+    public CompositionShareableFieldRuntimeTypeRouting? ShareableFieldRuntimeTypeRouting { get; init; }
 
     public CompositionDirectiveMergeBehavior? TagMergeBehavior { get; init; }
 

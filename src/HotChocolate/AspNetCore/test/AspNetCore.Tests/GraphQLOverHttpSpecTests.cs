@@ -1462,7 +1462,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         HttpTransportVersion transportVersion)
     {
         // arrange
-        // the first request puts its document into the document cache under the document ID
+        // the first request puts its document into the document cache under its MD5 hash
         var client = GetClient(
             transportVersion,
             WellKnownRequestMiddleware.DocumentValidationMiddleware,
@@ -1476,7 +1476,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
         using var cacheRequest = new HttpRequestMessage(HttpMethod.Post, s_url);
         cacheRequest.Content = new StringContent(
-            """{ "id": "cached-document", "query": "{ __typename }" }""",
+            """{ "query": "{ __typename }" }""",
             Encoding.UTF8,
             "application/json");
         using var cacheResponse = await client.SendAsync(
@@ -1487,7 +1487,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = new StringContent(
-            """{ "id": "cached-document" }""",
+            """{ "id": "ef5c9e7b1e24de261642083d4e294322" }""",
             Encoding.UTF8,
             "application/json");
 

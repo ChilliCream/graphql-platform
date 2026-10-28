@@ -136,7 +136,7 @@ Accept: application/graphql-response+json
 }
 ```
 
-A QUERY request executes a single query operation. A mutation or subscription is refused with status code `422 Unprocessable Content`. A request batch, an operation batch (`?batchOperations=`), or a variable batch is refused with status code `400 Bad Request`. Incremental delivery (`@defer` and `@stream`) works as it does for GET requests.
+A QUERY request carries one query operation. A mutation or subscription is refused with status code `422 Unprocessable Content`. A [variable batch](./batching.md#variable-batching) runs as it does over POST, under the `Batching` and `MaxBatchSize` server options, and its response carries `Cache-Control: no-cache`. A request batch or an operation batch (`?batchOperations=`) is refused with status code `400 Bad Request`. Incremental delivery (`@defer` and `@stream`) works as it does for GET requests.
 
 The request body must be `application/json`. Under `Draft20260903`, a QUERY request with another `Content-Type` has a `415 Unsupported Media Type` status code, the `Allow` header of the `405 Method Not Allowed` and `OPTIONS` responses lists `QUERY`, and the `405`, `OPTIONS`, and `415` responses carry `Accept-Query: application/json`, which advertises the method and the body media type it accepts.
 

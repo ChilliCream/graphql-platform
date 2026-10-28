@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef } from "react";
 import { useMotionValue, type MotionValue } from "motion/react";
 
 import { STATIC_BURST, telemetryAt, type Telemetry } from "./sim";
@@ -17,6 +17,12 @@ export interface TelemetryMotion {
   readonly latency: MotionValue<number>;
   readonly latencyHistory: MotionValue<readonly number[]>;
 }
+
+// Elapsed time inside the burst phase (5500 to 10500 ms), where the red zone and burst readouts show.
+export const BURST_FREEZE_MS = 8241;
+
+// Holds the telemetry at one elapsed time instead of running the clock; null runs it live.
+export const TelemetryFreezeContext = createContext<number | null>(null);
 
 function write(target: TelemetryMotion, snap: Telemetry) {
   target.ops.set(snap.ops);
@@ -36,7 +42,8 @@ export function useTelemetryClock(
   active: boolean,
   reduced: boolean,
 ): TelemetryMotion {
-  const initial = reduced ? STATIC_BURST : telemetryAt(0);
+  const frozenAt = useContext(TelemetryFreezeContext);
+  const initial = reduced ? STATIC_BURST : telemetryAt(frozenAt ?? 0);
 
   const ops = useMotionValue(initial.ops);
   const cores = useMotionValue<readonly number[]>(initial.cores);
@@ -88,6 +95,10 @@ export function useTelemetryClock(
       write(motion, STATIC_BURST);
       return;
     }
+    if (frozenAt !== null) {
+      write(motion, telemetryAt(frozenAt));
+      return;
+    }
     if (!active) {
       lastRef.current = null;
       return;
@@ -102,7 +113,7 @@ export function useTelemetryClock(
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [active, reduced, motion]);
+  }, [active, reduced, frozenAt, motion]);
 
   return motion;
 }

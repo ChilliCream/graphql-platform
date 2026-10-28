@@ -1,6 +1,6 @@
 import {
   BENCHMARK_REPOSITORY,
-  BENCHMARK_FUSION_DOCS_URL,
+  BENCHMARK_FUSION_URL,
   benchmarkRunId,
   benchmarkVariants,
   formatPlatform,
@@ -134,6 +134,7 @@ export interface HistoryPoint {
   readonly failed: boolean;
   /** The number of measured runs that completed. */
   readonly completedRuns: number;
+  readonly measuredRuns: number | undefined;
 }
 
 /** One variant's line in the history chart. */
@@ -147,7 +148,7 @@ export interface HistorySeries {
   readonly color: string;
   /** Whether the line is dashed because the palette ran out of colors. */
   readonly dashed: boolean;
-  /** Sampled runs, oldest first: the runs on dates sampled across every series, which include each series' first and latest run, and every failed run. */
+  /** Runs on up to 40 shared sample dates, plus each series' endpoints and every failed run, oldest first. */
   readonly points: readonly HistoryPoint[];
 }
 
@@ -168,8 +169,7 @@ export function historySeries(
   const dates = [
     ...new Set(histories.flatMap(({ versions }) => versions.map(runDate))),
   ].toSorted((a, b) => a - b);
-  const stride = Math.max(1, Math.ceil((dates.length - 1) / 20));
-  const count = Math.ceil((dates.length - 1) / stride) + 1;
+  const count = Math.min(dates.length, 40);
   const sampledDates = new Set([
     ...Array.from(
       { length: count },
@@ -216,6 +216,7 @@ export function historySeries(
         rps: version.throughput.medianRps,
         failed: version.status === "failed",
         completedRuns: version.throughput.runsRps!.length,
+        measuredRuns: version.measuredRuns,
       })),
     };
   });
@@ -358,12 +359,12 @@ export const isWinner = (row: BenchmarkVariantResult, group: ResultsGroup) =>
 const scenarioRows = (scenario: Pick<BenchmarkScenario, "results">) =>
   scenario.results.flatMap((result) => result.variants);
 
-/** Returns whether the page shows a variant: Fusion only as its stable Native AOT build on .NET 11, every other gateway with all its variants. */
+/** Includes all previews and other gateways; stable Fusion variants must use Native AOT on .NET 11. */
 export function isShownVariant({ gateway, variant }: BenchmarkCatalogEntry) {
   return (
     gateway.id !== "fusion" ||
-    (!isPreview(variant) &&
-      variant.platform.runtime?.version?.split(".")[0] === "11" &&
+    isPreview(variant) ||
+    (variant.platform.runtime?.version?.split(".")[0] === "11" &&
       (variant.platform.features ?? []).some((feature) => feature.id === "aot"))
   );
 }
@@ -517,7 +518,7 @@ export interface BenchmarkFacts {
     readonly readme: string;
     readonly issues: string;
     readonly guild: string;
-    readonly fusionDocs: string;
+    readonly fusion: string;
   };
 }
 
@@ -562,7 +563,7 @@ export function benchmarkFacts(report: BenchmarkReport): BenchmarkFacts {
       readme: `${source}/README.md`,
       issues: `${BENCHMARK_REPOSITORY}/issues`,
       guild: "https://github.com/graphql-hive/graphql-gateways-benchmark",
-      fusionDocs: BENCHMARK_FUSION_DOCS_URL,
+      fusion: BENCHMARK_FUSION_URL,
     },
   };
 }

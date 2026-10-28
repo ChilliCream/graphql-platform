@@ -616,6 +616,92 @@ public class VariableCoercionHelperTests : FusionTestBase
     }
 
     [Fact]
+    public void TryCoerceVariableValues_Should_KeepFirstOccurrence_When_PropertyIsRepeated()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(input: ItemInput!): String
+            }
+
+            input ItemInput {
+              id: Int!
+              name: String
+            }
+            """);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("ItemInput")));
+        using var variableValues = JsonDocument.Parse(
+            """{"input":{"id":1,"id":2,"\u0069d":3,"name":"a"}}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [variableDefinition],
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        coercedVariableValues["input"].Value.ToString().MatchInlineSnapshot(
+            """
+            { id: 1, name: "a" }
+            """);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_StillRequireDefinedFields_When_PropertyIsRepeated()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(input: ItemInput!): String
+            }
+
+            input ItemInput {
+              id: Int!
+              name: String
+            }
+            """);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("ItemInput")));
+
+        // act
+        var error = CoerceError(
+            schema,
+            variableDefinition,
+            """{"input":{"name":"a","name":"b"}}""",
+            ignoreAdditionalInputFields: false);
+
+        // assert
+        new[] { error.WithException(null) }
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "The required input field `id` is missing.",
+                    "path": [
+                      "input",
+                      "id"
+                    ],
+                    "extensions": {
+                      "field": "ItemInput.id"
+                    }
+                  }
+                ]
+                """);
+    }
+
+    [Fact]
     public void TryCoerceVariableValues_Should_StillRequireDefinedFields_When_AdditionalInputFieldsAreIgnored()
     {
         // arrange

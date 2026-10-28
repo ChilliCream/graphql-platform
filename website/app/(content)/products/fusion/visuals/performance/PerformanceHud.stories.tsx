@@ -4,6 +4,7 @@ import { lightAppearance } from "@/src/components/lightAppearance";
 import { AppMotionConfig } from "@/src/nitro/lib/motion";
 
 import { PerformanceHud } from "./PerformanceHud";
+import { BURST_FREEZE_MS, TelemetryFreezeContext } from "./useTelemetryClock";
 
 const PANEL_WIDTHS = {
   375: 335,
@@ -27,11 +28,13 @@ function panelStory(
   return {
     decorators: [
       (Story) => (
-        <AppMotionConfig reducedMotion={reduced ? "always" : "user"}>
-          <div style={{ width: PANEL_WIDTHS[viewport], maxWidth: "100%" }}>
-            <Story />
-          </div>
-        </AppMotionConfig>
+        <TelemetryFreezeContext.Provider value={BURST_FREEZE_MS}>
+          <AppMotionConfig reducedMotion={reduced ? "always" : "user"}>
+            <div style={{ width: PANEL_WIDTHS[viewport], maxWidth: "100%" }}>
+              <Story />
+            </div>
+          </AppMotionConfig>
+        </TelemetryFreezeContext.Provider>
       ),
     ],
   };

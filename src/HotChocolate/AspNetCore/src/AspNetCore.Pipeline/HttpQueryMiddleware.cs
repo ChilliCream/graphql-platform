@@ -84,18 +84,6 @@ public sealed class HttpQueryMiddleware : MiddlewareBase
             goto HANDLE_RESULT;
         }
 
-        // a QUERY request carries exactly one variable set, so a variable batch is refused.
-        if (MiddlewareHelper.IsVariableBatch(parserResult.Request!))
-        {
-            var refused = MiddlewareHelper.CreateBatchingRefusedResult(
-                ErrorHelper.VariableBatchingNotSupportedForQuery(),
-                context,
-                session);
-            statusCode = refused.StatusCode;
-            result = refused.Error;
-            goto HANDLE_RESULT;
-        }
-
         // before we can execute the request we need to determine the request flags.
         var requestFlags =
             MiddlewareHelper.DetermineHttpQueryRequestFlags(validationResult.RequestFlags);

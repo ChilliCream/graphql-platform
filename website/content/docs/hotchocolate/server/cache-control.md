@@ -95,7 +95,7 @@ Accept: application/graphql-response+json
 }
 ```
 
-[RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html#section-2.7) makes the response to a QUERY request cacheable, and a cache that stores it includes the request body in the cache key. A QUERY response carries the same `Cache-Control` and `Vary` headers as a GET response. Support for caching QUERY responses varies between CDNs and proxies, so GET routes and persisted-operation GET routes are the portable choice. See [QUERY Requests](./http-transport.md#query-requests) for the full request rules.
+[RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html#section-2.7) makes the response to a QUERY request cacheable, and a cache that stores it includes the request body in the cache key. A QUERY response carries the same `Cache-Control` and `Vary` headers as a GET response. A variable batch is answered with `Cache-Control: no-cache`, whatever the method. Support for caching QUERY responses varies between CDNs and proxies, so GET routes and persisted-operation GET routes are the portable choice. See [QUERY Requests](./http-transport.md#query-requests) for the full request rules.
 
 # `@cacheControl` in GraphQL
 
