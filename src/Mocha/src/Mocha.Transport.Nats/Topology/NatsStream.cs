@@ -138,8 +138,51 @@ public sealed class NatsStream : TopologyResource<NatsStreamConfiguration>, INat
         {
             await AdoptExistingConfigurationAsync(context, cancellationToken);
         }
+        else
+        {
+            await KeepIrreversibleSettingsAsync(context, cancellationToken);
+        }
 
         await context.CreateOrUpdateStreamAsync(_config, cancellationToken);
+    }
+
+    /// <summary>
+    /// Keeps message TTL and message schedules on when the server's copy of this stream has them,
+    /// because the server refuses to turn either off.
+    /// </summary>
+    /// <param name="context">The JetStream context used to query the server.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    private async ValueTask KeepIrreversibleSettingsAsync(
+        INatsJSContext context,
+        CancellationToken cancellationToken)
+    {
+        if (AllowMsgTtl && AllowMsgSchedules)
+        {
+            return;
+        }
+
+        INatsJSStream existing;
+
+        try
+        {
+            existing = await context.GetStreamAsync(Name, cancellationToken: cancellationToken);
+        }
+        catch (NatsJSApiException exception) when (exception.Error.ErrCode == StreamNotFoundErrorCode)
+        {
+            return;
+        }
+
+        if (existing.Info.Config.AllowMsgTTL)
+        {
+            AllowMsgTtl = true;
+            _config.AllowMsgTTL = true;
+        }
+
+        if (existing.Info.Config.AllowMsgSchedules)
+        {
+            AllowMsgSchedules = true;
+            _config.AllowMsgSchedules = true;
+        }
     }
 
     /// <summary>

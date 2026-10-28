@@ -97,6 +97,7 @@ await bus.PublishAsync(new OrderPlaced(orderId, "Mechanical Keyboard"));
 | Back pressure across instances | `MaxAckPending`                                |
 | Ack, nack                      | `AckAsync`, `NakAsync`                         |
 | Retry backoff                  | `MaxDeliver` and `ConsumerConfig.Backoff`      |
+| Delayed redelivery             | `NakAsync` with the policy's delay             |
 | Reply endpoints                | Core NATS request/reply, not JetStream         |
 
 `Send` and `Publish` converge on a single subject, and subscribers select what they receive through consumer filter subjects.
@@ -403,6 +404,16 @@ The window comes from the stream, and it cannot be turned off from the client on
 nats.DeclareStream("ORDER_SERVICE").DeduplicateWithin(TimeSpan.FromMinutes(2));
 ```
 
+# Delayed redelivery
+
+A redelivery policy negatively acknowledges the failed message with the policy's delay, so JetStream returns it to the same durable consumer and no other:
+
+```csharp
+.AddResilience(policy => policy.Default().Retry().ThenRedeliver())
+```
+
+The attempt count is the server's delivery count, so a delivery that ran past `AckWait` counts as an attempt. Once the attempts are spent the message goes to the fault subject. A consumer's `MaxDeliver` stops redelivery too, and the server then stops delivering the message without a fault, so leave it unset when a redelivery policy applies.
+
 # Long-running handlers
 
 A handler that runs longer than the consumer's `AckWait` is redelivered while it is still working. JetStream can extend the deadline while the handler runs:
@@ -426,7 +437,7 @@ JetStream holds scheduled messages itself, so the transport does not run a sched
 .AddNats(nats => nats.StreamName("order-service").EnableScheduling());
 ```
 
-Enabling scheduling turns on per-message TTL and message schedules on the stream, and captures a scheduling namespace alongside each subject.
+Enabling scheduling turns on per-message TTL and message schedules on the stream, and captures a scheduling namespace alongside each subject. The server cannot turn either setting off again, so a stream keeps both after `EnableScheduling()` is removed.
 
 Without `EnableScheduling()`, a scheduled message goes to the `UsePostgresScheduling()` fallback store when one is registered, and otherwise throws `NotSupportedException`:
 
