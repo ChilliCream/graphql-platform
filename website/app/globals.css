@@ -95,6 +95,11 @@
   /* Videos section accent: the amber shared by the ChilliCream TV thumbnails. */
   --color-cc-amber: #f5ad2b;
 
+  /* Start page observability demo status hues. */
+  --color-cc-status-firing: #f0786a;
+  --color-cc-status-investigating: #fbbf24;
+  --color-cc-status-healthy: #34d399;
+
   /* Docs sidebar: cool-slate nav text + a dimmer muted section-label tone. */
   --color-cc-nav-text: #cad5e2;
   --color-cc-nav-label: #62748e;
@@ -254,6 +259,9 @@
     --color-cc-code-header: #e0d7c5;
     --color-cc-electric: #1d4ed8;
     --color-cc-amber: #854d0e;
+    --color-cc-status-firing: #b8392b;
+    --color-cc-status-investigating: #854d0e;
+    --color-cc-status-healthy: #0f6651;
     --color-cc-nav-text: #334155;
     --color-cc-nav-label: #4a566c;
     --cc-dark-surface: none;
@@ -325,6 +333,9 @@
       --color-cc-code-header: #e0d7c5;
       --color-cc-electric: #1d4ed8;
       --color-cc-amber: #854d0e;
+      --color-cc-status-firing: #b8392b;
+      --color-cc-status-investigating: #854d0e;
+      --color-cc-status-healthy: #0f6651;
       --color-cc-nav-text: #334155;
       --color-cc-nav-label: #4a566c;
       --cc-dark-surface: none;
