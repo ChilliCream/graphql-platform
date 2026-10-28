@@ -7,7 +7,7 @@ import { useCallback, useRef, useState } from "react";
 import { DOT_BG, HALO_BG } from "@/src/components/DotGridSurface";
 import { lightDark } from "@/src/components/lightDark";
 
-const BAND_GROUND = lightDark("#f4fbfd", "var(--color-cc-band)");
+const BAND_GROUND = `var(--cc-print-band-ground, ${lightDark("#f4fbfd", "var(--color-cc-band)")})`;
 
 const GRID_LINE = lightDark("rgba(6,182,212,0.3)", "rgba(245,241,234,0.06)");
 

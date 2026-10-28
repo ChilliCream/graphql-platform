@@ -945,6 +945,7 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-solid-hover: #243449;
     --color-cc-selected-text: #0e7490;
     --color-cc-band: transparent;
+    --cc-print-band-ground: transparent;
     --color-cc-control-bg: #fff;
     --color-cc-control-border: #857a68;
     --color-cc-placeholder: #6b6455;

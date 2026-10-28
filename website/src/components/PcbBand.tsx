@@ -21,12 +21,13 @@ import {
 } from "@/src/components/mocha/board";
 import { MONO_FONT } from "@/src/components/mocha/palette";
 import { lightDark } from "@/src/components/lightDark";
+import type { ColorScheme } from "@/src/components/useColorScheme";
 import { useColorScheme } from "@/src/components/useColorScheme";
 
-const BOARD_GROUND = lightDark(
+const BOARD_GROUND = `var(--cc-print-band-ground, ${lightDark(
   "var(--color-cc-card-bg)",
   "var(--color-cc-band)",
-);
+)})`;
 
 const LIGHT_PCB_PALETTE: BoardPalette = {
   pad: "rgba(6, 182, 212, 0.4)",
@@ -54,6 +55,20 @@ const LIGHT_PCB_PALETTE: BoardPalette = {
   glowGain: 2,
   glowComposite: "source-over",
 };
+
+const LIGHT_PCB_PALETTE_NARROW: BoardPalette = {
+  ...LIGHT_PCB_PALETTE,
+  hatch: "rgba(139, 92, 246, 0.1)",
+  hatchEdge: "rgba(139, 92, 246, 0.2)",
+  court: "rgba(6, 182, 212, 0.35)",
+  silk: "rgba(139, 92, 246, 0.5)",
+  trace: "rgba(6, 182, 212, 0.45)",
+  traceAlt: "rgba(139, 92, 246, 0.35)",
+  lane: "rgba(139, 92, 246, 0.4)",
+  glowGain: 1.2,
+};
+
+const NARROW_MAX_WIDTH = 640;
 
 const SHADOW_STRONG = lightDark("rgba(6,182,212,0.2)", "rgba(2,6,16,0.7)");
 const SHADOW_SOFT = lightDark("rgba(6,182,212,0.06)", "rgba(2,6,16,0.25)");
@@ -222,6 +237,15 @@ export function PcbBand({ children, className = "", id }: PcbBandProps) {
   );
 }
 
+function pickPalette(scheme: ColorScheme, width: number): BoardPalette {
+  if (scheme !== "light") {
+    return DARK_BOARD_PALETTE;
+  }
+  return width < NARROW_MAX_WIDTH
+    ? LIGHT_PCB_PALETTE_NARROW
+    : LIGHT_PCB_PALETTE;
+}
+
 function PcbBoard() {
   const scheme = useColorScheme();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -244,7 +268,7 @@ function PcbBoard() {
       return;
     }
 
-    const palette = scheme === "light" ? LIGHT_PCB_PALETTE : DARK_BOARD_PALETTE;
+    let palette = DARK_BOARD_PALETTE;
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -524,6 +548,7 @@ function PcbBoard() {
       if (w === 0 || h === 0) {
         return;
       }
+      palette = pickPalette(scheme, w);
       canvas!.width = Math.round(w * dpr);
       canvas!.height = Math.round(h * dpr);
       nodes = SEEDS.map((s) => ({ x: s.fx * w, y: s.fy * h }));
