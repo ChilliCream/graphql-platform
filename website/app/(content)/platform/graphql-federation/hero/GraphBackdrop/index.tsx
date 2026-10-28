@@ -2,17 +2,20 @@
 
 import { useEffect, useRef } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
+import { useColorScheme } from "@/src/components/useColorScheme";
+
 import { rgba } from "./color";
 import { buildGraph, type GraphModel, type LayoutMode } from "./graph";
 import { capDpr, modeForSize } from "./sceneLayout";
 import { paint, type Rect } from "./paint";
-import { NAVY } from "../palette";
+import { DARK_BACKDROP_PALETTE, LIGHT_BACKDROP_PALETTE } from "./palette";
 
 // A CSS-only vignette so that with JS disabled (no canvas paint at all)
-// the hero still reads as an intentional dark scene -- the page's own navy
-// background plus a soft radial darkening at the corners -- instead of a
-// flat, broken-looking rectangle.
-const FALLBACK_VIGNETTE = `radial-gradient(ellipse at 50% 50%, ${rgba(NAVY, 0)} 45%, ${rgba(NAVY, 0.55)} 100%)`;
+// the hero still reads as an intentional scene -- the page's own background
+// plus a soft radial fade at the corners -- instead of a flat,
+// broken-looking rectangle.
+const FALLBACK_VIGNETTE = `radial-gradient(ellipse at 50% 50%, ${lightDark(rgba(LIGHT_BACKDROP_PALETTE.surface, 0), rgba(DARK_BACKDROP_PALETTE.surface, 0))} 45%, ${lightDark(rgba(LIGHT_BACKDROP_PALETTE.surface, 0.55), rgba(DARK_BACKDROP_PALETTE.surface, 0.55))} 100%)`;
 
 interface Engine {
   w: number;
@@ -61,6 +64,9 @@ function sameInputs(a: BuildInputs | null, b: BuildInputs): boolean {
 // computed in this draw path, never a separate "is this mobile" state that
 // could ship a wrong first paint.
 export function GraphBackdrop() {
+  const scheme = useColorScheme();
+  const palette =
+    scheme === "light" ? LIGHT_BACKDROP_PALETTE : DARK_BACKDROP_PALETTE;
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -147,6 +153,7 @@ export function GraphBackdrop() {
         copyRect: engine.copyRect,
         paragraphRect: engine.paragraphRect,
         ctaRect: engine.ctaRect,
+        palette,
       });
     };
 
@@ -190,7 +197,7 @@ export function GraphBackdrop() {
       ro.disconnect();
       copyRo?.disconnect();
     };
-  }, []);
+  }, [palette]);
 
   return (
     <div

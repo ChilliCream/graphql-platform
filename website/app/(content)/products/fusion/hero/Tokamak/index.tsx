@@ -2,15 +2,17 @@
 
 import { useEffect, useRef } from "react";
 
-import { BRAND } from "../../tokens";
+import { lightDark } from "@/src/components/lightDark";
+import { useColorScheme } from "@/src/components/useColorScheme";
 import { useElementMotion } from "../../visuals/hooks";
 import {
   buildChamberTiles,
   buildInstrumentLights,
   type InstrumentLight,
 } from "./chamber";
-import { hexToRgba, warmWhiteToRgba, whiteToRgba } from "./colors";
+import { hexToRgba } from "./colors";
 import { project, torusPoint } from "./geometry";
+import { DARK_TOKAMAK_PALETTE, LIGHT_TOKAMAK_PALETTE } from "./palette";
 import {
   computeLayout,
   MOBILE_BREAKPOINT,
@@ -43,6 +45,12 @@ import {
   type SparkDef,
   type Streak,
 } from "./plasma";
+
+const scrim = (alpha: number) =>
+  lightDark(
+    hexToRgba(LIGHT_TOKAMAK_PALETTE.base, alpha),
+    hexToRgba(DARK_TOKAMAK_PALETTE.base, alpha),
+  );
 
 /**
  * Streak counts per viewport size. Most of the hundreds of thin bright
@@ -110,7 +118,7 @@ const MOBILE_CORE_SCALE = 0.3;
  * additive coral wash reach the visible wall above/below the band.
  */
 const MOBILE_WALL_LIFT_SCALE = 2.2;
-/** Alpha multiplier for the far half of the band (its own streaks, glow and helix run) on top of `BRAND.coralSoft`'s own desaturation, so the far half reads reduced in alpha and desaturated relative to the near half. */
+/** Alpha multiplier for the far half of the band (its own streaks, glow and helix run) on top of `palette.coralSoft`'s own desaturation, so the far half reads reduced in alpha and desaturated relative to the near half. */
 const FAR_ALPHA_MUL = 0.5;
 /** Alpha multiplier for the near half (on top of the base per-pass alphas in `paintPlasmaLayer`/`strokeGroup`) -- the outer-limb weight bias trims the band's own mean luminance, so the near half's own exposure is nudged back up rather than raising bloom to compensate. */
 const NEAR_ALPHA_MUL = 1.35;
@@ -235,6 +243,9 @@ function strayAngles(
  * for a cheap-bloom effect that stays cheap under the frame budget.
  */
 export default function Tokamak() {
+  const scheme = useColorScheme();
+  const palette =
+    scheme === "light" ? LIGHT_TOKAMAK_PALETTE : DARK_TOKAMAK_PALETTE;
   const rootRef = useRef<HTMLDivElement>(null);
   const wallRef = useRef<HTMLCanvasElement>(null);
   const liveRef = useRef<HTMLCanvasElement>(null);
@@ -308,6 +319,8 @@ export default function Tokamak() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     );
 
+    const farAlphaMul = FAR_ALPHA_MUL * palette.plasmaGain;
+    const nearAlphaMul = NEAR_ALPHA_MUL * palette.plasmaGain;
     const rand = mulberry32(0x746f6b31);
     let layout: TokamakLayout = computeLayout(0, 0, null);
     let dpr = 1;
@@ -570,12 +583,20 @@ export default function Tokamak() {
         rand,
         6,
       );
-      paintWall(wallCtx!, w, h, wallTiles, lights);
+      paintWall(wallCtx!, w, h, wallTiles, lights, palette);
       const bandY = project(
         { x: 0, y: layout.torus.y, z: layout.torus.z },
         layout.camera,
       ).y;
-      paintColumnLayer(columnCtx!, w, h, columnBase, columnTiles, bandY);
+      paintColumnLayer(
+        columnCtx!,
+        w,
+        h,
+        columnBase,
+        columnTiles,
+        bandY,
+        palette,
+      );
 
       // hc-0-gar ruling (i): the near-facing half of each junction's own
       // small bridge range (`chamber.ts`'s `faceOverride: "near"` culling
@@ -603,7 +624,7 @@ export default function Tokamak() {
           "near",
         ),
       ];
-      paintBridgeLayer(bridgeCtx!, w, h, bridgeTiles);
+      paintBridgeLayer(bridgeCtx!, w, h, bridgeTiles, palette);
 
       // The ring's projected width uses the camera's own base scale (the
       // scale at its aim depth), the same basis the ring's actual
@@ -611,14 +632,24 @@ export default function Tokamak() {
       // own much-larger near-side scale.
       const ringWidthPx =
         (layout.torus.R + layout.torus.a) * layout.camera.baseScale * 2;
-      paintPlasmaLayer(farCtx!, w, h, farPaths, ringWidthPx, {
-        colorHex: BRAND.coralSoft,
-        alphaMul: FAR_ALPHA_MUL,
-      });
-      paintPlasmaLayer(nearCtx!, w, h, nearPaths, ringWidthPx, {
-        colorHex: BRAND.coral,
-        alphaMul: NEAR_ALPHA_MUL,
-      });
+      paintPlasmaLayer(
+        farCtx!,
+        w,
+        h,
+        farPaths,
+        ringWidthPx,
+        { colorHex: palette.coralSoft, alphaMul: farAlphaMul },
+        palette,
+      );
+      paintPlasmaLayer(
+        nearCtx!,
+        w,
+        h,
+        nearPaths,
+        ringWidthPx,
+        { colorHex: palette.coral, alphaMul: nearAlphaMul },
+        palette,
+      );
     }
 
     // The copy block's own rendered rect, relative to the section, used to
@@ -888,7 +919,7 @@ export default function Tokamak() {
             strokeShadedPathRgba(
               liveCtx!,
               run,
-              whiteToRgba,
+              palette.streakCore,
               0.9 * hot,
               flicker * 0.3 * alphaMul * hot * alphaTrim,
             );
@@ -906,7 +937,7 @@ export default function Tokamak() {
           strokeShadedPathRgba(
             liveCtx!,
             run,
-            warmWhiteToRgba,
+            palette.filamentCore,
             1.2,
             0.5 * alphaMul,
           );
@@ -962,7 +993,7 @@ export default function Tokamak() {
             strokeShadedPathRgba(
               liveCtx!,
               run,
-              warmWhiteToRgba,
+              palette.filamentCore,
               1.6,
               0.6 * envelope * alphaMul,
             );
@@ -987,7 +1018,7 @@ export default function Tokamak() {
       ) => {
         glowCtx!.setTransform(GLOW_SCALE, 0, 0, GLOW_SCALE, 0, 0);
         glowCtx!.clearRect(0, 0, w, h);
-        glowCtx!.globalCompositeOperation = "lighter";
+        glowCtx!.globalCompositeOperation = palette.composite;
         glowCtx!.lineCap = "round";
         for (const { streak, far, near, hot } of liveRuns) {
           const runs = side === "far" ? far : near;
@@ -1033,7 +1064,7 @@ export default function Tokamak() {
             );
           }
         }
-        liveCtx!.globalCompositeOperation = "lighter";
+        liveCtx!.globalCompositeOperation = palette.composite;
         liveCtx!.globalAlpha = 0.9;
         liveCtx!.drawImage(glow, 0, 0, glowW, glowH, 0, 0, w, h);
         liveCtx!.globalAlpha = 1;
@@ -1045,18 +1076,18 @@ export default function Tokamak() {
       // (stamped next) reads as standing in front of it. Skipped entirely
       // under `hidePlasmaForDebug` (see its own doc comment).
       if (!hidePlasmaForDebug) {
-        liveCtx!.globalCompositeOperation = "lighter";
+        liveCtx!.globalCompositeOperation = palette.composite;
         blit(liveCtx!, farCanvas);
         drawGlowGroup(
           "far",
           helixFar,
           sparkRuns,
-          BRAND.coralSoft,
-          FAR_ALPHA_MUL,
+          palette.coralSoft,
+          farAlphaMul,
         );
-        strokeGroup("far", BRAND.coralSoft, FAR_ALPHA_MUL);
-        strokeHelixRuns(helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
-        strokeSparks("far", BRAND.coralSoft, FAR_ALPHA_MUL);
+        strokeGroup("far", palette.coralSoft, farAlphaMul);
+        strokeHelixRuns(helixFar, palette.coralSoft, farAlphaMul);
+        strokeSparks("far", palette.coralSoft, farAlphaMul);
       }
 
       // ----- COLUMN: the dark tiled column, cached once per `measure()`,
@@ -1104,7 +1135,7 @@ export default function Tokamak() {
           breatheBase +
           breatheAmplitude * Math.sin((timeSec / breathePeriod) * Math.PI * 2) +
           surgeFlare * (layout.mode === "mobile" ? 0.03 : 0.08);
-        liveCtx!.globalCompositeOperation = "lighter";
+        liveCtx!.globalCompositeOperation = palette.composite;
         const wallLiftScale =
           layout.mode === "mobile" ? MOBILE_WALL_LIFT_SCALE : 1;
         // hc-0-540: `MOBILE_WALL_LIFT_SCALE` widens the tint/bloom's own
@@ -1118,7 +1149,8 @@ export default function Tokamak() {
         // widths to (tuned against `540-exposure.cjs`, not guessed). 1
         // (a no-op) in the legacy build and at every other width.
         const mobileTintBloomTrim =
-          energetic && layout.mode === "mobile" ? 0.4 : 1;
+          (energetic && layout.mode === "mobile" ? 0.4 : 1) *
+          palette.plasmaGain;
         const tintR = Math.max(1, bandHalfHeightPx() * 0.9 * wallLiftScale);
         const tint = liveCtx!.createRadialGradient(
           torusCenter.x,
@@ -1130,9 +1162,9 @@ export default function Tokamak() {
         );
         tint.addColorStop(
           0,
-          hexToRgba(BRAND.coral, 0.14 * breathe * mobileTintBloomTrim),
+          hexToRgba(palette.coral, 0.14 * breathe * mobileTintBloomTrim),
         );
-        tint.addColorStop(1, hexToRgba(BRAND.coral, 0));
+        tint.addColorStop(1, hexToRgba(palette.coral, 0));
         liveCtx!.fillStyle = tint;
         liveCtx!.beginPath();
         liveCtx!.arc(torusCenter.x, torusCenter.y, tintR, 0, Math.PI * 2);
@@ -1157,13 +1189,13 @@ export default function Tokamak() {
         );
         bloom.addColorStop(
           0,
-          hexToRgba(BRAND.coral, 0.16 * breathe * mobileTintBloomTrim),
+          hexToRgba(palette.coral, 0.16 * breathe * mobileTintBloomTrim),
         );
         bloom.addColorStop(
           0.45,
-          hexToRgba(BRAND.coral, 0.06 * breathe * mobileTintBloomTrim),
+          hexToRgba(palette.coral, 0.06 * breathe * mobileTintBloomTrim),
         );
-        bloom.addColorStop(1, hexToRgba(BRAND.coral, 0));
+        bloom.addColorStop(1, hexToRgba(palette.coral, 0));
         liveCtx!.fillStyle = bloom;
         liveCtx!.beginPath();
         liveCtx!.arc(
@@ -1180,18 +1212,19 @@ export default function Tokamak() {
           "near",
           helixNear,
           sparkRuns,
-          BRAND.coral,
-          NEAR_ALPHA_MUL,
+          palette.coral,
+          nearAlphaMul,
         );
-        strokeGroup("near", BRAND.coral, NEAR_ALPHA_MUL);
-        strokeHelixRuns(helixNear, BRAND.coral, NEAR_ALPHA_MUL);
-        strokeSparks("near", BRAND.coral, NEAR_ALPHA_MUL);
+        strokeGroup("near", palette.coral, nearAlphaMul);
+        strokeHelixRuns(helixNear, palette.coral, nearAlphaMul);
+        strokeSparks("near", palette.coral, nearAlphaMul);
 
         // `torusCenter` sits at the band's near-side point, not the torus'
         // axis point, so the core radius is derived from its own scale.
         const coreR = torusCenter.scale * layout.torus.a * 0.8 * breathe;
         const coreDensityScale =
-          layout.mode === "mobile" ? MOBILE_CORE_SCALE : 1;
+          (layout.mode === "mobile" ? MOBILE_CORE_SCALE : 1) *
+          palette.plasmaGain;
         const core = liveCtx!.createRadialGradient(
           torusCenter.x,
           torusCenter.y,
@@ -1200,12 +1233,12 @@ export default function Tokamak() {
           torusCenter.y,
           Math.max(1, coreR),
         );
-        core.addColorStop(0, whiteToRgba(0.35 * coreDensityScale));
+        core.addColorStop(0, palette.streakCore(0.35 * coreDensityScale));
         core.addColorStop(
           0.5,
-          hexToRgba(BRAND.coral, 0.25 * breathe * coreDensityScale),
+          hexToRgba(palette.coral, 0.25 * breathe * coreDensityScale),
         );
-        core.addColorStop(1, hexToRgba(BRAND.coral, 0));
+        core.addColorStop(1, hexToRgba(palette.coral, 0));
         liveCtx!.fillStyle = core;
         liveCtx!.beginPath();
         liveCtx!.arc(
@@ -1325,7 +1358,7 @@ export default function Tokamak() {
       ro.disconnect();
       copyRo?.disconnect();
     };
-  }, []);
+  }, [palette]);
 
   useEffect(() => {
     if (!running) {
@@ -1355,19 +1388,19 @@ export default function Tokamak() {
       <div
         className="absolute inset-0 hidden xl:block"
         style={{
-          background: `linear-gradient(90deg, ${hexToRgba(BRAND.navy, 0.72)} 0%, ${hexToRgba(BRAND.navy, 0.52)} 54%, ${hexToRgba(BRAND.navy, 0)} 74%)`,
+          background: `linear-gradient(90deg, ${scrim(0.72)} 0%, ${scrim(0.52)} 54%, ${scrim(0)} 74%)`,
         }}
       />
       <div
         className="absolute inset-0 hidden xl:block"
         style={{
-          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0)} 66%, ${hexToRgba(BRAND.navy, 0.9)} 98%)`,
+          background: `linear-gradient(180deg, ${scrim(0)} 66%, ${scrim(0.9)} 98%)`,
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.55)} 0%, ${hexToRgba(BRAND.navy, 0)} 16%)`,
+          background: `linear-gradient(180deg, ${scrim(0.55)} 0%, ${scrim(0)} 16%)`,
         }}
       />
       {/*
@@ -1378,13 +1411,13 @@ export default function Tokamak() {
       <div
         className="absolute inset-0 xl:hidden"
         style={{
-          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.6)} 0%, ${hexToRgba(BRAND.navy, 0.6)} 72%, ${hexToRgba(BRAND.navy, 0)} 78%)`,
+          background: `linear-gradient(180deg, ${scrim(0.6)} 0%, ${scrim(0.6)} 72%, ${scrim(0)} 78%)`,
         }}
       />
       <div
         className="absolute inset-0 xl:hidden"
         style={{
-          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0)} 94%, ${hexToRgba(BRAND.navy, 0.5)} 100%)`,
+          background: `linear-gradient(180deg, ${scrim(0)} 94%, ${scrim(0.5)} 100%)`,
         }}
       />
     </div>

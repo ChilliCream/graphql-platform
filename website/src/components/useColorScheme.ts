@@ -27,13 +27,15 @@ function getSnapshot(): ColorScheme {
 }
 
 function getServerSnapshot(): ColorScheme {
-  return "dark";
+  return typeof document === "undefined" ? "dark" : getSnapshot();
 }
 
 /**
  * The color scheme the page currently resolves to. Reads the document's
  * computed scheme, so it also works without the app's theme provider. Use it
  * only for JS-drawn output (canvas); server-rendered appearance comes from CSS.
+ * The hydrating client reads the real scheme at once, so the rendered markup
+ * must not depend on the returned value.
  */
 export function useColorScheme(): ColorScheme {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);

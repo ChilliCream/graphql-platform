@@ -1,5 +1,4 @@
 import { ButtonRow } from "@/src/components/ButtonRow";
-import { DARK_STAGE_PROPS } from "@/src/components/darkStage";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { GraphBackdrop } from "./hero/GraphBackdrop";
@@ -15,10 +14,7 @@ import { WhatIsSection } from "./sections/WhatIsSection";
 export function ExplainerPage() {
   return (
     <div className="bg-cc-bg relative left-1/2 -mt-26 w-screen -translate-x-1/2">
-      <section
-        className="border-cc-card-border relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden border-b px-5 py-24 text-center sm:px-12"
-        {...DARK_STAGE_PROPS}
-      >
+      <section className="border-cc-card-border relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden border-b px-5 py-24 text-center sm:px-12">
         <GraphBackdrop />
         <div
           data-hero-copy

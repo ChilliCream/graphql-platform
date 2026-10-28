@@ -252,12 +252,12 @@ ${vars(DARK)}
 ${vars(LIGHT)}
   --t-shadow: ${LIGHT_SHADOW};
 }
-:root[data-theme='light'] .nt-root[data-theme='auto']:not([data-dark-stage] *) {
+:root[data-theme='light'] .nt-root[data-theme='auto'] {
 ${vars(LIGHT)}
   --t-shadow: ${LIGHT_SHADOW};
 }
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme]) .nt-root[data-theme='auto']:not([data-dark-stage] *) {
+  :root:not([data-theme]) .nt-root[data-theme='auto'] {
 ${vars(LIGHT)}
     --t-shadow: ${LIGHT_SHADOW};
   }
