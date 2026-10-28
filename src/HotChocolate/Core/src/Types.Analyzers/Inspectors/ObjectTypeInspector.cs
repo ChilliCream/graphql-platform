@@ -25,8 +25,24 @@ public class ObjectTypeInspector : ISyntaxInspector
         var includeInternalMembers = context.SemanticModel.Compilation.IncludeInternalMembers();
 
         OperationType? operationType = null;
-        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
+        if (!IsObjectTypeExtension(
+            context,
+            out var possibleType,
+            out var classSymbol,
+            out var runtimeType,
+            out var isInterfaceObject,
+            out var conflictDiagnostic))
         {
+            if (conflictDiagnostic is not null)
+            {
+                var conflictClass = (ClassDeclarationSyntax)context.Node;
+                var conflictInfo = new InvalidSyntaxInfo(
+                    $"{conflictClass.SyntaxTree.FilePath}:{conflictClass.SpanStart}");
+                conflictInfo.AddDiagnostic(conflictDiagnostic);
+                syntaxInfo = conflictInfo;
+                return true;
+            }
+
             if (!IsOperationType(context, out possibleType, out classSymbol, out operationType))
             {
                 syntaxInfo = null;
@@ -146,7 +162,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                 nodeResolver,
                 possibleType,
                 i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
-                classSymbol.GetAttributes());
+                classSymbol.GetAttributes(),
+                isInterfaceObject);
             syntaxInfo = objectTypeInfo;
 
             if (diagnostics.Length > 0)
@@ -184,10 +201,17 @@ public class ObjectTypeInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out ClassDeclarationSyntax? resolverTypeSyntax,
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
-        [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
+        [NotNullWhen(true)] out INamedTypeSymbol? runtimeType,
+        out bool isInterfaceObject,
+        out Diagnostic? conflictDiagnostic)
     {
+        conflictDiagnostic = null;
+
         if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
+            INamedTypeSymbol? objectTypeRuntimeType = null;
+            INamedTypeSymbol? interfaceObjectRuntimeType = null;
+
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
                 foreach (var attributeSyntax in attributeListSyntax.Attributes)
@@ -204,23 +228,66 @@ public class ObjectTypeInspector : ISyntaxInspector
 
                     // We do a start with here to capture the generic and non-generic variant of
                     // the object type extension attribute.
-                    if (fullName.StartsWith(ObjectTypeAttribute, Ordinal)
+                    if (objectTypeRuntimeType is null
+                        && fullName.StartsWith(ObjectTypeAttribute, Ordinal)
                         && attributeContainingTypeSymbol.TypeArguments.Length == 1
-                        && attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol rt
-                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rts)
+                        && attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol rt)
                     {
-                        resolverTypeSyntax = possibleType;
-                        resolverTypeSymbol = rts;
-                        runtimeType = rt;
-                        return true;
+                        objectTypeRuntimeType = rt;
+                        continue;
+                    }
+
+                    // The generic [InterfaceObject<T>] marks a static resolver class as the
+                    // stand-in for the interface defined by T, mirroring [ObjectType<T>].
+                    if (interfaceObjectRuntimeType is null
+                        && fullName.StartsWith(InterfaceObjectAttribute, Ordinal)
+                        && attributeContainingTypeSymbol.TypeArguments.Length == 1
+                        && attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol iot)
+                    {
+                        interfaceObjectRuntimeType = iot;
                     }
                 }
+            }
+
+            // A class cannot carry both attributes at the same time.
+            if (objectTypeRuntimeType is not null && interfaceObjectRuntimeType is not null)
+            {
+                conflictDiagnostic = Diagnostic.Create(
+                    Errors.ObjectTypeInterfaceObjectConflict,
+                    Location.Create(possibleType.SyntaxTree, possibleType.Span));
+
+                resolverTypeSyntax = null;
+                resolverTypeSymbol = null;
+                runtimeType = null;
+                isInterfaceObject = false;
+                return false;
+            }
+
+            if (objectTypeRuntimeType is not null
+                && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rts)
+            {
+                resolverTypeSyntax = possibleType;
+                resolverTypeSymbol = rts;
+                runtimeType = objectTypeRuntimeType;
+                isInterfaceObject = false;
+                return true;
+            }
+
+            if (interfaceObjectRuntimeType is not null
+                && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol iots)
+            {
+                resolverTypeSyntax = possibleType;
+                resolverTypeSymbol = iots;
+                runtimeType = interfaceObjectRuntimeType;
+                isInterfaceObject = true;
+                return true;
             }
         }
 
         resolverTypeSyntax = null;
         resolverTypeSymbol = null;
         runtimeType = null;
+        isInterfaceObject = false;
         return false;
     }
 
