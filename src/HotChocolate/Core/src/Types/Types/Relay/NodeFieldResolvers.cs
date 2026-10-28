@@ -126,7 +126,15 @@ internal static class NodeFieldResolvers
                     {
                         if (task.Exception is null)
                         {
-                            result[i] = task.Result;
+                            if (task.Result is IError error)
+                            {
+                                result[i] = null;
+                                context.ReportError(error.WithPath(context.Path.Append(i)));
+                            }
+                            else
+                            {
+                                result[i] = task.Result;
+                            }
                         }
                         else
                         {
