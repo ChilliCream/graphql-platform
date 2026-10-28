@@ -1,10 +1,33 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
+import { lightDark } from "@/src/components/lightDark";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { SearchIcon } from "@/src/icons/Search";
+
+const FIELD_STYLE = {
+  "--vc-field": lightDark(
+    "var(--color-cc-control-bg)",
+    "rgba(255, 255, 255, 0.05)",
+  ),
+  "--vc-field-ring": lightDark(
+    "rgba(7, 94, 117, 0.25)",
+    "rgba(255, 255, 255, 0.1)",
+  ),
+} as CSSProperties;
+
+const CHECK_STYLE = {
+  "--vc-check": lightDark(
+    "var(--color-cc-control-border)",
+    "rgba(255, 255, 255, 0.3)",
+  ),
+  "--vc-check-ring": lightDark(
+    "var(--color-cc-accent)",
+    "rgba(255, 255, 255, 0.4)",
+  ),
+} as CSSProperties;
 
 export interface VideoCatalogItem {
   readonly key: string;
@@ -133,7 +156,8 @@ export function VideoCatalog({ items, topicLabels }: VideoCatalogProps) {
                 }))
               }
               placeholder="Search videos"
-              className="border-cc-card-border text-cc-ink placeholder:text-cc-ink-dim hover:border-cc-card-border-hover focus:border-cc-card-border-hover focus:ring-cc-white/10 bg-cc-white/5 w-full rounded-full border py-2 pr-4 pl-10 text-sm transition-colors focus:ring-2 focus:outline-hidden"
+              style={FIELD_STYLE}
+              className="border-cc-card-border text-cc-ink placeholder:text-cc-ink-dim hover:border-cc-card-border-hover focus:border-cc-card-border-hover w-full rounded-full border bg-(--vc-field) py-2 pr-4 pl-10 text-sm transition-colors focus:ring-2 focus:ring-(--vc-field-ring) focus:outline-hidden"
             />
           </label>
 
@@ -296,7 +320,8 @@ function FacetOption({ label, count, checked, onChange }: FacetOptionProps) {
           checked={checked}
           disabled={disabled}
           onChange={onChange}
-          className="peer border-cc-white/30 checked:border-cc-amber checked:bg-cc-amber focus-visible:ring-cc-white/40 size-4 cursor-pointer appearance-none rounded-[4px] border bg-transparent transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-default disabled:opacity-40"
+          style={CHECK_STYLE}
+          className="peer checked:border-cc-amber checked:bg-cc-amber size-4 cursor-pointer appearance-none rounded-[4px] border border-(--vc-check) bg-transparent transition-colors focus-visible:ring-2 focus-visible:ring-(--vc-check-ring) focus-visible:outline-none disabled:cursor-default disabled:opacity-40"
         />
         <CheckGlyph className="text-cc-surface pointer-events-none absolute inset-0 hidden size-4 peer-checked:block" />
       </span>

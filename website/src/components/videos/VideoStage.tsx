@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { lightDark } from "@/src/components/lightDark";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { YouTubePlayButton } from "@/src/components/YouTubePlayButton";
 import { YouTubePoster } from "@/src/components/YouTubePoster";
@@ -7,6 +8,11 @@ import { Picture } from "@/src/design-system/Picture";
 import { formatDate } from "@/src/helpers/formatDate";
 import { formatEpisode, type VideoSummary } from "@/src/helpers/videos";
 import { PlayGlyph } from "@/src/icons/PlayGlyph";
+
+const PANEL_WASH = lightDark(
+  "var(--color-cc-hover)",
+  "rgba(255, 255, 255, 0.05)",
+);
 
 interface VideoStageProps {
   /** Videos, newest first. The first one is featured, the rest are up next. */
@@ -99,13 +105,16 @@ export function VideoStage({
               href={channelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-cc-heading text-cc-surface hover:bg-cc-white inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium no-underline transition-colors"
+              className="bg-cc-heading text-cc-surface hover:bg-cc-solid-hover inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium no-underline transition-colors"
             >
               Subscribe
             </a>
           </div>
 
-          <div className="bg-cc-white/5 mt-3 rounded-xl px-3 py-2.5 text-xs leading-relaxed">
+          <div
+            className="mt-3 rounded-xl px-3 py-2.5 text-xs leading-relaxed"
+            style={{ backgroundColor: PANEL_WASH }}
+          >
             <p className="m-0 flex gap-3">
               <span className="text-cc-heading font-semibold">
                 Episode {formatEpisode(current.episode)}

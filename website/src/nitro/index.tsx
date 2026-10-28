@@ -25,7 +25,7 @@ interface NitroReelProps extends NitroWrapperProps {
 export function NitroReel({ className, tabsOverlay }: NitroReelProps) {
   return (
     <ThemeProvider
-      theme="dark"
+      theme="auto"
       className={className}
       style={tabsOverlay ? { background: "transparent" } : undefined}
     >
@@ -48,7 +48,7 @@ function StandaloneScreen({
 }: StandaloneScreenProps) {
   const { ref, progress } = useMasterClock({ durationMs });
   return (
-    <ThemeProvider theme="dark" className={className}>
+    <ThemeProvider theme="auto" className={className}>
       <div
         ref={ref}
         style={{

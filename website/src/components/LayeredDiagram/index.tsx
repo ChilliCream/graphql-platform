@@ -2,10 +2,12 @@
 
 import { useRef } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
+
 import { anim, useCycle, useElementMotion } from "./hooks";
 import { MC, protocolColor, protocolTag, specTag } from "./palette";
 import type { StationSpec } from "./palette";
-import { BRAND, TYPE } from "./tokens";
+import { BRAND, CC, TYPE } from "./tokens";
 import {
   BUS_Y,
   BUS_Y_CENTERED,
@@ -74,7 +76,9 @@ const HUB_GLOW = `radial-gradient(48% 36% at 50% 50%, ${wash(MC.phosphor, 16)} 0
 
 function specColor(spec: StationSpec | null): string {
   if (spec === null) return MC.dim;
-  return spec === "Apollo Federation" ? BRAND.violet : MC.phosphor;
+  return spec === "Apollo Federation"
+    ? lightDark(CC.info, BRAND.violet)
+    : MC.phosphor;
 }
 
 interface BandProps {

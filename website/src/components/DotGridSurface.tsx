@@ -4,11 +4,11 @@ import { useReducedMotion } from "motion/react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useCallback, useRef, useState } from "react";
 
-const DOT_BG =
-  "radial-gradient(circle, rgba(245,241,234,0.12) 1px, transparent 1.2px)";
+import { lightDark } from "@/src/components/lightDark";
 
-const HALO_BG =
-  "radial-gradient(circle, rgba(94,234,212,0.7) 1px, transparent 1.2px)";
+export const DOT_BG = `radial-gradient(circle, ${lightDark("rgba(15,23,42,0.22)", "rgba(245,241,234,0.12)")} 1px, transparent 1.2px)`;
+
+export const HALO_BG = `radial-gradient(circle, ${lightDark("rgba(7,94,117,0.7)", "rgba(94,234,212,0.7)")} 1px, transparent 1.2px)`;
 
 interface DotGridSurfaceProps {
   readonly children: ReactNode;

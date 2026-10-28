@@ -15,6 +15,7 @@ import {
   DANGER,
   ELECTRIC,
   ELECTRIC_BRIGHT,
+  NUMERAL_GLOW,
   OPS_NUMERAL_COLOR,
   READOUT_FONT,
   READOUT_LINE_HEIGHT,
@@ -172,7 +173,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
               letterSpacing: "-0.02em",
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
+              filter: `drop-shadow(0 0 10px ${NUMERAL_GLOW})`,
             }}
           >
             {readout}

@@ -14,28 +14,31 @@ import {
   ramp,
 } from "@/src/components/mocha/geometry";
 import {
-  AMBER,
+  AMBER_TEXT,
   CORAL,
   CORAL_SOFT,
+  CORAL_TEXT,
   CYAN,
-  GREEN,
+  GREEN_TEXT,
   MONO_FONT,
-  NAVY,
   SLATE,
+  SLATE_TEXT,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fdfbf7", "#0b0f1a");
 const T = 16000;
 const REST_T = 10450;
 const H = 240;
 const MIN_W = 560;
 
-const PAD_FILL = "rgba(158,176,204,0.34)";
-const VIA_STROKE = "rgba(164,180,208,0.55)";
-const SILK = "rgba(154,172,200,0.75)";
-const SILK_SOFT = "rgba(154,172,200,0.7)";
-const GRID_DOT = "rgba(150,166,194,0.10)";
+const PAD_FILL = lightDark("rgba(51,65,85,0.4)", "rgba(158,176,204,0.34)");
+const VIA_STROKE = lightDark("rgba(51,65,85,0.62)", "rgba(164,180,208,0.55)");
+const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
+const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
+const GRID_DOT = lightDark("rgba(51,65,85,0.16)", "rgba(150,166,194,0.10)");
 
 const TRUNK_MS = 364;
 const BRANCH_MS = 448;
@@ -80,10 +83,10 @@ const STATIC_DOTS = [1, 2, 3] as const;
 const STATIC_LIT = [0.6, 0.3, 0.45] as const;
 
 const NTAGS = [
-  { t: "in step", f: SLATE, o: 0.55 },
-  { t: "offline", f: AMBER, o: 0.95 },
-  { t: "catching up", f: GREEN, o: 0.95 },
-  { t: "nothing lost", f: GREEN, o: 0.6 },
+  { t: "in step", f: SLATE_TEXT, o: 0.55 },
+  { t: "offline", f: AMBER_TEXT, o: 0.95 },
+  { t: "catching up", f: GREEN_TEXT, o: 0.95 },
+  { t: "nothing lost", f: GREEN_TEXT, o: 0.6 },
 ] as const;
 
 interface Layout {
@@ -112,6 +115,10 @@ function mixColor(a: string, b: string, t: number): string {
     return Math.round(ca + (cb - ca) * t);
   };
   return `rgb(${ch(16)}, ${ch(8)}, ${ch(0)})`;
+}
+
+function nameTone(t: number): string {
+  return lightDark(mixColor("#4a566c", "#075e75", t), mixColor(SLATE, CYAN, t));
 }
 
 function buildLayout(lw: number): Layout {
@@ -247,6 +254,7 @@ export function FanoutVisual() {
         const glow = E.get(`c${r}g`);
         const name = E.get(`c${r}n`);
         const color = mixColor(SLATE, CYAN, f);
+        const nameColor = nameTone(f);
         if (base) {
           base.setAttribute("stroke", color);
           base.setAttribute(
@@ -258,7 +266,7 @@ export function FanoutVisual() {
           glow.setAttribute("opacity", (0.22 * f).toFixed(3));
         }
         if (name) {
-          name.setAttribute("fill", color);
+          name.setAttribute("fill", nameColor);
           name.setAttribute(
             "fill-opacity",
             ((0.75 + 0.25 * f) * (1 - 0.5 * off)).toFixed(3),
@@ -486,7 +494,7 @@ export function FanoutVisual() {
           <path
             d={laneD(L.trunk.pts)}
             fill="none"
-            stroke="rgba(139,160,188,0.4)"
+            stroke={lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)")}
             strokeWidth={1.5}
           />
           {L.branchD.map((d) => (
@@ -494,7 +502,7 @@ export function FanoutVisual() {
               key={d}
               d={d}
               fill="none"
-              stroke="rgba(139,160,188,0.4)"
+              stroke={lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)")}
               strokeWidth={1.5}
               strokeLinejoin="round"
             />
@@ -504,7 +512,7 @@ export function FanoutVisual() {
               key={y}
               d={`M${L.slotR} ${y} H${L.chipX}`}
               fill="none"
-              stroke="rgba(139,160,188,0.4)"
+              stroke={lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)")}
               strokeWidth={1.5}
             />
           ))}
@@ -620,7 +628,7 @@ export function FanoutVisual() {
               width={PUB.w}
               height={PUB.h}
               rx={3}
-              fill="#0c1322"
+              fill={lightDark("#fdfbf7", "#0c1322")}
               stroke={CORAL}
               strokeOpacity={0.4}
               strokeWidth={1}
@@ -643,7 +651,7 @@ export function FanoutVisual() {
               fontFamily={MONO_FONT}
               fontSize={10}
               letterSpacing={1.2}
-              fill={CORAL}
+              fill={CORAL_TEXT}
             >
               ORDERS
             </text>
@@ -712,7 +720,7 @@ export function FanoutVisual() {
                   width={CHIP_W}
                   height={CHIP_H}
                   rx={3}
-                  fill="#0c1322"
+                  fill={lightDark("#fdfbf7", "#0c1322")}
                   stroke={color}
                   strokeOpacity={0.3 + 0.5 * lit}
                   strokeWidth={1}
@@ -738,7 +746,7 @@ export function FanoutVisual() {
                   fontFamily={MONO_FONT}
                   fontSize={10}
                   letterSpacing={0.9}
-                  fill={color}
+                  fill={nameTone(lit)}
                   fillOpacity={0.75 + 0.25 * lit}
                 >
                   {s.name}
@@ -777,7 +785,7 @@ export function FanoutVisual() {
                   fontFamily={MONO_FONT}
                   fontSize={9}
                   letterSpacing={1}
-                  fill={r === 2 ? GREEN : SLATE}
+                  fill={r === 2 ? GREEN_TEXT : SLATE_TEXT}
                   opacity={r === 2 ? 0.9 : 0.55}
                   style={{ transition: "fill .3s, opacity .3s" }}
                 >

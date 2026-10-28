@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 import { BrowserIcon } from "@/src/icons/BrowserIcon";
 import { HandshakeIcon } from "@/src/icons/HandshakeIcon";
@@ -16,6 +17,13 @@ interface Protocol {
   readonly subtitle: string;
   readonly tags: readonly string[];
 }
+
+const LINK_STROKE = lightDark("rgba(15,23,42,0.4)", "rgba(245,241,234,0.22)");
+
+const scrim = (alpha: number) =>
+  lightDark(`rgba(245,241,234,${alpha})`, `rgba(11,15,26,${alpha})`);
+
+const SCRIM = `radial-gradient(ellipse 50% 50% at 50% 50%, ${scrim(0.92)} 0%, ${scrim(0.8)} 42%, ${scrim(0.45)} 68%, ${scrim(0)} 88%)`;
 
 const CHIPS = ["gRPC", "GraphQL", "OpenAPI", "MCP"] as const;
 
@@ -133,7 +141,7 @@ export function ProtocolCards() {
             <path
               key={link.key}
               d={link.d}
-              stroke="rgba(245,241,234,0.22)"
+              style={{ stroke: LINK_STROKE }}
               strokeWidth={1.5}
               vectorEffect="non-scaling-stroke"
             />
@@ -145,8 +153,7 @@ export function ProtocolCards() {
             aria-hidden="true"
             className="pointer-events-none absolute top-1/2 left-1/2 h-[74%] w-[min(980px,96vw)] -translate-x-1/2 -translate-y-1/2"
             style={{
-              background:
-                "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,15,26,0.92) 0%, rgba(11,15,26,0.8) 42%, rgba(11,15,26,0.45) 68%, rgba(11,15,26,0) 88%)",
+              background: SCRIM,
             }}
           />
           <div className="relative">

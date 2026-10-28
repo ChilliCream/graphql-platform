@@ -1,7 +1,14 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
+
+const WINDOW_VARS = {
+  "--aw-chrome": lightDark("var(--color-cc-code-header)", "#0d1b30"),
+  "--aw-surface": lightDark("var(--color-cc-surface)", "#0a1426"),
+  "--aw-shadow": `0 24px 70px -30px ${lightDark("rgba(60,48,30,0.4)", "rgba(0,0,0,0.85)")}`,
+} as CSSProperties;
 
 interface AppWindowProps {
   readonly title: ReactNode;
@@ -19,7 +26,7 @@ export function AppWindow({
   className = "",
 }: AppWindowProps) {
   return (
-    <div className="min-w-0">
+    <div className="min-w-0" style={WINDOW_VARS}>
       {disclosure !== undefined && (
         <Eyebrow color="ink-dim" size="2xs" className="mb-3">
           {disclosure}
@@ -41,12 +48,12 @@ export function AppWindow({
             </>
           ),
         }}
-        headerClassName="flex items-center gap-2 bg-[#0d1b30] px-4 py-2.5"
+        headerClassName="flex items-center gap-2 bg-(--aw-chrome) px-4 py-2.5"
         footer={footer}
-        footerClassName="bg-[#0d1b30] px-4 py-2.5"
+        footerClassName="bg-(--aw-chrome) px-4 py-2.5"
         shadow="none"
         rounded="rounded-xl"
-        surfaceClassName={`bg-[#0a1426] shadow-[0_24px_70px_-30px_rgba(0,0,0,0.85)] backdrop-blur-md ${className}`}
+        surfaceClassName={`bg-(--aw-surface) shadow-(--aw-shadow) backdrop-blur-md ${className}`}
       >
         {children}
       </MockWindowChrome>

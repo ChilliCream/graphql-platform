@@ -8,6 +8,7 @@ import { AGENTS, AgentLogo } from "@/src/components/AgentLogo";
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { CopyCommand } from "@/src/components/CopyCommand";
 import { KeyValueChipCard } from "@/src/components/KeyValueChipCard";
+import { lightDark } from "@/src/components/lightDark";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { PageSection } from "@/src/components/PageSection";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
@@ -131,10 +132,23 @@ interface TimeBar {
 }
 
 const TIME_BARS: readonly TimeBar[] = [
-  { label: "write", width: 22, fill: "rgba(245, 241, 234, 0.42)" },
+  {
+    label: "write",
+    width: 22,
+    fill: lightDark("rgba(15, 23, 42, 0.45)", "rgba(245, 241, 234, 0.42)"),
+  },
   { label: "review", width: 18, fill: "var(--color-cc-accent)" },
-  { label: "usual review", width: 84, fill: "rgba(245, 241, 234, 0.13)" },
+  {
+    label: "usual review",
+    width: 84,
+    fill: lightDark("rgba(15, 23, 42, 0.2)", "rgba(245, 241, 234, 0.13)"),
+  },
 ];
+
+const TIME_TRACK = lightDark(
+  "rgba(15, 23, 42, 0.1)",
+  "rgba(245, 241, 234, 0.06)",
+);
 
 /** Compact PR figure: a uniform diff above the time it costs to review. */
 function ReviewFacet() {
@@ -188,7 +202,7 @@ function ReviewFacet() {
             </span>
             <span
               className="h-1.5 flex-1 overflow-hidden rounded-full"
-              style={{ background: "rgba(245, 241, 234, 0.06)" }}
+              style={{ background: TIME_TRACK }}
             >
               <span
                 className="block h-full rounded-full"
@@ -284,8 +298,8 @@ function PatternsFacet() {
 
 // --- Facet 3: the reviewed SKILL.md ----------------------------------------
 
-const SKILL_VIOLET = "#8b8ff0";
-const SKILL_VIOLET_SOFT = "#7c92c6";
+const SKILL_VIOLET = lightDark("#5b21b6", "#8b8ff0");
+const SKILL_VIOLET_SOFT = lightDark("#4a5a94", "#7c92c6");
 const VAR_ACCENT = "var(--color-cc-accent)";
 const VAR_HEADING = "var(--color-cc-heading)";
 const VAR_INK = "var(--color-cc-ink)";
@@ -335,8 +349,14 @@ function SkillFacet() {
             <span
               className="inline-flex size-[18px] items-center justify-center rounded-[5px] font-mono text-[0.5rem] font-bold"
               style={{
-                background: "rgba(139, 143, 240, 0.14)",
-                border: "1px solid rgba(139, 143, 240, 0.4)",
+                background: lightDark(
+                  "rgba(91, 33, 182, 0.1)",
+                  "rgba(139, 143, 240, 0.14)",
+                ),
+                border: `1px solid ${lightDark(
+                  "rgba(91, 33, 182, 0.4)",
+                  "rgba(139, 143, 240, 0.4)",
+                )}`,
                 color: SKILL_VIOLET,
               }}
             >

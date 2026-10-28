@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { ButtonRow } from "@/src/components/ButtonRow";
+import { lightDark } from "@/src/components/lightDark";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
@@ -12,7 +13,7 @@ import { HeroBoard } from "@/src/components/mocha/HeroBoard";
 import {
   CORAL,
   CYAN,
-  GREEN,
+  GREEN_TEXT,
   TEAL,
   VIOLET,
 } from "@/src/components/mocha/palette";
@@ -189,7 +190,7 @@ export function ClientPage() {
               <span
                 className="bg-clip-text text-transparent"
                 style={{
-                  backgroundImage: `linear-gradient(90deg, ${TEAL}, ${CORAL})`,
+                  backgroundImage: `linear-gradient(90deg, ${lightDark("#0f766e", TEAL)}, ${lightDark("#d14a3a", CORAL)})`,
                 }}
               >
                 within and between services.
@@ -477,8 +478,9 @@ export function ClientPage() {
                 The inbox and the handler&apos;s changes are committed together,
                 while any outgoing messages are held until that transaction
                 succeeds. For database operations, this provides effectively
-                exactly-once <span style={{ color: GREEN }}>processing</span>{" "}
-                for as long as the inbox record is retained.
+                exactly-once{" "}
+                <span style={{ color: GREEN_TEXT }}>processing</span> for as
+                long as the inbox record is retained.
               </p>
             </Intro>
           }

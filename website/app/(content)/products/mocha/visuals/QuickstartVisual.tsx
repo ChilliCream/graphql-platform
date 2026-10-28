@@ -4,11 +4,13 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   CORAL,
   CORAL_SOFT,
-  CYAN,
-  NAVY,
-  VIOLET,
+  CORAL_TEXT,
+  CYAN_TEXT,
+  VIOLET_TEXT,
 } from "@/src/components/mocha/palette";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fdfbf7", "#0b0f1a");
 const STEP = 3.4;
 const PERIOD = STEP * 3;
 const TRAVEL = 0.85;
@@ -21,9 +23,9 @@ const TRAIL_R = [1.8, 1.4, 1];
 const TAG_DIM = "var(--color-cc-ink-dim)";
 const ACTIVE_BORDER = "rgba(240,120,106,0.4)";
 
-const KW = { color: VIOLET };
-const TY = { color: CYAN };
-const MT = { color: CORAL };
+const KW = { color: VIOLET_TEXT };
+const TY = { color: CYAN_TEXT };
+const MT = { color: CORAL_TEXT };
 
 interface Geom {
   readonly x: number;
@@ -187,7 +189,7 @@ export function QuickstartVisual() {
       const tag = tagRefs.current[i];
       const panel = panelRefs.current[i];
       if (tag) {
-        tag.style.color = on ? CORAL : TAG_DIM;
+        tag.style.color = on ? CORAL_TEXT : TAG_DIM;
       }
       if (panel) {
         panel.style.borderColor = on ? ACTIVE_BORDER : "";
@@ -334,7 +336,10 @@ export function QuickstartVisual() {
                   y1={geom.ys[0]}
                   x2={geom.x}
                   y2={geom.ys[2]}
-                  stroke="rgba(139,160,188,0.4)"
+                  stroke={lightDark(
+                    "rgba(51,65,85,0.45)",
+                    "rgba(139,160,188,0.4)",
+                  )}
                   strokeWidth={1.5}
                 />
                 {geom.ys.map((y, i) => (
@@ -344,7 +349,10 @@ export function QuickstartVisual() {
                     cy={y}
                     r={2.5}
                     fill={NAVY}
-                    stroke="rgba(164,180,208,0.55)"
+                    stroke={lightDark(
+                      "rgba(51,65,85,0.62)",
+                      "rgba(164,180,208,0.55)",
+                    )}
                     strokeWidth={1.2}
                   />
                 ))}
@@ -387,7 +395,7 @@ export function QuickstartVisual() {
                 }}
                 className="mb-1.5 font-mono text-[0.7rem] tracking-[0.15em] uppercase"
                 style={{
-                  color: i === 0 ? CORAL : TAG_DIM,
+                  color: i === 0 ? CORAL_TEXT : TAG_DIM,
                   transition: "color .3s",
                 }}
               >

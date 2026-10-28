@@ -20,6 +20,8 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { lightDark } from "@/src/components/lightDark";
+import { useColorScheme } from "@/src/components/useColorScheme";
 import { NitroReel } from "@/src/nitro";
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
@@ -141,7 +143,7 @@ interface NitroCanvasProps {
 function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
-      theme="dark"
+      theme="auto"
       className={className}
       style={
         {
@@ -334,6 +336,13 @@ const CURTAINS: readonly {
   },
 ];
 
+const GLOW_BLEND = lightDark(
+  "multiply",
+  "screen",
+) as CSSProperties["mixBlendMode"];
+
+const GLOW_OPACITY = lightDark("0.3", "1");
+
 const STRIKE_X_OFFSET = 288;
 const STRIKE_Y = 577;
 
@@ -345,6 +354,14 @@ const MOTE_TINTS = [
   { fill: "222,240,246", glow: "143,201,221" },
 ] as const;
 
+const MOTE_TINTS_LIGHT = [
+  { fill: "196,78,58", glow: "214,92,70" },
+  { fill: "176,96,28", glow: "204,128,48" },
+  { fill: "196,78,58", glow: "214,92,70" },
+  { fill: "168,52,40", glow: "196,78,58" },
+  { fill: "11,127,158", glow: "22,150,186" },
+] as const;
+
 interface HeroSparksProps {
   readonly reduced: boolean;
   readonly className?: string;
@@ -353,6 +370,7 @@ interface HeroSparksProps {
 function HeroSparks({ reduced, className }: HeroSparksProps) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const inView = useInView(ref, { amount: 0.01 });
+  const tints = useColorScheme() === "light" ? MOTE_TINTS_LIGHT : MOTE_TINTS;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -383,7 +401,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       base: 0.32 + rand(i * 9 + 7) * 0.52,
       phase: rand(i * 9 + 8) * Math.PI * 2,
       twSpeed: 0.6 + rand(i * 9 + 9) * 1.4,
-      tint: MOTE_TINTS[Math.floor(rand(i * 9 + 10) * MOTE_TINTS.length)],
+      tint: tints[Math.floor(rand(i * 9 + 10) * tints.length)],
     }));
 
     const smoothstep = (a: number, b: number, x: number) => {
@@ -463,7 +481,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [inView, reduced]);
+  }, [inView, reduced, tints]);
 
   return (
     <canvas
@@ -481,7 +499,7 @@ interface HeroAuroraProps {
 
 function HeroAurora({ reduced }: HeroAuroraProps) {
   const baseY = 602;
-  const screen = { mixBlendMode: "screen" as const };
+  const screen = { mixBlendMode: GLOW_BLEND, opacity: GLOW_OPACITY };
   return (
     <div
       aria-hidden="true"
@@ -605,8 +623,8 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: baseY,
             width: 6,
             filter: "blur(4px)",
-            background:
-              "linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(196,236,247,0.7) 46%, rgba(22,185,228,0.55) 100%)",
+            opacity: 1,
+            background: `linear-gradient(to bottom, ${lightDark("rgba(7,94,117,0.6)", "rgba(255,255,255,0.9)")} 0%, ${lightDark("rgba(11,127,158,0.45)", "rgba(196,236,247,0.7)")} 46%, ${lightDark("rgba(22,150,186,0.35)", "rgba(22,185,228,0.55)")} 100%)`,
           }}
         />
         <div
@@ -616,8 +634,8 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: baseY - 20,
             width: 2,
             filter: "blur(0.5px)",
-            background:
-              "linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(226,244,250,0.9) 55%, rgba(226,244,250,0.4) 100%)",
+            opacity: 1,
+            background: `linear-gradient(to bottom, ${lightDark("rgba(7,94,117,0.9)", "rgba(255,255,255,1)")} 0%, ${lightDark("rgba(11,127,158,0.6)", "rgba(226,244,250,0.9)")} 55%, ${lightDark("rgba(11,127,158,0.2)", "rgba(226,244,250,0.4)")} 100%)`,
           }}
         />
 
@@ -761,8 +779,8 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 18,
             width: 900,
             filter: "blur(6px)",
-            background:
-              "linear-gradient(90deg, transparent 0%, rgba(126,206,236,0.55) 26%, rgba(255,255,255,0.98) 50%, rgba(126,206,236,0.55) 74%, transparent 100%)",
+            opacity: 1,
+            background: `linear-gradient(90deg, transparent 0%, ${lightDark("rgba(11,127,158,0.35)", "rgba(126,206,236,0.55)")} 26%, ${lightDark("rgba(7,94,117,0.7)", "rgba(255,255,255,0.98)")} 50%, ${lightDark("rgba(11,127,158,0.35)", "rgba(126,206,236,0.55)")} 74%, transparent 100%)`,
           }}
         />
       </div>
@@ -772,11 +790,10 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(120% 90% at 50% 8%, transparent 46%, rgba(11,15,26,0.55) 78%, #0b0f1a 100%)",
+          background: `radial-gradient(120% 90% at 50% 8%, transparent 46%, ${lightDark("rgba(245,241,234,0.55)", "rgba(11,15,26,0.55)")} 78%, var(--color-cc-bg) 100%)`,
         }}
       />
-      <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-b from-transparent to-[#0b0f1a]" />
+      <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-b from-transparent to-(--color-cc-bg)" />
     </div>
   );
 }
@@ -1160,7 +1177,9 @@ function SignalsBento() {
             <div className="flex items-baseline gap-2">
               <span
                 className="font-heading text-h4 tabular-nums"
-                style={{ color: "#f0786a" }}
+                style={{
+                  color: lightDark("var(--color-cc-danger)", "#f0786a"),
+                }}
               >
                 0.31%
               </span>
@@ -1321,7 +1340,12 @@ function DeliveryBand() {
                 </div>
                 <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-3 font-mono text-xs">
                   <div className="text-cc-ink-dim">POST /graphql</div>
-                  <div className="mt-1 truncate" style={{ color: "#16b9e4" }}>
+                  <div
+                    className="mt-1 truncate"
+                    style={{
+                      color: lightDark("var(--color-cc-accent)", "#16b9e4"),
+                    }}
+                  >
                     documentId: sha256:7f3a9b2e…
                   </div>
                   <div className="text-cc-success mt-1">
@@ -1360,7 +1384,7 @@ function Hero({ reduced }: HeroProps) {
             <span
               aria-hidden="true"
               className="h-px w-16 rounded-full"
-              style={{ background: "#16b9e4" }}
+              style={{ background: lightDark("#0b7f9e", "#16b9e4") }}
             />
             <Eyebrow
               as="span"
@@ -1373,8 +1397,7 @@ function Hero({ reduced }: HeroProps) {
           <h1
             className="font-heading text-h1 text-balance"
             style={{
-              backgroundImage:
-                "linear-gradient(105deg, #f5f0ea 24%, #8fd3ec 58%, #16b9e4 82%, #7c92c6 100%)",
+              backgroundImage: `linear-gradient(105deg, ${lightDark("#0b0f1a", "#f5f0ea")} 24%, ${lightDark("#0b7f9e", "#8fd3ec")} 58%, ${lightDark("#075e75", "#16b9e4")} 82%, ${lightDark("#4a5f94", "#7c92c6")} 100%)`,
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               color: "transparent",
@@ -1420,7 +1443,7 @@ function Hero({ reduced }: HeroProps) {
                   width: 300,
                   height: 120,
                   filter: "blur(16px)",
-                  mixBlendMode: "screen",
+                  mixBlendMode: GLOW_BLEND,
                   background:
                     "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(140,214,240,0.55), rgba(22,185,228,0.26) 52%, transparent 80%)",
                 }}
@@ -1434,7 +1457,7 @@ function Hero({ reduced }: HeroProps) {
                   width: 460,
                   height: 18,
                   filter: "blur(7px)",
-                  mixBlendMode: "screen",
+                  mixBlendMode: GLOW_BLEND,
                   background:
                     "linear-gradient(90deg, transparent, rgba(170,222,244,0.75) 40%, rgba(255,255,255,0.95) 50%, rgba(170,222,244,0.75) 60%, transparent)",
                 }}
@@ -1448,7 +1471,7 @@ function Hero({ reduced }: HeroProps) {
                   width: 640,
                   height: 3,
                   filter: "blur(1px)",
-                  mixBlendMode: "screen",
+                  mixBlendMode: GLOW_BLEND,
                   background:
                     "linear-gradient(90deg, transparent, rgba(140,214,240,0.5) 24%, rgba(255,255,255,1) 50%, rgba(140,214,240,0.5) 76%, transparent)",
                 }}
@@ -1462,7 +1485,7 @@ function Hero({ reduced }: HeroProps) {
                   width: 64,
                   height: 64,
                   filter: "blur(5px)",
-                  mixBlendMode: "screen",
+                  mixBlendMode: GLOW_BLEND,
                   background:
                     "radial-gradient(circle, rgba(255,255,255,1), rgba(205,240,255,0.7) 30%, transparent 68%)",
                 }}
@@ -1476,7 +1499,7 @@ function Hero({ reduced }: HeroProps) {
                   width: 300,
                   height: 130,
                   filter: "blur(16px)",
-                  mixBlendMode: "screen",
+                  mixBlendMode: GLOW_BLEND,
                   background:
                     "linear-gradient(to bottom, rgba(205,240,255,0.42), rgba(22,185,228,0.16) 45%, transparent 82%)",
                 }}

@@ -15,32 +15,35 @@ import {
 import {
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
   GREEN,
+  GREEN_TEXT,
   MONO_FONT,
-  NAVY,
-  SLATE,
+  SLATE_TEXT,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fdfbf7", "#0b0f1a");
 const T = 10000;
 const REST_T = 8700;
 const H = 176;
 const MIN_W = 700;
 
-const INK = "#a1a3af";
+const INK = lightDark("#334155", "#a1a3af");
 const CYAN_SOFT = "#b7e8f7";
 const GREEN_SOFT = "#a7f3d0";
-const SURFACE = "#0c1322";
-const HAIR = "rgba(139,160,188,0.22)";
-const PANEL_STROKE = "rgba(158,176,204,0.44)";
-const LANE_STROKE = "rgba(139,160,188,0.4)";
-const PAD_FILL = "rgba(158,176,204,0.34)";
-const VIA_STROKE = "rgba(164,180,208,0.55)";
-const SILK = "rgba(154,172,200,0.75)";
-const SILK_SOFT = "rgba(154,172,200,0.7)";
-const GRID_DOT = "rgba(150,166,194,0.10)";
+const SURFACE = lightDark("#fdfbf7", "#0c1322");
+const HAIR = lightDark("rgba(51,65,85,0.22)", "rgba(139,160,188,0.22)");
+const PANEL_STROKE = lightDark("rgba(51,65,85,0.5)", "rgba(158,176,204,0.44)");
+const LANE_STROKE = lightDark("rgba(51,65,85,0.45)", "rgba(139,160,188,0.4)");
+const PAD_FILL = lightDark("rgba(51,65,85,0.4)", "rgba(158,176,204,0.34)");
+const VIA_STROKE = lightDark("rgba(51,65,85,0.62)", "rgba(164,180,208,0.55)");
+const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
+const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
+const GRID_DOT = lightDark("rgba(51,65,85,0.16)", "rgba(150,166,194,0.10)");
 
 const M = 8;
 const CL_X = 8;
@@ -441,7 +444,7 @@ export function SendVisual() {
             width={PW1}
             height={PANEL_H}
             rx={3}
-            fill="rgba(139,160,188,0.03)"
+            fill={lightDark("rgba(51,65,85,0.04)", "rgba(139,160,188,0.03)")}
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
@@ -564,7 +567,7 @@ export function SendVisual() {
             y={ROW_TOP + 21}
             fontFamily={MONO_FONT}
             fontSize={10}
-            fill={CYAN_SOFT}
+            fill={lightDark("var(--color-cc-accent)", CYAN_SOFT)}
             opacity={0}
           >
             PlaceOrderHandler
@@ -588,7 +591,7 @@ export function SendVisual() {
             width={PW2}
             height={PANEL_H}
             rx={3}
-            fill="rgba(139,160,188,0.03)"
+            fill={lightDark("rgba(51,65,85,0.04)", "rgba(139,160,188,0.03)")}
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
@@ -703,7 +706,7 @@ export function SendVisual() {
             y={ROW_TOP + 21}
             fontFamily={MONO_FONT}
             fontSize={10}
-            fill={CORAL_SOFT}
+            fill={CORAL_SOFT_TEXT}
             opacity={0}
           >
             ReserveInventoryHandler
@@ -843,7 +846,7 @@ export function SendVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.04em"
-            fill={SLATE}
+            fill={SLATE_TEXT}
             fillOpacity={0.9}
           >
             POST /orders
@@ -855,7 +858,7 @@ export function SendVisual() {
               fontFamily={MONO_FONT}
               fontSize={9}
               letterSpacing="0.04em"
-              fill={GREEN}
+              fill={GREEN_TEXT}
             >
               200 · already returned
             </text>

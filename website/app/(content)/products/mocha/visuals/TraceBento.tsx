@@ -5,7 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { CountUp, NitroTheme, Sparkline, TraceWaterfall } from "@/src/nitro";
 import type { Trace } from "@/src/nitro/lib/data/types";
 
-import { CORAL, GREEN } from "@/src/components/mocha/palette";
+import { CORAL, GREEN, GREEN_TEXT } from "@/src/components/mocha/palette";
 
 interface NitroCanvasProps {
   readonly children: ReactNode;
@@ -16,7 +16,7 @@ interface NitroCanvasProps {
 function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
-      theme="dark"
+      theme="auto"
       reducedMotion="user"
       className={className}
       style={{ background: "transparent", ...style }}
@@ -183,7 +183,7 @@ export function TraceBento() {
             <span
               className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] tracking-[0.1em] uppercase"
               style={{
-                color: GREEN,
+                color: GREEN_TEXT,
                 borderColor: `${GREEN}44`,
                 backgroundColor: `${GREEN}14`,
               }}

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { lightAppearance } from "@/src/components/lightAppearance";
 
 import { PatternBand } from "./PatternBand";
 import { SectionHeading } from "./SectionHeading";
@@ -74,4 +75,19 @@ export const Recessed: Story = {
     pattern: "dots",
     recessed: true,
   },
+};
+
+export const LightDots: Story = {
+  args: { pattern: "dots" },
+  beforeEach: lightAppearance,
+};
+
+export const LightGrid: Story = {
+  args: { pattern: "grid", blend: true },
+  beforeEach: lightAppearance,
+};
+
+export const LightLines: Story = {
+  args: { pattern: "lines", recessed: true },
+  beforeEach: lightAppearance,
 };

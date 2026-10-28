@@ -26,6 +26,7 @@ import {
   LABEL_COLOR,
   LATENCY_CHART_WIDTH,
   LATENCY_NUMERAL_COLOR,
+  NUMERAL_GLOW,
   VB,
   type Arc,
 } from "./hud";
@@ -229,7 +230,7 @@ export function LatencyDial({ telemetry }: LatencyDialProps) {
               lineHeight: 1.2,
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 8px ${ELECTRIC})`,
+              filter: `drop-shadow(0 0 8px ${NUMERAL_GLOW})`,
             }}
           >
             {readout}

@@ -49,7 +49,7 @@ export function PerformanceHud() {
 
   return (
     <div ref={ref}>
-      <NitroTheme theme="dark" style={{ background: "transparent" }}>
+      <NitroTheme theme="auto" style={{ background: "transparent" }}>
         <div className="@container/hud">
           <div
             className="relative aspect-(--stack-aspect) w-full @min-[504px]/hud:aspect-(--row-aspect)"
