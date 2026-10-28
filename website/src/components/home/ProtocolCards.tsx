@@ -18,10 +18,21 @@ interface Protocol {
   readonly tags: readonly string[];
 }
 
-const LINK_STROKE = lightDark("rgba(15,23,42,0.4)", "rgba(245,241,234,0.22)");
+const linkStroke = (glow: string) =>
+  lightDark(
+    `color-mix(in srgb, var(${glow}) 80%, transparent)`,
+    "rgba(245,241,234,0.22)",
+  );
+
+const LINK_STROKES = [
+  linkStroke("--cc-glow-cyan"),
+  linkStroke("--cc-glow-magenta"),
+  linkStroke("--cc-glow-violet"),
+  linkStroke("--cc-glow-coral"),
+] as const;
 
 const scrim = (alpha: number) =>
-  lightDark(`rgba(245,241,234,${alpha})`, `rgba(11,15,26,${alpha})`);
+  lightDark(`rgba(252,251,248,${alpha})`, `rgba(11,15,26,${alpha})`);
 
 const SCRIM = `radial-gradient(ellipse 50% 50% at 50% 50%, ${scrim(0.92)} 0%, ${scrim(0.8)} 42%, ${scrim(0.45)} 68%, ${scrim(0)} 88%)`;
 
@@ -84,6 +95,7 @@ const LINKS = PROTOCOLS.flatMap((card, to) =>
       const mid = LINK_Y / 2;
       return {
         key: `${from}-${to}`,
+        from,
         d: `M ${x0} 0 C ${x0} ${mid} ${x1} ${mid} ${x1} ${LINK_Y}`,
       };
     }),
@@ -141,7 +153,7 @@ export function ProtocolCards() {
             <path
               key={link.key}
               d={link.d}
-              style={{ stroke: LINK_STROKE }}
+              style={{ stroke: LINK_STROKES[link.from] }}
               strokeWidth={1.5}
               vectorEffect="non-scaling-stroke"
             />

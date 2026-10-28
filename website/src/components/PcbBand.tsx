@@ -9,9 +9,9 @@ import type {
   Pulse,
   RingFlash,
 } from "@/src/components/mocha/board";
+import type { BoardPalette } from "@/src/components/mocha/board";
 import {
   DARK_BOARD_PALETTE,
-  LIGHT_BOARD_PALETTE,
   PULSE_TRAIL,
   envelope,
   generateBoard,
@@ -23,29 +23,64 @@ import { MONO_FONT } from "@/src/components/mocha/palette";
 import { lightDark } from "@/src/components/lightDark";
 import { useColorScheme } from "@/src/components/useColorScheme";
 
-const SHADOW_STRONG = lightDark("rgba(60,48,30,0.16)", "rgba(2,6,16,0.7)");
-const SHADOW_SOFT = lightDark("rgba(60,48,30,0.06)", "rgba(2,6,16,0.25)");
+const BOARD_GROUND = lightDark(
+  "var(--color-cc-card-bg)",
+  "var(--color-cc-band)",
+);
+
+const LIGHT_PCB_PALETTE: BoardPalette = {
+  pad: "rgba(6, 182, 212, 0.4)",
+  hatch: "rgba(139, 92, 246, 0.2)",
+  hatchEdge: "rgba(139, 92, 246, 0.32)",
+  footBody: "#fff",
+  footEdge: "rgba(139, 92, 246, 0.8)",
+  footPin: "rgba(6, 182, 212, 0.85)",
+  passivePad: "rgba(6, 182, 212, 0.9)",
+  passiveBody: "rgba(139, 92, 246, 0.45)",
+  resBody: "rgba(139, 92, 246, 0.55)",
+  resLand: "rgba(6, 182, 212, 0.9)",
+  canBody: "rgba(139, 92, 246, 0.5)",
+  canStripe: "rgba(139, 92, 246, 0.75)",
+  court: "rgba(6, 182, 212, 0.55)",
+  silk: "rgba(139, 92, 246, 0.75)",
+  trace: "rgba(6, 182, 212, 0.9)",
+  traceAlt: "rgba(139, 92, 246, 0.6)",
+  lane: "rgba(139, 92, 246, 0.9)",
+  via: "rgba(6, 182, 212, 0.95)",
+  hole: "#fff",
+  msg: "217, 70, 239",
+  msgSoft: "232, 121, 249",
+  glow: "6, 182, 212",
+  glowGain: 2,
+  glowComposite: "source-over",
+};
+
+const SHADOW_STRONG = lightDark("rgba(6,182,212,0.2)", "rgba(2,6,16,0.7)");
+const SHADOW_SOFT = lightDark("rgba(6,182,212,0.06)", "rgba(2,6,16,0.25)");
 
 const SHADOW_TOP = `linear-gradient(to bottom, ${SHADOW_STRONG}, ${SHADOW_SOFT} 55%, transparent)`;
 const SHADOW_BOTTOM = `linear-gradient(to top, ${SHADOW_STRONG}, ${SHADOW_SOFT} 55%, transparent)`;
 
-const VIGNETTE_TOP_COLOR = lightDark("rgba(60,48,30,0.1)", "rgba(2,6,16,0.35)");
+const VIGNETTE_TOP_COLOR = lightDark(
+  "rgba(255,255,255,0)",
+  "rgba(2,6,16,0.35)",
+);
 const VIGNETTE_BOTTOM_COLOR = lightDark(
-  "rgba(60,48,30,0.14)",
+  "rgba(255,255,255,0)",
   "rgba(2,6,16,0.55)",
 );
 const VIGNETTE_SIDE_COLOR = lightDark(
-  "rgba(60,48,30,0.08)",
+  "rgba(255,255,255,0)",
   "rgba(2,6,16,0.3)",
 );
-const VIGNETTE_CLEAR = lightDark("rgba(60,48,30,0)", "rgba(2,6,16,0)");
+const VIGNETTE_CLEAR = lightDark("rgba(255,255,255,0)", "rgba(2,6,16,0)");
 
 const VIGNETTE_TOP = `linear-gradient(to bottom, ${VIGNETTE_TOP_COLOR}, ${VIGNETTE_CLEAR} 12%)`;
 const VIGNETTE_BOTTOM = `linear-gradient(to top, ${VIGNETTE_BOTTOM_COLOR}, ${VIGNETTE_CLEAR} 18%)`;
 const VIGNETTE_SIDES = `linear-gradient(to right, ${VIGNETTE_SIDE_COLOR}, ${VIGNETTE_CLEAR} 8%, ${VIGNETTE_CLEAR} 92%, ${VIGNETTE_SIDE_COLOR})`;
 
-const CHIP_RING = lightDark("rgba(51,65,85,0.55)", "rgba(205,216,232,0.55)");
-const CHIP_CORE = lightDark("rgba(51,65,85,0.85)", "rgba(232,238,248,0.9)");
+const CHIP_RING = lightDark("#0891b2", "rgba(205,216,232,0.55)");
+const CHIP_CORE = lightDark("#06b6d4", "rgba(232,238,248,0.9)");
 const CHIP_LABEL = lightDark("rgba(51,65,85,0.85)", "rgba(170,188,214,0.8)");
 const CHIP_DESIGNATOR = lightDark(
   "rgba(51,65,85,0.55)",
@@ -110,7 +145,10 @@ function NodeChip({ seed }: NodeChipProps) {
     >
       <span
         className="relative block h-2.5 w-2.5 rounded-full border"
-        style={{ borderColor: CHIP_RING }}
+        style={{
+          borderColor: CHIP_RING,
+          boxShadow: "var(--cc-glow-cyan-halo)",
+        }}
       >
         <span
           className="absolute inset-[2.5px] rounded-full"
@@ -147,7 +185,10 @@ export function PcbBand({ children, className = "", id }: PcbBandProps) {
   return (
     <div id={id} className={bandClass}>
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="bg-cc-band absolute inset-0" />
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: BOARD_GROUND }}
+        />
         <PcbBoard />
         <div
           className="absolute inset-0"
@@ -203,8 +244,7 @@ function PcbBoard() {
       return;
     }
 
-    const palette =
-      scheme === "light" ? LIGHT_BOARD_PALETTE : DARK_BOARD_PALETTE;
+    const palette = scheme === "light" ? LIGHT_PCB_PALETTE : DARK_BOARD_PALETTE;
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;

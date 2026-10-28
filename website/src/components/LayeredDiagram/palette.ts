@@ -11,6 +11,8 @@ export const MC = {
   dim: CC.inkDim,
   phosphor: lightDark(CC.success, BRAND.teal),
   signal: lightDark(CC.accent, BRAND.cyan),
+  phosphorGlow: lightDark("#0d9488", BRAND.teal),
+  signalGlow: lightDark("var(--color-cc-accent-vivid)", BRAND.cyan),
 } as const;
 
 export type StationSpec = "GraphQL Federation" | "Apollo Federation";

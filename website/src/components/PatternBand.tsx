@@ -7,7 +7,9 @@ import { useCallback, useRef, useState } from "react";
 import { DOT_BG, HALO_BG } from "@/src/components/DotGridSurface";
 import { lightDark } from "@/src/components/lightDark";
 
-const GRID_LINE = lightDark("rgba(15,23,42,0.1)", "rgba(245,241,234,0.06)");
+const BAND_GROUND = lightDark("#f4fbfd", "var(--color-cc-band)");
+
+const GRID_LINE = lightDark("rgba(6,182,212,0.3)", "rgba(245,241,234,0.06)");
 
 const GRID_BG = `linear-gradient(${GRID_LINE} 1px, transparent 1px), linear-gradient(90deg, ${GRID_LINE} 1px, transparent 1px)`;
 
@@ -23,36 +25,56 @@ const EDGE_FADE =
 const EDGE_FADE_TOP =
   "linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%)";
 
-const SHADOW_STRONG = lightDark("rgba(60,48,30,0.16)", "rgba(2,6,16,0.7)");
-const SHADOW_SOFT = lightDark("rgba(60,48,30,0.06)", "rgba(2,6,16,0.25)");
+const SHADOW_STRONG = lightDark("rgba(6,182,212,0.2)", "rgba(2,6,16,0.7)");
+const SHADOW_SOFT = lightDark("rgba(6,182,212,0.06)", "rgba(2,6,16,0.25)");
 
 const SHADOW_TOP = `linear-gradient(to bottom, ${SHADOW_STRONG}, ${SHADOW_SOFT} 55%, transparent)`;
 const SHADOW_BOTTOM = `linear-gradient(to top, ${SHADOW_STRONG}, ${SHADOW_SOFT} 55%, transparent)`;
 
 const RECESS_SHADOW = `0 20px 30px -18px ${lightDark("rgba(60,48,30,0.28)", "rgba(2,6,16,0.9)")}`;
 
-const TEAL_GLOW = `radial-gradient(60% 90% at 50% 40%, ${lightDark("rgba(7,94,117,0.07)", "rgba(94,234,212,0.08)")}, transparent 65%)`;
+const TEAL_GLOW = `radial-gradient(60% 90% at 50% 40%, ${lightDark("rgba(6,182,212,0.16)", "rgba(94,234,212,0.08)")}, transparent 65%)`;
 
-const SPECTRUM_BEAM = `linear-gradient(180deg, ${lightDark("rgba(8,145,178,0)", "rgba(22,185,228,0)")} 0%, ${lightDark("rgba(8,145,178,0.24)", "rgba(22,185,228,0.1)")} 6%, ${lightDark("rgba(99,110,170,0.22)", "rgba(124,146,198,0.09)")} 38%, ${lightDark("rgba(220,90,76,0.16)", "rgba(240,120,106,0.06)")} 60%, ${lightDark("rgba(220,90,76,0)", "rgba(240,120,106,0)")} 78%)`;
+const SPECTRUM_BEAM = `linear-gradient(180deg, ${lightDark("rgba(6,182,212,0)", "rgba(22,185,228,0)")} 0%, ${lightDark("rgba(6,182,212,0.75)", "rgba(22,185,228,0.1)")} 6%, ${lightDark("rgba(139,92,246,0.7)", "rgba(124,146,198,0.09)")} 38%, ${lightDark("rgba(217,70,239,0.55)", "rgba(240,120,106,0.06)")} 60%, ${lightDark("rgba(217,70,239,0)", "rgba(240,120,106,0)")} 78%)`;
 
-const CYAN_BEAM = `linear-gradient(180deg, ${lightDark("rgba(8,145,178,0)", "rgba(22,185,228,0)")} 0%, ${lightDark("rgba(8,145,178,0.24)", "rgba(22,185,228,0.1)")} 8%, ${lightDark("rgba(8,145,178,0.12)", "rgba(22,185,228,0.05)")} 40%, transparent 75%)`;
+const CYAN_BEAM = `linear-gradient(180deg, ${lightDark("rgba(6,182,212,0)", "rgba(22,185,228,0)")} 0%, ${lightDark("rgba(6,182,212,0.7)", "rgba(22,185,228,0.1)")} 8%, ${lightDark("rgba(6,182,212,0.4)", "rgba(22,185,228,0.05)")} 40%, transparent 75%)`;
 
-const TEAL_BEAM = `linear-gradient(180deg, ${lightDark("rgba(15,118,110,0)", "rgba(94,234,212,0)")} 0%, ${lightDark("rgba(15,118,110,0.24)", "rgba(94,234,212,0.1)")} 8%, ${lightDark("rgba(15,118,110,0.1)", "rgba(94,234,212,0.04)")} 40%, transparent 75%)`;
+const TEAL_BEAM = `linear-gradient(180deg, ${lightDark("rgba(139,92,246,0)", "rgba(94,234,212,0)")} 0%, ${lightDark("rgba(139,92,246,0.7)", "rgba(94,234,212,0.1)")} 8%, ${lightDark("rgba(139,92,246,0.4)", "rgba(94,234,212,0.04)")} 40%, transparent 75%)`;
 
-const BEAM_DROP = `linear-gradient(180deg, transparent 0%, ${lightDark("rgba(7,94,117,0.9)", "rgba(245,241,234,0.9)")} 100%)`;
+const BEAM_DROP = `linear-gradient(180deg, transparent 0%, ${lightDark("rgba(6,182,212,1)", "rgba(245,241,234,0.9)")} 100%)`;
+
+const BEAM_HALO_CYAN = lightDark(
+  "drop-shadow(0 0 4px rgb(6 182 212 / 0.55))",
+  "none",
+);
+const BEAM_HALO_VIOLET = lightDark(
+  "drop-shadow(0 0 4px rgb(139 92 246 / 0.55))",
+  "none",
+);
 
 interface BeamSpec {
   readonly left: string;
   readonly width: string;
   readonly background: string;
+  readonly halo: string;
 }
 
 const BEAMS: readonly BeamSpec[] = [
-  { left: "8%", width: "1.5px", background: TEAL_BEAM },
-  { left: "24%", width: "1.5px", background: CYAN_BEAM },
-  { left: "50%", width: "2.5px", background: SPECTRUM_BEAM },
-  { left: "72%", width: "1.5px", background: CYAN_BEAM },
-  { left: "92%", width: "1.5px", background: TEAL_BEAM },
+  { left: "8%", width: "1.5px", background: TEAL_BEAM, halo: BEAM_HALO_VIOLET },
+  { left: "24%", width: "1.5px", background: CYAN_BEAM, halo: BEAM_HALO_CYAN },
+  {
+    left: "50%",
+    width: "2.5px",
+    background: SPECTRUM_BEAM,
+    halo: BEAM_HALO_VIOLET,
+  },
+  { left: "72%", width: "1.5px", background: CYAN_BEAM, halo: BEAM_HALO_CYAN },
+  {
+    left: "92%",
+    width: "1.5px",
+    background: TEAL_BEAM,
+    halo: BEAM_HALO_VIOLET,
+  },
 ];
 
 type BandPattern = "dots" | "grid" | "lines";
@@ -139,7 +161,10 @@ export function PatternBand({
         className="pointer-events-none absolute inset-0"
         style={bgMask}
       >
-        <div className="bg-cc-band absolute inset-0" />
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: BAND_GROUND }}
+        />
 
         {pattern === "dots" && (
           <>
@@ -193,6 +218,7 @@ export function PatternBand({
                   left: beam.left,
                   width: beam.width,
                   background: beam.background,
+                  filter: beam.halo,
                 }}
               />
             ))}
@@ -202,6 +228,7 @@ export function PatternBand({
                 width: "1.5px",
                 height: "60px",
                 background: BEAM_DROP,
+                filter: BEAM_HALO_CYAN,
               }}
             />
           </>

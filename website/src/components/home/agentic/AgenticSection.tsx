@@ -137,7 +137,11 @@ const TIME_BARS: readonly TimeBar[] = [
     width: 22,
     fill: lightDark("rgba(15, 23, 42, 0.45)", "rgba(245, 241, 234, 0.42)"),
   },
-  { label: "review", width: 18, fill: "var(--color-cc-accent)" },
+  {
+    label: "review",
+    width: 18,
+    fill: lightDark("#0891b2", "var(--color-cc-accent)"),
+  },
   {
     label: "usual review",
     width: 84,

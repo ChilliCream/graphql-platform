@@ -6,9 +6,9 @@ import { useCallback, useRef, useState } from "react";
 
 import { lightDark } from "@/src/components/lightDark";
 
-export const DOT_BG = `radial-gradient(circle, ${lightDark("rgba(15,23,42,0.22)", "rgba(245,241,234,0.12)")} 1px, transparent 1.2px)`;
+export const DOT_BG = `radial-gradient(circle, ${lightDark("rgba(6,182,212,0.5)", "rgba(245,241,234,0.12)")} 1px, transparent 1.2px)`;
 
-export const HALO_BG = `radial-gradient(circle, ${lightDark("rgba(7,94,117,0.7)", "rgba(94,234,212,0.7)")} 1px, transparent 1.2px)`;
+export const HALO_BG = `radial-gradient(circle, ${lightDark("rgba(139,92,246,0.9)", "rgba(94,234,212,0.7)")} 1px, transparent 1.2px)`;
 
 interface DotGridSurfaceProps {
   readonly children: ReactNode;

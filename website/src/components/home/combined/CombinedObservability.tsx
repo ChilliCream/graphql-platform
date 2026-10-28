@@ -6,7 +6,7 @@ import { lightDark } from "@/src/components/lightDark";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 
 const HEX = {
-  accent: lightDark("#0f766e", "#5eead4"),
+  accent: lightDark("#0d9488", "#5eead4"),
   coral: lightDark("#d14a3a", "#f0786a"),
   navLabel: lightDark("var(--color-cc-nav-label)", "#94a3b8"),
   page: lightDark("var(--color-cc-card-bg)", "#0b0f1a"),

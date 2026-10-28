@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { ArrowLink } from "@/src/components/ArrowLink";
+import { lightDark } from "@/src/components/lightDark";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { PageSection } from "@/src/components/PageSection";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
@@ -62,8 +63,7 @@ export function NitroSection() {
                 header={{ variant: "dots" }}
                 label={`Nitro / ${surface.caption}`}
                 glow={{
-                  background:
-                    "radial-gradient(60% 60% at 50% 35%, rgba(94,234,212,0.16), transparent 70%)",
+                  background: `radial-gradient(60% 60% at 50% 35%, ${lightDark("rgba(6,182,212,0.7)", "rgba(94,234,212,0.16)")}, transparent 70%)`,
                   inset: "-inset-3",
                   blur: "blur-2xl",
                   rounded: "rounded-[2rem]",

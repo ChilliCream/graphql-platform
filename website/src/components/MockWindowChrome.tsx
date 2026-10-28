@@ -78,7 +78,7 @@ function ChromeHeaderLeft({ header }: { readonly header: ChromeHeader }) {
       <span
         aria-hidden="true"
         className="inline-block h-2 w-2 rounded-full"
-        style={{ background: header.color ?? "var(--color-cc-accent)" }}
+        style={{ background: header.color ?? "var(--color-cc-accent-vivid)" }}
       />
     );
   }

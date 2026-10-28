@@ -72,7 +72,7 @@ function layerKeyframes(busY: Readonly<Record<BandFlow, number>>): string {
 `;
 }
 
-const HUB_GLOW = `radial-gradient(48% 36% at 50% 50%, ${wash(MC.phosphor, 16)} 0%, transparent 72%)`;
+const HUB_GLOW = `radial-gradient(48% 36% at 50% 50%, ${wash(MC.phosphorGlow, 16)} 0%, transparent 72%)`;
 
 function specColor(spec: StationSpec | null): string {
   if (spec === null) return MC.dim;
@@ -86,7 +86,7 @@ interface BandProps {
   readonly count: number;
   readonly columns: readonly [number, number];
   readonly lit: readonly number[];
-  readonly tone: string;
+  readonly glow: string;
   readonly step: number;
   readonly pulse: ((index: number) => string) | null;
   readonly dense?: boolean;
@@ -99,7 +99,7 @@ function Band({
   count,
   columns,
   lit,
-  tone,
+  glow,
   step,
   pulse,
   dense = false,
@@ -130,7 +130,7 @@ function Band({
               }
             >
               {lanes.map((lane) => (
-                <Elbow key={lane.key} lane={lane} flow={flow} tone={tone} />
+                <Elbow key={lane.key} lane={lane} flow={flow} glow={glow} />
               ))}
             </div>
 
@@ -138,7 +138,7 @@ function Band({
               className="absolute left-1/2 block border-solid transition-colors duration-500"
               style={{
                 borderLeftWidth: 1,
-                borderColor: active.length > 0 ? wash(tone, 85) : MC.line,
+                borderColor: active.length > 0 ? wash(glow, 85) : MC.line,
                 ...(down
                   ? { top: `${bus}%`, bottom: 0 }
                   : { top: 0, height: `${bus}%` }),
@@ -150,7 +150,7 @@ function Band({
                   <Pulse
                     key={`${step}-${lane.key}`}
                     lane={lane}
-                    tone={tone}
+                    glow={glow}
                     animation={pulse(index)}
                     busY={bus}
                   />
@@ -185,6 +185,7 @@ export default function LayeredDiagram({
   const request = requests[Math.floor(step / PHASE_LABEL.length)];
   const merging = phase === 2;
   const tone = merging ? MC.phosphor : MC.signal;
+  const glow = merging ? MC.phosphorGlow : MC.signalGlow;
 
   const targets = tiers
     .map((node, i) => (request.targets.includes(node.name) ? i : -1))
@@ -245,6 +246,7 @@ export default function LayeredDiagram({
                 }
                 lit={i === request.client}
                 tone={tone}
+                glow={glow}
                 dense={dense}
               />
             ))}
@@ -255,7 +257,7 @@ export default function LayeredDiagram({
             count={clients.length}
             columns={CLIENT_COLUMNS}
             lit={[request.client]}
-            tone={tone}
+            glow={glow}
             step={step}
             pulse={upstream}
             dense={dense}
@@ -266,8 +268,8 @@ export default function LayeredDiagram({
             className="rounded-xl border px-3 py-2.5 md:px-5 md:py-3"
             style={{
               background: MC.panel,
-              borderColor: wash(MC.phosphor, 45),
-              boxShadow: `0 0 34px ${wash(MC.phosphor, 12)}`,
+              borderColor: wash(MC.phosphorGlow, 45),
+              boxShadow: `0 0 34px ${wash(MC.phosphorGlow, 12)}`,
             }}
           >
             <div
@@ -372,7 +374,7 @@ export default function LayeredDiagram({
             count={tiers.length}
             columns={NODE_COLUMNS}
             lit={litNodes}
-            tone={tone}
+            glow={glow}
             step={step}
             pulse={downstream}
             dense={dense}
@@ -395,6 +397,7 @@ export default function LayeredDiagram({
                 badgeColor={specColor(node.spec)}
                 lit={litNodes.includes(i)}
                 tone={tone}
+                glow={glow}
                 dense={dense}
               />
             ))}

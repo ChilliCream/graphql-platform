@@ -70,17 +70,19 @@ const pctY = (y: number) => `${((y - VIEW.y) / VIEW.h) * 100}%`;
 
 /** Broad, feathered scrim that dims the streams behind the copy. */
 const scrim = (alpha: number) =>
-  lightDark(`rgba(245,241,234,${alpha})`, `rgba(11,15,26,${alpha})`);
+  lightDark(`rgba(252,251,248,${alpha})`, `rgba(11,15,26,${alpha})`);
 
 const SCRIM = `radial-gradient(ellipse 50% 50% at 50% 50%, ${scrim(0.9)} 0%, ${scrim(0.82)} 38%, ${scrim(0.5)} 62%, ${scrim(0)} 85%)`;
 
-const NODE_CORE = lightDark("#0b0f1a", "#fff");
+const NODE_CORE = lightDark("var(--cc-glow-cyan)", "#fff");
+const NODE_STROKE = lightDark("#0891b2", "none");
 const HALO_SOFT_START = lightDark(
-  "rgba(7,94,117,0.3)",
+  "rgba(6,182,212,0.55)",
   "rgba(255,255,255,0.9)",
 );
-const HALO_END = lightDark("rgba(7,94,117,0)", "rgba(14,21,34,0)");
-const HALO_CORE_START = lightDark("rgba(7,94,117,0.55)", "#fff");
+const HALO_END = lightDark("rgba(6,182,212,0)", "rgba(14,21,34,0)");
+const HALO_CORE_START = lightDark("rgba(139,92,246,0.45)", "#fff");
+const HALO_CORE_END = lightDark("rgba(139,92,246,0)", "rgba(14,21,34,0)");
 const COMPOSITION_RULE = lightDark(
   "var(--color-cc-control-border)",
   "rgba(245,241,234,0.3)",
@@ -201,12 +203,18 @@ export function FusionFlow() {
               gradientUnits="userSpaceOnUse"
             >
               <stop offset="0" style={{ stopColor: HALO_CORE_START }} />
-              <stop offset="0.4" style={{ stopColor: HALO_END }} />
+              <stop offset="0.4" style={{ stopColor: HALO_CORE_END }} />
             </radialGradient>
           </defs>
           <circle cx={GLOW.x} cy={GLOW.y} r={180} fill="url(#ff-halo-soft)" />
           <circle cx={GLOW.x} cy={GLOW.y} r={180} fill="url(#ff-halo-core)" />
-          <circle cx={GLOW.x} cy={GLOW.y} r={15} style={{ fill: NODE_CORE }} />
+          <circle
+            cx={GLOW.x}
+            cy={GLOW.y}
+            r={15}
+            strokeWidth={3}
+            style={{ fill: NODE_CORE, stroke: NODE_STROKE }}
+          />
         </svg>
 
         {/* Square markers (CSS so they stay square), centred on each stream. */}

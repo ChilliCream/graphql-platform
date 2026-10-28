@@ -1353,6 +1353,128 @@ test.describe("Light accent and contrast tokens", () => {
   });
 });
 
+test.describe("start page glow decorations", () => {
+  async function decorations(page: Page) {
+    return page.evaluate(() => {
+      const style = (element: Element | null | undefined, name: string) =>
+        element
+          ? (getComputedStyle(element) as unknown as Record<string, string>)[
+              name
+            ]
+          : null;
+      const bands = [...document.querySelectorAll("main > div.isolate")];
+      const grid = [...document.querySelectorAll("main *")].find((element) =>
+        /^linear-gradient\([^)]*\) 1px, rgba\(0, 0, 0, 0\) 1px\)/.test(
+          getComputedStyle(element).backgroundImage,
+        ),
+      );
+      const chip = bands[2]?.querySelector("span.block.rounded-full.border");
+      return {
+        grounds: bands.map((band) =>
+          style(band.firstElementChild?.firstElementChild, "backgroundColor"),
+        ),
+        gridLine: style(grid, "backgroundImage"),
+        beamHalos: [...document.querySelectorAll("main div.top-0.h-full")].map(
+          (beam) => style(beam, "filter"),
+        ),
+        chipRing: [style(chip, "borderTopColor"), style(chip, "boxShadow")],
+        nodeCore: [
+          style(document.querySelector("svg circle[r='15']"), "fill"),
+          style(document.querySelector("svg circle[r='15']"), "stroke"),
+        ],
+        nodeHalo: style(
+          document.querySelector("#ff-halo-soft stop"),
+          "stopColor",
+        ),
+        links: [
+          ...new Set(
+            [
+              ...document.querySelectorAll(
+                "svg.pointer-events-none path[vector-effect]",
+              ),
+            ].map((path) => style(path, "stroke")),
+          ),
+        ],
+      };
+    });
+  }
+
+  const LIGHT = {
+    grounds: [
+      "rgb(244, 251, 253)",
+      "rgb(244, 251, 253)",
+      "rgb(255, 255, 255)",
+      "rgb(244, 251, 253)",
+    ],
+    gridLine:
+      "linear-gradient(rgba(6, 182, 212, 0.3) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.3) 1px, rgba(0, 0, 0, 0) 1px)",
+    beamHalos: [
+      "drop-shadow(rgba(139, 92, 246, 0.55) 0px 0px 4px)",
+      "drop-shadow(rgba(6, 182, 212, 0.55) 0px 0px 4px)",
+      "drop-shadow(rgba(139, 92, 246, 0.55) 0px 0px 4px)",
+      "drop-shadow(rgba(6, 182, 212, 0.55) 0px 0px 4px)",
+      "drop-shadow(rgba(139, 92, 246, 0.55) 0px 0px 4px)",
+    ],
+    chipRing: [
+      "rgb(8, 145, 178)",
+      "rgba(6, 182, 212, 0.45) 0px 0px 4px 0px, rgba(6, 182, 212, 0.35) 0px 0px 16px 0px",
+    ],
+    nodeCore: ["rgb(6, 182, 212)", "rgb(8, 145, 178)"],
+    nodeHalo: "rgba(6, 182, 212, 0.55)",
+    links: [
+      "color(srgb 0.85098 0.27451 0.937255 / 0.8)",
+      "color(srgb 0.984314 0.443137 0.521569 / 0.8)",
+      "color(srgb 0.545098 0.360784 0.964706 / 0.8)",
+      "color(srgb 0.0235294 0.713726 0.831373 / 0.8)",
+    ],
+  };
+  const DARK = {
+    grounds: Array(4).fill("oklab(0.188243 -0.003151 -0.0324458 / 0.25)"),
+    gridLine:
+      "linear-gradient(rgba(245, 241, 234, 0.06) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(245, 241, 234, 0.06) 1px, rgba(0, 0, 0, 0) 1px)",
+    beamHalos: Array(5).fill("none"),
+    chipRing: ["rgba(205, 216, 232, 0.55)", "rgba(0, 0, 0, 0) 0px 0px 0px 0px"],
+    nodeCore: ["rgb(255, 255, 255)", "none"],
+    nodeHalo: "rgba(255, 255, 255, 0.9)",
+    links: ["rgba(245, 241, 234, 0.22)"],
+  };
+
+  const cases: readonly {
+    name: string;
+    options: OpenOptions;
+    expected: typeof LIGHT;
+  }[] = [
+    {
+      name: "StoredLight",
+      options: { system: "dark", stored: "light" },
+      expected: LIGHT,
+    },
+    {
+      name: "AutoOnALightSystemWithoutJavaScript",
+      options: { system: "light", javaScript: false },
+      expected: LIGHT,
+    },
+    {
+      name: "StoredDark",
+      options: { system: "light", stored: "dark" },
+      expected: DARK,
+    },
+  ];
+
+  for (const { name, options, expected } of cases) {
+    test(`Should_GlowInColor_When_${name}OnTheStartPage`, async ({ open }) => {
+      // arrange
+      const page = await open("/", options);
+
+      // act
+      const found = await decorations(page);
+
+      // assert
+      expect(found).toEqual(expected);
+    });
+  }
+});
+
 test.describe("Light and Dark toggle rules in the production build", () => {
   test("Should_ShipToggleRules_When_LoadingTheFusionPage", async ({ open }) => {
     // arrange
