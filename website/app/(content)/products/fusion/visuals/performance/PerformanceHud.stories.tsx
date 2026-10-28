@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
+import { lightAppearance } from "@/src/components/lightAppearance";
 import { AppMotionConfig } from "@/src/nitro/lib/motion";
 
 import { PerformanceHud } from "./PerformanceHud";
@@ -40,3 +41,7 @@ export const Panel375: Story = panelStory(375);
 export const Panel1024: Story = panelStory(1024);
 export const Panel1440: Story = panelStory(1440);
 export const Panel1440Reduced: Story = panelStory(1440, true);
+export const Panel1440Light: Story = {
+  ...panelStory(1440, true),
+  beforeEach: lightAppearance,
+};

@@ -1,3 +1,4 @@
+import { lightDark } from "@/src/components/lightDark";
 import { token } from "@/src/nitro";
 
 export const VB = 300;
@@ -159,12 +160,17 @@ export const ELECTRIC = "var(--color-cc-electric)";
 export const DANGER = "var(--color-cc-danger)";
 export const ELECTRIC_BRIGHT = `color-mix(in oklch, ${ELECTRIC} 55%, var(--color-cc-accent-hover))`;
 export const ELECTRIC_DIM = `color-mix(in srgb, ${ELECTRIC} 30%, transparent)`;
-export const DISC_CORE = `color-mix(in srgb, ${ELECTRIC} 12%, black)`;
-export const DISC_RIM = `color-mix(in srgb, ${ELECTRIC} 48%, black)`;
-export const FACE_CORE = `color-mix(in srgb, ${ELECTRIC} 25%, black)`;
-export const FACE_RIM = `color-mix(in srgb-linear, ${ELECTRIC} 30%, black)`;
+const DIAL_BASE = lightDark("var(--color-cc-card-bg)", "black");
+export const DISC_CORE = `color-mix(in srgb, ${ELECTRIC} 12%, ${DIAL_BASE})`;
+export const DISC_RIM = `color-mix(in srgb, ${ELECTRIC} 48%, ${DIAL_BASE})`;
+export const FACE_CORE = `color-mix(in srgb, ${ELECTRIC} 25%, ${DIAL_BASE})`;
+export const FACE_RIM = `color-mix(in srgb-linear, ${ELECTRIC} 30%, ${DIAL_BASE})`;
 export const ELECTRIC_TEXT = `color-mix(in srgb, ${ELECTRIC} 70%, ${token.textStrong})`;
 export const OPS_NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 80%, ${token.textStrong})`;
 export const LATENCY_NUMERAL_COLOR = `color-mix(in srgb, ${ELECTRIC} 30%, ${token.textStrong})`;
 export const LABEL_COLOR = `color-mix(in srgb, ${token.textSecondary} 40%, ${token.textStrong})`;
-export const RING_GLOW = `0 0 16px 2px color-mix(in srgb, ${ELECTRIC} 70%, transparent)`;
+export const RING_GLOW = lightDark(
+  `0 0 10px 1px color-mix(in srgb, ${ELECTRIC} 30%, transparent)`,
+  `0 0 16px 2px color-mix(in srgb, ${ELECTRIC} 70%, transparent)`,
+);
+export const NUMERAL_GLOW = lightDark("transparent", ELECTRIC);
