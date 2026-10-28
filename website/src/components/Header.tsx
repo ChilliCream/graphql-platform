@@ -43,7 +43,7 @@ export default async function Header() {
         <HeaderNav latestBlog={latestBlog} blogImage={blogImage} />
 
         <div className="hidden flex-none items-center gap-5 max-[1280px]:gap-3 min-[1060px]:flex">
-          <GitHubStarButton />
+          <GitHubStarButton className="max-[1120px]:hidden" />
           <Link
             href={CONTACT_HREF}
             prefetch={false}

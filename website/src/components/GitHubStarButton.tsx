@@ -5,11 +5,22 @@ import { GitHubIcon } from "@/src/icons/GitHub";
 import { GITHUB_REPO_URL, GITHUB_STARGAZERS_URL } from "@/src/helpers/github";
 import { useGitHubStarCount } from "@/src/helpers/useGitHubStarCount";
 
-export function GitHubStarButton() {
+interface GitHubStarButtonProps {
+  readonly className?: string;
+}
+
+export function GitHubStarButton({ className }: GitHubStarButtonProps) {
   const count = useGitHubStarCount();
 
   return (
-    <span className="border-cc-card-border bg-cc-hover text-cc-heading inline-flex items-stretch overflow-hidden rounded-md border text-xs font-medium">
+    <span
+      className={[
+        "border-cc-card-border bg-cc-hover text-cc-heading inline-flex items-stretch overflow-hidden rounded-md border text-xs font-medium",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <a
         href={GITHUB_REPO_URL}
         target="_blank"

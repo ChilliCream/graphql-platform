@@ -733,6 +733,48 @@ test.describe("appearance selector", () => {
     });
   }
 
+  for (const system of ["light", "dark"] as const) {
+    for (const [width, visible] of [
+      [1060, false],
+      [1119, false],
+      [1120, true],
+      [1440, true],
+    ] as const) {
+      test(`Should_${visible ? "Show" : "Hide"}HeaderStarButton_When_Width${width}In${system}`, async ({
+        open,
+      }) => {
+        // arrange
+        const page = await open("/", { width, height: 800, system });
+
+        // act
+        const star = page
+          .locator("header")
+          .getByRole("link", { name: "Star ChilliCream on GitHub" });
+
+        // assert
+        await expect(headerGroup(page)).toBeVisible();
+        if (visible) {
+          await expect(star).toBeVisible();
+        } else {
+          await expect(star).toBeHidden();
+        }
+      });
+    }
+  }
+
+  test("Should_KeepFooterStarButtonVisible_When_Width375", async ({ open }) => {
+    // arrange
+    const page = await open("/", { width: 375, height: 800 });
+
+    // act
+    const star = page
+      .locator("footer")
+      .getByRole("link", { name: "Star ChilliCream on GitHub" });
+
+    // assert
+    await expect(star).toBeVisible();
+  });
+
   test("Should_MoveSelectorIntoDrawer_When_BelowDesktopHeader", async ({
     open,
   }) => {
