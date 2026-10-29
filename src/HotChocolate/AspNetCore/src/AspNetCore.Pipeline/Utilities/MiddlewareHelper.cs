@@ -479,7 +479,7 @@ internal static class MiddlewareHelper
     /// <summary>
     /// Marks the result of a query operation the executor refused with the methods that serve
     /// query operations, which its 405 lists in the <c>Allow</c> header. The persisted-operation
-    /// routes serve them over GET whatever <c>EnableGetRequests</c> says, and not over HEAD.
+    /// routes serve them over GET and HEAD whatever <c>EnableGetRequests</c> says.
     /// </summary>
     public static void MarkRefusedQuery(
         IExecutionResult? result,
@@ -498,14 +498,12 @@ internal static class MiddlewareHelper
         var servesGet = options.AllowedGetOperations.HasFlag(AllowedGetOperations.Query)
             && (isPersistedRoute || options.EnableGetRequests);
 
-        var allowedMethods = (servesGet, isPersistedRoute, options.EnableQueryRequests) switch
+        var allowedMethods = (servesGet, options.EnableQueryRequests) switch
         {
-            (true, false, true) => "GET, HEAD, QUERY",
-            (true, false, false) => "GET, HEAD",
-            (true, true, true) => "GET, QUERY",
-            (true, true, false) => "GET",
-            (false, _, true) => "QUERY",
-            _ => string.Empty
+            (true, true) => "GET, HEAD, QUERY",
+            (true, false) => "GET, HEAD",
+            (false, true) => "QUERY",
+            (false, false) => string.Empty
         };
 
         var contextData = operationResult.ContextData.Add(
