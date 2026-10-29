@@ -291,6 +291,11 @@ internal static class PersistedOperationMiddleware
             statusCode = executionResult.StatusCode;
             result = executionResult.Result;
 
+            if (!options.EnableQueriesOverPost)
+            {
+                MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: true);
+            }
+
 HANDLE_RESULT:
             await MiddlewareHelper.WriteResultAsync(
                 result!,
@@ -375,6 +380,11 @@ HANDLE_RESULT:
             {
                 requestFlags = MiddlewareHelper.DetermineHttpQueryRequestFlags(requestFlags);
             }
+            else
+            {
+                requestFlags =
+                    MiddlewareHelper.DetermineHttpPostRequestFlags(requestFlags, options);
+            }
 
             // after successfully parsing the request, we now will attempt to execute the request.
             var executionResult =
@@ -388,6 +398,11 @@ HANDLE_RESULT:
                 ? MiddlewareHelper.DetermineHttpQueryStatusCode(executionResult)
                 : executionResult.StatusCode;
             result = executionResult.Result;
+
+            if (kind is HttpRequestKind.HttpPost && !options.EnableQueriesOverPost)
+            {
+                MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: true);
+            }
 
 HANDLE_RESULT:
             await MiddlewareHelper.WriteResultAsync(
