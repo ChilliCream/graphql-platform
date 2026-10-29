@@ -18,6 +18,6 @@ Result:
 
 SQL:
 ---------------
-SELECT "d"."d" = 'bar', "d"."Id", "d"."Name", "d"."d", "d"."BarProp", "d"."FooProp", "d"."d" = 'foo'
+SELECT "d"."d" = 'bar', "d"."BarProp", "d"."d" = 'foo', "d"."FooProp"
 FROM "Data" AS "d"
 ---------------

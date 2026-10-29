@@ -1,0 +1,29 @@
+Result:
+---------------
+{
+  "data": {
+    "books": [
+      {
+        "a": [
+          {
+            "text": "Great"
+          }
+        ],
+        "b": [
+          {
+            "text": "Fine"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."Id", "r"."Text", "r"."Rating", "r"."Id"
+FROM "Data" AS "d"
+LEFT JOIN "Review" AS "r" ON "d"."Id" = "r"."BookId"
+ORDER BY "d"."Id"
+---------------

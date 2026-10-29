@@ -1,6 +1,5 @@
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -58,14 +57,17 @@ public class ProjectionVisitorTestBase
         var convention = new ProjectionConvention(x => x.Provider(provider));
 
         var resolver = BuildResolver(asNoTracking, onModelCreating, entities);
-        ISchemaBuilder builder = SchemaBuilder.New();
+        var builder = new ServiceCollection().AddGraphQL();
 
         if (objectType is not null)
         {
             builder.AddType(objectType);
         }
 
-        configure?.Invoke(builder);
+        if (configure is not null)
+        {
+            builder.ConfigureSchema(configure);
+        }
 
         builder
             .AddConvention<IProjectionConvention>(convention)
@@ -93,11 +95,7 @@ public class ProjectionVisitorTestBase
 
         builder.ModifyOptions(o => o.ValidatePipelineOrder = false);
 
-        var schema = builder.Create();
-
-        return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(ISchemaDefinition.DefaultName, o => o.Schema = schema)
-            .AddGraphQL()
+        return builder
             .UseRequest(
                 (_, next) => async context =>
                 {

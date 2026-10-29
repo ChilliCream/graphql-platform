@@ -1,0 +1,19 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "authorProfileUrl": "/authors/42"
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "a"."Id"
+FROM "Data" AS "d"
+INNER JOIN "Author" AS "a" ON "d"."AuthorId" = "a"."Id"
+---------------

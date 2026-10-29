@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using System.Text.Json;
 using GreenDonut.Data;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
@@ -694,6 +695,134 @@ public class IntegrationTests
             }
             """);
     }
+
+    [Fact]
+    public async Task ParentRequires_Should_ProjectListElementMembers_When_RequirementSelectsListElements()
+    {
+        // arrange
+        var executor = await CreateListParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              books {
+                averageRating
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "books": [
+                  {
+                    "averageRating": 3
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_MergeWithClientSelection_When_ClientSelectsRequiredList()
+    {
+        // arrange
+        var executor = await CreateListParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              books {
+                reviews {
+                  text
+                }
+                averageRating
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "books": [
+                  {
+                    "reviews": [
+                      {
+                        "text": "Great"
+                      },
+                      {
+                        "text": "Fine"
+                      }
+                    ],
+                    "averageRating": 3
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_ProjectListElementMembers_When_SelectorIsBuiltFromSelection()
+    {
+        // arrange
+        var executor = await CreateListParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              booksWithSelector {
+                reviews {
+                  text
+                }
+                averageRating
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "booksWithSelector": [
+                  {
+                    "reviews": [
+                      {
+                        "text": "Great"
+                      },
+                      {
+                        "text": "Fine"
+                      }
+                    ],
+                    "averageRating": 3
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    private static ValueTask<IRequestExecutor> CreateListParentRequiresExecutorAsync()
+        => new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<MergedParentRequiresQuery>()
+            .AddTypeExtension(typeof(ListParentRequiresBookExtensions))
+            .AddProjections()
+            .AddFiltering()
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
     private static ValueTask<IRequestExecutor> CreateMergedParentRequiresExecutorAsync()
         => new ServiceCollection()
@@ -1756,6 +1885,15 @@ public static class MergedParentRequiresBookExtensions
         => $"{book.Author.Name} ({book.Author.Id})";
 }
 
+[ExtendObjectType<MergedParentRequiresBook>]
+public static class ListParentRequiresBookExtensions
+{
+    public static double GetAverageRating(
+        [Parent(requires: "{ Reviews { Rating } }")]
+        MergedParentRequiresBook book)
+        => book.Reviews.Average(t => t.Rating);
+}
+
 public sealed class MergedParentRequiresQuery
 {
     private static readonly MergedParentRequiresBook[] s_books =
@@ -1787,6 +1925,9 @@ public sealed class MergedParentRequiresQuery
     [UsePaging]
     [UseProjection]
     public IQueryable<MergedParentRequiresBook> GetBooksCursor() => s_books.AsQueryable();
+
+    public IQueryable<MergedParentRequiresBook> GetBooksWithSelector(ISelection selection)
+        => s_books.AsQueryable().Select(selection.AsSelector<MergedParentRequiresBook>());
 }
 
 public class Baz

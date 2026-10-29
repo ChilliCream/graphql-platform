@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Projections;
 
-public class QueryableProjectionParentRequiresTests
+public partial class QueryableProjectionParentRequiresTests
 {
     [Fact]
     public async Task ParentRequires_Should_MergeWithClientSelection_When_ClientSelectsRequiredNavigation()
@@ -183,6 +183,94 @@ public class QueryableProjectionParentRequiresTests
             """);
     }
 
+    [Fact]
+    public async Task ParentRequires_Should_ProjectListElementMembers_When_RequirementSelectsListElements()
+    {
+        // arrange
+        await using var dbContext = await CreateDbContextAsync();
+        var executor = await CreateExecutorAsync(dbContext, typeof(BookReviewExtensions));
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              books {
+                averageRating
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(result)
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_MergeWithClientSelection_When_ClientSelectsRequiredList()
+    {
+        // arrange
+        await using var dbContext = await CreateDbContextAsync();
+        var executor = await CreateExecutorAsync(dbContext, typeof(BookReviewExtensions));
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              books {
+                reviews {
+                  text
+                }
+                averageRating
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(result)
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_ProjectRequiredMember_When_SchemaIsBuiltWithAddGraphQL()
+    {
+        // arrange
+        Book[] books =
+        [
+            new()
+            {
+                Title = "Some Book",
+                Author = new Author { Id = 42, Name = "Jane Doe", Biography = "Unselected author biography" }
+            }
+        ];
+        var tester = new SchemaCache().CreateSchema(
+            books,
+            b => b.Entity<Book>().HasOne(x => x.Author),
+            configure: b => b.AddType(typeof(BookExtensions)));
+
+        // act
+        var result = await tester.ExecuteAsync(
+            """
+            {
+              root {
+                authorProfileUrl
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(result)
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
     private static async Task<DatabaseContext<Book>> CreateDbContextAsync()
     {
         var dbContext = new DatabaseContext<Book>(
@@ -227,12 +315,22 @@ public class QueryableProjectionParentRequiresTests
         return dbContext;
     }
 
-    private static ValueTask<IRequestExecutor> CreateExecutorAsync(DatabaseContext<Book> dbContext)
-        => new ServiceCollection()
+    private static ValueTask<IRequestExecutor> CreateExecutorAsync(
+        DatabaseContext<Book> dbContext,
+        params Type[] typeExtensions)
+    {
+        var builder = new ServiceCollection()
             .AddSingleton(dbContext)
             .AddGraphQL()
             .AddQueryType<Query>()
-            .AddTypeExtension(typeof(BookExtensions))
+            .AddTypeExtension(typeof(BookExtensions));
+
+        foreach (var typeExtension in typeExtensions)
+        {
+            builder.AddTypeExtension(typeExtension);
+        }
+
+        return builder
             .AddProjections()
             .AddFiltering()
             .AddSorting()
@@ -250,6 +348,7 @@ public class QueryableProjectionParentRequiresTests
                 })
             .UseDefaultPipeline()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+    }
 
     public class Query
     {
@@ -317,6 +416,13 @@ public class QueryableProjectionParentRequiresTests
 
         public static string GetAuthorLabel([Parent(requires: "{ Author }")] Book book)
             => $"{book.Author.Name} ({book.Author.Id})";
+    }
+
+    [ExtendObjectType<Book>]
+    public static class BookReviewExtensions
+    {
+        public static double GetAverageRating([Parent(requires: "{ Reviews { Rating } }")] Book book)
+            => book.Reviews.Average(t => t.Rating);
     }
 
     private sealed class CaptureSqlAttribute : ObjectFieldDescriptorAttribute
