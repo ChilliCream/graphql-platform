@@ -36,8 +36,9 @@ internal static class PersistedOperationMiddleware
         ((IEndpointConventionBuilder)groupBuilder).Add(
             endpoint => endpoint.RequestDelegate = negotiation(endpoint.RequestDelegate!));
 
-        groupBuilder.MapGet(
+        groupBuilder.MapMethods(
             "/{operationId}",
+            [HttpMethods.Get, HttpMethods.Head],
             async context =>
             {
                 var operationId = context.Request.RouteValues["operationId"] as string;
@@ -59,8 +60,9 @@ internal static class PersistedOperationMiddleware
             });
 
         groupBuilder
-            .MapGet(
+            .MapMethods(
                 "/{operationId}/{operationName}",
+                [HttpMethods.Get, HttpMethods.Head],
                 async context =>
                 {
                     var operationId = context.Request.RouteValues["operationId"] as string;
@@ -211,8 +213,8 @@ internal static class PersistedOperationMiddleware
         }
 
         var allow = serverOptions.EnableQueryRequests
-            ? "GET, OPTIONS, POST, QUERY"
-            : "GET, OPTIONS, POST";
+            ? "GET, HEAD, OPTIONS, POST, QUERY"
+            : "GET, HEAD, OPTIONS, POST";
 
         // every other method on these patterns is answered as on the GraphQL endpoint.
         groupBuilder.Map(

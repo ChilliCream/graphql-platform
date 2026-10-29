@@ -33,6 +33,7 @@ public static class MongoDbProjectionProviderDescriptorExtensions
         descriptor.RegisterFieldHandler(MongoDbProjectionFieldHandler.Create);
         descriptor.RegisterOptimizer(QueryablePagingProjectionOptimizer.Create);
         descriptor.RegisterOptimizer(IsProjectedProjectionOptimizer.Create);
+        descriptor.RegisterOptimizer(RequirementsProjectionOptimizer.Create);
         return descriptor;
     }
 }
