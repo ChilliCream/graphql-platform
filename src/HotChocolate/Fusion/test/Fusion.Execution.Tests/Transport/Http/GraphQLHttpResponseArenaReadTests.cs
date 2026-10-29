@@ -10,6 +10,8 @@ namespace HotChocolate.Fusion.Transport;
 
 public class GraphQLHttpResponseArenaReadTests
 {
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+
     [Theory]
     [InlineData(128, 1, false)]
     [InlineData(1024, 1024, false)]
@@ -37,6 +39,60 @@ public class GraphQLHttpResponseArenaReadTests
         Assert.Equal(payload, document.Root.GetRawText());
         Assert.Equal(payloadLength, stream.BytesRead);
         Assert.True(stream.IsDisposed);
+    }
+
+    [Theory]
+    [InlineData(1, "")]
+    [InlineData(137, "")]
+    [InlineData(137, " \r\n")]
+    [InlineData(4096, "")]
+    [InlineData(4096, " \r\n")]
+    public async Task ReadAsResult_Should_NotAwaitEndOfBody_When_RootValueHasEnded(
+        int fragmentLength,
+        string trailer)
+    {
+        // arrange
+        var payload = CreatePayload(3073);
+        var endOfBody = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var stream = new FragmentedStream(Encoding.UTF8.GetBytes(payload + trailer), fragmentLength, asynchronous: true)
+        {
+            EndOfBody = endOfBody.Task
+        };
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        using var arena = new MemoryArena();
+
+        // act
+        using var document = await response
+            .ReadAsResultAsync(arena, TestContext.Current.CancellationToken)
+            .AsTask()
+            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(payload, document.Root.GetRawText());
+        Assert.False(stream.EndOfBodyRequested);
+        Assert.True(stream.IsDisposed);
+    }
+
+    [Fact]
+    public async Task ReadAsResult_Should_ReadToEndOfBody_When_DataFollowsRootValueInSameRead()
+    {
+        // arrange
+        var payload = Encoding.UTF8.GetBytes("{\"data\":{}} {\"data\":{}}");
+        var stream = new FragmentedStream(payload, 4096, asynchronous: false);
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        using var arena = new MemoryArena();
+
+        // act
+        await Record.ExceptionAsync(async () =>
+        {
+            using var document = await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken);
+        });
+        arena.Seal();
+
+        // assert
+        Assert.Equal(payload.Length, stream.BytesRead);
+        Assert.Equal(2, stream.ReadCount);
     }
 
     [Theory]
@@ -239,7 +295,13 @@ public class GraphQLHttpResponseArenaReadTests
     {
         public int BytesRead { get; private set; }
 
+        public int ReadCount { get; private set; }
+
         public bool IsDisposed { get; private set; }
+
+        public bool EndOfBodyRequested { get; private set; }
+
+        public Task? EndOfBody { get; init; }
 
         public Action<int>? BeforeRead { get; init; }
 
@@ -275,6 +337,12 @@ public class GraphQLHttpResponseArenaReadTests
             {
                 cancellationToken.ThrowIfCancellationRequested();
             }
+            if (EndOfBody is not null && BytesRead == payload.Length)
+            {
+                EndOfBodyRequested = true;
+                await EndOfBody;
+            }
+            ReadCount++;
             var length = Math.Min(Math.Min(buffer.Length, fragmentLength), payload.Length - BytesRead);
             payload.AsMemory(BytesRead, length).CopyTo(buffer);
             BytesRead += length;

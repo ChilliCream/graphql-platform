@@ -623,8 +623,12 @@ public sealed class GraphQLHttpResponse : IDisposable
         var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
         var current = chunks[chunkIndex] = arena.Rent(chunkSize);
         var position = 0;
+        var scanner = default(JsonRootEndScanner);
+        var rootEnded = false;
 
-        while (true)
+        // The read stops once the root value has ended and only whitespace followed it in the same read.
+        // Disposing the stream drains the rest of the body.
+        while (!rootEnded)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -637,9 +641,17 @@ public sealed class GraphQLHttpResponse : IDisposable
                 break;
             }
 
+            var received = current.Span.Slice(position, bytesRead);
+            var rootEnd = scanner.Scan(received);
+
+            if (rootEnd >= 0)
+            {
+                rootEnded = JsonRootEndScanner.IsWhitespace(received[rootEnd..]);
+            }
+
             position += bytesRead;
 
-            if (position == chunkSize)
+            if (position == chunkSize && !rootEnded)
             {
                 if (chunkIndex + 1 >= SourceResultDocument.DataMaxChunks)
                 {
