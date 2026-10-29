@@ -47,6 +47,40 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
     }
 
     [Fact]
+    public async Task Query_Should_ReturnResult_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(
+                o =>
+                {
+                    o.EnableQueryRequests = true;
+                    o.EnableQueriesOverPost = false;
+                }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest("""{ "query": "{ __typename }" }""");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"__typename":"Query"}}
+                """);
+    }
+
+    [Fact]
     public async Task Query_Should_ReturnResult_When_VariablesAreSent()
     {
         // arrange

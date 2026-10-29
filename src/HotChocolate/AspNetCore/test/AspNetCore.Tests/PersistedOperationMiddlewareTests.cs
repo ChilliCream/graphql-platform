@@ -562,6 +562,95 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 """);
     }
 
+    [Theory]
+    [InlineData(false, new[] { "GET" }, null)]
+    [InlineData(true, new[] { "GET", "QUERY" }, "application/json")]
+    public async Task Post_Should_RefusePersistedQuery_When_QueriesOverPostAreOff(
+        bool enableQueryRequests,
+        string[] expectedAllow,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(
+                    o =>
+                    {
+                        o.EnableQueriesOverPost = false;
+                        o.EnableQueryRequests = enableQueryRequests;
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            OperationNameUrl,
+            new StringContent("{ }", Encoding.UTF8, "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Equal(
+            expectedAcceptQuery,
+            response.Headers.TryGetValues("Accept-Query", out var values)
+                ? Assert.Single(values)
+                : null);
+    }
+
+    [Fact]
+    public async Task Post_Should_ExecutePersistedMutation_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql/persisted/createReview/CreateReview",
+            new StringContent("{ }", Encoding.UTF8, "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"createReview":{"stars":5}}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Get_Should_ListQuery_When_PersistedQueryIsRefusedAndQueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(
+                    o =>
+                    {
+                        o.EnableQueriesOverPost = false;
+                        o.AllowedGetOperations = AllowedGetOperations.Mutation;
+                        o.EnableQueryRequests = true;
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Get, OperationNameUrl);
+        request.Headers.Add("Accept", "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
     [Fact]
     public async Task Query_Should_ExecuteEachVariableSet_When_VariablesIsArray()
     {

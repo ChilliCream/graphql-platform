@@ -97,6 +97,24 @@ This setting controls whether the GraphQL server handles GraphQL operations sent
 
 [Learn more about QUERY requests](./http-transport.md#query-requests)
 
+### EnableQueriesOverPost
+
+```csharp
+endpoints.MapGraphQL().WithOptions(o => o.EnableQueriesOverPost = false);
+```
+
+This setting controls whether the GraphQL server executes query operations sent with HTTP POST. It is `true` by default. Mutations and subscriptions run over POST either way.
+
+A refused query gets the status code that a refused operation kind gets for its `Accept` header and [transport version](./http-transport.md#transport-versions): `405 Method Not Allowed` for `application/graphql-response+json`, and for `application/json` under `Draft20260903`. A `405` response lists in its `Allow` header `GET` and `HEAD` when [GET requests](#enablegetrequests) serve queries, and `QUERY` when [QUERY requests](#enablequeryrequests) are enabled, in which case it also carries `Accept-Query: application/json`. When neither serves queries, the `Allow` header is empty. In a request batch or an operation batch, each query fails with its own error while the other operations run.
+
+While this setting is `false`, a query refused over GET because [`AllowedGetOperations`](#allowedgetoperations) leaves out queries has a `405` response whose `Allow` header lists `QUERY` when QUERY requests are enabled and is empty otherwise, instead of listing `POST`.
+
+The persisted operation routes read this setting from the schema's server options, which you set with `ModifyServerOptions`. Their `Allow` header lists `GET` without `HEAD` whenever `AllowedGetOperations` includes queries, whatever `EnableGetRequests` says.
+
+Introspection is a query, so a tool that introspects the schema over POST cannot read it. The schema download through [`EnableSchemaRequests`](#enableschemarequests) keeps working. A source schema behind a Fusion gateway must leave this setting `true`, because the gateway sends every request to a source schema over POST.
+
+[Learn more about QUERY requests](./http-transport.md#query-requests)
+
 ### EnableMultipartRequests
 
 ```csharp
@@ -407,6 +425,7 @@ The full set of properties available on `GraphQLServerOptions` is listed below. 
 | `EnableGetRequests`                       | `bool`                 | `true`             | Controls whether HTTP GET requests are accepted.                                                                                |
 | `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`. |
 | `EnableQueryRequests`                     | `bool`                 | `false`            | Controls whether HTTP QUERY requests are accepted. A QUERY request executes a single query operation.                           |
+| `EnableQueriesOverPost`                   | `bool`                 | `true`             | Controls whether query operations are executed over HTTP POST.                                                                  |
 | `EnableMultipartRequests`                 | `bool`                 | `true`             | Controls whether multipart form requests (file uploads) are accepted.                                                           |
 | `EnableSchemaRequests`                    | `bool`                 | `true`             | Controls whether the schema SDL can be downloaded via `?sdl`.                                                                   |
 | `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Controls whether the schema SDL is served as a downloadable file.                                                               |
