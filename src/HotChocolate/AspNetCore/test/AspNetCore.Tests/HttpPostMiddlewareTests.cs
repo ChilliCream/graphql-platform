@@ -1,6 +1,7 @@
 #if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
 #endif
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
@@ -18,6 +19,9 @@ namespace HotChocolate.AspNetCore;
 
 public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
+    private const string CreateReviewMutation =
+        "mutation { createReview(episode: NEW_HOPE, review: { stars: 5 }) { stars } }";
+
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
 
     [Fact]
@@ -1173,6 +1177,260 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         Assert.NotNull(result.Errors);
         var responseError = Assert.Single(result.Errors);
         Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task Post_Should_RefuseQuery_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """{ "query": "{ __typename }" }""",
+            "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Post_Should_ExecuteMutation_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            $$"""{ "query": {{JsonSerializer.Serialize(CreateReviewMutation)}} }""",
+            "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"createReview":{"stars":5}}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_BeRefused_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """,
+            "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(["GET", "HEAD"], response.Content.Headers.Allow);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_RefuseQueries_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            $$"""
+            [
+              { "query": "{ hero(episode: EMPIRE) { name } }" },
+              { "query": {{JsonSerializer.Serialize(CreateReviewMutation)}} }
+            ]
+            """,
+            "application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(
+                result => result.TryGetProperty("requestIndex", out var index)
+                    ? index.GetInt32()
+                    : -1)
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "requestIndex": 0,
+                  "errors": [
+                    {
+                      "message": "The specified operation kind is not allowed."
+                    }
+                  ]
+                }
+                """,
+                """
+                {
+                  "requestIndex": 1,
+                  "data": {
+                    "createReview": {
+                      "stars": 5
+                    }
+                  }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_RefuseQueries_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a { hero(episode: NEW_HOPE) { name } }
+            mutation b { createReview(episode: NEW_HOPE, review: { stars: 5 }) { stars } }
+            """;
+
+        // act
+        using var request = CreatePostRequest(
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"),
+            $$"""{ "query": {{JsonSerializer.Serialize(document)}} }""",
+            "application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(
+                result => result.TryGetProperty("requestIndex", out var index)
+                    ? index.GetInt32()
+                    : -1)
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "requestIndex": 0,
+                  "errors": [
+                    {
+                      "message": "The specified operation kind is not allowed."
+                    }
+                  ]
+                }
+                """,
+                """
+                {
+                  "requestIndex": 1,
+                  "data": {
+                    "createReview": {
+                      "stars": 5
+                    }
+                  }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task Post_Should_StreamSubscription_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """{ "query": "subscription { onReview(episode: NEW_HOPE) { stars } }" }""",
+            "text/event-stream");
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Post_Should_ExecuteQuery_When_InterceptorAllowsQueries()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpRequestInterceptor<AllowAllRequestInterceptor>(),
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """{ "query": "{ __typename }" }""",
+            "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"__typename":"Query"}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    private static HttpRequestMessage CreatePostRequest(Uri url, string body, string acceptHeader)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json")
+        };
+        request.Headers.Add("Accept", acceptHeader);
+
+        return request;
+    }
+
+    public sealed class AllowAllRequestInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override async ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            await base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+            requestBuilder.SetFlags(RequestFlags.AllowAll);
+        }
     }
 
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
