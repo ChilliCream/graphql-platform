@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using GreenDonut.Data;
+using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
@@ -169,7 +170,7 @@ public class SortingContext : ISortingContext
 
             if (inputField is SortField field)
             {
-                context.Parents.Push(CreateSelector(context.Parents.Peek(), field.Member));
+                context.Parents.Push(CreateSelector(context.Parents.Peek(), field));
             }
             else
             {
@@ -209,19 +210,39 @@ public class SortingContext : ISortingContext
             return base.Leave(node, context);
         }
 
-        private static Expression? CreateSelector(Expression? parent, MemberInfo? member)
+        private static Expression? CreateSelector(Expression? parent, SortField field)
         {
-            if (parent is null || member is null)
+            if (parent is null)
             {
                 return null;
             }
 
-            return member switch
+            if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression { Parameters.Count: 1 } lambda })
+            {
+                return ParameterReplacer.Replace(lambda.Body, lambda.Parameters[0], parent);
+            }
+
+            return field.Member switch
             {
                 PropertyInfo property => Expression.Property(parent, property),
-                FieldInfo field => Expression.Field(parent, field),
+                FieldInfo member => Expression.Field(parent, member),
                 _ => null
             };
+        }
+
+        private sealed class ParameterReplacer(
+            ParameterExpression parameter,
+            Expression replacement)
+            : ExpressionVisitor
+        {
+            protected override Expression VisitParameter(ParameterExpression node)
+                => node == parameter ? replacement : base.VisitParameter(node);
+
+            public static Expression Replace(
+                Expression body,
+                ParameterExpression parameter,
+                Expression replacement)
+                => new ParameterReplacer(parameter, replacement).Visit(body);
         }
 
         public class Context
