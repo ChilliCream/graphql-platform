@@ -81,11 +81,12 @@ internal static class PropertyTreeBuilder
 
                 if (field.SelectionSet is not null)
                 {
-                    var typeNode = new TypeNode(property.PropertyType);
+                    var nodeType = propertyNode.ElementType ?? property.PropertyType;
+                    var typeNode = new TypeNode(nodeType);
                     CollectProperties(
                         typeNode,
                         fieldCoordinate,
-                        property.PropertyType,
+                        nodeType,
                         field.SelectionSet,
                         fieldPath);
                     propertyNode.TryAddNode(typeNode);

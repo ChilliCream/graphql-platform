@@ -79,8 +79,13 @@ internal sealed class PropertyNode : TypeContainer
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
         Type type)
     {
+        if (type == typeof(string))
+        {
+            return null;
+        }
+
         if (type.IsGenericType
-            && type.GetGenericTypeDefinition() == typeof(ICollection<>))
+            && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
         {
             return type;
         }
@@ -88,7 +93,7 @@ internal sealed class PropertyNode : TypeContainer
         foreach (var interfaceType in type.GetInterfaces())
         {
             if (interfaceType.IsGenericType
-                && interfaceType.GetGenericTypeDefinition() == typeof(ICollection<>))
+                && interfaceType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {
                 return interfaceType;
             }

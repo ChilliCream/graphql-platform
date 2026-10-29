@@ -1,3 +1,5 @@
+using HotChocolate.Data.Projections.Expressions.Handlers;
+using HotChocolate.Data.Projections.Handlers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.DataResources;
@@ -161,6 +163,37 @@ public abstract class ProjectionProvider
         }
 
         return selection;
+    }
+
+    internal IProjectionFieldHandler? CreateDeferredListHandler(Selection selection)
+    {
+        foreach (var handler in _fieldHandlers)
+        {
+            if (!handler.CanHandle(selection))
+            {
+                continue;
+            }
+
+            if (handler is not QueryableProjectionListHandler listHandler)
+            {
+                return null;
+            }
+
+            IProjectionFieldHandler deferred = new QueryableDeferredListProjectionHandler(listHandler);
+
+            foreach (var interceptor in _fieldInterceptors)
+            {
+                if (interceptor is not QueryableFilterInterceptor and not QueryableSortInterceptor
+                    && interceptor.CanHandle(selection))
+                {
+                    deferred = deferred.Wrap(interceptor);
+                }
+            }
+
+            return deferred;
+        }
+
+        return null;
     }
 
     void IProjectionProviderConvention.Initialize(IConventionContext context)

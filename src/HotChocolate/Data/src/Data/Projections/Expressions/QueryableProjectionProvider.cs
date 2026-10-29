@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Projections.Expressions;
@@ -13,7 +14,7 @@ public delegate object? ApplyProjection(IResolverContext context, object? input)
 /// <summary>
 /// A <see cref="IProjectionProvider"/> for IQueryable
 /// </summary>
-public class QueryableProjectionProvider : ProjectionProvider
+public class QueryableProjectionProvider : ProjectionProvider, IProjectionSelectionSetOptimizer
 {
     /// <summary>
     /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
@@ -82,6 +83,10 @@ public class QueryableProjectionProvider : ProjectionProvider
             IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Select(projection)),
             _ => input
         };
+
+    void IProjectionSelectionSetOptimizer.OptimizeSelectionSet(
+        SelectionSetOptimizerContext context)
+        => QueryableListArgumentOptimizer.Optimize(context, this);
 
     private ApplyProjection CreateApplicator<TEntityType>()
         => (context, input) =>

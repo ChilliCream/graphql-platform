@@ -25,5 +25,10 @@ internal sealed class ProjectionOptimizer(IProjectionProvider provider)
                 processedSelections.Add(responseName);
             }
         }
+
+        if (provider is IProjectionSelectionSetOptimizer optimizer)
+        {
+            optimizer.OptimizeSelectionSet(context);
+        }
     }
 }

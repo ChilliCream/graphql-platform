@@ -29,7 +29,7 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
         foreach (var requirement in requirements)
         {
             if (!TryGetField(context.TypeContext, requirement.Property, out var field)
-                || field.Arguments.Count > 0)
+                || HasRequiredArguments(field))
             {
                 continue;
             }
@@ -40,6 +40,19 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
         }
 
         return selection;
+    }
+
+    private static bool HasRequiredArguments(ObjectField field)
+    {
+        foreach (var argument in field.Arguments)
+        {
+            if (argument.Type.IsNonNullType() && argument.DefaultValue is null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static IReadOnlyList<PropertyNode> CollectRequirements(
