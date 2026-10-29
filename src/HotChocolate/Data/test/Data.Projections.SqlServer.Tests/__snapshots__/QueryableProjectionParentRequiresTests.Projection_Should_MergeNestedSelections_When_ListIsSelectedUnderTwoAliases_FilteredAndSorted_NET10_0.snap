@@ -1,0 +1,54 @@
+Result:
+---------------
+{
+  "data": {
+    "books": [
+      {
+        "a": [
+          {
+            "text": "Fine",
+            "reviewer": {
+              "name": "Bob"
+            }
+          },
+          {
+            "text": "Great",
+            "reviewer": {
+              "name": "Alice"
+            }
+          }
+        ],
+        "b": [
+          {
+            "rating": 2,
+            "reviewer": {
+              "id": 44
+            }
+          },
+          {
+            "rating": 4,
+            "reviewer": {
+              "id": 43
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+.param set @p 1
+
+SELECT "d"."Id", "s"."Text", "s"."Name", "s"."Id", "s"."Rating", "s"."Id0"
+FROM "Data" AS "d"
+LEFT JOIN (
+    SELECT "r"."Text", "a"."Name", "a"."Id", "r"."Rating", "r"."Id" AS "Id0", "r"."BookId"
+    FROM "Review" AS "r"
+    INNER JOIN "Author" AS "a" ON "r"."ReviewerId" = "a"."Id"
+    WHERE "r"."Rating" > @p
+) AS "s" ON "d"."Id" = "s"."BookId"
+ORDER BY "d"."Id", "s"."Rating", "s"."Id0"
+---------------
