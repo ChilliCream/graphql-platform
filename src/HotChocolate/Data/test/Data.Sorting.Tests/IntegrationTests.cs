@@ -62,6 +62,49 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task QueryContext_Should_SortByExpressionField_When_FieldIsDefinedByExpression()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithExpressionSortField>()
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            {
+                items(order: [{ total: DESC }]) {
+                    name
+                }
+            }
+            """;
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": [
+                  {
+                    "name": "C"
+                  },
+                  {
+                    "name": "A"
+                  },
+                  {
+                    "name": "B"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Sorting_Should_Not_Analyze_Ignored_Field_Type()
     {
         // arrange
@@ -163,6 +206,37 @@ public class Book
 {
     public string Title { get; set; } = string.Empty;
     public Author? Author { get; set; }
+}
+
+public class QueryWithExpressionSortField
+{
+    [UseSorting(typeof(ItemSortType))]
+    public IEnumerable<Item> GetItems(QueryContext<Item> queryContext, ISortingContext sorting)
+    {
+        sorting.Handled(true);
+
+        return new[]
+            {
+                new Item("B", 1, 1),
+                new Item("C", 10, 5),
+                new Item("A", 2, 10)
+            }
+            .AsQueryable()
+            .With(queryContext)
+            .ToList();
+    }
+}
+
+public record Item(string Name, decimal Price, decimal Quantity);
+
+public class ItemSortType : SortInputType<Item>
+{
+    protected override void Configure(ISortInputTypeDescriptor<Item> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(t => t.Name);
+        descriptor.Field(t => t.Price * t.Quantity).Name("total");
+    }
 }
 
 public class QueryWithIgnoredUnsupportedField
