@@ -105,6 +105,95 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task QueryContext_Should_SortNullNavigationAsDefault_When_QueryIsInMemory()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNestedSortField>()
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            {
+                shelves(order: [{ book: { title: ASC } }]) {
+                    name
+                }
+            }
+            """;
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "shelves": [
+                  {
+                    "name": "empty"
+                  },
+                  {
+                    "name": "first"
+                  },
+                  {
+                    "name": "second"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("total")]
+    [InlineData("ratio")]
+    [InlineData("upperTitle")]
+    public async Task QueryContext_Should_SortNestedExpression_When_ParentIsNull(string field)
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNestedSortField>()
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var query =
+            $$"""
+            {
+                shelves(order: [{ book: { {{field}}: DESC } }]) {
+                    name
+                }
+            }
+            """;
+
+        // act
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "shelves": [
+                  {
+                    "name": "second"
+                  },
+                  {
+                    "name": "first"
+                  },
+                  {
+                    "name": "empty"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Sorting_Should_Not_Analyze_Ignored_Field_Type()
     {
         // arrange
@@ -224,6 +313,50 @@ public class QueryWithExpressionSortField
             .AsQueryable()
             .With(queryContext)
             .ToList();
+    }
+}
+
+public class QueryWithNestedSortField
+{
+    [UseSorting(typeof(ShelfSortType))]
+    public IEnumerable<Shelf> GetShelves(QueryContext<Shelf> queryContext, ISortingContext sorting)
+    {
+        sorting.Handled(true);
+
+        return new[]
+            {
+                new Shelf("second", new ShelfBook("B", 20, 2)),
+                new Shelf("empty", null),
+                new Shelf("first", new ShelfBook("A", 10, 3))
+            }
+            .AsQueryable()
+            .With(queryContext)
+            .ToList();
+    }
+}
+
+public record Shelf(string Name, ShelfBook? Book);
+
+public record ShelfBook(string Title, int Pages, int Chapters);
+
+public class ShelfSortType : SortInputType<Shelf>
+{
+    protected override void Configure(ISortInputTypeDescriptor<Shelf> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(t => t.Book).Type<ShelfBookSortType>();
+    }
+}
+
+public class ShelfBookSortType : SortInputType<ShelfBook>
+{
+    protected override void Configure(ISortInputTypeDescriptor<ShelfBook> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(t => t.Title);
+        descriptor.Field(t => t.Pages * t.Chapters).Name("total");
+        descriptor.Field(t => t.Pages / t.Chapters).Name("ratio");
+        descriptor.Field(t => t.Title.ToUpper()).Name("upperTitle");
     }
 }
 

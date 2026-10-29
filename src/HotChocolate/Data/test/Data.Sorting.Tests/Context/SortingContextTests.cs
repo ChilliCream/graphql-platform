@@ -600,6 +600,53 @@ public class SortingContextTests
             sortDefinition?.ToString());
     }
 
+    [Theory]
+    [InlineData("UP", "{t => t.Title:ASC}")]
+    [InlineData("DOWN", "{t => t.Title:DESC}")]
+    public async Task AsSortDefinition_Should_UseOperationDirection_When_SortEnumValuesAreRenamed(
+        string direction,
+        string expected)
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseSorting()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddSorting(d =>
+            {
+                d.AddDefaults();
+                d.Operation(DefaultSortOperations.Ascending).Name("UP");
+                d.Operation(DefaultSortOperations.Descending).Name("DOWN");
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var query =
+            $$"""
+            {
+                test(order: { title: {{direction}} }) {
+                    title
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Book>();
+
+        // assert
+        Assert.Equal(expected, sortDefinition?.ToString());
+    }
+
     public class BookTotalSortType : SortInputType<Book>
     {
         protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
