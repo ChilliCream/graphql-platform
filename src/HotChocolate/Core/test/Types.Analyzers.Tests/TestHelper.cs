@@ -17,12 +17,19 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace HotChocolate.Types;
 
-internal static partial class TestHelper
+internal static class TestHelper
 {
     private static HashSet<string> _ignoreCodes =
         ["CS8652", "CS8632", "CS5001", "CS8019", "GD0001", "GD0002"];
 
-    public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
+    private static readonly Regex _middlewareFactoryHashRegex =
+        new("MiddlewareFactories([a-z0-9]{32})", RegexOptions.Compiled);
+
+    public static Snapshot GetGeneratedSourceSnapshot(
+#if NET7_0_OR_GREATER
+        [StringSyntax("csharp")]
+#endif
+        string sourceText)
     {
         return GetGeneratedSourceSnapshot([sourceText]);
     }
@@ -31,7 +38,11 @@ internal static partial class TestHelper
     {
         IEnumerable<PortableExecutableReference> references =
         [
-#if NET8_0
+#if NET6_0
+            .. Net60.References.All,
+#elif NET7_0
+            .. Net70.References.All,
+#elif NET8_0
             .. Net80.References.All,
 #elif NET9_0
             .. Net90.References.All,
@@ -89,7 +100,7 @@ internal static partial class TestHelper
                 // Replace variable hash in class name.
                 if (source.HintName.StartsWith("HotChocolateMiddleware"))
                 {
-                    text = MiddlewareFactoryHashRegex().Replace(
+                    text = _middlewareFactoryHashRegex.Replace(
                         text,
                         m => m.Value.Replace(m.Groups[1].Value, "HASH"));
                 }
@@ -194,7 +205,4 @@ internal static partial class TestHelper
             snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), title, MarkdownLanguages.Json);
         }
     }
-
-    [GeneratedRegex("MiddlewareFactories([a-z0-9]{32})")]
-    private static partial Regex MiddlewareFactoryHashRegex();
 }

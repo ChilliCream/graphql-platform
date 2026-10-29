@@ -171,7 +171,11 @@ public class IntegrationTests
             .AddSingleton<ChapterRepository>();
 
         serviceCollection
+#if NET7_0_OR_GREATER
             .AddGraphQLServer(disableDefaultSecurity: true)
+#else
+            .AddGraphQLServer()
+#endif
             .AddCustomModule()
             .AddGlobalObjectIdentification()
             .AddMutationConventions();
