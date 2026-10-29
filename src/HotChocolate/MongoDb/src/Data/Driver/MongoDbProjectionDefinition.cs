@@ -10,6 +10,18 @@ public abstract class MongoDbProjectionDefinition : ProjectionDefinition<BsonDoc
         IBsonSerializer documentSerializer,
         IBsonSerializerRegistry serializerRegistry);
 
+    /// <summary>
+    /// Tries to render a projection. Returns false when the whole document is required.
+    /// </summary>
+    internal virtual bool TryRender(
+        IBsonSerializer documentSerializer,
+        IBsonSerializerRegistry serializerRegistry,
+        out BsonDocument document)
+    {
+        document = Render(documentSerializer, serializerRegistry);
+        return true;
+    }
+
     public override BsonDocument Render(RenderArgs<BsonDocument> args)
         => Render(args.DocumentSerializer, args.SerializerRegistry);
 
@@ -20,7 +32,9 @@ public abstract class MongoDbProjectionDefinition : ProjectionDefinition<BsonDoc
         MongoDbProjectionDefinition filter)
         : ProjectionDefinition<T>
     {
-        public override BsonDocument Render(RenderArgs<T> args)
-            => filter.Render(args.DocumentSerializer, args.SerializerRegistry);
+        public override BsonDocument? Render(RenderArgs<T> args)
+            => filter.TryRender(args.DocumentSerializer, args.SerializerRegistry, out var document)
+                ? document
+                : null;
     }
 }
