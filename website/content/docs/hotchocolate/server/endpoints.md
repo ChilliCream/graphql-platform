@@ -107,9 +107,9 @@ This setting controls whether the GraphQL server executes query operations sent 
 
 A refused query gets the status code that a refused operation kind gets for its `Accept` header and [transport version](./http-transport.md#transport-versions): `405 Method Not Allowed` for `application/graphql-response+json`, and for `application/json` under `Draft20260903`. A `405` response lists in its `Allow` header `GET` and `HEAD` when [GET requests](#enablegetrequests) serve queries, and `QUERY` when [QUERY requests](#enablequeryrequests) are enabled, in which case it also carries `Accept-Query: application/json`. When neither serves queries, the `Allow` header is empty. In a request batch or an operation batch, each query fails with its own error while the other operations run.
 
-While this setting is `false`, a query refused over GET because [`AllowedGetOperations`](#allowedgetoperations) leaves out queries has a `405` response whose `Allow` header lists `QUERY` when QUERY requests are enabled and is empty otherwise, instead of listing `POST`.
+While this setting is `false`, a query refused over GET or HEAD because [`AllowedGetOperations`](#allowedgetoperations) leaves out queries has a `405` response whose `Allow` header lists `QUERY` when QUERY requests are enabled and is empty otherwise, instead of listing `POST`.
 
-The persisted operation routes read this setting from the schema's server options, which you set with `ModifyServerOptions`. Their `Allow` header lists `GET` without `HEAD` whenever `AllowedGetOperations` includes queries, whatever `EnableGetRequests` says.
+The persisted operation routes read this setting from the schema's server options, which you set with `ModifyServerOptions`. Their `Allow` header lists `GET` and `HEAD` whenever `AllowedGetOperations` includes queries, whatever `EnableGetRequests` says.
 
 Introspection is a query, so a tool that introspects the schema over POST cannot read it. The schema download through [`EnableSchemaRequests`](#enableschemarequests) keeps working. A source schema behind a Fusion gateway must leave this setting `true`, because the gateway sends every request to a source schema over POST.
 
@@ -354,7 +354,7 @@ The default path is `/graphql/persisted`. The endpoint supports two URL patterns
 | `/{operationId}`                 | `/graphql/persisted/abc123`         | Execute a persisted operation by its ID                        |
 | `/{operationId}/{operationName}` | `/graphql/persisted/abc123/GetUser` | Execute a specific named operation within a persisted document |
 
-GET and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. With POST and QUERY requests, you can pass variables and extensions in a JSON request body, sent with `Content-Type: application/json`. A QUERY request executes query operations only. A request with any other method has a `404` status code. Under the [`Draft20260903` transport version](./http-transport.md#draft20260903), it has a `405` status code, or `204` for `OPTIONS`.
+GET, HEAD, and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. A HEAD request is answered as GET, without the response content. With POST and QUERY requests, you can pass variables and extensions in a JSON request body, sent with `Content-Type: application/json`. A QUERY request executes query operations only. A request with any other method has a `404` status code. Under the [`Draft20260903` transport version](./http-transport.md#draft20260903), it has a `405` status code, or `204` for `OPTIONS`.
 
 ## Custom Path
 
