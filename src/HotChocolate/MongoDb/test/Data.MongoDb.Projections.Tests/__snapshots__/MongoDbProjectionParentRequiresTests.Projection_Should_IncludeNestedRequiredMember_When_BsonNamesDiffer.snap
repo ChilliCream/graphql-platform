@@ -1,0 +1,20 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "policy": {
+          "policyNumber": "1000-0001",
+          "holderEmail": "ann@example.com"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+Query:
+---------------
+find({ }, { "policy_data.policy_holder.email_address" : 1, "_t" : 1, "policy_data._t" : 1, "policy_data.policy_holder._t" : 1, "policy_data.PolicyNumber" : 1 })
+---------------

@@ -39,7 +39,7 @@ public class MongoDbProjectionProvider : ProjectionProvider
             }
 
             var visitorContext = new MongoDbProjectionVisitorContext(context, context.ObjectType);
-            var visitor = new ProjectionVisitor<MongoDbProjectionVisitorContext>();
+            var visitor = new MongoDbProjectionVisitor();
             visitor.Visit(visitorContext);
 
             if (visitorContext.Errors.Count == 0)
