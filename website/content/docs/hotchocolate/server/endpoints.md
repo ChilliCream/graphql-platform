@@ -139,6 +139,14 @@ app.UseEndpoints(endpoints =>
 
 This makes Nitro accessible via a web browser at the `/graphql/ui` endpoint.
 
+To serve the Nitro app that ships in the `ChilliCream.Nitro.App.Embed` package instead of serving it from the Nitro CDN, call `WithEmbeddedNitroAssets()`. This works on `MapNitroApp()`, on `MapGraphQL()` and on route groups.
+
+```csharp
+endpoints.MapNitroApp("/graphql/ui").WithEmbeddedNitroAssets();
+```
+
+[Learn more about serving the embedded Nitro app](../../nitro/integrations/hot-chocolate.md#serve-the-embedded-nitro-app)
+
 ## NitroAppOptions
 
 You can configure Nitro using `NitroAppOptions`.
