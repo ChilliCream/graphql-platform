@@ -57,6 +57,10 @@ internal sealed class AsyncAutoResetEvent : ICriticalNotifyCompletion, IThreadPo
     public void UnsafeOnCompleted(Action continuation)
         => RegisterContinuation(continuation, context: null);
 
+    /// <summary>
+    /// Signals the event. A registered awaiter continues on the thread pool, or on the calling thread
+    /// when the caller is not a thread pool thread; without an awaiter the signal is stored.
+    /// </summary>
     public void Set()
     {
         Action? continuation = null;
@@ -80,9 +84,18 @@ internal sealed class AsyncAutoResetEvent : ICriticalNotifyCompletion, IThreadPo
             }
         }
 
-        if (continuation is not null)
+        if (continuation is null)
+        {
+            return;
+        }
+
+        if (Thread.CurrentThread.IsThreadPoolThread)
         {
             ScheduleContinuation(continuation, context);
+        }
+        else
+        {
+            RunContinuation(continuation, context);
         }
     }
 
@@ -119,14 +132,7 @@ internal sealed class AsyncAutoResetEvent : ICriticalNotifyCompletion, IThreadPo
             return;
         }
 
-        if (context is null)
-        {
-            continuation();
-        }
-        else
-        {
-            ExecutionContext.Run(context, static state => ((Action)state!)(), continuation);
-        }
+        RunContinuation(continuation, context);
     }
 
     private void RegisterContinuation(Action continuation, ExecutionContext? context)
@@ -154,6 +160,18 @@ internal sealed class AsyncAutoResetEvent : ICriticalNotifyCompletion, IThreadPo
         if (wasSignaled)
         {
             ScheduleContinuation(continuation, context);
+        }
+    }
+
+    private static void RunContinuation(Action continuation, ExecutionContext? context)
+    {
+        if (context is null)
+        {
+            continuation();
+        }
+        else
+        {
+            ExecutionContext.Run(context, static state => ((Action)state!)(), continuation);
         }
     }
 
