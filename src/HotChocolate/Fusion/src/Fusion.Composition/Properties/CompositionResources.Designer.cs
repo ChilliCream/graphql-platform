@@ -1061,6 +1061,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; is not defined in schema &apos;{1}&apos; and is removed from the composite schema...
+        /// </summary>
+        internal static string LogEntryHelper_FieldArgumentNotShared {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FieldArgumentNotShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; must be defined as required in schema &apos;{1}&apos;. Arguments marked with @require are treated as non-required..
         /// </summary>
         internal static string LogEntryHelper_FieldWithMissingRequiredArgument {
@@ -1087,6 +1096,15 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to The input field &apos;{0}&apos; is not defined in schema &apos;{1}&apos; and is removed from the composite schema...
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldNotShared {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldNotShared", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to The input field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
