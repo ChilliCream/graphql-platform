@@ -7,6 +7,8 @@ namespace GreenDonut.Data;
 /// </summary>
 public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
 {
+    private Expression<Func<TEntity, TValue>>? _inMemoryKeySelector;
+
     /// <summary>
     /// Initializes a new instance of <see cref="SortBy{TEntity, TValue}"/>.
     /// </summary>
@@ -50,12 +52,14 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     {
         ArgumentNullException.ThrowIfNull(queryable);
 
+        var keySelector = GetKeySelector(queryable);
+
         if (Ascending)
         {
-            return queryable.OrderBy(KeySelector);
+            return queryable.OrderBy(keySelector);
         }
 
-        return queryable.OrderByDescending(KeySelector);
+        return queryable.OrderByDescending(keySelector);
     }
 
     /// <summary>
@@ -69,13 +73,20 @@ public sealed class SortBy<TEntity, TValue> : ISortBy<TEntity>
     /// </returns>
     public IOrderedQueryable<TEntity> ApplyThenBy(IOrderedQueryable<TEntity> queryable)
     {
+        var keySelector = GetKeySelector(queryable);
+
         if (Ascending)
         {
-            return queryable.ThenBy(KeySelector);
+            return queryable.ThenBy(keySelector);
         }
 
-        return queryable.ThenByDescending(KeySelector);
+        return queryable.ThenByDescending(keySelector);
     }
+
+    private Expression<Func<TEntity, TValue>> GetKeySelector(IQueryable<TEntity> queryable)
+        => queryable is EnumerableQuery
+            ? _inMemoryKeySelector ??= NullSafeSortKeyRewriter.Rewrite(KeySelector)
+            : KeySelector;
 }
 
 /// <summary>

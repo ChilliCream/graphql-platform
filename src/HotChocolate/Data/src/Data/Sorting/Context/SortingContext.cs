@@ -202,12 +202,23 @@ public class SortingContext : ISortingContext
                 }
                 else if (inputField is SortField && expression is not null)
                 {
-                    var ascending = node.Value.Value?.Equals("ASC") ?? true;
+                    var ascending = IsAscending(fieldType, node.Value);
                     context.Completed.Add((expression, ascending, expression.Type));
                 }
             }
 
             return base.Leave(node, context);
+        }
+
+        private static bool IsAscending(ITypeDefinition fieldType, IValueNode value)
+        {
+            if (fieldType is SortEnumType sortEnumType
+                && value is EnumValueNode or StringValueNode)
+            {
+                return sortEnumType.ParseSortLiteral(value)?.Operation != DefaultSortOperations.Descending;
+            }
+
+            return value.Value?.Equals("ASC") ?? true;
         }
 
         private static Expression? CreateSelector(Expression? parent, SortField field)
