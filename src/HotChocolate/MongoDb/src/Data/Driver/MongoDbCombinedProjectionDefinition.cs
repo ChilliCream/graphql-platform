@@ -27,13 +27,24 @@ public sealed class MongoDbCombinedProjectionDefinition : MongoDbProjectionDefin
         IBsonSerializer documentSerializer,
         IBsonSerializerRegistry serializerRegistry)
     {
-        var document = new BsonDocument();
+        TryRender(documentSerializer, serializerRegistry, out var document);
+        return document;
+    }
 
-        foreach (var sort in _projections)
+    internal override bool TryRender(
+        IBsonSerializer documentSerializer,
+        IBsonSerializerRegistry serializerRegistry,
+        out BsonDocument document)
+    {
+        document = new BsonDocument();
+
+        foreach (var projection in _projections)
         {
-            var renderedProjection = sort.Render(
-                documentSerializer,
-                serializerRegistry);
+            if (!projection.TryRender(documentSerializer, serializerRegistry, out var renderedProjection))
+            {
+                document.Clear();
+                return false;
+            }
 
             foreach (var element in renderedProjection.Elements)
             {
@@ -42,6 +53,42 @@ public sealed class MongoDbCombinedProjectionDefinition : MongoDbProjectionDefin
             }
         }
 
-        return document;
+        RemoveCoveredInclusions(document);
+
+        return true;
     }
+
+    private static void RemoveCoveredInclusions(BsonDocument document)
+    {
+        for (var i = document.ElementCount - 1; i >= 0; i--)
+        {
+            var element = document.GetElement(i);
+
+            if (element.Name.Contains('.') && IsInclusion(element.Value) && IsCovered(document, element.Name))
+            {
+                document.RemoveAt(i);
+            }
+        }
+    }
+
+    private static bool IsCovered(BsonDocument document, string path)
+    {
+        foreach (var element in document.Elements)
+        {
+            var parentPath = element.Name;
+
+            if (path.Length > parentPath.Length
+                && path[parentPath.Length] == '.'
+                && path.StartsWith(parentPath, StringComparison.Ordinal)
+                && IsInclusion(element.Value))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsInclusion(BsonValue value)
+        => value.IsBoolean ? value.AsBoolean : value.IsNumeric && value.ToDouble() != 0;
 }
