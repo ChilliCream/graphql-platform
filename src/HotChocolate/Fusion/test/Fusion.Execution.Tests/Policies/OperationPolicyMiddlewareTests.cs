@@ -484,6 +484,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
             [
                 """
                 {
+                  "variableIndex": 0,
                   "data": {
                     "productById": {
                       "id": "1"
@@ -493,6 +494,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
                 """,
                 """
                 {
+                  "variableIndex": 1,
                   "data": {
                     "productById": null
                   }
@@ -590,6 +592,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
             [
                 """
                 {
+                  "variableIndex": 0,
                   "data": {
                     "productById": {
                       "id": "1"
@@ -599,6 +602,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
                 """,
                 """
                 {
+                  "variableIndex": 1,
                   "data": {
                     "productById": null
                   }
@@ -638,6 +642,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
             [
                 """
                 {
+                  "variableIndex": 0,
                   "data": {
                     "productByFilter": {
                       "id": "1"
@@ -647,6 +652,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
                 """,
                 """
                 {
+                  "variableIndex": 1,
                   "data": {
                     "productByFilter": null
                   }
@@ -686,6 +692,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
             [
                 """
                 {
+                  "variableIndex": 0,
                   "data": {
                     "productsByIds": [
                       {
@@ -697,6 +704,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
                 """,
                 """
                 {
+                  "variableIndex": 1,
                   "data": {
                     "productsByIds": null
                   }

@@ -377,6 +377,7 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
             context.Initialize(
                 requestContext,
                 VariableValueCollection.Empty,
+                variableIndex: -1,
                 null,
                 plan,
                 cts,

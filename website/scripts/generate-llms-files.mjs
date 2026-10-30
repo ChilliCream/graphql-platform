@@ -38,7 +38,10 @@ const STRIP_FROM_CONTENT = [
   "[data-llms-ignore]",
   ".heading-anchor",
 ];
-const REDUNDANT_ARCHIVE_PATH = /^\/blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)$/;
+const REDUNDANT_ARCHIVE_PATH =
+  /^\/(?:blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)|comparison\/\d+)$/;
+/** A comparison article, as opposed to the index or its pagination pages. */
+export const COMPARISON_ARTICLE_PATH = /^\/comparison\/(?!\d+$)[^/]+$/;
 const LEGACY_CANONICAL_PATH = /^\/docs\/skillz(?:\/|$)/;
 
 const markdownConverter = new NodeHtmlMarkdown({
@@ -76,7 +79,11 @@ function stripBuildOnlyHtml(html) {
 
 function isDetailArticle(url) {
   const pathname = new URL(url).pathname;
-  return pathname.startsWith("/docs/") || datedContent(pathname) !== null;
+  return (
+    pathname.startsWith("/docs/") ||
+    datedContent(pathname) !== null ||
+    COMPARISON_ARTICLE_PATH.test(pathname)
+  );
 }
 
 function contentRootFor(document, url) {
@@ -294,6 +301,13 @@ async function readPage(url) {
       .querySelector('meta[name="description"]')
       ?.getAttribute("content") ?? "",
   );
+  const datasets = document
+    .querySelectorAll('link[rel="alternate"][type="application/json"]')
+    .map((link) => ({
+      title: cleanInlineText(link.getAttribute("title") ?? ""),
+      url: new URL(link.getAttribute("href") ?? "", url).href,
+    }))
+    .filter((dataset) => dataset.title !== "");
   const renderedMarkdown = normalizeMarkdown(
     markdownConverter.translate(root.innerHTML),
   );
@@ -304,6 +318,7 @@ async function readPage(url) {
 
   const page = {
     body,
+    datasets,
     description,
     markdownUrl: markdownUrl(url),
     title,
@@ -370,6 +385,29 @@ function pageListItem(page) {
   return `- [${escapeLinkLabel(page.title)}](${page.markdownUrl})${description}`;
 }
 
+function formatFileSize(bytes) {
+  return bytes < 1024 * 1024
+    ? `${Math.ceil(bytes / 1024)} KiB`
+    : `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
+}
+
+async function datasetListItem(dataset) {
+  const pathname = decodeURIComponent(new URL(dataset.url).pathname);
+  const { size } = await fs.stat(path.join(OUTPUT_ROOT, pathname.slice(1)));
+  return `- [${escapeLinkLabel(dataset.title)}](${dataset.url}): JSON data, ${formatFileSize(size)}.`;
+}
+
+async function benchmarkListItems(pages) {
+  const items = [];
+  for (const page of pages) {
+    items.push(pageListItem(page));
+    for (const dataset of page.datasets) {
+      items.push(await datasetListItem(dataset));
+    }
+  }
+  return items;
+}
+
 function catalog(title, summary, sections, details = []) {
   const lines = [`# ${title}`, "", `> ${summary}`];
 
@@ -430,6 +468,7 @@ function scopeLinks(origin) {
     `- [Complete site context](${origin}/llms-full.txt): All substantive public site content in one large compatibility export.`,
     `- [Documentation context](${origin}/docs/llms-full.txt): All product documentation.`,
     `- [Blog context](${origin}/blog/llms-full.txt): All public ChilliCream blog posts.`,
+    `- [Comparison context](${origin}/comparison/llms-full.txt): All public ChilliCream comparison articles.`,
     `- [Videos context](${origin}/videos/llms-full.txt): All ChilliCream TV video pages.`,
   ];
 }
@@ -473,7 +512,9 @@ export async function generateLlmsFiles() {
   const origin = new URL(pages[0].url).origin;
   const docs = pagesUnder(pages, "/docs");
   const blog = pagesUnder(pages, "/blog");
+  const comparison = pagesUnder(pages, "/comparison");
   const videos = pagesUnder(pages, "/videos");
+  const benchmarks = pagesUnder(pages, "/benchmarks");
   const products = pagesUnder(pages, "/products");
   const platform = pagesUnder(pages, "/platform");
   const services = [
@@ -488,7 +529,9 @@ export async function generateLlmsFiles() {
     [
       ...docs,
       ...blog,
+      ...comparison,
       ...videos,
+      ...benchmarks,
       ...products,
       ...platform,
       ...services,
@@ -511,6 +554,12 @@ export async function generateLlmsFiles() {
       "ChilliCream blog",
       "Announcements, technical deep dives, and guides from the ChilliCream team, newest first.",
       blog,
+    ),
+    writeScopedFiles(
+      "comparison",
+      "ChilliCream comparisons",
+      "Side-by-side comparisons of GraphQL Federation with the other ways teams get data out of more than one service, and when each is the better fit.",
+      comparison,
     ),
     writeScopedFiles(
       "videos",
@@ -566,7 +615,7 @@ export async function generateLlmsFiles() {
 
   const rootCatalog = catalog(
     "ChilliCream",
-    "ChilliCream is a GraphQL platform for .NET teams, with open-source runtimes and the commercial Nitro control plane.",
+    "ChilliCream is a GraphQL federation platform, with open-source runtimes and the commercial Nitro control plane.",
     [
       { title: "Start Here", items: startHere.map(pageListItem) },
       {
@@ -582,6 +631,7 @@ export async function generateLlmsFiles() {
           `- [Services catalog](${origin}/services/llms.txt): Training, advisory, support, and help pages.`,
         ],
       },
+      { title: "Benchmarks", items: await benchmarkListItems(benchmarks) },
       {
         title: "Documentation",
         items: [
@@ -602,6 +652,12 @@ export async function generateLlmsFiles() {
         title: "Blog",
         items: [
           `- [Blog catalog](${origin}/blog/llms.txt): Every public blog post, newest first.`,
+        ],
+      },
+      {
+        title: "Comparisons",
+        items: [
+          `- [Comparison catalog](${origin}/comparison/llms.txt): Every public comparison article.`,
         ],
       },
       {

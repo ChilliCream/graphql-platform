@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
@@ -61,6 +62,68 @@ public class OperationKindTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Query_Should_ReturnUnprocessableContent_When_MutationVariableBatchIsSent()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<Query>().AddMutationType<Mutation>());
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.EnableQueryRequests = true),
+            includeOperationPlan: false);
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = CreateRequest(
+            s_queryMethod,
+            """
+            {
+              "query": "mutation($greeting: String!) { setGreeting(greeting: $greeting) }",
+              "variables": [{ "greeting": "Hi" }, { "greeting": "Hey" }]
+            }
+            """);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.UnprocessableContent, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Query_Should_ReturnUnprocessableContent_When_SubscriptionVariableBatchIsSent()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<Query>().AddSubscriptionType<Subscription>());
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.EnableQueryRequests = true),
+            includeOperationPlan: false);
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = CreateRequest(
+            s_queryMethod,
+            """
+            {
+              "query": "subscription($name: String!) { onGreeting(name: $name) }",
+              "variables": [{ "name": "Ada" }, { "name": "Grace" }]
+            }
+            """);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.UnprocessableContent, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task Get_Should_ReturnMethodNotAllowed_When_MutationIsSent()
     {
         // arrange
@@ -84,6 +147,99 @@ public class OperationKindTests : FusionTestBase
         Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
         Assert.Equal(
             """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Post_Should_RefuseQuery_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<Query>().AddMutationType<Mutation>());
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(
+                o =>
+                {
+                    o.EnableQueriesOverPost = false;
+                    o.EnableQueryRequests = true;
+                }),
+            includeOperationPlan: false);
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = CreateRequest(HttpMethod.Post, """{ "query": "{ greeting }" }""");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(["GET", "HEAD", "QUERY"], response.Content.Headers.Allow);
+    }
+
+    [Fact]
+    public async Task Post_Should_RefuseQueryVariableBatch_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<Query>().AddMutationType<Mutation>());
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(
+                o =>
+                {
+                    o.EnableQueriesOverPost = false;
+                    o.EnableQueryRequests = true;
+                }),
+            includeOperationPlan: false);
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = CreateRequest(
+            HttpMethod.Post,
+            """{ "query": "{ greeting }", "variables": [{ }, { }] }""");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(["GET", "HEAD", "QUERY"], response.Content.Headers.Allow);
+    }
+
+    [Fact]
+    public async Task Post_Should_ReturnResult_When_MutationIsSentAndQueriesOverPostAreOff()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<Query>().AddMutationType<Mutation>());
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(
+                o =>
+                {
+                    o.EnableQueriesOverPost = false;
+                    o.EnableQueryRequests = true;
+                }),
+            includeOperationPlan: false);
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = CreateRequest(
+            HttpMethod.Post,
+            """{ "query": "mutation { setGreeting(greeting: \"Hi\") }" }""");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"setGreeting":"Hi"}}""",
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 
@@ -135,6 +291,18 @@ public class OperationKindTests : FusionTestBase
     public class Mutation
     {
         public string SetGreeting(string greeting) => greeting;
+    }
+
+    public class Subscription
+    {
+        public async IAsyncEnumerable<string> OnGreetingStream(string name)
+        {
+            yield return name;
+            await Task.CompletedTask;
+        }
+
+        [Subscribe(With = nameof(OnGreetingStream))]
+        public string OnGreeting(string name, [EventMessage] string greeting) => greeting;
     }
 
     public record Profile(string Name, string Bio);

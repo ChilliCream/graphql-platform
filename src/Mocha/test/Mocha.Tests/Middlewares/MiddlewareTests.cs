@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.InMemory;
 
@@ -327,6 +328,65 @@ public class MiddlewareTests
         // assert
         Assert.Equal(10, responses.Length);
         Assert.All(responses, r => Assert.Equal("Shipped", r.Status));
+    }
+
+    [Theory]
+    [InlineData(MessageKind.Publish, 1)]
+    [InlineData(MessageKind.Send, 1)]
+    [InlineData(MessageKind.Request, 2)]
+    public async Task Initialize_Should_AssignRuntime_When_MessageIsPublishedSentOrRequested(
+        string kind,
+        int expectedDispatchCount)
+    {
+        // arrange
+        // the middleware runs for every outgoing message, so a request also captures its reply
+        var capturedRuntimes = new ConcurrentQueue<IMessagingRuntime>();
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        var builder = services.AddMessageBus();
+        builder.AddRequestHandler<GetOrderStatusHandler>();
+        builder.ConfigureMessageBus(b => b.UseDispatch(
+            new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    capturedRuntimes.Enqueue(context.Runtime);
+                    return next(context);
+                },
+                "CaptureRuntime")));
+        builder.AddInMemory(t =>
+        {
+            t.DeclareQueue("events");
+            t.DispatchEndpoint("events").ToQueue("events").Publish<OrderCreated>();
+            t.DeclareQueue("commands");
+            t.DispatchEndpoint("commands").ToQueue("commands").Send<ProcessPayment>();
+        });
+
+        await using var provider = services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(CancellationToken.None);
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        switch (kind)
+        {
+            case MessageKind.Publish:
+                await bus.PublishAsync(new OrderCreated { OrderId = "runtime" }, CancellationToken.None);
+                break;
+
+            case MessageKind.Send:
+                await bus.SendAsync(new ProcessPayment { Amount = 42.00m }, CancellationToken.None);
+                break;
+
+            case MessageKind.Request:
+                await bus.RequestAsync(new GetOrderStatus { OrderId = "runtime" }, CancellationToken.None);
+                break;
+        }
+
+        // assert
+        Assert.Equal(expectedDispatchCount, capturedRuntimes.Count);
+        Assert.All(capturedRuntimes, captured => Assert.Same(runtime, captured));
     }
 
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);

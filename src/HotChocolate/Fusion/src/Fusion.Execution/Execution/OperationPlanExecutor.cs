@@ -18,6 +18,7 @@ internal static partial class OperationPlanExecutor
     public static async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        int variableIndex,
         PolicyDecisions? policyDecisions,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
@@ -31,7 +32,17 @@ internal static partial class OperationPlanExecutor
 
         try
         {
-            context.Initialize(requestContext, variables, policyDecisions, operationPlan, executionCts);
+            context.Initialize(
+                requestContext,
+                variables,
+                variableIndex,
+                policyDecisions,
+                operationPlan,
+                executionCts);
+
+            // The engine token is linked to the request token, so it shares the request deadline.
+            context.HasExecutionDeadline =
+                requestContext.Features.Get<ExecutionDeadline>()?.Covers(cancellationToken) is true;
 
             context.Begin();
 
@@ -80,7 +91,13 @@ internal static partial class OperationPlanExecutor
         try
         {
             rootContext = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
-            rootContext.Initialize(requestContext, variables, policyDecisions, operationPlan, executionCts);
+            rootContext.Initialize(
+                requestContext,
+                variables,
+                variableIndex: -1,
+                policyDecisions,
+                operationPlan,
+                executionCts);
 
             rootContext.Begin();
 
@@ -489,7 +506,14 @@ internal static partial class OperationPlanExecutor
             // Reuse the single request arena instead of minting a per-plan arena: the request
             // executor has already detached it from the request context, so it is supplied
             // explicitly here.
-            context.Initialize(requestContext, variables, policyDecisions, incrementalPlan, executionCts, requestArena);
+            context.Initialize(
+                requestContext,
+                variables,
+                variableIndex: -1,
+                policyDecisions,
+                incrementalPlan,
+                executionCts,
+                requestArena);
 
             // Copy parent-scope requirements into the child context.
             CollectIncrementalPlanRequirements(parentResultStore, incrementalPlan, context);
@@ -885,6 +909,7 @@ internal static partial class OperationPlanExecutor
             context.Initialize(
                 requestContext,
                 requestContext.VariableValues[0],
+                variableIndex: -1,
                 requestContext.GetPolicyDecisions(0),
                 operationPlan,
                 executionCts);

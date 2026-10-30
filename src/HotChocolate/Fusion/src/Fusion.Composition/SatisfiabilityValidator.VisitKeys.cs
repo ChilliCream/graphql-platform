@@ -12,6 +12,7 @@ internal sealed partial class SatisfiabilityValidator
 {
     private readonly SchemaSetTable _schemaSets = new();
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSet> _fieldSchemas = [];
+    private readonly Dictionary<MutableOutputFieldDefinition, SchemaSelectionSets?> _fieldProvides = [];
     private readonly Dictionary<MutableObjectTypeDefinition, VisitTypeInfo> _visitTypeInfos = [];
     private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSet> _transitionFacts = [];
     private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSet> _nodeReaches = [];
@@ -31,11 +32,19 @@ internal sealed partial class SatisfiabilityValidator
     {
         var info = GetVisitTypeInfo(type);
         var fieldSchemas = GetFieldSchemas(item.Field);
+        var fieldProvides = GetFieldProvides(item.Field);
         var transitionFacts = item.ProvidedSelectionSet is null
             ? GetTransitionFacts(type, info, item.SchemaName)
             : SchemaSet.Empty;
         var holder = _schemaSets.GetIndex(item.SchemaName);
+        var parentProvides = parent.Path is not null ? parent.Key.ReachProvides : null;
+        var isViewerFallback =
+            parent.Key.ViewerFallback
+            && _queryViewerField is not null
+            && item.Field.IsViewerFieldFor(_queryViewerField);
+        var viewerProvides = isViewerFallback ? GetFieldProvides(_queryViewerField!) : null;
         var buffer = _schemaSets.GetBuffer(fieldSchemas);
+        List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides = null;
 
         // Below a root type, keeps the schemas of the item's field that the parent reaches.
         if (parent.Path is not null)
@@ -43,17 +52,55 @@ internal sealed partial class SatisfiabilityValidator
             _schemaSets.IntersectWith(buffer, parent.Key.Reach);
         }
 
+        // A schema of the parent's reach also serves a partial field of the item when the selection
+        // set it provides for the parent selects the field.
+        if (parentProvides is not null)
+        {
+            var parentFieldType = parent.Path!.Item.FieldType;
+
+            for (var i = 0; i < parentProvides.Count; i++)
+            {
+                var index = parentProvides.GetSchemaIndex(i);
+
+                if (SourceSchemaTransitionHelper.ServesOnRetraversal(
+                    _schema,
+                    item.Field,
+                    item.Type,
+                    _schemaSets.GetSchemaName(index),
+                    parentFieldType,
+                    parentProvides.GetSelectionSet(i),
+                    fieldProvides?.Find(index),
+                    out var providedSelectionSet))
+                {
+                    SchemaSetTable.Add(buffer, index);
+                    AddProvides(ref provides, index, providedSelectionSet);
+                }
+            }
+        }
+
+        if (fieldProvides is not null)
+        {
+            for (var i = 0; i < fieldProvides.Count; i++)
+            {
+                var index = fieldProvides.GetSchemaIndex(i);
+
+                if (SchemaSetTable.Contains(buffer, index) && parentProvides?.Find(index) is null)
+                {
+                    AddProvides(ref provides, index, fieldProvides.GetSelectionSet(i));
+                }
+            }
+        }
+
         // A viewer field on a mutation or subscription path is re-rooted at Query.viewer in the
-        // schemas it is missing in.
-        if (parent.Key.ViewerFallback
-            && _queryViewerField is not null
-            && item.Field.IsViewerFieldFor(_queryViewerField))
+        // schemas that do not serve it.
+        if (isViewerFallback)
         {
             foreach (var index in _queryViewerSchemas)
             {
                 if (!_schemaSets.Contains(fieldSchemas, index))
                 {
                     SchemaSetTable.Add(buffer, index);
+                    AddProvides(ref provides, index, viewerProvides?.Find(index));
                 }
             }
         }
@@ -76,8 +123,56 @@ internal sealed partial class SatisfiabilityValidator
             type,
             item.SchemaName,
             reach,
+            CreateReachProvides(provides, reach),
             leaf,
             parent.Key.ViewerFallback && _viewerFallbackTypes.Contains(type));
+    }
+
+    /// <summary>
+    /// Adds <paramref name="selectionSet"/> to the selection set provided in the schema with index
+    /// <paramref name="index"/>, unless it is <c>null</c>.
+    /// </summary>
+    private static void AddProvides(
+        ref List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides,
+        int index,
+        SelectionSetNode? selectionSet)
+    {
+        if (selectionSet is null)
+        {
+            return;
+        }
+
+        provides ??= [];
+
+        for (var i = 0; i < provides.Count; i++)
+        {
+            if (provides[i].SchemaIndex == index)
+            {
+                provides[i] = (
+                    index,
+                    SourceSchemaTransitionHelper.CombineSelectionSets(provides[i].SelectionSet, selectionSet)!);
+                return;
+            }
+        }
+
+        provides.Add((index, selectionSet));
+    }
+
+    /// <summary>
+    /// Creates the provided selection sets of the schemas in <paramref name="reach"/>, or returns
+    /// <c>null</c> if none of them provides a selection set.
+    /// </summary>
+    private SchemaSelectionSets? CreateReachProvides(
+        List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides,
+        SchemaSet reach)
+    {
+        if (provides is null)
+        {
+            return null;
+        }
+
+        provides.RemoveAll(entry => !_schemaSets.Contains(reach, entry.SchemaIndex));
+        return provides.Count > 0 ? new SchemaSelectionSets(provides) : null;
     }
 
     /// <summary>
@@ -110,6 +205,7 @@ internal sealed partial class SatisfiabilityValidator
             type,
             lookupItem.SchemaName,
             reach,
+            null,
             leaf,
             parent.Key.ViewerFallback && _viewerFallbackTypes.Contains(type));
     }
@@ -122,6 +218,7 @@ internal sealed partial class SatisfiabilityValidator
             rootType,
             null,
             SchemaSet.Empty,
+            null,
             null,
             !ReferenceEquals(rootType, _schema.QueryType) && _viewerFallbackTypes.Contains(rootType));
 
@@ -275,7 +372,12 @@ internal sealed partial class SatisfiabilityValidator
                 if (directives[i].Name == WellKnownDirectiveNames.FusionField)
                 {
                     var schemaName = (string)directives[i].Arguments[WellKnownArgumentNames.Schema].Value!;
-                    _schemaIndexes.Add(_schemaSets.GetIndex(schemaName));
+
+                    // A partial (@external) field is not served by its schema.
+                    if (!field.IsPartial(schemaName))
+                    {
+                        _schemaIndexes.Add(_schemaSets.GetIndex(schemaName));
+                    }
                 }
             }
 
@@ -284,6 +386,31 @@ internal sealed partial class SatisfiabilityValidator
         }
 
         return schemas;
+    }
+
+    /// <summary>
+    /// Gets the @provides selection sets of <paramref name="field"/> by schema, or <c>null</c> if it
+    /// has none.
+    /// </summary>
+    private SchemaSelectionSets? GetFieldProvides(MutableOutputFieldDefinition field)
+    {
+        if (!_fieldProvides.TryGetValue(field, out var provides))
+        {
+            List<(int SchemaIndex, SelectionSetNode SelectionSet)>? entries = null;
+
+            foreach (var schemaName in field.GetSchemaNames())
+            {
+                if (SourceSchemaTransitionHelper.GetProvidedSelectionSet(field, schemaName) is { } selectionSet)
+                {
+                    (entries ??= []).Add((_schemaSets.GetIndex(schemaName), selectionSet));
+                }
+            }
+
+            provides = entries is null ? null : new SchemaSelectionSets(entries);
+            _fieldProvides.Add(field, provides);
+        }
+
+        return provides;
     }
 
     /// <summary>
@@ -328,7 +455,7 @@ internal sealed partial class SatisfiabilityValidator
 
             if ((item.ProvidedSelectionSet is null
                     && CanResolveLeafSelections(key, type, item.SchemaName, excludeSchemaName))
-                || _requirementsValidator.Validate(key, type, item, excludeSchemaName).IsEmpty)
+                || _requirementsValidator.Validate(key, type, item, ancestors: [], excludeSchemaName).IsEmpty)
             {
                 return true;
             }

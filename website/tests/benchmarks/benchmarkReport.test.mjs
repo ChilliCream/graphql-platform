@@ -123,6 +123,30 @@ const parse = (mutate) => {
   return parseBenchmarkReport(JSON.stringify(report));
 };
 
+test("accepts the renamed GraphQL Federation composition in reports and history", () => {
+  // arrange
+  const documents = [JSON.parse(fixture), JSON.parse(historyFixture)];
+  for (const document of documents) {
+    document.gateways[0].variants[0].composition = "graphql-federation";
+  }
+
+  // act
+  const parsed = [
+    parseBenchmarkReport(JSON.stringify(documents[0])),
+    parseBenchmarkHistory(JSON.stringify(documents[1])),
+  ];
+
+  // assert
+  assert.deepEqual(parsed, documents);
+  assert.deepEqual(
+    parsed.map(
+      (document) =>
+        benchmarkVariants(document).values().next().value.variant.composition,
+    ),
+    ["composite-schema", "composite-schema"],
+  );
+});
+
 const invalidReports = [
   [
     "missing required fields",
@@ -519,7 +543,7 @@ test("names and links unknown gateways from the report", () => {
       return [variantName(entry), gatewayLink(entry.gateway)];
     }),
     [
-      ["Fusion", "/docs/fusion"],
+      ["Fusion", "/products/fusion"],
       ["New Router Preview", "https://github.com/example/new-router"],
       ["Unsafe Router", undefined],
     ],
@@ -576,7 +600,48 @@ test("accepts the history and keeps versions oldest first", () => {
 const firstHistoryVersion = (history) =>
   history.scenarios[0].variants[0].results[0];
 
+test("validates mixed history repetition counts against each result", () => {
+  // arrange
+  const history = JSON.parse(historyFixture);
+  for (const scenario of history.scenarios) {
+    for (const variant of scenario.variants) {
+      for (const result of variant.results) {
+        result.measuredRuns = scenario.config.measuredRuns;
+      }
+    }
+    scenario.config.measuredRuns = 5;
+  }
+  const result = firstHistoryVersion(history);
+  result.measuredRuns = 5;
+  const { worstRps, medianRps, bestRps } = result.throughput;
+  result.throughput.runsRps = [
+    worstRps,
+    medianRps,
+    medianRps,
+    medianRps,
+    bestRps,
+  ];
+
+  // act
+  const parsed = parseBenchmarkHistory(JSON.stringify(history));
+
+  // assert
+  assert.deepEqual(parsed, history);
+});
+
 const invalidHistories = [
+  [
+    "nonpositive result repetition counts",
+    (history) => {
+      firstHistoryVersion(history).measuredRuns = 0;
+    },
+  ],
+  [
+    "samples that disagree with the result repetition count",
+    (history) => {
+      firstHistoryVersion(history).measuredRuns = 5;
+    },
+  ],
   [
     "results without timestamps",
     (history) => {
@@ -678,11 +743,7 @@ test("uses explicit variant labels and preview metadata", () => {
       return {
         id,
         name: variantName(entry),
-        preview: isPreview(
-          entry.variant.version,
-          entry.variant.platform,
-          entry.variant.preview,
-        ),
+        preview: isPreview(entry.variant),
       };
     }),
     [

@@ -480,7 +480,14 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             // The request executor always attaches a memory arena to the request before a plan
             // runs. The arena is supplied explicitly here because this fixture does not go through
             // the request executor that would otherwise attach it to the request context.
-            context.Initialize(requestContext, _variables, null, _operationPlan, cts, new MemoryArena());
+            context.Initialize(
+                requestContext,
+                _variables,
+                variableIndex: -1,
+                null,
+                _operationPlan,
+                cts,
+                new MemoryArena());
             _rentedContexts.Add(context);
             return context;
         }

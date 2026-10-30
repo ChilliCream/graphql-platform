@@ -13,8 +13,12 @@ const hooks = registerHooks({
     );
   },
 });
-const { scenarioGroups } =
-  await import("../../src/components/benchmarks/benchmarkView.ts");
+const {
+  benchmarkPageDescription,
+  isShownVariant,
+  releasedGateways,
+  scenarioGroups,
+} = await import("../../src/components/benchmarks/benchmarkView.ts");
 hooks.deregister();
 
 const variants = new Map(
@@ -60,62 +64,128 @@ const result = (variant, medianRps, failed = 0) => ({
   throughput: { medianRps, cvPercent: 1 },
   requests: { total: 100, successful: 100 - failed, failed },
 });
-const shown = (rows, bestOnly) =>
-  scenarioGroups({ results: [{ variants: rows }] }, variants, false, bestOnly)
+const shown = (rows) =>
+  scenarioGroups({ results: [{ variants: rows }] }, variants)
     .flatMap((group) => group.rows)
     .map((row) => row.variant);
 
-test("keeps the best preview and non-preview variant of each gateway per composition", () => {
+test("shows every variant of each gateway, fastest first within each composition", () => {
   assert.deepEqual(
-    shown(
-      [
-        result("fusion-net-10", 1000),
-        result("fusion-aot-11", 1200),
-        result("fusion-nightly-net-10", 1100),
-        result("fusion-fed-net-10", 900),
-        result("hive-gateway", 400),
-        result("hive-gateway-router-runtime", 500),
-      ],
-      true,
-    ),
+    shown([
+      result("fusion-net-10", 1000),
+      result("fusion-aot-11", 1200),
+      result("fusion-nightly-net-10", 1100),
+      result("fusion-fed-net-10", 900),
+      result("hive-gateway", 400),
+      result("hive-gateway-router-runtime", 500),
+    ]),
     [
       "fusion-aot-11",
+      "fusion-nightly-net-10",
       "fusion-net-10",
       "hive-gateway-router-runtime",
+      "hive-gateway",
       "fusion-fed-net-10",
     ],
   );
 });
-test("prefers a result without failed requests over a faster one with failures", () => {
+const catalog = (gateways) => ({
+  gateways: gateways.map(([id, name, previews]) => ({
+    id,
+    name,
+    variants: previews.map((preview, index) => ({
+      id: `${id}-${index}`,
+      version: "1.0.0",
+      ...(preview ? { preview } : {}),
+      platform: { language: { name: "Test" } },
+    })),
+  })),
+});
+test("counts a gateway as released when any of its variants is not a preview", () => {
+  const report = catalog([
+    ["router-a", "Router A", [true, false]],
+    ["router-b", "Router B", [true]],
+  ]);
   assert.deepEqual(
-    shown(
-      [
-        result("hive-gateway", 400),
-        result("hive-gateway-router-runtime", 500, 5),
-      ],
-      true,
-    ),
-    ["hive-gateway"],
+    [
+      ...releasedGateways(
+        new Map(
+          report.gateways.flatMap((gateway) =>
+            gateway.variants.map((variant) => [
+              variant.id,
+              { gateway, variant },
+            ]),
+          ),
+        ),
+      ),
+    ],
+    ["router-a"],
   );
 });
-test("prefers a failed result with measurements over one without", () => {
-  assert.deepEqual(
-    shown(
-      [
-        { variant: "hive-gateway", status: "failed" },
-        { ...result("hive-gateway-router-runtime", 300), status: "failed" },
-      ],
-      true,
+test("describes the page with released gateways, Fusion first and without generic suffixes", () => {
+  assert.equal(
+    benchmarkPageDescription(
+      catalog([
+        ["apollo-gateway", "Apollo Gateway", [false]],
+        ["apollo-router", "Apollo Router", [false]],
+        ["hive-router", "Hive Router", [false]],
+        ["router-b", "Router B", [true]],
+        ["fusion", "Fusion", [false]],
+      ]),
     ),
-    ["hive-gateway-router-runtime"],
+    "Compare GraphQL federation router performance: throughput, latency, memory and CPU for Fusion, Apollo, and Hive, benchmarked daily under identical conditions.",
   );
 });
-test("shows every variant when only the best version is not selected", () => {
-  assert.deepEqual(
-    shown(
-      [result("hive-gateway", 400), result("hive-gateway-router-runtime", 500)],
-      false,
-    ),
-    ["hive-gateway-router-runtime", "hive-gateway"],
-  );
-});
+
+for (const composition of ["graphql-federation", "apollo-federation"]) {
+  test(`shows all Fusion previews and only stable .NET 11 AOT for ${composition}`, () => {
+    // arrange
+    const fusion = (id, runtimeVersion, aot, preview) => ({
+      gateway: { id: "fusion" },
+      variant: {
+        id,
+        composition,
+        ...(preview ? { preview } : {}),
+        platform: {
+          language: { name: "C#" },
+          runtime: { name: ".NET", version: runtimeVersion },
+          features: aot ? [{ id: "aot", name: "AOT" }] : [],
+        },
+      },
+    });
+    const entries = [
+      fusion("fusion-aot-11", "11.0.0-rc.2", true, false),
+      fusion("fusion-net-11", "11.0.0-rc.2", false, false),
+      fusion("fusion-aot-10", "10.0.13", true, false),
+      fusion("fusion-nightly-aot-11", "11.0.0-rc.2", true, true),
+      fusion("fusion-nightly-net-11", "11.0.0-rc.2", false, true),
+      fusion("fusion-nightly-aot-10", "10.0.13", true, true),
+      fusion("fusion-nightly-net-10", "10.0.13", false, true),
+      {
+        gateway: { id: "hive-router" },
+        variant: {
+          id: "hive-router",
+          platform: { language: { name: "Rust" } },
+        },
+      },
+    ];
+
+    // act
+    const visibility = entries.map((entry) => [
+      entry.variant.id,
+      isShownVariant(entry),
+    ]);
+
+    // assert
+    assert.deepEqual(visibility, [
+      ["fusion-aot-11", true],
+      ["fusion-net-11", false],
+      ["fusion-aot-10", false],
+      ["fusion-nightly-aot-11", true],
+      ["fusion-nightly-net-11", true],
+      ["fusion-nightly-aot-10", true],
+      ["fusion-nightly-net-10", true],
+      ["hive-router", true],
+    ]);
+  });
+}

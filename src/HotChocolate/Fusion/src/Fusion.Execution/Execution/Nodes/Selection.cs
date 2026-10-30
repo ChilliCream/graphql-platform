@@ -20,6 +20,7 @@ public sealed class Selection : ISelection
     private readonly ulong[]? _wideIncludeFlags;
     private readonly int _wideIncludeFlagsStride;
     private readonly byte[] _utf8JsonPropertyName;
+    private readonly int _utf8JsonPropertyNameLength;
     private readonly ulong _deferMask;
     private readonly ulong[]? _wideDeferMask;
     private readonly DeliveryGroup[] _deliveryGroups;
@@ -145,6 +146,7 @@ public sealed class Selection : ISelection
         }
 
         _utf8JsonPropertyName = Utf8StringCache.GetJsonPropertyName(responseName);
+        _utf8JsonPropertyNameLength = _utf8JsonPropertyName.Length - Utf8StringCache.JsonPropertyNamePadding;
     }
 
     /// <inheritdoc />
@@ -156,13 +158,27 @@ public sealed class Selection : ISelection
     internal ReadOnlySpan<byte> Utf8ResponseName
         => MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_utf8JsonPropertyName), 1),
-            _utf8JsonPropertyName.Length - 3);
+            _utf8JsonPropertyNameLength - 3);
 
     /// <summary>
     /// Gets the response name as a minimized JSON property name token: the quoted
     /// UTF-8 name followed by a colon.
     /// </summary>
-    internal ReadOnlySpan<byte> Utf8JsonPropertyName => _utf8JsonPropertyName;
+    internal ReadOnlySpan<byte> Utf8JsonPropertyName
+        => MemoryMarshal.CreateReadOnlySpan(
+            ref MemoryMarshal.GetArrayDataReference(_utf8JsonPropertyName),
+            _utf8JsonPropertyNameLength);
+
+    /// <summary>
+    /// Gets <see cref="Utf8JsonPropertyName"/> followed by
+    /// <see cref="Utf8StringCache.JsonPropertyNamePadding"/> zero bytes.
+    /// </summary>
+    internal ReadOnlySpan<byte> PaddedUtf8JsonPropertyName => _utf8JsonPropertyName;
+
+    /// <summary>
+    /// Gets the length of <see cref="Utf8JsonPropertyName"/> in bytes.
+    /// </summary>
+    internal int Utf8JsonPropertyNameLength => _utf8JsonPropertyNameLength;
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;

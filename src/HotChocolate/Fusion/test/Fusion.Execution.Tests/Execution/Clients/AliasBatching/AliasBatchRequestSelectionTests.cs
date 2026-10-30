@@ -431,6 +431,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             context.Initialize(
                 requestContext,
                 variables,
+                variableIndex: -1,
                 null,
                 _operationPlan,
                 cts,

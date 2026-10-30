@@ -10,7 +10,7 @@ public class WebSocketClientBatchTests(TestServerFactory serverFactory, ITestOut
 {
     [Fact]
     public Task ExecuteBatch_ReceivesAllResults()
-        => TryTest(async ct =>
+        => RunTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer(output: output);
@@ -44,7 +44,7 @@ public class WebSocketClientBatchTests(TestServerFactory serverFactory, ITestOut
 
     [Fact]
     public Task ExecuteBatch_SingleRequest_WorksLikeSingleExecute()
-        => TryTest(async ct =>
+        => RunTest(async ct =>
         {
             // arrange
             using var testServer = CreateStarWarsServer(output: output);
@@ -75,7 +75,7 @@ public class WebSocketClientBatchTests(TestServerFactory serverFactory, ITestOut
     [Fact]
     public Task ExecuteBatch_Should_Throw_When_Socket_Aborted_Without_Close_Frame()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationBatchRequest(

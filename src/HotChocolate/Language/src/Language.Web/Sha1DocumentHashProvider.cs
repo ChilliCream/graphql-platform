@@ -31,17 +31,9 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {
-        var hashBytes = new byte[20];
-        var hashSpan = hashBytes.AsSpan();
-
+        Span<byte> hashBytes = stackalloc byte[20];
         _sha.Value!.TryComputeHash(document, hashBytes, out var written);
-
-        if (written < 20)
-        {
-            hashSpan = hashSpan[..written];
-        }
-
-        return FormatHash(hashSpan, format);
+        return FormatHash(hashBytes[..written], format);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

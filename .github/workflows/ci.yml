@@ -167,7 +167,9 @@ jobs:
         run: npm ci
         working-directory: website
 
-      - name: Install Playwright Chromium
+      # rehype-mermaid renders inline SVG with Chromium during the app build.
+      # Visual tests use their own pinned Docker browser, not this installation.
+      - name: Install Chromium for Mermaid Build
         run: npx playwright install --with-deps chromium
         working-directory: website
 
@@ -187,9 +189,24 @@ jobs:
         run: npm run build
         working-directory: website
 
+      - name: Visual Runner Contract Tests
+        run: node --test scripts/visual-tests-docker.test.mjs
+        working-directory: website
+
       - name: Visual Regression Tests
         run: npm run test:visual
         working-directory: website
+
+      - name: Clean Up Visual Test Containers
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          workspace="$(pwd -P)"
+          run="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}"
+          docker ps --all --quiet --filter "label=website-visual-workspace=$workspace" --filter "label=website-visual-run=$run" |
+            xargs --no-run-if-empty docker rm --force
+          docker volume ls --quiet --filter "label=website-visual-workspace=$workspace" --filter "label=website-visual-run=$run" |
+            xargs --no-run-if-empty docker volume rm
 
       - name: Upload Playwright Report
         if: ${{ !cancelled() }}

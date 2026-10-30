@@ -63,11 +63,15 @@ export default function Footer() {
             <LinkColumn title="Platform">
               <NavLink href="/platform/analytics">Analytics</NavLink>
               <NavLink href="/platform/release-safety">Release Safety</NavLink>
-              <NavLink href="/platform/ecosystem">Ecosystem</NavLink>
               <NavLink href="/platform/agentic-coding">
                 Agentic Development
               </NavLink>
+              <NavLink href="/platform/graphql-federation">
+                GraphQL Federation
+              </NavLink>
+              <NavLink href="/platform/ecosystem">Ecosystem</NavLink>
               <NavLink href="/products/nitro">Nitro</NavLink>
+              <NavLink href="/products/fusion">Fusion</NavLink>
               <NavLink href="/products/mocha">Mocha</NavLink>
             </LinkColumn>
             <LinkColumn title="Services">

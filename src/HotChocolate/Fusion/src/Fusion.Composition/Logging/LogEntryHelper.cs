@@ -588,6 +588,27 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry FieldArgumentNotShared(
+        string argumentName,
+        MutableOutputFieldDefinition field,
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name, argumentName);
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_FieldArgumentNotShared,
+                coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.FieldArgumentNotShared)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry FieldWithMissingRequiredArgument(
         string requiredArgumentName,
         MutableOutputFieldDefinition field,
@@ -646,6 +667,26 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
             .SetSchema(schemaA)
+            .Build();
+    }
+
+    public static LogEntry InputFieldNotShared(
+        string fieldName,
+        MutableInputObjectTypeDefinition inputType,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(inputType.Name, fieldName);
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InputFieldNotShared,
+                coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.InputFieldNotShared)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(inputType)
+            .SetSchema(schema)
             .Build();
     }
 
@@ -1760,6 +1801,24 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(type)
             .SetSchema(schemaA)
+            .Build();
+    }
+
+    public static LogEntry UnreachableSourceField(
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UnreachableSourceField,
+                field.Coordinate.ToString(),
+                schema.Name,
+                type.Name)
+            .SetCode(LogEntryCodes.UnreachableSourceField)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
             .Build();
     }
 

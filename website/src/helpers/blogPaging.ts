@@ -1,15 +1,15 @@
-import type { BlogPostSummary } from "./blogPosts";
+import type { ArticleSummary } from "./contentCollection";
 
 export const POSTS_PER_PAGE = 9;
 
 export type PageSlice = {
-  posts: BlogPostSummary[];
+  posts: ArticleSummary[];
   currentPage: number;
   totalPages: number;
 };
 
 export function paginate(
-  posts: BlogPostSummary[],
+  posts: ArticleSummary[],
   page: number,
 ): PageSlice | null {
   const totalPages = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
@@ -24,7 +24,7 @@ export function paginate(
   };
 }
 
-export function listTags(posts: BlogPostSummary[]): string[] {
+export function listTags(posts: ArticleSummary[]): string[] {
   const set = new Set<string>();
   for (const post of posts) {
     for (const tag of post.tags) {
@@ -35,8 +35,8 @@ export function listTags(posts: BlogPostSummary[]): string[] {
 }
 
 export function postsForTag(
-  posts: BlogPostSummary[],
+  posts: ArticleSummary[],
   tag: string,
-): BlogPostSummary[] {
+): ArticleSummary[] {
   return posts.filter((p) => p.tags.includes(tag));
 }

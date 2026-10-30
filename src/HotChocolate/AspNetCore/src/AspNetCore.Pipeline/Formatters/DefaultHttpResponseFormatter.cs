@@ -375,16 +375,30 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 response.ContentType = GetContentType(format, statusCode);
                 response.StatusCode = statusCode;
 
-                // RFC 9110, section 15.5.6 requires a 405 to list the methods the target resource
-                // supports, and section 10.2.1 defines that set per request. A GET or HEAD
-                // carrying an operation kind this server only serves over POST leaves POST as the
-                // one method that can satisfy it. A status code an overriding formatter chose is
-                // left alone, along with whatever Allow header it means to write for it.
+                // A 405 lists the methods that can satisfy the request, per RFC 9110, sections
+                // 15.5.6 and 10.2.1: the ones a refused result names, otherwise POST for a GET or
+                // HEAD. A status code an overriding formatter chose is left alone, along with its
+                // Allow header.
                 if (statusCode is (int)HttpStatusCode.MethodNotAllowed
-                    && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed)
-                    && response.HttpContext.Request.IsGetOrHeadMethod())
+                    && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
                 {
-                    response.Headers.Allow = HttpMethods.Post;
+                    if (result.ContextData.TryGetValue(
+                            HttpResultContextData.AllowedMethods,
+                            out var allowed)
+                        && allowed is string allowedMethods)
+                    {
+                        response.Headers.Allow = allowedMethods;
+
+                        if (result.ContextData.ContainsKey(HttpResultContextData.AcceptQuery))
+                        {
+                            response.Headers[HttpHeaderKeys.AcceptQuery] =
+                                HttpHeaderValues.AcceptQueryMediaTypes;
+                        }
+                    }
+                    else if (response.HttpContext.Request.IsGetOrHeadMethod())
+                    {
+                        response.Headers.Allow = HttpMethods.Post;
+                    }
                 }
 
                 if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
@@ -410,11 +424,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
 
-                // A JSON body is written into the started response, so a formatter
-                // exception aborts the response instead of turning it into a 500.
                 if (format.Kind is ResponseContentType.GraphQLResponse or ResponseContentType.Json)
                 {
-                    await response.StartAsync(cancellationToken);
+                    await FormatWithContentLengthAsync(
+                        response,
+                        operationResult,
+                        format,
+                        formatFlags,
+                        cancellationToken);
+                    break;
                 }
 
                 await format.Formatter.FormatAsync(
@@ -465,6 +483,76 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 // we should not hit this point except in the case that we introduce a new
                 // ExecutionResultKind and forget to update this method.
                 throw ThrowHelper.Formatter_ResultKindNotSupported();
+        }
+    }
+
+    /// <summary>
+    /// Writes a single result with a <c>Content-Length</c>. A formatter exception aborts the
+    /// request instead of producing an error response.
+    /// </summary>
+    private static async ValueTask FormatWithContentLengthAsync(
+        HttpResponse response,
+        OperationResult result,
+        FormatInfo format,
+        ExecutionResultFormatFlags formatFlags,
+        CancellationToken cancellationToken)
+    {
+        var buffer = ResponseBodyBuffer.Rent();
+
+        try
+        {
+            try
+            {
+                // The default JSON formatter writes into the buffer without batching writes first.
+                if (format.Formatter is JsonResultFormatter jsonFormatter
+                    && (formatFlags is ExecutionResultFormatFlags.None || !result.IsIncremental))
+                {
+                    jsonFormatter.Format(result, buffer);
+                }
+                else
+                {
+                    await format.Formatter.FormatAsync(
+                        result,
+                        buffer,
+                        formatFlags,
+                        cancellationToken: cancellationToken);
+                }
+            }
+            catch (Exception ex)
+                when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                response.HttpContext.Abort();
+                throw;
+            }
+
+            if (buffer.CompletionException is { } completionException)
+            {
+                await response.StartAsync(cancellationToken);
+                await response.BodyWriter.CompleteAsync(completionException);
+                return;
+            }
+
+            response.ContentLength = buffer.Length;
+
+            await response.StartAsync(cancellationToken);
+
+            var bodyWriter = response.BodyWriter;
+
+            while (buffer.CopyTo(bodyWriter))
+            {
+                var flushResult = await bodyWriter.FlushAsync(cancellationToken);
+
+                if (flushResult.IsCompleted)
+                {
+                    return;
+                }
+            }
+
+            await bodyWriter.FlushAsync(cancellationToken);
+        }
+        finally
+        {
+            buffer.Dispose();
         }
     }
 

@@ -16,6 +16,57 @@ npm ci
 npm run dev
 ```
 
+## Visual tests
+
+Install the website dependencies with `npm ci` and start Docker Desktop (or a
+Linux Docker Engine). Visual tests require a running Linux-container daemon;
+there is no host-browser fallback. Run these commands from `website`:
+
+```bash
+npm run test:visual
+npm run test:visual -- --grep 'Button|Card' --workers=2
+npm run test:visual:update -- --grep 'Button'
+node --test scripts/visual-tests-docker.test.mjs
+```
+
+Both visual scripts build static Storybook on the host, then run the static
+server, Chromium and screenshots in the same Docker renderer used by GitHub
+Actions. Arguments after `--` are forwarded unchanged to Playwright. Direct
+`npx playwright test` execution is rejected by the configuration guard.
+
+The renderer is always `linux/amd64`, including on Apple Silicon. The official
+Playwright 1.62.1 Noble image is pinned by digest in
+`scripts/visual-tests.Dockerfile`; its only customization is npm 11.21.1 to
+satisfy the repository's npm contract. A Playwright dependency upgrade must also
+update and verify the image digest, runner version and configuration guard.
+The runner logs the image, platform, Node, npm, Playwright and Chromium versions.
+
+Each invocation stages a finite, read-only set of inputs into an owned Linux
+worktree volume before installing dependencies. The host checkout, including its
+`node_modules`, is never mounted during installation or capture. Staged inputs
+are the website package/configuration, visual tests, built Storybook, and the
+local Mocha visualizer package files needed by its `file:` dependency. The
+worktree volume is removed on completion or interruption; the
+workspace/runtime/lockfile-specific npm cache volume persists between invocations.
+
+The test container has writable host mounts only for baselines in
+`tests/visual/__screenshots__`, test artifacts in `test-results`, and CI HTML
+reports in `playwright-report`. Those directories are created as the caller, so
+written files retain the caller's UID/GID; Docker Desktop handles ownership on
+Windows. Playwright `--output` paths must be relative paths within `test-results`
+or `playwright-report`, which preserves artifacts without exposing another
+checkout path for writes.
+
+Ordinary comparisons do not update baselines, including missing images, unless
+an explicit snapshot-update argument is supplied. Review screenshot diffs before
+accepting updates: the shared renderer prevents OS, font and browser drift, but
+does not add missing baselines or fix unintended UI changes.
+
+Stories tagged `visual-reduced-motion` capture their authored static state with
+`prefers-reduced-motion: reduce` applied before navigation; untagged stories keep
+the default media preference. InsightsWindow and ProtectWindow opt in to capture
+complete telemetry and static publish verdicts.
+
 ## Authoring Markdown Content
 
 Docs live in `content/docs/<product>/...` as Markdown (`.md`) files and are

@@ -45,6 +45,11 @@ public sealed class GraphQLServerOptions
     public bool EnableQueryRequests { get; set; }
 
     /// <summary>
+    /// Defines if query operations are allowed over HTTP POST.
+    /// </summary>
+    public bool EnableQueriesOverPost { get; set; } = true;
+
+    /// <summary>
     /// Defines if GraphQL HTTP Multipart requests are allowed.
     /// </summary>
     public bool EnableMultipartRequests { get; set; } = true;
@@ -98,6 +103,7 @@ public sealed class GraphQLServerOptions
             EnableGetRequests = EnableGetRequests,
             EnforceGetRequestsPreflightHeader = EnforceGetRequestsPreflightHeader,
             EnableQueryRequests = EnableQueryRequests,
+            EnableQueriesOverPost = EnableQueriesOverPost,
             EnableMultipartRequests = EnableMultipartRequests,
             EnforceMultipartRequestsPreflightHeader = EnforceMultipartRequestsPreflightHeader,
             EnforceNullVariableValuesForMultipartFileUpload = EnforceNullVariableValuesForMultipartFileUpload,

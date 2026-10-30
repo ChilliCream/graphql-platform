@@ -150,6 +150,7 @@ internal sealed partial class SourceSchemaMerger
         {
             mergedSchema.RemoveUnreferencedDefinitions(
                 MutableSchemaDefinitionExtensions.GetPreservedTypeNames(_schemas),
+                MutableSchemaDefinitionExtensions.GetPreservedDirectiveNames(_schemas),
                 seedUnionsAsRoots: false);
         }
 
@@ -225,8 +226,13 @@ internal sealed partial class SourceSchemaMerger
 
         foreach (var grouping in directiveDefinitionGroupByName)
         {
-            if (!_directiveMergers.TryGetValue(grouping.Key, out var directiveMerger)
-                || directiveMerger.MergeBehavior is DirectiveMergeBehavior.Ignore)
+            if (!_directiveMergers.TryGetValue(grouping.Key, out var directiveMerger))
+            {
+                MergeExecutableDirectiveDefinition([.. grouping], mergedSchema);
+                continue;
+            }
+
+            if (directiveMerger.MergeBehavior is DirectiveMergeBehavior.Ignore)
             {
                 continue;
             }

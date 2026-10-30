@@ -184,9 +184,9 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
-                "defaultListSize": null,
+                "defaultListSize": 25,
                 "enableGlobalObjectIdentification": false,
-                "enumValuesMergeBehavior": null,
+                "enumValuesMergeBehavior": "Union",
                 "nodeResolution": "Gateway",
                 "removeUnreferencedDefinitions": false,
                 "tagMergeBehavior": "IncludePrivate"
@@ -195,8 +195,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                 "includeSatisfiabilityPaths": null
               },
               "apolloFederationCompatibility": {
-                "allowNonResolvableInterfaceObjects": null,
-                "shareableFieldRuntimeTypeRouting": null
+                "allowNonResolvableInterfaceObjects": true,
+                "shareableFieldRuntimeTypeRouting": "CommonRuntimeTypes"
               }
             }
             """);
@@ -246,10 +246,15 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
         Assert.NotNull(settings);
         var merger = settings.RootElement.GetProperty("merger");
+        var compatibility = settings.RootElement.GetProperty("apolloFederationCompatibility");
         $"""
         Global object identification: {merger.GetProperty("enableGlobalObjectIdentification")}
         Cache control: {merger.GetProperty("cacheControlMergeBehavior")}
         Tag: {merger.GetProperty("tagMergeBehavior")}
+        Default list size: {merger.GetProperty("defaultListSize")}
+        Enum values: {merger.GetProperty("enumValuesMergeBehavior")}
+        Non-resolvable interface objects: {compatibility.GetProperty("allowNonResolvableInterfaceObjects")}
+        Shareable field routing: {compatibility.GetProperty("shareableFieldRuntimeTypeRouting")}
         Settings requests: {_server.Requests.Count(
             request => request.Body.Contains(
                 NitroOperationDocuments.GetCompositionSettingsOperationName,
@@ -259,6 +264,10 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             Global object identification: True
             Cache control: Include
             Tag: IncludePrivate
+            Default list size: 25
+            Enum values: Union
+            Non-resolvable interface objects: True
+            Shareable field routing: CommonRuntimeTypes
             Settings requests: 1
             """);
     }
@@ -1196,13 +1205,17 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
                 "node": {
                   "stage": {
                     "compositionSettings": {
+                      "allowNonResolvableInterfaceObjects": true,
                       "cacheControlMergeBehavior": "INCLUDE",
+                      "defaultListSize": 25,
                       "enableGlobalObjectIdentification": false,
+                      "enumValuesMergeBehavior": "UNION",
                       "excludeByTag": [
                         "internal"
                       ],
                       "nodeResolution": "GATEWAY",
                       "removeUnreferencedDefinitions": false,
+                      "shareableFieldRuntimeTypeRouting": "COMMON_RUNTIME_TYPES",
                       "tagMergeBehavior": "INCLUDE_PRIVATE"
                     }
                   }

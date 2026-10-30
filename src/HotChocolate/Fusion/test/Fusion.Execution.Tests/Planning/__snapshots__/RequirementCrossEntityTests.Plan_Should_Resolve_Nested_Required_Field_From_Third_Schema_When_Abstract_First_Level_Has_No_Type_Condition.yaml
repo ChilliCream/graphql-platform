@@ -1,0 +1,84 @@
+operation:
+  - document: |
+      {
+        orders {
+          id
+          id @fusion__requirement
+          price
+          customer @fusion__requirement {
+            __typename @fusion__requirement
+            discount @fusion__requirement
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_discount: Int) {
+        orderById(id: $__fusion_1_id) {
+          price(discount: $__fusion_2_discount)
+        }
+      }
+    source: $.orderById
+    target: $.orders
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_discount
+        selectionMap: >-
+          customer.discount
+    dependencies:
+      - id: 3
+      - id: 5
+  - id: 3
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        customerById(id: $__fusion_3_id) {
+          discount
+        }
+      }
+    source: $.customerById
+    target: $.orders.customer<Customer>
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        orders {
+          id
+          customer {
+            __typename
+          }
+        }
+      }
+    batchingGroupId: 5
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4 {
+        orders {
+          customer {
+            __typename
+            ... on Customer {
+              id
+            }
+          }
+        }
+      }
+    batchingGroupId: 5

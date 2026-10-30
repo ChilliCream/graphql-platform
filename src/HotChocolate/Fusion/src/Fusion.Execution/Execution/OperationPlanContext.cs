@@ -55,6 +55,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private int _disposed;
     private int _activeNodeSlotCount;
     private int _nodeSlotCapacity;
+    private int _variableIndex;
     private MemoryArena? _memory;
     private readonly FixedMemoryArenaSource _memorySource = new();
 #pragma warning disable IDE0370 // Remove unnecessary suppression
@@ -183,6 +184,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// Gets a value indicating whether operation plan telemetry is being collected for this request.
     /// </summary>
     public bool CollectTelemetry => _collectTelemetry;
+
+    /// <summary>
+    /// Gets or sets whether the execution token is canceled within <see cref="ExecutionDeadline.MaxTimeout"/>
+    /// of the start of any source schema request that this execution sends.
+    /// </summary>
+    internal bool HasExecutionDeadline { get; set; }
 
     /// <summary>
     /// Gets the feature collection associated with the current request.
@@ -928,7 +935,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 resultDocument.Data.IsNullOrInvalidated || resultDocument.Data.IsNullMarker,
                 resultDocument,
                 retainMemoryForDefer ? null : resultDocument),
-            _resultStore.Errors?.ToImmutableList());
+            _resultStore.Errors?.ToImmutableList())
+        {
+            RequestIndex = RequestContext.RequestIndex > -1 ? RequestContext.RequestIndex : null,
+            VariableIndex = _variableIndex > -1 ? _variableIndex : null
+        };
 
         if (!retainMemoryForDefer)
         {

@@ -1,7 +1,7 @@
 export const BENCHMARK_REPOSITORY =
   "https://github.com/ChilliCream/graphql-federation-benchmarks";
 
-export const BENCHMARK_FUSION_DOCS_URL = "/docs/fusion";
+export const BENCHMARK_FUSION_URL = "/products/fusion";
 
 const RUNTIME_TAGS: Readonly<Record<string, string>> = {
   "Node.js": "Node",
@@ -10,6 +10,7 @@ const RUNTIME_TAGS: Readonly<Record<string, string>> = {
 export const COMPOSITIONS = {
   "apollo-federation": "Apollo Federation",
   "composite-schema": "GraphQL Federation",
+  "graphql-federation": "GraphQL Federation",
 } as const;
 
 export type ScenarioId = "constant-latency" | "burst" | "constant";
@@ -152,6 +153,8 @@ export type BenchmarkHistoryVersion = Omit<
   "variant" | "status"
 > & {
   readonly version: string;
+  /** The planned repetitions for this result, or the scenario count when absent. */
+  readonly measuredRuns?: number;
   /** "failed" when the execution failed but recorded measurements; absent for a completed execution. */
   readonly status?: "failed";
   readonly run: BenchmarkHistoryRun & {
@@ -635,9 +638,12 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
         const throughput = record(version.throughput, ["runsRps"]);
         list(throughput.runsRps, 1);
         platform(version.platform);
+        optional(version.measuredRuns, (value) => integer(value, 1));
         measurement(
           version,
-          version.status === "failed" ? undefined : measuredRuns,
+          version.status === "failed"
+            ? undefined
+            : ((version.measuredRuns as number | undefined) ?? measuredRuns),
         );
       }
     }
@@ -650,14 +656,24 @@ export function benchmarkRunId(report: BenchmarkReport): string | undefined {
   return report.run.url ? RUN_URL.exec(report.run.url)?.[1] : undefined;
 }
 
-/** Returns each catalog variant with its gateway, keyed by variant ID. */
+/** Returns each catalog variant with its gateway and normalized composition, keyed by variant ID. */
 export function benchmarkVariants(
   report: Pick<BenchmarkReport, "gateways">,
 ): ReadonlyMap<string, BenchmarkCatalogEntry> {
   return new Map(
     report.gateways.flatMap((gateway) =>
       gateway.variants.map(
-        (variant) => [variant.id, { gateway, variant }] as const,
+        (variant) =>
+          [
+            variant.id,
+            {
+              gateway,
+              variant:
+                variant.composition === "graphql-federation"
+                  ? { ...variant, composition: "composite-schema" }
+                  : variant,
+            },
+          ] as const,
       ),
     ),
   );
@@ -674,30 +690,19 @@ export function variantName({
     : name;
 }
 
-/** Returns the link for a gateway: the Fusion docs for Fusion, otherwise its HTTPS repository URL, or undefined. */
+/** Returns the link for a gateway: the Fusion product page for Fusion, otherwise its HTTPS repository URL, or undefined. */
 export function gatewayLink(gateway: BenchmarkGateway): string | undefined {
   if (gateway.id === "fusion") {
-    return BENCHMARK_FUSION_DOCS_URL;
+    return BENCHMARK_FUSION_URL;
   }
   return gateway.repositoryUrl?.startsWith("https://")
     ? gateway.repositoryUrl
     : undefined;
 }
 
-const PRERELEASE = /^\d+(\.\d+)*-/;
-
-/** Returns the explicit preview flag, or infers preview status from the gateway and runtime versions when absent. */
-export function isPreview(
-  version: string | null,
-  platform: BenchmarkPlatform,
-  preview: boolean | undefined,
-): boolean {
-  return (
-    preview ??
-    ((version !== null && PRERELEASE.test(version)) ||
-      (platform.runtime?.version !== undefined &&
-        PRERELEASE.test(platform.runtime.version)))
-  );
+/** Returns whether a variant is a preview release. Only the report's explicit flag marks one. */
+export function isPreview(variant: Pick<BenchmarkVariant, "preview">): boolean {
+  return variant.preview === true;
 }
 
 /** Formats a platform as its runtime name and major version (major and minor for 0.x and 1.x), or its language when it has no runtime. */

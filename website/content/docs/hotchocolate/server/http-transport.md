@@ -32,6 +32,8 @@ GraphQL requests over HTTP can be performed via the POST, GET, or QUERY HTTP ver
 
 The GraphQL HTTP POST request is the most commonly used variant for GraphQL requests over HTTP and is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#post).
 
+A server can refuse query operations sent over POST with [`EnableQueriesOverPost`](./endpoints.md#enablequeriesoverpost).
+
 **request:**
 
 ```http
@@ -136,7 +138,9 @@ Accept: application/graphql-response+json
 }
 ```
 
-A QUERY request executes a single query operation. A mutation or subscription is refused with status code `422 Unprocessable Content`. A request batch, an operation batch (`?batchOperations=`), or a variable batch is refused with status code `400 Bad Request`. Incremental delivery (`@defer` and `@stream`) works as it does for GET requests.
+A QUERY request carries one query operation. A mutation or subscription is refused with status code `422 Unprocessable Content`. A [variable batch](./batching.md#variable-batching) runs as it does over POST, under the `Batching` and `MaxBatchSize` server options, and its response carries `Cache-Control: no-cache`. A request batch or an operation batch (`?batchOperations=`) is refused with status code `400 Bad Request`. Incremental delivery (`@defer` and `@stream`) works as it does for GET requests.
+
+To keep query operations off POST, set [`EnableQueriesOverPost`](./endpoints.md#enablequeriesoverpost) to `false`.
 
 The request body must be `application/json`. Under `Draft20260903`, a QUERY request with another `Content-Type` has a `415 Unsupported Media Type` status code, the `Allow` header of the `405 Method Not Allowed` and `OPTIONS` responses lists `QUERY`, and the `405`, `OPTIONS`, and `415` responses carry `Accept-Query: application/json`, which advertises the method and the body media type it accepts.
 
@@ -412,7 +416,7 @@ A value outside this list throws an `ArgumentOutOfRangeException` when the forma
 - A request refused for its size has a `413` status code: a `POST` or `QUERY` request whose JSON body, or a multipart request whose `operations` field, exceeds the [maximum request size](./endpoints.md#maxallowedrequestsize), a multipart request with a section over `FormOptions.MultipartBodyLengthLimit`, and a request whose body exceeds the web server's limit or, when `FormOptions.BufferBody` is set, `FormOptions.BufferBodyLengthLimit`. Under `Draft20250508`, it has a `400` status code.
 - A request on the GraphQL endpoint whose method the endpoint does not support has a `405` status code and an `Allow` header listing the supported methods, an `OPTIONS` request has a `204` status code with the same header, and a `POST` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, all three have a `404` status code.
 - When `EnableQueryRequests` is `true`, the `Allow` header lists `QUERY`, the `405`, `OPTIONS`, and `415` responses carry `Accept-Query: application/json`, and a `QUERY` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, that request has a `404` status code.
-- On the [persisted operation routes](./endpoints.md#mapgraphqlpersistedoperations), a request with a method other than `GET`, `POST`, and an enabled `QUERY` has a `405` status code and `Allow: GET, OPTIONS, POST`, an `OPTIONS` request has a `204` status code with the same header, and a `POST` request whose `Content-Type` is not `application/json` has a `415` status code. When `EnableQueryRequests` is `true`, the `Allow` header lists `QUERY`, a `QUERY` request whose `Content-Type` is not `application/json` has a `415` status code, and the three responses carry `Accept-Query: application/json`. Under `Draft20250508`, all three have a `404` status code.
+- On the [persisted operation routes](./endpoints.md#mapgraphqlpersistedoperations), a request with a method other than `GET`, `HEAD`, `POST`, and an enabled `QUERY` has a `405` status code and `Allow: GET, HEAD, OPTIONS, POST`, an `OPTIONS` request has a `204` status code with the same header, and a `POST` request whose `Content-Type` is not `application/json` has a `415` status code. When `EnableQueryRequests` is `true`, the `Allow` header lists `QUERY`, a `QUERY` request whose `Content-Type` is not `application/json` has a `415` status code, and the three responses carry `Accept-Query: application/json`. Under `Draft20250508`, all three have a `404` status code.
 
 In Azure Functions, a request reaches Hot Chocolate only with a method the function's `HttpTrigger` accepts, and the Functions host gives any other method a `404` status code. A trigger that lists no methods, as the one in the `graphql-azf` template does, passes every method to Hot Chocolate.
 

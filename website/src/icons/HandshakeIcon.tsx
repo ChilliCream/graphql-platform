@@ -8,7 +8,7 @@ interface HandshakeIconProps {
 export function HandshakeIcon({ className, style }: HandshakeIconProps) {
   return (
     <svg
-      viewBox="1113 6035.5 94 94"
+      viewBox="1124 6054.49 72 56.03"
       fill="currentColor"
       aria-hidden="true"
       className={className}

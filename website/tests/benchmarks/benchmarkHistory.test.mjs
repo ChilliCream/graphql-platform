@@ -100,7 +100,7 @@ test("retains repeated versions and all runs sorted by completion time", () => {
       completedAt: `2026-10-0${5 - index}T12:00:00Z`,
     },
   }));
-  const series = historySeries(scenario, benchmarkVariants(history), false)[0];
+  const series = historySeries(scenario, benchmarkVariants(history))[0];
   assert.deepEqual(
     series.points.map((point) => [point.runNumber, point.version]),
     [5, 4, 3, 2, 1].map((number) => [number, base.version]),
@@ -113,12 +113,25 @@ test("allows empty result lists and start-time fallback", () => {
   result.run.startedAt = result.run.completedAt;
   result.run.completedAt = null;
   const parsed = parseBenchmarkHistory(JSON.stringify(history));
-  const series = historySeries(
-    parsed.scenarios[0],
-    benchmarkVariants(parsed),
-    false,
-  );
+  const series = historySeries(parsed.scenarios[0], benchmarkVariants(parsed));
   assert.equal(series[0].points[0].timestamp, Date.parse(result.run.startedAt));
+});
+test("preserves each history point's planned repetition count", () => {
+  // arrange
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = history.scenarios[0];
+  const results = scenario.variants[0].results;
+  results[0].measuredRuns = 9;
+  results[1].measuredRuns = 5;
+
+  // act
+  const series = historySeries(scenario, benchmarkVariants(history));
+
+  // assert
+  assert.deepEqual(
+    series[0].points.map((point) => point.measuredRuns),
+    [9, 5, undefined],
+  );
 });
 test("rejects malformed dates and missing subgraph metadata", () => {
   for (const mutate of [
@@ -147,10 +160,12 @@ test("includes years when requested for a cross-year axis", async () => {
   );
 });
 
-test("distributes six-month samples evenly without a short final interval", () => {
+test("distributes 40 six-month samples evenly without a short final interval", () => {
+  // arrange
   const history = parseBenchmarkHistory(fixture);
   const scenario = structuredClone(history.scenarios[0]);
   const variant = scenario.variants[0];
+  scenario.variants = [variant];
   const base = variant.results[0];
   const start = Date.parse("2026-04-17T12:00:00Z");
   variant.results = Array.from({ length: 184 }, (_, index) => ({
@@ -160,39 +175,44 @@ test("distributes six-month samples evenly without a short final interval", () =
       completedAt: new Date(start + index * day).toISOString(),
     },
   }));
-  const points = historySeries(scenario, benchmarkVariants(history), false)[0]
-    .points;
+  // act
+  const points = historySeries(scenario, benchmarkVariants(history))[0].points;
   const gaps = points
     .slice(1)
     .map((point, index) => (point.timestamp - points[index].timestamp) / day);
+  // assert
   assert.deepEqual(
     [points[0].runNumber, points.at(-1).runNumber, points.length],
-    [1000, 1183, 20],
+    [1000, 1183, 40],
   );
-  assert.ok(gaps.every((gap) => gap === 9 || gap === 10));
+  assert.ok(gaps.every((gap) => gap === 4 || gap === 5));
 });
 test("keeps failed runs that fall between samples", () => {
+  // arrange
   const history = parseBenchmarkHistory(fixture);
   const scenario = structuredClone(history.scenarios[0]);
   const variant = scenario.variants[0];
+  scenario.variants = [variant];
   const base = variant.results[0];
   const start = Date.parse("2026-04-17T12:00:00Z");
   variant.results = Array.from({ length: 184 }, (_, index) => ({
     ...base,
-    ...(index === 5 ? { status: "failed" } : {}),
+    ...(index === 2 ? { status: "failed" } : {}),
     run: {
       number: 1000 + index,
       completedAt: new Date(start + index * day).toISOString(),
     },
   }));
-  const points = historySeries(scenario, benchmarkVariants(history), false)[0]
-    .points;
+  // act
+  const points = historySeries(scenario, benchmarkVariants(history))[0].points;
+
+  // assert
   assert.deepEqual(
     [
       points.filter((point) => point.failed).map((point) => point.runNumber),
       points.length,
     ],
-    [[1005], 21],
+    [[1002], 41],
   );
 });
 test("excludes failed runs from the change and latest completed point", () => {
@@ -206,7 +226,7 @@ test("excludes failed runs from the change and latest completed point", () => {
     run: { number: index + 1, completedAt: `2026-10-0${index + 1}T12:00:00Z` },
     throughput: { ...base.throughput, medianRps: rps },
   }));
-  const series = historySeries(scenario, benchmarkVariants(history), false)[0];
+  const series = historySeries(scenario, benchmarkVariants(history))[0];
   assert.deepEqual(
     [seriesChange(series), latestCompletedPoint(series).runNumber],
     [(110 - 100) / 100, 2],
@@ -229,5 +249,121 @@ test("rejects unknown history result statuses", () => {
   assert.throws(
     () => parseBenchmarkHistory(JSON.stringify(history)),
     /Unknown benchmark report value/,
+  );
+});
+test("labels each run with the platform features it ran with", () => {
+  const platform = (version, features) => ({
+    language: { name: "C#" },
+    runtime: { name: ".NET", version },
+    features,
+  });
+  const aot = [{ id: "aot", name: "AOT" }];
+  const entry = (id, features) => ({
+    gateway: { id: "fusion", name: "Fusion" },
+    variant: {
+      id,
+      version: "16.7.0",
+      composition: "composite-schema",
+      platform: platform("11.0.0", features),
+    },
+  });
+  const variants = new Map([
+    ["fusion-aot-11", entry("fusion-aot-11", aot)],
+    ["fusion-net-11", entry("fusion-net-11", [])],
+  ]);
+  const result = (number, runtime, features) => ({
+    version: "16.7.0",
+    run: {
+      number,
+      startedAt: `2026-10-0${number}T00:00:00Z`,
+      completedAt: `2026-10-0${number}T12:00:00Z`,
+    },
+    platform: platform(runtime, features),
+    throughput: { medianRps: 1000, runsRps: [1000] },
+  });
+  const [series] = historySeries(
+    {
+      variants: [
+        {
+          variant: "fusion-aot-11",
+          results: [result(1, "10.0.13", []), result(2, "11.0.0", aot)],
+        },
+      ],
+    },
+    variants,
+  );
+  assert.deepEqual(
+    series.points.map((point) => point.runtime),
+    [".NET 10", ".NET 11 AOT"],
+  );
+});
+test("samples the same run dates for every series", () => {
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = structuredClone(history.scenarios[0]);
+  const [long, short] = scenario.variants;
+  const base = long.results[0];
+  const start = Date.parse("2026-07-01T12:00:00Z");
+  const runs = (from, to) =>
+    Array.from({ length: to - from + 1 }, (_, offset) => ({
+      ...base,
+      run: {
+        number: from + offset,
+        completedAt: new Date(start + (from + offset) * day).toISOString(),
+      },
+    }));
+  long.results = runs(0, 41);
+  short.results = runs(39, 41);
+  scenario.variants = [long, short];
+  const [longSeries, shortSeries] = historySeries(
+    scenario,
+    benchmarkVariants(history),
+  );
+  const longRuns = new Set(longSeries.points.map((point) => point.runNumber));
+  assert.deepEqual(
+    shortSeries.points.map((point) => [
+      point.runNumber,
+      longRuns.has(point.runNumber),
+    ]),
+    [
+      [39, true],
+      [40, true],
+      [41, true],
+    ],
+  );
+});
+test("names a preview by its major version without renaming the released series", () => {
+  const platform = { language: { name: "Rust" } };
+  const entry = (id, version, preview) => ({
+    gateway: { id: "apollo-router", name: "Apollo Router" },
+    variant: {
+      id,
+      version,
+      ...(preview ? { preview: true } : {}),
+      composition: "apollo-federation",
+      platform,
+    },
+  });
+  const variants = new Map([
+    ["apollo-router", entry("apollo-router", "2.18.0", false)],
+    ["apollo-router-v3", entry("apollo-router-v3", "3.0.0-preview.0", true)],
+  ]);
+  const result = (version) => ({
+    version,
+    run: { number: 1, completedAt: "2026-10-01T12:00:00Z" },
+    platform,
+    throughput: { medianRps: 1000, runsRps: [1000] },
+  });
+  const series = historySeries(
+    {
+      variants: [
+        { variant: "apollo-router", results: [result("2.18.0")] },
+        { variant: "apollo-router-v3", results: [result("3.0.0-preview.0")] },
+      ],
+    },
+    variants,
+  );
+  assert.deepEqual(
+    series.map((item) => item.name),
+    ["Apollo Router", "Apollo Router 3.x"],
   );
 });

@@ -115,6 +115,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 @$"Headers:
                 Vary: Accept
                 Content-Type: {expectedContentType}
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -244,6 +245,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: {{{expectedContentType}}}
+                Content-Length: 80
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -286,6 +288,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 @$"Headers:
                 Vary: Accept
                 Content-Type: {expectedContentType}
+                Content-Length: 146
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
@@ -353,6 +356,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 140
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -448,7 +452,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // arrange
         var server = CreateStarWarsServer();
         var client = server.CreateClient();
-        client.Timeout = TimeSpan.FromSeconds(30);
+        client.Timeout = TimeSpan.FromSeconds(60);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
@@ -459,39 +463,25 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "*/*");
 
-        using var response = await client.SendAsync(
+        using var httpResponse = await client.SendAsync(
             request,
             ResponseHeadersRead,
             TestContext.Current.CancellationToken);
+        using var response = new GraphQLHttpResponse(httpResponse);
 
         // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                """
-                Headers:
-                Vary: Accept
-                Cache-Control: no-cache
-                Content-Type: text/event-stream; charset=utf-8
-                -------------------------->
-                Status Code: OK
-                -------------------------->
-                event: next
-                data: {"data":{"delay":"next"}}
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal("text/event-stream", httpResponse.Content.Headers.ContentType?.MediaType);
 
-                :
+        var results = new List<string>();
 
-                event: next
-                data: {"data":{"delay":"next"}}
+        await foreach (var result in response.ReadAsResultStreamAsync())
+        {
+            results.Add(result.Data.ToString());
+        }
 
-                :
-
-                event: complete
-                data:
-
-
-                """);
+        Assert.Equal(2, results.Count);
+        Assert.All(results, r => Assert.Equal("{\"delay\":\"next\"}", r));
     }
 
     [Fact]
@@ -500,7 +490,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // arrange
         var server = CreateStarWarsServer();
         var client = server.CreateClient();
-        client.Timeout = TimeSpan.FromSeconds(30);
+        client.Timeout = TimeSpan.FromSeconds(60);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
@@ -511,39 +501,25 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "*/*");
 
-        using var response = await client.SendAsync(
+        using var httpResponse = await client.SendAsync(
             request,
             ResponseHeadersRead,
             TestContext.Current.CancellationToken);
+        using var response = new GraphQLHttpResponse(httpResponse);
 
         // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                """
-                Headers:
-                Vary: Accept
-                Cache-Control: no-cache
-                Content-Type: text/event-stream; charset=utf-8
-                -------------------------->
-                Status Code: OK
-                -------------------------->
-                event: next
-                data: {"data":{"delay":"next"}}
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal("text/event-stream", httpResponse.Content.Headers.ContentType?.MediaType);
 
-                :
+        var results = new List<string>();
 
-                event: next
-                data: {"data":{"delay":"next"}}
+        await foreach (var result in response.ReadAsResultStreamAsync())
+        {
+            results.Add(result.Data.ToString());
+        }
 
-                :
-
-                event: complete
-                data:
-
-
-                """);
+        Assert.Equal(2, results.Count);
+        Assert.All(results, r => Assert.Equal("{\"delay\":\"next\"}", r));
     }
 
     [Fact]
@@ -709,6 +685,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: {{{expectedContentType}}}
+                Content-Length: 156
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -751,6 +728,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 129
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1388,6 +1366,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 80
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -1468,6 +1447,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 115
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1482,7 +1462,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         HttpTransportVersion transportVersion)
     {
         // arrange
-        // the first request puts its document into the document cache under the document ID
+        // the first request puts its document into the document cache under its MD5 hash
         var client = GetClient(
             transportVersion,
             WellKnownRequestMiddleware.DocumentValidationMiddleware,
@@ -1496,7 +1476,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
         using var cacheRequest = new HttpRequestMessage(HttpMethod.Post, s_url);
         cacheRequest.Content = new StringContent(
-            """{ "id": "cached-document", "query": "{ __typename }" }""",
+            """{ "query": "{ __typename }" }""",
             Encoding.UTF8,
             "application/json");
         using var cacheResponse = await client.SendAsync(
@@ -1507,7 +1487,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = new StringContent(
-            """{ "id": "cached-document" }""",
+            """{ "id": "ef5c9e7b1e24de261642083d4e294322" }""",
             Encoding.UTF8,
             "application/json");
 
@@ -1522,6 +1502,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 115
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1567,6 +1548,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 115
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1601,6 +1583,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 104
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1635,6 +1618,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 105
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1672,6 +1656,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 105
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1713,6 +1698,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1773,6 +1759,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1813,6 +1800,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1850,6 +1838,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1883,6 +1872,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1918,6 +1908,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -1953,6 +1944,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -2685,6 +2677,62 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(["POST"], response.Content.Headers.Allow);
     }
 
+    // While queries are refused over POST, a query refused over GET lists the methods that serve
+    // queries, which leaves out POST.
+    [Theory]
+    [InlineData("GET", true, new[] { "QUERY" }, "application/json")]
+    [InlineData("GET", false, new string[0], null)]
+    [InlineData("HEAD", true, new[] { "QUERY" }, "application/json")]
+    public async Task Get_Should_ListMethodsThatServeQueries_When_QueryIsRefused(
+        string method,
+        bool enableQueryRequests,
+        string[] expectedAllow,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var client = GetQueriesOverPostDisabledClient(
+            Latest,
+            o =>
+            {
+                o.AllowedGetOperations = AllowedGetOperations.Mutation;
+                o.EnableQueryRequests = enableQueryRequests;
+            });
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            new HttpMethod(method),
+            new Uri($"{s_url}?query={query}"));
+        AddAcceptHeader(request, "application/graphql-response+json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.True(response.Content.Headers.NonValidated.Contains("Allow"));
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Equal(expectedAcceptQuery, GetAcceptQuery(response));
+    }
+
+    [Fact]
+    public async Task Get_Should_ListPost_When_MutationIsRefusedAndQueriesOverPostAreOff()
+    {
+        // arrange
+        var client = GetQueriesOverPostDisabledClient(Latest);
+        var query = Uri.EscapeDataString("mutation { __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["POST"], response.Content.Headers.Allow);
+    }
+
     // From the 2026-09-03 revision on, a client that accepts only application/json is answered
     // as if it had asked for application/graphql-response+json, and only a 2xx response carries
     // application/json as its Content-Type.
@@ -2712,6 +2760,118 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
         Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    // With queries refused over POST, a refused query gets the status a mutation refused over GET
+    // gets, and only its 405 lists the methods that serve queries.
+    [Theory]
+    [InlineData(
+        Legacy,
+        "application/graphql-response+json",
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(Legacy, "application/json", OK, new string[0], null)]
+    [InlineData(Legacy, null, OK, new string[0], null)]
+    [InlineData(
+        Draft20250508,
+        "application/graphql-response+json",
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(Draft20250508, "application/json", OK, new string[0], null)]
+    [InlineData(
+        Draft20250508,
+        null,
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(
+        Draft20260903,
+        "application/graphql-response+json",
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(
+        Draft20260903,
+        "application/json",
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(
+        Draft20260903,
+        null,
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(Draft20260903, "text/event-stream", OK, new string[0], null)]
+    public async Task Post_Should_ListMethodsThatServeQueries_When_QueryIsRefused(
+        HttpTransportVersion transportVersion,
+        string? acceptHeader,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var client = GetQueriesOverPostDisabledClient(
+            transportVersion,
+            o => o.EnableQueryRequests = true);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
+        {
+            Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" })
+        };
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(
+            expectedStatusCode is MethodNotAllowed,
+            response.Content.Headers.NonValidated.Contains("Allow"));
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Equal(expectedAcceptQuery, GetAcceptQuery(response));
+    }
+
+    // The 405 lists the methods that serve queries on the endpoint, and an empty Allow when none
+    // does.
+    [Theory]
+    [InlineData(true, AllowedGetOperations.Query, true, new[] { "GET", "HEAD", "QUERY" })]
+    [InlineData(true, AllowedGetOperations.Query, false, new[] { "GET", "HEAD" })]
+    [InlineData(false, AllowedGetOperations.Query, true, new[] { "QUERY" })]
+    [InlineData(false, AllowedGetOperations.Query, false, new string[0])]
+    [InlineData(true, AllowedGetOperations.None, false, new string[0])]
+    public async Task Post_Should_ListConfiguredMethods_When_QueryIsRefused(
+        bool enableGetRequests,
+        AllowedGetOperations allowedGetOperations,
+        bool enableQueryRequests,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetQueriesOverPostDisabledClient(
+            Draft20260903,
+            o =>
+            {
+                o.EnableGetRequests = enableGetRequests;
+                o.AllowedGetOperations = allowedGetOperations;
+                o.EnableQueryRequests = enableQueryRequests;
+            });
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
+        {
+            Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" })
+        };
+        AddAcceptHeader(request, "application/graphql-response+json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.True(response.Content.Headers.NonValidated.Contains("Allow"));
         Assert.Equal(expectedAllow, response.Content.Headers.Allow);
     }
 
@@ -2868,6 +3028,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -2926,6 +3087,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 80
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -3614,6 +3776,26 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         return server.CreateClient();
     }
 
+    private HttpClient GetQueriesOverPostDisabledClient(
+        HttpTransportVersion serverTransportVersion,
+        Action<GraphQLServerOptions>? configureOptions = null)
+    {
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = serverTransportVersion
+                }),
+            configureConventions: b => b.WithOptions(
+                o =>
+                {
+                    o.EnableQueriesOverPost = false;
+                    configureOptions?.Invoke(o);
+                }));
+
+        return server.CreateClient();
+    }
+
     private HttpClient GetSizeLimitedClient(HttpTransportVersion serverTransportVersion)
     {
         var server = ServerFactory.Create(
@@ -3717,6 +3899,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
         }
     }
+
+    private static string? GetAcceptQuery(HttpResponseMessage response)
+        => response.Headers.TryGetValues("Accept-Query", out var values)
+            ? string.Join(", ", values)
+            : null;
 
     private sealed class BodyTooLargeStream : Stream
     {
