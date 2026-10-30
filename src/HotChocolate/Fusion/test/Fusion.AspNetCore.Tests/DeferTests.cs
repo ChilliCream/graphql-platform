@@ -2,8 +2,11 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
@@ -3170,6 +3173,247 @@ public class DeferTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Defer_Should_NotAnnounceNestedGroup_When_ParentGroupFails()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(emailFails: true, ResponseGate.None);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The failed outer group completes with the error and the inner group is never announced.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotAnnounceNestedGroups_When_SharedPlanOfSiblingGroupsFails()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(emailFails: true, ResponseGate.None);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        ... @defer(label: "contactAddress") {
+                            address
+                        }
+                    }
+                    ... @defer(label: "location") {
+                        email
+                        ... @defer(label: "locationPhone") {
+                            phone
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Both sibling groups share the failed plan and complete with the error. Neither nested group is announced.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_CompleteSharedGroupWithErrors_When_FailingPlanFinishesFirst()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(
+            emailFails: true,
+            ResponseGate.AddressUntilErrorDelivered);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "first") {
+                        email
+                    }
+                    ... @defer(label: "second") {
+                        email
+                        address
+                        ... @defer(label: "nested") {
+                            phone
+                        }
+                    }
+                    ... @defer(label: "third") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The failed plan finishes before the address plan. The shared group completes with the error, the address
+        // is delivered under the third group, and the nested group is never announced.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotStartNestedGroup_When_SharedParentGroupFailsInSecondPlan()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(
+            emailFails: true,
+            ResponseGate.EmailUntilAddressDelivered);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "first") {
+                        email
+                    }
+                    ... @defer(label: "second") {
+                        email
+                        address
+                        ... @defer(label: "nested") {
+                            phone
+                        }
+                    }
+                    ... @defer(label: "third") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The second group completes with the email plan errors and the nested group is never announced.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+        Assert.Equal(0, CountSourceSchemaRequests(gateway, "B", "phone"));
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"user":{"id":"VXNlcjoyMDkyMTcyNjc2","name":"User: VXNlcjoyMDkyMTcyNjc2"}},"pending":[{"id":"0","path":["user"],"label":"first"},{"id":"1","path":["user"],"label":"second"},{"id":"3","path":["user"],"label":"third"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"3","data":{"address":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"3"}],"hasNext":true}
+            """,
+            """
+            {"completed":[{"id":"0","errors":[{"message":"Unexpected Execution Error","path":["user"]},{"message":"Unexpected Execution Error","path":["user","email"]}]},{"id":"1","errors":[{"message":"Unexpected Execution Error","path":["user"]},{"message":"Unexpected Execution Error","path":["user","email"]}]}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Defer_Should_AnnounceNestedGroup_When_SharedParentGroupCompletesInSecondPlan()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(
+            emailFails: false,
+            ResponseGate.EmailUntilAddressDelivered);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "first") {
+                        email
+                    }
+                    ... @defer(label: "second") {
+                        email
+                        address
+                        ... @defer(label: "nested") {
+                            phone
+                        }
+                    }
+                    ... @defer(label: "third") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The nested group is announced in the payload that completes the second group.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"user":{"id":"VXNlcjoyMDkyMTcyNjc2","name":"User: VXNlcjoyMDkyMTcyNjc2"}},"pending":[{"id":"0","path":["user"],"label":"first"},{"id":"1","path":["user"],"label":"second"},{"id":"3","path":["user"],"label":"third"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"3","data":{"address":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"3"}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"2","path":["user"],"label":"nested"}],"incremental":[{"id":"0","data":{"email":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"0"},{"id":"1"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"2","data":{"phone":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"2"}],"hasNext":false}
+            """
+        ]);
+    }
+
     private async Task<Gateway> CreateUserGatewayAsync()
     {
         var server1 = CreateSourceSchema(
@@ -3205,6 +3449,116 @@ public class DeferTests : FusionTestBase
             ("A", server1),
             ("B", server2)
         ]);
+    }
+
+    private async Task<Gateway> CreateUserGatewayWithEmailAsync(bool emailFails, ResponseGate gate)
+    {
+        // The key lookup response of the deferred plan is held back until the email node has handed its
+        // result to the result store, so the email result is always applied first.
+        var emailNodeCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var errorDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var addressDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        HttpMessageInvoker? invokerA = null;
+        HttpMessageInvoker? invokerB = null;
+
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            mockHttpResponse: async request =>
+            {
+                var body = await request.Content!.ReadAsStringAsync();
+
+                if (body.Contains("Op_defer", StringComparison.Ordinal))
+                {
+                    await emailNodeCompleted.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                }
+
+                return await invokerA!.SendAsync(request, CancellationToken.None);
+            });
+
+        var server2 = CreateSourceSchema(
+            "B",
+            $$"""
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!{{(emailFails ? " @error" : "")}}
+                address: String!
+                phone: String!
+            }
+            """,
+            mockHttpResponse: async request =>
+            {
+                var body = await request.Content!.ReadAsStringAsync();
+
+                if (body.Contains("address", StringComparison.Ordinal))
+                {
+                    if (gate is ResponseGate.AddressUntilErrorDelivered)
+                    {
+                        await errorDelivered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    }
+                }
+                else if (body.Contains("email", StringComparison.Ordinal))
+                {
+                    if (gate is ResponseGate.EmailUntilAddressDelivered)
+                    {
+                        await addressDelivered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    }
+                }
+
+                return await invokerB!.SendAsync(request, CancellationToken.None);
+            });
+
+        invokerA = new HttpMessageInvoker(server1.CreateHandler());
+        invokerB = new HttpMessageInvoker(server2.CreateHandler());
+
+        return await CreateCompositeSchemaAsync(
+            [
+                ("A", server1),
+                ("B", server2)
+            ],
+            configureApplication: app =>
+            {
+                app.Use(async (context, next) =>
+                {
+                    context.Response.Body = new SignalOnWriteStream(
+                        new SignalOnWriteStream(
+                            context.Response.Body,
+                            "\"errors\""u8.ToArray(),
+                            errorDelivered),
+                        "\"address\""u8.ToArray(),
+                        addressDelivered);
+                    await next(context);
+                });
+                app.UseRouting();
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+            },
+            configureGatewayBuilder: b => b.AddDiagnosticEventListener(
+                _ => new NodeCompletedListener("B", "email", emailNodeCompleted)));
+    }
+
+    private static int CountSourceSchemaRequests(Gateway gateway, string schemaName, string text)
+    {
+        if (!gateway.Interactions.TryGetValue(schemaName, out var interactions))
+        {
+            return 0;
+        }
+
+        return interactions.Values.Count(i =>
+            i.Request is not null
+            && Encoding.UTF8.GetString(i.Request.Body.ToArray()).Contains(text, StringComparison.Ordinal));
     }
 
     private async Task<Gateway> CreateUserGatewayWithAddressAfterEmailAsync()
@@ -3347,6 +3701,21 @@ public class DeferTests : FusionTestBase
         ]);
     }
 
+    private static async Task<List<string>> ReadPayloadsAsync(GraphQLHttpResponse response)
+    {
+        var body = await response.HttpResponseMessage.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var payloads = new List<string>();
+
+        foreach (var line in body.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var payload = JsonNode.Parse(line)!.AsObject();
+            payload.Remove("extensions");
+            payloads.Add(payload.ToJsonString());
+        }
+
+        return payloads;
+    }
+
     private static async Task<string> GetRequestCountsAsync(Gateway gateway, GraphQLHttpResponse response)
     {
         await response.HttpResponseMessage.Content.LoadIntoBufferAsync();
@@ -3411,6 +3780,38 @@ public class DeferTests : FusionTestBase
                 signal.TrySetResult();
             }
         }
+    }
+
+    private sealed class NodeCompletedListener(
+        string expectedSchemaName,
+        string operationText,
+        TaskCompletionSource signal) : FusionExecutionDiagnosticEventListener
+    {
+        public override IDisposable ExecuteOperationNode(
+            OperationPlanContext context,
+            OperationExecutionNode node,
+            string schemaName)
+        {
+            if (schemaName == expectedSchemaName
+                && Encoding.UTF8.GetString(node.Operation.Value.Span).Contains(operationText, StringComparison.Ordinal))
+            {
+                return new SignalOnDispose(signal);
+            }
+
+            return base.ExecuteOperationNode(context, node, schemaName);
+        }
+
+        private sealed class SignalOnDispose(TaskCompletionSource signal) : IDisposable
+        {
+            public void Dispose() => signal.TrySetResult();
+        }
+    }
+
+    private enum ResponseGate
+    {
+        None,
+        AddressUntilErrorDelivered,
+        EmailUntilAddressDelivered
     }
 
     private sealed class SubgraphRequestSequence
