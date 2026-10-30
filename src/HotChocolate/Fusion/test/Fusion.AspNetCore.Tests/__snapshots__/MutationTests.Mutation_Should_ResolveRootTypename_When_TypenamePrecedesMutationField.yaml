@@ -1,0 +1,121 @@
+title: Mutation_Should_ResolveRootTypename_When_TypenamePrecedesMutationField
+request:
+  document: |
+    mutation {
+      __typename
+      createPost(input: { body: "abc" }) {
+        post {
+          body
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__typename": "Mutation",
+        "createPost": {
+          "post": {
+            "body": "Post: UG9zdDozNTk0MzkwMzQ4"
+          }
+        }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "__typename"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        mutation: Mutation
+      }
+
+      type Query {
+        postById(id: ID!): Post @lookup
+      }
+
+      type Mutation {
+        createPost(input: CreatePostInput!): CreatePostPayload!
+      }
+
+      type CreatePostPayload {
+        post: Post
+      }
+
+      type Post {
+        id: ID!
+        body: String
+      }
+
+      input CreatePostInput {
+        body: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            mutation Op_2471379c_2 {
+              createPost(input: { body: "abc" }) {
+                post {
+                  body
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "createPost": {
+                    "post": {
+                      "body": "Post: UG9zdDozNTk0MzkwMzQ4"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        mutation {
+          __typename
+          createPost(input: { body: "abc" }) {
+            post {
+              body
+            }
+          }
+        }
+      hash: e814644b3dff2cc347a355142674ba65
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: _Default
+      operation: |
+        mutation Op_2471379c_1 {
+          __typename
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_2471379c_2 {
+          createPost(input: { body: "abc" }) {
+            post {
+              body
+            }
+          }
+        }
+    - id: 3
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __typename
+          fieldName: __typename

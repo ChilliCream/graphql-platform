@@ -1,0 +1,48 @@
+title: Mutation_Should_ResolveRootTypename_When_TypenameFollowsMutationField
+request:
+  document: |
+    mutation {
+      createPost(input: { body: "abc" }) {
+        post {
+          body
+        }
+      }
+      __typename
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error"
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        mutation: Mutation
+      }
+
+      type Query {
+        postById(id: ID!): Post @lookup
+      }
+
+      type Mutation {
+        createPost(input: CreatePostInput!): CreatePostPayload!
+      }
+
+      type CreatePostPayload {
+        post: Post
+      }
+
+      type Post {
+        id: ID!
+        body: String
+      }
+
+      input CreatePostInput {
+        body: String!
+      }
