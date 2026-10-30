@@ -34,7 +34,7 @@ public sealed partial record OperationPlan : IOperationPlan
         ExpandedNodes = expandedNodes;
         DeliveryGroups = deliveryGroups;
         IncrementalPlans = incrementalPlans;
-        _deliveryPaths = CreateDeliveryPaths(incrementalPlans, deliveryGroups.Length);
+        _deliveryPaths = CreateDeliveryPaths(operation, deliveryGroups, incrementalPlans);
         _nodesById = CreateNodeLookup(
             allNodes,
             out var usesDynamicSchemaNames,

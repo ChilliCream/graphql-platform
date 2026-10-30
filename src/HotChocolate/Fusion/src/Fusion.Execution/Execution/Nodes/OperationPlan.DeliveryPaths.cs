@@ -21,15 +21,21 @@ public sealed partial record OperationPlan
     }
 
     private static Dictionary<int, DeliveryPath>? CreateDeliveryPaths(
-        ImmutableArray<IncrementalPlan> incrementalPlans,
-        int deliveryGroupCount)
+        Operation operation,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> incrementalPlans)
     {
-        if (incrementalPlans.IsDefaultOrEmpty)
+        if (deliveryGroups.IsDefaultOrEmpty)
         {
             return null;
         }
 
-        var deliveryPaths = new Dictionary<int, DeliveryPath>(deliveryGroupCount);
+        if (incrementalPlans.IsDefault)
+        {
+            incrementalPlans = [];
+        }
+
+        var deliveryPaths = new Dictionary<int, DeliveryPath>(deliveryGroups.Length);
 
         foreach (var incrementalPlan in incrementalPlans)
         {
@@ -43,6 +49,37 @@ public sealed partial record OperationPlan
                             incrementalPlan.Operation,
                             deliveryGroup.Path ?? SelectionPath.Root));
                 }
+            }
+        }
+
+        // A group that no plan delivers with is reached through the plan of a nested group.
+        foreach (var incrementalPlan in incrementalPlans)
+        {
+            foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
+            {
+                for (var ancestor = deliveryGroup.Parent; ancestor is not null; ancestor = ancestor.Parent)
+                {
+                    if (!deliveryPaths.ContainsKey(ancestor.Id))
+                    {
+                        deliveryPaths.Add(
+                            ancestor.Id,
+                            CreateDeliveryPath(
+                                incrementalPlan.Operation,
+                                ancestor.Path ?? SelectionPath.Root));
+                    }
+                }
+            }
+        }
+
+        foreach (var deliveryGroup in deliveryGroups)
+        {
+            if (!deliveryPaths.ContainsKey(deliveryGroup.Id))
+            {
+                deliveryPaths.Add(
+                    deliveryGroup.Id,
+                    CreateDeliveryPath(
+                        operation,
+                        deliveryGroup.Path ?? SelectionPath.Root));
             }
         }
 

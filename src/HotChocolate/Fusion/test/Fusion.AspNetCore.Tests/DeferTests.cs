@@ -3103,7 +3103,7 @@ public class DeferTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
-    [Fact(Skip = "Executor throws when a defer group has no fields of its own and only wraps a nested defer.")]
+    [Fact]
     public async Task Defer_Should_DeliverNestedGroup_When_ParentGroupHasNoOwnFields()
     {
         // arrange
@@ -3132,10 +3132,259 @@ public class DeferTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        // Execution fails with "The given key '0' was not present in the dictionary" in
-        // OperationPlanExecutor.ExecuteWithDeferAsync. Once fixed, snapshot the request counts per
-        // subgraph.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 1");
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverNestedGroup_When_EnclosedGroupHasNoOwnFields()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "middle") {
+                            ... @defer(label: "inner") {
+                                address
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"user":{"name":"User: VXNlcjoyMDkyMTcyNjc2"}},"pending":[{"id":"0","path":["user"],"label":"outer"}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"1","path":["user"],"label":"middle"}],"incremental":[{"id":"0","data":{"email":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"0"}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"2","path":["user"],"label":"inner"}],"completed":[{"id":"1"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"2","data":{"address":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"2"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_NotStream_When_EmptyOuterGroupAndInnerGroupAreDisabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = CreateNestedMessageDeferRequest(outerEnabled: false, innerEnabled: false);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4","body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}},"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_DeliverFieldWithInnerGroup_When_EmptyOuterGroupIsDisabledAndInnerIsEnabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = CreateNestedMessageDeferRequest(outerEnabled: false, innerEnabled: true);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4"}},"pending":[{"id":"1","path":["message"]}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"1","data":{"body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}}],"completed":[{"id":"1"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_DeliverFieldWithInnerGroup_When_OuterGroupWithOwnFieldsIsDisabledAndInnerIsEnabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            query: """
+            query ($a: Boolean!, $b: Boolean!) {
+                message {
+                    id
+                    ... @defer(if: $a) {
+                        title
+                        ... @defer(if: $b) {
+                            body
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["a"] = false, ["b"] = true });
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4","title":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}},"pending":[{"id":"1","path":["message"]}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"1","data":{"body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}}],"completed":[{"id":"1"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_DeliverFieldWithOuterGroup_When_EmptyOuterGroupIsEnabledAndInnerIsDisabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = CreateNestedMessageDeferRequest(outerEnabled: true, innerEnabled: false);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4"}},"pending":[{"id":"0","path":["message"]}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"0","data":{"body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}}],"completed":[{"id":"0"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_AnnounceInnerGroupAfterOuterCompletes_When_EmptyOuterGroupAndInnerAreEnabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = CreateNestedMessageDeferRequest(outerEnabled: true, innerEnabled: true);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4"}},"pending":[{"id":"0","path":["message"]}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"1","path":["message"]}],"completed":[{"id":"0"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"1","data":{"body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}}],"completed":[{"id":"1"}],"hasNext":false}
+            """
+        ]);
     }
 
     [Fact]
@@ -3459,6 +3708,76 @@ public class DeferTests : FusionTestBase
             """
             {"completed":[{"id":"0","errors":[{"message":"Unexpected Execution Error","path":["user","email"]}]}],"hasNext":false}
             """
+        ]);
+    }
+
+    private static OperationRequest CreateNestedMessageDeferRequest(bool outerEnabled, bool innerEnabled)
+        => new(
+            query: """
+            query ($a: Boolean!, $b: Boolean!) {
+                message {
+                    id
+                    ... @defer(if: $a) {
+                        ... @defer(if: $b) {
+                            body
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["a"] = outerEnabled, ["b"] = innerEnabled });
+
+    private async Task<Gateway> CreateMessageGatewayAsync(bool bodyBehindLookup)
+    {
+        if (!bodyBehindLookup)
+        {
+            var server = CreateSourceSchema(
+                "A",
+                """
+                type Query {
+                    message: Message
+                }
+
+                type Message {
+                    id: ID!
+                    title: String!
+                    body: String!
+                }
+                """);
+
+            return await CreateCompositeSchemaAsync([("A", server)]);
+        }
+
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                message: Message
+            }
+
+            type Message @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                messageById(id: ID!): Message @lookup
+            }
+
+            type Message @key(fields: "id") {
+                id: ID!
+                title: String!
+                body: String!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
         ]);
     }
 
