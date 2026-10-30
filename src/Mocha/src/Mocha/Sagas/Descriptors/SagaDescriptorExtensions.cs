@@ -22,4 +22,23 @@ public static class SagaDescriptorExtensions
 
         return descriptor.Finally(StateNames.TimedOut);
     }
+
+    /// <summary>
+    /// Configures how the saga handles an event correlated through <see cref="ICorrelatable"/> for which no
+    /// saga instance exists.
+    /// The default is <see cref="SagaMissingInstanceBehavior.Fault"/>.
+    /// </summary>
+    /// <typeparam name="TState">The saga state type.</typeparam>
+    /// <param name="descriptor">The saga descriptor to configure.</param>
+    /// <param name="behavior">The behavior for such an event.</param>
+    /// <returns>This descriptor for chaining.</returns>
+    public static ISagaDescriptor<TState> OnMissingInstance<TState>(
+        this ISagaDescriptor<TState> descriptor,
+        SagaMissingInstanceBehavior behavior)
+        where TState : SagaStateBase
+    {
+        descriptor.Extend().Configuration.MissingInstanceBehavior = behavior;
+
+        return descriptor;
+    }
 }

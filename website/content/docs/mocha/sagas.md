@@ -617,6 +617,44 @@ The correlation lookup order is:
 2. Check the message headers for a `saga-id` header.
 3. If neither is found, treat the message as an initiating event and create a new saga instance.
 
+# Events for a missing saga instance
+
+An event that implements `ICorrelatable` can arrive for a saga instance that does not exist. The event may have overtaken the event that starts the saga, so the instance is not persisted yet. Or the saga already reached a final state, and its state was deleted. An event with a non-null `CorrelationId` never creates an instance, so the event that starts a saga must leave it `null`.
+
+By default, such an event faults. The saga logs a warning with the saga name, the event type, and the correlation id, and throws a `SagaInstanceNotFoundException`. The saga transaction is not committed, so [exception policies](./exception-policies.md) decide what happens next. A retry resolves a race with the saga start. Without a policy, the message is handled like any other failed message, see [Handle faults](./reliability.md#handle-faults).
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        // give the event that starts the saga time to be persisted
+        policy.On<SagaInstanceNotFoundException>()
+            .Retry(3, TimeSpan.FromMilliseconds(200));
+    })
+    .AddSaga<OrderSaga>()
+    .AddRabbitMQ();
+```
+
+If you use the [transactional inbox](./reliability.md#deduplicate-messages-with-the-transactional-inbox), call `UseTransaction()` before `UsePostgresInbox()`. The inbox claim of a failed attempt is then rolled back with the attempt, so the retry processes the event again. Without that transaction, the claim stays and the inbox skips the retry.
+
+Messages correlated only by the `saga-id` header, such as replies and faults, do not fault. They are delivered to every saga with a matching route, so a missing instance can belong to another saga. They are logged at debug level and acknowledged, regardless of `OnMissingInstance()`.
+
+The saga's own `SagaTimedOutEvent` does not fault either. The timeout is cancelled when the saga reaches a final state, but the cancellation can race the scheduled delivery. A timeout for a missing instance is logged at debug level and acknowledged, regardless of `OnMissingInstance()`.
+
+If your saga expects late events after it completed, opt out with `OnMissingInstance()`. An ignored event is logged at information level and acknowledged.
+
+```csharp
+protected override void Configure(ISagaDescriptor<OrderState> descriptor)
+{
+    descriptor.OnMissingInstance(SagaMissingInstanceBehavior.Ignore);
+
+    // states and transitions
+}
+```
+
+If a reply can race the saga start, send the request from the saga's initial transition instead of from another handler. With the [transactional outbox](./reliability.md#guarantee-delivery-with-the-transactional-outbox), the request is written in the same transaction as the new saga instance and dispatched after it commits, so the reply finds the instance. Without the outbox, the request is dispatched before the instance is persisted, so a fast reply can still arrive first and is acknowledged without being applied.
+
 # Timeouts
 
 A saga that waits for a message that never arrives will stay in its current state forever. Timeouts ensure every saga eventually completes - either through normal processing or by timing out.
@@ -671,7 +709,7 @@ Use `OnTimeout()` on a state descriptor to define what happens when the timeout 
 | Scope               | Per-saga instance, not per-state. The deadline covers the entire saga lifetime.                                                                                                                                                                                                                                                                                             |
 | Duration            | Fixed at configuration time via `TimeSpan`.                                                                                                                                                                                                                                                                                                                                 |
 | Auto-cancellation   | When the saga reaches any final state (normal completion, error final state, etc.), the pending timeout is cancelled.                                                                                                                                                                                                                                                       |
-| Late delivery       | If the timeout fires after the saga was already deleted, the event is silently dropped.                                                                                                                                                                                                                                                                                     |
+| Late delivery       | If the timeout fires after the saga was already deleted, the event is logged at debug level and acknowledged.                                                                                                                                                                                                                                                               |
 | Missing handler     | If no `OnTimeout()` handler is configured for the current state, the saga throws an execution error. See [troubleshooting](#timeout-troubleshooting) below.                                                                                                                                                                                                                 |
 | Recommended pattern | `DuringAny().OnTimeout()` handles the timeout regardless of which state the saga is in.                                                                                                                                                                                                                                                                                     |
 | Response on timeout | Chain `.Respond()` on the timed-out final state to send a response back to the original requester.                                                                                                                                                                                                                                                                          |
@@ -695,13 +733,14 @@ descriptor.DuringAny()
 
 ## Saga descriptor
 
-| Method      | Available on              | Parameters         | Description                                                                                                                                              |
-| ----------- | ------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Initially` | `ISagaDescriptor<TState>` | -                  | Returns the initial state descriptor for defining transitions that create new saga instances.                                                            |
-| `During`    | `ISagaDescriptor<TState>` | `string stateName` | Returns a state descriptor for defining transitions in the named state.                                                                                  |
-| `DuringAny` | `ISagaDescriptor<TState>` | -                  | Returns a catch-all state descriptor whose transitions apply to all non-initial, non-final states.                                                       |
-| `Finally`   | `ISagaDescriptor<TState>` | `string stateName` | Declares a final state. When the saga enters this state, persisted state is deleted and an optional response is sent.                                    |
-| `Timeout`   | `ISagaDescriptor<TState>` | `TimeSpan timeout` | Creates a timed-out final state and schedules automatic timeout on saga creation. Returns `ISagaFinalStateDescriptor<TState>` for chaining `.Respond()`. |
+| Method              | Available on              | Parameters                             | Description                                                                                                                                              |
+| ------------------- | ------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Initially`         | `ISagaDescriptor<TState>` | -                                      | Returns the initial state descriptor for defining transitions that create new saga instances.                                                            |
+| `During`            | `ISagaDescriptor<TState>` | `string stateName`                     | Returns a state descriptor for defining transitions in the named state.                                                                                  |
+| `DuringAny`         | `ISagaDescriptor<TState>` | -                                      | Returns a catch-all state descriptor whose transitions apply to all non-initial, non-final states.                                                       |
+| `Finally`           | `ISagaDescriptor<TState>` | `string stateName`                     | Declares a final state. When the saga enters this state, persisted state is deleted and an optional response is sent.                                    |
+| `Timeout`           | `ISagaDescriptor<TState>` | `TimeSpan timeout`                     | Creates a timed-out final state and schedules automatic timeout on saga creation. Returns `ISagaFinalStateDescriptor<TState>` for chaining `.Respond()`. |
+| `OnMissingInstance` | `ISagaDescriptor<TState>` | `SagaMissingInstanceBehavior behavior` | Sets how the saga handles an `ICorrelatable` event without a saga instance: `Fault` (default) or `Ignore`.                                               |
 
 ## State transitions
 
@@ -746,6 +785,9 @@ The saga received a message in a state that has no matching transition. Verify t
 
 **Saga never completes.**
 Check that the downstream service is running and sending replies. If the saga is waiting for a reply that never arrives, consider adding a [timeout](#timeouts) to ensure the saga eventually reaches a final state.
+
+**"SagaInstanceNotFoundException: No instance of saga ... exists for correlation id ..."**
+The saga received an `ICorrelatable` event, but no instance exists for its correlation id. Retry the event when it can overtake the saga start, or ignore late events after completion. If the event starts the saga, leave its `CorrelationId` `null`. See [Events for a missing saga instance](#events-for-a-missing-saga-instance).
 
 **Two messages arrive for the same saga instance simultaneously.**
 The Postgres saga store uses optimistic concurrency. The second writer detects the version mismatch, reloads state, and retries automatically. See [Concurrency](#concurrency).

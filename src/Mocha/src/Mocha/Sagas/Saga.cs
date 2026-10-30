@@ -75,8 +75,12 @@ public abstract partial class Saga : IFeatureProvider
     /// <param name="context">The consume context providing the incoming message, headers, and runtime services.</param>
     /// <returns>
     /// <see langword="true"/> if the event was handled by this saga;
-    /// <see langword="false"/> if no matching saga instance was found for the correlation identifier.
+    /// <see langword="false"/> if no saga instance exists for the correlation identifier and the event is ignored.
     /// </returns>
+    /// <exception cref="SagaInstanceNotFoundException">
+    /// Thrown when no saga instance exists for an event correlated through <see cref="ICorrelatable"/> and the saga
+    /// faults on a missing instance.
+    /// </exception>
     public abstract Task<bool> HandleEvent(IConsumeContext context);
 
     /// <summary>
@@ -253,7 +257,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             state = await LoadStateAsync(correlationId, context, ct);
             if (state is null)
             {
-                return false;
+                return HandleMissingInstance(@event, correlationId);
             }
 
             _logger!.LoadedSagaStateForCorrelationId(Name, correlationId);
@@ -508,6 +512,34 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
         return await context.GetSagaFeature().Store.LoadAsync<TState>(this, correlationId, ct);
     }
 
+    private bool HandleMissingInstance(object @event, Guid correlationId)
+    {
+        // a timeout can race its cancellation when the saga completes
+        if (@event is SagaTimedOutEvent)
+        {
+            _logger!.IgnoredTimeoutForMissingInstance(Name, correlationId);
+            return false;
+        }
+
+        var eventType = @event.GetType();
+
+        // a message correlated by the saga-id header is delivered to every saga with a matching route
+        if (@event is not ICorrelatable { CorrelationId: not null })
+        {
+            _logger!.IgnoredHeaderCorrelatedEventForMissingInstance(Name, correlationId, eventType.Name);
+            return false;
+        }
+
+        if (Configuration.MissingInstanceBehavior is SagaMissingInstanceBehavior.Ignore)
+        {
+            _logger!.IgnoredEventForMissingInstance(Name, correlationId, eventType.Name);
+            return false;
+        }
+
+        _logger!.SagaInstanceNotFound(Name, correlationId, eventType.Name);
+        throw ThrowHelper.SagaInstanceNotFound(this, eventType, correlationId);
+    }
+
     private async Task PublishEventsAsync(
         IConsumeContext context,
         ImmutableArray<SagaEventPublish> publish,
@@ -655,6 +687,43 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Information, "Saga completed {SagaName} {SagaId}")]
     public static partial void SagaCompleted(this ILogger logger, string sagaName, Guid sagaId);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "No instance of saga {SagaName} exists for correlation id {CorrelationId}. The event {Event} faults.")]
+    public static partial void SagaInstanceNotFound(
+        this ILogger logger,
+        string sagaName,
+        Guid correlationId,
+        string @event);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "No instance of saga {SagaName} exists for correlation id {CorrelationId}. The event {Event} is ignored.")]
+    public static partial void IgnoredEventForMissingInstance(
+        this ILogger logger,
+        string sagaName,
+        Guid correlationId,
+        string @event);
+
+    [LoggerMessage(
+        LogLevel.Debug,
+        "No instance of saga {SagaName} exists for correlation id {CorrelationId}. "
+            + "The event {Event} is ignored because its saga-id header can belong to another saga.")]
+    public static partial void IgnoredHeaderCorrelatedEventForMissingInstance(
+        this ILogger logger,
+        string sagaName,
+        Guid correlationId,
+        string @event);
+
+    [LoggerMessage(
+        LogLevel.Debug,
+        "No instance of saga {SagaName} exists for correlation id {CorrelationId}. "
+            + "The timeout is ignored because the saga already completed.")]
+    public static partial void IgnoredTimeoutForMissingInstance(
+        this ILogger logger,
+        string sagaName,
+        Guid correlationId);
 
     [LoggerMessage(LogLevel.Warning, "Failed to cancel scheduled message {Token} for saga {SagaName} ({SagaId})")]
     public static partial void FailedToCancelScheduledMessage(
