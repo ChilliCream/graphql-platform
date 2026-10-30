@@ -1774,6 +1774,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             data: {"incremental":[{"data":{"nestedObject":{"deeperObject":{"foo":"foo"}}},"path":["hero"]},{"data":{"foo":"foo","bar":"bar"},"path":["hero","nestedObject","deeperObject"]}],"hasNext":false}
 
             event: complete
+            data:
 
 
             """);
