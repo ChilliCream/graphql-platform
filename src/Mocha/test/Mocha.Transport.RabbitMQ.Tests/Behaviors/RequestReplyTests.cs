@@ -177,6 +177,45 @@ public class RequestReplyTests
         Assert.Equal(1800000, expires);
     }
 
+    [Fact]
+    public async Task RequestAsync_Should_ReturnTypedResponse_When_ReplyQueueWasDeletedWithConsumerConnection()
+    {
+        // arrange
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddRabbitMQ()
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-1" }, CancellationToken.None);
+        // the reply queue is auto-delete, so closing its consumer connection deletes it
+        await vhost.CloseConsumerConnectionAsync(GetReplyQueueName(bus));
+
+        // act
+        using var cts = new CancellationTokenSource(s_timeout);
+        var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-2" }, cts.Token);
+
+        // assert
+        Assert.Equal("ORD-2", response.OrderId);
+        Assert.Equal("Shipped", response.Status);
+    }
+
+    private static string GetReplyQueueName(TestBus bus)
+    {
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+
+        return runtime.Transports
+            .OfType<RabbitMQMessagingTransport>()
+            .Single()
+            .ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Kind == ReceiveEndpointKind.Reply)
+            .Queue.Name;
+    }
+
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
     {
         public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -75,7 +76,55 @@ public sealed class VhostContext : IAsyncDisposable
 
     public IConnectionFactory ConnectionFactory { get; }
 
+    /// <summary>
+    /// Force-closes the connection that consumes from the queue <paramref name="queueName"/>.
+    /// </summary>
+    public async Task CloseConsumerConnectionAsync(string queueName)
+    {
+        var consumers = await ListAsync("list_consumers", "-p", VhostName, "queue_name", "channel_pid");
+        var channel = consumers.Single(row => row[0] == queueName)[1];
+        var channels = await ListAsync("list_channels", "pid", "connection");
+        var connection = channels.Single(row => row[0] == channel)[1];
+
+        await _fixture.InvokeCommandAsync(["rabbitmqctl", "close_connection", connection, "test"]);
+    }
+
+    /// <summary>
+    /// Gets the number of consumers of the queue <paramref name="queueName"/>, or <see langword="null"/> when the
+    /// queue does not exist.
+    /// </summary>
+    public async Task<int?> GetConsumerCountAsync(string queueName)
+    {
+        var queues = await ListAsync("list_queues", "-p", VhostName, "name", "consumers");
+        var queue = queues.SingleOrDefault(row => row[0] == queueName);
+
+        return queue is null ? null : int.Parse(queue[1], CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Waits until the queue <paramref name="queueName"/> exists and has a consumer.
+    /// </summary>
+    public async Task WaitForConsumerAsync(string queueName, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+
+        while (await GetConsumerCountAsync(queueName) is null or 0)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
     public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);
+
+    private async Task<string[][]> ListAsync(params string[] command)
+    {
+        var output = await _fixture.InvokeCommandAsync(["rabbitmqctl", .. command, "--quiet", "--no-table-headers"]);
+
+        return output
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(line => line.Split('\t'))
+            .ToArray();
+    }
 }
 
 [CollectionDefinition("RabbitMQ")]
