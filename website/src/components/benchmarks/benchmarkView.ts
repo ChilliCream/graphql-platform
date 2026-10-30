@@ -452,7 +452,13 @@ export const tableCaption = (
   group: ResultsGroup,
   report: BenchmarkReport,
 ) =>
-  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
+  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, peak router memory per request in KiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
+
+/** Returns the peak memory in KiB divided by the median requests per second, or undefined without a memory measurement or throughput. */
+export const memoryPerRequest = (row: BenchmarkMeasuredVariantResult) =>
+  row.memory && row.throughput.medianRps > 0
+    ? row.memory.peakRssKiB / row.throughput.medianRps
+    : undefined;
 
 /** Formats a request rate as a whole number. */
 export const formatNumber = (value: number) =>
@@ -463,6 +469,13 @@ export const formatMemory = (kibibytes: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(
     kibibytes / 1024,
   );
+
+/** Formats KiB with one decimal below 100 KiB, without the unit. */
+export const formatKibibytes = (kibibytes: number) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: kibibytes < 100 ? 1 : 0,
+    maximumFractionDigits: kibibytes < 100 ? 1 : 0,
+  }).format(kibibytes);
 
 /** Formats milliseconds with one decimal below 100 ms, without the unit. */
 export const formatLatency = (milliseconds: number) =>
