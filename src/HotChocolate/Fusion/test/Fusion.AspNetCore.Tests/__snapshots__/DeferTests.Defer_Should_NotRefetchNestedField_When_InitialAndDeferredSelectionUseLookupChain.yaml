@@ -25,7 +25,7 @@ stableResponseStream: |
           "account": {
             "balance": 123
           },
-          "name": "User: VXNlcjox"
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     },
@@ -45,7 +45,7 @@ stableResponseStream: |
           "user"
         ],
         "data": {
-          "email": "User: VXNlcjox"
+          "email": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     ],
@@ -60,8 +60,8 @@ stableResponseStream: |
           "account": {
             "balance": 123
           },
-          "email": "User: VXNlcjox",
-          "name": "User: VXNlcjox"
+          "email": "User: VXNlcjoyMDkyMTcyNjc2",
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     }
@@ -97,8 +97,8 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
-                    "name": "User: VXNlcjox",
-                    "id": "VXNlcjox"
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -135,7 +135,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -144,7 +144,7 @@ sourceSchemas:
                 "data": {
                   "userById": {
                     "account": {
-                      "id": "QWNjb3VudDox"
+                      "id": "QWNjb3VudDozMTMxMDI1OTMz"
                     }
                   }
                 }
@@ -159,7 +159,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -167,7 +167,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox"
+                    "email": "User: VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -202,7 +202,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "QWNjb3VudDox"
+              "__fusion_2_id": "QWNjb3VudDozMTMxMDI1OTMz"
             }
         response:
           results:

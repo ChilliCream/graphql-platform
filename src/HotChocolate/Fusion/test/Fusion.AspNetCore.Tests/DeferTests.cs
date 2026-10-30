@@ -303,8 +303,12 @@ public class DeferTests : FusionTestBase
                         "unrelated",
                         (OperationDefinitionNode)Utf8GraphQLParser.Parse("{ version }").Definitions[0]);
                     var incrementalPlan = plan.IncrementalPlans[0];
-                    var deliveryGroups = incrementalPlan.DeliveryGroups
+                    // the delivery paths must resolve against the swapped incremental operation
+                    var planDeliveryGroups = plan.DeliveryGroups
                         .Select(group => group with { Path = SelectionPath.Root })
+                        .ToImmutableArray();
+                    var deliveryGroups = incrementalPlan.DeliveryGroups
+                        .Select(group => planDeliveryGroups.Single(t => t.Id == group.Id))
                         .ToImmutableArray();
 
                     context.SetOperationPlan(
@@ -313,7 +317,7 @@ public class DeferTests : FusionTestBase
                             plan.Operation,
                             plan.RootNodes,
                             plan.AllNodes,
-                            plan.DeliveryGroups,
+                            planDeliveryGroups,
                             [
                                 new IncrementalPlan(
                                     operation,

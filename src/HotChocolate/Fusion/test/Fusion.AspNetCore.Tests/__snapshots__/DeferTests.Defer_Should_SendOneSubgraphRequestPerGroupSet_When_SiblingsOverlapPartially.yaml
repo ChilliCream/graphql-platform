@@ -24,7 +24,7 @@ stableResponseStream: |
     "initial": {
       "data": {
         "user": {
-          "name": "User: VXNlcjox"
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     },
@@ -58,7 +58,7 @@ stableResponseStream: |
           "user"
         ],
         "data": {
-          "email": "User: VXNlcjox"
+          "email": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       },
       {
@@ -67,7 +67,7 @@ stableResponseStream: |
           "user"
         ],
         "data": {
-          "address": "User: VXNlcjox"
+          "address": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       },
       {
@@ -76,7 +76,7 @@ stableResponseStream: |
           "user"
         ],
         "data": {
-          "phone": "User: VXNlcjox"
+          "phone": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     ],
@@ -94,10 +94,10 @@ stableResponseStream: |
     "final": {
       "data": {
         "user": {
-          "address": "User: VXNlcjox",
-          "email": "User: VXNlcjox",
-          "name": "User: VXNlcjox",
-          "phone": "User: VXNlcjox"
+          "address": "User: VXNlcjoyMDkyMTcyNjc2",
+          "email": "User: VXNlcjoyMDkyMTcyNjc2",
+          "name": "User: VXNlcjoyMDkyMTcyNjc2",
+          "phone": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     }
@@ -133,8 +133,8 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
-                    "name": "User: VXNlcjox",
-                    "id": "VXNlcjox"
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -165,7 +165,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -173,7 +173,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox"
+                    "email": "User: VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -187,7 +187,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -195,7 +195,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "address": "User: VXNlcjox"
+                    "address": "User: VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -209,7 +209,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -217,7 +217,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "phone": "User: VXNlcjox"
+                    "phone": "User: VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
