@@ -9,16 +9,45 @@ namespace HotChocolate.Fusion.Execution;
 /// </summary>
 internal sealed class AsyncAutoResetEvent : ICriticalNotifyCompletion, IThreadPoolWorkItem
 {
+    private const string SocketThreadCountVariable = "DOTNET_SYSTEM_NET_SOCKETS_THREAD_COUNT";
+
+    private static readonly bool s_runInlineOutsideThreadPool = HasTwoSocketEnginesPerProcessor(
+        Environment.GetEnvironmentVariable(SocketThreadCountVariable),
+        Environment.ProcessorCount);
+
 #if NET9_0_OR_GREATER
     private readonly Lock _sync = new();
 #else
     private readonly object _sync = new();
 #endif
+    private readonly bool _runInlineOutsideThreadPool;
     private Action? _continuation;
     private ExecutionContext? _continuationContext;
     private Action? _scheduledContinuation;
     private ExecutionContext? _scheduledContext;
     private bool _isSignaled;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="AsyncAutoResetEvent"/> that runs a continuation on the
+    /// thread that sets the event when that thread is not a thread pool thread and
+    /// <c>DOTNET_SYSTEM_NET_SOCKETS_THREAD_COUNT</c> configures at least two socket engines per processor.
+    /// </summary>
+    public AsyncAutoResetEvent()
+        : this(s_runInlineOutsideThreadPool)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="AsyncAutoResetEvent"/>.
+    /// </summary>
+    /// <param name="runInlineOutsideThreadPool">
+    /// Whether a signal raised on a thread that is not a thread pool thread runs the continuation on
+    /// that thread instead of queuing it to the thread pool.
+    /// </param>
+    internal AsyncAutoResetEvent(bool runInlineOutsideThreadPool)
+    {
+        _runInlineOutsideThreadPool = runInlineOutsideThreadPool;
+    }
 
     public bool IsSignaled => Volatile.Read(ref _isSignaled);
 
@@ -59,7 +88,8 @@ internal sealed class AsyncAutoResetEvent : ICriticalNotifyCompletion, IThreadPo
 
     /// <summary>
     /// Signals the event. A registered awaiter continues on the thread pool, or on the calling thread
-    /// when the caller is not a thread pool thread; without an awaiter the signal is stored.
+    /// when inline runs are enabled and the caller is not a thread pool thread; without an awaiter the
+    /// signal is stored.
     /// </summary>
     public void Set()
     {
@@ -89,15 +119,22 @@ internal sealed class AsyncAutoResetEvent : ICriticalNotifyCompletion, IThreadPo
             return;
         }
 
-        if (Thread.CurrentThread.IsThreadPoolThread)
-        {
-            ScheduleContinuation(continuation, context);
-        }
-        else
+        if (_runInlineOutsideThreadPool && !Thread.CurrentThread.IsThreadPoolThread)
         {
             RunContinuation(continuation, context);
         }
+        else
+        {
+            ScheduleContinuation(continuation, context);
+        }
     }
+
+    /// <summary>
+    /// Gets whether <paramref name="threadCount"/>, the value of <c>DOTNET_SYSTEM_NET_SOCKETS_THREAD_COUNT</c>,
+    /// configures at least two socket engines per processor. A missing or unparsable value returns false.
+    /// </summary>
+    internal static bool HasTwoSocketEnginesPerProcessor(string? threadCount, int processorCount)
+        => uint.TryParse(threadCount, out var count) && count >= 2L * processorCount;
 
     /// <summary>
     /// Attempts to clear a stored signal without waking a waiter.
