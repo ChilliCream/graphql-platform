@@ -12,11 +12,14 @@ request:
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "Unexpected Execution Error"
-        }
-      ]
+      "data": {
+        "createPost": {
+          "post": {
+            "body": "Post: UG9zdDozNTk0MzkwMzQ4"
+          }
+        },
+        "__typename": "Mutation"
+      }
     }
 sourceSchemas:
   - name: A
@@ -46,3 +49,58 @@ sourceSchemas:
       input CreatePostInput {
         body: String!
       }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            mutation Op_810e856e_1 {
+              createPost(input: { body: "abc" }) {
+                post {
+                  body
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "createPost": {
+                    "post": {
+                      "body": "Post: UG9zdDozNTk0MzkwMzQ4"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        mutation {
+          createPost(input: { body: "abc" }) {
+            post {
+              body
+            }
+          }
+          __typename
+        }
+      hash: 3293618c1a85c177c292113da075d126
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_810e856e_1 {
+          createPost(input: { body: "abc" }) {
+            post {
+              body
+            }
+          }
+        }
+    - id: 2
+      type: Introspection
+      selections:
+        - id: 3
+          responseName: __typename
+          fieldName: __typename
