@@ -220,6 +220,69 @@ public class ExecutionGroupTests
     }
 
     [Fact]
+    public async Task Execute_Should_SequenceMembersOfEachItem_When_ListIsStreamed()
+    {
+        // arrange
+        var script = new ExecutionScript();
+        var executor = await ExecutionGroupTestSchema.CreateAsync(script);
+        using var cts = new CancellationTokenSource(s_timeout);
+        var eventsWhileFirstMembersRun = new List<string>();
+        script.Release("items[0].children.edges");
+        script.Release("items[1].children.edges");
+        script.Release("items[2].children.edges");
+
+        // act
+        var execution = executor.ExecuteAsync(
+            "{ items @stream(initialCount: 1) { name children { nodes { name } edges probe } } }",
+            cts.Token);
+        var payloads = ReadStreamedItemsAsync(execution, cts.Token);
+
+        for (var i = 0; i < 3; i++)
+        {
+            await script.Started($"items[{i}].children.probe");
+            eventsWhileFirstMembersRun.AddRange(script.Events.Where(e => e.Contains($"items[{i}]")));
+            script.Release($"items[{i}].children.nodes");
+        }
+
+        var items = await payloads;
+
+        // assert
+        eventsWhileFirstMembersRun.MatchInlineSnapshots(
+        [
+            "start items[0].children.nodes",
+            "start items[1].children.nodes",
+            "start items[2].children.nodes"
+        ]);
+        script.Events.Where(e => e.Contains("items[0]")).MatchInlineSnapshots(
+        [
+            "start items[0].children.nodes",
+            "end items[0].children.nodes",
+            "start items[0].children.edges",
+            "end items[0].children.edges"
+        ]);
+        script.Events.Where(e => e.Contains("items[1]")).MatchInlineSnapshots(
+        [
+            "start items[1].children.nodes",
+            "end items[1].children.nodes",
+            "start items[1].children.edges",
+            "end items[1].children.edges"
+        ]);
+        script.Events.Where(e => e.Contains("items[2]")).MatchInlineSnapshots(
+        [
+            "start items[2].children.nodes",
+            "end items[2].children.nodes",
+            "start items[2].children.edges",
+            "end items[2].children.edges"
+        ]);
+        items.MatchInlineSnapshots(
+        [
+            """initial {"name":"a","children":{"nodes":[{"name":"a"},{"name":"b"}],"edges":["e1"],"probe":"probe"}}""",
+            """streamed {"name":"b","children":{"nodes":[{"name":"a"},{"name":"b"}],"edges":["e1"],"probe":"probe"}}""",
+            """streamed {"name":"c","children":{"nodes":[{"name":"a"},{"name":"b"}],"edges":["e1"],"probe":"probe"}}"""
+        ]);
+    }
+
+    [Fact]
     public async Task Execute_Should_DropMemberFromSequence_When_MemberIsSkipped()
     {
         // arrange
@@ -1263,6 +1326,38 @@ public class ExecutionGroupTests
             "start connection.edges",
             "end connection.edges"
         ]);
+    }
+
+    private static async Task<List<string>> ReadStreamedItemsAsync(
+        Task<IExecutionResult> execution,
+        CancellationToken cancellationToken)
+    {
+        var stream = Assert.IsType<ResponseStream>(await execution);
+        var items = new List<string>();
+
+        await foreach (var payload in stream.ReadResultsAsync().WithCancellation(cancellationToken))
+        {
+            await using var cleanup = payload;
+            var root = JsonNode.Parse(payload.ToJson())!;
+
+            if (root["data"]?["items"] is JsonArray initial)
+            {
+                items.AddRange(initial.Select(i => $"initial {i!.ToJsonString()}"));
+            }
+
+            if (root["incremental"] is JsonArray entries)
+            {
+                foreach (var entry in entries)
+                {
+                    if (entry!["items"] is JsonArray streamed)
+                    {
+                        items.AddRange(streamed.Select(i => $"streamed {i!.ToJsonString()}"));
+                    }
+                }
+            }
+        }
+
+        return items;
     }
 
     private static async Task<List<string>> ReadPayloadsAsync(

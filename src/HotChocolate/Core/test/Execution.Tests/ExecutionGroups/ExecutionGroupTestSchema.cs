@@ -31,6 +31,8 @@ internal static class ExecutionGroupTestSchema
 
                 descriptor.Field("holder").Type("Holder").Resolve(_ => new Holder());
 
+                descriptor.Field("items").Type("[Item!]!").Resolve(_ => StreamItems());
+
                 descriptor
                     .Field("reversed")
                     .Type("Connection")
@@ -196,6 +198,15 @@ internal static class ExecutionGroupTestSchema
     }
 
     private static Item[] Items() => [new Item("a"), new Item("b")];
+
+    private static async IAsyncEnumerable<Item> StreamItems()
+    {
+        foreach (var item in new[] { new Item("a"), new Item("b"), new Item("c") })
+        {
+            await Task.Yield();
+            yield return item;
+        }
+    }
 
     internal sealed class Connection;
 

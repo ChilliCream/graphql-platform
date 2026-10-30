@@ -49,6 +49,7 @@ internal sealed partial class ResolverTask
         _completionStatus = ExecutionTaskStatus.Completed;
         _operationContext = null!;
         _selection = null!;
+        _stream = null;
         _context.Clean();
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;
@@ -56,6 +57,7 @@ internal sealed partial class ResolverTask
         DeferUsage = null;
         _groupScope = null;
         _groupSlot = -1;
+        _childTasksRegistered = false;
         IsRegistered = false;
 #pragma warning disable CS0618
         Next = null;

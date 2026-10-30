@@ -67,7 +67,7 @@ internal sealed class QueryExecutor
             return initialResult;
         }
 
-        coordinator.EnqueueResult(initialResult);
+        await coordinator.EnqueueResult(initialResult).ConfigureAwait(false);
 
         foreach (var cleanupTask in operationContext.Result.TakeCleanupTasks())
         {
@@ -191,7 +191,7 @@ internal sealed class QueryExecutor
             var context = operationContexts[i].OperationContext;
             var branchId = context.ExecutionBranchId;
             await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
-            context.DeferExecutionCoordinator.EnqueueResult(context.BuildResult());
+            await context.DeferExecutionCoordinator.EnqueueResult(context.BuildResult()).ConfigureAwait(false);
 
             var requestCleanup = context.RequestCleanup!;
 

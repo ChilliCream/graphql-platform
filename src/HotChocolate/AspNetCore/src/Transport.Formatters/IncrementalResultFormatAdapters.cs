@@ -117,7 +117,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
                                 objectResult.Errors));
                     }
                 }
-                else if (item is IIncrementalListResult listResult)
+                else if (item is IncrementalListResult listResult)
                 {
                     (entries ??= []).Add(
                         LegacyIncrementalEntry.ForItems(
@@ -865,7 +865,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
 
             case LegacyIncrementalEntryKind.Items:
                 writer.WritePropertyName(ResultFieldNames.Items);
-                WriteItems(writer, entry.Items, options);
+                entry.Items!.WriteDataTo(writer);
                 break;
         }
 
@@ -879,27 +879,6 @@ internal static class IncrementalRfc1ResultFormatAdapter
         }
 
         writer.WriteEndObject();
-    }
-
-    private static void WriteItems(
-        JsonWriter writer,
-        IReadOnlyList<object?>? items,
-        JsonSerializerOptions options)
-    {
-        if (items is null)
-        {
-            writer.WriteNullValue();
-            return;
-        }
-
-        writer.WriteStartArray();
-
-        for (var i = 0; i < items.Count; i++)
-        {
-            WriteValue(writer, items[i], options);
-        }
-
-        writer.WriteEndArray();
     }
 
     private static Path CombinePath(Path path, Path? subPath)
@@ -924,7 +903,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
         string? Label,
         OperationResultData? Data,
         ReadOnlyMemorySegment? RawData,
-        IReadOnlyList<object?>? Items,
+        OperationResultItemCollection? Items,
         IReadOnlyList<IError>? Errors)
     {
         public static LegacyIncrementalEntry ForData(
@@ -938,7 +917,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
         public static LegacyIncrementalEntry ForItems(
             Path path,
             string? label,
-            IReadOnlyList<object?>? items,
+            OperationResultItemCollection items,
             IReadOnlyList<IError>? errors)
             => new(LegacyIncrementalEntryKind.Items, path, label, null, null, items, errors);
     }

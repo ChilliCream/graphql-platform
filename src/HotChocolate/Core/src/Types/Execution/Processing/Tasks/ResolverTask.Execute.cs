@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Internal;
+using HotChocolate.Execution.Options;
 using HotChocolate.Types;
 using System.Runtime.InteropServices;
 
@@ -14,6 +15,11 @@ internal sealed partial class ResolverTask
             {
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
+
+                if (_stream is not null)
+                {
+                    await StartStreamAsync().ConfigureAwait(false);
+                }
 
                 switch (_taskBuffer.Count)
                 {
@@ -56,6 +62,11 @@ internal sealed partial class ResolverTask
         {
             try
             {
+                if (_stream is not null)
+                {
+                    await DiscardStreamAsync().ConfigureAwait(false);
+                }
+
                 if (_context.HasCleanupTasks)
                 {
                     await _context.ExecuteCleanupTasksAsync().ConfigureAwait(false);
@@ -184,80 +195,116 @@ internal sealed partial class ResolverTask
             return;
         }
 
-        // TODO: DEFER
-        // if (_selection.IsList && _selection.HasStreamDirective(_operationContext.IncludeFlags))
-        // {
-        //    var stream = postProcessor.ToStreamResultAsync(result, cancellationToken);
-        //    _context.Result = await CreateStreamResultAsync(stream).ConfigureAwait(false);
-        //    return;
-        // }
+        if (_selection.IsStreamable
+            && _operationContext.Operation.HasIncrementalParts
+            && StreamUsage.TryCreate(_selection, _context.Variables, out var streamUsage)
+            && postProcessor.ToStreamResultAsync(result, cancellationToken) is { } stream)
+        {
+            if (streamUsage.InitialCount < 0)
+            {
+                _context.ReportError(ErrorHelper.StreamInitialCountNegative(_context.Path));
+                _context.Result = null;
+                return;
+            }
+
+            _context.Result = await ReadInitialStreamItemsAsync(stream, streamUsage, cancellationToken)
+                .ConfigureAwait(false);
+            return;
+        }
 
         _context.Result = await postProcessor.ToCompletionResultAsync(result, cancellationToken).ConfigureAwait(false);
     }
 
-    // TODO : DEFER
-    /*
-    private async ValueTask<List<object?>> CreateStreamResultAsync(IAsyncEnumerable<object?> stream)
+    private async ValueTask<List<object?>> ReadInitialStreamItemsAsync(
+        IAsyncEnumerable<object?> stream,
+        StreamUsage streamUsage,
+        CancellationToken cancellationToken)
     {
-        var streamDirective = _selection.GetStreamDirective(_context.Variables)!;
-        var enumerator = stream.GetAsyncEnumerator(_context.RequestAborted);
-        var next = true;
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        IAsyncEnumerator<object?>? enumerator = null;
+        var isStreaming = false;
 
         try
         {
-            var list = new List<object?>();
-            var initialCount = streamDirective.InitialCount;
-            var count = 0;
+            enumerator = stream.GetAsyncEnumerator(cancellation.Token);
 
-            if (initialCount > 0)
+            var items = new List<object?>();
+            var hasMoreItems = true;
+
+            while (hasMoreItems && items.Count < streamUsage.InitialCount)
             {
-                while (next)
-                {
-                    count++;
-                    next = await enumerator.MoveNextAsync().ConfigureAwait(false);
-                    if (next)
-                    {
-                        list.Add(enumerator.Current);
-                    }
+                hasMoreItems = await enumerator.MoveNextAsync().ConfigureAwait(false);
 
-                    if (count >= initialCount)
-                    {
-                        break;
-                    }
+                if (hasMoreItems)
+                {
+                    items.Add(enumerator.Current);
                 }
             }
 
-            if (next)
+            if (hasMoreItems)
             {
-                // TODO : DEFER
-                // if the stream has more items than the initial requested items then we will
-                // defer the rest of the stream.
-                _operationContext.DeferredScheduler.Register(
-                    new DeferredStream(
-                        Selection,
-                        streamDirective.Label,
-                        _context.Path,
-                        _context.Parent<object>(),
-                        count - 1,
-                        enumerator,
-                        _context.ScopedContextData),
-                    _context.ParentResult);
+                var options = _operationContext.Schema.Services.GetRequiredService<RequestExecutorOptions>();
+
+                _stream = new StreamTask(
+                    _operationContext.RootContext,
+                    _selection,
+                    _context.Parent<object?>(),
+                    _context.ScopedContextData,
+                    DeferUsage,
+                    _context.Path,
+                    streamUsage.Label,
+                    items.Count,
+                    options.MaxStreamBatchSize,
+                    enumerator,
+                    cancellation);
+                isStreaming = true;
+                _stream.StartProducer();
             }
 
-            return list;
+            return items;
         }
         finally
         {
-            if (!next)
+            if (!isStreaming)
             {
-                // if there is no deferred work we will just dispose the enumerator.
-                // in the case we have deferred work, the deferred stream handler is
-                // responsible for disposing.
-                await enumerator.DisposeAsync().ConfigureAwait(false);
+                try
+                {
+                    if (enumerator is not null)
+                    {
+                        await enumerator.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    cancellation.Dispose();
+                }
             }
         }
     }
-    */
+
+    private async ValueTask StartStreamAsync()
+    {
+        var stream = _stream!;
+
+        // the stream only starts if the initial items made it into the result.
+        if (_completionStatus is ExecutionTaskStatus.Completed && !_context.ResultValue.IsNullOrInvalidated)
+        {
+            _stream = null;
+            stream.Announce(BranchId, _context.ResultValue);
+            _operationContext.RegisterRequestCleanup(stream.DisposeAsync);
+            _taskBuffer.Add(stream);
+            return;
+        }
+
+        await DiscardStreamAsync().ConfigureAwait(false);
+    }
+
+    private async ValueTask DiscardStreamAsync()
+    {
+        var stream = _stream!;
+        _stream = null;
+        await stream.DisposeAsync().ConfigureAwait(false);
+    }
 
     /// <summary>
     /// <para>

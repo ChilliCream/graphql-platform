@@ -4,6 +4,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -87,6 +88,11 @@ public sealed class Selection : ISelection, IFeatureProvider
         if (field.Type.IsListType())
         {
             _flags |= Flags.List;
+
+            if (IsStreamableField(field))
+            {
+                _flags |= Flags.Stream;
+            }
         }
 
         if (field.IsExecutionGroupRoot)
@@ -188,6 +194,11 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// Gets a value indicating whether this selection returns a list type.
     /// </summary>
     public bool IsList => (_flags & Flags.List) == Flags.List;
+
+    /// <summary>
+    /// Gets a value indicating whether this selection returns a list that honors the <c>@stream</c> directive.
+    /// </summary>
+    internal bool IsStreamable => (_flags & Flags.Stream) == Flags.Stream;
 
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
@@ -1133,6 +1144,9 @@ nextItem:
 
         return SelectionExecutionStrategy.Default;
     }
+
+    private static bool IsStreamableField(ObjectField field)
+        => (field.Flags & (CoreFieldFlags.ConnectionEdgesField | CoreFieldFlags.ConnectionNodesField)) == 0;
 
     [Flags]
     private enum Flags

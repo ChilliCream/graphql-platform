@@ -141,6 +141,9 @@
   <data name="ErrorHelper_ListValueIsNotSupported_Message" xml:space="preserve">
     <value>The type `{0}` is not supported as list value.</value>
   </data>
+  <data name="ErrorHelper_StreamInitialCountNegative_Message" xml:space="preserve">
+    <value>The `initialCount` argument of the `@stream` directive must not be negative.</value>
+  </data>
   <data name="ErrorHelper_UnexpectedValueCompletionError_Message" xml:space="preserve">
     <value>Unexpected error during value completion.</value>
   </data>

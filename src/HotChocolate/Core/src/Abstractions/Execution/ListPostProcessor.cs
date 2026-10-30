@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution;
@@ -61,11 +60,16 @@ public sealed class ListPostProcessor<T> : IResolverResultPostProcessor
         }
     }
 
-    public IAsyncEnumerable<object?> ToStreamResultAsync(object result, CancellationToken cancellationToken)
+    public IAsyncEnumerable<object?>? ToStreamResultAsync(object result, CancellationToken cancellationToken)
     {
-        if (result is IAsyncEnumerable<object?> asyncEnumerable)
+        if (result is not IAsyncEnumerable<T> asyncEnumerable)
         {
-            return asyncEnumerable;
+            return null;
+        }
+
+        if (result is IAsyncEnumerable<object?> objectEnumerable)
+        {
+            return objectEnumerable;
         }
 
         if (result is IExecutable executable and (IDisposable or IAsyncDisposable))
@@ -73,29 +77,8 @@ public sealed class ListPostProcessor<T> : IResolverResultPostProcessor
             return DisposableStream(executable, result, cancellationToken);
         }
 
-        return ToExecutable(result).ToAsyncEnumerable(cancellationToken);
-    }
-
-    private static IExecutable ToExecutable(object result)
-    {
-        switch (result)
-        {
-            case IAsyncEnumerable<T> asyncEnumerable:
-                return Executable.From(asyncEnumerable);
-
-            case IQueryable<T> queryable:
-                return Executable.From(queryable);
-
-            case IExecutable executable:
-                return executable;
-
-            case IEnumerable enumerable:
-                return Executable.From(enumerable);
-
-            default:
-                throw new NotSupportedException(
-                    "The result type is not supported by the list post processor.");
-        }
+        IExecutable stream = Executable.From(asyncEnumerable);
+        return stream.ToAsyncEnumerable(cancellationToken);
     }
 
     private static async IAsyncEnumerable<object?> DisposableStream(

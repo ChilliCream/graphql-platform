@@ -93,6 +93,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_StreamInitialCountNegative_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_StreamInitialCountNegative_Message", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_UnexpectedValueCompletionError_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_UnexpectedValueCompletionError_Message", resourceCulture);

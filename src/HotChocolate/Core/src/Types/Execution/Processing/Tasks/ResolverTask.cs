@@ -17,6 +17,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     private ExecutionGroupScope? _groupScope;
     private int _groupSlot = -1;
     private bool _childTasksRegistered;
+    private StreamTask? _stream;
 
     /// <summary>
     /// Gets or sets the internal execution id.
