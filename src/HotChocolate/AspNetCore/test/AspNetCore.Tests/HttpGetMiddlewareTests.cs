@@ -313,11 +313,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
     {
         // arrange
+#pragma warning disable CS0618 // Mutations over GET are under test.
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL()
                 .ModifyServerOptions(o =>
                     o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
+#pragma warning restore CS0618
 
         // act
         var result =
@@ -355,11 +357,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
     {
         // arrange
+#pragma warning disable CS0618 // Mutations over GET are under test.
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL()
                 .ModifyServerOptions(o =>
                     o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
+#pragma warning restore CS0618
 
         // act
         var result =
@@ -396,11 +400,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
     {
         // arrange
+#pragma warning disable CS0618 // Mutations over GET are under test.
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL()
                 .ModifyServerOptions(o =>
                     o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
+#pragma warning restore CS0618
 
         // act
         var result =
@@ -590,11 +596,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Mutation_Set_To_Be_Allowed_on_Get()
     {
         // arrange
+#pragma warning disable CS0618 // Mutations over GET are under test.
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL()
                 .ModifyServerOptions(o =>
                     o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
+#pragma warning restore CS0618
 
         // act
         var result =

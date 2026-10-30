@@ -638,7 +638,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                     o =>
                     {
                         o.EnableQueriesOverPost = false;
-                        o.AllowedGetOperations = AllowedGetOperations.Mutation;
+                        o.AllowedGetOperations = AllowedGetOperations.Subscription;
                         o.EnableQueryRequests = true;
                     }));
         var client = server.CreateClient();
