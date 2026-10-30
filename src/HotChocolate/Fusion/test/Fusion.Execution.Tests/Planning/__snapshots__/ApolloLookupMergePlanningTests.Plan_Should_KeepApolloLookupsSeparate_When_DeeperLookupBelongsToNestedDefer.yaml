@@ -79,20 +79,11 @@ incrementalPlans:
               id
         dependencies:
           - parentNodeId: 1
-      - id: 3
-        type: Operation
-        schema: a
-        operation: |
-          query Op_defer_3 {
-            products {
-              id
-            }
-          }
   - deliveryGroupIds:
       - 1
     parentNodeId: 1
     requirements:
-      - name: __fusion_2_id
+      - name: __fusion_1_id
         selectionMap: >-
           id
     nodes:
@@ -114,25 +105,4 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - id: 2
-      - id: 2
-        type: ApolloOperation
-        schema: b
-        operation: |
-          query($representations: [_Any!]!) {
-            _entities(representations: $representations) {
-              ... on Product {
-                related {
-                  id
-                }
-              }
-            }
-          }
-        source: $._entities
-        target: $.products
-        requirements:
-          - name: __fusion_2_id
-            selectionMap: >-
-              id
-        dependencies:
-          - parentNodeId: 3
+          - parentNodeId: 1

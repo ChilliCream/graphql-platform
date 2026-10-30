@@ -3789,46 +3789,61 @@ AddErrors_Next:
             // Track list containers that need imported elements.
             Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers = null;
 
-            foreach (var entry in importedValues)
+            // Each pass creates the outermost lists that are still missing. A path that continues
+            // below a created list is walked again by the next pass once the list items exist.
+            while (true)
             {
-                TrackListContainerUnsafe(entry.Path, ref containers);
-                foreach (var additional in entry.AdditionalPaths.AsSpan())
-                {
-                    TrackListContainerUnsafe(additional, ref containers);
-                }
-            }
+                var hasPathBelowMissingList = false;
 
-            if (containers is null)
-            {
-                return;
-            }
-
-            foreach (var (_, (container, maxIndex)) in containers)
-            {
-                if (container.ValueKind is JsonValueKind.Undefined)
+                foreach (var entry in importedValues)
                 {
-                    container.SetArrayValue(maxIndex + 1);
-                }
-                else if (container.ValueKind is JsonValueKind.Array)
-                {
-                    if (container.GetArrayLength() <= maxIndex)
+                    TrackListContainerUnsafe(entry.Path, ref containers, ref hasPathBelowMissingList);
+                    foreach (var additional in entry.AdditionalPaths.AsSpan())
                     {
-                        throw new InvalidOperationException(
-                            $"The target path list container is shorter than required for index {maxIndex}.");
+                        TrackListContainerUnsafe(additional, ref containers, ref hasPathBelowMissingList);
                     }
                 }
-                else if (container.ValueKind is not JsonValueKind.Null)
+
+                if (containers is null)
                 {
-                    throw new InvalidOperationException(
-                        "The target path list container does not exist in the data.");
+                    return;
                 }
+
+                foreach (var (_, (container, maxIndex)) in containers)
+                {
+                    if (container.ValueKind is JsonValueKind.Undefined)
+                    {
+                        container.SetArrayValue(maxIndex + 1);
+                    }
+                    else if (container.ValueKind is JsonValueKind.Array)
+                    {
+                        if (container.GetArrayLength() <= maxIndex)
+                        {
+                            throw new InvalidOperationException(
+                                $"The target path list container is shorter than required for index {maxIndex}.");
+                        }
+                    }
+                    else if (container.ValueKind is not JsonValueKind.Null)
+                    {
+                        throw new InvalidOperationException(
+                            "The target path list container does not exist in the data.");
+                    }
+                }
+
+                if (!hasPathBelowMissingList)
+                {
+                    return;
+                }
+
+                containers.Clear();
             }
         }
     }
 
     private void TrackListContainerUnsafe(
         CompactPath path,
-        ref Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers)
+        ref Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers,
+        ref bool hasPathBelowMissingList)
     {
         if (path.IsRoot)
         {
@@ -3849,21 +3864,15 @@ AddErrors_Next:
 
             if (seg >= 0)
             {
-                var hasListAnchor = HasListAnchor(segments, i + 1);
-
+                // The path descends into this object, so it is initialized when it does not exist yet.
                 if (element.ValueKind is JsonValueKind.Undefined)
                 {
-                    if (!hasListAnchor)
-                    {
-                        return;
-                    }
-
-                    InitializeIntermediateObjectUnsafe(element);
+                    InitializeIntermediateObjectUnsafe(element, element.Selection);
                 }
 
                 if (element.ValueKind is not JsonValueKind.Object)
                 {
-                    if (!hasListAnchor)
+                    if (!HasListAnchor(segments, i + 1))
                     {
                         return;
                     }
@@ -3894,8 +3903,31 @@ AddErrors_Next:
                     containers[cursorKey] = (element, index);
                 }
 
-                // Only process the outermost list anchor; stop here.
-                return;
+                // Descend into an existing list item when the path continues below it; otherwise
+                // stop here.
+                if (i == segments.Length - 1)
+                {
+                    return;
+                }
+
+                if (element.ValueKind is not JsonValueKind.Array)
+                {
+                    hasPathBelowMissingList |= element.ValueKind is JsonValueKind.Undefined;
+                    return;
+                }
+
+                if (element.GetArrayLength() <= index)
+                {
+                    return;
+                }
+
+                var listSelection = element.Selection;
+                element = element[index];
+
+                if (element.ValueKind is JsonValueKind.Undefined)
+                {
+                    InitializeIntermediateObjectUnsafe(element, listSelection);
+                }
             }
         }
     }
@@ -3913,9 +3945,9 @@ AddErrors_Next:
         return false;
     }
 
-    private void InitializeIntermediateObjectUnsafe(CompositeResultElement element)
+    private void InitializeIntermediateObjectUnsafe(CompositeResultElement element, Selection? selection)
     {
-        var selection = element.Selection
+        selection = selection
             ?? throw new InvalidOperationException(
                 "Cannot initialize an intermediate target object without selection metadata.");
 

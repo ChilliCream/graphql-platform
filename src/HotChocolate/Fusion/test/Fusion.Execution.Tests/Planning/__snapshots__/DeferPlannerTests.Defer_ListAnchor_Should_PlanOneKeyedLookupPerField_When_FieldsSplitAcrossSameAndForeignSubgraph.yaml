@@ -37,11 +37,11 @@ incrementalPlans:
     nodes:
       - id: 1
         type: Operation
-        schema: reviews
+        schema: accounts
         operation: |
           query Op_defer_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
-              reviewCount
+              birthdate
             }
           }
         source: $.userById
@@ -54,11 +54,11 @@ incrementalPlans:
           - parentNodeId: 1
       - id: 2
         type: Operation
-        schema: accounts
+        schema: reviews
         operation: |
           query Op_defer_2($__fusion_2_id: ID!) {
             userById(id: $__fusion_2_id) {
-              birthdate
+              reviewCount
             }
           }
         source: $.userById

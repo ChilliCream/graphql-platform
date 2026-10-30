@@ -56,7 +56,7 @@ public sealed partial class OperationPlanner
         _options = options;
     }
 
-    public static Version Version { get; } = new(2, 9, 0);
+    public static Version Version { get; } = new(2, 10, 0);
 
     internal OperationPlannerOptions Options => _options;
 
@@ -1454,6 +1454,7 @@ public sealed partial class OperationPlanner
                 ImmutableHashSet<int>.Empty.Add(lookupStepId),
                 lookupStepDepth,
                 conditions ?? [],
+                allowSourceSchemaReentry,
                 sourceSchemaNodePolicy);
         }
 
@@ -1882,6 +1883,7 @@ public sealed partial class OperationPlanner
                 ImmutableHashSet<int>.Empty.Add(stepId),
                 stepDepth,
                 workItem.Conditions,
+                allowSourceSchemaReentry: false,
                 workItem.SourceSchemaNodePolicy);
         }
 
@@ -2706,6 +2708,7 @@ public sealed partial class OperationPlanner
         ImmutableHashSet<int> dependents,
         int parentDepth,
         ExecutionNodeCondition[] conditions,
+        bool allowSourceSchemaReentry,
         SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy)
     {
         var complexType = entityType as FusionComplexTypeDefinition;
@@ -2751,6 +2754,7 @@ public sealed partial class OperationPlanner
                         Dependents = dependents,
                         ParentDepth = parentDepth,
                         Conditions = conditions,
+                        AllowSourceSchemaReentry = allowSourceSchemaReentry,
                         SourceSchemaNodePolicy = descendantPolicy
                     });
                 continue;
@@ -2776,6 +2780,7 @@ public sealed partial class OperationPlanner
                     Dependents = dependents,
                     ParentDepth = parentDepth,
                     Conditions = conditions,
+                    AllowSourceSchemaReentry = allowSourceSchemaReentry,
                     SourceSchemaNodePolicy = descendantPolicy
                 });
         }

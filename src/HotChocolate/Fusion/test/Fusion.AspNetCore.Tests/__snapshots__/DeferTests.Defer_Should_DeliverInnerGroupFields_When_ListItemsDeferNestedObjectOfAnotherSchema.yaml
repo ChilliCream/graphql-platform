@@ -388,32 +388,6 @@ sourceSchemas:
                   ]
                 }
               }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query Op_defer_4 {
-              products {
-                id
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "products": [
-                    {
-                      "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
-                    },
-                    {
-                      "id": "UHJvZHVjdDozOTM1NzEyMDU5"
-                    },
-                    {
-                      "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
-                    }
-                  ]
-                }
-              }
   - name: B
     schema: |
       schema {
@@ -453,85 +427,6 @@ sourceSchemas:
               },
               {
                 "__fusion_1_id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "reviews": [
-                      {
-                        "id": "UmV2aWV3OjMwMDAwNTM1MTA="
-                      },
-                      {
-                        "id": "UmV2aWV3OjIzNjI5NTY5NjQ="
-                      },
-                      {
-                        "id": "UmV2aWV3OjM5MzkxOTk2NzQ="
-                      }
-                    ]
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "reviews": [
-                      {
-                        "id": "UmV2aWV3OjEzMzg2NjMwNDA="
-                      },
-                      {
-                        "id": "UmV2aWV3OjMzODU5NDM3MzA="
-                      },
-                      {
-                        "id": "UmV2aWV3OjMyNzg4MDUxMDk="
-                      }
-                    ]
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "reviews": [
-                      {
-                        "id": "UmV2aWV3OjEzOTQwMTI3MjY="
-                      },
-                      {
-                        "id": "UmV2aWV3OjM3NDIyOTczMjQ="
-                      },
-                      {
-                        "id": "UmV2aWV3OjE4MTc3OTE5ODE="
-                      }
-                    ]
-                  }
-                }
-              }
-      - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          document: |
-            query Op_defer_3($__fusion_3_id: ID!) {
-              productById(id: $__fusion_3_id) {
-                reviews {
-                  id
-                }
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_3_id": "UHJvZHVjdDoxOTc0MTQ1MDk="
-              },
-              {
-                "__fusion_3_id": "UHJvZHVjdDozOTM1NzEyMDU5"
-              },
-              {
-                "__fusion_3_id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
               }
             ]
         response:
@@ -931,20 +826,11 @@ operationPlan:
                 id
           dependencies:
             - parentNodeId: 1
-        - id: 2
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_4 {
-              products {
-                id
-              }
-            }
     - deliveryGroupIds:
         - 1
       parentNodeId: 1
       requirements:
-        - name: __fusion_3_id
+        - name: __fusion_1_id
           selectionMap: >-
             id
       nodes:
@@ -966,7 +852,7 @@ operationPlan:
               selectionMap: >-
                 id
           dependencies:
-            - id: 3
+            - parentNodeId: 1
         - id: 2
           type: Operation
           schema: D
@@ -984,22 +870,3 @@ operationPlan:
                 id
           dependencies:
             - id: 1
-        - id: 3
-          type: Operation
-          schema: B
-          operation: |
-            query Op_defer_3($__fusion_3_id: ID!) {
-              productById(id: $__fusion_3_id) {
-                reviews {
-                  id
-                }
-              }
-            }
-          source: $.productById
-          target: $.products
-          requirements:
-            - name: __fusion_3_id
-              selectionMap: >-
-                id
-          dependencies:
-            - parentNodeId: 2

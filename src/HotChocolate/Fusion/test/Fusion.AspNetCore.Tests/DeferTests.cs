@@ -10,6 +10,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Builder;
@@ -3897,6 +3898,197 @@ public class DeferTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Defer_Should_DeliverInnerGroupFields_When_ReviewLookupExistsAndAuthorIsDeferred()
+    {
+        // arrange
+        using var gateway = await CreateReviewLookupGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query =
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                            ... @defer(label: "inner") {
+                                author {
+                                    rating
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+        var request = new OperationRequest(query);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var gatewayData = MergeIncrementalPayloads(await ReadPayloadsAsync(result));
+        var coreData = MergeIncrementalPayloads(await ExecuteWithCoreExecutorAsync(query));
+        Assert.True(JsonNode.DeepEquals(coreData, gatewayData));
+        gatewayData.ToJsonString(new JsonSerializerOptions { WriteIndented = true }).MatchInlineSnapshot(
+            """
+            {
+              "products": [
+                {
+                  "id": "1",
+                  "reviews": [
+                    {
+                      "id": "1",
+                      "author": {
+                        "rating": 100
+                      }
+                    },
+                    {
+                      "id": "2",
+                      "author": {
+                        "rating": 200
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "2",
+                  "reviews": [
+                    {
+                      "id": "3",
+                      "author": {
+                        "rating": 300
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "author": {
+                        "rating": 400
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "3",
+                  "reviews": [
+                    {
+                      "id": "5",
+                      "author": {
+                        "rating": 500
+                      }
+                    },
+                    {
+                      "id": "6",
+                      "author": {
+                        "rating": 600
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverInnerGroupFields_When_ReviewLookupExistsAndTwoSchemasAreDeferred()
+    {
+        // arrange
+        using var gateway = await CreateReviewLookupGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query =
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                            ... @defer(label: "inner") {
+                                text
+                                rating
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+        var request = new OperationRequest(query);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var gatewayData = MergeIncrementalPayloads(await ReadPayloadsAsync(result));
+        var coreData = MergeIncrementalPayloads(await ExecuteWithCoreExecutorAsync(query));
+        Assert.True(JsonNode.DeepEquals(coreData, gatewayData));
+        gatewayData.ToJsonString(new JsonSerializerOptions { WriteIndented = true }).MatchInlineSnapshot(
+            """
+            {
+              "products": [
+                {
+                  "id": "1",
+                  "reviews": [
+                    {
+                      "id": "1",
+                      "text": "Review 1",
+                      "rating": 10
+                    },
+                    {
+                      "id": "2",
+                      "text": "Review 2",
+                      "rating": 20
+                    }
+                  ]
+                },
+                {
+                  "id": "2",
+                  "reviews": [
+                    {
+                      "id": "3",
+                      "text": "Review 3",
+                      "rating": 30
+                    },
+                    {
+                      "id": "4",
+                      "text": "Review 4",
+                      "rating": 40
+                    }
+                  ]
+                },
+                {
+                  "id": "3",
+                  "reviews": [
+                    {
+                      "id": "5",
+                      "text": "Review 5",
+                      "rating": 50
+                    },
+                    {
+                      "id": "6",
+                      "text": "Review 6",
+                      "rating": 60
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
     private static OperationRequest CreateNestedMessageDeferRequest(bool outerEnabled, bool innerEnabled)
         => new(
             query: """
@@ -4091,6 +4283,140 @@ public class DeferTests : FusionTestBase
             ("C", server3),
             ("D", server4)
         ]);
+    }
+
+    private async Task<Gateway> CreateReviewLookupGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<ReviewLookupSourceA.Query>());
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<ReviewLookupSourceB.Query>());
+
+        var server3 = CreateSourceSchema(
+            "C",
+            b => b.AddQueryType<ReviewLookupSourceC.Query>());
+
+        var server4 = CreateSourceSchema(
+            "D",
+            b => b.AddQueryType<ReviewLookupSourceD.Query>());
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3),
+            ("D", server4)
+        ]);
+    }
+
+    private static async Task<List<string>> ExecuteWithCoreExecutorAsync(string query)
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<ReviewLookupCore.Query>()
+            .ModifyOptions(o => o.EnableDefer = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+        var stream = Assert.IsType<ResponseStream>(result);
+        var payloads = new List<string>();
+
+        await using (stream)
+        {
+            await foreach (var response in stream.ReadResultsAsync())
+            {
+                payloads.Add(response.ToJson());
+            }
+        }
+
+        return payloads;
+    }
+
+    private static JsonNode MergeIncrementalPayloads(List<string> payloads)
+    {
+        JsonNode? data = null;
+        var pendingPaths = new Dictionary<string, JsonArray>(StringComparer.Ordinal);
+
+        foreach (var payload in payloads)
+        {
+            var response = JsonNode.Parse(payload)!.AsObject();
+
+            if (response["data"] is { } initial)
+            {
+                data = initial.DeepClone();
+            }
+
+            foreach (var completed in response["completed"]?.AsArray() ?? [])
+            {
+                if (completed!["errors"] is JsonArray errors)
+                {
+                    Assert.Fail(
+                        $"The delivery group '{completed["id"]}' completed with errors: {errors.ToJsonString()}");
+                }
+            }
+
+            foreach (var pending in response["pending"]?.AsArray() ?? [])
+            {
+                pendingPaths[pending!["id"]!.GetValue<string>()] = pending["path"]!.AsArray();
+            }
+
+            var entries = (response["incremental"]?.AsArray() ?? [])
+                .Select(incremental => (
+                    Incremental: incremental!,
+                    Segments: pendingPaths[incremental!["id"]!.GetValue<string>()]
+                        .Concat(incremental["subPath"]?.AsArray() ?? [])
+                        .ToList()))
+                .OrderBy(entry => entry.Segments.Count);
+
+            foreach (var (incremental, segments) in entries)
+            {
+                var target = data!;
+
+                foreach (var segment in segments)
+                {
+                    var value = segment!.GetValue<JsonElement>();
+                    target = value.ValueKind == JsonValueKind.Number
+                        ? target[value.GetInt32()]!
+                        : target[value.GetString()!]!;
+                }
+
+                MergeInto(target.AsObject(), incremental["data"]!.AsObject());
+            }
+        }
+
+        return data!;
+    }
+
+    private static void MergeInto(JsonObject target, JsonObject source)
+    {
+        foreach (var (name, value) in source.ToArray())
+        {
+            if (value is JsonObject sourceObject && target[name] is JsonObject targetObject)
+            {
+                MergeInto(targetObject, sourceObject);
+            }
+            else if (value is JsonArray sourceArray && target[name] is JsonArray targetArray)
+            {
+                for (var i = 0; i < sourceArray.Count; i++)
+                {
+                    if (sourceArray[i] is JsonObject sourceItem && targetArray[i] is JsonObject targetItem)
+                    {
+                        MergeInto(targetItem, sourceItem);
+                    }
+                    else
+                    {
+                        targetArray[i] = sourceArray[i]?.DeepClone();
+                    }
+                }
+            }
+            else
+            {
+                target[name] = value?.DeepClone();
+            }
+        }
     }
 
     private async Task<Gateway> CreateUserGatewayAsync()
@@ -4611,6 +4937,99 @@ public class DeferTests : FusionTestBase
             await sequence.WaitForTurnAsync(sequence.IndexOf(body), cancellationToken);
 
             return await _invoker!.SendAsync(request, cancellationToken);
+        }
+    }
+
+    private static class ReviewLookupSourceA
+    {
+        public class Query
+        {
+            public IEnumerable<Product> GetProducts() => [new("1"), new("2"), new("3")];
+        }
+
+        public record Product([property: GraphQLType<NonNullType<IdType>>, Shareable] string Id);
+    }
+
+    private static class ReviewLookupSourceB
+    {
+        public class Query
+        {
+            [Lookup, Internal]
+            public Product? GetProductById([GraphQLType<NonNullType<IdType>>] string id) => new(id);
+
+            [Lookup, Internal]
+            public Review? GetReviewDetailsById([GraphQLType<NonNullType<IdType>>] string id) => new(id);
+        }
+
+        public record Product([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public IEnumerable<Review> GetReviews()
+                => [new((int.Parse(Id) * 2 - 1).ToString()), new((int.Parse(Id) * 2).ToString())];
+        }
+
+        public record Review([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public string GetText() => "Review " + Id;
+
+            public Author GetAuthor() => new(Id);
+        }
+
+        public record Author([property: GraphQLType<NonNullType<IdType>>, Shareable] string Id);
+    }
+
+    private static class ReviewLookupSourceC
+    {
+        public class Query
+        {
+            [Lookup, Internal]
+            public Review? GetReviewById([GraphQLType<NonNullType<IdType>>] string id) => new(id);
+        }
+
+        public record Review([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public int GetRating() => int.Parse(Id) * 10;
+        }
+    }
+
+    private static class ReviewLookupSourceD
+    {
+        public class Query
+        {
+            [Lookup, Internal]
+            public Author? GetAuthorById([GraphQLType<NonNullType<IdType>>] string id) => new(id);
+        }
+
+        public record Author([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public int GetRating() => int.Parse(Id) * 100;
+        }
+    }
+
+    private static class ReviewLookupCore
+    {
+        public class Query
+        {
+            public IEnumerable<Product> GetProducts() => [new("1"), new("2"), new("3")];
+        }
+
+        public record Product([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public IEnumerable<Review> GetReviews()
+                => [new((int.Parse(Id) * 2 - 1).ToString()), new((int.Parse(Id) * 2).ToString())];
+        }
+
+        public record Review([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public string GetText() => "Review " + Id;
+
+            public int GetRating() => int.Parse(Id) * 10;
+
+            public Author GetAuthor() => new(Id);
+        }
+
+        public record Author([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public int GetRating() => int.Parse(Id) * 100;
         }
     }
 

@@ -55,20 +55,11 @@ incrementalPlans:
               id
         dependencies:
           - parentNodeId: 1
-      - id: 2
-        type: Operation
-        schema: a
-        operation: |
-          query Op_defer_3 {
-            products {
-              id
-            }
-          }
   - deliveryGroupIds:
       - 1
     parentNodeId: 1
     requirements:
-      - name: __fusion_2_id
+      - name: __fusion_1_id
         selectionMap: >-
           id
     nodes:
@@ -89,23 +80,4 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - id: 2
-      - id: 2
-        type: Operation
-        schema: b
-        operation: |
-          query Op_defer_2($__fusion_2_id: ID!) {
-            productById(id: $__fusion_2_id) {
-              reviews {
-                id
-              }
-            }
-          }
-        source: $.productById
-        target: $.products
-        requirements:
-          - name: __fusion_2_id
-            selectionMap: >-
-              id
-        dependencies:
-          - parentNodeId: 2
+          - parentNodeId: 1

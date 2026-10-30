@@ -1262,6 +1262,132 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void ImportVariableValues_Should_InitializeIntermediateObjects_When_ImportedPathEndsBelowListItem()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              items: [Item!]!
+            }
+
+            type Item {
+              id: ID!
+              related: Related!
+            }
+
+            type Related {
+              id: ID!
+              name: String
+            }
+            """);
+        var sourcePlan = PlanOperation(schema, "{ items { related { id } } }");
+        var targetPlan = PlanOperation(schema, "{ items { related { id name } } }");
+        var sourceItems = sourcePlan.Operation.RootSelectionSet.Selections[0];
+        var sourceRelated = sourceItems.GetSelectionSet()!.Selections[0];
+
+        using var resultArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        source.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            sourcePlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        using var target = new FetchResultStore();
+        target.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            targetPlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var values = CreateVariableValues(
+            source,
+            Path(sourceItems.Id, ~1, sourceRelated.Id),
+            Field("__fusion_1_id", new StringValueNode("2")));
+
+        // act
+        target.ImportVariableValues([values], sourcePlan.Operation);
+
+        // assert
+        var items = target.Result.Data.GetProperty("items");
+        Assert.Equal(2, items.GetArrayLength());
+        Assert.Equal(JsonValueKind.Undefined, items[0].ValueKind);
+        Assert.Equal(JsonValueKind.Object, items[1].ValueKind);
+        Assert.Equal(JsonValueKind.Undefined, items[1].GetProperty("related").ValueKind);
+    }
+
+    [Fact]
+    public void ImportVariableValues_Should_InitializeIntermediateObjects_When_ImportedPathEndsBelowRootObject()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              item: Item!
+            }
+
+            type Item {
+              id: ID!
+              related: Related!
+            }
+
+            type Related {
+              id: ID!
+              name: String
+            }
+            """);
+        var sourcePlan = PlanOperation(schema, "{ item { related { id } } }");
+        var targetPlan = PlanOperation(schema, "{ item { related { id name } } }");
+        var sourceItem = sourcePlan.Operation.RootSelectionSet.Selections[0];
+        var sourceRelated = sourceItem.GetSelectionSet()!.Selections[0];
+
+        using var resultArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        source.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            sourcePlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        using var target = new FetchResultStore();
+        target.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            targetPlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var values = CreateVariableValues(
+            source,
+            Path(sourceItem.Id, sourceRelated.Id),
+            Field("__fusion_1_id", new StringValueNode("1")));
+
+        // act
+        target.ImportVariableValues([values], sourcePlan.Operation);
+
+        // assert
+        var item = target.Result.Data.GetProperty("item");
+        Assert.Equal(JsonValueKind.Object, item.ValueKind);
+        Assert.Equal(JsonValueKind.Undefined, item.GetProperty("related").ValueKind);
+    }
+
+    [Fact]
     public void CreateVariableValueSetsFromSnapshot_Should_MergeForwardedVariables_When_RequirementsAreImported()
     {
         // arrange

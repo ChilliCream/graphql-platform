@@ -3216,6 +3216,103 @@ public class DeferPlannerTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void Defer_NestedDefer_Should_PlanAuthorFetch_When_OuterListSchemaHasReviewLookup()
+    {
+        // arrange
+        var schema = ComposeReviewLookupSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                            ... @defer(label: "inner") {
+                                author {
+                                    rating
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_Should_PlanSingleAnchor_When_OuterListSchemaHasReviewLookup()
+    {
+        // arrange
+        var schema = ComposeReviewLookupSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                            ... @defer(label: "inner") {
+                                text
+                                rating
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void EnsureSelectedFieldsHaveNodes_Should_Throw_When_GroupSelectsFieldsAndPlansToNoNodes()
+    {
+        // arrange
+        var schema = ComposeProductReviewSchema();
+        var planner = CreatePlanner(schema);
+        var descriptor = CreateDescriptor("query { products { reviews { id } } }", "$.products.reviews");
+
+        // act
+        var error = Assert.Throws<InvalidOperationException>(
+            () => planner.EnsureSelectedFieldsHaveNodes(descriptor, []));
+
+        // assert
+        error.Message.MatchInlineSnapshot(
+            """
+            The deferred group at path '$.products.reviews' selects fields but its incremental plan has no execution nodes.
+            """);
+    }
+
+    [Fact]
+    public void EnsureSelectedFieldsHaveNodes_Should_NotThrow_When_GroupOnlySelectsRequirementFields()
+    {
+        // arrange
+        var schema = ComposeProductReviewSchema();
+        var planner = CreatePlanner(schema);
+        var descriptor = CreateDescriptor(
+            "query { products { reviews { id @fusion__requirement } } }",
+            "$.products.reviews");
+
+        // act
+        var error = Record.Exception(() => planner.EnsureSelectedFieldsHaveNodes(descriptor, []));
+
+        // assert
+        Assert.Null(error);
+    }
+
     private static FusionSchemaDefinition ComposeProductReviewSchema()
         => ComposeSchema(
             """
@@ -3264,6 +3361,78 @@ public class DeferPlannerTests : FusionTestBase
 
             type Author @key(fields: "id") {
                 id: ID!
+            }
+            """,
+            """
+            # name: d
+            type Query {
+                authorById(id: ID!): Author @lookup @internal
+            }
+
+            type Author @key(fields: "id") {
+                id: ID!
+                rating: Int!
+            }
+            """);
+
+    private static OperationPlanner CreatePlanner(FusionSchemaDefinition schema)
+    {
+        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+
+        return new OperationPlanner(schema, new OperationCompiler(schema, pool));
+    }
+
+    private static IncrementalPlanDescriptor CreateDescriptor(string operation, string path)
+    {
+        var definition = (OperationDefinitionNode)Utf8GraphQLParser.Parse(operation).Definitions[0];
+
+        return new IncrementalPlanDescriptor([], definition, SelectionPath.Parse(path), null);
+    }
+
+    private static FusionSchemaDefinition ComposeReviewLookupSchema()
+        => ComposeSchema(
+            """
+            # name: a
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+                reviewDetailsById(id: ID!): Review @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review @key(fields: "id") {
+                id: ID!
+                text: String!
+                author: Author!
+            }
+
+            type Author @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+                reviewById(id: ID!): Review @lookup @internal
+            }
+
+            type Review @key(fields: "id") {
+                id: ID!
+                rating: Int!
             }
             """,
             """

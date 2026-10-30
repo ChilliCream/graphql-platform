@@ -232,24 +232,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query GetUserPostsAndComments_defer_3 {
-              user(id: "1") {
-                id
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "user": {
-                    "id": "VXNlcjoyMDkyMTcyNjc2"
-                  }
-                }
-              }
   - name: B
     schema: |
       schema {
@@ -283,41 +265,6 @@ sourceSchemas:
             {
               "postLimit": 3,
               "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "userById": {
-                    "posts": [
-                      {
-                        "id": "UG9zdDozNDYyMzU2NDc3"
-                      },
-                      {
-                        "id": "UG9zdDoxMjMwNzcyMjc4"
-                      },
-                      {
-                        "id": "UG9zdDoxMTAxNjExODcw"
-                      }
-                    ]
-                  }
-                }
-              }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_2_id: ID!) {
-              userById(id: $__fusion_2_id) {
-                posts(first: $postLimit) {
-                  id
-                }
-              }
-            }
-          variables: |
-            {
-              "postLimit": 3,
-              "__fusion_2_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -501,20 +448,11 @@ operationPlan:
             - postLimit
           dependencies:
             - parentNodeId: 1
-        - id: 2
-          type: Operation
-          schema: A
-          operation: |
-            query GetUserPostsAndComments_defer_3 {
-              user(id: "1") {
-                id
-              }
-            }
     - deliveryGroupIds:
         - 1
       parentNodeId: 1
       requirements:
-        - name: __fusion_2_id
+        - name: __fusion_1_id
           selectionMap: >-
             id
       nodes:
@@ -538,25 +476,4 @@ operationPlan:
           forwardedVariables:
             - commentLimit
           dependencies:
-            - id: 2
-        - id: 2
-          type: Operation
-          schema: B
-          operation: |
-            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_2_id: ID!) {
-              userById(id: $__fusion_2_id) {
-                posts(first: $postLimit) {
-                  id
-                }
-              }
-            }
-          source: $.userById
-          target: $.user
-          requirements:
-            - name: __fusion_2_id
-              selectionMap: >-
-                id
-          forwardedVariables:
-            - postLimit
-          dependencies:
-            - parentNodeId: 2
+            - parentNodeId: 1
