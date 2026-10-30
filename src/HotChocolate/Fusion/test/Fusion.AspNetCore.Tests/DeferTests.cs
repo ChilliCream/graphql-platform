@@ -9,6 +9,8 @@ using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 
@@ -2740,7 +2742,7 @@ public class DeferTests : FusionTestBase
     public async Task Defer_Should_SendOneSubgraphRequestPerGroupSet_When_SiblingsOverlapPartially()
     {
         // arrange
-        using var gateway = await CreateUserGatewayAsync();
+        using var gateway = await CreateUserGatewayWithAddressAfterEmailAsync();
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -2975,7 +2977,11 @@ public class DeferTests : FusionTestBase
     public async Task Defer_Should_FetchSharedField_Once_When_SiblingsReachItThroughLookupOnSecondSubgraph()
     {
         // arrange
-        using var gateway = await CreateUserAccountGatewayAsync();
+        // Each subgraph request is held until the client has received the previous payload: email, score, address.
+        var sequence = new SubgraphRequestSequence("email", "score", "address");
+        using var gateway = await CreateUserAccountGatewayAsync(
+            new SequencedSubgraph(sequence),
+            new SequencedSubgraph(sequence));
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -3001,6 +3007,8 @@ public class DeferTests : FusionTestBase
             request,
             new Uri("http://localhost:5000/graphql"),
             TestContext.Current.CancellationToken);
+
+        await sequence.ReleaseAsPayloadsArriveAsync(result, TestContext.Current.CancellationToken);
 
         // assert
         // score lives on C only and is fetched by one C request for the group set {contact, location}.
@@ -3127,6 +3135,41 @@ public class DeferTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Defer_Should_AnchorSharedData_At_CompletingGroup_When_SecondSiblingCompletesFirst()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithAddressAfterEmailAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "first") {
+                        email
+                        address
+                    }
+                    ... @defer(label: "second") {
+                        email
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Both groups share the path, so the shared email is anchored at the group this payload completes.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
     private async Task<Gateway> CreateUserGatewayAsync()
     {
         var server1 = CreateSourceSchema(
@@ -3164,7 +3207,80 @@ public class DeferTests : FusionTestBase
         ]);
     }
 
-    private async Task<Gateway> CreateUserAccountGatewayAsync()
+    private async Task<Gateway> CreateUserGatewayWithAddressAfterEmailAsync()
+    {
+        // The address response is held back until the gateway has written the payload that carries the email
+        // data to the client. This fixes the order in which sibling groups complete.
+        var emailDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        HttpMessageInvoker? invoker = null;
+
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+                phone: String!
+            }
+            """,
+            mockHttpResponse: async request =>
+            {
+                var body = await request.Content!.ReadAsStringAsync();
+
+                if (body.Contains("address", StringComparison.Ordinal))
+                {
+                    await emailDelivered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                }
+
+                return await invoker!.SendAsync(request, CancellationToken.None);
+            });
+
+        invoker = new HttpMessageInvoker(server2.CreateHandler());
+
+        return await CreateCompositeSchemaAsync(
+            [
+                ("A", server1),
+                ("B", server2)
+            ],
+            configureApplication: app =>
+            {
+                app.Use(async (context, next) =>
+                {
+                    context.Response.Body = new SignalOnWriteStream(
+                        context.Response.Body,
+                        "\"email\""u8.ToArray(),
+                        emailDelivered);
+                    await next(context);
+                });
+                app.UseRouting();
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+            });
+    }
+
+    private Task<Gateway> CreateUserAccountGatewayAsync()
+        => CreateUserAccountGatewayAsync(null, null);
+
+    private async Task<Gateway> CreateUserAccountGatewayAsync(
+        SequencedSubgraph? subgraphB,
+        SequencedSubgraph? subgraphC)
     {
         var server1 = CreateSourceSchema(
             "A",
@@ -3196,7 +3312,10 @@ public class DeferTests : FusionTestBase
             type Account @key(fields: "id") {
                 id: ID!
             }
-            """);
+            """,
+            mockHttpResponse: subgraphB is null ? null : subgraphB.SendAsync);
+
+        subgraphB?.Connect(server2);
 
         var server3 = CreateSourceSchema(
             "C",
@@ -3215,7 +3334,10 @@ public class DeferTests : FusionTestBase
                 id: ID!
                 balance: Int!
             }
-            """);
+            """,
+            mockHttpResponse: subgraphC is null ? null : subgraphC.SendAsync);
+
+        subgraphC?.Connect(server3);
 
         return await CreateCompositeSchemaAsync(
         [
@@ -3234,6 +3356,174 @@ public class DeferTests : FusionTestBase
             gateway.Interactions
                 .OrderBy(t => t.Key, StringComparer.Ordinal)
                 .Select(t => $"{t.Key}: {t.Value.Count}"));
+    }
+
+    private sealed class SignalOnWriteStream(
+        Stream inner,
+        byte[] marker,
+        TaskCompletionSource signal) : Stream
+    {
+        public override bool CanRead => false;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => true;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush() => inner.Flush();
+
+        public override Task FlushAsync(CancellationToken cancellationToken) => inner.FlushAsync(cancellationToken);
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count)
+            => Write(buffer.AsSpan(offset, count));
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            inner.Write(buffer);
+            Notify(buffer);
+        }
+
+        public override async ValueTask WriteAsync(
+            ReadOnlyMemory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            await inner.WriteAsync(buffer, cancellationToken);
+            Notify(buffer.Span);
+        }
+
+        private void Notify(ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.IndexOf(marker) >= 0)
+            {
+                signal.TrySetResult();
+            }
+        }
+    }
+
+    private sealed class SubgraphRequestSequence
+    {
+        private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
+
+        private readonly string[] _fields;
+        private readonly TaskCompletionSource[] _delivered;
+
+        public SubgraphRequestSequence(params string[] fields)
+        {
+            _fields = fields;
+            _delivered = new TaskCompletionSource[fields.Length];
+
+            for (var i = 0; i < _delivered.Length; i++)
+            {
+                _delivered[i] = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            }
+        }
+
+        public int IndexOf(string requestBody)
+        {
+            for (var i = 0; i < _fields.Length; i++)
+            {
+                if (requestBody.Contains(_fields[i], StringComparison.Ordinal))
+                {
+                    return i;
+                }
+            }
+
+            throw new InvalidOperationException(
+                $"The subgraph request matches none of the sequence fields ({string.Join(", ", _fields)}): "
+                + requestBody);
+        }
+
+        public async Task WaitForTurnAsync(int index, CancellationToken cancellationToken)
+        {
+            if (index == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                await _delivered[index - 1].Task.WaitAsync(s_timeout, cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                throw new TimeoutException(
+                    $"The client did not receive the payload of '{_fields[index - 1]}' within {s_timeout}, "
+                    + $"so the subgraph request for '{_fields[index]}' was never released.");
+            }
+        }
+
+        public async Task ReleaseAsPayloadsArriveAsync(
+            GraphQLHttpResponse response,
+            CancellationToken cancellationToken)
+        {
+            var content = response.HttpResponseMessage.Content;
+            var body = new StringBuilder();
+
+            await using (var stream = await content.ReadAsStreamAsync(cancellationToken))
+            {
+                using var reader = new StreamReader(stream);
+
+                while (await reader.ReadLineAsync(cancellationToken) is { } payload)
+                {
+                    body.Append(payload).Append('\n');
+                    MarkDelivered(payload);
+                }
+            }
+
+            var buffered = new ByteArrayContent(Encoding.UTF8.GetBytes(body.ToString()));
+
+            foreach (var header in content.Headers)
+            {
+                buffered.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            response.HttpResponseMessage.Content = buffered;
+            content.Dispose();
+        }
+
+        private void MarkDelivered(string payload)
+        {
+            for (var i = 0; i < _fields.Length; i++)
+            {
+                if (payload.Contains($"\"{_fields[i]}\":", StringComparison.Ordinal))
+                {
+                    _delivered[i].TrySetResult();
+                }
+            }
+        }
+    }
+
+    private sealed class SequencedSubgraph(SubgraphRequestSequence sequence)
+    {
+        private HttpMessageInvoker? _invoker;
+
+        public void Connect(TestServer server)
+            => _invoker = new HttpMessageInvoker(server.CreateHandler());
+
+        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+        {
+            var cancellationToken = TestContext.Current.CancellationToken;
+            var body = request.Content is null
+                ? string.Empty
+                : await request.Content.ReadAsStringAsync(cancellationToken);
+
+            await sequence.WaitForTurnAsync(sequence.IndexOf(body), cancellationToken);
+
+            return await _invoker!.SendAsync(request, cancellationToken);
+        }
     }
 
     [Fact]

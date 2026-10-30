@@ -372,8 +372,12 @@ internal static partial class OperationPlanExecutor
                 }
 
                 // Use the deepest delivery group path for this incremental
-                // plan. Ties are broken by the smallest DeliveryGroup.Id.
-                var bestDeliveryGroup = PickBestDeliveryGroup(incrementalPlan);
+                // plan. Ties are broken by the delivery group this payload
+                // completes, then by the smallest DeliveryGroup.Id.
+                var bestDeliveryGroup = PickBestDeliveryGroup(
+                    incrementalPlan,
+                    activeDeliveryGroupIds,
+                    pendingCountByDeliveryGroup);
 
                 // Build the result for this incremental plan and update
                 // delivery group completion state.
@@ -722,28 +726,50 @@ internal static partial class OperationPlanExecutor
 
     /// <summary>
     /// Selects the delivery group used to anchor an incremental result.
-    /// The group with the deepest path is selected.
-    /// Ties are broken by the smallest <see cref="DeliveryGroup.Id"/>.
+    /// The group with the deepest path is selected. Ties are broken by the group this result completes,
+    /// then by the smallest <see cref="DeliveryGroup.Id"/>.
     /// </summary>
-    private static DeliveryGroup PickBestDeliveryGroup(IncrementalPlan incrementalPlan)
+    private static DeliveryGroup PickBestDeliveryGroup(
+        IncrementalPlan incrementalPlan,
+        HashSet<int> activeDeliveryGroupIds,
+        Dictionary<int, int> pendingCountByDeliveryGroup)
     {
         var best = incrementalPlan.DeliveryGroups[0];
         var bestLength = best.Path?.Length ?? 0;
+        var bestCompletes = IsCompleting(best, activeDeliveryGroupIds, pendingCountByDeliveryGroup);
 
         for (var i = 1; i < incrementalPlan.DeliveryGroups.Length; i++)
         {
             var candidate = incrementalPlan.DeliveryGroups[i];
             var candidateLength = candidate.Path?.Length ?? 0;
 
-            if (candidateLength > bestLength)
+            if (candidateLength < bestLength)
+            {
+                continue;
+            }
+
+            var candidateCompletes = IsCompleting(candidate, activeDeliveryGroupIds, pendingCountByDeliveryGroup);
+
+            if (candidateLength > bestLength
+                || (candidateCompletes && !bestCompletes)
+                || (candidateCompletes == bestCompletes && candidate.Id < best.Id))
             {
                 best = candidate;
                 bestLength = candidateLength;
+                bestCompletes = candidateCompletes;
             }
         }
 
         return best;
     }
+
+    private static bool IsCompleting(
+        DeliveryGroup deliveryGroup,
+        HashSet<int> activeDeliveryGroupIds,
+        Dictionary<int, int> pendingCountByDeliveryGroup)
+        => activeDeliveryGroupIds.Contains(deliveryGroup.Id)
+            && pendingCountByDeliveryGroup.TryGetValue(deliveryGroup.Id, out var count)
+            && count <= 1;
 
     private static void CompleteDeliveryGroupsForIncrementalPlan(
         IncrementalPlan incrementalPlan,
