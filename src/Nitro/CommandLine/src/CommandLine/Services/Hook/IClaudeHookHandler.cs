@@ -41,6 +41,14 @@ internal interface IClaudeHookHandler
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Registers the session exactly like <see cref="HandleSessionStartAsync"/> and returns its
+    /// actor name as the agent name when <see cref="ClaudeHookPayload.AgentKind"/> is
+    /// <c>main</c>; any other kind leaves the store untouched and returns a neutral outcome.
+    /// </summary>
+    Task<ClaudeHookOutcome> HandleAgentNamingAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Stamps the session's agent row as ended, keeping it in place.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionEndAsync(

@@ -214,10 +214,12 @@ await bus.SendAsync(new ReserveInventoryCommand
 },
 new SendOptions
 {
-    Endpoint = new Uri("rabbitmq://custom-inventory-queue")
+    Endpoint = new Uri("queue:custom-inventory-queue")
 },
 cancellationToken);
 ```
+
+The queue does not have to be declared by the host. On RabbitMQ, `queue:<name>` or the transport form `rabbitmq:q/<name>` reaches a queue the host never declared, for example a queue another service owns. Under explicit binding, the host records that queue in its topology with auto-provisioning disabled and never declares, binds, or consumes it. A message the broker cannot route, for example because the queue does not exist, is dropped.
 
 # Customize queues and binding
 
@@ -421,12 +423,12 @@ A uniquely named temporary queue binds to its publish topic or exchange the same
 
 Each transport maps `Temporary()` to a different native mechanism:
 
-| Transport         | Mapping                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------- |
-| Azure Service Bus | `AutoDeleteOnIdle` on the queue (24-hour default, `Temporary(TimeSpan)` for a custom idle window) |
-| RabbitMQ          | A non-durable, auto-delete queue                                                                  |
-| PostgreSQL        | `AutoDelete` on the queue row, cascaded from the owning consumer's heartbeat and expiry           |
-| InMemory          | API parity only - a temporary queue's lifetime is the hosting process's own runtime disposal      |
+| Transport         | Mapping                                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| Azure Service Bus | `AutoDeleteOnIdle` on the queue (24-hour default, `Temporary(TimeSpan)` for a custom idle window)               |
+| RabbitMQ          | A durable, auto-delete queue with a queue expiry (30-minute default, `Temporary(TimeSpan)` for a custom expiry) |
+| PostgreSQL        | `AutoDelete` on the queue row, cascaded from the owning consumer's heartbeat and expiry                         |
+| InMemory          | API parity only - a temporary queue's lifetime is the hosting process's own runtime disposal                    |
 
 See the transport pages under [Transports](./transports/index.md) for the full mapping, defaults, and conflict-detection behavior for each transport.
 

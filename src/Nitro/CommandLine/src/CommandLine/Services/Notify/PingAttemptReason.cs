@@ -29,5 +29,11 @@ internal enum PingAttemptReason
     /// a generic Claude peer I/O or protocol failure, or an unexpected
     /// exception this attempt caught.
     /// </summary>
-    TransportError
+    TransportError,
+
+    /// <summary>
+    /// A Claude peer endpoint that requires authentication took the digest
+    /// without rejecting it, but sent no acknowledgement of delivery.
+    /// </summary>
+    Unconfirmed
 }

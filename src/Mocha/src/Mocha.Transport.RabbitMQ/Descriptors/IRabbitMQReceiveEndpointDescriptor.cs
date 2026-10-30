@@ -40,6 +40,17 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IRabbitMQReceiveEndpointDescriptor Temporary();
 
     /// <summary>
+    /// Marks this receive endpoint as temporary with an explicit queue expiry, after which the
+    /// broker removes the queue once it has no consumers.
+    /// </summary>
+    /// <param name="expiry">
+    /// The queue expiry. Must be positive and at most
+    /// <see cref="RabbitMQReceiveEndpointConfiguration.TemporaryDefaults.MaximumExpiry"/>.
+    /// </param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQReceiveEndpointDescriptor Temporary(TimeSpan expiry);
+
+    /// <summary>
     /// Sets the address of the fault endpoint where failed messages are forwarded.
     /// </summary>
     /// <param name="address">The fault endpoint address.</param>

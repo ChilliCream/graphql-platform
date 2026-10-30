@@ -2,11 +2,13 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 public sealed class ClaudePeerClientTests : IDisposable
 {
+    private const string Harness = AgentSessionHarness.ClaudeCode;
     private const int Pid = 4242;
     private const string SessionId = "session-1";
     private const string ProcStart = "44276735";
@@ -23,7 +25,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         _sessionDirectory = Path.Combine(_tempRoot.FullName, "sessions");
         Directory.CreateDirectory(_sessionDirectory);
         _socketPath = Path.Combine(_tempRoot.FullName, "peer.sock");
-        _client = new ClaudePeerClient(_sessionDirectory);
+        _client = new ClaudePeerClient(_sessionDirectory, Path.Combine(_tempRoot.FullName, "venti-peers"));
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
@@ -83,7 +85,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryAsync(protocol: 2, cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.Unsupported, outcome);
@@ -98,7 +100,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteKeyAsync("different-generation", cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.InvalidAuth, outcome);
@@ -116,7 +118,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         }
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
@@ -130,7 +132,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryAsync(protocol: 1, cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync("different-session", "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, "different-session", "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
@@ -159,7 +161,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         try
         {
             // act
-            var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+            var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
             // assert
             Assert.Equal(ClaudePeerSendOutcome.AccessDenied, outcome);
@@ -179,7 +181,7 @@ public sealed class ClaudePeerClientTests : IDisposable
             Path.Combine(_sessionDirectory, $"{Pid}.json"), "{ not json", cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.TransportError("JsonReaderException"), outcome);
@@ -195,7 +197,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryJsonAsync(json, cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
@@ -218,7 +220,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryJsonAsync(json, cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
@@ -241,7 +243,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryJsonAsync(json, cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.Unsupported, outcome);
@@ -258,7 +260,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteKeyJsonAsync(json, cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.InvalidAuth, outcome);
@@ -269,7 +271,7 @@ public sealed class ClaudePeerClientTests : IDisposable
     {
         using var listener = CreateListener();
         var acceptTask = listener.AcceptAsync(cancellationToken).AsTask();
-        var sendTask = _client.SendAsync(SessionId, message, cancellationToken);
+        var sendTask = _client.SendAsync(Harness, SessionId, message, cancellationToken);
         using var peer = await acceptTask;
         await using var buffer = new MemoryStream();
         var chunk = new byte[1024];

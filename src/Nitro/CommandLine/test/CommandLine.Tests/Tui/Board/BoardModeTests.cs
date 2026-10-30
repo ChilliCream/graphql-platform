@@ -21,8 +21,22 @@ public sealed class BoardModeTests
         ]
     };
 
-    private static BoardMode CreateMode(FakeTaskStore store, BoardView? view = null)
-        => new(new BoardDataLoader(store, new FakeTimeProvider(s_now)), view is null ? null : [view]);
+    private static BoardMode CreateMode(
+        FakeTaskStore store,
+        BoardView? view = null,
+        BoardOrientation orientation = BoardOrientation.Auto)
+        => new(
+            new BoardDataLoader(store, new FakeTimeProvider(s_now)),
+            view is null ? null : [view],
+            orientation);
+
+    private static FakeTaskStore StoreWithOneTaskPerColumn()
+    {
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
+        return store;
+    }
 
     [Fact]
     public void FocusColumn_Should_ClampAtFirstColumn_When_MovingLeftPastStart()
@@ -335,7 +349,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Open (1)─────────────────────────────────────────────────────────────────────╮
+            ╭─Open (1) | auto──────────────────────────────────────────────────────────────╮
             │                                                                              │
             │     TYPE        PRIO    ID            TITLE                                  │
             │ ──────────────────────────────────────────────────────────────────────────── │
@@ -363,7 +377,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Ready (1)──────────────────╮╭─In Progress (1)────────────╮╭─Closed (1)─────────────────╮
+            ╭─Ready (1) | auto───────────╮╭─In Progress (1)────────────╮╭─Closed (1)─────────────────╮
             │                            ││                            ││                            │
             │     ID            TITLE    ││     ID            TITLE    ││     ID            TITLE    │
             │ ────────────────────────── ││ ────────────────────────── ││ ────────────────────────── │
@@ -387,7 +401,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Board (0)────────────────────────────────────────────────────────────────────╮
+            ╭─Board (0) | auto─────────────────────────────────────────────────────────────╮
             │ No tasks yet.                                                                │
             │                                                                              │
             │                                                                              │
@@ -755,7 +769,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Open - 1/2 (2)───────────────────────────────────────────────────────────────╮
+            ╭─Open - 1/2 (2) | auto────────────────────────────────────────────────────────╮
             │                                                                              │
             │     TYPE        PRIO    ID            TITLE                                  │
             │ ──────────────────────────────────────────────────────────────────────────── │
@@ -843,7 +857,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Open (3)─────────────────────────────────────────────────╮
+            ╭─Open (3) | auto──────────────────────────────────────────╮
             │                                                          │
             │     TYPE        PRIO    ID            TITLE              │
             │ ──────────────────────────────────────────────────────── │
@@ -888,7 +902,7 @@ public sealed class BoardModeTests
         // assert
         console.Output.MatchInlineSnapshot(
             """
-            ╭─Open - 1/1 (3)───────────────────────────────────────────╮
+            ╭─Open - 1/1 (3) | auto────────────────────────────────────╮
             │                                                          │
             │     TYPE        PRIO    ID            TITLE              │
             │ ──────────────────────────────────────────────────────── │
@@ -902,6 +916,170 @@ public sealed class BoardModeTests
             ╰──────────────────────────────────────────────────────────╯
 
             """);
+    }
+
+    [Fact]
+    public void Handle_Should_CycleOrientation_When_CycleBoardOrientationIsHandled()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView());
+        var seen = new List<BoardOrientation>();
+
+        // act
+        for (var i = 0; i < 3; i++)
+        {
+            mode.Handle(new TuiMessage.CycleBoardOrientation());
+            seen.Add(mode.Orientation);
+        }
+
+        // assert
+        Assert.Equal([BoardOrientation.SideBySide, BoardOrientation.Stacked, BoardOrientation.Auto], seen);
+    }
+
+    [Fact]
+    public void Handle_Should_RaiseOrientationChanged_When_CycleBoardOrientationIsHandled()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView(), BoardOrientation.Stacked);
+        var raised = new List<BoardOrientation>();
+        mode.OrientationChanged += raised.Add;
+
+        // act
+        mode.Handle(new TuiMessage.CycleBoardOrientation());
+        mode.Handle(new TuiMessage.CycleBoardOrientation());
+
+        // assert
+        Assert.Equal([BoardOrientation.Auto, BoardOrientation.SideBySide], raised);
+    }
+
+    [Theory]
+    [InlineData("Auto", "Open (1) | auto")]
+    [InlineData("SideBySide", "Open (1) | grid")]
+    [InlineData("Stacked", "Open (1) | stack")]
+    public void Render_Should_NameTheOrientationInTheFocusedColumnHeader_When_TheBoardHasTasks(
+        string orientationName, string expectedHeader)
+    {
+        // arrange
+        var mode = CreateMode(
+            StoreWithOneTaskPerColumn(), TwoColumnView(), Enum.Parse<BoardOrientation>(orientationName));
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(12);
+
+        // act
+        console.Write(mode.Render(100, 12));
+
+        // assert
+        Assert.Contains(expectedHeader, console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_NameTheOrientationOnlyOnTheFocusedColumn_When_ColumnsSitSideBySide()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(100).Height(12);
+
+        // act
+        console.Write(mode.Render(100, 12));
+
+        // assert
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1) | grid────────────────────────────────╮╭─Closed (1)─────────────────────────────────────╮");
+    }
+
+    [Fact]
+    public void Render_Should_PlaceColumnsOnOneRow_When_SideBySideAtWidthWhereAutoStacks()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(30).Height(12);
+
+        // act
+        console.Write(mode.Render(30, 12));
+
+        // assert
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1)────╮╭─Closed (1)──╮");
+    }
+
+    [Fact]
+    public void Render_Should_StackColumns_When_StackedAtWidthWhereAutoUsesGrid()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.Stacked);
+        mode.OnEnter();
+        var console = new TestConsole().Width(120).Height(30);
+
+        // act
+        console.Write(mode.Render(120, 30));
+
+        // assert
+        console.Output.Split('\n')[0].MatchInlineSnapshot("╭─Open (1) | stack─────────────────────────────────────────────────────────────────────────────────────────────────────╮");
+    }
+
+    [Fact]
+    public void TabBadge_Should_BeNull_When_TheFocusedColumnHeaderNamesTheOrientation()
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+
+        // act
+        var badge = mode.TabBadge(100, 12);
+
+        // assert
+        Assert.Null(badge);
+    }
+
+    [Theory]
+    [InlineData("SideBySide", "grid")]
+    [InlineData("Stacked", "stack")]
+    public void TabBadge_Should_NameTheOrientation_When_TheFocusedColumnHeaderIsTooNarrow(
+        string orientationName, string expectedBadge)
+    {
+        // arrange
+        var mode = CreateMode(
+            StoreWithOneTaskPerColumn(), TwoColumnView(), Enum.Parse<BoardOrientation>(orientationName));
+        mode.OnEnter();
+
+        // act
+        var badge = mode.TabBadge(16, 12);
+
+        // assert
+        Assert.Equal(expectedBadge, badge);
+    }
+
+    [Fact]
+    public void TabBadge_Should_NameTheOrientation_When_TheEmptyBoardHeaderIsTooNarrow()
+    {
+        // arrange
+        var mode = CreateMode(new FakeTaskStore(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+
+        // act
+        var narrow = mode.TabBadge(12, 12);
+        var wide = mode.TabBadge(60, 12);
+
+        // assert
+        Assert.Equal("grid", narrow);
+        Assert.Null(wide);
+    }
+
+    [Theory]
+    [InlineData(8)]
+    [InlineData(3)]
+    public void Render_Should_NotThrow_When_SideBySideColumnsAreNarrow(int width)
+    {
+        // arrange
+        var mode = CreateMode(StoreWithOneTaskPerColumn(), TwoColumnView(), BoardOrientation.SideBySide);
+        mode.OnEnter();
+        var console = new TestConsole().Width(width).Height(12);
+
+        // act
+        var exception = Record.Exception(() => console.Write(mode.Render(width, 12)));
+
+        // assert
+        Assert.Null(exception);
     }
 
     /// <summary>

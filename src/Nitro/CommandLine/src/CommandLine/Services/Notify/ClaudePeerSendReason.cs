@@ -26,5 +26,18 @@ internal enum ClaudePeerSendReason
     /// Any other transport, protocol, or local I/O failure not covered by a
     /// more specific reason above.
     /// </summary>
-    TransportError
+    TransportError,
+
+    /// <summary>
+    /// The complete protocol payload was written to an endpoint that requires
+    /// authentication and did not reject it, but the protocol sends no
+    /// acknowledgement, so delivery is not confirmed.
+    /// </summary>
+    Unconfirmed,
+
+    /// <summary>
+    /// The endpoint transport did not connect, take the payload, and pass its rejection window
+    /// within the time budget, so delivery is unknown.
+    /// </summary>
+    Timeout
 }

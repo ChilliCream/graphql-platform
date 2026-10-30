@@ -83,8 +83,11 @@ RESTART:
                     }
                     else
                     {
+                        // the id must be read before the task starts, a task that completes
+                        // is returned to its pool and can be registered again under a new id.
+                        var firstId = first.Id;
                         first.BeginExecute(_ct);
-                        await WaitForTask(first.Id).ConfigureAwait(false);
+                        await WaitForTask(firstId).ConfigureAwait(false);
                         buffer[0] = null;
                     }
                 }
@@ -218,6 +221,8 @@ RESTART:
 
     private void TryDispatchOrCompleteUnsafe(bool isWaitingForTaskCompletion)
     {
+        AssertLockHeld();
+
         if (_isCompleted)
         {
             return;

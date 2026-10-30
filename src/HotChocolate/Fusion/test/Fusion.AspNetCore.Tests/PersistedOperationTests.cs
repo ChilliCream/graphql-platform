@@ -1,9 +1,12 @@
+using System.Net;
 using System.Text;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using GraphQLHttpClient = HotChocolate.Transport.Http.GraphQLHttpClient;
@@ -494,6 +497,336 @@ public class PersistedOperationTests : FusionTestBase
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Post_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation(
+            "getField",
+            "query GetField($skip: Boolean!) { field @skip(if: $skip) }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql/persisted/getField",
+            new StringContent(
+                """{ "variables": [{ "skip": true }, { "skip": false }] }""",
+                Encoding.UTF8,
+                "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Post_Should_ExecuteSentQuery_When_PreviousRequestSentDocumentId()
+    {
+        // arrange
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        using var firstResponse = await client.PostAsync(
+            "http://localhost:5000/graphql",
+            new StringContent(
+                """{ "id": "388c5f9c43fb589b1c5d1e144121613b", "query": "{ __typename }" }""",
+                Encoding.UTF8,
+                "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql",
+            new StringContent(
+                """{ "query": "{ field }" }""",
+                Encoding.UTF8,
+                "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))
+            .MatchInline(
+                """
+                {"data":{"field":"Query"}}
+                """);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, "text/plain", HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Legacy, null, HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "text/plain",
+        HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.Draft20260903, null, HttpStatusCode.UnsupportedMediaType)]
+    public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
+        HttpTransportVersion transportVersion,
+        string? contentType,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "http://localhost:5000/graphql/persisted/getField/GetField");
+        request.Content = contentType is null
+            ? new ByteArrayContent(Encoding.UTF8.GetBytes("{ }"))
+            : new StringContent("{ }", Encoding.UTF8, contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(
+            "",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.MethodNotAllowed,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Put_Should_ReturnMethodNotAllowed_When_PersistedRoutesAreMappedAlone(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            "http://localhost:5000/graphql/persisted/getField/GetField");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.NoContent,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Options_Should_ReturnAllowedMethods_When_PersistedRoutesAreMappedAlone(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Options,
+            "http://localhost:5000/graphql/persisted/getField/GetField");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    // TestServer does not suppress the content of a HEAD response, so only the status and headers
+    // are compared with those of a GET.
+    [Fact]
+    public async Task Head_Should_AnswerAsGet_When_PersistedOperationIsRequested()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline(),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+        const string url = "http://localhost:5000/graphql/persisted/getField/GetField";
+
+        // act
+        using var getRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        using var getResponse = await client.SendAsync(
+            getRequest,
+            TestContext.Current.CancellationToken);
+
+        using var headRequest = new HttpRequestMessage(HttpMethod.Head, url);
+        using var headResponse = await client.SendAsync(
+            headRequest,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, headResponse.StatusCode);
+        Assert.Equal(
+            getResponse.Content.Headers.ContentType?.ToString(),
+            headResponse.Content.Headers.ContentType?.ToString());
     }
 
     private static OperationRequest CreateApolloStyleRequest(

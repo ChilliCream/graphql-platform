@@ -20,8 +20,8 @@ response:
           "subgraphB": "Viewer"
         },
         "subgraphC": {
-          "someField": "SubgraphC: U3ViZ3JhcGhDOjE=",
-          "anotherField": "SubgraphC: U3ViZ3JhcGhDOjE="
+          "someField": "SubgraphC: U3ViZ3JhcGhDOjIxMzA4NDg2NzU=",
+          "anotherField": "SubgraphC: U3ViZ3JhcGhDOjIxMzA4NDg2NzU="
         }
       }
     }
@@ -120,8 +120,8 @@ sourceSchemas:
               {
                 "data": {
                   "subgraphC": {
-                    "someField": "SubgraphC: U3ViZ3JhcGhDOjE=",
-                    "anotherField": "SubgraphC: U3ViZ3JhcGhDOjE="
+                    "someField": "SubgraphC: U3ViZ3JhcGhDOjIxMzA4NDg2NzU=",
+                    "anotherField": "SubgraphC: U3ViZ3JhcGhDOjIxMzA4NDg2NzU="
                   }
                 }
               }

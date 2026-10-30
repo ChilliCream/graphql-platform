@@ -50,6 +50,12 @@ internal interface ITuiMode
     }
 
     /// <summary>
+    /// A short status shown next to the hosting tab's title for a content area of the given
+    /// size, or null for none. The default implementation shows none.
+    /// </summary>
+    string? TabBadge(int width, int height) => null;
+
+    /// <summary>
     /// Global footer hints to suppress, compared by <see cref="KeyHint"/> value
     /// equality. The default suppresses no hints.
     /// </summary>

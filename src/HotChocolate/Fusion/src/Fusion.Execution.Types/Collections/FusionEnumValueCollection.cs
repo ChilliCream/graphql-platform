@@ -1,3 +1,6 @@
+#if NET9_0_OR_GREATER
+using System.Buffers;
+#endif
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
@@ -13,10 +16,17 @@ public sealed class FusionEnumValueCollection
     : IReadOnlyList<FusionEnumValue>
     , IReadOnlyEnumValueCollection
 {
+#if NET9_0_OR_GREATER
+    private const int CharStackallocThreshold = 128;
+    private const int LinearScanThreshold = 8;
+#endif
+
     private readonly FusionEnumValue[] _values;
     private readonly int _length;
     private readonly FrozenDictionary<string, FusionEnumValue> _map;
-    private readonly byte[][] _utf8AccessibleNames;
+#if NET9_0_OR_GREATER
+    private readonly FrozenDictionary<string, FusionEnumValue>.AlternateLookup<ReadOnlySpan<char>> _spanLookup;
+#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FusionEnumValueCollection"/> class.
@@ -31,7 +41,9 @@ public sealed class FusionEnumValueCollection
         _map = values.ToFrozenDictionary(t => t.Name);
         _values = values;
         _values.PartitionByAccessibility(out _length);
-        _utf8AccessibleNames = BuildUtf8AccessibleNames(_values, _length);
+#if NET9_0_OR_GREATER
+        _spanLookup = _map.GetAlternateLookup<ReadOnlySpan<char>>();
+#endif
     }
 
     /// <summary>
@@ -276,75 +288,57 @@ public sealed class FusionEnumValueCollection
     /// specified name; otherwise, <c>false</c>.
     /// </returns>
     public bool ContainsName(ReadOnlySpan<byte> utf8Name)
+        => TryGetValue(utf8Name, out _);
+
+    /// <summary>
+    /// Attempts to get the accessible enum value whose name matches the specified
+    /// UTF-8 encoded <paramref name="utf8Name"/>.
+    /// </summary>
+    /// <param name="utf8Name">
+    /// The GraphQL enum value name as UTF-8 bytes.
+    /// </param>
+    /// <param name="value">
+    /// When this method returns, contains the enum value with the specified name if found;
+    /// otherwise, <c>null</c>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the enum value was found; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetValue(ReadOnlySpan<byte> utf8Name, [NotNullWhen(true)] out FusionEnumValue? value)
     {
-        var utf8Names = _utf8AccessibleNames;
-        var count = utf8Names.Length;
-
-        if (count <= 8)
+#if NET9_0_OR_GREATER
+        if (_length > LinearScanThreshold && utf8Name.Length <= CharStackallocThreshold)
         {
-            for (var i = 0; i < count; i++)
-            {
-                if (utf8Name.SequenceEqual(utf8Names[i]))
-                {
-                    return true;
-                }
-            }
+            Span<char> buffer = stackalloc char[CharStackallocThreshold];
 
-            return false;
-        }
-
-        var low = 0;
-        var high = count - 1;
-
-        while (low <= high)
-        {
-            var mid = low + ((high - low) >> 1);
-            var comparison = CompareLengthThenBytes(utf8Names[mid], utf8Name);
-
-            if (comparison == 0)
+            // Enum value names are validated GraphQL identifiers and therefore ASCII,
+            // so a non-ASCII byte can never match a value name.
+            if (Ascii.ToUtf16(utf8Name, buffer, out var written) is OperationStatus.Done
+                && _spanLookup.TryGetValue(buffer[..written], out value)
+                && !value.IsInaccessible)
             {
                 return true;
             }
 
-            if (comparison < 0)
+            value = null;
+            return false;
+        }
+#endif
+
+        // a few names compare faster than they transcode and hash.
+        for (var i = 0; i < _length; i++)
+        {
+            var candidate = _values[i];
+
+            if (Ascii.Equals(utf8Name, candidate.Name.AsSpan()))
             {
-                low = mid + 1;
-            }
-            else
-            {
-                high = mid - 1;
+                value = candidate;
+                return true;
             }
         }
 
+        value = null;
         return false;
-    }
-
-    private static byte[][] BuildUtf8AccessibleNames(FusionEnumValue[] values, int length)
-    {
-        var utf8Names = new byte[length][];
-
-        for (var i = 0; i < length; i++)
-        {
-            utf8Names[i] = Encoding.UTF8.GetBytes(values[i].Name);
-        }
-
-        // Sorted by length ascending then lexicographic byte order so the span
-        // lookup can binary search with a length-first comparison.
-        Array.Sort(utf8Names, static (a, b) => CompareLengthThenBytes(a, b));
-
-        return utf8Names;
-    }
-
-    private static int CompareLengthThenBytes(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
-    {
-        var lengthComparison = x.Length - y.Length;
-
-        if (lengthComparison != 0)
-        {
-            return lengthComparison;
-        }
-
-        return x.SequenceCompareTo(y);
     }
 
     /// <summary>

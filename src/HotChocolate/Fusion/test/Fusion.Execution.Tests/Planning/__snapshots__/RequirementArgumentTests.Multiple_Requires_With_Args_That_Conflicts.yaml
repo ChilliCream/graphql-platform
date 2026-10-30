@@ -49,7 +49,8 @@ nodes:
         selectionMap: >-
           otherField
     dependencies:
-      - id: 5
+      - id: 1
+      - id: 3
   - id: 3
     type: Operation
     schema: b
@@ -61,27 +62,8 @@ nodes:
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 5
     requirements:
       - name: __fusion_3_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
-  - id: 4
-    type: Operation
-    schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        testById(id: $__fusion_4_id) {
-          id
-        }
-      }
-    source: $.testById
-    target: $.test
-    batchingGroupId: 5
-    requirements:
-      - name: __fusion_4_id
         selectionMap: >-
           id
     dependencies:

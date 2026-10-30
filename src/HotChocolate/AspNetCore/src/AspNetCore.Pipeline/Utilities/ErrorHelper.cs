@@ -31,6 +31,14 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
+    public static GraphQLRequestException EmptyVariableBatch()
+        => new(
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_EmptyVariableBatch)
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build(),
+            new InvalidGraphQLRequestException(ErrorHelper_EmptyVariableBatch));
+
     public static IError NoSupportedAcceptMediaType()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_NoSupportedAcceptMediaType)
@@ -135,12 +143,6 @@ internal static class ErrorHelper
     public static IError RequestBatchingNotSupportedForQuery()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_RequestBatchingNotSupportedForQuery)
-            .SetCode(ErrorCodes.Server.RequestInvalid)
-            .Build();
-
-    public static IError VariableBatchingNotSupportedForQuery()
-        => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_VariableBatchingNotSupportedForQuery)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 

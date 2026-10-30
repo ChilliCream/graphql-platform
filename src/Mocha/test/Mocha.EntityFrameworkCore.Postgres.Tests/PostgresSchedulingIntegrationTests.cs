@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
+using Mocha.Middlewares;
 using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
 
@@ -85,7 +86,11 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresScheduling());
         builder.AddEventHandler<TestEventHandler>();
-        builder.AddInMemory();
+
+        // Use the in-memory transport without its native scheduling store so the EF Core
+        // Postgres fallback (UsePostgresScheduling) is the store that handles scheduled dispatch.
+        var transport = new InMemoryMessagingTransport(static _ => { });
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -128,9 +133,10 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         }
         finally
         {
-            foreach (var svc in hostedServices)
+            // Stop hosted services in reverse registration order, matching IHost shutdown.
+            for (var i = hostedServices.Count - 1; i >= 0; i--)
             {
-                await svc.StopAsync(TestContext.Current.CancellationToken);
+                await hostedServices[i].StopAsync(TestContext.Current.CancellationToken);
             }
 
             // Allow in-flight processor transactions to drain (see TestEnvironment comment)
@@ -259,6 +265,36 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         }
 
         Assert.Fail("Timed out waiting for times_sent to reach 2");
+    }
+
+    [Fact]
+    public async Task Scheduler_Should_RetryMessage_When_MessageTypeIsUnknown()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithSchedulingAsync(recorder);
+
+        // The row mimics a message written by a newer instance whose type this host does not know.
+        var id = await MessageRows.InsertScheduledAsync(
+            env.ConnectionString,
+            new MessageEnvelope
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                MessageType = "urn:message:Mocha.Tests:UnknownEvent",
+                DestinationAddress = "memory://localhost/q/unknown"
+            },
+            TestContext.Current.CancellationToken);
+
+        // act
+        env.Provider.GetRequiredService<ISchedulerSignal>().Notify(DateTimeOffset.UtcNow);
+
+        // assert
+        var timesSent = await MessageRows.WaitForScheduledRetryAsync(
+            env.ConnectionString,
+            id,
+            s_timeout,
+            TestContext.Current.CancellationToken);
+        Assert.True(timesSent is >= 2, $"Expected a retried row, but times_sent was {timesSent?.ToString() ?? "missing"}.");
     }
 
     [Fact]
@@ -506,7 +542,11 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresScheduling());
         builder.AddEventHandler<TestEventHandler>();
-        builder.AddInMemory();
+
+        // Use the in-memory transport without its native scheduling store so the EF Core
+        // Postgres fallback (UsePostgresScheduling) is the store that handles scheduled dispatch.
+        var transport = new InMemoryMessagingTransport(static _ => { });
+        builder.ConfigureMessageBus(b => b.AddTransport(transport));
 
         configure?.Invoke(builder);
 
@@ -528,7 +568,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             await svc.StartAsync(default);
         }
 
-        return new TestEnvironment(provider, hostedServices);
+        return new TestEnvironment(provider, hostedServices, connectionString);
     }
 
     public sealed class TestEvent
@@ -674,16 +714,22 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
     /// Ensures hosted services are stopped before the provider is disposed,
     /// preventing ObjectDisposedException from background tasks.
     /// </summary>
-    private sealed class TestEnvironment(ServiceProvider provider, List<IHostedService> hostedServices)
+    private sealed class TestEnvironment(
+        ServiceProvider provider,
+        List<IHostedService> hostedServices,
+        string connectionString)
         : IAsyncDisposable
     {
         public ServiceProvider Provider => provider;
 
+        public string ConnectionString => connectionString;
+
         public async ValueTask DisposeAsync()
         {
-            foreach (var svc in hostedServices)
+            // Stop hosted services in reverse registration order, matching IHost shutdown.
+            for (var i = hostedServices.Count - 1; i >= 0; i--)
             {
-                await svc.StopAsync(default);
+                await hostedServices[i].StopAsync(default);
             }
 
             // ContinuousTask.DisposeAsync cancels but doesn't await the background

@@ -121,6 +121,7 @@ type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
   setOptionalValue(value: String): String!
   createExport(currentUser: CurrentUserInput!, name: String!): String!
+  renameShape(name: String!): RenameShapePayload!
 }
 
 type Subscription {
@@ -227,6 +228,11 @@ type Issue8057Entity implements Node {
   id: ID!
 }
 
+type NodeResolverAttributeProbe implements Node {
+  id: ID!
+  resolvedBy: String
+}
+
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -298,6 +304,10 @@ type PublisherEdge {
 
 type renamed_DescriptorAttributeProbe {
   name: String!
+}
+
+type RenameShapePayload {
+  result: String!
 }
 
 type Shape {

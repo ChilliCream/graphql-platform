@@ -20,13 +20,13 @@ stableResponseStream: |
       "data": {
         "products": [
           {
-            "id": "UHJvZHVjdDox"
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
           },
           {
-            "id": "UHJvZHVjdDoy"
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5"
           },
           {
-            "id": "UHJvZHVjdDoz"
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
           }
         ],
         "version": "Query"
@@ -52,13 +52,13 @@ stableResponseStream: |
         "data": {
           "reviews": [
             {
-              "id": "UmV2aWV3OjE="
+              "id": "UmV2aWV3OjMwMDAwNTM1MTA="
             },
             {
-              "id": "UmV2aWV3OjI="
+              "id": "UmV2aWV3OjIzNjI5NTY5NjQ="
             },
             {
-              "id": "UmV2aWV3OjM="
+              "id": "UmV2aWV3OjM5MzkxOTk2NzQ="
             }
           ]
         }
@@ -74,13 +74,13 @@ stableResponseStream: |
         "data": {
           "reviews": [
             {
-              "id": "UmV2aWV3OjQ="
+              "id": "UmV2aWV3OjEzMzg2NjMwNDA="
             },
             {
-              "id": "UmV2aWV3OjU="
+              "id": "UmV2aWV3OjMzODU5NDM3MzA="
             },
             {
-              "id": "UmV2aWV3OjY="
+              "id": "UmV2aWV3OjMyNzg4MDUxMDk="
             }
           ]
         }
@@ -96,13 +96,13 @@ stableResponseStream: |
         "data": {
           "reviews": [
             {
-              "id": "UmV2aWV3Ojc="
+              "id": "UmV2aWV3OjEzOTQwMTI3MjY="
             },
             {
-              "id": "UmV2aWV3Ojg="
+              "id": "UmV2aWV3OjM3NDIyOTczMjQ="
             },
             {
-              "id": "UmV2aWV3Ojk="
+              "id": "UmV2aWV3OjE4MTc3OTE5ODE="
             }
           ]
         }
@@ -117,44 +117,44 @@ stableResponseStream: |
       "data": {
         "products": [
           {
-            "id": "UHJvZHVjdDox",
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk=",
             "reviews": [
               {
-                "id": "UmV2aWV3OjE="
+                "id": "UmV2aWV3OjMwMDAwNTM1MTA="
               },
               {
-                "id": "UmV2aWV3OjI="
+                "id": "UmV2aWV3OjIzNjI5NTY5NjQ="
               },
               {
-                "id": "UmV2aWV3OjM="
+                "id": "UmV2aWV3OjM5MzkxOTk2NzQ="
               }
             ]
           },
           {
-            "id": "UHJvZHVjdDoy",
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5",
             "reviews": [
               {
-                "id": "UmV2aWV3OjQ="
+                "id": "UmV2aWV3OjEzMzg2NjMwNDA="
               },
               {
-                "id": "UmV2aWV3OjU="
+                "id": "UmV2aWV3OjMzODU5NDM3MzA="
               },
               {
-                "id": "UmV2aWV3OjY="
+                "id": "UmV2aWV3OjMyNzg4MDUxMDk="
               }
             ]
           },
           {
-            "id": "UHJvZHVjdDoz",
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2",
             "reviews": [
               {
-                "id": "UmV2aWV3Ojc="
+                "id": "UmV2aWV3OjEzOTQwMTI3MjY="
               },
               {
-                "id": "UmV2aWV3Ojg="
+                "id": "UmV2aWV3OjM3NDIyOTczMjQ="
               },
               {
-                "id": "UmV2aWV3Ojk="
+                "id": "UmV2aWV3OjE4MTc3OTE5ODE="
               }
             ]
           }
@@ -196,13 +196,13 @@ sourceSchemas:
                   "version": "Query",
                   "products": [
                     {
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
                     },
                     {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDozOTM1NzEyMDU5"
                     },
                     {
-                      "id": "UHJvZHVjdDoz"
+                      "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
                     }
                   ]
                 }
@@ -240,13 +240,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDox"
+                "__fusion_1_id": "UHJvZHVjdDoxOTc0MTQ1MDk="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoy"
+                "__fusion_1_id": "UHJvZHVjdDozOTM1NzEyMDU5"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoz"
+                "__fusion_1_id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
               }
             ]
         response:
@@ -258,13 +258,13 @@ sourceSchemas:
                   "productById": {
                     "reviews": [
                       {
-                        "id": "UmV2aWV3OjE="
+                        "id": "UmV2aWV3OjMwMDAwNTM1MTA="
                       },
                       {
-                        "id": "UmV2aWV3OjI="
+                        "id": "UmV2aWV3OjIzNjI5NTY5NjQ="
                       },
                       {
-                        "id": "UmV2aWV3OjM="
+                        "id": "UmV2aWV3OjM5MzkxOTk2NzQ="
                       }
                     ]
                   }
@@ -276,13 +276,13 @@ sourceSchemas:
                   "productById": {
                     "reviews": [
                       {
-                        "id": "UmV2aWV3OjQ="
+                        "id": "UmV2aWV3OjEzMzg2NjMwNDA="
                       },
                       {
-                        "id": "UmV2aWV3OjU="
+                        "id": "UmV2aWV3OjMzODU5NDM3MzA="
                       },
                       {
-                        "id": "UmV2aWV3OjY="
+                        "id": "UmV2aWV3OjMyNzg4MDUxMDk="
                       }
                     ]
                   }
@@ -294,13 +294,13 @@ sourceSchemas:
                   "productById": {
                     "reviews": [
                       {
-                        "id": "UmV2aWV3Ojc="
+                        "id": "UmV2aWV3OjEzOTQwMTI3MjY="
                       },
                       {
-                        "id": "UmV2aWV3Ojg="
+                        "id": "UmV2aWV3OjM3NDIyOTczMjQ="
                       },
                       {
-                        "id": "UmV2aWV3Ojk="
+                        "id": "UmV2aWV3OjE4MTc3OTE5ODE="
                       }
                     ]
                   }

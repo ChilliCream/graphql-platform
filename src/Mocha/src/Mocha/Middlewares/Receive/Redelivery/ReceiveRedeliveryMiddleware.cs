@@ -35,7 +35,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             // Request/reply messages must not be redelivered - the caller is waiting.
             if (context.Envelope?.ResponseAddress is not null)
@@ -153,25 +153,5 @@ file static class Extensions
     /// Endpoint -> Transport -> Bus.
     /// </summary>
     public static ExceptionPolicyFeature? GetExceptionPolicyFeature(this ReceiveMiddlewareFactoryContext context)
-    {
-        var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
-
-        // Endpoint -> Transport -> Bus (most specific first).
-        if (context.Endpoint.Features.TryGet(out ExceptionPolicyFeature? endpointFeature))
-        {
-            return endpointFeature;
-        }
-
-        if (context.Transport.Features.TryGet(out ExceptionPolicyFeature? transportFeature))
-        {
-            return transportFeature;
-        }
-
-        if (busFeatures.TryGet(out ExceptionPolicyFeature? busFeature))
-        {
-            return busFeature;
-        }
-
-        return null;
-    }
+        => ExceptionPolicyResolver.Resolve(context.Services, context.Endpoint);
 }

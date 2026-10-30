@@ -1250,6 +1250,46 @@ public partial class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task ExecuteRequestAsync_Should_ReportUnspecified_When_VariableIsOmitted()
+    {
+        // arrange
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                mutation($a: String, $b: String) {
+                    doSomething(input: { optional1: $a, optional2: $b }) {
+                        string
+                    }
+                }
+                """)
+            .SetVariableValues("""{ "b": null }""")
+            .Build();
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithOptionalArg>()
+                .AddMutationConventions()
+                .ExecuteRequestAsync(
+                    request,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "doSomething": {
+                  "string": "unspecified, null, unspecified"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Mutation_With_ErrorWithInterface()
     {
         var result =

@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
@@ -34,7 +36,43 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"__typename":"Query"}}
+                """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ReturnResult_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(
+                o =>
+                {
+                    o.EnableQueryRequests = true;
+                    o.EnableQueriesOverPost = false;
+                }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest("""{ "query": "{ __typename }" }""");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -67,7 +105,9 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 34
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -179,7 +219,9 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -214,7 +256,9 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -251,7 +295,9 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -260,14 +306,129 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
     }
 
     [Fact]
-    public async Task Query_Should_ReturnBadRequest_When_VariablesIsArray()
+    public async Task Query_Should_ExecuteEachVariableSet_When_VariablesIsArray()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest(
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """);
+        request.Headers.Add("Accept", "application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("no-cache", response.Headers.CacheControl?.ToString());
+        Assert.Collection(
+            body
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .OrderBy(line => JsonNode.Parse(line)!["variableIndex"]!.GetValue<int>()),
+            line => Assert.Equal(
+                """{"variableIndex":0,"data":{"hero":{"name":"R2-D2"}}}""",
+                line),
+            line => Assert.Equal(
+                """{"variableIndex":1,"data":{"hero":{"name":"Luke Skywalker"}}}""",
+                line));
+    }
+
+    [Fact]
+    public async Task Query_Should_ReturnUnprocessableContent_When_MutationVariableBatchIsSent()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        const string mutation =
+            """
+            mutation($episode: Episode!) {
+                createReview(episode: $episode, review: { stars: 5 }) {
+                    stars
+                }
+            }
+            """;
+
+        // act
+        using var request = CreateQueryRequest(
+            $$"""
+            {
+              "query": {{JsonSerializer.Serialize(mutation)}},
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 71
+                -------------------------->
+                Status Code: UnprocessableEntity
+                -------------------------->
+                {"errors":[{"message":"The specified operation kind is not allowed."}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ReturnUnprocessableContent_When_SubscriptionVariableBatchIsSent()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest(
+            """
+            {
+              "query": "subscription($count: Int!) { delay(count: $count, delay: 15000) }",
+              "variables": [{ "count": 1 }, { "count": 1 }]
+            }
+            """);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 71
+                -------------------------->
+                Status Code: UnprocessableEntity
+                -------------------------->
+                {"errors":[{"message":"The specified operation kind is not allowed."}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Query_Should_RefuseVariableBatch_When_BatchingIsDisabled()
     {
         // arrange
         var listener = new RecordingListener();
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQLServer()
-                .AddDiagnosticEventListener(_ => listener),
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None),
             configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
         var client = server.CreateClient();
 
@@ -284,7 +445,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
         // assert
         var diagnosticError = Assert.Single(listener.Errors);
         Assert.Equal(
-            "Variable batching is not supported for HTTP QUERY requests.",
+            "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
             diagnosticError.Message);
         Snapshot
             .Create()
@@ -292,11 +453,57 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
                 {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Query_Should_RefuseVariableBatch_When_MaxBatchSizeIsExceeded()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.MaxBatchSize = 1),
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest(
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "The batch size exceeds the maximum allowed batch size of 1.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 1.","extensions":{"code":"HC0009"}}]}
                 """);
     }
 
@@ -345,7 +552,9 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 40
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->

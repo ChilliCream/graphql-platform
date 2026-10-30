@@ -354,33 +354,9 @@ internal static class FusionPublishHelpers
                     throw Exit(
                         "Your request is ready for the composition. Run `fusion-configuration publish start`.");
 
-                case IFusionConfigurationValidationFailed { Errors: var errors }:
+                case IFusionConfigurationValidationFailed validationFailed:
                     var errorTree = new Tree("");
-
-                    foreach (var error in errors)
-                    {
-                        switch (error)
-                        {
-                            case ISchemaVersionChangeViolationError e:
-                                errorTree.AddSchemaVersionChangeViolations(e);
-                                break;
-                            case IInvalidGraphQLSchemaError e:
-                                errorTree.AddGraphQLSchemaErrors(e);
-                                break;
-                            case IPersistedQueryValidationError e:
-                                errorTree.AddPersistedQueryValidationErrorsWithClients(e);
-                                break;
-                            case IOpenApiCollectionValidationError e:
-                                errorTree.AddOpenApiCollectionValidationErrors(e);
-                                break;
-                            case IMcpFeatureCollectionValidationError e:
-                                errorTree.AddMcpFeatureCollectionValidationErrors(e);
-                                break;
-                            case IUnexpectedProcessingError e:
-                                errorTree.AddErrorMessage(e.Message);
-                                break;
-                        }
-                    }
+                    errorTree.AddFusionConfigurationValidationErrors(validationFailed);
 
                     activity.Fail(errorTree, "Fusion configuration failed validation.");
 
@@ -683,10 +659,18 @@ internal static class FusionPublishHelpers
             Merger = new CompositionSettings.MergerSettings
             {
                 CacheControlMergeBehavior = ToDirectiveMergeBehavior(settings.CacheControlMergeBehavior),
+                DefaultListSize = settings.DefaultListSize,
                 EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
+                EnumValuesMergeBehavior = ToEnumValuesMergeBehavior(settings.EnumValuesMergeBehavior),
                 RemoveUnreferencedDefinitions = settings.RemoveUnreferencedDefinitions,
                 TagMergeBehavior = ToDirectiveMergeBehavior(settings.TagMergeBehavior),
                 NodeResolution = ToNodeResultion(settings.NodeResolution)
+            },
+            ApolloFederationCompatibility = new CompositionSettings.ApolloFederationCompatibilitySettings
+            {
+                AllowNonResolvableInterfaceObjects = settings.AllowNonResolvableInterfaceObjects,
+                ShareableFieldRuntimeTypeRouting =
+                    ToShareableFieldRuntimeTypeRouting(settings.ShareableFieldRuntimeTypeRouting)
             }
         };
     }
@@ -703,6 +687,32 @@ internal static class FusionPublishHelpers
             CompositionDirectiveMergeBehavior.IncludePrivate
                 => HotChocolate.Fusion.Options.DirectiveMergeBehavior.IncludePrivate,
             _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null)
+        };
+
+    private static HotChocolate.Fusion.Options.EnumValuesMergeBehavior? ToEnumValuesMergeBehavior(
+        CompositionEnumValuesMergeBehavior? behavior)
+        => behavior switch
+        {
+            null => null,
+            CompositionEnumValuesMergeBehavior.Auto
+                => HotChocolate.Fusion.Options.EnumValuesMergeBehavior.Auto,
+            CompositionEnumValuesMergeBehavior.Strict
+                => HotChocolate.Fusion.Options.EnumValuesMergeBehavior.Strict,
+            CompositionEnumValuesMergeBehavior.Union
+                => HotChocolate.Fusion.Options.EnumValuesMergeBehavior.Union,
+            _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null)
+        };
+
+    private static ShareableFieldRuntimeTypeRouting? ToShareableFieldRuntimeTypeRouting(
+        CompositionShareableFieldRuntimeTypeRouting? routing)
+        => routing switch
+        {
+            null => null,
+            CompositionShareableFieldRuntimeTypeRouting.SourceLocal
+                => ShareableFieldRuntimeTypeRouting.SourceLocal,
+            CompositionShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
+                => ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+            _ => throw new ArgumentOutOfRangeException(nameof(routing), routing, null)
         };
 
     private static NodeResolution? ToNodeResultion(CompositionNodeResolution? nodeResolution)

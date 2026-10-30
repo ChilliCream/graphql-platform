@@ -390,6 +390,15 @@ public sealed class DocumentValidatorContext : IFeatureProvider
             _maxAllowedFragmentVisits = maxAllowedFragmentVisits;
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if the fragment of <paramref name="spread"/> exists and was not
+        /// visited yet, but the fragment visits are used up.
+        /// </summary>
+        internal bool IsRefusedByVisitLimit(FragmentSpreadNode spread)
+            => _fragmentVisits >= _maxAllowedFragmentVisits
+                && !_visited.Contains(spread.Name.Value)
+                && _fragments.ContainsKey(spread.Name.Value);
+
         internal void Reset()
         {
             _visited.Clear();

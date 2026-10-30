@@ -170,7 +170,7 @@ public class InterfaceFieldProjectionTests : IDisposable
 
     public class CompanyDbContext(DbContextOptions<CompanyDbContext> options) : DbContext(options)
     {
-        public DbSet<Employee> Employees => Set<Employee>();
+        public DbSet<Employee> Employees { get; set; }
     }
 
     public class PersonType : InterfaceType<IPerson>

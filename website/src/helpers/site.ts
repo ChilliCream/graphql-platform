@@ -2,7 +2,7 @@
 export const SITE_NAME = "ChilliCream";
 
 /** Default/brand title for the site (home page and `title.default`). */
-export const SITE_TITLE = "ChilliCream: GraphQL Platform for .NET";
+export const SITE_TITLE = "ChilliCream: The GraphQL Federation Platform";
 
 /** Twitter/X handle for `twitter:site`. */
 export const TWITTER_HANDLE = "@Chilli_Cream";

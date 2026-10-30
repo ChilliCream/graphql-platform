@@ -6,10 +6,10 @@ namespace GreenDonut.Data.TestContext;
 
 public class AnimalContext(string connectionString, IEnumerable<IInterceptor>? interceptors = null) : DbContext
 {
-    public DbSet<Owner> Owners { get; set; } = null!;
-    public DbSet<Animal> Pets { get; set; } = null!;
-    public DbSet<Dog> Dogs { get; set; } = null!;
-    public DbSet<Cat> Cats { get; set; } = null!;
+    public DbSet<Owner> Owners { get; set; }
+    public DbSet<Animal> Pets { get; set; }
+    public DbSet<Dog> Dogs { get; set; }
+    public DbSet<Cat> Cats { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

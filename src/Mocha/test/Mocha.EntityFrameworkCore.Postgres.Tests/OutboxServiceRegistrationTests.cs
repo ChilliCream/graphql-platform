@@ -12,6 +12,30 @@ public sealed class OutboxServiceRegistrationTests
     private const string ConnectionString = "Host=localhost;Database=test";
 
     [Fact]
+    public void UsePostgresOutbox_Should_DeferConfiguration_When_OptionsHaveNotBeenResolved()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        var configureCount = 0;
+
+        // act
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(
+            ef => ef.UsePostgresOutbox(options =>
+            {
+                configureCount++;
+                options.RequireTransaction = false;
+            }));
+
+        // assert
+        Assert.Equal(0, configureCount);
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>()
+            .Get(typeof(TestDbContext).FullName);
+        Assert.False(options.RequireTransaction);
+        Assert.Equal(1, configureCount);
+    }
+
+    [Fact]
     public async Task UsePostgresOutbox_Should_RegisterHostedService_When_Called()
     {
         // Arrange
@@ -79,13 +103,15 @@ public sealed class OutboxServiceRegistrationTests
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
         var contextName = typeof(TestDbContext).FullName;
         var options = optionsMonitor.Get(contextName);
+        await using var scope = provider.CreateAsyncScope();
+        await using var connection = options.CreateConnection(scope.ServiceProvider);
 
         // Assert
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.InsertEnvelope));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.NextPollingInterval));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.ProcessEvent));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.DeleteEvent));
-        Assert.False(string.IsNullOrWhiteSpace(options.ConnectionString));
+        Assert.Equal(ConnectionString, connection.ConnectionString);
     }
 
     private static ServiceProvider BuildProvider()

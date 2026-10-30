@@ -6,6 +6,10 @@ This file provides guidance to coding agents when working with this repository.
 
 - Do not add `Co-authored-by` trailers or other co-author attribution for agents.
 
+## Commit Messages
+
+- Wrap every `@`-prefixed token in backticks, so GitHub does not turn it into a mention. This covers directive names, package scopes, and user handles: ``Fix pruning of list-wrapped `@require` input types``.
+
 ## Pull Requests
 
 - Start a bug fix PR title with `Fix`: `Fix the gateway ignoring subgraph timeouts`. The title becomes the squash commit subject and the release note entry.
@@ -15,12 +19,14 @@ This file provides guidance to coding agents when working with this repository.
 
 ### Website
 
-Use `yarn` instead of `npm`.
+Use `npm`.
 
 ```bash
 cd website
-yarn
+npm ci
 ```
+
+npm 11 before 11.21.1 and npm 12 before 12.2.1 write `allowScripts` entries from `npm install-scripts approve` that npm cannot match under the linked install strategy ([npm/cli#9939](https://github.com/npm/cli/issues/9939)), so on those versions add approvals by hand as `"<package>@<version>": true`.
 
 ### C# Source Code
 
@@ -37,6 +43,10 @@ Each area has its own solution file, so you can build or test a subset directly:
 ```bash
 dotnet test src/HotChocolate/Fusion
 ```
+
+## Updating .NET
+
+When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK version in `global.json`, work through [docs/updating-dotnet.md](docs/updating-dotnet.md) before handoff.
 
 ## Code Quality
 
@@ -92,6 +102,25 @@ This is framework code, performance matters. Aim for zero allocations on hot pat
 ### C# / .NET
 
 If you need to search for packages on nuget.org, use the `dotnet` CLI, e.g. `dotnet package search HotChocolate`.
+
+### Profiling
+
+The dev container has `dotnet-trace`, `dotnet-counters`, `dotnet-gcdump`, `dotnet-dump`, `dotnet-symbol`, `dottrace` and `dotmemory` installed. Versions are pinned in `.devcontainer/dockerfile`, and `docs/profiling.md` has the full commands and caveats. The tools attach to a running process in the same container. Write outputs to `perf/<label>-<git-short-sha>/`, which is gitignored.
+
+```bash
+OUT=perf/<label>-$(git rev-parse --short HEAD); mkdir -p "$OUT"
+dotnet-trace ps
+dotnet-trace collect -p <pid> --duration 00:00:00:30 --format speedscope -o "$OUT/cpu.nettrace"
+dotnet-trace report "$OUT/cpu.nettrace" topN -n 25 --inclusive
+dotnet-trace collect -p <pid> --profile gc-verbose --duration 00:00:00:15 -o "$OUT/alloc.nettrace"
+dotnet-gcdump collect -p <pid> -o "$OUT/heap.gcdump" && dotnet-gcdump report "$OUT/heap.gcdump" > "$OUT/heap-report.txt"
+dotnet-counters collect -p <pid> --format json -o "$OUT/counters.json" --duration 00:00:00:20 --counters System.Runtime,Microsoft.AspNetCore.Hosting,System.Net.Http
+```
+
+- Profile Release builds. Debug builds distort time and allocations.
+- Sampling gives time, not call counts. Call counts need dotTrace Tracing mode, which only `dottrace start` offers; `dottrace attach` is limited to Sampling and Timeline.
+- On Linux, EventPipe samples measure thread time. Ignore idle thread pool frames such as `LowLevelLifoSemaphore.WaitForSignal` and `WaitHandle.WaitOneNoCheck`.
+- `.dtp` (dotTrace) and `.dmw` (dotMemory) snapshots are for Rider on the host. Use the `dotnet-trace` and `dotnet-gcdump` outputs for analysis inside the container.
 
 ### Nitro persisted operations (Fusion Aspire)
 

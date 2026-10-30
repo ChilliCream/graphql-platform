@@ -57,12 +57,12 @@ export const WithLabel: Story = {
 const PRODUCTS_WITH_DESCRIPTIONS = [
   {
     title: "Hot Chocolate",
-    description: "GraphQL Server / Gateway",
+    description: "GraphQL Server",
     active: true,
   },
   {
     title: "Fusion",
-    description: "Federated GraphQL Gateway",
+    description: "GraphQL Federation Gateway",
     active: false,
   },
   {

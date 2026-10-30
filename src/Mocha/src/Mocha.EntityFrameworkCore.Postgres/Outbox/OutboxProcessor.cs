@@ -18,7 +18,8 @@ public sealed class PostgresOutboxProcessor
     private readonly IMessagingRuntime _runtime;
     private readonly IOutboxSignal _signal;
     private readonly ObjectPool<DispatchContext> _contextPool;
-    private readonly PostgresMessageOutboxQueries _queries;
+    private readonly PostgresMessageOutboxOptions _options;
+    private readonly TimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgresOutboxProcessor"/> class.
@@ -38,8 +39,8 @@ public sealed class PostgresOutboxProcessor
     /// <param name="signal">
     /// The signal used to wake the processor when new outbox messages are enqueued.
     /// </param>
-    /// <param name="queries">
-    /// The SQL query definitions for Postgres outbox table operations.
+    /// <param name="options">
+    /// The outbox options containing the SQL queries and connection factory.
     /// </param>
     internal PostgresOutboxProcessor(
         ILogger<PostgresOutboxProcessor> logger,
@@ -47,65 +48,43 @@ public sealed class PostgresOutboxProcessor
         IMessagingRuntime runtime,
         IMessagingPools pools,
         IOutboxSignal signal,
-        PostgresMessageOutboxQueries queries)
+        PostgresMessageOutboxOptions options)
     {
         _logger = logger;
         _services = services;
         _runtime = runtime;
         _signal = signal;
         _contextPool = pools.DispatchContext;
-        _queries = queries;
+        _options = options;
+        _timeProvider = services.GetService<TimeProvider>() ?? TimeProvider.System;
     }
 
     /// <summary>
-    /// Runs the outbox processing loop, dispatching one message per iteration and sleeping
+    /// Runs the outbox processing loop, dispatching pending messages and waiting
     /// until the next message is due or a signal is received.
     /// </summary>
-    /// <remarks>
-    /// The loop continues until <paramref name="cancellationToken"/> is cancelled. Each iteration
-    /// locks a single outbox row using <c>FOR UPDATE SKIP LOCKED</c>, dispatches the envelope,
-    /// and deletes the row on success. Messages that fail are retried with exponential backoff
-    /// up to 10 attempts before being dropped.
-    /// </remarks>
-    /// <param name="connection">An open Postgres connection to use for outbox queries.</param>
     /// <param name="cancellationToken">A token that signals when the processor should stop.</param>
-    public async Task ProcessAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
+    public async Task ProcessAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var activity = OpenTelemetry.Source.StartActivity(
-                "Process Message Outbox",
-                ActivityKind.Consumer,
-                new ActivityContext());
-
             using var joinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             try
             {
                 var signaled = _signal.WaitAsync(joinedCts.Token);
 
-                var result = await ProcessEventAsync(connection, cancellationToken);
+                var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
 
-                if (!result)
+                if (nextPollingInterval is not null)
                 {
-                    var nextPollingInterval = await GetNextPollingIntervalAsync(connection, cancellationToken);
+                    _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
 
-                    activity?.Dispose();
-
-                    if (nextPollingInterval is not null)
-                    {
-                        _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
-
-                        await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
-                    }
-                    else
-                    {
-                        await signaled;
-                    }
+                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
                 }
                 else
                 {
-                    activity?.Dispose();
+                    await signaled;
                 }
             }
             catch (OperationCanceledException)
@@ -120,12 +99,34 @@ public sealed class PostgresOutboxProcessor
         }
     }
 
+    private async ValueTask<TimeSpan?> ProcessPendingAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = _services.CreateAsyncScope();
+        await using var connection = _options.CreateConnection(scope.ServiceProvider);
+        await connection.OpenAsync(cancellationToken);
+
+        while (true)
+        {
+            using var activity = OpenTelemetry.Source.StartActivity(
+                "Process Message Outbox",
+                ActivityKind.Consumer,
+                new ActivityContext());
+
+            if (!await ProcessEventAsync(connection, cancellationToken))
+            {
+                return await GetNextPollingIntervalAsync(connection, cancellationToken);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+    }
+
     private async Task<TimeSpan?> GetNextPollingIntervalAsync(
         NpgsqlConnection connection,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = _queries.NextPollingInterval;
+        command.CommandText = _options.Queries.NextPollingInterval;
         await command.PrepareAsync(cancellationToken);
 
         var result = await command.ExecuteScalarAsync(cancellationToken);
@@ -147,7 +148,7 @@ public sealed class PostgresOutboxProcessor
             // Lock an event for processing and increment TimesSent in case of failure
             await using var command = connection.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = _queries.ProcessEvent;
+            command.CommandText = _options.Queries.ProcessEvent;
 
             await command.PrepareAsync(cancellationToken);
 
@@ -159,21 +160,43 @@ public sealed class PostgresOutboxProcessor
                 {
                     var id = reader.GetGuid(0);
                     var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
-                    var messageType = GetMessageType(envelope?.MessageType);
-                    var isReply = envelope?.Headers?.IsReply() ?? false;
-                    var endpoint = isReply
-                        ? GetReplyDispatchEndpoint(envelope?.DestinationAddress)
-                        : GetDispatchEndpoint(envelope?.DestinationAddress);
+                    var timesSent = reader.GetInt32(2);
 
-                    if (envelope is null || messageType is null || endpoint is null)
+                    // A message this instance cannot read or route stays in the outbox and is
+                    // retried after its backoff.
+                    if (envelope is null)
                     {
                         _logger.CouldNotDeserializeMessageBody(id);
+                        LogIfExhausted(id, timesSent);
 
+                        return true;
+                    }
+
+                    if (envelope.DeliverBy is { } deadline && deadline <= _timeProvider.GetUtcNow())
+                    {
                         await reader.CloseAsync();
-
                         await DeleteEventAsync(connection, id, transaction, cancellationToken);
+                        _logger.OutboxMessageExpired(id);
+                        return true;
+                    }
 
-                        // we skipped this message yet, still have to check for the next ones
+                    var messageType = GetMessageType(envelope.MessageType);
+
+                    if (messageType is null)
+                    {
+                        _logger.CouldNotResolveMessageType(id, envelope.MessageType);
+                        LogIfExhausted(id, timesSent);
+
+                        return true;
+                    }
+
+                    var endpoint = ResolveDispatchEndpoint(envelope);
+
+                    if (endpoint is null)
+                    {
+                        _logger.CouldNotDetermineDestination(id, envelope.DestinationAddress);
+                        LogIfExhausted(id, timesSent);
+
                         return true;
                     }
 
@@ -220,6 +243,14 @@ public sealed class PostgresOutboxProcessor
         }
     }
 
+    private void LogIfExhausted(Guid id, int timesSent)
+    {
+        if (timesSent >= PostgresMessageOutboxQueries.MaxAttempts)
+        {
+            _logger.OutboxMessageExhausted(id, PostgresMessageOutboxQueries.MaxAttempts);
+        }
+    }
+
     private MessageType? GetMessageType(string? messageType)
     {
         try
@@ -235,6 +266,13 @@ public sealed class PostgresOutboxProcessor
         {
             return null;
         }
+    }
+
+    private DispatchEndpoint? ResolveDispatchEndpoint(MessageEnvelope envelope)
+    {
+        return envelope.Headers?.IsReplyOrFault() ?? false
+            ? GetReplyDispatchEndpoint(envelope.DestinationAddress)
+            : GetDispatchEndpoint(envelope.DestinationAddress);
     }
 
     private DispatchEndpoint? GetReplyDispatchEndpoint(string? destinationAddress)
@@ -324,7 +362,7 @@ public sealed class PostgresOutboxProcessor
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = _queries.DeleteEvent;
+        command.CommandText = _options.Queries.DeleteEvent;
         command.Connection = connection;
         command.Transaction = transaction;
         command.Parameters.AddWithValue("@EventId", eventId);
@@ -339,21 +377,39 @@ internal static partial class Logs
 {
     [LoggerMessage(
         1,
-        LogLevel.Critical,
-        "Could not deserialize message body for message with ID {Id}. Message Dropped.")]
+        LogLevel.Warning,
+        "Could not deserialize message body for message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotDeserializeMessageBody(this ILogger logger, Guid id);
 
     [LoggerMessage(2, LogLevel.Error, "Message with ID {Id} was not an event request.")]
     public static partial void SendMessageWasNotAnEventRequest(this ILogger logger, Guid id);
 
-    [LoggerMessage(3, LogLevel.Error, "Could not determine destination for message with ID {Id}. Message Discarded.")]
-    public static partial void CouldNotDetermineDestination(this ILogger logger, Guid id);
+    [LoggerMessage(
+        3,
+        LogLevel.Warning,
+        "Could not resolve a dispatch endpoint for the destination {DestinationAddress} of message with ID {Id}. The message will be retried.")]
+    public static partial void CouldNotDetermineDestination(this ILogger logger, Guid id, string? destinationAddress);
 
     [LoggerMessage(4, LogLevel.Information, "Outbox processor is sleeping for {NextPollingInterval}.")]
     public static partial void OutboxProcessorSleeping(this ILogger logger, TimeSpan nextPollingInterval);
 
     [LoggerMessage(5, LogLevel.Error, "An unexpected error occurred while processing outbox event")]
     public static partial void UnexpectedErrorWhileProcessingOutboxEvent(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        6,
+        LogLevel.Warning,
+        "Could not resolve the message type {MessageType} of message with ID {Id}. The message will be retried.")]
+    public static partial void CouldNotResolveMessageType(this ILogger logger, Guid id, string? messageType);
+
+    [LoggerMessage(
+        7,
+        LogLevel.Critical,
+        "Message with ID {Id} exhausted all {MaxAttempts} attempts and will not be retried.")]
+    public static partial void OutboxMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
+
+    [LoggerMessage(8, LogLevel.Information, "Expired outbox message with ID {Id} was discarded.")]
+    public static partial void OutboxMessageExpired(this ILogger logger, Guid id);
 }
 
 file static class Serializer

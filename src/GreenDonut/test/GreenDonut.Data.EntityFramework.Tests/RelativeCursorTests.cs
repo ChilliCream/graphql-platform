@@ -1843,7 +1843,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
             optionsBuilder.UseNpgsql(connectionString);
         }
 
-        public DbSet<Brand> Brands => Set<Brand>();
+        public DbSet<Brand> Brands { get; set; }
     }
 
     public class Brand

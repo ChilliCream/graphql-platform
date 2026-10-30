@@ -126,7 +126,7 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_192dc5f8_2($__fusion_1_id: Int!) {
               bookById(id: $__fusion_1_id) {
@@ -134,16 +134,10 @@ sourceSchemas:
               }
             }
           variables: |
-            [
-              {
-                "__fusion_1_id": 1
-              },
-              {
-                "__fusion_1_id": 2
-              }
-            ]
+            {
+              "__fusion_1_id": 1
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -153,6 +147,20 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_192dc5f8_4($__fusion_2_id: Int!) {
+              bookById(id: $__fusion_2_id) {
+                author
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": 2
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -196,6 +204,23 @@ operationPlan:
             }
           }
         }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_192dc5f8_2($__fusion_1_id: Int!) {
+          bookById(id: $__fusion_1_id) {
+            author
+          }
+        }
+      source: $.bookById
+      target: $.a.book
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
     - id: 3
       type: Operation
       schema: A
@@ -208,24 +233,20 @@ operationPlan:
             }
           }
         }
-    - id: 2
-      type: OperationBatch
+    - id: 4
+      type: Operation
       schema: B
       operation: |
-        query Op_192dc5f8_2($__fusion_1_id: Int!) {
-          bookById(id: $__fusion_1_id) {
+        query Op_192dc5f8_4($__fusion_2_id: Int!) {
+          bookById(id: $__fusion_2_id) {
             author
           }
         }
       source: $.bookById
-      targets:
-        - $.a.book
-        - $.b.book
-      batchingGroupId: 5
+      target: $.b.book
       requirements:
-        - name: __fusion_1_id
+        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
-        - id: 1
         - id: 3

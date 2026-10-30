@@ -15,7 +15,7 @@ response:
     {
       "data": {
         "product": {
-          "id": "UHJvZHVjdDox",
+          "id": "UHJvZHVjdDoxMDQzMzExNzcz",
           "brand": null
         }
       },
@@ -67,9 +67,9 @@ sourceSchemas:
               {
                 "data": {
                   "product": {
-                    "id": "UHJvZHVjdDox",
+                    "id": "UHJvZHVjdDoxMDQzMzExNzcz",
                     "brand": {
-                      "id": "QnJhbmQ6Mg=="
+                      "id": "QnJhbmQ6MTk0NzM3NjE4Mw=="
                     }
                   }
                 }
@@ -99,7 +99,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "QnJhbmQ6Mg=="
+              "__fusion_1_id": "QnJhbmQ6MTk0NzM3NjE4Mw=="
             }
         response:
           statusCode: 500

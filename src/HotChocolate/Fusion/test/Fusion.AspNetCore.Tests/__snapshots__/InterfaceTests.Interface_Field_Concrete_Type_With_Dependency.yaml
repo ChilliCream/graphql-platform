@@ -65,7 +65,7 @@ sourceSchemas:
                   "votable": {
                     "__typename": "Discussion",
                     "viewerCanVote": true,
-                    "id": "RGlzY3Vzc2lvbjox"
+                    "id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy"
                   }
                 }
               }
@@ -94,7 +94,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+              "__fusion_1_id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy"
             }
         response:
           results:

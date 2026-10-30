@@ -23,13 +23,13 @@ stableResponseStream: |
         "b": "Query",
         "products": [
           {
-            "id": "UHJvZHVjdDox"
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
           },
           {
-            "id": "UHJvZHVjdDoy"
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5"
           },
           {
-            "id": "UHJvZHVjdDoz"
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
           }
         ]
       }
@@ -56,13 +56,13 @@ stableResponseStream: |
         "b": "Query",
         "products": [
           {
-            "id": "UHJvZHVjdDox"
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
           },
           {
-            "id": "UHJvZHVjdDoy"
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5"
           },
           {
-            "id": "UHJvZHVjdDoz"
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
           }
         ]
       }
@@ -103,13 +103,13 @@ sourceSchemas:
                   "b": "Query",
                   "products": [
                     {
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
                     },
                     {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDozOTM1NzEyMDU5"
                     },
                     {
-                      "id": "UHJvZHVjdDoz"
+                      "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
                     }
                   ]
                 }
@@ -170,7 +170,7 @@ operationPlan:
           fieldName: __typename
   deliveryGroups:
     - id: 0
-      path: $.products
+      path: $
   incrementalPlans:
     - deliveryGroupIds:
         - 0

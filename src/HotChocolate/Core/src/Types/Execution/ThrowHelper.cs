@@ -349,4 +349,10 @@ internal static class ThrowHelper
 
     public static NotSupportedException MultiPartFormatter_ResultNotSupported(string typeName)
         => new(string.Format(ThrowHelper_JsonFormatter_ResultNotSupported, typeName));
+
+    public static GraphQLException OperationCompiler_TooManySelections()
+        => new(
+            ErrorBuilder.New()
+                .SetMessage("The operation exceeds the maximum allowed number of selections and selection sets.")
+                .Build());
 }

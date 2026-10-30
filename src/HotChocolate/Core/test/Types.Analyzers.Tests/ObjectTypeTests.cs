@@ -1096,6 +1096,39 @@ public class ObjectTypeTests
     }
 
     [Fact]
+    public async Task BatchResolver_With_KeyedService_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class GreetingService
+            {
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    [Service("greeting")] GreetingService greetingService)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task BatchResolver_With_Argument_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
@@ -1196,6 +1229,41 @@ public class ObjectTypeTests
                 [BindMember(nameof(User.Email))]
                 public static string GetEmailFormatted([Parent] User user)
                     => $"Email: {user.Email}";
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task CustomAttribute_On_NodeResolver_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Reflection;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Descriptors;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            public sealed class FooAttribute(string name) : ObjectFieldDescriptorAttribute
+            {
+                public string Name { get; } = name;
+
+                protected override void OnConfigure(
+                    IDescriptorContext context,
+                    IObjectFieldDescriptor descriptor,
+                    MemberInfo? member)
+                    => descriptor.Directive(Name);
+            }
+
+            public sealed record Product(int Id, string Name);
+
+            [ObjectType<Product>]
+            public static partial class ProductNode
+            {
+                [NodeResolver]
+                [Foo("bar")]
+                public static Product GetProduct(int id) => new(id, "abc");
             }
             """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }

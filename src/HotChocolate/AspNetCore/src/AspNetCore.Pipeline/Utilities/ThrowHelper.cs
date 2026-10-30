@@ -44,6 +44,12 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Server.MaxRequestSize)
             .Build());
 
+    public static GraphQLRequestException RequestBodyTooLarge() =>
+        new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_RequestBodyTooLarge)
+            .SetCode(ErrorCodes.Server.RequestBodyTooLarge)
+            .Build());
+
     public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(Exception ex) =>
         new GraphQLRequestException(
             ErrorBuilder.New()
@@ -123,6 +129,38 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Server.MultiPartMapNotSpecified)
                 .Build());
 
+    public static InvalidOperationException MultipartFormReader_AntiforgeryValidationFailed() =>
+        new(ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed);
+
+    public static InvalidDataException MultipartFormReader_BoundaryLengthLimitExceeded(int limit) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_BoundaryLengthLimitExceeded, limit));
+
+    public static InvalidOperationException MultipartFormReader_IncorrectContentType(
+        string? contentType) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_IncorrectContentType, contentType));
+
+    public static InvalidDataException MultipartFormReader_InvalidContentDisposition(
+        string? contentDisposition) =>
+        new(string.Format(
+            ThrowHelper_MultipartFormReader_InvalidContentDisposition,
+            contentDisposition));
+
+    public static InvalidDataException MultipartFormReader_MissingBoundary() =>
+        new(ThrowHelper_MultipartFormReader_MissingBoundary);
+
+    public static GraphQLRequestException MultipartFormReader_SectionTooLarge(string name) =>
+        new(ErrorBuilder.New()
+            .SetMessage(ThrowHelper_MultipartFormReader_SectionTooLarge, name)
+            .SetCode(ErrorCodes.Server.MultiPartSectionTooLarge)
+            .Build());
+
+    public static DirectoryNotFoundException MultipartFormReader_TempDirectoryNotFound(
+        string directory) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_TempDirectoryNotFound, directory));
+
+    public static InvalidDataException MultipartFormReader_ValueCountLimitExceeded(int limit) =>
+        new(string.Format(ThrowHelper_MultipartFormReader_ValueCountLimitExceeded, limit));
+
     public static NotSupportedException Formatter_ResultKindNotSupported()
         => new(ThrowHelper_Formatter_ResultKindNotSupported);
 
@@ -137,4 +175,13 @@ internal static class ThrowHelper
             paramName,
             transportVersion,
             string.Format(ThrowHelper_Formatter_TransportVersionNotSupported, transportVersion));
+
+    public static ArgumentOutOfRangeException ResponseBodyBuffer_AdvanceNegative(int bytes)
+        => new(nameof(bytes), bytes, ThrowHelper_ResponseBodyBuffer_AdvanceNegative);
+
+    public static InvalidOperationException ResponseBodyBuffer_AdvancePastBuffer()
+        => new(ThrowHelper_ResponseBodyBuffer_AdvancePastBuffer);
+
+    public static InvalidOperationException ResponseBodyBuffer_WriterCompleted()
+        => new(ThrowHelper_ResponseBodyBuffer_WriterCompleted);
 }

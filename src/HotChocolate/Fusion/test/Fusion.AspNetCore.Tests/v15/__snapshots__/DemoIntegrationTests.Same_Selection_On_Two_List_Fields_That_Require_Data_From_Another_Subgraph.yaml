@@ -21,40 +21,40 @@ response:
       "data": {
         "productsA": [
           {
-            "id": "UHJvZHVjdDox",
-            "name": "Product: UHJvZHVjdDox",
+            "id": "UHJvZHVjdDoxMzMwODI0Mjcx",
+            "name": "Product: UHJvZHVjdDoxMzMwODI0Mjcx",
             "price": 123.456,
             "reviewCount": 123
           },
           {
-            "id": "UHJvZHVjdDoy",
-            "name": "Product: UHJvZHVjdDoy",
+            "id": "UHJvZHVjdDozNDA3NzgyNjc0",
+            "name": "Product: UHJvZHVjdDozNDA3NzgyNjc0",
             "price": 123.456,
             "reviewCount": 123
           },
           {
-            "id": "UHJvZHVjdDoz",
-            "name": "Product: UHJvZHVjdDoz",
+            "id": "UHJvZHVjdDoyNzI4ODE4NjYx",
+            "name": "Product: UHJvZHVjdDoyNzI4ODE4NjYx",
             "price": 123.456,
             "reviewCount": 123
           }
         ],
         "productsB": [
           {
-            "id": "UHJvZHVjdDo0",
-            "name": "Product: UHJvZHVjdDo0",
+            "id": "UHJvZHVjdDozMTEyNDkyOTE2",
+            "name": "Product: UHJvZHVjdDozMTEyNDkyOTE2",
             "price": 123.456,
             "reviewCount": 123
           },
           {
-            "id": "UHJvZHVjdDo1",
-            "name": "Product: UHJvZHVjdDo1",
+            "id": "UHJvZHVjdDoxODE0NzM0ODA1",
+            "name": "Product: UHJvZHVjdDoxODE0NzM0ODA1",
             "price": 123.456,
             "reviewCount": 123
           },
           {
-            "id": "UHJvZHVjdDo2",
-            "name": "Product: UHJvZHVjdDo2",
+            "id": "UHJvZHVjdDozNDg1MDkxNDcz",
+            "name": "Product: UHJvZHVjdDozNDg1MDkxNDcz",
             "price": 123.456,
             "reviewCount": 123
           }
@@ -103,30 +103,30 @@ sourceSchemas:
                 "data": {
                   "productsA": [
                     {
-                      "id": "UHJvZHVjdDox",
-                      "name": "Product: UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDoxMzMwODI0Mjcx",
+                      "name": "Product: UHJvZHVjdDoxMzMwODI0Mjcx"
                     },
                     {
-                      "id": "UHJvZHVjdDoy",
-                      "name": "Product: UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDozNDA3NzgyNjc0",
+                      "name": "Product: UHJvZHVjdDozNDA3NzgyNjc0"
                     },
                     {
-                      "id": "UHJvZHVjdDoz",
-                      "name": "Product: UHJvZHVjdDoz"
+                      "id": "UHJvZHVjdDoyNzI4ODE4NjYx",
+                      "name": "Product: UHJvZHVjdDoyNzI4ODE4NjYx"
                     }
                   ],
                   "productsB": [
                     {
-                      "id": "UHJvZHVjdDo0",
-                      "name": "Product: UHJvZHVjdDo0"
+                      "id": "UHJvZHVjdDozMTEyNDkyOTE2",
+                      "name": "Product: UHJvZHVjdDozMTEyNDkyOTE2"
                     },
                     {
-                      "id": "UHJvZHVjdDo1",
-                      "name": "Product: UHJvZHVjdDo1"
+                      "id": "UHJvZHVjdDoxODE0NzM0ODA1",
+                      "name": "Product: UHJvZHVjdDoxODE0NzM0ODA1"
                     },
                     {
-                      "id": "UHJvZHVjdDo2",
-                      "name": "Product: UHJvZHVjdDo2"
+                      "id": "UHJvZHVjdDozNDg1MDkxNDcz",
+                      "name": "Product: UHJvZHVjdDozNDg1MDkxNDcz"
                     }
                   ]
                 }
@@ -167,22 +167,22 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDo0"
+                "__fusion_1_id": "UHJvZHVjdDozMTEyNDkyOTE2"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo1"
+                "__fusion_1_id": "UHJvZHVjdDoxODE0NzM0ODA1"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo2"
+                "__fusion_1_id": "UHJvZHVjdDozNDg1MDkxNDcz"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDox"
+                "__fusion_1_id": "UHJvZHVjdDoxMzMwODI0Mjcx"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoy"
+                "__fusion_1_id": "UHJvZHVjdDozNDA3NzgyNjc0"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoz"
+                "__fusion_1_id": "UHJvZHVjdDoyNzI4ODE4NjYx"
               }
             ]
         response:

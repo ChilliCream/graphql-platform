@@ -32,10 +32,12 @@ public static class LogEntryCodes
     public const string FederationV1DirectiveNotSupported =
         "FEDERATION_V1_DIRECTIVE_NOT_SUPPORTED";
     public const string FieldArgumentTypesNotMergeable = "FIELD_ARGUMENT_TYPES_NOT_MERGEABLE";
+    public const string FieldArgumentNotShared = "FIELD_ARGUMENT_NOT_SHARED";
     public const string FieldWithMissingRequiredArgument = "FIELD_WITH_MISSING_REQUIRED_ARGUMENT";
     public const string ImplementedByInaccessible = "IMPLEMENTED_BY_INACCESSIBLE";
     public const string ImplementWithoutDefault = "IMPLEMENT_WITHOUT_DEFAULT";
     public const string InputFieldDefaultMismatch = "INPUT_FIELD_DEFAULT_MISMATCH";
+    public const string InputFieldNotShared = "INPUT_FIELD_NOT_SHARED";
     public const string InputFieldTypesNotMergeable = "INPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string InputWithMissingRequiredFields = "INPUT_WITH_MISSING_REQUIRED_FIELDS";
     public const string InputWithMissingOneOf = "INPUT_WITH_MISSING_ONEOF";
@@ -102,5 +104,6 @@ public static class LogEntryCodes
         "EVENT_STREAM_MESSAGE_ABSTRACT_TYPE_REQUIRES_TYPENAME";
     public const string EventStreamTopicsEmpty = "EVENT_STREAM_TOPICS_EMPTY";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
+    public const string UnreachableSourceField = "UNREACHABLE_SOURCE_FIELD";
     public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
 }

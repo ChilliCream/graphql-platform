@@ -4,13 +4,23 @@ using System.Net.Http.Json;
 #endif
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore;
 
 public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
+    private const string OperationIdUrl =
+        "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg";
+    private const string OperationNameUrl = OperationIdUrl + "/GetHeroName";
+
     private static readonly HttpMethod s_queryMethod = new("QUERY");
 
     [Fact]
@@ -242,6 +252,209 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
+    public async Task Get_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql/persisted/abc123?variables="
+            + Uri.EscapeDataString("""[{ "if": true }, { "if": false }]"""),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Get_Should_RefuseVariableBatch_When_MaxBatchSizeIsExceeded()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.MaxBatchSize = 1));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql/persisted/abc123?variables="
+            + Uri.EscapeDataString("""[{ "if": true }, { "if": false }]"""),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "The batch size exceeds the maximum allowed batch size of 1.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 1.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Post_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql/persisted/abc123",
+            new StringContent(
+                """{ "variables": [{ "if": true }, { "if": false }] }""",
+                Encoding.UTF8,
+                "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Post_Should_RefuseVariableBatch_When_MaxBatchSizeIsExceeded()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.MaxBatchSize = 1));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql/persisted/abc123",
+            new StringContent(
+                """{ "variables": [{ "if": true }, { "if": false }] }""",
+                Encoding.UTF8,
+                "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "The batch size exceeds the maximum allowed batch size of 1.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 1.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, "text/plain", HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Legacy, null, HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "text/plain",
+        HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.Draft20260903, null, HttpStatusCode.UnsupportedMediaType)]
+    public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
+        HttpTransportVersion transportVersion,
+        string? contentType,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+        request.Content = CreateContent("{ }", contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(
+            "",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task Query_Should_ExecutePersistedOperation_When_QueryRequestsAreEnabled()
     {
         // arrange
@@ -266,7 +479,9 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 34
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -302,7 +517,9 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 20
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -335,7 +552,9 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 71
                 -------------------------->
                 Status Code: UnprocessableEntity
                 -------------------------->
@@ -343,8 +562,100 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 """);
     }
 
+    [Theory]
+    [InlineData(false, new[] { "GET", "HEAD" }, null)]
+    [InlineData(true, new[] { "GET", "HEAD", "QUERY" }, "application/json")]
+    public async Task Post_Should_RefusePersistedQuery_When_QueriesOverPostAreOff(
+        bool enableQueryRequests,
+        string[] expectedAllow,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(
+                    o =>
+                    {
+                        o.EnableQueriesOverPost = false;
+                        o.EnableQueryRequests = enableQueryRequests;
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            OperationNameUrl,
+            new StringContent("{ }", Encoding.UTF8, "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Equal(
+            expectedAcceptQuery,
+            response.Headers.TryGetValues("Accept-Query", out var values)
+                ? Assert.Single(values)
+                : null);
+    }
+
     [Fact]
-    public async Task Query_Should_ReturnBadRequest_When_VariablesIsArray()
+    public async Task Post_Should_ExecutePersistedMutation_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql/persisted/createReview/CreateReview",
+            new StringContent("{ }", Encoding.UTF8, "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"createReview":{"stars":5}}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("HEAD")]
+    public async Task Request_Should_ListQuery_When_PersistedQueryIsRefusedAndQueriesOverPostAreOff(
+        string method)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(
+                    o =>
+                    {
+                        o.EnableQueriesOverPost = false;
+                        o.AllowedGetOperations = AllowedGetOperations.Mutation;
+                        o.EnableQueryRequests = true;
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(new HttpMethod(method), OperationNameUrl);
+        request.Headers.Add("Accept", "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
+    [Fact]
+    public async Task Query_Should_ExecuteEachVariableSet_When_VariablesIsArray()
     {
         // arrange
         var server = CreateStarWarsServer(
@@ -361,17 +672,66 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             """{ "variables": [{ "if": true }, { "if": false }] }""",
             Encoding.UTF8,
             "application/json");
+        request.Headers.Add("Accept", "application/jsonl");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("no-cache", response.Headers.CacheControl?.ToString());
+        Assert.Collection(
+            body
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .OrderBy(line => JsonNode.Parse(line)!["variableIndex"]!.GetValue<int>()),
+            line => Assert.Equal("""{"variableIndex":0,"data":{"hero":{}}}""", line),
+            line => Assert.Equal(
+                """{"variableIndex":1,"data":{"hero":{"name":"R2-D2"}}}""",
+                line));
+    }
+
+    [Fact]
+    public async Task Query_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(
+                    o =>
+                    {
+                        o.EnableQueryRequests = true;
+                        o.Batching = AllowedBatching.None;
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            s_queryMethod,
+            "http://localhost:5000/graphql/persisted/abc123");
+        request.Content = new StringContent(
+            """{ "variables": [{ "if": true }, { "if": false }] }""",
+            Encoding.UTF8,
+            "application/json");
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
         Snapshot
             .Create()
             .Add(response)
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -399,5 +759,452 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         // assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Empty(response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, "text/plain", HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Legacy, null, HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound, null)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "text/plain",
+        HttpStatusCode.UnsupportedMediaType,
+        "application/json")]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        null,
+        HttpStatusCode.UnsupportedMediaType,
+        "application/json")]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
+        HttpTransportVersion transportVersion,
+        string? contentType,
+        HttpStatusCode expectedStatusCode,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    })
+                .ModifyServerOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            s_queryMethod,
+            "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+        request.Content = CreateContent("{ }", contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(
+            expectedAcceptQuery,
+            response.Headers.TryGetValues("Accept-Query", out var acceptQuery)
+                ? string.Join(", ", acceptQuery)
+                : null);
+        Assert.Equal(
+            "",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("HEAD")]
+    [InlineData("POST")]
+    [InlineData("QUERY")]
+    public async Task Request_Should_ReturnVaryAccept_When_PersistedOperationIsExecuted(
+        string method)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            new HttpMethod(method),
+            "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+
+        if (method is not ("GET" or "HEAD"))
+        {
+            request.Content = new StringContent("{ }", Encoding.UTF8, "application/json");
+        }
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    // TestServer does not suppress the content of a HEAD response, so only the status and headers
+    // are compared with those of a GET.
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, OperationIdUrl)]
+    [InlineData(HttpTransportVersion.Legacy, OperationNameUrl)]
+    [InlineData(HttpTransportVersion.Draft20250508, OperationIdUrl)]
+    [InlineData(HttpTransportVersion.Draft20250508, OperationNameUrl)]
+    [InlineData(HttpTransportVersion.Draft20260903, OperationIdUrl)]
+    [InlineData(HttpTransportVersion.Draft20260903, OperationNameUrl)]
+    public async Task Head_Should_AnswerAsGet_When_PersistedOperationIsRequested(
+        HttpTransportVersion transportVersion,
+        string url)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var getRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        using var getResponse = await client.SendAsync(
+            getRequest,
+            TestContext.Current.CancellationToken);
+
+        using var headRequest = new HttpRequestMessage(HttpMethod.Head, url);
+        using var headResponse = await client.SendAsync(
+            headRequest,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, headResponse.StatusCode);
+        Assert.Equal(
+            getResponse.Content.Headers.ContentType?.ToString(),
+            headResponse.Content.Headers.ContentType?.ToString());
+    }
+
+    [Fact]
+    public async Task Head_Should_ReturnMethodNotAllowed_When_PersistedMutationIsRequested()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Head,
+            "http://localhost:5000/graphql/persisted/createReview/CreateReview");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["POST"], response.Content.Headers.Allow);
+    }
+
+    // A method the persisted routes do not map is answered as on the GraphQL endpoint, without a
+    // response body.
+    [Theory]
+    [InlineData(
+        HttpTransportVersion.Legacy,
+        "PUT",
+        OperationNameUrl,
+        HttpStatusCode.NotFound,
+        new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20250508,
+        "PUT",
+        OperationIdUrl,
+        HttpStatusCode.NotFound,
+        new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20250508,
+        "PUT",
+        OperationNameUrl,
+        HttpStatusCode.NotFound,
+        new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20250508,
+        "QUERY",
+        OperationNameUrl,
+        HttpStatusCode.NotFound,
+        new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "PUT",
+        OperationIdUrl,
+        HttpStatusCode.MethodNotAllowed,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "PUT",
+        OperationNameUrl,
+        HttpStatusCode.MethodNotAllowed,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "DELETE",
+        OperationNameUrl,
+        HttpStatusCode.MethodNotAllowed,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "QUERY",
+        OperationNameUrl,
+        HttpStatusCode.MethodNotAllowed,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Request_Should_ReturnMethodNotAllowed_When_MethodIsNotMapped(
+        HttpTransportVersion transportVersion,
+        string method,
+        string url,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(new HttpMethod(method), url);
+        request.Content = new StringContent("{ }", Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.False(response.Headers.Contains("Accept-Query"));
+        Assert.Equal(
+            "",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(
+        HttpTransportVersion.Legacy,
+        OperationNameUrl,
+        HttpStatusCode.NotFound,
+        new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20250508,
+        OperationIdUrl,
+        HttpStatusCode.NotFound,
+        new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20250508,
+        OperationNameUrl,
+        HttpStatusCode.NotFound,
+        new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        OperationIdUrl,
+        HttpStatusCode.NoContent,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        OperationNameUrl,
+        HttpStatusCode.NoContent,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Options_Should_ReturnAllowedMethods_When_PersistedRouteIsRequested(
+        HttpTransportVersion transportVersion,
+        string url,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Options, url);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData("PUT", HttpStatusCode.MethodNotAllowed)]
+    [InlineData("OPTIONS", HttpStatusCode.NoContent)]
+    public async Task Request_Should_ListQuery_When_QueryRequestsAreEnabled(
+        string method,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = HttpTransportVersion.Draft20260903
+                    })
+                .ModifyServerOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(new HttpMethod(method), OperationNameUrl);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(["GET", "HEAD", "OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
+    // The answer does not depend on whether a GraphQL endpoint is mapped above the persisted path.
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.MethodNotAllowed,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Put_Should_ReturnMethodNotAllowed_When_PersistedRoutesAreMappedAlone(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Field("greeting").Type<StringType>().Resolve("Hello"))
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations()));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Put, OperationNameUrl);
+        request.Content = new StringContent("{ }", Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.NoContent,
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Options_Should_ReturnAllowedMethods_When_PersistedRoutesAreMappedAlone(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Field("greeting").Type<StringType>().Resolve("Hello"))
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations()));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Options, OperationNameUrl);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    // A CORS preflight that a policy covers is answered by the CORS middleware.
+    [Fact]
+    public async Task Options_Should_ReturnCorsPreflight_When_CorsPolicyCoversPersistedRoute()
+    {
+        // arrange
+        var server = ServerFactory.Create(
+            services => services
+                .AddCors(o => o.AddDefaultPolicy(
+                    p => p.WithOrigins("https://example.com").WithMethods("POST")))
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Field("greeting").Type<StringType>().Resolve("Hello"))
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = HttpTransportVersion.Draft20260903
+                    }),
+            app => app
+                .UseRouting()
+                .UseCors()
+                .UseEndpoints(
+                    endpoints =>
+                    {
+                        endpoints.MapGraphQLPersistedOperations();
+                        endpoints.MapGraphQL();
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Options, OperationNameUrl);
+        request.Headers.Add("Origin", "https://example.com");
+        request.Headers.Add("Access-Control-Request-Method", "POST");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(
+            ["https://example.com"],
+            response.Headers.GetValues("Access-Control-Allow-Origin"));
+        Assert.Equal(["POST"], response.Headers.GetValues("Access-Control-Allow-Methods"));
+        Assert.Empty(response.Content.Headers.Allow);
+    }
+
+    private static HttpContent CreateContent(string body, string? contentType)
+        => contentType is null
+            ? new ByteArrayContent(Encoding.UTF8.GetBytes(body))
+            : new StringContent(body, Encoding.UTF8, contentType);
+
+    private sealed class RecordingListener : ServerDiagnosticEventListener
+    {
+        public List<IError> Errors { get; } = [];
+
+        public override void HttpRequestError(HttpContext context, IError error)
+            => Errors.Add(error);
     }
 }

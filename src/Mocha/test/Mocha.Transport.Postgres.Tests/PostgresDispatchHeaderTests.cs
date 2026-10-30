@@ -118,6 +118,63 @@ public class PostgresDispatchHeaderTests
     }
 
     [Fact]
+    public void Headers_Should_PreservePublicationTime_When_TransportSendOccursLater()
+    {
+        // arrange
+        var sentAt = new DateTimeOffset(2024, 1, 15, 12, 0, 0, TimeSpan.FromMinutes(330)).AddTicks(1234567);
+        var envelope = new MessageEnvelope { SentAt = sentAt };
+
+        // act
+        var parsed = RoundTrip(envelope);
+
+        // assert
+        Assert.Equal(sentAt, parsed.SentAt);
+        Assert.Equal(sentAt.Offset, parsed.SentAt!.Value.Offset);
+        Assert.Empty(parsed.Headers!);
+    }
+
+    [Fact]
+    public void Headers_Should_PreservePublicationTime_When_CustomHeaderUsesReservedName()
+    {
+        // arrange
+        var sentAt = new DateTimeOffset(2024, 1, 15, 12, 0, 0, TimeSpan.Zero);
+        var envelope = new MessageEnvelope
+        {
+            SentAt = sentAt,
+            Headers = new Headers(
+            [
+                new HeaderValue { Key = "sentAt", Value = "2030-01-01T00:00:00Z" },
+                new HeaderValue { Key = "x-tenant", Value = "acme" }
+            ])
+        };
+
+        // act
+        var parsed = RoundTrip(envelope);
+
+        // assert
+        Assert.Equal(sentAt, parsed.SentAt);
+        var header = Assert.Single(parsed.Headers!);
+        Assert.Equal("x-tenant", header.Key);
+        Assert.Equal("acme", header.Value);
+    }
+
+    [Fact]
+    public void Headers_Should_OmitReservedCustomHeader_When_PublicationTimeAbsent()
+    {
+        // arrange
+        var envelope = new MessageEnvelope
+        {
+            Headers = new Headers([new HeaderValue { Key = "sentAt", Value = "2030-01-01T00:00:00Z" }])
+        };
+
+        // act
+        var headerBytes = WriteHeadersJson(envelope);
+
+        // assert
+        Assert.True(headerBytes.IsEmpty);
+    }
+
+    [Fact]
     public void Headers_Should_RoundTrip_CustomHeaders_When_Set()
     {
         // arrange

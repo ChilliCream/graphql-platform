@@ -29,7 +29,7 @@ response:
           "__typename": "Discussion",
           "id": "RGlzY3Vzc2lvbjox",
           "author": {
-            "username": "Author: QXV0aG9yOjE=",
+            "username": "Author: QXV0aG9yOjE4OTA0OTI5MTU=",
             "rating": 123
           }
         }
@@ -92,7 +92,7 @@ sourceSchemas:
                     "__typename": "Discussion",
                     "id": "RGlzY3Vzc2lvbjox",
                     "author": {
-                      "id": "QXV0aG9yOjE="
+                      "id": "QXV0aG9yOjE4OTA0OTI5MTU="
                     }
                   }
                 }
@@ -123,7 +123,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "QXV0aG9yOjE="
+              "__fusion_1_id": "QXV0aG9yOjE4OTA0OTI5MTU="
             }
         response:
           results:
@@ -145,7 +145,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "QXV0aG9yOjE="
+              "__fusion_2_id": "QXV0aG9yOjE4OTA0OTI5MTU="
             }
         response:
           results:
@@ -153,7 +153,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "username": "Author: QXV0aG9yOjE="
+                    "username": "Author: QXV0aG9yOjE4OTA0OTI5MTU="
                   }
                 }
               }

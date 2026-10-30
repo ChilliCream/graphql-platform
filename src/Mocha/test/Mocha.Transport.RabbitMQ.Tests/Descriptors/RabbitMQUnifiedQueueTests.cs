@@ -297,11 +297,11 @@ public class RabbitMQUnifiedQueueTests
     }
 
     [Fact]
-    public void Queue_Should_MaterializeNonDurableAutoDeleteQueue_When_TemporaryCalled()
+    public void Queue_Should_MaterializeDurableAutoDeleteQueueWithExpiry_When_TemporaryCalled()
     {
         // arrange
-        // Temporary() on the Queue() descriptor must produce a non-durable, auto-delete queue,
-        // matching the lifecycle contract of a directly-declared temporary receive endpoint.
+        // Temporary() on the Queue() descriptor must produce the same durable, auto-delete queue
+        // with a queue expiry as a temporary receive endpoint.
         var runtime = CreateRuntime(
             b => { },
             t =>
@@ -313,12 +313,97 @@ public class RabbitMQUnifiedQueueTests
         var topology = (RabbitMQMessagingTopology)transport.Topology;
 
         // act
-        var queue = topology.Queues.SingleOrDefault(q => q.Name == "temp-audit");
+        var queue = topology.Queues.Single(q => q.Name == "temp-audit");
 
         // assert
-        Assert.NotNull(queue);
-        Assert.False(queue.Durable);
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
         Assert.True(queue.AutoDelete);
+        Assert.Equal(1800000, queue.Arguments["x-expires"]);
+    }
+
+    [Fact]
+    public void Queue_Should_UseConfiguredExpiry_When_TemporaryCalledWithExpiry()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => { },
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("temp-audit").Temporary(TimeSpan.FromMinutes(5));
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var queue = topology.Queues.Single(q => q.Name == "temp-audit");
+
+        // assert
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
+        Assert.True(queue.AutoDelete);
+        Assert.Equal(300000, queue.Arguments["x-expires"]);
+    }
+
+    [Fact]
+    public void Queue_Should_ConfigureEndpointReceiveFeatures_When_ResilienceConfiguredOnQueue()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .AddResilience(p => p.On<InvalidOperationException>().Discard())
+                    .AddCircuitBreaker(o => o.FailureRatio = 0.5)
+                    .AddConcurrencyLimiter(o => o.MaxConcurrency = 4);
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "orders");
+
+        // assert
+        Type[] expectedRules = [typeof(Exception), typeof(InvalidOperationException)];
+        Assert.Equal(
+            expectedRules,
+            endpoint.Features.Get<ExceptionPolicyFeature>()?.Rules.Select(r => r.ExceptionType));
+        Assert.Equal(0.5, endpoint.Features.Get<CircuitBreakerFeature>()?.FailureRatio);
+        Assert.Equal(4, endpoint.Features.Get<ConcurrencyLimiterFeature>()?.MaxConcurrency);
+    }
+
+    [Fact]
+    public void Queue_Should_CombineExceptionPolicies_When_EndpointWithSameNameConfiguresResilience()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .AddResilience(p => p.On<InvalidOperationException>().Discard());
+                t.Endpoint("orders").AddResilience(p => p.On<TimeoutException>().Discard());
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var endpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Queue.Name == "orders");
+
+        // assert
+        // endpoint callbacks run first, queue callbacks replay onto the same feature afterwards
+        Type[] expectedRules = [typeof(TimeoutException), typeof(Exception), typeof(InvalidOperationException)];
+        Assert.Equal(
+            expectedRules,
+            endpoint.Features.Get<ExceptionPolicyFeature>()?.Rules.Select(r => r.ExceptionType));
     }
 
     private static MessagingRuntime CreateRuntime(

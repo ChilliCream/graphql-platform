@@ -1,0 +1,370 @@
+title: Defer_Should_ResolveAllPrerequisites_When_RequirementSelectsNestedFieldWithOwnRequirement
+request:
+  document: |
+    {
+      product {
+        id
+        ... @defer {
+          total
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "product": {
+          "id": "1"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "product"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "product"
+        ],
+        "data": {
+          "total": 5040
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "product": {
+          "id": "1",
+          "total": 5040
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product!
+        productById(id: ID!): Product @lookup @internal
+        userById(id: ID!): User @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        owner: User!
+      }
+
+      type User @key(fields: "id") {
+        computed(value: Int! @require(field: "value")): Int!
+        id: ID!
+        raw: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_3f99ee57_1 {
+              product {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "id": "1"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_3($__fusion_4_id: ID!) {
+              productById(id: $__fusion_4_id) {
+                owner {
+                  raw
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_4_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "owner": {
+                      "raw": 5,
+                      "id": "2"
+                    }
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
+              userById(id: $__fusion_6_id) {
+                computed(value: $__fusion_5_value)
+              }
+            }
+          variables: |
+            {
+              "__fusion_5_value": 4,
+              "__fusion_6_id": "2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "computed": 40
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_8 {
+              product {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "id": "1"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup @internal
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        value: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_5($__fusion_7_id: ID!) {
+              userById(id: $__fusion_7_id) {
+                value
+              }
+            }
+          variables: |
+            {
+              "__fusion_7_id": "2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "value": 4
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        total(input: OwnerInput! @require(field: "owner.{\n  raw\n  computed\n}")): Int!
+        id: ID!
+      }
+
+      input OwnerInput {
+        raw: Int!
+        computed: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_2_input: OwnerInput!, $__fusion_3_id: ID!) {
+              productById(id: $__fusion_3_id) {
+                total(input: $__fusion_2_input)
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_input": {
+                "raw": 5,
+                "computed": 40
+              },
+              "__fusion_3_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "total": 5040
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          product {
+            id
+          }
+        }
+      hash: 5772a5cdca9030403458eb8799fd0718
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_3f99ee57_1 {
+          product {
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.product
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      nodes:
+        - id: 2
+          type: Operation
+          schema: C
+          operation: |
+            query Op_defer_2($__fusion_2_input: OwnerInput!, $__fusion_3_id: ID!) {
+              productById(id: $__fusion_3_id) {
+                total(input: $__fusion_2_input)
+              }
+            }
+          source: $.productById
+          target: $.product
+          requirements:
+            - name: __fusion_2_input
+              selectionMap: >-
+                owner.{
+                  raw
+                  computed
+                }
+            - name: __fusion_3_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 3
+            - id: 4
+            - id: 8
+        - id: 3
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_3($__fusion_4_id: ID!) {
+              productById(id: $__fusion_4_id) {
+                owner {
+                  raw
+                  id
+                }
+              }
+            }
+          source: $.productById
+          target: $.product
+          requirements:
+            - name: __fusion_4_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 8
+        - id: 4
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
+              userById(id: $__fusion_6_id) {
+                computed(value: $__fusion_5_value)
+              }
+            }
+          source: $.userById
+          target: $.product.owner
+          requirements:
+            - name: __fusion_5_value
+              selectionMap: >-
+                value
+            - name: __fusion_6_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 3
+            - id: 5
+        - id: 5
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_5($__fusion_7_id: ID!) {
+              userById(id: $__fusion_7_id) {
+                value
+              }
+            }
+          source: $.userById
+          target: $.product.owner
+          requirements:
+            - name: __fusion_7_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 3
+        - id: 8
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_8 {
+              product {
+                id
+              }
+            }

@@ -33,7 +33,7 @@ internal sealed class DocumentParserMiddleware
         _parserOptions = parserOptions;
     }
 
-    public async ValueTask InvokeAsync(RequestContext context)
+    public ValueTask InvokeAsync(RequestContext context)
     {
         var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is null && context.Request.Document is not null)
@@ -46,12 +46,7 @@ internal sealed class DocumentParserMiddleware
             {
                 documentInfo.Hash = CreateDocumentHash(documentInfo, context.Request);
                 documentInfo.Document = parsed.Document;
-
-                if (documentInfo.Id.IsEmpty)
-                {
-                    documentInfo.Id = new OperationDocumentId(documentInfo.Hash.Value);
-                }
-
+                documentInfo.Id = CreateDocumentId(context);
                 success = true;
             }
             else if (query is OperationDocumentSourceText source)
@@ -62,12 +57,7 @@ internal sealed class DocumentParserMiddleware
                     {
                         documentInfo.Hash = CreateDocumentHash(documentInfo, context.Request);
                         documentInfo.Document = Utf8GraphQLParser.Parse(source.SourceText, _parserOptions);
-
-                        if (documentInfo.Id.IsEmpty)
-                        {
-                            documentInfo.Id = new OperationDocumentId(documentInfo.Hash.Value);
-                        }
-
+                        documentInfo.Id = CreateDocumentId(context);
                         success = true;
                     }
                     catch (SyntaxException ex)
@@ -98,15 +88,13 @@ internal sealed class DocumentParserMiddleware
                 throw ErrorHelper.QueryTypeNotSupported();
             }
 
-            if (success)
+            if (!success)
             {
-                await _next(context).ConfigureAwait(false);
+                return default;
             }
         }
-        else
-        {
-            await _next(context).ConfigureAwait(false);
-        }
+
+        return _next(context);
     }
 
     private OperationDocumentHash CreateDocumentHash(
@@ -124,6 +112,24 @@ internal sealed class DocumentParserMiddleware
         }
 
         return _documentHashProvider.ComputeHash(request.Document!.AsSpan());
+    }
+
+    // The ID of a document sent with the request is its hash.
+    // Only a warmup request keeps the document ID it was issued with.
+    private static OperationDocumentId CreateDocumentId(RequestContext context)
+    {
+        var documentInfo = context.OperationDocumentInfo;
+
+        if (!documentInfo.Id.IsEmpty && context.IsWarmupRequest())
+        {
+            return documentInfo.Id;
+        }
+
+        var hash = context.Request.DocumentHash.IsEmpty
+            ? documentInfo.Hash
+            : context.Request.DocumentHash;
+
+        return new OperationDocumentId(hash.Value);
     }
 
     public static RequestMiddlewareConfiguration Create()

@@ -20,11 +20,13 @@ internal interface IPingSessionExecutor
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns a Claude peer ping outcome under the deadline, cancellation, and
-    /// best-effort cleanup contract of <see cref="ExecuteCodexThreadAsync"/>.
+    /// Returns a peer-protocol ping outcome for the <paramref name="harness"/> session
+    /// <paramref name="sessionId"/> under the deadline, cancellation, and best-effort
+    /// cleanup contract of <see cref="ExecuteCodexThreadAsync"/>.
     /// </summary>
     Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
         string actorName,
+        string harness,
         string sessionId,
         string attemptId,
         int slot,

@@ -1,4 +1,6 @@
+using System.Net;
 using System.Text;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -750,6 +752,117 @@ public class HttpGetMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Get_Should_ExecutePersistedOperation_When_DocumentIdIsSet()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql?documentId=60ddx_GGk4FDObSa6eK0sg",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 34
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"hero":{"name":"R2-D2"}}}
+                """);
+    }
+
+    [Fact]
+    public async Task Get_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql?query="
+            + Uri.EscapeDataString("query($if: Boolean!) { hero { name @skip(if: $if) } }")
+            + "&variables="
+            + Uri.EscapeDataString("""[{ "if": true }, { "if": false }]"""),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Get_Should_RefuseVariableBatch_When_MaxBatchSizeIsExceeded()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.MaxBatchSize = 1));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql?query="
+            + Uri.EscapeDataString("query($if: Boolean!) { hero { name @skip(if: $if) } }")
+            + "&variables="
+            + Uri.EscapeDataString("""[{ "if": true }, { "if": false }]"""),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "The batch size exceeds the maximum allowed batch size of 1.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 1.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
     public async Task Throw_Custom_GraphQL_Error()
     {
         // arrange
@@ -776,6 +889,28 @@ public class HttpGetMiddlewareTests : ServerTestBase
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Get_Should_ReturnResult_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "http://localhost:5000/graphql?query=%7B__typename%7D");
+        request.Headers.Add("Accept", "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"__typename":"Query"}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
     private class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
     {
         public override ValueTask OnCreateAsync(
@@ -786,5 +921,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
         {
             throw new GraphQLException("MyCustomError");
         }
+    }
+
+    private sealed class RecordingListener : ServerDiagnosticEventListener
+    {
+        public List<IError> Errors { get; } = [];
+
+        public override void HttpRequestError(HttpContext context, IError error)
+            => Errors.Add(error);
     }
 }

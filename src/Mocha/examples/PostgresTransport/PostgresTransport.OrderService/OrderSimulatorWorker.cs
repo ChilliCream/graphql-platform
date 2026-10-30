@@ -10,14 +10,14 @@ public sealed class OrderSimulatorWorker(
     IServiceScopeFactory scopeFactory,
     ILogger<OrderSimulatorWorker> logger) : BackgroundService
 {
-    private static readonly string[] Products =
+    private static readonly string[] s_products =
     [
         "Mechanical Keyboard", "Wireless Mouse", "USB-C Hub",
         "Monitor Stand", "Webcam HD", "Noise-Cancelling Headphones",
         "Laptop Sleeve", "Desk Lamp", "Ergonomic Chair", "Standing Desk"
     ];
 
-    private static readonly string[] Customers =
+    private static readonly string[] s_customers =
     [
         "alice@example.com", "bob@example.com", "carol@example.com",
         "dave@example.com", "eve@example.com"
@@ -38,10 +38,10 @@ public sealed class OrderSimulatorWorker(
                 var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
                 var orderId = Guid.NewGuid();
-                var product = Products[Random.Shared.Next(Products.Length)];
+                var product = s_products[Random.Shared.Next(s_products.Length)];
                 var quantity = Random.Shared.Next(1, 6);
                 var unitPrice = Math.Round(Random.Shared.Next(1999, 49999) / 100m, 2);
-                var customer = Customers[Random.Shared.Next(Customers.Length)];
+                var customer = s_customers[Random.Shared.Next(s_customers.Length)];
 
                 var orderEvent = new OrderPlacedEvent
                 {

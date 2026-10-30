@@ -1,0 +1,60 @@
+{
+  "Topics": [
+    "mocha.transport.in-memory.tests.behaviors.nested-message-type-tests.create-account-response.unexpected-error",
+    "mocha.transport.in-memory.tests.behaviors.nested-message-type-tests.create-account.request",
+    "mocha.transport.in-memory.tests.behaviors.nested-message-type-tests.delete-account-response.unexpected-error",
+    "mocha.transport.in-memory.tests.behaviors.nested-message-type-tests.delete-account.request",
+    "nested-message-type-tests.create-account-response.unexpected-error",
+    "nested-message-type-tests.create-account.request",
+    "nested-message-type-tests.delete-account-response.unexpected-error",
+    "nested-message-type-tests.delete-account.request"
+  ],
+  "Queues": [
+    "nested-message-type-tests.create-account.request",
+    "nested-message-type-tests.delete-account.request",
+    "test-app.create-account-error",
+    "test-app.delete-account-error"
+  ],
+  "Bindings": [
+    {
+      "Source": "mocha.transport.in-memory.tests.behaviors.nested-message-type-tests.create-account-response.unexpected-error",
+      "Destination": "nested-message-type-tests.create-account-response.unexpected-error",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "mocha.transport.in-memory.tests.behaviors.nested-message-type-tests.create-account.request",
+      "Destination": "nested-message-type-tests.create-account.request",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "mocha.transport.in-memory.tests.behaviors.nested-message-type-tests.delete-account-response.unexpected-error",
+      "Destination": "nested-message-type-tests.delete-account-response.unexpected-error",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "mocha.transport.in-memory.tests.behaviors.nested-message-type-tests.delete-account.request",
+      "Destination": "nested-message-type-tests.delete-account.request",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "nested-message-type-tests.create-account-response.unexpected-error",
+      "Destination": "test-app.create-account-error",
+      "Kind": "Queue"
+    },
+    {
+      "Source": "nested-message-type-tests.create-account.request",
+      "Destination": "nested-message-type-tests.create-account.request",
+      "Kind": "Queue"
+    },
+    {
+      "Source": "nested-message-type-tests.delete-account-response.unexpected-error",
+      "Destination": "test-app.delete-account-error",
+      "Kind": "Queue"
+    },
+    {
+      "Source": "nested-message-type-tests.delete-account.request",
+      "Destination": "nested-message-type-tests.delete-account.request",
+      "Kind": "Queue"
+    }
+  ]
+}

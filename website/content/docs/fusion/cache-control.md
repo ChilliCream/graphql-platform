@@ -16,7 +16,7 @@ Good cache rules help you:
 
 To make caching work safely and predictably, you need two things:
 
-1. A deterministic GET route so caches get a stable cache key.
+1. A deterministic GET route, or a QUERY request, so caches get a stable cache key.
 2. Correct Cache-Control (and Vary) headers so caches know where and how long a response may be reused.
 
 # Why GraphQL Needs Extra Care
@@ -57,13 +57,13 @@ In large first-party GraphQL APIs, a common approach used by companies such as N
 With trusted documents in place, persisted-operation routes become short and stable.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789
+GET /graphql/persisted/123456789/GetProducts
 ```
 
 Variables can then be sent as query parameters.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789?variables={"first":5}
+GET /graphql/persisted/123456789/GetProducts?variables={"first":5}
 ```
 
 In order to use persisted-operation routes you need to add the middleware `MapGraphQLPersistedOperations`.
@@ -73,6 +73,29 @@ var app = builder.Build();
 
 app.MapGraphQLPersistedOperations();
 ```
+
+# QUERY Requests
+
+Query operations can also be sent over HTTP QUERY, which carries the same JSON body as a POST request. QUERY requests are disabled by default. Enable them on the gateway with `EnableQueryRequests`:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .ModifyServerOptions(o => o.EnableQueryRequests = true);
+```
+
+```http
+QUERY /graphql
+Content-Type: application/json
+Accept: application/graphql-response+json
+
+{
+  "query": "query GetProducts($first: Int!) { products(first: $first) { nodes { name } } }",
+  "variables": { "first": 5 }
+}
+```
+
+[RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html#section-2.7) makes the response to a QUERY request cacheable, and a cache that stores it includes the request body in the cache key. A QUERY response carries the same `Cache-Control` and `Vary` headers as a GET response. A variable batch is answered with `Cache-Control: no-cache`, whatever the method. Support for caching QUERY responses varies between CDNs and proxies, so GET routes and persisted-operation GET routes are the portable choice. See [QUERY Requests](../hotchocolate/server/http-transport.md#query-requests) for the full request rules.
 
 # `@cacheControl` in GraphQL
 
@@ -93,7 +116,7 @@ type Query {
 
 Fusion computes one effective response policy by traversing the planned operation tree. It starts at the selected root fields, reads `@cacheControl` metadata on each field, falls back to the field return type when values are missing, and continues recursively through child selections, including interfaces and unions.
 
-All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated.
+All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated. Every GraphQL response already lists `Accept` in `Vary`, and the merged `vary` names are added to it. Some CDNs, Akamai by default, do not cache a response whose `Vary` lists anything other than `Accept-Encoding`. Configure the CDN to cache it anyway, or remove `Accept` from `Vary` in a [custom formatter](../hotchocolate/server/http-transport.md#adding-selecting-headers-to-vary).
 
 Fusion computes these cache constraints for query operations. Mutation requests, Subscription request, introspection requests, and operations with no cache constraints do not get cache-control headers.
 

@@ -2,7 +2,9 @@
 
 ```text
 Headers:
+Vary: Accept
 Content-Type: application/graphql-response+json; charset=utf-8
+Content-Length: 164
 -------------------------->
 Status Code: BadRequest
 -------------------------->

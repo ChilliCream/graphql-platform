@@ -1,8 +1,8 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
@@ -178,6 +178,39 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
             """);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_ApplyNoSorting_When_VariableIsOmitted()
+    {
+        // arrange
+        var tester = await CreateSchema<Foo, FooSortType>(s_fooEntities);
+        const string query =
+            "query Test($order: SortEnumType){ root(order: { bar: $order}){ bar}}";
+
+        // act
+        var result = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "root": [
+                  {
+                    "bar": true
+                  },
+                  {
+                    "bar": false
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     private static readonly Item[] s_items =
     [
         new() { Name = "a" },
@@ -188,33 +221,32 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         where TEntity : class
         where T : SortInputType<TEntity>
     {
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                (_, services) =>
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseTestServer();
+        builder.Services.AddRouting();
+        builder.Services.AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
+            .AddSorting()
+            .AddQueryType(
+                c =>
                 {
-                    services.AddRouting();
-                    services.AddGraphQLServer()
-                        .ModifyCostOptions(o => o.DefaultListSize = 1)
-                        .AddSorting()
-                        .AddQueryType(
-                            c =>
-                            {
-                                c
-                                    .Name("Query")
-                                    .Field("root")
-                                    .Resolve(entities)
-                                    .UseSorting<T>();
+                    c
+                        .Name("Query")
+                        .Field("root")
+                        .Resolve(entities)
+                        .UseSorting<T>();
 
-                                c
-                                    .Name("Query")
-                                    .Field("rootExecutable")
-                                    .Resolve(entities.AsExecutable())
-                                    .UseSorting<T>();
-                            })
-                        .BuildRequestExecutorAsync();
+                    c
+                        .Name("Query")
+                        .Field("rootExecutable")
+                        .Resolve(entities.AsExecutable())
+                        .UseSorting<T>();
                 })
-            .Configure(x => x.UseRouting().UseEndpoints(c => c.MapGraphQL()));
-        return new TestServer(builder);
+            .BuildRequestExecutorAsync();
+        var app = builder.Build();
+        app.MapGraphQL();
+        app.Start();
+        return app.GetTestServer();
     }
 
     private ValueTask<IRequestExecutor> CreateSchema<TEntity, T>(TEntity?[] entities)

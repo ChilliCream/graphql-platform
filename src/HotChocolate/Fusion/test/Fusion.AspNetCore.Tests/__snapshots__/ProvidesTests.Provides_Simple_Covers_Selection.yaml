@@ -15,17 +15,17 @@ response:
         "reviews": [
           {
             "author": {
-              "username": "User: VXNlcjo0"
+              "username": "User: VXNlcjoxMzg1ODgwMDMz"
             }
           },
           {
             "author": {
-              "username": "User: VXNlcjo1"
+              "username": "User: VXNlcjo1Mjk1MTI4MDU="
             }
           },
           {
             "author": {
-              "username": "User: VXNlcjo2"
+              "username": "User: VXNlcjo0MTQzMzgyNTQy"
             }
           }
         ]
@@ -71,17 +71,17 @@ sourceSchemas:
                   "reviews": [
                     {
                       "author": {
-                        "username": "User: VXNlcjo0"
+                        "username": "User: VXNlcjoxMzg1ODgwMDMz"
                       }
                     },
                     {
                       "author": {
-                        "username": "User: VXNlcjo1"
+                        "username": "User: VXNlcjo1Mjk1MTI4MDU="
                       }
                     },
                     {
                       "author": {
-                        "username": "User: VXNlcjo2"
+                        "username": "User: VXNlcjo0MTQzMzgyNTQy"
                       }
                     }
                   ]

@@ -19,7 +19,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion;
 
-public abstract class FusionTestBase : IDisposable
+public abstract class FusionTestBase : IAsyncDisposable
 {
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
@@ -418,17 +418,19 @@ public abstract class FusionTestBase : IDisposable
 
     protected static FusionSchemaDefinition ComposeSchema(
         [StringSyntax("graphql")] params string[] schemas)
+        => ComposeSchema(
+            options => options.Merger.EnableGlobalObjectIdentification = true,
+            schemas);
+
+    protected static FusionSchemaDefinition ComposeSchema(
+        Action<SchemaComposerOptions> configure,
+        [StringSyntax("graphql")] params string[] schemas)
     {
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions
-        {
-            Merger =
-            {
-                EnableGlobalObjectIdentification = true
-            }
-        };
+        var composerOptions = new SchemaComposerOptions();
+        configure(composerOptions);
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
@@ -543,7 +545,7 @@ public abstract class FusionTestBase : IDisposable
         actual.MatchSnapshot(extension: ".yaml");
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
@@ -551,16 +553,8 @@ public abstract class FusionTestBase : IDisposable
         }
 
         _disposed = true;
-        Dispose(true);
+        await _testServerSession.DisposeAsync();
         GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _testServerSession.Dispose();
-        }
     }
 
     private static List<SourceSchemaText> CreateSourceSchemaTexts(IEnumerable<string> schemas)

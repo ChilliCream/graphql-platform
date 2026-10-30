@@ -1,10 +1,6 @@
-# Prettier already respects .gitignore, but some committed paths are deliberately
-# un-ignored there (e.g. .yarn/releases) and must not be reformatted. Listing the
-# generated/build output explicitly also keeps `format:check` fast and
-# deterministic in CI (where .yarn/cache and .next/cache are restored).
-
-# Yarn (vendored release, plugins, and patches are committed but generated)
-.yarn/
+# Prettier already respects .gitignore. Listing the generated/build output
+# explicitly also keeps `format:check` fast and deterministic in CI (where
+# .next/cache is restored).
 
 # Build and generated output
 .next/
@@ -18,4 +14,5 @@ public/_optimized/
 # Generated files
 git-metadata.generated.json
 next-env.d.ts
+package-lock.json
 *.tsbuildinfo

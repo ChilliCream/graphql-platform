@@ -16,7 +16,7 @@ stableResponseStream: |
     "initial": {
       "data": {
         "createProduct": {
-          "name": "Product: UHJvZHVjdDox"
+          "name": "Product: UHJvZHVjdDo4MTMyMTIzMjE="
         }
       }
     },
@@ -48,7 +48,7 @@ stableResponseStream: |
     "final": {
       "data": {
         "createProduct": {
-          "name": "Product: UHJvZHVjdDox",
+          "name": "Product: UHJvZHVjdDo4MTMyMTIzMjE=",
           "price": 123.456
         }
       }
@@ -90,8 +90,8 @@ sourceSchemas:
               {
                 "data": {
                   "createProduct": {
-                    "name": "Product: UHJvZHVjdDox",
-                    "id": "UHJvZHVjdDox"
+                    "name": "Product: UHJvZHVjdDo4MTMyMTIzMjE=",
+                    "id": "UHJvZHVjdDo4MTMyMTIzMjE="
                   }
                 }
               }
@@ -120,7 +120,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDox"
+              "__fusion_1_id": "UHJvZHVjdDo4MTMyMTIzMjE="
             }
         response:
           results:

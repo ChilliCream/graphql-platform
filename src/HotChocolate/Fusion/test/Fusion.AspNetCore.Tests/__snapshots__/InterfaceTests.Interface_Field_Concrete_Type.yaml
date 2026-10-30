@@ -15,7 +15,7 @@ response:
       "data": {
         "votable": {
           "viewerCanVote": true,
-          "title": "Discussion: RGlzY3Vzc2lvbjox"
+          "title": "Discussion: RGlzY3Vzc2lvbjozNTUxODE3ODYy"
         }
       }
     }
@@ -65,7 +65,7 @@ sourceSchemas:
                   "votable": {
                     "__typename": "Discussion",
                     "viewerCanVote": true,
-                    "title": "Discussion: RGlzY3Vzc2lvbjox"
+                    "title": "Discussion: RGlzY3Vzc2lvbjozNTUxODE3ODYy"
                   }
                 }
               }

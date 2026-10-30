@@ -30,7 +30,8 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
                 // Verify that the request is relevant to this middleware.
                 && (context.Request.Query.ContainsKey(QueryKey)
-                    || context.Request.Query.ContainsKey(QueryIdKey)
+                    || context.Request.Query.ContainsKey(IdKey)
+                    || context.Request.Query.ContainsKey(DocumentIdKey)
                     || context.Request.Query.ContainsKey(ExtensionsKey))
 
                 // Allow ALL GET requests if we do NOT enforce preflight
@@ -100,10 +101,16 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             await MiddlewareHelper.ExecuteRequestAsync(
                 request,
                 requestFlags,
+                options,
                 context,
                 session);
         statusCode = executionResult.StatusCode;
         result = executionResult.Result;
+
+        if (!options.EnableQueriesOverPost)
+        {
+            MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: false);
+        }
 
 HANDLE_RESULT:
         await MiddlewareHelper.WriteResultAsync(

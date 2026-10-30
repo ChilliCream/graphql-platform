@@ -27,7 +27,7 @@ nodes:
       }
   - id: 3
     type: Operation
-    schema: d
+    schema: e
     operation: |
       query Op_123456789101112_3(
         $__fusion_2_commentAuthorIds: [ID]
@@ -51,29 +51,13 @@ nodes:
     dependencies:
       - id: 1
       - id: 4
-  - id: 4
-    type: Operation
-    schema: c
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        commentById(id: $__fusion_4_id) {
-          authorId
-        }
-      }
-    source: $.commentById
-    target: $.feed.comments
-    requirements:
-      - name: __fusion_4_id
-        selectionMap: >-
-          id
-    dependencies:
       - id: 5
-  - id: 5
+  - id: 4
     type: Operation
     schema: d
     operation: |
-      query Op_123456789101112_5($__fusion_5_id: ID!) {
-        postById(id: $__fusion_5_id) {
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
+        postById(id: $__fusion_4_id) {
           comments {
             id
           }
@@ -82,8 +66,25 @@ nodes:
     source: $.postById
     target: $.feed
     requirements:
-      - name: __fusion_5_id
+      - name: __fusion_4_id
         selectionMap: >-
           id
     dependencies:
       - id: 1
+  - id: 5
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_5($__fusion_5_id: ID!) {
+        commentById(id: $__fusion_5_id) {
+          authorId
+        }
+      }
+    source: $.commentById
+    target: $.feed.comments
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4

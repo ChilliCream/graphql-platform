@@ -12,7 +12,9 @@ public sealed record SourceAzureDevOpsMetadata(
     string? CommitHash = null,
     string? JobId = null,
     string? TaskId = null,
-    Uri? RepositoryUrl = null);
+    Uri? RepositoryUrl = null,
+    string? Ref = null,
+    int? PullRequestNumber = null);
 
 public sealed record AzureDevOpsActor(
     string Name,

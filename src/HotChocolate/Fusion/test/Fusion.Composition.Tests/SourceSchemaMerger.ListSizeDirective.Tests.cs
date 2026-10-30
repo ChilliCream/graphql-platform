@@ -637,6 +637,67 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
     }
 
     [Fact]
+    public void Merge_Should_CapSlicingArgumentDefaultValueAtSourceAssumedSize_When_DefaultExceedsAssumedSize()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Query {
+                    field1: [Int] @listSize(assumedSize: 1000, slicingArgumentDefaultValue: 2147483647)
+                    field2: [Int] @listSize(slicingArgumentDefaultValue: 5000)
+                    field3: [Int] @listSize(assumedSize: 10, slicingArgumentDefaultValue: 100)
+                }
+
+                {{s_listSizeDirective}}
+                """,
+                $$"""
+                # Schema B
+                type Query {
+                    field3: [Int] @listSize(assumedSize: 50, slicingArgumentDefaultValue: 20)
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field1: [Int]
+                @listSize(assumedSize: 1000, slicingArgumentDefaultValue: 1000)
+                @fusion__field(schema: A)
+                @fusion__listSize(
+                  schema: A
+                  assumedSize: 1000
+                  slicingArgumentDefaultValue: 2147483647
+                )
+              field2: [Int]
+                @listSize(slicingArgumentDefaultValue: 5000)
+                @fusion__field(schema: A)
+                @fusion__listSize(schema: A, slicingArgumentDefaultValue: 5000)
+              field3: [Int]
+                @listSize(assumedSize: 50, slicingArgumentDefaultValue: 20)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(
+                  schema: A
+                  assumedSize: 10
+                  slicingArgumentDefaultValue: 100
+                )
+                @fusion__listSize(
+                  schema: B
+                  assumedSize: 50
+                  slicingArgumentDefaultValue: 20
+                )
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    [Fact]
     public void Merge_ListSizeDirectiveRequireOneSlicingArgument_SourceDefaultAppliesBeforeFold_MatchesSnapshot()
     {
         AssertMatches(

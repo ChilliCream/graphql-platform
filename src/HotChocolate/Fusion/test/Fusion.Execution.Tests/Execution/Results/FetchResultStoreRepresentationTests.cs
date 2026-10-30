@@ -42,7 +42,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -76,7 +76,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -110,7 +110,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ productByPKey(pkey: $__fusion_1_pkey) { id } }");
@@ -146,7 +146,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ thingByCompositeId(key: $__fusion_1_key) { id } }");
@@ -182,7 +182,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -220,7 +220,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var firstPath = Path(1);
@@ -279,7 +279,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
@@ -355,7 +355,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: false);
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -452,6 +452,52 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         Normalize(representation.Value).MatchInlineSnapshot(
             """
             {"representations":[{"__typename":"Foo","id":"1"}]}
+            """);
+    }
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_DeduplicateRepresentations_When_EntitiesRepeat()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":1},{"id":"1"},{"id":1}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var representation = CreateRepresentation(
+            store,
+            schema,
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))],
+            "Foo",
+            ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }"));
+
+        // assert
+        RenderRepresentation(store, representation).MatchInlineSnapshot(
+            """
+            Representations: {"representations":[{"__typename":"Foo","id":"1"},{"__typename":"Foo","id":1}]}
+            Path: foos[0]
+            Additional paths: [foos[2]]
+            Path: foos[1]
+            Additional paths: [foos[3]]
             """);
     }
 
@@ -997,7 +1043,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // The type condition is applied when the requirement value is extracted;
         // the snapshot path emits the already extracted value.
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
@@ -1027,7 +1073,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // arrange
         // Both maps project into 'y'; each leaf is sliced from its own requirement.
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ foo(a: $__fusion_1_a, b: $__fusion_2_b) { id } }");
@@ -1062,7 +1108,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // The element map reads the input property 'pid' and emits the source
         // field 'id'.
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -1100,7 +1146,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -1216,7 +1262,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var requirements = new[] { Requirement("__fusion_1_id", "<Foo>.id") };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1322,6 +1368,119 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             """
             {"representations":[{"__typename":"Entity","data":{"__typename":"Qux","foo":"f","bar":"b","qux":"q"}}]}
             """);
+    }
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_PreserveLookupFallback_When_RuntimeTypeNameIsEscaped()
+    {
+        // arrange
+        var schema = ComposeConcreteBranchSchema();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo ... on Bar { bar } ... on Qux { qux } } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Q\u0075x","foo":"f","bar":"b","qux":"q"}}]}}""",
+            resultArena,
+            sourceArena);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar qux: data<Qux>.qux }")
+        };
+
+        // act
+        var exception = Assert.Throws<KeyNotFoundException>(() => CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField));
+
+        // assert
+        exception.Message.MatchInlineSnapshot("""A type with the name `Q\u0075x` does not exist.""");
+    }
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_UseSourceTypeName_When_MetadataTypeDiffers()
+    {
+        // arrange
+        var schema = ComposeConcreteBranchSchema();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo bar qux } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Baz","foo":"f","bar":"b","qux":"q"}}]}}""",
+            resultArena,
+            sourceArena);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar qux: data<Qux>.qux }")
+        };
+
+        // act
+        var representation = CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField);
+
+        // assert
+        Normalize(representation.Value).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Entity","data":{"__typename":"Baz","foo":"f","bar":"b"}}]}
+            """);
+    }
+
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("{\"__typename\":123}")]
+    public void CreateRepresentationVariableValue_Should_SkipEntity_When_RuntimeTypeNameIsUnavailable(string data)
+    {
+        // arrange
+        var schema = ComposeConcreteBranchSchema();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo bar qux } } }",
+            "{\"data\":{\"entities\":[{\"id\":\"1\",\"data\":" + data + "}]}}",
+            resultArena,
+            sourceArena);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar }")
+        };
+
+        // act
+        var representation = CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField);
+
+        // assert
+        Assert.Equal(RepresentationValue.Empty, representation);
+    }
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_Throw_When_RuntimeTypeNameIsUnknown()
+    {
+        // arrange
+        var schema = ComposeConcreteBranchSchema();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo bar qux } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Missing","foo":"f","bar":"b","qux":"q"}}]}}""",
+            resultArena,
+            sourceArena);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar }")
+        };
+
+        // act
+        var exception = Assert.Throws<KeyNotFoundException>(() => CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField));
+
+        // assert
+        exception.Message.MatchInlineSnapshot("A type with the name `Missing` does not exist.");
     }
 
     [Fact]
@@ -1486,7 +1645,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1558,7 +1717,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1628,7 +1787,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1703,7 +1862,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1775,7 +1934,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -3023,6 +3182,11 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         Assert.Equal("foos[0].name", error.Path!.Print());
     }
 
+    private static FusionSchemaDefinition ComposeConcreteBranchSchema()
+        => ComposeSchema(
+            AbstractBranchSchema.Replace("data: Foo", "data: Qux", StringComparison.Ordinal)
+                + "\nextend type Query { other: Foo }");
+
     private static FetchResultStore CreateMergeStore(
         FusionSchemaDefinition schema,
         OperationPlan plan,
@@ -3266,6 +3430,39 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         using var document = JsonDocument.Parse(segment.AsSequence());
         return JsonSerializer.Serialize(document.RootElement);
+    }
+
+    private static string RenderRepresentation(
+        FetchResultStore store,
+        RepresentationValue representation)
+    {
+        var operation = store.Result.Data.Operation;
+        var output = new StringBuilder();
+
+        output.Append("Representations: ");
+        output.AppendLine(Normalize(representation.Value));
+
+        foreach (var resultPath in representation.ResultPaths)
+        {
+            output.Append("Path: ");
+            output.AppendLine(resultPath.Path.ToPath(operation).Print());
+            output.Append("Additional paths: [");
+
+            var additionalPaths = resultPath.AdditionalPaths.AsSpan();
+            for (var i = 0; i < additionalPaths.Length; i++)
+            {
+                if (i > 0)
+                {
+                    output.Append(", ");
+                }
+
+                output.Append(additionalPaths[i].ToPath(operation).Print());
+            }
+
+            output.AppendLine("]");
+        }
+
+        return output.ToString().TrimEnd();
     }
 
     private static SelectionSetNode RenderShape(ImmutableArray<RepresentationShapeNode> level)

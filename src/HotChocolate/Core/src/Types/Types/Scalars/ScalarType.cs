@@ -251,21 +251,17 @@ public abstract partial class ScalarType
             throw CreateInputValueToLiteralError(inputValue, context);
         }
 
-        // We try to get a memory builder from the context and assign it to our JsonValueParser
-        // which rewrites the json into a GraphQL value node.
-        // The memory builder allows us to store the actual values as UTF-8 string.
+        // The memory builder stores the UTF-8 values of the created literals and is shared
+        // by all values that are coerced for the same request.
         var utf8MemoryBuilder = context.Features.Get<Utf8MemoryBuilder>();
-        var builderExistedBeforeParsing = utf8MemoryBuilder is not null;
-
         var parser = new JsonValueParser(doNotSeal: true) { _memory = utf8MemoryBuilder };
         var literal = parser.Parse(inputValue);
 
-        // If no builder existed so far but we now created one by rewriting the JSON value,
-        // then we store the JSON builder on the context so that it can be picked up and reused by other values
-        // in the current coercion of input values.
-        if (!builderExistedBeforeParsing && utf8MemoryBuilder is not null)
+        // The parser creates the builder on first use, so we store it on the context
+        // for the values that are coerced after this one.
+        if (utf8MemoryBuilder is null && parser._memory is not null)
         {
-            context.Features.Set(utf8MemoryBuilder);
+            context.Features.Set(parser._memory);
         }
 
         return literal;

@@ -14,7 +14,7 @@ internal sealed class AgentDatabase
     /// <summary>
     /// The current unified schema version.
     /// </summary>
-    public const int CurrentVersion = 18;
+    public const int CurrentVersion = 19;
 
     /// <summary>
     /// The schema version at which <c>messages.sender</c> and
@@ -25,10 +25,16 @@ internal sealed class AgentDatabase
     private const int MailForeignKeysRemovedVersion = 16;
 
     /// <summary>
+    /// The oldest schema version whose agent-domain rows survive an upgrade. A database
+    /// below this version has its agent-domain tables reset instead.
+    /// </summary>
+    private const int AgentRowsPreservedVersion = 18;
+
+    /// <summary>
     /// Schema versions <see cref="InitializeAsync"/> upgrades in place
     /// instead of rejecting.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -74,9 +80,13 @@ internal sealed class AgentDatabase
             await RemoveMailAgentForeignKeysAsync(connection, cancellationToken);
         }
 
-        if (version < CurrentVersion)
+        if (version < AgentRowsPreservedVersion)
         {
             await ResetAgentDomainTablesAsync(connection, cancellationToken);
+        }
+        else if (version < CurrentVersion)
+        {
+            await RebuildAgentsTableAsync(connection, cancellationToken);
         }
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -138,6 +148,30 @@ internal sealed class AgentDatabase
                 DROP TABLE IF EXISTS agents;
                 """,
                 transaction: transaction);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        finally
+        {
+            await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds <c>agents</c> with the current constraints, preserving every agent row and
+    /// every row that references one.
+    /// </summary>
+    private static async Task RebuildAgentsTableAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+    {
+        await connection.ExecuteAsync("PRAGMA foreign_keys = OFF;");
+
+        try
+        {
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+            await connection.ExecuteAsync(AgentRegistrySchema.Rebuild, transaction: transaction);
 
             await transaction.CommitAsync(cancellationToken);
         }

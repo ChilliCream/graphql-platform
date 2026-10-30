@@ -1,3 +1,3 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
-internal sealed record FakeClaudePeerCall(string SessionId, string Message);
+internal sealed record FakeClaudePeerCall(string Harness, string SessionId, string Message);
