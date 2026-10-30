@@ -1,8 +1,14 @@
+using System.Collections.Immutable;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Transport;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 using HotChocolate.Transport.Http;
+using Microsoft.Extensions.DependencyInjection;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
@@ -75,6 +81,373 @@ public class DeferTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverLookupFields_When_RootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                a: __typename
+                b: __typename
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverLookupFields_When_NoRootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverLookupFields_When_PlainRootFieldPrecedesTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                version
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverLookupFields_When_FragmentRootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                ... on Query {
+                    version
+                    a: __typename
+                }
+                ...RootFields
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+
+            fragment RootFields on Query {
+                b: __typename
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverNestedDeferFields_When_RootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                a: __typename
+                b: __typename
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                            ... @defer {
+                                text
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverSiblingDeferFields_When_RootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductRatingGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                a: __typename
+                b: __typename
+                products {
+                    id
+                    ... @defer {
+                        rating
+                    }
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_CompleteDeliveryGroupWithError_When_ImportedPathHasNoSelection()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(
+            configureGatewayBuilder: builder => builder.UseRequest(
+                (_, next) => async context =>
+                {
+                    var plan = context.GetOperationPlan()!;
+                    var compiler = context.Schema.Services.GetRequiredService<OperationCompiler>();
+                    var operation = compiler.Compile(
+                        "unrelated",
+                        "unrelated",
+                        "unrelated",
+                        (OperationDefinitionNode)Utf8GraphQLParser.Parse("{ version }").Definitions[0]);
+                    var incrementalPlan = plan.IncrementalPlans[0];
+                    var deliveryGroups = incrementalPlan.DeliveryGroups
+                        .Select(group => group with { Path = SelectionPath.Root })
+                        .ToImmutableArray();
+
+                    context.SetOperationPlan(
+                        OperationPlan.Create(
+                            plan.Id,
+                            plan.Operation,
+                            plan.RootNodes,
+                            plan.AllNodes,
+                            plan.DeliveryGroups,
+                            [
+                                new IncrementalPlan(
+                                    operation,
+                                    incrementalPlan.RootNodes,
+                                    incrementalPlan.AllNodes,
+                                    deliveryGroups,
+                                    incrementalPlan.Requirements)
+                            ],
+                            plan.SearchSpace,
+                            plan.ExpandedNodes));
+
+                    await next(context);
+                },
+                key: "SwapIncrementalPlan",
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                a: __typename
+                b: __typename
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    private async Task<Gateway> CreateProductGatewayAsync(
+        Action<IFusionGatewayBuilder>? configureGatewayBuilder)
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                version: String!
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                id: ID!
+                text: String!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ],
+        configureGatewayBuilder: configureGatewayBuilder);
+    }
+
+    private async Task<Gateway> CreateProductRatingGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                version: String!
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                id: ID!
+                text: String!
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+                productRatingById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                rating: Int!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
     }
 
     [Fact]

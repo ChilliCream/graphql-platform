@@ -1,0 +1,201 @@
+title: Defer_Should_CompleteDeliveryGroupWithError_When_ImportedPathHasNoSelection
+request:
+  document: |
+    {
+      a: __typename
+      b: __typename
+      products {
+        id
+        ... @defer {
+          reviews {
+            id
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "a": "Query",
+        "b": "Query",
+        "products": [
+          {
+            "id": "UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": []
+      }
+    ],
+    "completed": [
+      {
+        "id": "0",
+        "errors": [
+          {
+            "message": "The field `products` of the enclosing result path is not selected by the incremental plan."
+          }
+        ]
+      }
+    ],
+    "final": {
+      "data": {
+        "a": "Query",
+        "b": "Query",
+        "products": [
+          {
+            "id": "UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz"
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        version: String!
+        products: [Product!]!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_858aa5d6_1 {
+              a: __typename
+              b: __typename
+              products {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "a": "Query",
+                  "b": "Query",
+                  "products": [
+                    {
+                      "id": "UHJvZHVjdDox"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoy"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+
+      type Review {
+        id: ID!
+        text: String!
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          a: __typename
+          b: __typename
+          products {
+            id
+            id @fusion__requirement
+          }
+        }
+      hash: 1834731bd18dacf8e1ccae03c4e196d8
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_858aa5d6_1 {
+          a: __typename
+          b: __typename
+          products {
+            id
+          }
+        }
+    - id: 2
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: a
+          fieldName: __typename
+        - id: 3
+          responseName: b
+          fieldName: __typename
+  deliveryGroups:
+    - id: 0
+      path: $.products
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 0
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                reviews {
+                  id
+                }
+              }
+            }
+          source: $.productById
+          target: $.products
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

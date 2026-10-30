@@ -71,6 +71,9 @@ internal static class ThrowHelper
             value,
             "The value must be a non-negative finite number or positive infinity.");
 
+    public static InvalidOperationException ImportedPathSelectionNotFound(string responseName)
+        => new($"The field `{responseName}` of the enclosing result path is not selected by the incremental plan.");
+
     public static InvalidOperationException InvalidTargetValueKind(
         SelectionPath selectionPath,
         Path resultPath,

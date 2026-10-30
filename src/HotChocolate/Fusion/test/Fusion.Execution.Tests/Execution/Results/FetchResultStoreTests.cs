@@ -985,6 +985,105 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void ImportVariableValues_Should_MapPathsToTheTargetSelections_When_RootSelectionsPrecedeTheList()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+              items: [Item!]!
+            }
+
+            type Item {
+              id: ID!
+            }
+            """);
+        var sourcePlan = PlanOperation(schema, "{ a: field b: field items { id } }");
+        var targetPlan = PlanOperation(schema, "{ items { id } }");
+        var sourceItems = sourcePlan.Operation.RootSelectionSet.Selections[2];
+        var targetItems = targetPlan.Operation.RootSelectionSet.Selections[0];
+
+        using var resultArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+        target.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            targetPlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var values = WithAdditionalPaths(
+            CreateVariableValues(
+                source,
+                Path(sourceItems.Id, ~1),
+                Field("__fusion_1_id", new StringValueNode("2"))),
+            Path(sourceItems.Id, ~0));
+
+        // act
+        var result = target.ImportVariableValues([values], sourcePlan.Operation);
+
+        // assert
+        var entry = Assert.Single(result);
+        Assert.NotEqual(sourceItems.Id, targetItems.Id);
+        Assert.Equal(Path(targetItems.Id, ~1), entry.Path);
+        Assert.Equal([Path(targetItems.Id, ~0)], entry.AdditionalPaths.AsSpan().ToArray());
+    }
+
+    [Fact]
+    public void ImportVariableValues_Should_Throw_When_PathSegmentHasNoTargetSelection()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+              items: [Item!]!
+            }
+
+            type Item {
+              id: ID!
+            }
+            """);
+        var sourcePlan = PlanOperation(schema, "{ items { id } }");
+        var targetPlan = PlanOperation(schema, "{ field }");
+        var sourceItems = sourcePlan.Operation.RootSelectionSet.Selections[0];
+
+        using var resultArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+        target.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            targetPlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var values = CreateVariableValues(
+            source,
+            Path(sourceItems.Id, ~0),
+            Field("__fusion_1_id", new StringValueNode("1")));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => target.ImportVariableValues([values], sourcePlan.Operation));
+
+        // assert
+        Assert.Equal(
+            "The field `items` of the enclosing result path is not selected by the incremental plan.",
+            exception.Message);
+    }
+
+    [Fact]
     public void CreateVariableValueSetsFromSnapshot_Should_MergeForwardedVariables_When_RequirementsAreImported()
     {
         // arrange

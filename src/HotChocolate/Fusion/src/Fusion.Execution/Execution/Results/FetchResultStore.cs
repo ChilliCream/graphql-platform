@@ -77,6 +77,11 @@ internal sealed partial class FetchResultStore : IDisposable
 
     public CompositeResultDocument Result => _result;
 
+    /// <summary>
+    /// Gets the operation whose selections this store's result is built for.
+    /// </summary>
+    internal Operation Operation => _operation;
+
     public IReadOnlyList<IError>? Errors => _errors;
 
     public List<IDisposable> MemoryOwners => _memory;
@@ -1867,11 +1872,15 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// Imports variable value sets into this store for a child incremental plan.
+    /// Imports variable value sets of <paramref name="sourceOperation"/> into this store for a child
+    /// incremental plan. Result paths are mapped to the selections of this store's operation.
     /// </summary>
     internal ImmutableArray<VariableValues> ImportVariableValues(
-        ImmutableArray<VariableValues> source)
+        ImmutableArray<VariableValues> source,
+        Operation sourceOperation)
     {
+        ArgumentNullException.ThrowIfNull(sourceOperation);
+
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (source.IsDefaultOrEmpty)
@@ -1887,7 +1896,7 @@ AddErrors_Next:
         {
             foreach (var entry in source)
             {
-                builder.Add(ImportVariableValuesEntry(entry));
+                builder.Add(ImportVariableValuesEntry(entry, sourceOperation));
             }
 
             imported = builder.MoveToImmutable();
@@ -1898,11 +1907,11 @@ AddErrors_Next:
         return imported;
     }
 
-    private VariableValues ImportVariableValuesEntry(VariableValues source)
+    private VariableValues ImportVariableValuesEntry(VariableValues source, Operation sourceOperation)
     {
-        var path = ImportPath(source.Path);
+        var path = ImportPath(source.Path, sourceOperation);
         var values = ImportJsonSegment(source.Values);
-        var additionalPaths = ImportAdditionalPaths(source.AdditionalPaths);
+        var additionalPaths = ImportAdditionalPaths(source.AdditionalPaths, sourceOperation);
 
         return new VariableValues(path, values)
         {
@@ -1929,7 +1938,7 @@ AddErrors_Next:
         return JsonSegment.Create(_variableWriter, startPosition, length);
     }
 
-    private static CompactPath ImportPath(CompactPath source)
+    private CompactPath ImportPath(CompactPath source, Operation sourceOperation)
     {
         if (source.IsRoot)
         {
@@ -1939,11 +1948,46 @@ AddErrors_Next:
         var segments = source.Segments;
         var copy = new int[segments.Length + 1];
         copy[0] = segments.Length;
-        segments.CopyTo(copy.AsSpan(1));
+
+        Selection? parentSelection = null;
+        var insideList = false;
+
+        for (var i = 0; i < segments.Length; i++)
+        {
+            var segment = segments[i];
+
+            if (segment < 0)
+            {
+                copy[i + 1] = segment;
+                insideList = true;
+                continue;
+            }
+
+            var sourceSelection = sourceOperation.GetSelectionById(segment);
+
+            // Objects above the first list are initialized for the declared type of their field,
+            // objects inside a list are created for their runtime type.
+            var typeContext = !insideList && parentSelection?.NamedType is IComplexTypeDefinition declaredType
+                ? declaredType
+                : sourceSelection.DeclaringSelectionSet.Type;
+            var selectionSet = parentSelection is null
+                ? _operation.RootSelectionSet
+                : parentSelection.GetSelectionSet(typeContext);
+
+            if (selectionSet is null
+                || !selectionSet.TryGetSelection(sourceSelection.ResponseName, out var selection))
+            {
+                throw ThrowHelper.ImportedPathSelectionNotFound(sourceSelection.ResponseName);
+            }
+
+            copy[i + 1] = selection.Id;
+            parentSelection = selection;
+        }
+
         return new CompactPath(copy);
     }
 
-    private static CompactPathSegment ImportAdditionalPaths(CompactPathSegment source)
+    private CompactPathSegment ImportAdditionalPaths(CompactPathSegment source, Operation sourceOperation)
     {
         if (source.IsDefaultOrEmpty)
         {
@@ -1954,7 +1998,7 @@ AddErrors_Next:
         var copy = new CompactPath[paths.Length];
         for (var i = 0; i < paths.Length; i++)
         {
-            copy[i] = ImportPath(paths[i]);
+            copy[i] = ImportPath(paths[i], sourceOperation);
         }
 
         return new CompactPathSegment(copy, 0, copy.Length);

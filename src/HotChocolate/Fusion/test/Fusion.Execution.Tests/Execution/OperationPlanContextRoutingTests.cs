@@ -237,6 +237,35 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
     }
 
     [Fact]
+    public async Task SetRequirements_Should_LeaveResultStoreUntouched_When_PathBelongsToAnotherOperation()
+    {
+        // arrange
+        await using var fixture = await RoutingTestFixture.CreateAsync();
+        var context = fixture.CreateContext();
+        var parentOperation = PlanOperation(fixture.Schema, "{ a: field b: field items { id } }").Operation;
+        Assert.True(parentOperation.RootSelectionSet.TryGetSelection("items", out var items));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => fixture.SetRequirements(
+                context,
+                parentOperation,
+                Path(items.Id, ~0),
+                ImportedKeys("__fusion_1_id"),
+                Field("__fusion_1_id", new StringValueNode("1"))));
+
+        // assert
+        Assert.Equal(
+            "The field `items` of the enclosing result path is not selected by the incremental plan.",
+            exception.Message);
+        Assert.True(
+            context.CreateVariableValueSets(
+                SelectionPath.Root,
+                forwardedVariables: [],
+                requirements: [Requirement("__fusion_1_id")]).IsDefaultOrEmpty);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_Throw_When_RequestIsSubscription()
     {
         // arrange
@@ -285,6 +314,14 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             new PathNode(new PathSegmentNode(new FusionNameNode(key))),
             null);
 
+    private static CompactPath Path(params int[] segments)
+    {
+        var buffer = new int[segments.Length + 1];
+        buffer[0] = segments.Length;
+        segments.CopyTo(buffer.AsSpan(1));
+        return new CompactPath(buffer);
+    }
+
     private static HashSet<string> ImportedKeys(params string[] keys)
         => new(keys, StringComparer.Ordinal);
 
@@ -329,6 +366,11 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                         """
                         type Query {
                           field: String!
+                          items: [Item!]!
+                        }
+
+                        type Item {
+                          id: ID!
                         }
                         """))
                 .Services
@@ -361,6 +403,8 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 operationPlan,
                 new VariableValueCollection(coercedVariables));
         }
+
+        public FusionSchemaDefinition Schema => (FusionSchemaDefinition)_executor.Schema;
 
         public ExecutionNode GetRootNode() => _operationPlan.RootNodes[0];
 
@@ -411,7 +455,21 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             _stores.Add(sourceStore);
 
             var entry = sourceStore.CreateVariableValueSets(CompactPath.Root, fields);
-            context.SetRequirements([entry], keys);
+            context.SetRequirements([entry], keys, _operationPlan.Operation);
+        }
+
+        public void SetRequirements(
+            OperationPlanContext context,
+            Operation parentOperation,
+            CompactPath parentPath,
+            HashSet<string> keys,
+            params ObjectFieldNode[] fields)
+        {
+            var sourceStore = new FetchResultStore();
+            _stores.Add(sourceStore);
+
+            var entry = sourceStore.CreateVariableValueSets(parentPath, fields);
+            context.SetRequirements([entry], keys, parentOperation);
         }
 
         public async ValueTask DisposeAsync()

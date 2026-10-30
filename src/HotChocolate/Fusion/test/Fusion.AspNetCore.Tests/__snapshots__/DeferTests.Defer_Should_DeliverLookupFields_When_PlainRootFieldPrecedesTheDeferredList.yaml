@@ -1,0 +1,363 @@
+title: Defer_Should_DeliverLookupFields_When_PlainRootFieldPrecedesTheDeferredList
+request:
+  document: |
+    {
+      version
+      products {
+        id
+        ... @defer {
+          reviews {
+            id
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "products": [
+          {
+            "id": "UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz"
+          }
+        ],
+        "version": "Query"
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "UmV2aWV3OjE="
+            },
+            {
+              "id": "UmV2aWV3OjI="
+            },
+            {
+              "id": "UmV2aWV3OjM="
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "UmV2aWV3OjQ="
+            },
+            {
+              "id": "UmV2aWV3OjU="
+            },
+            {
+              "id": "UmV2aWV3OjY="
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "UmV2aWV3Ojc="
+            },
+            {
+              "id": "UmV2aWV3Ojg="
+            },
+            {
+              "id": "UmV2aWV3Ojk="
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "products": [
+          {
+            "id": "UHJvZHVjdDox",
+            "reviews": [
+              {
+                "id": "UmV2aWV3OjE="
+              },
+              {
+                "id": "UmV2aWV3OjI="
+              },
+              {
+                "id": "UmV2aWV3OjM="
+              }
+            ]
+          },
+          {
+            "id": "UHJvZHVjdDoy",
+            "reviews": [
+              {
+                "id": "UmV2aWV3OjQ="
+              },
+              {
+                "id": "UmV2aWV3OjU="
+              },
+              {
+                "id": "UmV2aWV3OjY="
+              }
+            ]
+          },
+          {
+            "id": "UHJvZHVjdDoz",
+            "reviews": [
+              {
+                "id": "UmV2aWV3Ojc="
+              },
+              {
+                "id": "UmV2aWV3Ojg="
+              },
+              {
+                "id": "UmV2aWV3Ojk="
+              }
+            ]
+          }
+        ],
+        "version": "Query"
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        version: String!
+        products: [Product!]!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_7995b76e_1 {
+              version
+              products {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "version": "Query",
+                  "products": [
+                    {
+                      "id": "UHJvZHVjdDox"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoy"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+
+      type Review {
+        id: ID!
+        text: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                reviews {
+                  id
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "UmV2aWV3OjE="
+                      },
+                      {
+                        "id": "UmV2aWV3OjI="
+                      },
+                      {
+                        "id": "UmV2aWV3OjM="
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "UmV2aWV3OjQ="
+                      },
+                      {
+                        "id": "UmV2aWV3OjU="
+                      },
+                      {
+                        "id": "UmV2aWV3OjY="
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "UmV2aWV3Ojc="
+                      },
+                      {
+                        "id": "UmV2aWV3Ojg="
+                      },
+                      {
+                        "id": "UmV2aWV3Ojk="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          version
+          products {
+            id
+            id @fusion__requirement
+          }
+        }
+      hash: 790244fb024152e975761b798dd2fcc3
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_7995b76e_1 {
+          version
+          products {
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.products
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                reviews {
+                  id
+                }
+              }
+            }
+          source: $.productById
+          target: $.products
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
