@@ -503,14 +503,19 @@ public sealed partial class OperationCompiler
 
                 finalDeferUsage = deferUsages.ToArray();
 
+                // The mask carries the condition bits of every usage in each parent chain, so
+                // a selection stays deferred while any enclosing @defer is enabled.
                 if (!hasWideDeferFlags)
                 {
                     foreach (var usage in deferUsages)
                     {
-                        // This path only runs for operations with at most 64 defer
-                        // conditions, so the shift cannot wrap.
-                        Debug.Assert((uint)usage.DeferConditionIndex < 64);
-                        deferMask |= 1ul << usage.DeferConditionIndex;
+                        for (var chain = usage; chain is not null; chain = chain.Parent)
+                        {
+                            // This path only runs for operations with at most 64 defer
+                            // conditions, so the shift cannot wrap.
+                            Debug.Assert((uint)chain.DeferConditionIndex < 64);
+                            deferMask |= 1ul << chain.DeferConditionIndex;
+                        }
                     }
                 }
                 else
@@ -647,11 +652,14 @@ public sealed partial class OperationCompiler
 
         foreach (var usage in deferUsages)
         {
-            var word = usage.DeferConditionIndex >> 6;
-
-            if (word > maxWord)
+            for (var chain = usage; chain is not null; chain = chain.Parent)
             {
-                maxWord = word;
+                var word = chain.DeferConditionIndex >> 6;
+
+                if (word > maxWord)
+                {
+                    maxWord = word;
+                }
             }
         }
 
@@ -659,16 +667,19 @@ public sealed partial class OperationCompiler
 
         foreach (var usage in deferUsages)
         {
-            var index = usage.DeferConditionIndex;
-            var word = index >> 6;
+            for (var chain = usage; chain is not null; chain = chain.Parent)
+            {
+                var index = chain.DeferConditionIndex;
+                var word = index >> 6;
 
-            if (word == 0)
-            {
-                word0 |= 1ul << index;
-            }
-            else
-            {
-                overflow![word - 1] |= 1ul << (index & 63);
+                if (word == 0)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![word - 1] |= 1ul << (index & 63);
+                }
             }
         }
 
