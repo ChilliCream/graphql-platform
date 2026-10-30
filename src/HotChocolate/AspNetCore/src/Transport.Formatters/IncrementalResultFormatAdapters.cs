@@ -232,19 +232,105 @@ internal static class IncrementalRfc1ResultFormatAdapter
         out Path selectionPath,
         out DeferSelectionTree selection)
     {
-        if (deferLookup.TryResolveRoot(pendingPath, label, out selectionPath, out selection))
+        if (deferLookup.TryResolveRoot(ToFieldPath(pendingPath), label, out var fieldPath, out selection))
         {
+            selectionPath = ToResultPath(pendingPath, fieldPath);
             return true;
         }
 
-        if (deferLookup.TryResolveRoot(path, label, out selectionPath, out selection))
+        if (deferLookup.TryResolveRoot(ToFieldPath(path), label, out fieldPath, out selection))
         {
+            selectionPath = ToResultPath(path, fieldPath);
             return true;
         }
 
         selectionPath = Path.Root;
         selection = default!;
         return false;
+    }
+
+    private static Path ToFieldPath(Path path)
+    {
+        var segments = path.ToList();
+        var hasIndex = false;
+
+        for (var i = 0; i < segments.Count; i++)
+        {
+            if (segments[i] is int)
+            {
+                hasIndex = true;
+                break;
+            }
+        }
+
+        if (!hasIndex)
+        {
+            return path;
+        }
+
+        var fieldPath = Path.Root;
+
+        for (var i = 0; i < segments.Count; i++)
+        {
+            if (segments[i] is string fieldName)
+            {
+                fieldPath = fieldPath.Append(fieldName);
+            }
+        }
+
+        return fieldPath;
+    }
+
+    private static Path ToResultPath(Path path, Path fieldPath)
+    {
+        var segments = path.ToList();
+        var fieldSegments = fieldPath.ToList();
+        var matched = 0;
+        var end = fieldSegments.Count == 0 ? 0 : -1;
+
+        for (var i = 0; i < segments.Count; i++)
+        {
+            if (segments[i] is int)
+            {
+                if (matched == fieldSegments.Count)
+                {
+                    end = i + 1;
+                }
+
+                continue;
+            }
+
+            if (matched == fieldSegments.Count)
+            {
+                break;
+            }
+
+            if (!Equals(fieldSegments[matched], segments[i]))
+            {
+                return fieldPath;
+            }
+
+            matched++;
+
+            if (matched == fieldSegments.Count)
+            {
+                end = i + 1;
+            }
+        }
+
+        if (matched < fieldSegments.Count)
+        {
+            return fieldPath;
+        }
+
+        var resultSegments = new List<object>(end);
+
+        for (var i = 0; i < end; i++)
+        {
+            resultSegments.Add(segments[i]);
+        }
+
+        return Path.FromList(resultSegments);
     }
 
     private static bool TryGetRelativePathSegments(

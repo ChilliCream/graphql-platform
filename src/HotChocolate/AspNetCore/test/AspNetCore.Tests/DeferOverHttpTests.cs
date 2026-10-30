@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 #if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
 #endif
@@ -1368,6 +1369,315 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             "Expected both labeled deferred payloads to include product.name.");
     }
 
+    [Fact]
+    public async Task Defer_List_Item_Fragment_Multipart_Legacy_Format_Complete_In_Order()
+    {
+        // arrange
+        var gates = new ItemGates(3);
+
+        // act
+        var content = await ExecuteGatedDeferListAsync(gates, [0, 1, 2], DeferredItemFragmentQuery);
+
+        // assert
+        content.MatchInlineSnapshot(
+            """
+
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"data":{"products":{"nodes":[{"id":0},{"id":1},{"id":2}]}},"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 0"},"path":["products","nodes",0],"label":"details"}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 1"},"path":["products","nodes",1],"label":"details"}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 2"},"path":["products","nodes",2],"label":"details"}],"hasNext":false}
+            -----
+
+            """);
+    }
+
+    [Fact]
+    public async Task Defer_List_Item_Fragment_Multipart_Legacy_Format_Complete_In_Reverse_Order()
+    {
+        // arrange
+        var gates = new ItemGates(3);
+
+        // act
+        var content = await ExecuteGatedDeferListAsync(gates, [2, 1, 0], DeferredItemFragmentQuery);
+
+        // assert
+        content.MatchInlineSnapshot(
+            """
+
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"data":{"products":{"nodes":[{"id":0},{"id":1},{"id":2}]}},"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 2"},"path":["products","nodes",2],"label":"details"}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 1"},"path":["products","nodes",1],"label":"details"}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 0"},"path":["products","nodes",0],"label":"details"}],"hasNext":false}
+            -----
+
+            """);
+    }
+
+    [Fact]
+    public async Task Defer_List_Item_Fragment_Multipart_Legacy_Format_Complete_In_Mixed_Order()
+    {
+        // arrange
+        var gates = new ItemGates(3);
+
+        // act
+        var content = await ExecuteGatedDeferListAsync(gates, [1, 2, 0], DeferredItemFragmentQuery);
+
+        // assert
+        content.MatchInlineSnapshot(
+            """
+
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"data":{"products":{"nodes":[{"id":0},{"id":1},{"id":2}]}},"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 1"},"path":["products","nodes",1],"label":"details"}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 2"},"path":["products","nodes",2],"label":"details"}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"description":"Description 0"},"path":["products","nodes",0],"label":"details"}],"hasNext":false}
+            -----
+
+            """);
+    }
+
+    [Fact]
+    public async Task Defer_List_Item_Overlap_Multipart_Legacy_Format_Complete_In_Mixed_Order()
+    {
+        // arrange
+        var gates = new ItemGates(3);
+
+        // act
+        var content = await ExecuteGatedDeferListAsync(
+            gates,
+            [1, 2, 0],
+            """
+            {
+                products {
+                    nodes {
+                        id
+                        ... @defer {
+                            id
+                            description
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        content.MatchInlineSnapshot(
+            """
+
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"data":{"products":{"nodes":[{"id":0},{"id":1},{"id":2}]}},"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"id":1,"description":"Description 1"},"path":["products","nodes",1]}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"id":2,"description":"Description 2"},"path":["products","nodes",2]}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"id":0,"description":"Description 0"},"path":["products","nodes",0]}],"hasNext":false}
+            -----
+
+            """);
+    }
+
+    [Fact]
+    public async Task Defer_List_Item_Nested_Defers_Multipart_Legacy_Format_Complete_In_Mixed_Order()
+    {
+        // arrange
+        var gates = new ItemGates(3);
+
+        // act
+        var content = await ExecuteGatedDeferListAsync(
+            gates,
+            [1, 2, 0],
+            """
+            {
+                products {
+                    nodes {
+                        ... @defer {
+                            ...ProductFragment
+                            ... @defer {
+                                ...ProductFragment
+                                ... @defer {
+                                    ...ProductFragment
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            fragment ProductFragment on GatedProduct {
+                id
+                description
+            }
+            """);
+
+        // assert
+        content.MatchInlineSnapshot(
+            """
+
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"data":{"products":{"nodes":[{},{},{}]}},"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"id":1,"description":"Description 1"},"path":["products","nodes",1]}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"id":2,"description":"Description 2"},"path":["products","nodes",2]}],"hasNext":true}
+            ---
+            Content-Type: application/json; charset=utf-8
+
+            {"incremental":[{"data":{"id":0,"description":"Description 0"},"path":["products","nodes",0]}],"hasNext":false}
+            -----
+
+            """);
+    }
+
+    private async Task<string> ExecuteGatedDeferListAsync(
+        ItemGates gates,
+        int[] releaseOrder,
+        string query)
+    {
+        using var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddSingleton(gates)
+                .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
+                .AddQueryType<GatedQuery>()
+                .AddDefaultBatchDispatcher()
+                .AddHttpResponseFormatter()
+                .ModifyOptions(o => o.EnableDefer = true),
+            app => app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        var client = server.CreateClient();
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(30));
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query
+        });
+        request.Headers.Add("Accept", "multipart/mixed; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            timeout.Token);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await using var stream = await response.Content.ReadAsStreamAsync(timeout.Token);
+        using var reader = new StreamReader(stream);
+        var content = new StringBuilder();
+        var buffer = new char[1024];
+
+        async Task ReadPayloadsAsync(int count)
+        {
+            while (CountPayloads(content) < count)
+            {
+                var read = await reader.ReadAsync(buffer.AsMemory(), timeout.Token);
+
+                if (read == 0)
+                {
+                    return;
+                }
+
+                content.Append(buffer, 0, read);
+            }
+        }
+
+        await ReadPayloadsAsync(1);
+
+        for (var i = 0; i < releaseOrder.Length; i++)
+        {
+            gates.Release(releaseOrder[i]);
+            await ReadPayloadsAsync(i + 2);
+        }
+
+        content.Append(await reader.ReadToEndAsync(timeout.Token));
+        return content.ToString();
+
+        static int CountPayloads(StringBuilder builder)
+        {
+            var text = builder.ToString();
+            var count = 0;
+            var index = 0;
+
+            while ((index = text.IndexOf("\"hasNext\"", index, StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index++;
+            }
+
+            return count;
+        }
+    }
+
+    private const string DeferredItemFragmentQuery =
+        """
+        {
+            products {
+                nodes {
+                    id
+                    ...ProductDetails @defer(label: "details")
+                }
+            }
+        }
+
+        fragment ProductDetails on GatedProduct {
+            description
+        }
+        """;
+
     private TestServer CreateDeferServer(
         HttpTransportVersion serverTransportVersion = HttpTransportVersion.Latest)
     {
@@ -1436,4 +1746,48 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
     }
 
     public sealed record Review(int Rating);
+
+    public sealed class GatedQuery
+    {
+        public GatedProductPage GetProducts()
+            => new();
+    }
+
+    public sealed class GatedProductPage
+    {
+        public IReadOnlyList<GatedProduct> GetNodes()
+            => [new(0), new(1), new(2)];
+    }
+
+    public sealed record GatedProduct(int Id)
+    {
+        public async Task<string> GetDescriptionAsync(
+            [Service] ItemGates gates,
+            CancellationToken cancellationToken)
+        {
+            await gates.WaitAsync(Id, cancellationToken);
+            return "Description " + Id;
+        }
+    }
+
+    public sealed class ItemGates
+    {
+        private readonly TaskCompletionSource[] _gates;
+
+        public ItemGates(int count)
+        {
+            _gates = new TaskCompletionSource[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                _gates[i] = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            }
+        }
+
+        public Task WaitAsync(int index, CancellationToken cancellationToken)
+            => _gates[index].Task.WaitAsync(cancellationToken);
+
+        public void Release(int index)
+            => _gates[index].SetResult();
+    }
 }
