@@ -1,4 +1,6 @@
 using Mocha.Transport.RabbitMQ.Features;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Mocha.Transport.RabbitMQ;
 
@@ -65,19 +67,33 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
 
         _consumer = await rabbitMQMessagingTransport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
-            (channel, eventArgs, ct) =>
-                ExecuteAsync(
-                    static (context, state) =>
-                    {
-                        var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
-                        feature.Channel = state.channel;
-                        feature.EventArgs = state.eventArgs;
-                    },
-                    (channel, eventArgs),
-                    ct),
+            ProcessMessageAsync,
             _maxPrefetch,
             _consumerDispatchConcurrency,
             cancellationToken);
+    }
+
+    private async ValueTask ProcessMessageAsync(
+        IChannel channel,
+        BasicDeliverEventArgs eventArgs,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ExecuteAsync(
+                static (context, state) =>
+                {
+                    var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
+                    feature.Channel = state.channel;
+                    feature.EventArgs = state.eventArgs;
+                },
+                (channel, eventArgs),
+                cancellationToken);
+        }
+        catch (Exception) when (cancellationToken.IsCancellationRequested)
+        {
+            // Message processing was cancelled during shutdown.
+        }
     }
 
     protected override async ValueTask OnStopAsync(

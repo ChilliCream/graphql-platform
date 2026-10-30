@@ -84,9 +84,9 @@ public class Issue8407ProbeTests
 
     public sealed class Issue8407Context(DbContextOptions<Issue8407Context> options) : DbContext(options)
     {
-        public DbSet<Issue8407Parent> Parents => Set<Issue8407Parent>();
+        public DbSet<Issue8407Parent> Parents { get; set; }
 
-        public DbSet<Issue8407Child> Children => Set<Issue8407Child>();
+        public DbSet<Issue8407Child> Children { get; set; }
     }
 
     public sealed class Issue8407Parent

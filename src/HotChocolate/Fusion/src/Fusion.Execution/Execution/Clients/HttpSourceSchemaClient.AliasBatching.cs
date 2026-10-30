@@ -110,7 +110,8 @@ public sealed partial class HttpSourceSchemaClient
         var httpRequest = new GraphQLHttpRequest(body, _configuration.BaseAddress)
         {
             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-            OperationKind = GetOperationKindHint(request.OperationType)
+            OperationKind = GetOperationKindHint(request.OperationType),
+            HasDeadline = context.HasExecutionDeadline
         };
 
         SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, node, _configuration);

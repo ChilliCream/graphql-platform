@@ -31,20 +31,20 @@ response:
           "id": "SXRlbTI6MQ==",
           "products": [
             {
-              "id": "UHJvZHVjdDox",
-              "name": "Product: UHJvZHVjdDox"
+              "id": "UHJvZHVjdDozMzAzOTkyMjg3",
+              "name": "Product: UHJvZHVjdDozMzAzOTkyMjg3"
             },
             {
-              "id": "UHJvZHVjdDoy",
-              "name": "Product: UHJvZHVjdDoy"
+              "id": "UHJvZHVjdDoxODk2MzIxODY5",
+              "name": "Product: UHJvZHVjdDoxODk2MzIxODY5"
             },
             {
-              "id": "UHJvZHVjdDoz",
-              "name": "Product: UHJvZHVjdDoz"
+              "id": "UHJvZHVjdDozMzQxNTM3NDI2",
+              "name": "Product: UHJvZHVjdDozMzQxNTM3NDI2"
             }
           ],
           "singularProduct": {
-            "name": "Product: UHJvZHVjdDo0"
+            "name": "Product: UHJvZHVjdDo0MjEyMTI3MzQ3"
           }
         }
       }
@@ -115,17 +115,17 @@ sourceSchemas:
                     "id": "SXRlbTI6MQ==",
                     "products": [
                       {
-                        "id": "UHJvZHVjdDox"
+                        "id": "UHJvZHVjdDozMzAzOTkyMjg3"
                       },
                       {
-                        "id": "UHJvZHVjdDoy"
+                        "id": "UHJvZHVjdDoxODk2MzIxODY5"
                       },
                       {
-                        "id": "UHJvZHVjdDoz"
+                        "id": "UHJvZHVjdDozMzQxNTM3NDI2"
                       }
                     ],
                     "singularProduct": {
-                      "id": "UHJvZHVjdDo0"
+                      "id": "UHJvZHVjdDo0MjEyMTI3MzQ3"
                     }
                   }
                 }
@@ -162,7 +162,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDo0"
+              "__fusion_1_id": "UHJvZHVjdDo0MjEyMTI3MzQ3"
             }
         response:
           results:
@@ -171,7 +171,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDo0"
+                    "name": "Product: UHJvZHVjdDo0MjEyMTI3MzQ3"
                   }
                 }
               }
@@ -189,13 +189,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDox"
+                "__fusion_2_id": "UHJvZHVjdDozMzAzOTkyMjg3"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoy"
+                "__fusion_2_id": "UHJvZHVjdDoxODk2MzIxODY5"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoz"
+                "__fusion_2_id": "UHJvZHVjdDozMzQxNTM3NDI2"
               }
             ]
         response:
@@ -206,7 +206,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDox"
+                    "name": "Product: UHJvZHVjdDozMzAzOTkyMjg3"
                   }
                 }
               }
@@ -215,7 +215,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDoy"
+                    "name": "Product: UHJvZHVjdDoxODk2MzIxODY5"
                   }
                 }
               }
@@ -224,7 +224,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDoz"
+                    "name": "Product: UHJvZHVjdDozMzQxNTM3NDI2"
                   }
                 }
               }

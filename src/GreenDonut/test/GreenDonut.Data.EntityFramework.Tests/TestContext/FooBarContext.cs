@@ -16,9 +16,9 @@ public class FooBarContext(string connectionString, IEnumerable<IInterceptor>? i
         }
     }
 
-    public DbSet<Foo> Foos { get; set; } = null!;
+    public DbSet<Foo> Foos { get; set; }
 
-    public DbSet<Bar> Bars { get; set; } = null!;
+    public DbSet<Bar> Bars { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

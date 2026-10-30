@@ -16,13 +16,13 @@ response:
       "data": {
         "topProducts": [
           {
-            "id": "UHJvZHVjdDox"
+            "id": "UHJvZHVjdDoxNzg5NzkyNDI="
           },
           {
-            "id": "UHJvZHVjdDoy"
+            "id": "UHJvZHVjdDozODE5NDAwOTQw"
           },
           {
-            "id": "UHJvZHVjdDoz"
+            "id": "UHJvZHVjdDoyMzYxMDU0MTEx"
           }
         ]
       }
@@ -147,13 +147,13 @@ sourceSchemas:
                 "data": {
                   "topProducts": [
                     {
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDoxNzg5NzkyNDI="
                     },
                     {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDozODE5NDAwOTQw"
                     },
                     {
-                      "id": "UHJvZHVjdDoz"
+                      "id": "UHJvZHVjdDoyMzYxMDU0MTEx"
                     }
                   ]
                 }

@@ -14,40 +14,40 @@ internal sealed class StreamableHttpHandlerProxy
 
     public async Task HandlePostRequestAsync(HttpContext context)
     {
-        var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
-        await session.StreamableHttpHandler.HandlePostRequestAsync(context);
+        var handler =
+            await _mcpRequestExecutor.GetStreamableHttpHandlerAsync(context.RequestAborted);
+        await handler.HandlePostRequestAsync(context);
     }
 
     public async Task HandleGetRequestAsync(HttpContext context)
     {
-        var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
+        var handler =
+            await _mcpRequestExecutor.GetStreamableHttpHandlerAsync(context.RequestAborted);
 
-        if (IsStateless(session))
+        if (handler.HttpServerTransportOptions.Stateless)
         {
             WriteMethodNotAllowed(context);
 
             return;
         }
 
-        await session.StreamableHttpHandler.HandleGetRequestAsync(context);
+        await handler.HandleGetRequestAsync(context);
     }
 
     public async Task HandleDeleteRequestAsync(HttpContext context)
     {
-        var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
+        var handler =
+            await _mcpRequestExecutor.GetStreamableHttpHandlerAsync(context.RequestAborted);
 
-        if (IsStateless(session))
+        if (handler.HttpServerTransportOptions.Stateless)
         {
             WriteMethodNotAllowed(context);
 
             return;
         }
 
-        await session.StreamableHttpHandler.HandleDeleteRequestAsync(context);
+        await handler.HandleDeleteRequestAsync(context);
     }
-
-    private static bool IsStateless(McpExecutorSession session)
-        => session.StreamableHttpHandler.HttpServerTransportOptions.Stateless;
 
     private static void WriteMethodNotAllowed(HttpContext context)
     {

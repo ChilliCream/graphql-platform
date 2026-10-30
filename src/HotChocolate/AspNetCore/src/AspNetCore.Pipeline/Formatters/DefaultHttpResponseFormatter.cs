@@ -27,6 +27,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private const HttpTransportVersion LatestTransportVersion = HttpTransportVersion.Draft20250508;
     private const HttpStatusCode PartialSuccess = (HttpStatusCode)294;
 
+    private static readonly ResponseContentType[] s_responseContentTypes =
+    [
+        ResponseContentType.GraphQLResponse,
+        ResponseContentType.GraphQLResponseStream,
+        ResponseContentType.Json,
+        ResponseContentType.JsonLines,
+        ResponseContentType.MultiPartMixed,
+        ResponseContentType.EventStream
+    ];
+
     private readonly ConcurrentDictionary<SchemaCacheKey, CachedSchemaOutput> _schemaCache = [];
     private readonly ConcurrentDictionary<SchemaCacheKey, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = [];
     private readonly ITimeProvider _timeProvider;
@@ -44,6 +54,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo[] _streamPreferred;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
     private readonly bool _jsonFollowsGraphQLResponseRules;
+    private readonly bool _reportsContentTooLarge;
     private readonly bool _reportsPartialSuccess;
     private readonly bool _reportsUnprocessableRequest;
 
@@ -140,13 +151,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         // From the 2026-09-03 revision on, a client that accepts application/json is answered as
         // if it had asked for application/graphql-response+json, and only a 2xx response is
-        // written with application/json as its Content-Type. The same revision answers a result
-        // that carries errors beside its data with 294, a request the server read but cannot
-        // execute with 422 rather than 400, and a request whose method or Content-Type the
-        // endpoint does not support with 405 or 415 rather than 404.
+        // written with application/json as its Content-Type. The same revision answers a request
+        // body over the maximum request size with 413 rather than 400, a result that carries
+        // errors beside its data with 294, a request the server read but cannot execute with 422
+        // rather than 400, and a request whose method or Content-Type the endpoint does not
+        // support with 405 or 415 rather than 404.
         var usesRevision20260903 = TransportVersion is not
             (HttpTransportVersion.Legacy or HttpTransportVersion.Draft20250508);
         _jsonFollowsGraphQLResponseRules = usesRevision20260903;
+        _reportsContentTooLarge = usesRevision20260903;
         _reportsPartialSuccess = usesRevision20260903;
         _reportsUnprocessableRequest = usesRevision20260903;
         ReportsUnsupportedMethodOrMediaType = usesRevision20260903;
@@ -362,16 +375,30 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 response.ContentType = GetContentType(format, statusCode);
                 response.StatusCode = statusCode;
 
-                // RFC 9110, section 15.5.6 requires a 405 to list the methods the target resource
-                // supports, and section 10.2.1 defines that set per request. A GET or HEAD
-                // carrying an operation kind this server only serves over POST leaves POST as the
-                // one method that can satisfy it. A status code an overriding formatter chose is
-                // left alone, along with whatever Allow header it means to write for it.
+                // A 405 lists the methods that can satisfy the request, per RFC 9110, sections
+                // 15.5.6 and 10.2.1: the ones a refused result names, otherwise POST for a GET or
+                // HEAD. A status code an overriding formatter chose is left alone, along with its
+                // Allow header.
                 if (statusCode is (int)HttpStatusCode.MethodNotAllowed
-                    && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed)
-                    && response.HttpContext.Request.IsGetOrHeadMethod())
+                    && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
                 {
-                    response.Headers.Allow = HttpMethods.Post;
+                    if (result.ContextData.TryGetValue(
+                            HttpResultContextData.AllowedMethods,
+                            out var allowed)
+                        && allowed is string allowedMethods)
+                    {
+                        response.Headers.Allow = allowedMethods;
+
+                        if (result.ContextData.ContainsKey(HttpResultContextData.AcceptQuery))
+                        {
+                            response.Headers[HttpHeaderKeys.AcceptQuery] =
+                                HttpHeaderValues.AcceptQueryMediaTypes;
+                        }
+                    }
+                    else if (response.HttpContext.Request.IsGetOrHeadMethod())
+                    {
+                        response.Headers.Allow = HttpMethods.Post;
+                    }
                 }
 
                 if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
@@ -383,10 +410,21 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 if (result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
                     && varyValue is string varyHeaderValue)
                 {
-                    response.Headers.Vary = varyHeaderValue;
+                    response.Headers.AppendVary(varyHeaderValue);
                 }
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
+
+                if (format.Kind is ResponseContentType.GraphQLResponse or ResponseContentType.Json)
+                {
+                    await FormatWithContentLengthAsync(
+                        response,
+                        operationResult,
+                        format,
+                        formatFlags,
+                        cancellationToken);
+                    break;
+                }
 
                 await format.Formatter.FormatAsync(
                     result,
@@ -436,6 +474,76 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 // we should not hit this point except in the case that we introduce a new
                 // ExecutionResultKind and forget to update this method.
                 throw ThrowHelper.Formatter_ResultKindNotSupported();
+        }
+    }
+
+    /// <summary>
+    /// Writes a single result with a <c>Content-Length</c>. A formatter exception aborts the
+    /// request instead of producing an error response.
+    /// </summary>
+    private static async ValueTask FormatWithContentLengthAsync(
+        HttpResponse response,
+        OperationResult result,
+        FormatInfo format,
+        ExecutionResultFormatFlags formatFlags,
+        CancellationToken cancellationToken)
+    {
+        var buffer = ResponseBodyBuffer.Rent();
+
+        try
+        {
+            try
+            {
+                // The default JSON formatter writes into the buffer without batching writes first.
+                if (format.Formatter is JsonResultFormatter jsonFormatter
+                    && (formatFlags is ExecutionResultFormatFlags.None || !result.IsIncremental))
+                {
+                    jsonFormatter.Format(result, buffer);
+                }
+                else
+                {
+                    await format.Formatter.FormatAsync(
+                        result,
+                        buffer,
+                        formatFlags,
+                        cancellationToken: cancellationToken);
+                }
+            }
+            catch (Exception ex)
+                when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                response.HttpContext.Abort();
+                throw;
+            }
+
+            if (buffer.CompletionException is { } completionException)
+            {
+                await response.StartAsync(cancellationToken);
+                await response.BodyWriter.CompleteAsync(completionException);
+                return;
+            }
+
+            response.ContentLength = buffer.Length;
+
+            await response.StartAsync(cancellationToken);
+
+            var bodyWriter = response.BodyWriter;
+
+            while (buffer.CopyTo(bodyWriter))
+            {
+                var flushResult = await bodyWriter.FlushAsync(cancellationToken);
+
+                if (flushResult.IsCompleted)
+                {
+                    return;
+                }
+            }
+
+            await bodyWriter.FlushAsync(cancellationToken);
+        }
+        finally
+        {
+            buffer.Dispose();
         }
     }
 
@@ -620,6 +728,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     && result.ContextData.ContainsKey(HttpResultContextData.RequestNotWellFormed))
                 {
                     return HttpStatusCode.UnprocessableContent;
+                }
+
+                // From the 2026-09-03 revision on, a request body over the maximum request size
+                // is answered 413.
+                if (_reportsContentTooLarge
+                    && proposedStatusCode is HttpStatusCode.BadRequest
+                    && result.ContextData.ContainsKey(HttpResultContextData.RequestTooLarge))
+                {
+                    return HttpStatusCode.RequestEntityTooLarge;
                 }
 
                 return proposedStatusCode.Value;
@@ -876,6 +993,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 continue;
             }
 
+            // For a single result, */* covers the two JSON media types only, so multipart/mixed
+            // and text/event-stream are candidates only when named or covered by a type/* range.
+            if (result.Kind is SingleResult
+                && candidate.Kind is ResponseContentType.MultiPartMixed
+                    or ResponseContentType.EventStream
+                && acceptMediaTypes[match.RangeIndex].Kind is All)
+            {
+                continue;
+            }
+
             var named = match.NamedPosition >= 0 && Contains(preferred, candidate);
             var byWildcard =
                 match.WildcardPosition >= 0 && ReferenceEquals(candidate, wildcardDefault);
@@ -1041,6 +1168,78 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     private static double GetQuality(AcceptMediaType mediaType)
         => mediaType.Quality ?? 1.0;
+
+    /// <summary>
+    /// Returns whether the Accept header rates <c>text/html</c> strictly above every media
+    /// type the formatter writes, where a media type no range covers has quality zero.
+    /// </summary>
+    internal static bool PrefersHtml(AcceptMediaType[] acceptMediaTypes)
+    {
+        var htmlQuality = GetHtmlQuality(acceptMediaTypes);
+
+        foreach (var contentType in s_responseContentTypes)
+        {
+            if (MatchFormat(acceptMediaTypes, contentType).Quality >= htmlQuality)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the quality of the most specific media range that covers <c>text/html</c>, or
+    /// zero when no range covers it.
+    /// </summary>
+    private static double GetHtmlQuality(AcceptMediaType[] acceptMediaTypes)
+    {
+        var precedence = 0;
+        var quality = 0d;
+
+        for (var i = 0; i < acceptMediaTypes.Length; i++)
+        {
+            ref readonly var acceptMediaType = ref acceptMediaTypes[i];
+            int candidate;
+
+            if (acceptMediaType.Type.Equals(
+                    ContentType.Types.Text,
+                    StringComparison.OrdinalIgnoreCase)
+                && acceptMediaType.SubType.Equals(
+                    ContentType.SubTypes.Html,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                candidate = ExactRange;
+            }
+            else if (acceptMediaType.Kind is AllText)
+            {
+                candidate = TypeWildcardRange;
+            }
+            else if (acceptMediaType.Kind is All)
+            {
+                candidate = FullWildcardRange;
+            }
+            else
+            {
+                continue;
+            }
+
+            if (candidate < precedence)
+            {
+                continue;
+            }
+
+            var candidateQuality = GetQuality(acceptMediaType);
+
+            if (candidate > precedence || candidateQuality > quality)
+            {
+                precedence = candidate;
+                quality = candidateQuality;
+            }
+        }
+
+        return quality;
+    }
 
     /// <summary>
     /// Throws <see cref="ArgumentOutOfRangeException"/> when <paramref name="version"/> is not a

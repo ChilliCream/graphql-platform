@@ -93,13 +93,24 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         HttpContext context,
         ExecutorSession session)
     {
-        IFormCollection? form;
-        var httpRequest = context.Request;
+        IFormCollection form;
 
         try
         {
-            var formFeature = new FormFeature(httpRequest, _formOptions);
-            form = await formFeature.ReadFormAsync(context.RequestAborted);
+            form = await MultipartFormReader.ReadAsync(
+                context.Request,
+                _formOptions,
+                session.MaxRequestSize,
+                context.RequestAborted);
+        }
+        catch (GraphQLRequestException)
+        {
+            throw;
+        }
+        catch (BadHttpRequestException exception)
+            when (exception.StatusCode == StatusCodes.Status413PayloadTooLarge)
+        {
+            throw ThrowHelper.RequestBodyTooLarge();
         }
         catch (Exception exception)
         {

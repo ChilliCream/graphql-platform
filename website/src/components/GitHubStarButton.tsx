@@ -14,7 +14,7 @@ export function GitHubStarButton() {
         href={GITHUB_REPO_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="hover:bg-cc-ink-faint inline-flex items-center gap-1.5 px-2 py-1 no-underline transition-colors"
+        className="hover:bg-cc-ink-faint focus-visible:bg-cc-ink-faint focus-visible:outline-cc-accent inline-flex items-center gap-1.5 rounded-l-md px-2 py-1 no-underline transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2"
         aria-label="Star ChilliCream on GitHub"
       >
         <GitHubIcon className="text-cc-heading h-3.5 w-3.5 fill-current" />
@@ -25,7 +25,7 @@ export function GitHubStarButton() {
           href={GITHUB_STARGAZERS_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="border-cc-card-border text-cc-heading hover:bg-cc-ink-faint inline-flex items-center border-l px-2 py-1 tabular-nums no-underline transition-colors"
+          className="border-cc-card-border text-cc-heading hover:bg-cc-ink-faint focus-visible:bg-cc-ink-faint focus-visible:outline-cc-accent inline-flex items-center rounded-r-md border-l px-2 py-1 tabular-nums no-underline transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2"
           aria-label={`${count.toLocaleString("en-US")} stargazers on GitHub`}
         >
           {count.toLocaleString("en-US")}

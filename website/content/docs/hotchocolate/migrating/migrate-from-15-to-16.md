@@ -1570,6 +1570,18 @@ public static IQueryable<OrderDto> GetOrders(CatalogContext db)
 
 `OnAfterSortingApplied` callbacks can call `ThenBy` again when the resolver ends with a `Select` projection.
 
+## The isolated worker no longer treats a request without Content-Type as JSON
+
+The Azure Functions isolated worker treated a request without a `Content-Type` header as `application/json`. Such a request is now handled as it is by `MapGraphQL`: a POST request without a `Content-Type` is refused, and when `EnforceGetRequestsPreflightHeader` is enabled, a GET request needs the `GraphQL-Preflight` header or an `application/json` `Content-Type`. This change lands in **16.6.9**.
+
+A client that posts a JSON body without the header must send `Content-Type: application/json`.
+
+## Persisted operation routes require a JSON Content-Type
+
+The routes that `MapGraphQLPersistedOperations` maps executed a POST request whatever its `Content-Type`. A POST request to one of them without an `application/json` `Content-Type` is now refused, as it is by `MapGraphQL`. This also applies to a Fusion gateway that maps these routes. This change lands in **16.6.9**.
+
+A client that posts a JSON body to a persisted operation route must send `Content-Type: application/json`.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
@@ -1649,7 +1661,7 @@ builder
 
 ## Fragment visit budget
 
-Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget will have remaining fragments skipped during validation. If you have complex queries with many fragment spreads, increase the limit:
+Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget are rejected with the error code `HC0137`. If you have complex queries with many fragment spreads, increase the limit:
 
 ```csharp
 builder
@@ -1687,3 +1699,14 @@ The default is **64**. Operations that arrive while the gate is full queue up an
 Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds). This applies uniformly to queries, mutations, subscription handshakes, and each subscription event. The budget covers both the time an execution spends waiting for a concurrency slot and the time it spends running. When the budget is exceeded, the execution is cancelled and the caller receives a clean timeout error. `ExecutionTimeout` is the single setting that controls cancellation for every execution.
 
 Subscriptions participate in the limit like any other operation. The initial subscribe consumes a slot while the subscribe resolver runs, and each emitted event consumes a slot while its result is being produced. Idle subscriptions (waiting on the next event) cost nothing. The slot is released between events.
+
+## SSE complete event carries an empty data field
+
+Hot Chocolate 16.0 through 16.6.7 ended every `text/event-stream` response with an `event: complete` message that had no `data:` field. The browser `EventSource` API does not dispatch such an event, so an `EventSource` client that did not close the connection itself reconnected when the response ended, and the server executed the operation again. The message now carries an empty `data:` field, and `EventSource` receives `complete`. This change lands in **16.6.8**.
+
+Tests that compare SSE response bodies as strings expect the extra line:
+
+```text
+event: complete
+data:
+```

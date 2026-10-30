@@ -7,6 +7,12 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed class IncrementalPlan : IOperationPlan
 {
+    /// <summary>
+    /// The <see cref="ParentNodeId"/> of a plan anchored at the operation root of an
+    /// enclosing plan that has no execution node.
+    /// </summary>
+    public const int NoParentNodeId = 0;
+
     private readonly ExecutionNode?[] _nodesById;
 
     /// <summary>
@@ -88,7 +94,8 @@ public sealed class IncrementalPlan : IOperationPlan
     /// Gets the <see cref="ExecutionNode.Id"/> of the node that produces the
     /// result object where this incremental plan is anchored. The identifier is
     /// scoped to the root <see cref="OperationPlan"/> for top-level plans, or
-    /// to the enclosing <see cref="IncrementalPlan"/> for nested plans.
+    /// to the enclosing <see cref="IncrementalPlan"/> for nested plans. The value is
+    /// <see cref="NoParentNodeId"/> when the enclosing plan has no execution node.
     /// </summary>
     public int ParentNodeId { get; internal set; }
 

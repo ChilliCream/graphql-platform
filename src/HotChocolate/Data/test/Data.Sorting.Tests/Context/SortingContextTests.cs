@@ -422,6 +422,98 @@ public class SortingContextTests
         context.ToList().MatchSnapshot();
     }
 
+    [Theory]
+    [InlineData(
+        "{ author: { name: ASC }, title: ASC }",
+        "{t => t.Author.Name:ASC,t => t.Title:ASC}")]
+    [InlineData(
+        "[{ author: { name: ASC } }, { title: ASC }]",
+        "{t => t.Author.Name:ASC,t => t.Title:ASC}")]
+    [InlineData(
+        "{ author: { id: ASC }, id: ASC }",
+        "{t => t.Author.Id:ASC,t => t.Id:ASC}")]
+    [InlineData(
+        "{ title: ASC, author: { name: ASC } }",
+        "{t => t.Title:ASC,t => t.Author.Name:ASC}")]
+    public async Task AsSortDefinition_Should_KeepEveryField_When_FieldFollowsNestedObject(
+        string order,
+        string expected)
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseSorting()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var query =
+            $$"""
+            {
+                test(order: {{order}}) {
+                    title
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Book>();
+
+        // assert
+        Assert.Equal(expected, sortDefinition?.ToString());
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Should_KeepEveryField_When_FieldFollowsDeeperNestedObject()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Shelf>>>()
+                .UseSorting()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Shelf>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            {
+                test(order: { book: { author: { name: ASC }, title: ASC } }) {
+                    id
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Shelf>();
+
+        // assert
+        Assert.Equal(
+            "{t => t.Book.Author.Name:ASC,t => t.Book.Title:ASC}",
+            sortDefinition?.ToString());
+    }
+
     public class TestSortType : SortInputType<Book>
     {
         protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
@@ -456,5 +548,12 @@ public class SortingContextTests
         public int Id { get; set; }
 
         public string? Name { get; set; }
+    }
+
+    public class Shelf
+    {
+        public int Id { get; set; }
+
+        public Book? Book { get; set; }
     }
 }

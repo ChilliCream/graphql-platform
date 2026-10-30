@@ -6,27 +6,32 @@ namespace HotChocolate.Fusion.Text;
 
 internal static class Utf8StringCache
 {
-    private static readonly Encoding s_utf8 = Encoding.UTF8;
-    private static readonly Cache<byte[]> s_cache = new(capacity: 4 * 1024);
-    private static readonly Cache<byte[]> s_quotedCache = new(capacity: 4 * 1024);
+    /// <summary>
+    /// The number of zero bytes that follow the token in the arrays returned by
+    /// <see cref="GetJsonPropertyName"/>.
+    /// </summary>
+    public const int JsonPropertyNamePadding = 32;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] GetUtf8String(string s)
-        => s_cache.GetOrCreate(s, static k => s_utf8.GetBytes(k));
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
+    private static readonly Cache<byte[]> s_propertyNameCache = new(capacity: 4 * 1024);
 
     /// <summary>
-    /// Gets the UTF-8 representation of <paramref name="s"/> wrapped in JSON string quotes.
+    /// Gets the UTF-8 representation of <paramref name="s"/> as a JSON property name token,
+    /// wrapped in quotes and followed by a colon and <see cref="JsonPropertyNamePadding"/>
+    /// zero bytes. The name is not escaped.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] GetQuotedUtf8String(string s)
-        => s_quotedCache.GetOrCreate(s, static k => Quote(k));
+    public static byte[] GetJsonPropertyName(string s)
+        => s_propertyNameCache.GetOrCreate(s, static k => CreatePropertyName(k));
 
-    private static byte[] Quote(string s)
+    private static byte[] CreatePropertyName(string s)
     {
-        var bytes = new byte[s_utf8.GetByteCount(s) + 2];
+        var tokenLength = s_utf8.GetByteCount(s) + 3;
+        var bytes = new byte[tokenLength + JsonPropertyNamePadding];
         bytes[0] = (byte)'"';
         s_utf8.GetBytes(s, bytes.AsSpan(1));
-        bytes[^1] = (byte)'"';
+        bytes[tokenLength - 2] = (byte)'"';
+        bytes[tokenLength - 1] = (byte)':';
         return bytes;
     }
 }

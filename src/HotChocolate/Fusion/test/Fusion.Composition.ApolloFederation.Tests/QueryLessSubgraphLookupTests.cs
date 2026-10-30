@@ -66,4 +66,58 @@ public sealed class QueryLessSubgraphLookupTests
 
         Assert.Contains("B", lookupSchemas);
     }
+
+    [Theory]
+    [InlineData("A", "B")]
+    [InlineData("B", "A")]
+    public void Compose_Should_Succeed_When_SchemaWithoutRootTypesIsJumpTarget(
+        string ownerSchemaName,
+        string entityOnlySchemaName)
+    {
+        // arrange
+        const string owner =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+                thing: Thing
+            }
+
+            type Thing @key(fields: "k") {
+                k: Int!
+                a: String
+            }
+            """;
+
+        const string entityOnly =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Thing @key(fields: "k") {
+                k: Int!
+                b: String
+            }
+            """;
+
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(ownerSchemaName, owner),
+                new SourceSchemaText(entityOnlySchemaName, entityOnly)
+            ],
+            new SchemaComposerOptions
+            {
+                Satisfiability = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true }
+            },
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
 }

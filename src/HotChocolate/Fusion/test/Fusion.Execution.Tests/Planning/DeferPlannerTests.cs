@@ -1,4 +1,8 @@
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -2155,6 +2159,311 @@ public class DeferPlannerTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Theory]
+    [InlineData("__typename")]
+    [InlineData("")]
+    public void Defer_RootFragment_Should_PreserveDeferredFetch_When_InitialSelectionHasNoSourceFetch(
+        string initialSelection)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            $$"""
+            {
+                {{initialSelection}}
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$", Assert.Single(plan.DeliveryGroups).Path!.ToString());
+        Assert.Empty(plan.AllNodes.OfType<OperationExecutionNode>());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              users {
+                id
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Defer_RootFragment_Should_AnchorDeferredPlanAtIntrospectionNode_When_RootSelectsOnlyTypename()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                __typename
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var parent = plan.GetNodeById(incrementalPlan.ParentNodeId);
+        Assert.IsType<IntrospectionExecutionNode>(parent);
+        Assert.Same(Assert.Single(plan.AllNodes), parent);
+    }
+
+    [Fact]
+    public void Defer_RootFragment_Should_HaveNoParentNode_When_RootPlanHasNoExecutionNode()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Empty(plan.AllNodes);
+        Assert.Equal(IncrementalPlan.NoParentNodeId, incrementalPlan.ParentNodeId);
+    }
+
+    [Fact]
+    public void Defer_NodeField_Should_PlanDeferredTypeBranch_When_FieldIsNotAliased()
+    {
+        // arrange
+        var schema = CreateNodeDeferSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                node(id: "1") {
+                    id
+                    ... @defer {
+                        ... on User {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$.node", Assert.Single(incrementalPlan.DeliveryGroups).Path!.ToString());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              node(id: "1") {
+                __typename
+              }
+            }
+            """,
+            """
+            {
+              node(id: "1") {
+                __typename
+                ... on User {
+                  __typename
+                  name
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Defer_NodeField_Should_PlanDeferredTypeBranch_When_FieldIsAliased()
+    {
+        // arrange
+        var schema = CreateNodeDeferSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                n: node(id: "1") {
+                    id
+                    ... @defer {
+                        ... on User {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$.n", Assert.Single(incrementalPlan.DeliveryGroups).Path!.ToString());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              n: node(id: "1") {
+                __typename
+              }
+            }
+            """,
+            """
+            {
+              n: node(id: "1") {
+                __typename
+                ... on User {
+                  __typename
+                  name
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Defer_Should_ThrowPlannerError_When_DeferredFieldHasNoReachableSource()
+    {
+        // arrange
+        var options = new SchemaComposerOptions();
+        options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true;
+
+        var result = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    extend schema
+                        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+                    type Query {
+                        a: Node
+                    }
+
+                    interface Node @key(fields: "id") {
+                        id: ID!
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.6"
+                            import: ["@key", "@interfaceObject"])
+
+                    type Query {
+                        b: Node
+                    }
+
+                    type Node @key(fields: "id", resolvable: false) @interfaceObject {
+                        id: ID!
+                        field: String
+                    }
+                    """)
+            ],
+            options,
+            new CompositionLog()).Compose();
+        var schema = FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
+
+        // act
+        var error = Assert.Throws<InvalidOperationException>(() => PlanOperation(
+            schema,
+            """
+            {
+                __typename
+                ... @defer {
+                    a {
+                        field
+                    }
+                }
+            }
+            """));
+
+        // assert
+        Assert.Equal("No plan was found for the @defer fragment at path '$'.", error.Message);
+    }
+
+    private static FusionSchemaDefinition CreateNodeDeferSchema()
+        => ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                userById(id: ID!): User @lookup
+                users: [User!]!
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type User implements Node {
+                id: ID!
+                name: String!
+            }
+            """);
+
+    private static string[] GetOperationSelectionSets(IEnumerable<ExecutionNode> nodes)
+        => nodes
+            .OfType<OperationExecutionNode>()
+            .Select(node => Utf8GraphQLParser.Parse(node.Operation.Value.Span)
+                .Definitions.OfType<OperationDefinitionNode>().Single()
+                .SelectionSet.ToString())
+            .ToArray();
+
     [Fact]
     public void Defer_KeyOnlyField_Should_NotDefer_When_OnlyReachableLookupIsSelfCyclic()
     {
@@ -2502,5 +2811,139 @@ public class DeferPlannerTests : FusionTestBase
             dependsOnProvider |= dependency == providerNode;
         }
         Assert.True(dependsOnProvider);
+    }
+
+    [Fact]
+    public void Defer_Should_FetchAllPrerequisites_When_RequirementMixesNativeAndComputedFields()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              total(input: TotalInput! @require(field: "{ raw computed }")): Int!
+            }
+
+            input TotalInput {
+              raw: Int!
+              computed: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                ... @defer {
+                  total
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_Should_FetchAllPrerequisites_When_RequirementSelectsNestedFieldWithOwnRequirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              owner: User!
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              total(input: OwnerInput! @require(field: "owner.{ raw computed }")): Int!
+            }
+
+            input OwnerInput {
+              raw: Int!
+              computed: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                ... @defer {
+                  total
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
     }
 }

@@ -5,7 +5,7 @@ description: "Migrate from Hot Chocolate Schema Stitching to Fusion: replace @de
 
 # Migrating from Schema Stitching to Fusion
 
-If your team uses HotChocolate Schema Stitching to combine multiple GraphQL services into a single API, this guide walks you through migrating to HotChocolate Fusion. Fusion is the evolution of the same idea -- distributed GraphQL under a single endpoint -- but with a fundamentally different architecture that catches schema conflicts at build time, eliminates manual resolver delegation, and aligns with the open [GraphQL Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/).
+If your team uses HotChocolate Schema Stitching to combine multiple GraphQL services into a single API, this guide walks you through migrating to HotChocolate Fusion. Fusion is the evolution of the same idea -- distributed GraphQL under a single endpoint -- but with a fundamentally different architecture that catches schema conflicts at build time, eliminates manual resolver delegation, and aligns with the open [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/) (formerly the GraphQL Composite Schemas specification).
 
 This guide is self-contained. You can complete the migration by following the steps here. Links to other Fusion documentation pages are provided for deeper dives, but they are not prerequisites.
 

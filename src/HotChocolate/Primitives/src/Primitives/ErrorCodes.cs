@@ -267,6 +267,16 @@ public static class ErrorCodes
         /// The requested GraphQL specification edition is not supported.
         /// </summary>
         public const string InvalidSpecVersion = "HC0134";
+
+        /// <summary>
+        /// A section of a multipart request exceeds its maximum size.
+        /// </summary>
+        public const string MultiPartSectionTooLarge = "HC0135";
+
+        /// <summary>
+        /// The request body exceeds the maximum size the server accepts.
+        /// </summary>
+        public const string RequestBodyTooLarge = "HC0136";
     }
 
     public static class Schema
@@ -418,6 +428,16 @@ public static class ErrorCodes
         /// A fragment spread refers to a fragment that is not defined in the document.
         /// </summary>
         public const string FragmentDoesNotExist = "HC0120";
+
+        /// <summary>
+        /// The maximum allowed fragment visits were exceeded.
+        /// </summary>
+        public const string MaxFragmentVisitsOverflow = "HC0137";
+
+        /// <summary>
+        /// The maximum allowed selection set depth was exceeded.
+        /// </summary>
+        public const string MaxSelectionSetDepthOverflow = "HC0138";
     }
 
     /// <summary>

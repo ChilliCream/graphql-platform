@@ -114,7 +114,87 @@ public class GlobalObjectIdentificationTests : FusionTestBase
                 Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
                 Assert.Equal(
                     """
-                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjo1"}},{"author":{"name":"User: VXNlcjo2"}},{"author":{"name":"User: VXNlcjo3"}}]}}
+                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjozNTcxODUzNTkw"}},{"author":{"name":"User: VXNlcjoxMzczMDIyNzIz"}},{"author":{"name":"User: VXNlcjozNzk3NTEwMTM0"}}]}}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
+    [Fact]
+    public async Task Node_Should_ResolveRequiringField_When_OnlyRequiringSchemaOwnsKey()
+    {
+        // arrange
+        using var a = CreateSourceSchema(
+            "a",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Chat implements Node @key(fields: "id") {
+              id: ID!
+              title: String
+              summary(text: String @require(field: "text")): String
+            }
+            """);
+        using var b = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              chatById(id: ID!): Chat @lookup @internal
+            }
+
+            type Chat @key(fields: "id") {
+              id: ID! @external
+              text: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", a),
+            ("b", b)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetChat($id: ID!) {
+              node(id: $id) {
+                ... on Chat {
+                  summary
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["id"] = /* Chat:1 */ "Q2hhdDox"
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"node":{"summary":"Chat: Q2hhdDox"}}
                     """,
                     response.Data.GetRawText());
             });
@@ -165,7 +245,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
                 Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
                 Assert.Equal(
                     """
-                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjo1"}},{"author":{"name":"User: VXNlcjo2"}},{"author":{"name":"User: VXNlcjo3"}}]}}
+                    {"node":{"reviews":[{"author":{"name":"User: VXNlcjozNTcxODUzNTkw"}},{"author":{"name":"User: VXNlcjoxMzczMDIyNzIz"}},{"author":{"name":"User: VXNlcjozNzk3NTEwMTM0"}}]}}
                     """,
                     response.Data.GetRawText());
             });
@@ -348,6 +428,179 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Node_Should_ResolveLookupField_When_UnionFragmentHasNonNodeMember()
+    {
+        // arrange
+        using var contributors = CreateSourceSchema(
+            "CONTRIBUTORS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node {
+              id: ID!
+              name: String
+            }
+
+            type FormerUser {
+              name: String
+            }
+            """);
+        using var accounts = CreateSourceSchema(
+            "ACCOUNTS",
+            """
+            type Query {
+              userById(id: ID! @is(field: "id")): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              email: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("CONTRIBUTORS", contributors),
+            ("ACCOUNTS", accounts)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              # User:1
+              node(id: "VXNlcjox") {
+                id
+                ... on CommunityContributor {
+                  ... on User {
+                    name
+                    email
+                  }
+                  ... on FormerUser {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Node_Should_ResolveConditionalLookupField_When_UnionFragmentHasInclude(bool include)
+    {
+        // arrange
+        using var contributors = CreateSourceSchema(
+            "CONTRIBUTORS",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              contributors: [CommunityContributor!]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            union CommunityContributor = User | FormerUser | Bot
+
+            type User implements Node @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type Bot implements Node @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type FormerUser {
+              name: String
+            }
+            """);
+        using var accounts = CreateSourceSchema(
+            "ACCOUNTS",
+            """
+            type Query {
+              userById(id: ID! @is(field: "id")): User @lookup @internal
+              botById(id: ID! @is(field: "id")): Bot @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              email: String
+            }
+
+            type Bot @key(fields: "id") {
+              id: ID!
+              owner: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("CONTRIBUTORS", contributors),
+            ("ACCOUNTS", accounts)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query($include: Boolean!) {
+              # Bot:1
+              node(id: "Qm90OjE=") {
+                id
+                ... on CommunityContributor @include(if: $include) {
+                  ... on User {
+                    email
+                  }
+                  ... on Bot {
+                    owner
+                  }
+                  ... on FormerUser {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["include"] = include
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: include.ToString());
     }
 
     [Fact]

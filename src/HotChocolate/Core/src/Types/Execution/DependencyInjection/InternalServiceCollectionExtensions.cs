@@ -178,6 +178,13 @@ internal static class InternalServiceCollectionExtensions
                 return true;
             }
 
+            // a context with outstanding tasks must stay untouched, because those tasks still
+            // use it. It is discarded instead of reused.
+            if (obj.HasOutstandingTasks)
+            {
+                return false;
+            }
+
             var isSharedScheduler = obj.IsSharedScheduler;
 
             if (isSharedScheduler)

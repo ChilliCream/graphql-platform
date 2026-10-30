@@ -1572,7 +1572,7 @@ public class DefaultGraphQLHttpClientTests
         JsonSerializer.Serialize(jsonWriter, variables);
         jsonWriter.Flush();
         var length = writer.Position - startPosition;
-        return new VariableValues(default, JsonSegment.Create(writer, startPosition, length));
+        return new VariableValues(default, JsonSegment.Create(writer.GetSequence(startPosition, length)));
     }
 
     private sealed class DripStream(Stream inner, int maxBytesPerRead) : Stream

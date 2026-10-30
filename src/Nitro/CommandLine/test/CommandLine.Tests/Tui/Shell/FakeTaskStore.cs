@@ -56,7 +56,7 @@ internal sealed class FakeTaskStore : ITaskStore
 
     public Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
         string agent, int? limit, CancellationToken cancellationToken)
-        => Task.FromResult<IReadOnlyList<TaskItem>>(
+        => Task.FromResult(
             limit is { } max ? [.. ParticipationRows.Take(max)] : ParticipationRows);
 
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)

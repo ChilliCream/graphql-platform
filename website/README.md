@@ -9,12 +9,63 @@ The ChilliCream website and documentation, built on Next.js (MDX-based docs).
 
 ## Development
 
-Use `yarn` (not `npm`):
+Use npm:
 
 ```bash
-yarn
-yarn dev
+npm ci
+npm run dev
 ```
+
+## Visual tests
+
+Install the website dependencies with `npm ci` and start Docker Desktop (or a
+Linux Docker Engine). Visual tests require a running Linux-container daemon;
+there is no host-browser fallback. Run these commands from `website`:
+
+```bash
+npm run test:visual
+npm run test:visual -- --grep 'Button|Card' --workers=2
+npm run test:visual:update -- --grep 'Button'
+node --test scripts/visual-tests-docker.test.mjs
+```
+
+Both visual scripts build static Storybook on the host, then run the static
+server, Chromium and screenshots in the same Docker renderer used by GitHub
+Actions. Arguments after `--` are forwarded unchanged to Playwright. Direct
+`npx playwright test` execution is rejected by the configuration guard.
+
+The renderer is always `linux/amd64`, including on Apple Silicon. The official
+Playwright 1.62.1 Noble image is pinned by digest in
+`scripts/visual-tests.Dockerfile`; its only customization is npm 11.21.1 to
+satisfy the repository's npm contract. A Playwright dependency upgrade must also
+update and verify the image digest, runner version and configuration guard.
+The runner logs the image, platform, Node, npm, Playwright and Chromium versions.
+
+Each invocation stages a finite, read-only set of inputs into an owned Linux
+worktree volume before installing dependencies. The host checkout, including its
+`node_modules`, is never mounted during installation or capture. Staged inputs
+are the website package/configuration, visual tests, built Storybook, and the
+local Mocha visualizer package files needed by its `file:` dependency. The
+worktree volume is removed on completion or interruption; the
+workspace/runtime/lockfile-specific npm cache volume persists between invocations.
+
+The test container has writable host mounts only for baselines in
+`tests/visual/__screenshots__`, test artifacts in `test-results`, and CI HTML
+reports in `playwright-report`. Those directories are created as the caller, so
+written files retain the caller's UID/GID; Docker Desktop handles ownership on
+Windows. Playwright `--output` paths must be relative paths within `test-results`
+or `playwright-report`, which preserves artifacts without exposing another
+checkout path for writes.
+
+Ordinary comparisons do not update baselines, including missing images, unless
+an explicit snapshot-update argument is supplied. Review screenshot diffs before
+accepting updates: the shared renderer prevents OS, font and browser drift, but
+does not add missing baselines or fix unintended UI changes.
+
+Stories tagged `visual-reduced-motion` capture their authored static state with
+`prefers-reduced-motion: reduce` applied before navigation; untagged stories keep
+the default media preference. InsightsWindow and ProtectWindow opt in to capture
+complete telemetry and static publish verdicts.
 
 ## Authoring Markdown Content
 
@@ -228,3 +279,48 @@ it preserves headings, prose, links, lists, admonitions, tables, and code while
 excluding frontmatter, navigation, buttons, forms, SVG/canvas diagrams, and
 elements marked with `data-llms-ignore`. Interactive MDX components contribute
 their rendered textual content; purely visual components are omitted.
+
+## Videos
+
+The `/videos` section lists ChilliCream TV episodes. Each video is one Markdown
+file in `content/videos/`, named `YYYY-MM-DD-slug.md`. The date prefix is the
+publish date and the file name is the URL slug (`/videos/YYYY-MM-DD-slug`). The
+slug is lowercase and hyphenated.
+
+```markdown
+---
+title: "How to Use State in DataLoader for Context-Aware Fetching"
+description: "One sentence shown on the video card and used for SEO."
+youtubeId: "4Mw2A548OGM"
+duration: "15:51"
+uploadDate: "2025-05-01T02:55:26-07:00"
+example: "https://github.com/<org>/<repo>/tree/main/<folder>"
+author: "michael-staib"
+tags:
+  - dataloader
+  - hotchocolate
+---
+
+In this episode, we explore how to make your DataLoaders stateful.
+
+Hot Chocolate version used in this video: [15.1.4](https://www.nuget.org/packages/HotChocolate/15.1.4)
+```
+
+| Field         | Required | Meaning                                                                                                                  |
+| ------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `title`       | yes      | Page title and card heading.                                                                                             |
+| `description` | yes      | One sentence for the card, meta description, and Open Graph.                                                             |
+| `youtubeId`   | yes      | The 11-character YouTube video id. Quote it, so YAML always reads a string.                                              |
+| `duration`    | yes      | Running time as YouTube shows it, e.g. `"12:18"` or `"1:02:03"`.                                                         |
+| `uploadDate`  | yes      | The `uploadDate` from the YouTube watch page's HTML (`<meta itemprop="uploadDate">`). Its date must match the file name. |
+| `example`     | no       | `https://` link to the example source code. Adds the **Example source** button.                                          |
+| `author`      | no       | Slug of a presenter in `src/data/authors.ts`.                                                                            |
+| `tags`        | no       | Lowercase, hyphenated topics. They become the filter chips on `/videos`.                                                 |
+
+- The body is the video description, rendered below the player. It follows the
+  same Markdown rules as docs and blog posts (links, images, admonitions, MDX
+  gotchas).
+- The poster image is the YouTube thumbnail. `npm run optimize-images`
+  self-hosts it.
+- An invalid file name or frontmatter fails the build with a message naming the
+  file.

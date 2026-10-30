@@ -92,7 +92,7 @@ sourceSchemas:
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=operations
 
-            {"query":"query Op_86d793bb_1($file: Upload) {\n  nullableUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
+            {"query":"query Op_86d793bb_1($file: Upload) { nullableUpload(file: $file) { fileName contentType content } }","variables":{"file":null}}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=map

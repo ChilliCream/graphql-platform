@@ -900,12 +900,13 @@ public class CostReportingTests : FusionTestBase
         response.MatchSnapshot();
     }
 
-    // CostResultHelper.CreateResult only falls back to ErrorHelper.StateInvalidForCostAnalysis
-    // for an empty estimate batch, and CostAnalysisMiddleware never calls it with one: an empty
-    // variable batch is rejected earlier as StateInvalidForCostAnalysisMissingVariableValues, so
-    // there is no request shape that reaches the fallback over HTTP. This test drives it directly
-    // through a request middleware appended to the gateway pipeline, so the assertion still goes
-    // through the real formatter rather than constructing the result and formatting it by hand.
+    // CostResultHelper.CreateResult only falls back to ErrorHelper.StateInvalidForCostAnalysis for
+    // an empty estimate batch, and CostAnalysisMiddleware never calls it with one: the HTTP
+    // transport refuses an empty variable batch, and the middleware rejects one executed in-process
+    // as StateInvalidForCostAnalysisMissingVariableValues, so there is no request shape that
+    // reaches the fallback over HTTP. This test drives it directly through a request middleware
+    // appended to the gateway pipeline, so the assertion still goes through the real formatter
+    // rather than constructing the result and formatting it by hand.
     [Fact]
     public async Task CostStateInvalid_Should_ReturnHttp500_When_CostResultHelperFallbackIsHit()
     {

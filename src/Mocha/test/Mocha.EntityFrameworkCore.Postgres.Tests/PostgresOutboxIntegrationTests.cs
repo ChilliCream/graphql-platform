@@ -106,7 +106,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));
         builder.AddEventHandler<TestEventHandler>();
         builder.AddInMemory();
 
@@ -182,7 +182,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));
         builder.AddEventHandler<TestEventHandler>();
         builder.AddInMemory();
 
@@ -196,7 +196,10 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
             await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         }
 
-        var hostedServices = provider.GetServices<IHostedService>().ToList();
+        // the runtime is started above and stays running, only the outbox worker is restarted
+        var hostedServices = provider.GetServices<IHostedService>()
+            .Where(s => s is not MessagingRuntimeHostedService)
+            .ToList();
         foreach (var svc in hostedServices)
         {
             await svc.StartAsync(TestContext.Current.CancellationToken);
@@ -326,7 +329,78 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         Assert.Equal(totalMessages, payloads.Count);
     }
 
-    private async Task<TestEnvironment> CreateBusWithOutboxAsync(MessageRecorder recorder)
+    [Fact]
+    public async Task Outbox_Should_DeliverMessagesInPublishOrder_When_PublishedInOneTransaction()
+    {
+        // arrange
+        const int count = 50;
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithOrderedEndpointAsync(recorder);
+        await using var scope = env.Provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+
+        // act
+        await using (var transaction = await db.Database.BeginTransactionAsync(TestContext.Current.CancellationToken))
+        {
+            for (var i = 0; i < count; i++)
+            {
+                await bus.PublishAsync(new SequencedEvent { Index = i }, TestContext.Current.CancellationToken);
+            }
+
+            await transaction.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout, count), $"Handler should have received all {count} messages");
+        Assert.Equal(
+            Enumerable.Range(0, count),
+            recorder.Messages.OfType<SequencedEvent>().Select(e => e.Index));
+    }
+
+    [Fact]
+    public async Task Outbox_Should_DeliverMessagesInPublishOrder_When_EachPublishedInOwnTransaction()
+    {
+        // arrange
+        const int count = 50;
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithOrderedEndpointAsync(recorder);
+        await using var scope = env.Provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+
+        // act
+        for (var i = 0; i < count; i++)
+        {
+            await using var transaction = await db.Database.BeginTransactionAsync(TestContext.Current.CancellationToken);
+            await bus.PublishAsync(new SequencedEvent { Index = i }, TestContext.Current.CancellationToken);
+            await transaction.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout, count), $"Handler should have received all {count} messages");
+        Assert.Equal(
+            Enumerable.Range(0, count),
+            recorder.Messages.OfType<SequencedEvent>().Select(e => e.Index));
+    }
+
+    private Task<TestEnvironment> CreateBusWithOutboxAsync(MessageRecorder recorder)
+        => CreateBusWithOutboxAsync(
+            recorder,
+            static b => b.AddEventHandler<TestEventHandler>(),
+            static _ => { });
+
+    // a single consumer keeps the received order equal to the order the outbox dispatches in
+    private Task<TestEnvironment> CreateBusWithOrderedEndpointAsync(MessageRecorder recorder)
+        => CreateBusWithOutboxAsync(
+            recorder,
+            static b => b.AddEventHandler<SequencedEventHandler>(),
+            static t => t.Endpoint("sequenced").Handler<SequencedEventHandler>().MaxConcurrency(1));
+
+    private async Task<TestEnvironment> CreateBusWithOutboxAsync(
+        MessageRecorder recorder,
+        Action<IMessageBusHostBuilder> configureBus,
+        Action<IInMemoryMessagingTransportDescriptor> configureTransport)
     {
         var connectionString = await fixture.CreateDatabaseAsync();
 
@@ -342,9 +416,9 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
-        builder.AddEventHandler<TestEventHandler>();
-        builder.AddInMemory();
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));
+        configureBus(builder);
+        builder.AddInMemory(configureTransport);
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -385,15 +459,29 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         }
     }
 
+    public sealed class SequencedEvent
+    {
+        public required int Index { get; init; }
+    }
+
+    public sealed class SequencedEventHandler(MessageRecorder recorder) : IEventHandler<SequencedEvent>
+    {
+        public ValueTask HandleAsync(SequencedEvent message, CancellationToken cancellationToken)
+        {
+            recorder.Record(message);
+            return default;
+        }
+    }
+
     public sealed class MessageRecorder
     {
         private readonly SemaphoreSlim _semaphore = new(0);
 
-        public ConcurrentBag<object> Messages { get; } = [];
+        public ConcurrentQueue<object> Messages { get; } = [];
 
         public void Record(object message)
         {
-            Messages.Add(message);
+            Messages.Enqueue(message);
             _semaphore.Release();
         }
 

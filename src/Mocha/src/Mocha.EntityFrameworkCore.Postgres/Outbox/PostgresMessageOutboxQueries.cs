@@ -9,6 +9,11 @@ namespace Mocha.Outbox;
 internal sealed class PostgresMessageOutboxQueries
 {
     /// <summary>
+    /// The number of dispatch attempts after which a message is no longer retried.
+    /// </summary>
+    public const int MaxAttempts = 10;
+
+    /// <summary>
     /// Gets or sets the SQL statement to insert a new message envelope into the outbox table.
     /// </summary>
     public string InsertEnvelope { get; set; } = null!;
@@ -20,7 +25,7 @@ internal sealed class PostgresMessageOutboxQueries
 
     /// <summary>
     /// Gets or sets the SQL statement that locks a single outbox row for processing,
-    /// increments the times-sent counter, and returns the id and envelope.
+    /// increments the times-sent counter, and returns the id, envelope and times-sent counter.
     /// </summary>
     public string ProcessEvent { get; set; } = null!;
 
@@ -48,7 +53,7 @@ internal sealed class PostgresMessageOutboxQueries
                     "{t.CreatedAt}" + INTERVAL '1 seconds' * POWER(2, "{t.TimesSent}")
                 ) AS "NextWakeUpTime"
                 FROM {t.QualifiedTableName}
-                WHERE "{t.TimesSent}" < 10;
+                WHERE "{t.TimesSent}" < {MaxAttempts};
                 """,
 
             ProcessEvent = $"""
@@ -57,14 +62,15 @@ internal sealed class PostgresMessageOutboxQueries
                     "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < 10 AND "{t.CreatedAt}" <= NOW()
-                    ORDER BY "{t.CreatedAt}"
+                    WHERE "{t.TimesSent}" < {MaxAttempts} AND "{t.CreatedAt}" <= NOW()
+                    ORDER BY "{t.CreatedAt}", "{t.Id}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1
                 )
                 RETURNING
                     "{t.Id}",
-                    "{t.Envelope}";
+                    "{t.Envelope}",
+                    "{t.TimesSent}";
                 """,
 
             DeleteEvent = $"""

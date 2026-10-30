@@ -6,12 +6,6 @@ using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
 
-/// <summary>
-/// Covers how <see cref="AzureServiceBusReceiveEndpoint"/> classifies and logs processor errors
-/// reported by the Azure Service Bus SDK, and confirms the endpoint no longer runs a
-/// repository-owned recovery loop. Processor retry and connection recovery are the SDK's
-/// responsibility; the endpoint only classifies and logs the error.
-/// </summary>
 public sealed class ProcessorErrorHandlingTests
 {
     [Theory]
@@ -89,6 +83,31 @@ public sealed class ProcessorErrorHandlingTests
         Assert.Equal(1, created.Processor.StartProcessingCallCount);
     }
 
+    [Fact]
+    public async Task OnProcessorError_Should_NotLog_When_HandlerCancelledByStoppingProcessor()
+    {
+        // arrange
+        var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var (client, bus) = await CreateStartedBusAsync(provider);
+        await using var busScope = bus;
+        var processor = client.CreatedProcessors.Single(p => p.QueueName == "orders").Processor;
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        var args = new ProcessErrorEventArgs(
+            new OperationCanceledException(cts.Token),
+            ServiceBusErrorSource.ProcessMessageCallback,
+            client.FullyQualifiedNamespace,
+            "orders",
+            cts.Token);
+        var entriesBeforeError = provider.Entries.Count;
+
+        // act
+        await processor.RaiseProcessErrorAsync(args);
+
+        // assert
+        Assert.Equal(entriesBeforeError, provider.Entries.Count);
+    }
+
     private static ProcessErrorEventArgs CreateArgs(FakeServiceBusClient client, Exception exception)
         => new(
             exception,
@@ -123,7 +142,7 @@ public sealed class ProcessorErrorHandlingTests
     public static TheoryData<Exception, LogLevel> NonReasonExceptions()
         => new()
         {
-            // cancellation is treated as a transient/recoverable condition
+            // cancellation while the processor keeps running is treated as a transient/recoverable condition
             { new OperationCanceledException("cancelled"), LogLevel.Warning },
             { new ServiceBusException("general failure", ServiceBusFailureReason.GeneralError), LogLevel.Error },
             { new InvalidOperationException("unexpected failure"), LogLevel.Error }

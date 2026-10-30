@@ -1,0 +1,113 @@
+operation:
+  - document: |
+      query($include: Boolean!) {
+        node(id: "test-id") {
+          __typename @fusion__requirement
+          id
+          ... on CommunityContributor @include(if: $include) {
+            id @fusion__requirement
+            ... on User {
+              email
+            }
+            ... on Bot {
+              owner
+            }
+            ... on FormerUser {
+              name
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Node
+    idValue: "test-id"
+    responseName: node
+    branches:
+      - Bot: 5
+      - User: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: |
+      query Op_123456789101112_2 {
+        node(id: "test-id") {
+          __typename
+          id
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: contributors
+    operation: |
+      query Op_123456789101112_3 {
+        node(id: "test-id") {
+          __typename
+          ... on User {
+            __typename
+            id
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: accounts
+    operation: |
+      query Op_123456789101112_4($__fusion_1_id: ID!) {
+        userById(id: $__fusion_1_id) {
+          email
+        }
+      }
+    source: $.userById
+    target: $.node<User>
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $include
+        passingValue: true
+    dependencies:
+      - id: 3
+  - id: 5
+    type: Operation
+    schema: contributors
+    operation: |
+      query Op_123456789101112_5 {
+        node(id: "test-id") {
+          __typename
+          ... on Bot {
+            __typename
+            id
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 6
+    type: Operation
+    schema: accounts
+    operation: |
+      query Op_123456789101112_6($__fusion_2_id: ID!) {
+        botById(id: $__fusion_2_id) {
+          owner
+        }
+      }
+    source: $.botById
+    target: $.node<Bot>
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $include
+        passingValue: true
+    dependencies:
+      - id: 5

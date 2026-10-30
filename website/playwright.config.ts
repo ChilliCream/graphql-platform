@@ -1,4 +1,16 @@
+import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
+
+if (
+  process.env.WEBSITE_VISUAL_DOCKER !== "playwright-1.62.1-noble-amd64" ||
+  process.platform !== "linux" ||
+  process.arch !== "x64" ||
+  !existsSync("/.dockerenv")
+) {
+  throw new Error(
+    "Visual tests must run in the pinned Docker renderer. Use npm run test:visual or npm run test:visual:update, not npx playwright test.",
+  );
+}
 
 // Dedicated port for the static build under test. Deliberately not 6006 so it
 // never reuses a running `storybook dev` server, whose on-demand story index
@@ -9,9 +21,8 @@ const STORYBOOK_URL = `http://127.0.0.1:${PORT}`;
 /**
  * Visual regression tests for Storybook stories.
  *
- * Baselines are rendered in a Linux + Chromium environment (the devcontainer,
- * which mirrors CI). Generate and update them there, never from a host OS,
- * otherwise font rendering will differ and every screenshot will diff.
+ * Tests and baseline updates run in the pinned Linux/amd64 Playwright Docker
+ * image through scripts/visual-tests-docker.mjs, locally and in CI.
  */
 export default defineConfig({
   testDir: "./tests/visual",
@@ -22,12 +33,7 @@ export default defineConfig({
   reporter: process.env.CI ? [["html", { open: "never" }], ["list"]] : "list",
   expect: {
     toHaveScreenshot: {
-      // Animations are frozen by Playwright; this absorbs anti-aliasing noise.
-      // Baselines are generated in the devcontainer (Debian) while CI runs on
-      // ubuntu-latest, and the two distros' font rendering differs by up to ~2%
-      // on large, text-heavy screenshots. The threshold has to clear that gap so
-      // one baseline passes in both environments, while still catching real
-      // visual regressions (which move far more than a few percent of pixels).
+      // Animations are frozen by Playwright; allow 3% differing pixels.
       maxDiffPixelRatio: 0.03,
     },
   },
@@ -46,7 +52,7 @@ export default defineConfig({
     // reading storybook-static/index.json at collection time (before webServer
     // would otherwise run). During iteration you can pre-run a server on this
     // port and it will be reused.
-    command: `yarn http-server storybook-static -p ${PORT} -s`,
+    command: `npx http-server storybook-static -p ${PORT} -s`,
     url: `${STORYBOOK_URL}/index.json`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

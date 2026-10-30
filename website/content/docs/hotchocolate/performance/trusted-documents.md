@@ -228,7 +228,7 @@ In the above example, requests containing the `X-Developer` header can execute d
 
 # Client Expectations
 
-A client is expected to send an `id` field containing the operation document hash instead of a `query` field.
+A client is expected to send an `id` or `documentId` field containing the operation document hash instead of a `query` field. Over HTTP GET, the same names are query parameters, and a request that carries both uses `id`.
 
 **HTTP POST**
 
@@ -241,8 +241,14 @@ A client is expected to send an `id` field containing the operation document has
 }
 ```
 
+**HTTP GET**
+
+```http
+GET /graphql?id=0c95d31ca29272475bf837f944f4e513&variables={"first":5}
+```
+
 > [!NOTE]
-> [Relay's persisted queries documentation](https://relay.dev/docs/guides/persisted-queries/#network-layer-changes) uses `doc_id` instead of `id`. Be sure to change it to `id`.
+> [Relay's persisted queries documentation](https://relay.dev/docs/guides/persisted-queries/#network-layer-changes) uses `doc_id` instead of `id`. Be sure to change it to `id` or `documentId`.
 
 # Next Steps
 

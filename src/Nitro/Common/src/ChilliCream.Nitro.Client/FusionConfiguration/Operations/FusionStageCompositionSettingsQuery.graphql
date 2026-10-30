@@ -3,12 +3,16 @@ query FusionStageCompositionSettings($apiId: ID!, $stageName: String!) {
     ... on Api {
       stage(name: $stageName) {
         compositionSettings {
+          allowNonResolvableInterfaceObjects
           cacheControlMergeBehavior
+          defaultListSize
           enableGlobalObjectIdentification
+          enumValuesMergeBehavior
           excludeByTag
-          removeUnreferencedDefinitions
-          tagMergeBehavior
           nodeResolution
+          removeUnreferencedDefinitions
+          shareableFieldRuntimeTypeRouting
+          tagMergeBehavior
         }
       }
     }

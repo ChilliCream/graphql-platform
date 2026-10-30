@@ -1,12 +1,12 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The context or Stop decision returned by a Claude hook handler.
+/// The context, Stop decision, or agent name returned by a Claude hook handler.
 /// </summary>
 internal sealed record ClaudeHookOutcome
 {
     /// <summary>
-    /// An outcome with no additional context and no Stop block.
+    /// An outcome with no additional context, no Stop block, and no agent name.
     /// </summary>
     public static readonly ClaudeHookOutcome Neutral = new();
 
@@ -26,4 +26,9 @@ internal sealed record ClaudeHookOutcome
     /// <see cref="Block"/> is false.
     /// </summary>
     public string? BlockReason { get; init; }
+
+    /// <summary>
+    /// The name to give the agent an <c>AgentNaming</c> event names, or null for none.
+    /// </summary>
+    public string? AgentName { get; init; }
 }

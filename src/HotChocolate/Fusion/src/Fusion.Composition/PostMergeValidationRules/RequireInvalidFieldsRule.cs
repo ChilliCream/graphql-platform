@@ -3,7 +3,9 @@ using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Validators;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
@@ -14,10 +16,9 @@ using static HotChocolate.Fusion.WellKnownDirectiveNames;
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
 /// <summary>
-/// Even if the selection map for <c>@require(field: "…")</c> is syntactically valid, its contents
-/// must also be valid within the composed schema. Fields must exist on the parent type for them to
-/// be referenced by <c>@require</c>. In addition, fields requiring unknown fields break the valid
-/// usage of <c>@require</c>, leading to a <c>REQUIRE_INVALID_FIELDS</c> error.
+/// Validates that the selection map of <c>@require(field: "…")</c> selects existing fields of the
+/// composed schema and that the source schema declaring the requirement does not serve any field
+/// at the first level of the selection map, reporting a <c>REQUIRE_INVALID_FIELDS</c> error otherwise.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Require-Invalid-Fields">
 /// Specification
@@ -54,25 +55,25 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
             var outputTypeNode = sourceType.ToTypeNode();
             var outputTypeDefinition = schema.Types[sourceType.Name];
             var outputType = outputTypeNode.RewriteToType(outputTypeDefinition);
-            var errors =
-                validator.Validate(
-                    fieldSelectionMap,
-                    inputType,
-                    outputType,
-                    out var selectedFields);
+            var errors = validator.Validate(fieldSelectionMap, inputType, outputType);
 
-            // A selected field is defined in the same schema as the `require` directive.
-            var selectedFieldsSameSchema =
-                selectedFields.Where(f => f.GetSchemaNames().Contains(sourceSchema.Name));
-
-            foreach (var selectedField in selectedFieldsSameSchema)
+            // A first-level field of the selection map must not be served by the requiring schema.
+            if (outputTypeDefinition is MutableComplexTypeDefinition complexType)
             {
-                errors =
-                    errors.Add(
-                        string.Format(
-                            RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema,
-                            selectedField.Coordinate.ToString(),
-                            sourceSchema.Name));
+                var requiringSchemaName = StringUtilities.ToConstantCase(sourceSchema.Name);
+
+                foreach (var field in GetFirstLevelFields(fieldSelectionMap, complexType))
+                {
+                    if (IsServedBy(field, requiringSchemaName))
+                    {
+                        errors =
+                            errors.Add(
+                                string.Format(
+                                    RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema,
+                                    field.Coordinate.ToString(),
+                                    sourceSchema.Name));
+                    }
+                }
             }
 
             if (errors.Any())
@@ -85,5 +86,68 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
                         errors));
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the distinct fields of <paramref name="type"/> that the selection map selects at its
+    /// first level, in selection order.
+    /// </summary>
+    private static List<MutableOutputFieldDefinition> GetFirstLevelFields(
+        IValueSelectionNode fieldSelectionMap,
+        MutableComplexTypeDefinition type)
+    {
+        var fields = new List<MutableOutputFieldDefinition>();
+        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite([fieldSelectionMap]);
+
+        CollectFirstLevelFields(selectionSet, type, fields);
+
+        return fields;
+    }
+
+    private static void CollectFirstLevelFields(
+        SelectionSetNode selectionSet,
+        MutableComplexTypeDefinition type,
+        List<MutableOutputFieldDefinition> fields)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode
+                    when type.Fields.TryGetField(fieldNode.Name.Value, out var field)
+                        && !fields.Contains(field):
+                    fields.Add(field);
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    CollectFirstLevelFields(inlineFragment.SelectionSet, type, fields);
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether the source schema contributes the merged field without declaring it
+    /// external, either as a partial field or as an external key field it only echoes.
+    /// </summary>
+    private static bool IsServedBy(MutableOutputFieldDefinition field, string schemaName)
+    {
+        var fusionFieldDirective =
+            field.Directives.AsEnumerable().FirstOrDefault(
+                d => d.Name == FusionField && (string)d.Arguments[Schema].Value! == schemaName);
+
+        if (fusionFieldDirective is null)
+        {
+            return false;
+        }
+
+        var isPartial =
+            fusionFieldDirective.Arguments.TryGetValue(Partial, out var partial)
+            && (bool)partial.Value!;
+        var isSourceExternal =
+            fusionFieldDirective.Arguments.TryGetValue(SourceExternal, out var sourceExternal)
+            && (bool)sourceExternal.Value!;
+
+        return !isPartial && !isSourceExternal;
     }
 }

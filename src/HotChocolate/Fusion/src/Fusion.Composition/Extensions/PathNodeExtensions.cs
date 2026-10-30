@@ -7,19 +7,6 @@ internal static class PathNodeExtensions
 {
     extension(PathNode? path)
     {
-        public bool ContainsItem(SatisfiabilityPathItem item)
-        {
-            for (var node = path; node is not null; node = node.Parent)
-            {
-                if (node.Item == item)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public IEnumerable<SatisfiabilityPathItem> EnumerateFromLeaf()
         {
             for (var node = path; node is not null; node = node.Parent)

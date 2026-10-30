@@ -23,6 +23,9 @@ interface StorybookPreview {
   readonly currentRender?: {
     readonly id: string;
     readonly phase: string;
+    readonly channel: {
+      last(eventName: string): readonly unknown[] | undefined;
+    };
   };
 }
 
@@ -41,7 +44,7 @@ try {
 } catch {
   throw new Error(
     `Could not read ${indexPath}. The Storybook static build must run before the visual tests ` +
-      `(Playwright's webServer handles this automatically via "yarn test:visual").`,
+      `(Playwright's webServer handles this automatically via "npm run test:visual").`,
   );
 }
 
@@ -67,6 +70,9 @@ test("every baseline belongs to a story", () => {
 
 for (const story of stories) {
   test(story.id, async ({ page }) => {
+    if (story.tags?.includes("visual-reduced-motion")) {
+      await page.emulateMedia({ reducedMotion: "reduce" });
+    }
     await page.goto(
       `/iframe.html?id=${encodeURIComponent(story.id)}&viewMode=story`,
     );
@@ -80,6 +86,27 @@ for (const story of stories) {
       const render = window.__STORYBOOK_PREVIEW__?.currentRender;
       return render?.id === storyId && render.phase === "finished";
     }, story.id);
+    const outcome = await page.evaluate(() => {
+      const channel = window.__STORYBOOK_PREVIEW__?.currentRender?.channel;
+      return {
+        finished: channel?.last("storyFinished")?.[0],
+        playException: channel?.last("playFunctionThrewException"),
+        unhandledErrors: channel?.last("unhandledErrorsWhilePlaying"),
+      };
+    });
+    expect(outcome.playException).toBeUndefined();
+    expect(outcome.unhandledErrors).toBeUndefined();
+    expect(outcome.finished).toMatchObject({
+      storyId: story.id,
+      status: "success",
+    });
+    if (story.tags?.includes("visual-reduced-motion")) {
+      expect(
+        await page.evaluate(
+          () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        ),
+      ).toBe(true);
+    }
     // Wait for webfonts so text metrics are stable before the screenshot.
     await page.evaluate(() => document.fonts.ready);
 

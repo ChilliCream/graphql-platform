@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Primitives;
 
 namespace Mocha;
@@ -227,7 +228,9 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     }
 
     /// <summary>
-    /// Stops the transport by invoking pre-stop hooks and deactivating all receive endpoints.
+    /// Stops the transport by invoking pre-stop hooks and deactivating all receive endpoints. A failing
+    /// step does not prevent the remaining steps from running; the first failure is rethrown and the
+    /// transport stays started.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
     /// <param name="cancellationToken">A token to cancel the shutdown sequence.</param>
@@ -239,11 +242,39 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             throw ThrowHelper.TransportNotStarted();
         }
 
-        await OnBeforeStopAsync(cancellationToken);
+        ExceptionDispatchInfo? failure = null;
+
+        try
+        {
+            await OnBeforeStopAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            failure = ExceptionDispatchInfo.Capture(ex);
+        }
+
         foreach (var endpoint in ReceiveEndpoints)
         {
-            await endpoint.StopAsync(context, cancellationToken);
+            try
+            {
+                await endpoint.StopAsync(context, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                failure ??= ExceptionDispatchInfo.Capture(ex);
+            }
         }
+
+        try
+        {
+            await OnAfterStopAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            failure ??= ExceptionDispatchInfo.Capture(ex);
+        }
+
+        failure?.Throw();
 
         IsStarted = false;
     }
@@ -265,6 +296,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the pre-stop operation.</param>
     protected virtual ValueTask OnBeforeStopAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
+
+    /// <summary>
+    /// Called after receive endpoints are stopped, allowing derived transports to release resources
+    /// that the endpoints use while stopping.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the post-stop operation.</param>
+    protected virtual ValueTask OnAfterStopAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
     /// <summary>
     /// Creates the transport-specific configuration from the setup context during the bus build phase.

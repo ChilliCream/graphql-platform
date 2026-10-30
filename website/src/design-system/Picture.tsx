@@ -87,8 +87,9 @@ export function Picture({
   return (
     // `contents` makes <picture> generate no box so the <img> participates in
     // layout as if it were a direct child of the caller's container (preserves
-    // `object-cover`, `h-full`, flex/grid sizing on the image).
-    <picture className="contents">
+    // `object-cover`, `h-full`, flex/grid sizing on the image). The <source>
+    // elements are hidden so they do not become empty flex or grid items.
+    <picture className="contents [&>source]:hidden">
       {opt.formats.avif && (
         <source
           type="image/avif"

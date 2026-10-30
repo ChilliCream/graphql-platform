@@ -30,6 +30,7 @@ public sealed partial class OperationPlanContext
     internal void Initialize(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        int variableIndex,
         IOperationPlan operationPlan,
         CancellationTokenSource cancellationTokenSource,
         MemoryArena? memory = null)
@@ -53,6 +54,7 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = _memorySource;
 
         Variables = variables;
+        _variableIndex = variableIndex;
         OperationPlan = operationPlan;
 
         switch (operationPlan)
@@ -60,11 +62,15 @@ public sealed partial class OperationPlanContext
             case OperationPlan plan:
                 _usesDynamicSchemaNames = plan.UsesDynamicSchemaNames;
                 _usesBatchNodes = plan.UsesBatchNodes;
+                _entityReuseCandidateMap = requestContext.Schema.GetOptions().EnableEntityReuse
+                    ? plan.EntityReuseCandidateMap
+                    : null;
                 break;
 
             case IncrementalPlan plan:
                 _usesDynamicSchemaNames = plan.UsesDynamicSchemaNames;
                 _usesBatchNodes = plan.UsesBatchNodes;
+                _entityReuseCandidateMap = null;
                 break;
         }
 
@@ -73,6 +79,11 @@ public sealed partial class OperationPlanContext
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope ??= requestContext.CreateClientScope();
         _clientScopeCreatedAt = Stopwatch.GetTimestamp();
+
+        if (_clientScope is DefaultSourceSchemaClientScope clientScope)
+        {
+            clientScope.BeginRequest(_clientScopeCreatedAt);
+        }
 
         _resultStore.Initialize(
             Memory,
@@ -156,6 +167,7 @@ public sealed partial class OperationPlanContext
         _activeNodeSlotCount = 0;
         _usesDynamicSchemaNames = true;
         _usesBatchNodes = true;
+        HasExecutionDeadline = false;
 
         _resultStore.Clean(256, 256);
         _executionState.Clean();
@@ -166,6 +178,7 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
+        _entityReuseCandidateMap = null;
         IncludeConditionFlags = default;
         DeferConditionFlags = default;
         // if a custom scope is used we cannot reuse it and have to null it.

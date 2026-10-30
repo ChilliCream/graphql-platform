@@ -40,8 +40,8 @@ stableResponseStream: |
           0
         ],
         "data": {
-          "id": "VXNlcjox",
-          "name": "User: VXNlcjox"
+          "id": "VXNlcjoyNjE2NDgyNzU=",
+          "name": "User: VXNlcjoyNjE2NDgyNzU="
         }
       },
       {
@@ -53,8 +53,8 @@ stableResponseStream: |
           1
         ],
         "data": {
-          "id": "VXNlcjoy",
-          "name": "User: VXNlcjoy"
+          "id": "VXNlcjoxNTU5MzY4MDMx",
+          "name": "User: VXNlcjoxNTU5MzY4MDMx"
         }
       },
       {
@@ -66,8 +66,8 @@ stableResponseStream: |
           2
         ],
         "data": {
-          "id": "VXNlcjoz",
-          "name": "User: VXNlcjoz"
+          "id": "VXNlcjozNDQ5MTc0MTI0",
+          "name": "User: VXNlcjozNDQ5MTc0MTI0"
         }
       }
     ],
@@ -80,16 +80,16 @@ stableResponseStream: |
       "data": {
         "users": [
           {
-            "id": "VXNlcjox",
-            "name": "User: VXNlcjox"
+            "id": "VXNlcjoyNjE2NDgyNzU=",
+            "name": "User: VXNlcjoyNjE2NDgyNzU="
           },
           {
-            "id": "VXNlcjoy",
-            "name": "User: VXNlcjoy"
+            "id": "VXNlcjoxNTU5MzY4MDMx",
+            "name": "User: VXNlcjoxNTU5MzY4MDMx"
           },
           {
-            "id": "VXNlcjoz",
-            "name": "User: VXNlcjoz"
+            "id": "VXNlcjozNDQ5MTc0MTI0",
+            "name": "User: VXNlcjozNDQ5MTc0MTI0"
           }
         ]
       }
@@ -127,13 +127,13 @@ sourceSchemas:
                 "data": {
                   "users": [
                     {
-                      "id": "VXNlcjox"
+                      "id": "VXNlcjoyNjE2NDgyNzU="
                     },
                     {
-                      "id": "VXNlcjoy"
+                      "id": "VXNlcjoxNTU5MzY4MDMx"
                     },
                     {
-                      "id": "VXNlcjoz"
+                      "id": "VXNlcjozNDQ5MTc0MTI0"
                     }
                   ]
                 }
@@ -150,13 +150,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "VXNlcjox"
+                "__fusion_1_id": "VXNlcjoyNjE2NDgyNzU="
               },
               {
-                "__fusion_1_id": "VXNlcjoy"
+                "__fusion_1_id": "VXNlcjoxNTU5MzY4MDMx"
               },
               {
-                "__fusion_1_id": "VXNlcjoz"
+                "__fusion_1_id": "VXNlcjozNDQ5MTc0MTI0"
               }
             ]
         response:
@@ -166,8 +166,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "id": "VXNlcjox",
-                    "name": "User: VXNlcjox"
+                    "id": "VXNlcjoyNjE2NDgyNzU=",
+                    "name": "User: VXNlcjoyNjE2NDgyNzU="
                   }
                 }
               }
@@ -175,8 +175,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "id": "VXNlcjoy",
-                    "name": "User: VXNlcjoy"
+                    "id": "VXNlcjoxNTU5MzY4MDMx",
+                    "name": "User: VXNlcjoxNTU5MzY4MDMx"
                   }
                 }
               }
@@ -184,8 +184,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "id": "VXNlcjoz",
-                    "name": "User: VXNlcjoz"
+                    "id": "VXNlcjozNDQ5MTc0MTI0",
+                    "name": "User: VXNlcjozNDQ5MTc0MTI0"
                   }
                 }
               }

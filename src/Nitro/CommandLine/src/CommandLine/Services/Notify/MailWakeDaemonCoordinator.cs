@@ -661,7 +661,7 @@ internal sealed class MailWakeDaemonCoordinator(
     /// </summary>
     private sealed class ConcurrentDictionaryBackoff
     {
-        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (int Failures, DateTimeOffset NextEligibleAt)>
+        private readonly ConcurrentDictionary<string, (int Failures, DateTimeOffset NextEligibleAt)>
             _state = new(StringComparer.Ordinal);
 
         public bool IsEligible(string actor, DateTimeOffset now)

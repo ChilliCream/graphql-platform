@@ -18,7 +18,7 @@ response:
     {
       "data": {
         "productBySlug": {
-          "name": "Product: UHJvZHVjdDox"
+          "name": "Product: UHJvZHVjdDoxMTY3NDUwNjg="
         }
       }
     }
@@ -64,7 +64,7 @@ sourceSchemas:
               {
                 "data": {
                   "productBySlug": {
-                    "name": "Product: UHJvZHVjdDox"
+                    "name": "Product: UHJvZHVjdDoxMTY3NDUwNjg="
                   }
                 }
               }

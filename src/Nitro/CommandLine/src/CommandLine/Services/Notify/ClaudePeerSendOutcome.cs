@@ -23,6 +23,12 @@ internal sealed record ClaudePeerSendOutcome(ClaudePeerSendReason Reason, bool R
     public static ClaudePeerSendOutcome AccessDenied { get; } =
         new(ClaudePeerSendReason.AccessDenied, Retryable: false, "peer socket connect denied (access-denied)");
 
+    public static ClaudePeerSendOutcome Unconfirmed { get; } =
+        new(ClaudePeerSendReason.Unconfirmed, Retryable: false, "peer sent no delivery acknowledgement");
+
+    public static ClaudePeerSendOutcome Timeout { get; } =
+        new(ClaudePeerSendReason.Timeout, Retryable: true, "peer transport exceeded its time budget");
+
     public static ClaudePeerSendOutcome TransportError(string detail) =>
         new(ClaudePeerSendReason.TransportError, Retryable: true, detail);
 }

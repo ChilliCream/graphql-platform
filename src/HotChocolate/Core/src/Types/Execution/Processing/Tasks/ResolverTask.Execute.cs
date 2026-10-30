@@ -68,7 +68,7 @@ internal sealed partial class ResolverTask
                     EndGroupTurn();
                 }
 
-                _operationContext.Scheduler.Complete(this);
+                CompleteOnScheduler();
                 objectPool.Return(this);
             }
         }
@@ -280,7 +280,7 @@ internal sealed partial class ResolverTask
             }
 
             Status = _completionStatus;
-            _operationContext.Scheduler.Complete(this);
+            CompleteOnScheduler();
             objectPool.Return(this);
         }
     }

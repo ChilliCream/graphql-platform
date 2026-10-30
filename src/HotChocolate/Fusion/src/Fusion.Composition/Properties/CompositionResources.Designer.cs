@@ -1061,6 +1061,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; is not defined in schema &apos;{1}&apos; and is removed from the composite schema...
+        /// </summary>
+        internal static string LogEntryHelper_FieldArgumentNotShared {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FieldArgumentNotShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; must be defined as required in schema &apos;{1}&apos;. Arguments marked with @require are treated as non-required..
         /// </summary>
         internal static string LogEntryHelper_FieldWithMissingRequiredArgument {
@@ -1087,6 +1096,15 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to The input field &apos;{0}&apos; is not defined in schema &apos;{1}&apos; and is removed from the composite schema...
+        /// </summary>
+        internal static string LogEntryHelper_InputFieldNotShared {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputFieldNotShared", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to The input field &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
@@ -1664,6 +1682,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; cannot be resolved, because the type &apos;{2}&apos; is not reachable from the root types of schema &apos;{1}&apos; and no other schema resolves the field..
+        /// </summary>
+        internal static string LogEntryHelper_UnreachableSourceField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UnreachableSourceField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key..
         /// </summary>
         internal static string LookupMutableDirectiveDefinition_Description {
@@ -1736,11 +1763,11 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be served by the requiring source schema &apos;{1}&apos;..
         /// </summary>
-        internal static string RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema {
+        internal static string RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema {
             get {
-                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema", resourceCulture);
+                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema", resourceCulture);
             }
         }
 

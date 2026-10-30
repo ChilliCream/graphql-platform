@@ -1,6 +1,12 @@
 ﻿{
   "Headers": [
     {
+      "Key": "Vary",
+      "Value": [
+        "Accept"
+      ]
+    },
+    {
       "Key": "Cache-Control",
       "Value": [
         "max-age=0, s-maxage=30"
@@ -12,6 +18,12 @@
       "Key": "Content-Type",
       "Value": [
         "application/graphql-response+json; charset=utf-8"
+      ]
+    },
+    {
+      "Key": "Content-Length",
+      "Value": [
+        "34"
       ]
     }
   ],

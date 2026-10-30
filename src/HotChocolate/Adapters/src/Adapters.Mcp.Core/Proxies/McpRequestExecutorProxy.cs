@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using HotChocolate.Execution;
-using HotChocolate.Features;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.AspNetCore;
@@ -15,42 +14,34 @@ internal sealed class McpRequestExecutorProxy(
     string schemaName)
     : RequestExecutorProxy(executorProvider, executorEvents, schemaName)
 {
-    private McpExecutorSession? _session;
+    private StreamableHttpHandler? _handler;
 
-    public async ValueTask<McpExecutorSession> GetOrCreateSessionAsync(
+    public async ValueTask<StreamableHttpHandler> GetStreamableHttpHandlerAsync(
         CancellationToken cancellationToken)
     {
-        if (_session is not null)
+        if (_handler is not null)
         {
-            return _session;
+            return _handler;
         }
 
         var executor = await GetExecutorAsync(cancellationToken).ConfigureAwait(false);
-        return executor.Features.GetRequired<McpExecutorSession>();
+
+        return executor.Schema.Services.GetRequiredService<StreamableHttpHandler>();
     }
 
     protected override void OnConfigureRequestExecutor(
         IRequestExecutor newExecutor,
         IRequestExecutor? oldExecutor)
     {
-        if (oldExecutor is not null)
-        {
-            newExecutor.Features.Set(
-                oldExecutor.Schema.Services.GetRequiredService<ConcurrentDictionary<string, McpServer>>());
-        }
-
-        var session = new McpExecutorSession(newExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>());
-
-        newExecutor.Features.Set(session);
-        _session = session;
+        _handler = newExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>();
     }
 
     protected override void OnAfterRequestExecutorSwapped(
         IRequestExecutor newExecutor,
         IRequestExecutor oldExecutor)
     {
-        var mcpServers =
-            newExecutor.Features.GetRequired<ConcurrentDictionary<string, McpServer>>();
+        var mcpServers = oldExecutor.Schema.Services
+            .GetRequiredService<ConcurrentDictionary<string, McpServer>>();
 
         foreach (var mcpServer in mcpServers.Values)
         {

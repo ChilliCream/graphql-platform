@@ -146,6 +146,13 @@ public sealed class PostgresMessagingTransportDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IPostgresMessagingTransportDescriptor AutoMigrate(bool autoMigrate)
+    {
+        Configuration.AutoMigrate = autoMigrate;
+        return this;
+    }
+
     /// <inheritdoc  />
     public IPostgresMessagingTransportDescriptor ConnectionString(string connectionString)
     {
@@ -333,6 +340,11 @@ public sealed class PostgresMessagingTransportDescriptor
         target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
         CopyFaultEndpointFeature(configuration, target);
         CopySkippedEndpointFeature(configuration, target);
+
+        foreach (var configure in configuration.ConfigureReceiveEndpoint)
+        {
+            configure(endpoint);
+        }
     }
 
     private static void CopyFaultEndpointFeature(

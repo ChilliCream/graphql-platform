@@ -178,6 +178,7 @@ public sealed class ClaudeHookExecutorTests
                 agentStore,
                 ledger,
                 mail,
+                AgentSessionHarness.ClaudeCode,
                 new FixedClaudeSessionFileReader());
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
@@ -254,6 +255,7 @@ public sealed class ClaudeHookExecutorTests
                 agentStore,
                 ledger,
                 mail,
+                AgentSessionHarness.ClaudeCode,
                 new FixedClaudeSessionFileReader());
 
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))

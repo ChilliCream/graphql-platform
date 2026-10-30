@@ -23,6 +23,7 @@ public sealed partial class ResultDocument : IDisposable
     private long _dataHead;
     private int _rentedDataChunks;
     private MemorySegment[] _data;
+    private List<MemorySegment[]>? _previousData;
 
 #if NET10_0_OR_GREATER
     private readonly Lock _dataChunkLock = new();
@@ -766,7 +767,7 @@ public sealed partial class ResultDocument : IDisposable
                 var newData = s_arrayPool.Rent(nextLength);
                 Array.Copy(data, newData, rented);
                 newData.AsSpan(rented).Clear();
-                s_arrayPool.Return(data);
+                (_previousData ??= []).Add(data);
                 _data = data = newData;
             }
 
@@ -1022,6 +1023,18 @@ public sealed partial class ResultDocument : IDisposable
         // data segments are simply dropped here. The metadb only releases its pooled tracking
         // arrays, not the chunk memory.
         _metaDb.Dispose();
+
+        if (_previousData is not null)
+        {
+            foreach (var previousData in _previousData)
+            {
+                previousData.AsSpan().Clear();
+                s_arrayPool.Return(previousData);
+            }
+
+            _previousData = null;
+        }
+
         _data.AsSpan().Clear();
         s_arrayPool.Return(_data);
         _data = [];

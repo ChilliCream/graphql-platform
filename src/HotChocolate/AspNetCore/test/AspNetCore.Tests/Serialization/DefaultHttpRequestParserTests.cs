@@ -75,6 +75,29 @@ public sealed class DefaultHttpRequestParserTests
     }
 
     [Fact]
+    public void ParseRequest_Should_Throw_When_IncompleteRequestFollowsCompleteRequest()
+    {
+        // arrange
+        const string complete =
+            "{ \"query\": \"{ __typename }\", \"operationName\": \"GetTypeNameOfTheQueryType\", \"onError\": \"NULL\" }";
+        const string incomplete =
+            "{ \"query\": \"{ __typename }\", \"operationName\": \"GetTypeNameOfTheQueryType\", \"onError\": \"N";
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+        parser.ParseRequest(complete);
+
+        // act
+        void Parse() => parser.ParseRequest(incomplete);
+
+        // assert
+        var ex = Assert.Throws<GraphQLRequestException>(Parse);
+        Assert.Equal("Invalid JSON document.", ex.Message);
+    }
+
+    [Fact]
     public void ParseRequest_Valid_QueryId()
     {
         // arrange
@@ -166,6 +189,74 @@ public sealed class DefaultHttpRequestParserTests
                 ParserOptions.Default);
             parser.ParseRequestFromParams(queryParams);
         }
+
+        // assert
+        var ex = Assert.Throws<GraphQLRequestException>(Parse);
+        Assert.Equal("The operation ID has an invalid format.", ex.Message);
+    }
+
+    [Fact]
+    public void ParseRequestFromParams_Should_ReadDocumentId_When_IdIsMissing()
+    {
+        // arrange
+        var queryParams = new QueryCollection(
+            new Dictionary<string, StringValues>
+            {
+                ["documentId"] = "abc1213_5164-ABC-123"
+            });
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        var request = parser.ParseRequestFromParams(queryParams);
+
+        // assert
+        Assert.Equal("abc1213_5164-ABC-123", request.DocumentId?.Value);
+    }
+
+    [Fact]
+    public void ParseRequestFromParams_Should_PreferId_When_IdAndDocumentIdAreSet()
+    {
+        // arrange
+        var queryParams = new QueryCollection(
+            new Dictionary<string, StringValues>
+            {
+                ["documentId"] = "def456",
+                ["id"] = "abc123"
+            });
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        var request = parser.ParseRequestFromParams(queryParams);
+
+        // assert
+        Assert.Equal("abc123", request.DocumentId?.Value);
+    }
+
+    [Fact]
+    public void ParseRequestFromParams_Should_Throw_When_DocumentIdHasInvalidFormat()
+    {
+        // arrange
+        var queryParams = new QueryCollection(
+            new Dictionary<string, StringValues>
+            {
+                ["documentId"] = "sha256:abc123"
+            });
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        void Parse() => parser.ParseRequestFromParams(queryParams);
 
         // assert
         var ex = Assert.Throws<GraphQLRequestException>(Parse);

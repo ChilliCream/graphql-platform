@@ -23,21 +23,21 @@ response:
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjk="
+                "displayName": "Author: QXV0aG9yOjI5NDQ0MDk4MTI="
               }
             }
           },
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjg="
+                "displayName": "Author: QXV0aG9yOjM3NDMxNzY1NjQ="
               }
             }
           },
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjc="
+                "displayName": "Author: QXV0aG9yOjI5MjE4NTE3Mzg="
               }
             }
           }
@@ -103,7 +103,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjk="
+                          "id": "QXV0aG9yOjI5NDQ0MDk4MTI="
                         }
                       }
                     },
@@ -111,7 +111,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjg="
+                          "id": "QXV0aG9yOjM3NDMxNzY1NjQ="
                         }
                       }
                     },
@@ -119,7 +119,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjc="
+                          "id": "QXV0aG9yOjI5MjE4NTE3Mzg="
                         }
                       }
                     }
@@ -152,13 +152,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "QXV0aG9yOjk="
+                "__fusion_1_id": "QXV0aG9yOjI5NDQ0MDk4MTI="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjg="
+                "__fusion_1_id": "QXV0aG9yOjM3NDMxNzY1NjQ="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjc="
+                "__fusion_1_id": "QXV0aG9yOjI5MjE4NTE3Mzg="
               }
             ]
         response:
@@ -168,7 +168,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjk="
+                    "displayName": "Author: QXV0aG9yOjI5NDQ0MDk4MTI="
                   }
                 }
               }
@@ -176,7 +176,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjg="
+                    "displayName": "Author: QXV0aG9yOjM3NDMxNzY1NjQ="
                   }
                 }
               }
@@ -184,7 +184,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
+                    "displayName": "Author: QXV0aG9yOjI5MjE4NTE3Mzg="
                   }
                 }
               }

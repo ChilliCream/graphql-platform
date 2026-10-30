@@ -16,13 +16,13 @@ public class CatalogContext(string connectionString, IEnumerable<IInterceptor>? 
         }
     }
 
-    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<Product> Products { get; set; }
 
-    public DbSet<ProductType> ProductTypes { get; set; } = null!;
+    public DbSet<ProductType> ProductTypes { get; set; }
 
-    public DbSet<Brand> Brands { get; set; } = null!;
+    public DbSet<Brand> Brands { get; set; }
 
-    public DbSet<Test> Tests { get; set; } = null!;
+    public DbSet<Test> Tests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

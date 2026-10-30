@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore;
 using Mocha.EntityFrameworkCore.Postgres;
+using Npgsql;
 
 namespace Mocha.Outbox;
 
@@ -27,8 +28,22 @@ public static class OutboxServiceCollectionExtensions
     /// <param name="builder">The Entity Framework Core builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(this IEntityFrameworkCoreBuilder builder)
+        => builder.UsePostgresOutbox(static _ => { });
+
+    /// <summary>
+    /// Registers the full Postgres outbox pipeline with the specified <see cref="PostgresOutboxOptions"/>.
+    /// </summary>
+    /// <param name="builder">The Entity Framework Core builder to configure.</param>
+    /// <param name="configure">A delegate that configures the <see cref="PostgresOutboxOptions"/>.</param>
+    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
+    public static IEntityFrameworkCoreBuilder UsePostgresOutbox(
+        this IEntityFrameworkCoreBuilder builder,
+        Action<PostgresOutboxOptions> configure)
     {
+        ArgumentNullException.ThrowIfNull(configure);
+
         var contextType = builder.ContextType;
+        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name).Configure(configure);
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)
@@ -43,15 +58,14 @@ public static class OutboxServiceCollectionExtensions
 
         builder
             .Services.AddOptions<PostgresMessageOutboxOptions>(builder.Name)
-            .Configure<IServiceProvider, IOptionsMonitor<PostgresTableInfo>>((options, postgresOptions,
-                tableInfoMonitor) =>
+            .Configure<IOptionsMonitor<PostgresTableInfo>>((options, tableInfoMonitor) =>
             {
-                using var scope = postgresOptions.CreateScope();
-                var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
-                options.ConnectionString =
-                    dbContext.Database.GetConnectionString() ??
-                    throw new InvalidOperationException(
-                        $"Could not read the connection string from {contextType.Name}");
+                options.CreateConnection = services =>
+                {
+                    var dbContext = (DbContext)services.GetRequiredService(contextType);
+                    return (NpgsqlConnection)((ICloneable)dbContext.Database.GetDbConnection()).Clone();
+                };
+
                 var tableInfo = tableInfoMonitor.Get(builder.Name);
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
             });
@@ -66,15 +80,10 @@ public static class OutboxServiceCollectionExtensions
                 sp.GetRequiredService<IMessagingRuntime>(),
                 sp.GetRequiredService<IMessagingPools>(),
                 sp.GetRequiredService<IOutboxSignal>(),
-                options.Queries);
+                options);
         });
 
-        builder.Services.AddSingleton(sp =>
-        {
-            var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
-            var options = optionsMonitor.Get(builder.Name);
-            return new PostgresMessageBusOutboxWorker(options, sp.GetRequiredService<PostgresOutboxProcessor>());
-        });
+        builder.Services.AddSingleton<PostgresMessageBusOutboxWorker>();
 
         builder.Services.AddHostedService(sp => sp.GetRequiredService<PostgresMessageBusOutboxWorker>());
 

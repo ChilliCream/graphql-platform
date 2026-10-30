@@ -14,6 +14,7 @@ using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Status;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 
@@ -52,6 +53,7 @@ internal sealed class NitroRootCommand : RootCommand
         Subcommands.Add(new SchemaCommand());
         Subcommands.Add(new StageCommand());
         Subcommands.Add(new StatusCommand());
+        Subcommands.Add(new TelemetryCommand());
         Subcommands.Add(new WorkspaceCommand());
 
         CommandExamples.Install(this);

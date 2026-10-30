@@ -48,6 +48,7 @@ internal sealed class FakePingSessionExecutor : IPingSessionExecutor
 
     public Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
         string actorName,
+        string harness,
         string sessionId,
         string attemptId,
         int slot,

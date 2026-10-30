@@ -52,6 +52,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         _agentStore,
         _ledger,
         _mail,
+        AgentSessionHarness.ClaudeCode,
         sessionFileReader ?? new FixedClaudeSessionFileReader());
 
     // ---------- SessionStart ----------
@@ -670,6 +671,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             new IncrementNeverMatchesAgentStore(_agentStore),
             _ledger,
             _mail,
+            AgentSessionHarness.ClaudeCode,
             new FixedClaudeSessionFileReader());
 
         // act
@@ -699,6 +701,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             _agentStore,
             spyLedger,
             _mail,
+            AgentSessionHarness.ClaudeCode,
             new FixedClaudeSessionFileReader());
 
         // act

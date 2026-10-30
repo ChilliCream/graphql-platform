@@ -44,6 +44,48 @@ public class LeafFieldSelectionsRuleTests()
         Assert.Equal(expectedMessage, Assert.Single(context.Errors).Message);
     }
 
+    [Theory]
+    [InlineData("{ dog { __typename { name } } }")]
+    [InlineData("{ human { pets { __typename { name } } } }")]
+    [InlineData("{ catOrDog { __typename { name } } }")]
+    [InlineData("{ catOrDog { ...f } } fragment f on CatOrDog { __typename { name } }")]
+    public void Validate_Should_RejectSelectionsOnTypeName_When_ParentIsAnyCompositeType(string sourceText)
+    {
+        // arrange
+        var rule = new LeafFieldSelectionsRule();
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document);
+
+        // act
+        rule.Validate(context, document);
+
+        // assert
+        Assert.Equal(
+            "Field \"__typename\" must not have a selection since type \"String!\" has no subfields.",
+            Assert.Single(context.Errors).Message);
+    }
+
+    [Fact]
+    public void TypeNameOnAbstractTypes()
+    {
+        ExpectValid(
+            """
+            {
+              dog {
+                __typename
+              }
+              human {
+                pets {
+                  __typename
+                }
+              }
+              catOrDog {
+                __typename
+              }
+            }
+            """);
+    }
+
     [Fact]
     public void ScalarSelection()
     {

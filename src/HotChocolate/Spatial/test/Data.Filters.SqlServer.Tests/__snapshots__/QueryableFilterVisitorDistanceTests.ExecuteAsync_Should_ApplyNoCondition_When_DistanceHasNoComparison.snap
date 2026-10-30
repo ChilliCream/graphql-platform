@@ -1,0 +1,43 @@
+geometry Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      }
+    ]
+  }
+}
+---------------
+
+geometry SQL:
+---------------
+SELECT d."Id", d."Bar"
+FROM "Data" AS d
+---------------
+
+geometry and buffer Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      }
+    ]
+  }
+}
+---------------
+
+geometry and buffer SQL:
+---------------
+SELECT d."Id", d."Bar"
+FROM "Data" AS d
+---------------

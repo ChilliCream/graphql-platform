@@ -18,7 +18,7 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(20_000);
-        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+        await using var app = TestServerHelper.StartApp(_ => { }, out var port);
         var ct = cts.Token;
 
         var serviceCollection = new ServiceCollection();
@@ -33,7 +33,7 @@ public class StarWarsOnReviewSubNoStoreTest : ServerTestBase
         var client = services.GetRequiredService<StarWarsOnReviewSubNoStoreClient>();
 
         // act
-        var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
+        var topicEventSender = app.Services.GetRequiredService<ITopicEventSender>();
         const Episode topic = Episode.NewHope;
 
         var connectCompletionSource = new TaskCompletionSource();

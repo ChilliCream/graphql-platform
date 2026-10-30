@@ -22,6 +22,15 @@ internal static class ListSizeDirectiveFold
         => defaultListSize is { } value ? Math.Max(foldedAssumedSize ?? 0, value) : null;
 
     /// <summary>
+    /// Caps a source's <c>slicingArgumentDefaultValue</c> at the same source's <c>assumedSize</c>.
+    /// The value is returned unchanged when either argument is absent.
+    /// </summary>
+    public static int? CapSlicingArgumentDefaultValue(int? slicingArgumentDefaultValue, int? assumedSize)
+        => slicingArgumentDefaultValue is { } value && assumedSize is { } max
+            ? Math.Min(value, max)
+            : slicingArgumentDefaultValue;
+
+    /// <summary>
     /// Folds <c>slicingArgumentDefaultValue</c>: the maximum over sources that have it, absent
     /// (skipped) when none has it. No spec default exists for this ChilliCream extension.
     /// </summary>

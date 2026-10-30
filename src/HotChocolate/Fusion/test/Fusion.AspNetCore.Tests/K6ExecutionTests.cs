@@ -254,7 +254,7 @@ public sealed class K6ExecutionTests : FusionTestBase
             => s_reviews.FirstOrDefault(r => r.Id == id);
     }
 
-    private const string K6Query =
+    internal const string K6Query =
         """
         query TestQuery {
           users {

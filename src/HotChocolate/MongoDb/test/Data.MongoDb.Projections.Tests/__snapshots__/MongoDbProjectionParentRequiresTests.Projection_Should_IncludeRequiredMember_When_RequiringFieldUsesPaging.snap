@@ -1,0 +1,34 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "policyNumber": "1000-0001",
+        "products": {
+          "nodes": [
+            {
+              "id": "P-001"
+            }
+          ]
+        }
+      },
+      {
+        "policyNumber": "1000-0002",
+        "products": {
+          "nodes": [
+            {
+              "id": "P-002"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+---------------
+
+Query:
+---------------
+find({ }, { "ProductId" : 1, "_t" : 1, "PolicyNumber" : 1 })
+---------------

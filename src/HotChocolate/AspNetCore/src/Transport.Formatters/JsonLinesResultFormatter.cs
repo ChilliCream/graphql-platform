@@ -43,10 +43,11 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
     /// </summary>
     private async ValueTask FormatOperationResultAsync(
         OperationResult operationResult,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: false);
         OperationResultFormatterContext? formatContext = null;
         var scope = Log.FormatOperationResultStart();
 
@@ -78,10 +79,11 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
     /// </summary>
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
         Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
         List<Task>? streams = null;
@@ -120,6 +122,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                         catch (Exception ex)
                         {
                             scope?.AddError(ex);
+                            writer.Discard();
                             throw;
                         }
                         finally
@@ -132,7 +135,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                     }
 
                     case IResponseStream responseStream:
-                        keepAlive ??= new KeepAliveJob(semaphore, writer);
+                        keepAlive ??= new KeepAliveJob(semaphore, pipe);
                         var formatter = new StreamFormatter(
                             _payloadFormatter,
                             useIncrementalRfc1,
@@ -176,15 +179,16 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
         using var semaphore = new SemaphoreSlim(1, 1);
 
         try
         {
-            using (var keepAlive = new KeepAliveJob(semaphore, writer))
+            using (var keepAlive = new KeepAliveJob(semaphore, pipe))
             {
                 var formatter = new StreamFormatter(
                     _payloadFormatter,
@@ -234,7 +238,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
         SemaphoreSlim semaphore,
-        PipeWriter writer)
+        ChunkedPipeBufferWriter writer)
     {
         private OperationResultFormatterContext? _formatContext
             = OperationResultFormatterContext.CreateForResponseStream(useIncrementalRfc1);
@@ -264,6 +268,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                     catch (Exception ex)
                     {
                         scope?.AddError(ex);
+                        writer.Discard();
                         throw;
                     }
                     finally

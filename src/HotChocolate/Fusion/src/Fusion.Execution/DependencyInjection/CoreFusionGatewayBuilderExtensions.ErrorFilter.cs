@@ -56,8 +56,10 @@ public static partial class CoreFusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<T>();
+
+        // The error filter is registered as an instance so that the schema service provider never disposes it.
         return builder.ConfigureSchemaServices(
-            (sp, s) => s.AddSingleton<IErrorFilter, T>(_ => sp.GetRequiredService<T>()));
+            (sp, s) => s.AddSingleton<IErrorFilter>(sp.GetRequiredService<T>()));
     }
 
     /// <summary>

@@ -1,36 +1,44 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public class TestServerFactory : IDisposable
+public class TestServerFactory : IAsyncDisposable
 {
-    private readonly List<TestServer> _instances = [];
+    private readonly List<WebApplication> _instances = [];
 
     public TestServer Create(
         Action<IServiceCollection> configureServices,
         Action<IApplicationBuilder> configureApplication)
     {
-        var builder = new WebHostBuilder()
-            .Configure(configureApplication)
-            .ConfigureServices(services =>
-            {
-                services.AddHttpContextAccessor();
-                configureServices(services);
-            });
+        var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
+        builder.WebHost.UseTestServer();
+        builder.Services.AddHttpContextAccessor();
+        configureServices(builder.Services);
 
-        var server = new TestServer(builder);
-        _instances.Add(server);
-        return server;
+        var app = builder.Build();
+        configureApplication(app);
+
+        app.Start();
+        _instances.Add(app);
+        return app.GetTestServer();
     }
 
-    public void Dispose()
+    public ValueTask DisposeAsync() => DisposeServersAsync();
+
+    /// <summary>
+    /// Stops, disposes, and releases every server this factory has created so far.
+    /// </summary>
+    public async ValueTask DisposeServersAsync()
     {
-        foreach (var testServer in _instances)
+        foreach (var app in _instances)
         {
-            testServer.Dispose();
+            await app.StopAsync();
+            await app.DisposeAsync();
         }
+
+        _instances.Clear();
     }
 }

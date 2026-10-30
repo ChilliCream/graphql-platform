@@ -86,15 +86,20 @@ public class BatchingTests
     [Fact]
     public async Task Handler_Should_ReceiveMultiMessageBatch_When_ConcurrentDelivery()
     {
-        // arrange - MaxBatchSize=5 with MaxConcurrency=5 so all 5 pipelines call Add()
-        // concurrently, filling the batch by size before any handler completes
+        // arrange - MaxBatchSize=5 with MaxConcurrency=5 on the endpoint and its concurrency
+        // limiter so all 5 pipelines call Add() concurrently, filling the batch by size before
+        // any handler completes; a long BatchTimeout so only the size triggers dispatch
         var recorder = new BatchMessageRecorder();
         const int messageCount = 5;
         await using var ctx = _fixture.CreateTestContext();
         await using var bus = await new ServiceCollection()
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount)
+            .AddBatchHandler<TestBatchHandler>(opts =>
+            {
+                opts.MaxBatchSize = messageCount;
+                opts.BatchTimeout = TimeSpan.FromMinutes(5);
+            })
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
@@ -102,7 +107,8 @@ public class BatchingTests
                 t.Endpoint("batch-ep")
                     .Handler<TestBatchHandler>()
                     .MaxConcurrency(messageCount)
-                    .PrefetchCount(messageCount);
+                    .PrefetchCount(messageCount)
+                    .AddConcurrencyLimiter(o => o.MaxConcurrency = messageCount);
             })
             .BuildTestBusAsync();
 

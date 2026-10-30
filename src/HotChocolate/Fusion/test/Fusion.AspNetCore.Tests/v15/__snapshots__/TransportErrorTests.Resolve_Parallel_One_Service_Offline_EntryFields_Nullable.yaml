@@ -15,7 +15,7 @@ response:
       "data": {
         "viewer": null,
         "other": {
-          "userId": "T3RoZXI6MQ=="
+          "userId": "T3RoZXI6NDE3MzAzMTExOA=="
         }
       },
       "errors": [
@@ -80,7 +80,7 @@ sourceSchemas:
               {
                 "data": {
                   "other": {
-                    "userId": "T3RoZXI6MQ=="
+                    "userId": "T3RoZXI6NDE3MzAzMTExOA=="
                   }
                 }
               }

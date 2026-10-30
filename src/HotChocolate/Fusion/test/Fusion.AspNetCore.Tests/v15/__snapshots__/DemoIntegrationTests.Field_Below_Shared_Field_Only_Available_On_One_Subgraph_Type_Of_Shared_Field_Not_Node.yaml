@@ -85,7 +85,7 @@ sourceSchemas:
                       "sharedLinked": {
                         "__typename": "ProductAvailabilityMail"
                       },
-                      "id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                      "id": "UHJvZHVjdEF2YWlsYWJpbGl0eToyMTEyMTU3MDY0"
                     }
                   }
                 }
@@ -129,7 +129,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+              "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eToyMTEyMTU3MDY0"
             }
         response:
           results:

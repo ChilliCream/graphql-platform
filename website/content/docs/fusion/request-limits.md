@@ -26,13 +26,13 @@ builder
     });
 ```
 
-| Option                     | Default        | Description                                                                                                  |
-| -------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------ |
-| `MaxAllowedFields`         | 2048           | Maximum number of fields allowed in a query document.                                                        |
-| `MaxAllowedDirectives`     | 4 per location | Maximum number of directives allowed on a single location (field, operation, or fragment definition).        |
-| `MaxAllowedRecursionDepth` | 200            | Maximum nesting depth the parser allows for selection sets, list values, object values, and type references. |
-| `MaxAllowedNodes`          | Unlimited      | Maximum number of AST nodes the parser produces from a document. Defaults to unlimited.                      |
-| `MaxAllowedTokens`         | Unlimited      | Maximum number of tokens the lexer processes. Defaults to unlimited.                                         |
+| Option                     | Default        | Description                                                                                                                                                                                       |
+| -------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MaxAllowedFields`         | 2048           | Maximum number of fields allowed in a query document.                                                                                                                                             |
+| `MaxAllowedDirectives`     | 4 per location | Maximum number of directives allowed on a single location (field, operation, or fragment definition).                                                                                             |
+| `MaxAllowedRecursionDepth` | 200            | Maximum nesting depth the parser allows for selection sets, list values, object values, and type references. When you raise it, also raise [`MaxAllowedSelectionSetDepth`](#selection-set-depth). |
+| `MaxAllowedNodes`          | Unlimited      | Maximum number of AST nodes the parser produces from a document. Defaults to unlimited.                                                                                                           |
+| `MaxAllowedTokens`         | Unlimited      | Maximum number of tokens the lexer processes. Defaults to unlimited.                                                                                                                              |
 
 # Validation Limits
 
@@ -46,9 +46,19 @@ Caps how deeply nested a query can be. A depth of 10 covers most real-world quer
 builder.AddMaxExecutionDepthRule(10);
 ```
 
+## Selection Set Depth
+
+The gateway limits how deeply the selection sets of an operation can be nested with its fragment spreads followed. Fields with a selection set, inline fragments, and fragment spreads each add one level. Operations that nest deeper than **200** levels are rejected with the error code `HC0138`:
+
+```csharp
+builder.ConfigureValidation((_, b) => b.ModifyOptions(o => o.MaxAllowedSelectionSetDepth = 100));
+```
+
+If you raise the parser option [`MaxAllowedRecursionDepth`](#parser-limits), raise this limit as well.
+
 ## Fragment Visits
 
-Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. The total number of fragment visits per operation is capped at **1,000** by default.
+Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. An operation that exceeds the limit is rejected with the error code `HC0137`. The total number of fragment visits per operation is capped at **1,000** by default.
 
 ## Field Merge Comparisons
 
@@ -166,6 +176,8 @@ The maximum HTTP request body size defaults to approximately 20 MB:
 ```csharp
 builder.AddGraphQLGateway(maxAllowedRequestSize: 5 * 1000 * 1024); // 5 MB
 ```
+
+A JSON request body, or the `operations` field of a multipart request, over the limit is rejected before parsing with the error code `HC0010`. Under the `Draft20260903` [transport version](../hotchocolate/server/http-transport.md#transport-versions), the response has a `413` status code.
 
 ## Server Options
 

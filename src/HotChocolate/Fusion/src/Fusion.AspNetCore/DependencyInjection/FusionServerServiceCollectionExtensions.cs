@@ -72,6 +72,7 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+            sc.TryAddSingleton(new HttpRequestLimits(maxAllowedRequestSize));
 
             sc.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {
@@ -92,6 +93,9 @@ public static class FusionServerServiceCollectionExtensions
                     .Get(schemaName);
                 return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             });
+
+            sc.TryAddSingleton(
+                static sp => new ExecutorSession(sp.GetRequiredService<IRequestExecutor>()));
         });
 
         return builder;

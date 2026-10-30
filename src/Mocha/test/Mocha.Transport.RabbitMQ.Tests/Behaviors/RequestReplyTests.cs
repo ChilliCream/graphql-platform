@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
@@ -127,6 +128,53 @@ public class RequestReplyTests
         Assert.Equal("Shipped", orderResponse.Status);
         Assert.Equal("TRK-1", shipmentResponse.TrackingNumber);
         Assert.Equal("InTransit", shipmentResponse.Status);
+    }
+
+    [Fact]
+    public async Task Transport_Should_DeclareDurableAutoDeleteReplyQueue_When_Started()
+    {
+        // arrange
+        // The broker denies non-durable, non-exclusive queues by default since RabbitMQ 4.3, so a
+        // host that starts at all proves the reply queue shape is accepted. The listing pins it.
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddRabbitMQ()
+            .BuildTestBusAsync();
+
+        // act
+        var output = await _fixture.InvokeCommandAsync(
+            [
+                "rabbitmqctl",
+                "list_queues",
+                "name",
+                "durable",
+                "auto_delete",
+                "exclusive",
+                "arguments",
+                "-p",
+                vhost.VhostName,
+                "--quiet",
+                "--formatter",
+                "json"
+            ]);
+        var replyQueue = JsonDocument.Parse(output).RootElement
+            .EnumerateArray()
+            .Single(queue => queue.GetProperty("name").GetString()!.StartsWith("response-", StringComparison.Ordinal));
+
+        // each argument is listed as [name, type, value], and RabbitMQ 4 also lists the queue type it applied
+        var expires = replyQueue.GetProperty("arguments")
+            .EnumerateArray()
+            .Single(argument => argument[0].GetString() == "x-expires")[2]
+            .GetInt32();
+
+        // assert
+        Assert.True(replyQueue.GetProperty("durable").GetBoolean());
+        Assert.False(replyQueue.GetProperty("exclusive").GetBoolean());
+        Assert.True(replyQueue.GetProperty("auto_delete").GetBoolean());
+        Assert.Equal(1800000, expires);
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>

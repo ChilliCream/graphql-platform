@@ -12,7 +12,9 @@ using Moq;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFixture<TestServerFactory>
+public abstract class ServerTestBase(TestServerFactory serverFactory)
+    : IClassFixture<TestServerFactory>
+    , IAsyncDisposable
 {
     protected TestServerFactory ServerFactory { get; } = serverFactory;
 
@@ -163,6 +165,11 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .UseRouting()
                 .UseEndpoints(endpoints => configureConventions?.Invoke(endpoints)));
     }
+
+    /// <summary>
+    /// Disposes the servers the current test created.
+    /// </summary>
+    public virtual ValueTask DisposeAsync() => ServerFactory.DisposeServersAsync();
 
     [DirectiveType(DirectiveLocation.Subscription)]
     public class Foo
