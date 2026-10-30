@@ -56,7 +56,7 @@ public class SseReaderTests
         Assert.Equal(1, arenaSource.GetNextArenaCalls);
         Assert.Equal(
             [
-                new ArenaCall(nameof(IMemoryArena.RentSegmentTable), 64),
+                new ArenaCall(nameof(IMemoryArena.RentSegmentTable), 16),
                 new ArenaCall(nameof(IMemoryArena.Rent), 1024),
                 new ArenaCall(nameof(IMemoryArena.Rent), 2048),
                 new ArenaCall(nameof(IMemoryArena.Rent), 4096),

@@ -109,7 +109,7 @@ internal sealed class SseReader(HttpResponseMessage message)
         // The payload is filled once, directly into the arena's gap-free geometric segments using the
         // same per-event mechanic as the other streaming readers, then parsed in place via ParseFilled
         // so no bytes are copied a second time.
-        var chunks = arena.RentSegmentTable(64);
+        var chunks = arena.RentSegmentTable(16);
         var chunkIndex = 0;
         var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
         var current = chunks[chunkIndex] = arena.Rent(chunkSize);
