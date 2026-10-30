@@ -790,6 +790,111 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Null(store.Errors);
     }
 
+    [Fact]
+    public void AddPartialResults_Should_SkipNulledObject_When_PropagatedNullPrecedesLaterResult()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              user: User
+            }
+
+            type User {
+              id: ID!
+              email: String!
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ user { id email } }",
+            """{"data":{"user":{"email":null}}}""",
+            resultArena,
+            sourceArena);
+        var plan = PlanOperation(schema, "{ user { id email } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var payload = """{"data":{"user":{"id":"1"}}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+
+        // act
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        // assert
+        Assert.True(added);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"user":null}
+            """);
+        Assert.Collection(
+            store.Errors!,
+            error => Assert.Equal("user.email", error.Path?.Print()));
+    }
+
+    [Theory]
+    [InlineData(
+        "users: [User!]",
+        """{"data":{"users":[{"email":null}]}}""",
+        """{"data":{"users":[{"id":"1"}]}}""",
+        "NonNullItems")]
+    [InlineData(
+        "users: [User]",
+        """{"data":{"users":[{"email":null},{"id":"2","email":"b"}]}}""",
+        """{"data":{"users":[{"id":"1"},{"id":"2"}]}}""",
+        "NullableItems")]
+    public void AddPartialResults_Should_SkipNulledPositions_When_PropagatedNullPrecedesLaterListResult(
+        string usersField,
+        string firstPayload,
+        string secondPayload,
+        string caseName)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            $$"""
+            # name: test
+            type Query {
+              {{usersField}}
+            }
+
+            type User {
+              id: ID!
+              email: String!
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ users { id email } }",
+            firstPayload,
+            resultArena,
+            sourceArena);
+        var plan = PlanOperation(schema, "{ users { id email } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var payload = Encoding.UTF8.GetBytes(secondPayload);
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+
+        // act
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        // assert
+        Assert.True(added);
+        Snapshot.Create(caseName)
+            .Add(RenderData(store), "Data", MarkdownLanguages.Json)
+            .Add(store.Errors!.Select(error => error.Path?.Print()).ToArray(), "Error Paths")
+            .MatchMarkdownSnapshot();
+    }
+
     [Theory]
     [InlineData("RED", """{"color":"RED","broken":null}""")]
     [InlineData("YELLOW", """{"color":null,"broken":null}""")]

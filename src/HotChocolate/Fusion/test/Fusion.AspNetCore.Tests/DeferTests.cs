@@ -3348,7 +3348,7 @@ public class DeferTests : FusionTestBase
             {"incremental":[{"id":"3","data":{"address":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"3"}],"hasNext":true}
             """,
             """
-            {"completed":[{"id":"0","errors":[{"message":"Unexpected Execution Error","path":["user"]},{"message":"Unexpected Execution Error","path":["user","email"]}]},{"id":"1","errors":[{"message":"Unexpected Execution Error","path":["user"]},{"message":"Unexpected Execution Error","path":["user","email"]}]}],"hasNext":false}
+            {"completed":[{"id":"0","errors":[{"message":"Unexpected Execution Error","path":["user","email"]}]},{"id":"1","errors":[{"message":"Unexpected Execution Error","path":["user","email"]}]}],"hasNext":false}
             """
         ]);
     }
@@ -3414,6 +3414,54 @@ public class DeferTests : FusionTestBase
         ]);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_ReportFieldErrorOnce_When_LookupNodeRunsInParallelToFailingField(
+        bool lookupCompletesFirst)
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(
+            emailFails: true,
+            lookupCompletesFirst ? ResponseGate.EmailUntilLookupCompleted : ResponseGate.None);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"user":{"id":"VXNlcjoyMDkyMTcyNjc2","name":"User: VXNlcjoyMDkyMTcyNjc2"}},"pending":[{"id":"0","path":["user"],"label":"outer"}],"hasNext":true}
+            """,
+            """
+            {"completed":[{"id":"0","errors":[{"message":"Unexpected Execution Error","path":["user","email"]}]}],"hasNext":false}
+            """
+        ]);
+    }
+
     private async Task<Gateway> CreateUserGatewayAsync()
     {
         var server1 = CreateSourceSchema(
@@ -3453,11 +3501,12 @@ public class DeferTests : FusionTestBase
 
     private async Task<Gateway> CreateUserGatewayWithEmailAsync(bool emailFails, ResponseGate gate)
     {
-        // The key lookup response of the deferred plan is held back until the email node has handed its
-        // result to the result store, so the email result is always applied first.
+        // Unless the gate says otherwise, the key lookup response of the deferred plan is held back until the
+        // email node has handed its result to the result store, so the email result is always applied first.
         var emailNodeCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var errorDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var addressDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var lookupNodeCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         HttpMessageInvoker? invokerA = null;
         HttpMessageInvoker? invokerB = null;
 
@@ -3477,7 +3526,8 @@ public class DeferTests : FusionTestBase
             {
                 var body = await request.Content!.ReadAsStringAsync();
 
-                if (body.Contains("Op_defer", StringComparison.Ordinal))
+                if (body.Contains("Op_defer", StringComparison.Ordinal)
+                    && gate is not ResponseGate.EmailUntilLookupCompleted)
                 {
                     await emailNodeCompleted.Task.WaitAsync(TimeSpan.FromSeconds(30));
                 }
@@ -3516,6 +3566,10 @@ public class DeferTests : FusionTestBase
                     {
                         await addressDelivered.Task.WaitAsync(TimeSpan.FromSeconds(30));
                     }
+                    else if (gate is ResponseGate.EmailUntilLookupCompleted)
+                    {
+                        await lookupNodeCompleted.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    }
                 }
 
                 return await invokerB!.SendAsync(request, CancellationToken.None);
@@ -3545,8 +3599,9 @@ public class DeferTests : FusionTestBase
                 app.UseRouting();
                 app.UseEndpoints(endpoint => endpoint.MapGraphQL());
             },
-            configureGatewayBuilder: b => b.AddDiagnosticEventListener(
-                _ => new NodeCompletedListener("B", "email", emailNodeCompleted)));
+            configureGatewayBuilder: b => b
+                .AddDiagnosticEventListener(_ => new NodeCompletedListener("B", "email", emailNodeCompleted))
+                .AddDiagnosticEventListener(_ => new NodeCompletedListener("A", "Op_defer", lookupNodeCompleted)));
     }
 
     private static int CountSourceSchemaRequests(Gateway gateway, string schemaName, string text)
@@ -3811,7 +3866,8 @@ public class DeferTests : FusionTestBase
     {
         None,
         AddressUntilErrorDelivered,
-        EmailUntilAddressDelivered
+        EmailUntilAddressDelivered,
+        EmailUntilLookupCompleted
     }
 
     private sealed class SubgraphRequestSequence

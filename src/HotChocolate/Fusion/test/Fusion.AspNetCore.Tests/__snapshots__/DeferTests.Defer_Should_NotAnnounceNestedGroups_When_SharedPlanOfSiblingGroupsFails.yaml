@@ -54,12 +54,6 @@ stableResponseStream: |
           {
             "message": "Unexpected Execution Error",
             "path": [
-              "user"
-            ]
-          },
-          {
-            "message": "Unexpected Execution Error",
-            "path": [
               "user",
               "email"
             ]
@@ -69,12 +63,6 @@ stableResponseStream: |
       {
         "id": "2",
         "errors": [
-          {
-            "message": "Unexpected Execution Error",
-            "path": [
-              "user"
-            ]
-          },
           {
             "message": "Unexpected Execution Error",
             "path": [
