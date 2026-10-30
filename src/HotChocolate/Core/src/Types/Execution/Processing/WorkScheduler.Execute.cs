@@ -18,10 +18,19 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
         {
             await ExecuteInternalAsync(_buffer);
         }
+        catch (Exception) when (!_ct.IsCancellationRequested)
+        {
+            _isFaulted = true;
+            throw;
+        }
         finally
         {
             _buffer.AsSpan().Clear();
-            CompleteExecution();
+
+            if (!_isFaulted)
+            {
+                CompleteExecution();
+            }
         }
     }
 

@@ -182,6 +182,11 @@ internal static class InternalServiceCollectionExtensions
 
             if (isSharedScheduler)
             {
+                if (obj.Scheduler.IsFaulted)
+                {
+                    return false;
+                }
+
                 obj.ResetScheduler();
             }
 
