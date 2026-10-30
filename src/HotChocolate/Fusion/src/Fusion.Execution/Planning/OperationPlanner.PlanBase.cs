@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -82,6 +83,7 @@ public sealed partial class OperationPlanner
         var backlog = Backlog.Empty;
         var selectionSetId = index.GetId(operationDefinition.SelectionSet);
         var indexBuilder = index.ToBuilder();
+        var operationType = _schema.GetOperationType(operationDefinition.Operation);
         SelectionSet firstSelectionSet = null!;
 
         // We traverse in reverse order and push to the stack so that the first mutation
@@ -90,17 +92,24 @@ public sealed partial class OperationPlanner
         for (var i = operationDefinition.SelectionSet.Selections.Count - 1; i >= 0; i--)
         {
             var rootSelection = operationDefinition.SelectionSet.Selections[i];
+
+            // The root __typename is resolved by the gateway and has no source schema to plan against.
+            if (rootSelection is FieldNode { Name.Value: IntrospectionFieldNames.TypeName })
+            {
+                continue;
+            }
+
             var rootSelectionSet = new SelectionSetNode([rootSelection]);
             indexBuilder.Register(selectionSetId, rootSelectionSet);
 
             var selectionSet = new SelectionSet(
                 selectionSetId,
                 rootSelectionSet,
-                _schema.GetOperationType(operationDefinition.Operation),
+                operationType,
                 SelectionPath.Root);
 
             // firstSelectionSet gets overwritten each iteration and ends up holding
-            // the selection from the last loop iteration (i=0), which corresponds to
+            // the selection from the last planned iteration, which corresponds to
             // the first mutation field in document order and the first to be processed.
             firstSelectionSet = selectionSet;
             backlog = backlog.Push(OperationWorkItem.CreateRoot(selectionSet));
