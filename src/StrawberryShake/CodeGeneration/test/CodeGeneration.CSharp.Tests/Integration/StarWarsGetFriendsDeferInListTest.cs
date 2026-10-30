@@ -1,4 +1,6 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList;
 
@@ -8,13 +10,13 @@ public class StarWarsGetFriendsDeferInListTest : ServerTestBase
     {
     }
 
-    /*
     [Fact]
     public async Task Execute_StarWarsGetFriendsDeferInList_Test()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(
+        using var cts = new CancellationTokenSource(20_000);
+
+        using var host = TestServerHelper.CreateServer(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();
@@ -26,12 +28,13 @@ public class StarWarsGetFriendsDeferInListTest : ServerTestBase
             c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
         serviceCollection.AddStarWarsGetFriendsDeferInListClient();
         IServiceProvider services = serviceCollection.BuildServiceProvider();
-        StarWarsGetFriendsDeferInListClient client = services.GetRequiredService<StarWarsGetFriendsDeferInListClient>();
+        var client = services.GetRequiredService<StarWarsGetFriendsDeferInListClient>();
 
         // act
+        var result = await client.GetHero.ExecuteAsync(cts.Token);
 
         // assert
-
+        result.EnsureNoErrors();
+        result.Data.MatchSnapshot();
     }
-    */
 }
