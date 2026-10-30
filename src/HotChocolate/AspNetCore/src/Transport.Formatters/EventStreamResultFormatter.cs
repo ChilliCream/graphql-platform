@@ -282,7 +282,8 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
         SemaphoreSlim semaphore,
         PipeWriter writer)
     {
-        private OperationResultFormatterContext? _formatContext;
+        private OperationResultFormatterContext? _formatContext
+            = OperationResultFormatterContext.CreateForResponseStream(useIncrementalRfc1);
 
         public async Task ProcessAsync(CancellationToken ct)
         {
@@ -426,6 +427,19 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
             span = writer.GetSpan(NewLine2.Length);
             NewLine2.CopyTo(span);
             writer.Advance(NewLine2.Length);
+
+            if (context is { HasFinalCarriedPayload: true })
+            {
+                span = writer.GetSpan(NextEvent.Length);
+                NextEvent.CopyTo(span);
+                writer.Advance(NextEvent.Length);
+
+                payloadFormatter.FormatCarried(writer, context);
+
+                span = writer.GetSpan(NewLine2.Length);
+                NewLine2.CopyTo(span);
+                writer.Advance(NewLine2.Length);
+            }
         }
 
         public static void FormatCompleteMessage(

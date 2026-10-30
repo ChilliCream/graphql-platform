@@ -166,6 +166,7 @@ internal sealed partial class OperationContext
         _rootValue = context._rootValue;
         _resolveQueryRootValue = context._resolveQueryRootValue;
         _batchDispatcher = context._batchDispatcher;
+        _variableIndex = context._variableIndex;
         _memory = context._memory;
         RequestCleanup = context.RequestCleanup;
         _currentBranchTracker = context._currentBranchTracker;

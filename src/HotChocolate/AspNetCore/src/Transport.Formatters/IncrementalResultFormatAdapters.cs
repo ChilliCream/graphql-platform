@@ -22,6 +22,8 @@ internal static class IncrementalRfc1ResultFormatAdapter
         context.InitializeDocument(result.Document);
         var deferLookup = context.DeferSelectionLookup;
         var pending = context.PendingResults;
+        var isInitial = !context.IsInitialProcessed;
+        context.IsInitialProcessed = true;
 
         if (deferLookup is not null)
         {
@@ -153,23 +155,105 @@ internal static class IncrementalRfc1ResultFormatAdapter
             }
         }
 
-        if (entries is { Count: > 0 })
-        {
-            writer.WritePropertyName(ResultFieldNames.Incremental);
-            writer.WriteStartArray();
+        var hasNext = result.HasNext;
 
+        if (isInitial && context.CarryInitialEntries && entries is { Count: > 0 })
+        {
+            // The legacy initial payload only has data, errors and hasNext, so the entries that
+            // arrive with it are written with the next payload.
+            context.HasFinalCarriedPayload = hasNext is not true;
+            hasNext = true;
+            CarryEntries(writer, context, entries, options);
+        }
+        else
+        {
+            WriteIncrementalEntries(writer, context, entries, options);
+        }
+
+        if (hasNext.HasValue)
+        {
+            writer.WritePropertyName(ResultFieldNames.HasNext);
+            writer.WriteBooleanValue(hasNext.Value);
+        }
+    }
+
+    public static void WriteCarried(
+        JsonWriter writer,
+        OperationResultFormatterContext context)
+    {
+        writer.WritePropertyName(ResultFieldNames.Incremental);
+        writer.WriteStartArray();
+        WriteCarriedEntries(writer, context);
+        writer.WriteEndArray();
+
+        context.HasFinalCarriedPayload = false;
+
+        writer.WritePropertyName(ResultFieldNames.HasNext);
+        writer.WriteBooleanValue(false);
+    }
+
+    private static void WriteIncrementalEntries(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        List<LegacyIncrementalEntry>? entries,
+        JsonSerializerOptions options)
+    {
+        if (context.CarriedEntries is not { Count: > 0 } && entries is not { Count: > 0 })
+        {
+            return;
+        }
+
+        writer.WritePropertyName(ResultFieldNames.Incremental);
+        writer.WriteStartArray();
+        WriteCarriedEntries(writer, context);
+
+        if (entries is not null)
+        {
             for (var i = 0; i < entries.Count; i++)
             {
                 WriteLegacyIncrementalEntry(writer, entries[i], options);
             }
-
-            writer.WriteEndArray();
         }
 
-        if (result.HasNext.HasValue)
+        writer.WriteEndArray();
+    }
+
+    private static void WriteCarriedEntries(
+        JsonWriter writer,
+        OperationResultFormatterContext context)
+    {
+        if (context.CarriedEntries is not { } carried)
         {
-            writer.WritePropertyName(ResultFieldNames.HasNext);
-            writer.WriteBooleanValue(result.HasNext.Value);
+            return;
+        }
+
+        for (var i = 0; i < carried.Count; i++)
+        {
+            writer.WriteRawValue(carried[i].Span);
+        }
+
+        carried.Clear();
+    }
+
+    private static void CarryEntries(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        List<LegacyIncrementalEntry> entries,
+        JsonSerializerOptions options)
+    {
+        // The entries reference result data that is released once the payload is written,
+        // so we serialize them into the cache buffer.
+        var cacheBuffer = context.CacheBuffer;
+
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var start = cacheBuffer.Length;
+            var entryWriter = new JsonWriter(cacheBuffer, s_jsonWriterOptions)
+            {
+                NullIgnoreCondition = writer.NullIgnoreCondition
+            };
+            WriteLegacyIncrementalEntry(entryWriter, entries[i], options);
+            context.Carry(cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start));
         }
     }
 

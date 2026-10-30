@@ -166,7 +166,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
     {
         // first, we create the iterator.
         await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
-        OperationResultFormatterContext? formatContext = null;
+        var formatContext = OperationResultFormatterContext.CreateForResponseStream(useIncrementalRfc1);
         var first = true;
 
         try
@@ -199,6 +199,13 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                         // If the result is a deferred result and has a next result, we need to
                         // write a new part so that the client knows that there is more to come.
                         MessageHelper.WriteNext(writer);
+                    }
+
+                    if (formatContext is { HasFinalCarriedPayload: true })
+                    {
+                        MessageHelper.WriteNext(writer);
+                        MessageHelper.WriteResultHeader(writer);
+                        _payloadFormatter.FormatCarried(writer, formatContext);
                     }
 
                     // Now we can write the part to the output stream and flush this chunk.
