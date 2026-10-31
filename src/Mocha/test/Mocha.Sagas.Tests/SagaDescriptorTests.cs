@@ -123,5 +123,33 @@ public class SagaDescriptorTests
         Assert.NotNull(definition.DuringAny);
     }
 
+    [Fact]
+    public void CreateConfiguration_Should_FaultOnMissingInstance_When_NotConfigured()
+    {
+        // arrange
+        var sagaDescriptor = new SagaDescriptor<TestState>(s_context);
+
+        // act
+        var definition = sagaDescriptor.CreateConfiguration();
+
+        // assert
+        Assert.Equal(SagaMissingInstanceBehavior.Fault, definition.MissingInstanceBehavior);
+    }
+
+    [Fact]
+    public void OnMissingInstance_Should_SetMissingInstanceBehavior_When_Ignore()
+    {
+        // arrange
+        var sagaDescriptor = new SagaDescriptor<TestState>(s_context);
+
+        // act
+        sagaDescriptor.OnMissingInstance(SagaMissingInstanceBehavior.Ignore);
+
+        // assert
+        Assert.Equal(
+            SagaMissingInstanceBehavior.Ignore,
+            sagaDescriptor.CreateConfiguration().MissingInstanceBehavior);
+    }
+
     public sealed class TestState(Guid id, string state) : SagaStateBase(id, state);
 }

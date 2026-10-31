@@ -27,6 +27,12 @@ public sealed class SagaConfiguration : MessagingConfiguration
     public TimeSpan? Timeout { get; set; }
 
     /// <summary>
+    /// Gets or sets how the saga handles an event correlated through <see cref="ICorrelatable"/> for which no
+    /// saga instance exists.
+    /// </summary>
+    public SagaMissingInstanceBehavior MissingInstanceBehavior { get; set; }
+
+    /// <summary>
     /// Gets or sets a factory for creating a custom saga state serializer.
     /// </summary>
     public Func<IServiceProvider, ISagaStateSerializer>? StateSerializer { get; set; }
