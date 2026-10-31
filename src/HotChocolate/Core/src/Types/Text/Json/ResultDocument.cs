@@ -19,6 +19,7 @@ public sealed partial class ResultDocument : IDisposable
     private readonly ulong _includeFlags;
     private readonly ulong[]? _wideIncludeFlags;
     private readonly Path _rootPath = Path.Root;
+    private readonly int _startIndex;
     internal MetaDb _metaDb;
     private long _dataHead;
     private int _rentedDataChunks;
@@ -90,6 +91,31 @@ public sealed partial class ResultDocument : IDisposable
             deferFlags.Overflow);
     }
 
+    internal ResultDocument(
+        IMemoryArena arena,
+        Operation operation,
+        Selection selection,
+        Path path,
+        int startIndex,
+        ConditionFlags includeFlags)
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
+
+        _arena = arena;
+        _metaDb = MetaDb.Create(arena);
+        _data = RentDataChunks();
+        _operation = operation;
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
+        _rootPath = path;
+        _startIndex = startIndex;
+
+        Data = CreateListRoot(selection);
+    }
+
     private static MemorySegment[] RentDataChunks()
     {
         var data = s_arrayPool.Rent(4);
@@ -100,6 +126,12 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     public ResultElement Data { get; }
+
+    /// <summary>
+    /// Gets the overall index of the first item of the root list in the full list,
+    /// or <c>0</c> if the document does not have a list root.
+    /// </summary>
+    internal int StartIndex => _startIndex;
 
     // A data location packs the chunk index in the high 12 bits and the byte offset within the
     // chunk in the low 17 bits, fitting the 29-bit location field of a metadb row. The chunk size
@@ -240,6 +272,7 @@ public sealed partial class ResultDocument : IDisposable
 
         var path = _rootPath;
         var parentTokenType = ElementTokenType.StartObject;
+        var applyStartIndex = _startIndex != 0;
 
         chain = chain[..written];
 
@@ -261,6 +294,14 @@ public sealed partial class ResultDocument : IDisposable
                 {
                     // arrayIndex = abs(child) - (abs(parent) + 1)
                     var arrayIndex = c.Index - (parentCursor.Index + 1);
+
+                    if (applyStartIndex)
+                    {
+                        // only the items of the root list continue the numbering of the full list.
+                        arrayIndex += _startIndex;
+                        applyStartIndex = false;
+                    }
+
                     path = path.Append(arrayIndex);
                 }
             }
@@ -555,6 +596,27 @@ public sealed partial class ResultDocument : IDisposable
             }
 
             WriteEndObject(startObjectCursor, selectionCount);
+
+            return new ResultElement(this, startObjectCursor);
+        }
+    }
+
+    private ResultElement CreateListRoot(Selection selection)
+    {
+        lock (_dataChunkLock)
+        {
+            var startObjectCursor = WriteStartObject(Cursor.CreateZero(), isSelectionSet: false);
+
+            if (_wideIncludeFlags is null)
+            {
+                WriteEmptyProperty(startObjectCursor, selection);
+            }
+            else
+            {
+                WriteEmptyPropertyWide(startObjectCursor, selection);
+            }
+
+            WriteEndObject(startObjectCursor, 1);
 
             return new ResultElement(this, startObjectCursor);
         }

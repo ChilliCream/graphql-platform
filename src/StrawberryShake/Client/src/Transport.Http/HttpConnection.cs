@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport;
@@ -11,6 +13,14 @@ public class HttpConnection : IHttpConnection
 {
     public const string RequestUri = "StrawberryShake.Transport.Http.HttpConnection.RequestUri";
     public const string HttpClient = "StrawberryShake.Transport.Http.HttpConnection.HttpClient";
+
+    private static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> s_acceptContentTypes =
+    [
+        new(ContentType.GraphQL),
+        new(ContentType.Json, 0.9),
+        CreateIncrementalMediaType(ContentType.EventStream),
+        CreateIncrementalMediaType(ContentType.GraphQLJsonLine)
+    ];
 
     private readonly Func<OperationRequest, object?, HttpClient> _createClient;
     private readonly object? _clientFactoryState;
@@ -103,7 +113,11 @@ public class HttpConnection : IHttpConnection
             operation = new HotChocolate.Transport.OperationRequest(body, null, name, onError: null, variables, extensions);
         }
 
-        return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles };
+        return new GraphQLHttpRequest(operation)
+        {
+            Accept = s_acceptContentTypes,
+            EnableFileUploads = hasFiles
+        };
     }
 
     protected virtual Response<JsonDocument> CreateResponse(
@@ -156,6 +170,13 @@ public class HttpConnection : IHttpConnection
         }
 
         return copy ?? variables;
+    }
+
+    private static MediaTypeWithQualityHeaderValue CreateIncrementalMediaType(string mediaType)
+    {
+        var value = new MediaTypeWithQualityHeaderValue(mediaType);
+        value.Parameters.Add(new NameValueHeaderValue("incrementalSpec", "v0.1"));
+        return value;
     }
 
     private static void MapVariables(List<object?> variables)

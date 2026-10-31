@@ -16,8 +16,8 @@ internal sealed record OperationWorkItem(
     /// Indicates that this selection set may be resolved by a lookup into
     /// <see cref="FromSchema"/> itself. This is the case for selections that an event
     /// stream spilled because the message shape did not carry them, even though the
-    /// source schema owns them. Normal federation never re-enters the schema a selection
-    /// came from, so this stays <c>false</c> for every other flow.
+    /// source schema owns them, and for the key of a defer anchor. Normal federation never
+    /// re-enters the schema a selection came from, so this stays <c>false</c> for every other flow.
     /// </summary>
     public bool AllowSourceSchemaReentry { get; init; }
 

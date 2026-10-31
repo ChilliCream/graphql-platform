@@ -31,9 +31,11 @@ public abstract class ExecutionTask : IExecutionTask
     public ExecutionTaskStatus Status { get; private set; }
 
     /// <inheritdoc />
+    [Obsolete("Not used by the execution engine and will be removed in Hot Chocolate 17.")]
     public IExecutionTask? Next { get; set; }
 
     /// <inheritdoc />
+    [Obsolete("Not used by the execution engine and will be removed in Hot Chocolate 17.")]
     public IExecutionTask? Previous { get; set; }
 
     /// <inheritdoc />
@@ -126,8 +128,10 @@ public abstract class ExecutionTask : IExecutionTask
     protected void Reset()
     {
         _task = null;
+#pragma warning disable CS0618
         Next = null;
         Previous = null;
+#pragma warning restore CS0618
         State = null;
         IsSerial = false;
         IsRegistered = false;

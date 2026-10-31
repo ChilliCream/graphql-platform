@@ -790,6 +790,111 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Null(store.Errors);
     }
 
+    [Fact]
+    public void AddPartialResults_Should_SkipNulledObject_When_PropagatedNullPrecedesLaterResult()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              user: User
+            }
+
+            type User {
+              id: ID!
+              email: String!
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ user { id email } }",
+            """{"data":{"user":{"email":null}}}""",
+            resultArena,
+            sourceArena);
+        var plan = PlanOperation(schema, "{ user { id email } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var payload = """{"data":{"user":{"id":"1"}}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+
+        // act
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        // assert
+        Assert.True(added);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"user":null}
+            """);
+        Assert.Collection(
+            store.Errors!,
+            error => Assert.Equal("user.email", error.Path?.Print()));
+    }
+
+    [Theory]
+    [InlineData(
+        "users: [User!]",
+        """{"data":{"users":[{"email":null}]}}""",
+        """{"data":{"users":[{"id":"1"}]}}""",
+        "NonNullItems")]
+    [InlineData(
+        "users: [User]",
+        """{"data":{"users":[{"email":null},{"id":"2","email":"b"}]}}""",
+        """{"data":{"users":[{"id":"1"},{"id":"2"}]}}""",
+        "NullableItems")]
+    public void AddPartialResults_Should_SkipNulledPositions_When_PropagatedNullPrecedesLaterListResult(
+        string usersField,
+        string firstPayload,
+        string secondPayload,
+        string caseName)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            $$"""
+            # name: test
+            type Query {
+              {{usersField}}
+            }
+
+            type User {
+              id: ID!
+              email: String!
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ users { id email } }",
+            firstPayload,
+            resultArena,
+            sourceArena);
+        var plan = PlanOperation(schema, "{ users { id email } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var payload = Encoding.UTF8.GetBytes(secondPayload);
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+
+        // act
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        // assert
+        Assert.True(added);
+        Snapshot.Create(caseName)
+            .Add(RenderData(store), "Data", MarkdownLanguages.Json)
+            .Add(store.Errors!.Select(error => error.Path?.Print()).ToArray(), "Error Paths")
+            .MatchMarkdownSnapshot();
+    }
+
     [Theory]
     [InlineData("RED", """{"color":"RED","broken":null}""")]
     [InlineData("YELLOW", """{"color":null,"broken":null}""")]
@@ -1037,6 +1142,249 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Collection(
             store.Errors!,
             static error => Assert.Equal("event 2", error.Message));
+    }
+
+    [Fact]
+    public void ImportVariableValues_Should_MapPathsToTheTargetSelections_When_RootSelectionsPrecedeTheList()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+              items: [Item!]!
+            }
+
+            type Item {
+              id: ID!
+            }
+            """);
+        var sourcePlan = PlanOperation(schema, "{ a: field b: field items { id } }");
+        var targetPlan = PlanOperation(schema, "{ items { id } }");
+        var sourceItems = sourcePlan.Operation.RootSelectionSet.Selections[2];
+        var targetItems = targetPlan.Operation.RootSelectionSet.Selections[0];
+
+        using var resultArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        source.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            sourcePlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        using var target = new FetchResultStore();
+        target.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            targetPlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var values = WithAdditionalPaths(
+            CreateVariableValues(
+                source,
+                Path(sourceItems.Id, ~1),
+                Field("__fusion_1_id", new StringValueNode("2"))),
+            Path(sourceItems.Id, ~0));
+
+        // act
+        var result = target.ImportVariableValues([values], sourcePlan.Operation);
+
+        // assert
+        var entry = Assert.Single(result);
+        Assert.NotEqual(sourceItems.Id, targetItems.Id);
+        Assert.Equal(Path(targetItems.Id, ~1), entry.Path);
+        Assert.Equal([Path(targetItems.Id, ~0)], entry.AdditionalPaths.AsSpan().ToArray());
+    }
+
+    [Fact]
+    public void ImportVariableValues_Should_Throw_When_PathSegmentHasNoTargetSelection()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+              items: [Item!]!
+            }
+
+            type Item {
+              id: ID!
+            }
+            """);
+        var sourcePlan = PlanOperation(schema, "{ items { id } }");
+        var targetPlan = PlanOperation(schema, "{ field }");
+        var sourceItems = sourcePlan.Operation.RootSelectionSet.Selections[0];
+
+        using var resultArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        source.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            sourcePlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        using var target = new FetchResultStore();
+        target.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            targetPlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var values = CreateVariableValues(
+            source,
+            Path(sourceItems.Id, ~0),
+            Field("__fusion_1_id", new StringValueNode("1")));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => target.ImportVariableValues([values], sourcePlan.Operation));
+
+        // assert
+        Assert.Equal(
+            "The field `items` of the enclosing result path is not selected by the incremental plan.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void ImportVariableValues_Should_InitializeIntermediateObjects_When_ImportedPathEndsBelowListItem()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              items: [Item!]!
+            }
+
+            type Item {
+              id: ID!
+              related: Related!
+            }
+
+            type Related {
+              id: ID!
+              name: String
+            }
+            """);
+        var sourcePlan = PlanOperation(schema, "{ items { related { id } } }");
+        var targetPlan = PlanOperation(schema, "{ items { related { id name } } }");
+        var sourceItems = sourcePlan.Operation.RootSelectionSet.Selections[0];
+        var sourceRelated = sourceItems.GetSelectionSet()!.Selections[0];
+
+        using var resultArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        source.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            sourcePlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        using var target = new FetchResultStore();
+        target.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            targetPlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var values = CreateVariableValues(
+            source,
+            Path(sourceItems.Id, ~1, sourceRelated.Id),
+            Field("__fusion_1_id", new StringValueNode("2")));
+
+        // act
+        target.ImportVariableValues([values], sourcePlan.Operation);
+
+        // assert
+        var items = target.Result.Data.GetProperty("items");
+        Assert.Equal(2, items.GetArrayLength());
+        Assert.Equal(JsonValueKind.Undefined, items[0].ValueKind);
+        Assert.Equal(JsonValueKind.Object, items[1].ValueKind);
+        Assert.Equal(JsonValueKind.Undefined, items[1].GetProperty("related").ValueKind);
+    }
+
+    [Fact]
+    public void ImportVariableValues_Should_InitializeIntermediateObjects_When_ImportedPathEndsBelowRootObject()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              item: Item!
+            }
+
+            type Item {
+              id: ID!
+              related: Related!
+            }
+
+            type Related {
+              id: ID!
+              name: String
+            }
+            """);
+        var sourcePlan = PlanOperation(schema, "{ item { related { id } } }");
+        var targetPlan = PlanOperation(schema, "{ item { related { id name } } }");
+        var sourceItem = sourcePlan.Operation.RootSelectionSet.Selections[0];
+        var sourceRelated = sourceItem.GetSelectionSet()!.Selections[0];
+
+        using var resultArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        source.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            sourcePlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        using var target = new FetchResultStore();
+        target.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            targetPlan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var values = CreateVariableValues(
+            source,
+            Path(sourceItem.Id, sourceRelated.Id),
+            Field("__fusion_1_id", new StringValueNode("1")));
+
+        // act
+        target.ImportVariableValues([values], sourcePlan.Operation);
+
+        // assert
+        var item = target.Result.Data.GetProperty("item");
+        Assert.Equal(JsonValueKind.Object, item.ValueKind);
+        Assert.Equal(JsonValueKind.Undefined, item.GetProperty("related").ValueKind);
     }
 
     [Fact]

@@ -1,0 +1,19 @@
+{
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 22
+    }
+  ],
+  "path": [
+    "dog",
+    "name"
+  ],
+  "extensions": {
+    "argument": "if",
+    "argumentValue": "null",
+    "locationType": "Boolean!",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+  }
+}

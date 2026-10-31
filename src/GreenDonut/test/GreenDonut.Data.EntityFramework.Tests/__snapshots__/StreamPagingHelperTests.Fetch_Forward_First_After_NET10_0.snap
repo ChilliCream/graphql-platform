@@ -1,0 +1,41 @@
+---------------
+{
+  "First": {
+    "HasNext": true,
+    "HasPrevious": false,
+    "Items": [
+      "Item0001",
+      "Item0002"
+    ]
+  },
+  "Second": {
+    "HasNext": true,
+    "HasPrevious": true,
+    "Items": [
+      "Item0003",
+      "Item0004"
+    ]
+  }
+}
+---------------
+
+SQL 0
+---------------
+-- @p='3'
+SELECT b."Id", b."Name"
+FROM "Brands" AS b
+ORDER BY b."Name", b."Id"
+LIMIT @p
+---------------
+
+SQL 1
+---------------
+-- @value='Item0002'
+-- @value1='2'
+-- @p='3'
+SELECT b."Id", b."Name"
+FROM "Brands" AS b
+WHERE b."Name" > @value OR (b."Name" = @value AND b."Id" > @value1)
+ORDER BY b."Name", b."Id"
+LIMIT @p
+---------------

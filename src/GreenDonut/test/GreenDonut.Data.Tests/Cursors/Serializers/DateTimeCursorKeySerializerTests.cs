@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace GreenDonut.Data.Cursors.Serializers;
 
 public class DateTimeCursorKeySerializerTests
@@ -30,6 +32,67 @@ public class DateTimeCursorKeySerializerTests
         // assert
         Assert.Equal(result, dateTime);
         Assert.Equal(result.Kind, dateTime.Kind);
+    }
+
+    [Theory]
+    [InlineData("th-TH")]
+    [InlineData("sv-SE")]
+    public void TryFormat_Should_ProduceInvariantBytes_When_CurrentCultureIsNonInvariant(string cultureName)
+    {
+        // arrange
+        var dateTime = new DateTime(2026, 3, 5, 13, 45, 30, DateTimeKind.Utc).AddTicks(1234567);
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            Span<byte> invariantBuffer = stackalloc byte[23];
+            s_serializer.TryFormat(dateTime, invariantBuffer, out _);
+            var invariantBytes = invariantBuffer.ToArray();
+
+            // act
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+            Span<byte> buffer = stackalloc byte[23];
+            var success = s_serializer.TryFormat(dateTime, buffer, out var written);
+            var parsed = (DateTime)s_serializer.Parse(buffer);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(23, written);
+            Assert.Equal(invariantBytes, buffer.ToArray());
+            Assert.Equal(dateTime, parsed);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Fact]
+    public void Parse_Should_DecodeCorrectly_When_FormattedUnderThTh_AndParsedUnderInvariant()
+    {
+        // arrange
+        var dateTime = new DateTime(2026, 3, 5, 13, 45, 30, DateTimeKind.Utc).AddTicks(1234567);
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("th-TH");
+            Span<byte> buffer = stackalloc byte[23];
+            s_serializer.TryFormat(dateTime, buffer, out _);
+            var formatted = buffer.ToArray();
+
+            // act
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            var parsed = (DateTime)s_serializer.Parse(formatted);
+
+            // assert
+            Assert.Equal(dateTime, parsed);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
     }
 
     public static TheoryData<DateTime, byte[]> Data()

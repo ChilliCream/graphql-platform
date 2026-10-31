@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -128,16 +129,16 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         if (descriptor is IObjectFieldDescriptor fieldDesc)
         {
             var definition = fieldDesc.Extend().Configuration;
-            definition.MiddlewareConfigurations.Add(
-                new FieldMiddlewareConfiguration(
-                    CreatePagingValidationMiddleware(),
-                    key: Paging));
+            var middleware = new FieldMiddlewareConfiguration(
+                CreatePagingValidationMiddleware(),
+                key: Paging);
+            definition.MiddlewareConfigurations.Add(middleware);
             definition.Tasks.Add(
                 new OnCreateTypeSystemConfigurationTask(
                     (c, d) => d.Features.Set(c.GetPagingOptions(options)), definition));
             definition.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
-                    (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),
+                    (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options, middleware),
                     definition,
                     ApplyConfigurationOn.BeforeCompletion));
         }
@@ -145,10 +146,26 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         static void ApplyPagingOptions(
             IDescriptorContext context,
             ObjectFieldConfiguration definition,
-            PagingOptions options)
+            PagingOptions options,
+            FieldMiddlewareConfiguration middleware)
         {
             options = context.GetPagingOptions(options);
             definition.Features.Set(options);
+
+            if (ReturnsStreamPageConnection(context, definition))
+            {
+                definition.Flags |= CoreFieldFlags.HasSelectionSetHandler;
+                definition.Features.Set<ISelectionSetHandler>(StreamPageDataRequirementPrecomputer.Instance);
+
+                var index = definition.MiddlewareConfigurations.IndexOf(middleware);
+
+                if (index >= 0)
+                {
+                    definition.MiddlewareConfigurations[index] = new FieldMiddlewareConfiguration(
+                        CreateStreamPagingValidationMiddleware(),
+                        key: Paging);
+                }
+            }
 
             if (options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination)
             {
@@ -169,14 +186,87 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         }
     }
 
+    private static bool ReturnsStreamPageConnection(
+        IDescriptorContext context,
+        ObjectFieldConfiguration definition)
+    {
+        var member = definition.ResolverMember ?? definition.Member;
+
+        var type = definition.ResultType is { } resultType
+            ? context.TypeInspector.GetType(resultType)
+            : member is null
+                ? null
+                : context.TypeInspector.GetReturnType(member, ignoreAttributes: true);
+
+        return type is not null && typeof(IStreamPageConnection).IsAssignableFrom(type.Type);
+    }
+
     private static FieldMiddleware CreatePagingValidationMiddleware()
         => next => context =>
         {
-            var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
-            ValidateContext(context, options);
-            PublishPagingArguments(context, options);
+            Validate(context);
             return next(context);
         };
+
+    private static FieldMiddleware CreateStreamPagingValidationMiddleware()
+        => next => context =>
+        {
+            Validate(context);
+
+            var task = next(context);
+
+            if (task.IsCompletedSuccessfully)
+            {
+                return LoadRequirementsAsync(context);
+            }
+
+            return AwaitAndLoadRequirementsAsync(task, context);
+        };
+
+    private static void Validate(IMiddlewareContext context)
+    {
+        var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+        ValidateRelativeCursors(context, options);
+        ValidateContext(context, options);
+        PublishPagingArguments(context, options);
+    }
+
+    private static void ValidateRelativeCursors(
+        IMiddlewareContext context,
+        PagingOptions options)
+    {
+        if (!(options.EnableRelativeCursors ?? PagingDefaults.EnableRelativeCursors)
+            && ConnectionFlagsHelper.AreRelativeCursorFieldsSelected(context, options))
+        {
+            throw ThrowHelper.PagingHandler_RelativeCursorsNotEnabled(
+                context.Selection.Field,
+                context.Path);
+        }
+    }
+
+    private static async ValueTask AwaitAndLoadRequirementsAsync(
+        ValueTask task,
+        IMiddlewareContext context)
+    {
+        await task.ConfigureAwait(false);
+        await LoadRequirementsAsync(context).ConfigureAwait(false);
+    }
+
+    private static ValueTask LoadRequirementsAsync(IMiddlewareContext context)
+    {
+        if (context.Result is not IStreamPageConnection connection)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        context.RegisterForCleanup(connection.DisposeAsync, CleanAfter.Request);
+
+        var requirements = StreamPageDataRequirementAnalyzer.Analyze(context);
+
+        return requirements is StreamPageDataRequirements.None
+            ? ValueTask.CompletedTask
+            : connection.LoadRequirementsAsync(requirements, context.RequestAborted);
+    }
 
     private static void ValidateContext(
         IMiddlewareContext context,

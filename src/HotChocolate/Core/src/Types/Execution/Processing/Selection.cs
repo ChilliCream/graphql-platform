@@ -4,6 +4,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -87,6 +88,16 @@ public sealed class Selection : ISelection, IFeatureProvider
         if (field.Type.IsListType())
         {
             _flags |= Flags.List;
+
+            if (IsStreamableField(field))
+            {
+                _flags |= Flags.Stream;
+            }
+        }
+
+        if (field.IsExecutionGroupRoot)
+        {
+            _flags |= Flags.ExecutionGroupRoot;
         }
 
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
@@ -184,8 +195,18 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// </summary>
     public bool IsList => (_flags & Flags.List) == Flags.List;
 
+    /// <summary>
+    /// Gets a value indicating whether this selection returns a list that honors the <c>@stream</c> directive.
+    /// </summary>
+    internal bool IsStreamable => (_flags & Flags.Stream) == Flags.Stream;
+
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
+
+    /// <summary>
+    /// Gets a value indicating whether the field of this selection is the root of an execution group.
+    /// </summary>
+    internal bool IsExecutionGroupRoot => (_flags & Flags.ExecutionGroupRoot) == Flags.ExecutionGroupRoot;
 
     /// <summary>
     /// Gets a value indicating whether this selection has child selections.
@@ -462,6 +483,15 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// Gets a value indicating whether this selection has any defer usage.
     /// </summary>
     internal bool HasDeferUsage => _deferUsage.Length > 0;
+
+    /// <summary>
+    /// Determines whether this selection is included and deferred under exactly the same
+    /// conditions as the <paramref name="other"/> selection.
+    /// </summary>
+    internal bool HasSameConditions(Selection other)
+        => _includeFlags.AsSpan().SequenceEqual(other._includeFlags)
+            && _wideIncludeFlags.AsSpan().SequenceEqual(other._wideIncludeFlags)
+            && _deferUsage.AsSpan().SequenceEqual(other._deferUsage);
 
     /// <inheritdoc />
     [Obsolete("Use IsDeferred(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
@@ -987,7 +1017,9 @@ nextItem:
             _deferUsage,
             _deferMask,
             _wideDeferMask,
-            _flags,
+            field.IsExecutionGroupRoot
+                ? _flags | Flags.ExecutionGroupRoot
+                : _flags & ~Flags.ExecutionGroupRoot,
             Arguments,
             Strategy,
             ResolverPipeline,
@@ -1113,6 +1145,9 @@ nextItem:
         return SelectionExecutionStrategy.Default;
     }
 
+    private static bool IsStreamableField(ObjectField field)
+        => (field.Flags & (CoreFieldFlags.ConnectionEdgesField | CoreFieldFlags.ConnectionNodesField)) == 0;
+
     [Flags]
     private enum Flags
     {
@@ -1124,6 +1159,7 @@ nextItem:
         Leaf = 16,
         ProjectionRequirement = 32,
         RequiresWideIncludeFlags = 64,
-        RequiresWideDeferFlags = 128
+        RequiresWideDeferFlags = 128,
+        ExecutionGroupRoot = 256
     }
 }

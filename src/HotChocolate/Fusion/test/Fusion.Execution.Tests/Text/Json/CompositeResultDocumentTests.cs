@@ -1489,6 +1489,105 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
+    public void GetPropertyBySelectionId_Should_ReturnProperty_When_SelectionBelongsToObject()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var selectionId = compositeResult.Data.GetProperty("productBySlug").AssertSelection().Id;
+
+        // act
+        var property = compositeResult.Data.GetPropertyBySelectionId(selectionId);
+
+        // assert
+        Assert.Equal("productBySlug", property.GetPropertyName());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(3)]
+    [InlineData(-1)]
+    [InlineData(4096)]
+    public void GetPropertyBySelectionId_Should_Throw_When_SelectionIdIsOutsideTheObject(int selectionId)
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => compositeResult.Data.GetPropertyBySelectionId(selectionId));
+
+        // assert
+        Assert.Equal(
+            $"The selection `{selectionId}` does not belong to the result object.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void GetPropertyBySelectionId_Should_Throw_When_SelectionIdBelongsToAnotherOperation()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+        var otherPlan = PlanOperation(
+            schema,
+            """
+            {
+                first: productBySlug(slug: "1") {
+                    id
+                }
+                second: productBySlug(slug: "2") {
+                    id
+                }
+                third: productBySlug(slug: "3") {
+                    id
+                }
+            }
+            """);
+
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var foreignSelectionId = otherPlan.Operation.RootSelectionSet.Selections[2].Id;
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => compositeResult.Data.GetPropertyBySelectionId(foreignSelectionId));
+
+        // assert
+        Assert.Equal(
+            $"The selection `{foreignSelectionId}` does not belong to the result object.",
+            exception.Message);
+    }
+
+    [Fact]
     public async Task Write_Document_To_PipeWriter()
     {
         // arrange

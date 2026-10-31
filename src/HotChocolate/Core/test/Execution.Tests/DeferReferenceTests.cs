@@ -675,11 +675,10 @@ public class DeferReferenceTests
 
     /// <summary>
     /// @defer(if: $shouldDefer) with a nullable Boolean variable that is not provided.
-    /// In HotChocolate, a null `if` argument on @defer disables deferral
-    /// (differs from graphql-js where null defaults to true).
+    /// The argument default applies, so the fragment is deferred.
     /// </summary>
     [Fact]
-    public async Task Defer_If_Null_Variable_Disables_Defer()
+    public async Task Defer_If_Nullable_Variable_Not_Provided_Defers()
     {
         var executor = await CreateExecutorAsync();
 
@@ -700,8 +699,7 @@ public class DeferReferenceTests
                 .Build(),
             TestContext.Current.CancellationToken);
 
-        // HC treats null `if` as false, disabling deferral.
-        Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
     }
 
     /// <summary>

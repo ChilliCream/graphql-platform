@@ -1,0 +1,30 @@
+---------------
+{
+  "Index": 3,
+  "TotalCount": 25,
+  "HasNext": false,
+  "HasPrevious": true,
+  "Items": [
+    "Item0021",
+    "Item0022",
+    "Item0023",
+    "Item0024",
+    "Item0025"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @p='10'
+SELECT b0."Id", b0."Name", (
+    SELECT count(*)::int
+    FROM "Brands" AS b1) AS "TotalCount"
+FROM (
+    SELECT b."Id", b."Name"
+    FROM "Brands" AS b
+    ORDER BY b."Name" DESC, b."Id" DESC
+    LIMIT @p
+) AS b0
+ORDER BY b0."Name", b0."Id"
+---------------

@@ -43,6 +43,7 @@ public sealed class ObjectField : OutputField
         PureResolver = original.PureResolver;
         DependencyInjectionScope = original.DependencyInjectionScope;
         Middleware = original.Middleware;
+        ExecutionGroup = original.ExecutionGroup;
         Flags = original.Flags;
     }
 
@@ -109,6 +110,13 @@ public sealed class ObjectField : OutputField
     public IResolverResultPostProcessor? ResultPostProcessor { get; private set; }
 
     /// <summary>
+    /// Gets the execution group that this field is the root of, or <c>null</c> if the field has no group.
+    /// </summary>
+    public ExecutionGroup? ExecutionGroup { get; private set; }
+
+    internal bool IsExecutionGroupRoot => ExecutionGroup is not null;
+
+    /// <summary>
     /// Gets the associated member of the runtime type for this field.
     /// This property can be <c>null</c> if this field is not associated with
     /// a concrete member on the runtime type.
@@ -138,6 +146,11 @@ public sealed class ObjectField : OutputField
         CompleteResolver(context, objectFieldDef);
         ResolverExpression = objectFieldDef.Expression;
         SubscribeResolver = objectFieldDef.SubscribeResolver;
+
+        if (objectFieldDef.ExecutionGroup is { } executionGroup)
+        {
+            ExecutionGroup = new ExecutionGroup(executionGroup);
+        }
     }
 
     private void CompleteResolver(

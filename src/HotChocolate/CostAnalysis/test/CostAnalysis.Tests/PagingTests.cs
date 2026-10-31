@@ -667,6 +667,93 @@ public class PagingTests
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task PageInfo_Should_KeepStaticCost_When_SelectedOnClassicConnection()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                    books(first: 1) {
+                        pageInfo {
+                            hasNextPage
+                            endCursor
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task CollectionSegmentInfo_Should_ResolveFlags_When_CostAnalysisIsEnabled()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                    pagedBooks(skip: 1, take: 1) {
+                        items {
+                            title
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<OffsetQuery>()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
     public class Query
     {
         [UsePaging]
@@ -688,6 +775,13 @@ public class PagingTests
         [UseFiltering<BookFilterInputType>]
         [UseSorting<BookSortInputType>]
         public IQueryable<Book> GetBooksOffsetWithTotalCount() => new List<Book>().AsQueryable();
+    }
+
+    public class OffsetQuery
+    {
+        [UseOffsetPaging]
+        public IEnumerable<Book> GetPagedBooks()
+            => [new Book { Title = "A" }, new Book { Title = "B" }, new Book { Title = "C" }];
     }
 
     public class Book

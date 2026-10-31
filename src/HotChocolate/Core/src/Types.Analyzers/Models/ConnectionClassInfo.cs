@@ -81,7 +81,31 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
             switch (member)
             {
                 case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
-                    resolvers.Add(ObjectTypeInspector.CreateResolver(compilation, runtimeType, method, name));
+                    var methodFlags = FieldFlags.None;
+
+                    if (isConnection)
+                    {
+                        if (method.Name.Equals("GetEdgesAsync", StringComparison.Ordinal))
+                        {
+                            methodFlags |= FieldFlags.ConnectionEdgesField;
+                        }
+                        else if (method.Name.Equals("GetNodesAsync", StringComparison.Ordinal))
+                        {
+                            methodFlags |= FieldFlags.ConnectionNodesField;
+                        }
+                        else if (method.Name.Equals("GetTotalCountAsync", StringComparison.Ordinal))
+                        {
+                            methodFlags |= FieldFlags.TotalCount;
+                        }
+                    }
+
+                    resolvers.Add(
+                        ObjectTypeInspector.CreateResolver(
+                            compilation,
+                            runtimeType,
+                            method,
+                            methodFlags,
+                            name));
                     break;
 
                 case IPropertySymbol property:
@@ -109,7 +133,7 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                             property,
                             compilation.GetDescription(property),
                             compilation.GetDeprecationReason(property),
-                            ResolverResultKind.Pure,
+                            property.GetResultKind(),
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
                             compilation.CreateTypeReference(property),

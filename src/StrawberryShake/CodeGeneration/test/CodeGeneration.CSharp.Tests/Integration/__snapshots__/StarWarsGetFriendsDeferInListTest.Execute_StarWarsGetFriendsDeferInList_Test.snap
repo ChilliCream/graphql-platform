@@ -1,0 +1,17 @@
+{
+  "Hero": {
+    "Friends": {
+      "Nodes": [
+        {
+          "Name": "Luke Skywalker"
+        },
+        {
+          "Name": "Han Solo"
+        },
+        {
+          "Name": "Leia Organa"
+        }
+      ]
+    }
+  }
+}

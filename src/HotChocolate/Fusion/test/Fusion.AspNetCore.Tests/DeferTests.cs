@@ -1,11 +1,22 @@
+using System.Collections.Immutable;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Transport;
+using System.Text.Json.Nodes;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
@@ -78,6 +89,377 @@ public class DeferTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverLookupFields_When_RootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                a: __typename
+                b: __typename
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverLookupFields_When_NoRootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverLookupFields_When_PlainRootFieldPrecedesTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                version
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverLookupFields_When_FragmentRootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                ... on Query {
+                    version
+                    a: __typename
+                }
+                ...RootFields
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+
+            fragment RootFields on Query {
+                b: __typename
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverNestedDeferFields_When_RootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(configureGatewayBuilder: null);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                a: __typename
+                b: __typename
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                            ... @defer {
+                                text
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverSiblingDeferFields_When_RootFieldsPrecedeTheDeferredList()
+    {
+        // arrange
+        using var gateway = await CreateProductRatingGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                a: __typename
+                b: __typename
+                products {
+                    id
+                    ... @defer {
+                        rating
+                    }
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_CompleteDeliveryGroupWithError_When_ImportedPathHasNoSelection()
+    {
+        // arrange
+        using var gateway = await CreateProductGatewayAsync(
+            configureGatewayBuilder: builder => builder.UseRequest(
+                (_, next) => async context =>
+                {
+                    var plan = context.GetOperationPlan()!;
+                    var compiler = context.Schema.Services.GetRequiredService<OperationCompiler>();
+                    var operation = compiler.Compile(
+                        "unrelated",
+                        "unrelated",
+                        "unrelated",
+                        (OperationDefinitionNode)Utf8GraphQLParser.Parse("{ version }").Definitions[0]);
+                    var incrementalPlan = plan.IncrementalPlans[0];
+                    // the delivery paths must resolve against the swapped incremental operation
+                    var planDeliveryGroups = plan.DeliveryGroups
+                        .Select(group => group with { Path = SelectionPath.Root })
+                        .ToImmutableArray();
+                    var deliveryGroups = incrementalPlan.DeliveryGroups
+                        .Select(group => planDeliveryGroups.Single(t => t.Id == group.Id))
+                        .ToImmutableArray();
+
+                    context.SetOperationPlan(
+                        OperationPlan.Create(
+                            plan.Id,
+                            plan.Operation,
+                            plan.RootNodes,
+                            plan.AllNodes,
+                            planDeliveryGroups,
+                            [
+                                new IncrementalPlan(
+                                    operation,
+                                    incrementalPlan.RootNodes,
+                                    incrementalPlan.AllNodes,
+                                    deliveryGroups,
+                                    incrementalPlan.Requirements)
+                            ],
+                            plan.SearchSpace,
+                            plan.ExpandedNodes));
+
+                    await next(context);
+                },
+                key: "SwapIncrementalPlan",
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+                a: __typename
+                b: __typename
+                products {
+                    id
+                    ... @defer {
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    private async Task<Gateway> CreateProductGatewayAsync(
+        Action<IFusionGatewayBuilder>? configureGatewayBuilder)
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                version: String!
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                id: ID!
+                text: String!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ],
+        configureGatewayBuilder: configureGatewayBuilder);
+    }
+
+    private async Task<Gateway> CreateProductRatingGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                version: String!
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                id: ID!
+                text: String!
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+                productRatingById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                rating: Int!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
     }
 
     [Fact]
@@ -404,6 +786,352 @@ public class DeferTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Defer_IfOmitted_Should_Return_Streamed_Result()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                email: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                title: String!
+                body: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetUser {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "reviews") {
+                        reviews {
+                            title
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_IfTrue_Literal_Should_Return_Streamed_Result()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                email: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                title: String!
+                body: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetUser {
+                user(id: "1") {
+                    name
+                    ... @defer(if: true, label: "reviews") {
+                        reviews {
+                            title
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_IfFalse_Literal_Should_Return_NonStreamed_Result()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                email: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                title: String!
+                body: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetUser {
+                user(id: "1") {
+                    name
+                    ... @defer(if: false, label: "reviews") {
+                        reviews {
+                            title
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_IfNull_Literal_Should_Return_ValidationError()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                email: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                title: String!
+                body: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetUser {
+                user(id: "1") {
+                    name
+                    ... @defer(if: null, label: "reviews") {
+                        reviews {
+                            title
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_NullableIfVariable_Should_Return_Error_When_VariableIsNull()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                email: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                title: String!
+                body: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            query: """
+            query GetUser($shouldDefer: Boolean) {
+                user(id: "1") {
+                    name
+                    ... @defer(if: $shouldDefer, label: "reviews") {
+                        reviews {
+                            title
+                            body
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["shouldDefer"] = null });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
     public async Task Defer_Nested_Should_Return_Incremental_Response_In_Order()
     {
         // arrange
@@ -532,71 +1260,6 @@ public class DeferTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Defer_Two_Siblings_With_Overlapping_Fields_Should_Deduplicate()
-    {
-        // arrange
-        using var server1 = CreateSourceSchema(
-            "A",
-            """
-            type Query {
-                user(id: ID!): User @lookup
-            }
-
-            type User @key(fields: "id") {
-                id: ID!
-                name: String!
-            }
-            """);
-
-        using var server2 = CreateSourceSchema(
-            "B",
-            """
-            type Query {
-                userById(id: ID!): User @lookup
-            }
-
-            type User @key(fields: "id") {
-                id: ID!
-                email: String!
-                address: String!
-            }
-            """);
-
-        using var gateway = await CreateCompositeSchemaAsync(
-        [
-            ("A", server1),
-            ("B", server2)
-        ]);
-
-        // act
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        var request = new OperationRequest(
-            """
-            query {
-                user(id: "1") {
-                    name
-                    ... @defer(label: "contact") {
-                        email
-                    }
-                    ... @defer(label: "location") {
-                        email
-                        address
-                    }
-                }
-            }
-            """);
-
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"),
-            TestContext.Current.CancellationToken);
-
-        // assert
-        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
-    }
-
-    [Fact]
     public async Task Defer_Two_Siblings_Sharing_Field_Emit_One_Incremental_That_Completes_Both_Groups()
     {
         // arrange
@@ -661,7 +1324,10 @@ public class DeferTests : FusionTestBase
         // The stable-stream snapshot lays out the per-frame timeline (pending /
         // incremental / completed) so the shared incremental plan emitting once under the
         // best delivery-group id while still completing both groups is visible
-        // as a single block.
+        // as a single block. The shared email is fetched once, address is fetched by its own
+        // request, so B receives two requests.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2");
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
@@ -2038,6 +2704,2333 @@ public class DeferTests : FusionTestBase
         // assert
         // The incremental payload carries both birthdate and reviewCount, with birthdate non-null.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_SendOneSubgraphRequestPerGroup_When_SiblingsSelectDisjointFields()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Baseline without sharing: each delivery group owns one incremental plan and B receives one request per plan.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_SendOneSubgraphRequestPerGroupSet_When_SiblingsOverlapPartially()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithAddressAfterEmailAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "first") {
+                        email
+                    }
+                    ... @defer(label: "second") {
+                        email
+                        address
+                    }
+                    ... @defer(label: "third") {
+                        address
+                        phone
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The delivery-group sets {first, second}, {second, third} and {third} give three B requests.
+        // email and address are each fetched once.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 3");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchField_When_FieldIsInInitialSelectionAndDeferredFragment()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    email
+                    ... @defer(label: "more") {
+                        email
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // email is fetched by the initial B request only. The deferred plan fetches address by a second B request.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchField_When_FieldIsInInitialSelectionAndSiblingFragments()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    email
+                    ... @defer(label: "contact") {
+                        email
+                        phone
+                    }
+                    ... @defer(label: "location") {
+                        email
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // email is fetched by the initial B request only. Each deferred plan fetches its own field by
+        // one more B request.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 3");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchField_When_NestedFragmentsShareField()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            email
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // email belongs to the outer group only and is fetched once. The outer plan also sends a second
+        // A request for the user id that the inner plan depends on, although the initial A request
+        // already returned it.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 2, B: 2");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchField_When_SiblingAndNestedFragmentsShareField()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        address
+                        ... @defer(label: "details") {
+                            email
+                            phone
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // email is shared by the contact group and the nested details group and is fetched once. address
+        // and phone are fetched by their own B requests.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 2, B: 3");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact(Skip = "Planner drops a root subgraph field that is shared by sibling defer groups.")]
+    public async Task Defer_Should_DeliverRootSubgraphField_When_SiblingsShareIt()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    ... @defer(label: "contact") {
+                        name
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        name
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The plan for the group set {contact, location} has no nodes, so name is never fetched and the
+        // non-null field is missing from the final data without an error. Once fixed, snapshot the request
+        // counts per subgraph.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_FetchSharedField_Once_When_SiblingsReachItThroughLookupOnSecondSubgraph()
+    {
+        // arrange
+        // Each subgraph request is held until the client has received the previous payload: email, score, address.
+        var sequence = new SubgraphRequestSequence("email", "score", "address");
+        using var gateway = await CreateUserAccountGatewayAsync(
+            new SequencedSubgraph(sequence),
+            new SequencedSubgraph(sequence));
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        score
+                    }
+                    ... @defer(label: "location") {
+                        score
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        await sequence.ReleaseAsPayloadsArriveAsync(result, TestContext.Current.CancellationToken);
+
+        // assert
+        // score lives on C only and is fetched by one C request for the group set {contact, location}.
+        // email and address are fetched by one B request each.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2, C: 1");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchNestedField_When_InitialAndDeferredSelectionUseLookupChain()
+    {
+        // arrange
+        using var gateway = await CreateUserAccountGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    account {
+                        balance
+                    }
+                    ... @defer(label: "contact") {
+                        email
+                        account {
+                            balance
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // balance is fetched from C by the initial plan only. The deferred plan fetches email from B and
+        // does not call C.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2, C: 1");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact(Skip = "Planner rejects a nested field with a lookup requirement that is shared by sibling defer groups.")]
+    public async Task Defer_Should_FetchSharedNestedField_Once_When_SiblingsReachItThroughLookupChain()
+    {
+        // arrange
+        using var gateway = await CreateUserAccountGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        account {
+                            balance
+                        }
+                    }
+                    ... @defer(label: "location") {
+                        address
+                        account {
+                            balance
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Planning fails with "The deferred incremental plan's requirement '__fusion_2_id' at path
+        // '$.user.account' could not be resolved from the parent plan". Once fixed, snapshot the request
+        // counts per subgraph.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverNestedGroup_When_ParentGroupHasNoOwnFields()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 1");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverNestedGroup_When_EnclosedGroupHasNoOwnFields()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "middle") {
+                            ... @defer(label: "inner") {
+                                address
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"user":{"name":"User: VXNlcjoyMDkyMTcyNjc2"}},"pending":[{"id":"0","path":["user"],"label":"outer"}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"1","path":["user"],"label":"middle"}],"incremental":[{"id":"0","data":{"email":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"0"}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"2","path":["user"],"label":"inner"}],"completed":[{"id":"1"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"2","data":{"address":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"2"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_NotStream_When_EmptyOuterGroupAndInnerGroupAreDisabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = CreateNestedMessageDeferRequest(outerEnabled: false, innerEnabled: false);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4","body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}},"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_DeliverFieldWithInnerGroup_When_EmptyOuterGroupIsDisabledAndInnerIsEnabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = CreateNestedMessageDeferRequest(outerEnabled: false, innerEnabled: true);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4"}},"pending":[{"id":"1","path":["message"]}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"1","data":{"body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}}],"completed":[{"id":"1"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_DeliverFieldWithInnerGroup_When_OuterGroupWithOwnFieldsIsDisabledAndInnerIsEnabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            query: """
+            query ($a: Boolean!, $b: Boolean!) {
+                message {
+                    id
+                    ... @defer(if: $a) {
+                        title
+                        ... @defer(if: $b) {
+                            body
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["a"] = false, ["b"] = true });
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4","title":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}},"pending":[{"id":"1","path":["message"]}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"1","data":{"body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}}],"completed":[{"id":"1"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_DeliverFieldWithOuterGroup_When_EmptyOuterGroupIsEnabledAndInnerIsDisabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = CreateNestedMessageDeferRequest(outerEnabled: true, innerEnabled: false);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4"}},"pending":[{"id":"0","path":["message"]}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"0","data":{"body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}}],"completed":[{"id":"0"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_AnnounceInnerGroupAfterOuterCompletes_When_EmptyOuterGroupAndInnerAreEnabled(
+        bool bodyBehindLookup)
+    {
+        // arrange
+        using var gateway = await CreateMessageGatewayAsync(bodyBehindLookup);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = CreateNestedMessageDeferRequest(outerEnabled: true, innerEnabled: true);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: bodyBehindLookup ? "Lookup" : "SameSubgraph",
+            stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"message":{"id":"TWVzc2FnZTo0MTY4NzUxNzE4"}},"pending":[{"id":"0","path":["message"]}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"1","path":["message"]}],"completed":[{"id":"0"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"1","data":{"body":"Message: TWVzc2FnZTo0MTY4NzUxNzE4"}}],"completed":[{"id":"1"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Defer_Should_AnchorSharedData_At_CompletingGroup_When_SecondSiblingCompletesFirst()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithAddressAfterEmailAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "first") {
+                        email
+                        address
+                    }
+                    ... @defer(label: "second") {
+                        email
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Both groups share the path, so the shared email is anchored at the group this payload completes.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotAnnounceNestedGroup_When_ParentGroupFails()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(emailFails: true, ResponseGate.None);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The failed outer group completes with the error and the inner group is never announced.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotAnnounceNestedGroups_When_SharedPlanOfSiblingGroupsFails()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(emailFails: true, ResponseGate.None);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        ... @defer(label: "contactAddress") {
+                            address
+                        }
+                    }
+                    ... @defer(label: "location") {
+                        email
+                        ... @defer(label: "locationPhone") {
+                            phone
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Both sibling groups share the failed plan and complete with the error. Neither nested group is announced.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_CompleteSharedGroupWithErrors_When_FailingPlanFinishesFirst()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(
+            emailFails: true,
+            ResponseGate.AddressUntilErrorDelivered);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "first") {
+                        email
+                    }
+                    ... @defer(label: "second") {
+                        email
+                        address
+                        ... @defer(label: "nested") {
+                            phone
+                        }
+                    }
+                    ... @defer(label: "third") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The failed plan finishes before the address plan. The shared group completes with the error, the address
+        // is delivered under the third group, and the nested group is never announced.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotStartNestedGroup_When_SharedParentGroupFailsInSecondPlan()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(
+            emailFails: true,
+            ResponseGate.EmailUntilAddressDelivered);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "first") {
+                        email
+                    }
+                    ... @defer(label: "second") {
+                        email
+                        address
+                        ... @defer(label: "nested") {
+                            phone
+                        }
+                    }
+                    ... @defer(label: "third") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The second group completes with the email plan errors and the nested group is never announced.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+        Assert.Equal(0, CountSourceSchemaRequests(gateway, "B", "phone"));
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"user":{"id":"VXNlcjoyMDkyMTcyNjc2","name":"User: VXNlcjoyMDkyMTcyNjc2"}},"pending":[{"id":"0","path":["user"],"label":"first"},{"id":"1","path":["user"],"label":"second"},{"id":"3","path":["user"],"label":"third"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"3","data":{"address":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"3"}],"hasNext":true}
+            """,
+            """
+            {"completed":[{"id":"0","errors":[{"message":"Unexpected Execution Error","path":["user","email"]}]},{"id":"1","errors":[{"message":"Unexpected Execution Error","path":["user","email"]}]}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Defer_Should_AnnounceNestedGroup_When_SharedParentGroupCompletesInSecondPlan()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(
+            emailFails: false,
+            ResponseGate.EmailUntilAddressDelivered);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "first") {
+                        email
+                    }
+                    ... @defer(label: "second") {
+                        email
+                        address
+                        ... @defer(label: "nested") {
+                            phone
+                        }
+                    }
+                    ... @defer(label: "third") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The nested group is announced in the payload that completes the second group.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"user":{"id":"VXNlcjoyMDkyMTcyNjc2","name":"User: VXNlcjoyMDkyMTcyNjc2"}},"pending":[{"id":"0","path":["user"],"label":"first"},{"id":"1","path":["user"],"label":"second"},{"id":"3","path":["user"],"label":"third"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"3","data":{"address":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"3"}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"2","path":["user"],"label":"nested"}],"incremental":[{"id":"0","data":{"email":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"0"},{"id":"1"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"2","data":{"phone":"User: VXNlcjoyMDkyMTcyNjc2"}}],"completed":[{"id":"2"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_ReportFieldErrorOnce_When_LookupNodeRunsInParallelToFailingField(
+        bool lookupCompletesFirst)
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayWithEmailAsync(
+            emailFails: true,
+            lookupCompletesFirst ? ResponseGate.EmailUntilLookupCompleted : ResponseGate.None);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"user":{"id":"VXNlcjoyMDkyMTcyNjc2","name":"User: VXNlcjoyMDkyMTcyNjc2"}},"pending":[{"id":"0","path":["user"],"label":"outer"}],"hasNext":true}
+            """,
+            """
+            {"completed":[{"id":"0","errors":[{"message":"Unexpected Execution Error","path":["user","email"]}]}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverFieldsOfBothSchemas_When_GroupSelectsOwnFieldsOfTwoSchemas()
+    {
+        // arrange
+        using var gateway = await CreateProductDetailsGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "details") {
+                        name
+                        reviews {
+                            id
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverOuterGroupFields_When_NestedGroupSelectsFieldOfAnotherSchema()
+    {
+        // arrange
+        using var gateway = await CreateProductDetailsGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        name
+                        reviews {
+                            id
+                        }
+                        ... @defer(label: "inner") {
+                            rating
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var payloads = await ReadPayloadsAsync(result);
+        payloads.MatchInlineSnapshots(
+        [
+            """
+            {"data":{"products":[{"id":"UHJvZHVjdDoxOTc0MTQ1MDk="},{"id":"UHJvZHVjdDozOTM1NzEyMDU5"},{"id":"UHJvZHVjdDoyMjE1MjQ2OTE2"}]},"pending":[{"id":"0","path":["products"],"label":"outer"}],"hasNext":true}
+            """,
+            """
+            {"pending":[{"id":"1","path":["products"],"label":"inner"}],"incremental":[{"id":"0","subPath":[0],"data":{"name":"Product: UHJvZHVjdDoxOTc0MTQ1MDk=","reviews":[{"id":"UmV2aWV3OjMwMDAwNTM1MTA="},{"id":"UmV2aWV3OjIzNjI5NTY5NjQ="},{"id":"UmV2aWV3OjM5MzkxOTk2NzQ="}]}},{"id":"0","subPath":[1],"data":{"name":"Product: UHJvZHVjdDozOTM1NzEyMDU5","reviews":[{"id":"UmV2aWV3OjEzMzg2NjMwNDA="},{"id":"UmV2aWV3OjMzODU5NDM3MzA="},{"id":"UmV2aWV3OjMyNzg4MDUxMDk="}]}},{"id":"0","subPath":[2],"data":{"name":"Product: UHJvZHVjdDoyMjE1MjQ2OTE2","reviews":[{"id":"UmV2aWV3OjEzOTQwMTI3MjY="},{"id":"UmV2aWV3OjM3NDIyOTczMjQ="},{"id":"UmV2aWV3OjE4MTc3OTE5ODE="}]}}],"completed":[{"id":"0"}],"hasNext":true}
+            """,
+            """
+            {"incremental":[{"id":"1","subPath":[0],"data":{"rating":123}},{"id":"1","subPath":[1],"data":{"rating":123}},{"id":"1","subPath":[2],"data":{"rating":123}}],"completed":[{"id":"1"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverInnerGroupFields_When_ListItemsDeferFieldOfAnotherSchema()
+    {
+        // arrange
+        using var gateway = await CreateProductReviewGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                            ... @defer(label: "inner") {
+                                text
+                                rating
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverInnerGroupFields_When_ListItemsDeferNestedObjectOfAnotherSchema()
+    {
+        // arrange
+        using var gateway = await CreateProductReviewGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                            ... @defer(label: "inner") {
+                                author {
+                                    rating
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverOuterGroupList_When_OuterGroupOnlyKeepsKeyInParentSchema()
+    {
+        // arrange
+        using var gateway = await CreateProductDetailsGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                        }
+                        ... @defer(label: "inner") {
+                            rating
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverInnerGroupFields_When_ReviewLookupExistsAndAuthorIsDeferred()
+    {
+        // arrange
+        using var gateway = await CreateReviewLookupGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query =
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                            ... @defer(label: "inner") {
+                                author {
+                                    rating
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+        var request = new OperationRequest(query);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var gatewayData = MergeIncrementalPayloads(await ReadPayloadsAsync(result));
+        var coreData = MergeIncrementalPayloads(await ExecuteWithCoreExecutorAsync(query));
+        Assert.True(JsonNode.DeepEquals(coreData, gatewayData));
+        gatewayData.ToJsonString(new JsonSerializerOptions { WriteIndented = true }).MatchInlineSnapshot(
+            """
+            {
+              "products": [
+                {
+                  "id": "1",
+                  "reviews": [
+                    {
+                      "id": "1",
+                      "author": {
+                        "rating": 100
+                      }
+                    },
+                    {
+                      "id": "2",
+                      "author": {
+                        "rating": 200
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "2",
+                  "reviews": [
+                    {
+                      "id": "3",
+                      "author": {
+                        "rating": 300
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "author": {
+                        "rating": 400
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "3",
+                  "reviews": [
+                    {
+                      "id": "5",
+                      "author": {
+                        "rating": 500
+                      }
+                    },
+                    {
+                      "id": "6",
+                      "author": {
+                        "rating": 600
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Defer_Should_DeliverInnerGroupFields_When_ReviewLookupExistsAndTwoSchemasAreDeferred()
+    {
+        // arrange
+        using var gateway = await CreateReviewLookupGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        const string query =
+            """
+            query {
+                products {
+                    id
+                    ... @defer(label: "outer") {
+                        reviews {
+                            id
+                            ... @defer(label: "inner") {
+                                text
+                                rating
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+        var request = new OperationRequest(query);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+
+        var gatewayData = MergeIncrementalPayloads(await ReadPayloadsAsync(result));
+        var coreData = MergeIncrementalPayloads(await ExecuteWithCoreExecutorAsync(query));
+        Assert.True(JsonNode.DeepEquals(coreData, gatewayData));
+        gatewayData.ToJsonString(new JsonSerializerOptions { WriteIndented = true }).MatchInlineSnapshot(
+            """
+            {
+              "products": [
+                {
+                  "id": "1",
+                  "reviews": [
+                    {
+                      "id": "1",
+                      "text": "Review 1",
+                      "rating": 10
+                    },
+                    {
+                      "id": "2",
+                      "text": "Review 2",
+                      "rating": 20
+                    }
+                  ]
+                },
+                {
+                  "id": "2",
+                  "reviews": [
+                    {
+                      "id": "3",
+                      "text": "Review 3",
+                      "rating": 30
+                    },
+                    {
+                      "id": "4",
+                      "text": "Review 4",
+                      "rating": 40
+                    }
+                  ]
+                },
+                {
+                  "id": "3",
+                  "reviews": [
+                    {
+                      "id": "5",
+                      "text": "Review 5",
+                      "rating": 50
+                    },
+                    {
+                      "id": "6",
+                      "text": "Review 6",
+                      "rating": 60
+                    }
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    private static OperationRequest CreateNestedMessageDeferRequest(bool outerEnabled, bool innerEnabled)
+        => new(
+            query: """
+            query ($a: Boolean!, $b: Boolean!) {
+                message {
+                    id
+                    ... @defer(if: $a) {
+                        ... @defer(if: $b) {
+                            body
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["a"] = outerEnabled, ["b"] = innerEnabled });
+
+    private async Task<Gateway> CreateMessageGatewayAsync(bool bodyBehindLookup)
+    {
+        if (!bodyBehindLookup)
+        {
+            var server = CreateSourceSchema(
+                "A",
+                """
+                type Query {
+                    message: Message
+                }
+
+                type Message {
+                    id: ID!
+                    title: String!
+                    body: String!
+                }
+                """);
+
+            return await CreateCompositeSchemaAsync([("A", server)]);
+        }
+
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                message: Message
+            }
+
+            type Message @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                messageById(id: ID!): Message @lookup
+            }
+
+            type Message @key(fields: "id") {
+                id: ID!
+                title: String!
+                body: String!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+    }
+
+    private async Task<Gateway> CreateProductDetailsGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                products: [Product!]!
+                productNameById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review {
+                id: ID!
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+                productRatingById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                rating: Int!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+    }
+
+    private async Task<Gateway> CreateProductReviewGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews: [Review!]!
+            }
+
+            type Review @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+                reviewById(id: ID!): Review @lookup
+            }
+
+            type Review @key(fields: "id") {
+                id: ID!
+                text: String!
+                rating: Int!
+                author: Author!
+            }
+
+            type Author @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server4 = CreateSourceSchema(
+            "D",
+            """
+            type Query {
+                authorById(id: ID!): Author @lookup
+            }
+
+            type Author @key(fields: "id") {
+                id: ID!
+                rating: Int!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3),
+            ("D", server4)
+        ]);
+    }
+
+    private async Task<Gateway> CreateReviewLookupGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<ReviewLookupSourceA.Query>());
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<ReviewLookupSourceB.Query>());
+
+        var server3 = CreateSourceSchema(
+            "C",
+            b => b.AddQueryType<ReviewLookupSourceC.Query>());
+
+        var server4 = CreateSourceSchema(
+            "D",
+            b => b.AddQueryType<ReviewLookupSourceD.Query>());
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3),
+            ("D", server4)
+        ]);
+    }
+
+    private static async Task<List<string>> ExecuteWithCoreExecutorAsync(string query)
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<ReviewLookupCore.Query>()
+            .ModifyOptions(o => o.EnableDefer = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+        var stream = Assert.IsType<ResponseStream>(result);
+        var payloads = new List<string>();
+
+        await using (stream)
+        {
+            await foreach (var response in stream.ReadResultsAsync())
+            {
+                payloads.Add(response.ToJson());
+            }
+        }
+
+        return payloads;
+    }
+
+    private static JsonNode MergeIncrementalPayloads(List<string> payloads)
+    {
+        JsonNode? data = null;
+        var pendingPaths = new Dictionary<string, JsonArray>(StringComparer.Ordinal);
+
+        foreach (var payload in payloads)
+        {
+            var response = JsonNode.Parse(payload)!.AsObject();
+
+            if (response["data"] is { } initial)
+            {
+                data = initial.DeepClone();
+            }
+
+            foreach (var completed in response["completed"]?.AsArray() ?? [])
+            {
+                if (completed!["errors"] is JsonArray errors)
+                {
+                    Assert.Fail(
+                        $"The delivery group '{completed["id"]}' completed with errors: {errors.ToJsonString()}");
+                }
+            }
+
+            foreach (var pending in response["pending"]?.AsArray() ?? [])
+            {
+                pendingPaths[pending!["id"]!.GetValue<string>()] = pending["path"]!.AsArray();
+            }
+
+            var entries = (response["incremental"]?.AsArray() ?? [])
+                .Select(incremental => (
+                    Incremental: incremental!,
+                    Segments: pendingPaths[incremental!["id"]!.GetValue<string>()]
+                        .Concat(incremental["subPath"]?.AsArray() ?? [])
+                        .ToList()))
+                .OrderBy(entry => entry.Segments.Count);
+
+            foreach (var (incremental, segments) in entries)
+            {
+                var target = data!;
+
+                foreach (var segment in segments)
+                {
+                    var value = segment!.GetValue<JsonElement>();
+                    target = value.ValueKind == JsonValueKind.Number
+                        ? target[value.GetInt32()]!
+                        : target[value.GetString()!]!;
+                }
+
+                MergeInto(target.AsObject(), incremental["data"]!.AsObject());
+            }
+        }
+
+        return data!;
+    }
+
+    private static void MergeInto(JsonObject target, JsonObject source)
+    {
+        foreach (var (name, value) in source.ToArray())
+        {
+            if (value is JsonObject sourceObject && target[name] is JsonObject targetObject)
+            {
+                MergeInto(targetObject, sourceObject);
+            }
+            else if (value is JsonArray sourceArray && target[name] is JsonArray targetArray)
+            {
+                for (var i = 0; i < sourceArray.Count; i++)
+                {
+                    if (sourceArray[i] is JsonObject sourceItem && targetArray[i] is JsonObject targetItem)
+                    {
+                        MergeInto(targetItem, sourceItem);
+                    }
+                    else
+                    {
+                        targetArray[i] = sourceArray[i]?.DeepClone();
+                    }
+                }
+            }
+            else
+            {
+                target[name] = value?.DeepClone();
+            }
+        }
+    }
+
+    private async Task<Gateway> CreateUserGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+                phone: String!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+    }
+
+    private async Task<Gateway> CreateUserGatewayWithEmailAsync(bool emailFails, ResponseGate gate)
+    {
+        // Unless the gate says otherwise, the key lookup response of the deferred plan is held back until the
+        // email node has handed its result to the result store, so the email result is always applied first.
+        var emailNodeCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var errorDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var addressDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var lookupNodeCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        HttpMessageInvoker? invokerA = null;
+        HttpMessageInvoker? invokerB = null;
+
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            mockHttpResponse: async request =>
+            {
+                var body = await request.Content!.ReadAsStringAsync();
+
+                if (body.Contains("Op_defer", StringComparison.Ordinal)
+                    && gate is not ResponseGate.EmailUntilLookupCompleted)
+                {
+                    await emailNodeCompleted.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                }
+
+                return await invokerA!.SendAsync(request, CancellationToken.None);
+            });
+
+        var server2 = CreateSourceSchema(
+            "B",
+            $$"""
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!{{(emailFails ? " @error" : "")}}
+                address: String!
+                phone: String!
+            }
+            """,
+            mockHttpResponse: async request =>
+            {
+                var body = await request.Content!.ReadAsStringAsync();
+
+                if (body.Contains("address", StringComparison.Ordinal))
+                {
+                    if (gate is ResponseGate.AddressUntilErrorDelivered)
+                    {
+                        await errorDelivered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    }
+                }
+                else if (body.Contains("email", StringComparison.Ordinal))
+                {
+                    if (gate is ResponseGate.EmailUntilAddressDelivered)
+                    {
+                        await addressDelivered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    }
+                    else if (gate is ResponseGate.EmailUntilLookupCompleted)
+                    {
+                        await lookupNodeCompleted.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    }
+                }
+
+                return await invokerB!.SendAsync(request, CancellationToken.None);
+            });
+
+        invokerA = new HttpMessageInvoker(server1.CreateHandler());
+        invokerB = new HttpMessageInvoker(server2.CreateHandler());
+
+        return await CreateCompositeSchemaAsync(
+            [
+                ("A", server1),
+                ("B", server2)
+            ],
+            configureApplication: app =>
+            {
+                app.Use(async (context, next) =>
+                {
+                    context.Response.Body = new SignalOnWriteStream(
+                        new SignalOnWriteStream(
+                            context.Response.Body,
+                            "\"errors\""u8.ToArray(),
+                            errorDelivered),
+                        "\"address\""u8.ToArray(),
+                        addressDelivered);
+                    await next(context);
+                });
+                app.UseRouting();
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+            },
+            configureGatewayBuilder: b => b
+                .AddDiagnosticEventListener(_ => new NodeCompletedListener("B", "email", emailNodeCompleted))
+                .AddDiagnosticEventListener(_ => new NodeCompletedListener("A", "Op_defer", lookupNodeCompleted)));
+    }
+
+    private static int CountSourceSchemaRequests(Gateway gateway, string schemaName, string text)
+    {
+        if (!gateway.Interactions.TryGetValue(schemaName, out var interactions))
+        {
+            return 0;
+        }
+
+        return interactions.Values.Count(i =>
+            i.Request is not null
+            && Encoding.UTF8.GetString(i.Request.Body.ToArray()).Contains(text, StringComparison.Ordinal));
+    }
+
+    private async Task<Gateway> CreateUserGatewayWithAddressAfterEmailAsync()
+    {
+        // The address response is held back until the gateway has written the payload that carries the email
+        // data to the client. This fixes the order in which sibling groups complete.
+        var emailDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        HttpMessageInvoker? invoker = null;
+
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+                phone: String!
+            }
+            """,
+            mockHttpResponse: async request =>
+            {
+                var body = await request.Content!.ReadAsStringAsync();
+
+                if (body.Contains("address", StringComparison.Ordinal))
+                {
+                    await emailDelivered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                }
+
+                return await invoker!.SendAsync(request, CancellationToken.None);
+            });
+
+        invoker = new HttpMessageInvoker(server2.CreateHandler());
+
+        return await CreateCompositeSchemaAsync(
+            [
+                ("A", server1),
+                ("B", server2)
+            ],
+            configureApplication: app =>
+            {
+                app.Use(async (context, next) =>
+                {
+                    context.Response.Body = new SignalOnWriteStream(
+                        context.Response.Body,
+                        "\"email\""u8.ToArray(),
+                        emailDelivered);
+                    await next(context);
+                });
+                app.UseRouting();
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+            });
+    }
+
+    private Task<Gateway> CreateUserAccountGatewayAsync()
+        => CreateUserAccountGatewayAsync(null, null);
+
+    private async Task<Gateway> CreateUserAccountGatewayAsync(
+        SequencedSubgraph? subgraphB,
+        SequencedSubgraph? subgraphC)
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+                account: Account!
+            }
+
+            type Account @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            mockHttpResponse: subgraphB is null ? null : subgraphB.SendAsync);
+
+        subgraphB?.Connect(server2);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+                scoredUserById(id: ID!): User @lookup
+                accountById(id: ID!): Account @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                score: Int!
+            }
+
+            type Account @key(fields: "id") {
+                id: ID!
+                balance: Int!
+            }
+            """,
+            mockHttpResponse: subgraphC is null ? null : subgraphC.SendAsync);
+
+        subgraphC?.Connect(server3);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+    }
+
+    private static async Task<List<string>> ReadPayloadsAsync(GraphQLHttpResponse response)
+    {
+        var body = await response.HttpResponseMessage.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var payloads = new List<string>();
+
+        foreach (var line in body.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var payload = JsonNode.Parse(line)!.AsObject();
+            payload.Remove("extensions");
+            payloads.Add(payload.ToJsonString());
+        }
+
+        return payloads;
+    }
+
+    private static async Task<string> GetRequestCountsAsync(Gateway gateway, GraphQLHttpResponse response)
+    {
+        await response.HttpResponseMessage.Content.LoadIntoBufferAsync();
+
+        return string.Join(
+            ", ",
+            gateway.Interactions
+                .OrderBy(t => t.Key, StringComparer.Ordinal)
+                .Select(t => $"{t.Key}: {t.Value.Count}"));
+    }
+
+    private sealed class SignalOnWriteStream(
+        Stream inner,
+        byte[] marker,
+        TaskCompletionSource signal) : Stream
+    {
+        public override bool CanRead => false;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => true;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush() => inner.Flush();
+
+        public override Task FlushAsync(CancellationToken cancellationToken) => inner.FlushAsync(cancellationToken);
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count)
+            => Write(buffer.AsSpan(offset, count));
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            inner.Write(buffer);
+            Notify(buffer);
+        }
+
+        public override async ValueTask WriteAsync(
+            ReadOnlyMemory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            await inner.WriteAsync(buffer, cancellationToken);
+            Notify(buffer.Span);
+        }
+
+        private void Notify(ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.IndexOf(marker) >= 0)
+            {
+                signal.TrySetResult();
+            }
+        }
+    }
+
+    private sealed class NodeCompletedListener(
+        string expectedSchemaName,
+        string operationText,
+        TaskCompletionSource signal) : FusionExecutionDiagnosticEventListener
+    {
+        public override IDisposable ExecuteOperationNode(
+            OperationPlanContext context,
+            OperationExecutionNode node,
+            string schemaName)
+        {
+            if (schemaName == expectedSchemaName
+                && Encoding.UTF8.GetString(node.Operation.Value.Span).Contains(operationText, StringComparison.Ordinal))
+            {
+                return new SignalOnDispose(signal);
+            }
+
+            return base.ExecuteOperationNode(context, node, schemaName);
+        }
+
+        private sealed class SignalOnDispose(TaskCompletionSource signal) : IDisposable
+        {
+            public void Dispose() => signal.TrySetResult();
+        }
+    }
+
+    private enum ResponseGate
+    {
+        None,
+        AddressUntilErrorDelivered,
+        EmailUntilAddressDelivered,
+        EmailUntilLookupCompleted
+    }
+
+    private sealed class SubgraphRequestSequence
+    {
+        private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
+
+        private readonly string[] _fields;
+        private readonly TaskCompletionSource[] _delivered;
+
+        public SubgraphRequestSequence(params string[] fields)
+        {
+            _fields = fields;
+            _delivered = new TaskCompletionSource[fields.Length];
+
+            for (var i = 0; i < _delivered.Length; i++)
+            {
+                _delivered[i] = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            }
+        }
+
+        public int IndexOf(string requestBody)
+        {
+            for (var i = 0; i < _fields.Length; i++)
+            {
+                if (requestBody.Contains(_fields[i], StringComparison.Ordinal))
+                {
+                    return i;
+                }
+            }
+
+            throw new InvalidOperationException(
+                $"The subgraph request matches none of the sequence fields ({string.Join(", ", _fields)}): "
+                + requestBody);
+        }
+
+        public async Task WaitForTurnAsync(int index, CancellationToken cancellationToken)
+        {
+            if (index == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                await _delivered[index - 1].Task.WaitAsync(s_timeout, cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                throw new TimeoutException(
+                    $"The client did not receive the payload of '{_fields[index - 1]}' within {s_timeout}, "
+                    + $"so the subgraph request for '{_fields[index]}' was never released.");
+            }
+        }
+
+        public async Task ReleaseAsPayloadsArriveAsync(
+            GraphQLHttpResponse response,
+            CancellationToken cancellationToken)
+        {
+            var content = response.HttpResponseMessage.Content;
+            var body = new StringBuilder();
+
+            await using (var stream = await content.ReadAsStreamAsync(cancellationToken))
+            {
+                using var reader = new StreamReader(stream);
+
+                while (await reader.ReadLineAsync(cancellationToken) is { } payload)
+                {
+                    body.Append(payload).Append('\n');
+                    MarkDelivered(payload);
+                }
+            }
+
+            var buffered = new ByteArrayContent(Encoding.UTF8.GetBytes(body.ToString()));
+
+            foreach (var header in content.Headers)
+            {
+                buffered.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            response.HttpResponseMessage.Content = buffered;
+            content.Dispose();
+        }
+
+        private void MarkDelivered(string payload)
+        {
+            for (var i = 0; i < _fields.Length; i++)
+            {
+                if (payload.Contains($"\"{_fields[i]}\":", StringComparison.Ordinal))
+                {
+                    _delivered[i].TrySetResult();
+                }
+            }
+        }
+    }
+
+    private sealed class SequencedSubgraph(SubgraphRequestSequence sequence)
+    {
+        private HttpMessageInvoker? _invoker;
+
+        public void Connect(TestServer server)
+            => _invoker = new HttpMessageInvoker(server.CreateHandler());
+
+        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+        {
+            var cancellationToken = TestContext.Current.CancellationToken;
+            var body = request.Content is null
+                ? string.Empty
+                : await request.Content.ReadAsStringAsync(cancellationToken);
+
+            await sequence.WaitForTurnAsync(sequence.IndexOf(body), cancellationToken);
+
+            return await _invoker!.SendAsync(request, cancellationToken);
+        }
+    }
+
+    private static class ReviewLookupSourceA
+    {
+        public class Query
+        {
+            public IEnumerable<Product> GetProducts() => [new("1"), new("2"), new("3")];
+        }
+
+        public record Product([property: GraphQLType<NonNullType<IdType>>, Shareable] string Id);
+    }
+
+    private static class ReviewLookupSourceB
+    {
+        public class Query
+        {
+            [Lookup, Internal]
+            public Product? GetProductById([GraphQLType<NonNullType<IdType>>] string id) => new(id);
+
+            [Lookup, Internal]
+            public Review? GetReviewDetailsById([GraphQLType<NonNullType<IdType>>] string id) => new(id);
+        }
+
+        public record Product([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public IEnumerable<Review> GetReviews()
+                => [new((int.Parse(Id) * 2 - 1).ToString()), new((int.Parse(Id) * 2).ToString())];
+        }
+
+        public record Review([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public string GetText() => "Review " + Id;
+
+            public Author GetAuthor() => new(Id);
+        }
+
+        public record Author([property: GraphQLType<NonNullType<IdType>>, Shareable] string Id);
+    }
+
+    private static class ReviewLookupSourceC
+    {
+        public class Query
+        {
+            [Lookup, Internal]
+            public Review? GetReviewById([GraphQLType<NonNullType<IdType>>] string id) => new(id);
+        }
+
+        public record Review([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public int GetRating() => int.Parse(Id) * 10;
+        }
+    }
+
+    private static class ReviewLookupSourceD
+    {
+        public class Query
+        {
+            [Lookup, Internal]
+            public Author? GetAuthorById([GraphQLType<NonNullType<IdType>>] string id) => new(id);
+        }
+
+        public record Author([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public int GetRating() => int.Parse(Id) * 100;
+        }
+    }
+
+    private static class ReviewLookupCore
+    {
+        public class Query
+        {
+            public IEnumerable<Product> GetProducts() => [new("1"), new("2"), new("3")];
+        }
+
+        public record Product([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public IEnumerable<Review> GetReviews()
+                => [new((int.Parse(Id) * 2 - 1).ToString()), new((int.Parse(Id) * 2).ToString())];
+        }
+
+        public record Review([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public string GetText() => "Review " + Id;
+
+            public int GetRating() => int.Parse(Id) * 10;
+
+            public Author GetAuthor() => new(Id);
+        }
+
+        public record Author([property: GraphQLType<NonNullType<IdType>>] string Id)
+        {
+            public int GetRating() => int.Parse(Id) * 100;
+        }
     }
 
     [Fact]

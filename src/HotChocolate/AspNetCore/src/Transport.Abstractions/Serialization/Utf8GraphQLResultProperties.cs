@@ -25,6 +25,16 @@ internal static class Utf8GraphQLResultProperties
     public static ReadOnlySpan<byte> ExtensionsProp => "extensions"u8;
 
     /// <summary>
+    /// Gets the incremental property name.
+    /// </summary>
+    public static ReadOnlySpan<byte> IncrementalProp => "incremental"u8;
+
+    /// <summary>
+    /// Gets the hasNext property name.
+    /// </summary>
+    public static ReadOnlySpan<byte> HasNextProp => "hasNext"u8;
+
+    /// <summary>
     /// Gets the request index property name.
     /// </summary>
     public static ReadOnlySpan<byte> RequestIndexProp => "requestIndex"u8;

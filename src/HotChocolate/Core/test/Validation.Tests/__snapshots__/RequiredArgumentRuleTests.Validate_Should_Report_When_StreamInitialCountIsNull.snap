@@ -1,0 +1,19 @@
+{
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 32
+    }
+  ],
+  "path": [
+    "dog",
+    "name"
+  ],
+  "extensions": {
+    "argument": "initialCount",
+    "argumentValue": "null",
+    "locationType": "Int!",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+  }
+}

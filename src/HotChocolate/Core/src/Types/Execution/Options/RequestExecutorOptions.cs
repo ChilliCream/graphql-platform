@@ -12,7 +12,9 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
     internal const int DefaultMaxAllowedConditions = 1024;
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
+    private const int DefaultMaxStreamBatchSize = 16;
     private TimeSpan _executionTimeout;
+    private int _maxStreamBatchSize = DefaultMaxStreamBatchSize;
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -98,4 +100,15 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     /// <c>1024</c> by default.
     /// </summary>
     public int MaxAllowedDeferConditions { get; set; } = DefaultMaxAllowedConditions;
+
+    /// <summary>
+    /// Gets or sets the maximum number of streamed list items that are delivered in one incremental payload.
+    /// The minimum allowed value is <c>1</c>.
+    /// <c>16</c> by default.
+    /// </summary>
+    public int MaxStreamBatchSize
+    {
+        get => _maxStreamBatchSize;
+        set => _maxStreamBatchSize = value < 1 ? 1 : value;
+    }
 }

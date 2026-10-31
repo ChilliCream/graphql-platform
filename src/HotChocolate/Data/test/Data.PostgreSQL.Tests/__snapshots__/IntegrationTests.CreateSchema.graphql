@@ -177,19 +177,23 @@ This class provides additional information about pagination in a connection.
 """
 type ConnectionPageInfo {
   """
-  true if there is another page after the current one.
-  false if this page is the last page of the current data set / collection.
+  Indicates whether more edges exist following
+  the set defined by the clients arguments.
   """
   hasNextPage: Boolean!
   """
-  true if there is before this page.
-  false if this page is the first page in the current data set / collection.
+  Indicates whether more edges exist prior
+  the set defined by the clients arguments.
   """
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
+  "A list of cursors to continue paginating forwards."
+  forwardCursors: [PageCursor!]!
+  "A list of cursors to continue paginating backwards."
+  backwardCursors: [PageCursor!]!
 }
 
 type DepositStatementTransaction implements StatementTransaction {

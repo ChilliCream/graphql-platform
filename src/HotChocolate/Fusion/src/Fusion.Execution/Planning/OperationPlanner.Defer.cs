@@ -101,6 +101,8 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            EnsureSelectedFieldsHaveNodes(descriptor, rewrittenIncrementalPlan);
+
             var registeredInternalOp = incrementalPlanResult.InternalOperationDefinition ?? descriptor.Operation;
             contextGraph.RegisterDeferContext(
                 descriptor,
@@ -112,6 +114,59 @@ public sealed partial class OperationPlanner
         }
 
         return routingStates.ToImmutable();
+    }
+
+    /// <summary>
+    /// Throws when <paramref name="descriptor"/> selects fields but its incremental plan has no steps.
+    /// </summary>
+    internal void EnsureSelectedFieldsHaveNodes(
+        IncrementalPlanDescriptor descriptor,
+        ImmutableList<PlanStep> incrementalPlanSteps)
+    {
+        if (incrementalPlanSteps.Count == 0 && SelectsDeferredFields(descriptor))
+        {
+            throw ThrowHelper.DeferredGroupPlannedToNothing(descriptor.Path);
+        }
+    }
+
+    private bool SelectsDeferredFields(IncrementalPlanDescriptor descriptor)
+    {
+        if (descriptor.Path.IsRoot)
+        {
+            return ContainsSelectedField(descriptor.Operation.SelectionSet);
+        }
+
+        return TryLocateIncrementalPlanAnchor(
+                descriptor.Operation,
+                descriptor.Path,
+                out var anchorSelectionSet,
+                out _)
+            && ContainsSelectedField(anchorSelectionSet);
+    }
+
+    private static bool ContainsSelectedField(SelectionSetNode selectionSet)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field
+                    when !field.Directives.Any(
+                        t => t.Name.Value.Equals("fusion__requirement", StringComparison.Ordinal)
+                            || t.Name.Value.Equals("fusion__empty", StringComparison.Ordinal)):
+                    if (field.SelectionSet is null || ContainsSelectedField(field.SelectionSet))
+                    {
+                        return true;
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment when ContainsSelectedField(fragment.SelectionSet):
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -309,7 +364,11 @@ public sealed partial class OperationPlanner
                     anchorType,
                     descriptor.Path);
 
-                var backlog = Backlog.Empty.Push(new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet));
+                var backlog = Backlog.Empty.Push(
+                    new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet)
+                    {
+                        AllowSourceSchemaReentry = true
+                    });
 
                 node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
                 possiblePlans.EnqueueBranches(node);
@@ -445,7 +504,7 @@ public sealed partial class OperationPlanner
     /// The updated incremental plan step list, or the original list when no
     /// parent-scope requirements can be moved.
     /// </returns>
-    private ImmutableList<PlanStep> ApplyDeferRequirementsToParent(
+    internal ImmutableList<PlanStep> ApplyDeferRequirementsToParent(
         IncrementalPlanDescriptor descriptor,
         ImmutableList<PlanStep> incrementalPlanSteps,
         ParentPlanContext parentContext,
@@ -481,13 +540,16 @@ public sealed partial class OperationPlanner
 
         // Collect every step that depends directly on a producer; that is exactly
         // the set of steps whose requirements need to be routed to the enclosing
-        // scope.
+        // scope. A producer that targets an ancestor of the anchor only reaches the
+        // entity the enclosing scope already fetches, so its own requirement is not
+        // routed.
         var downstreamByStepId = new Dictionary<int, OperationPlanStep>();
         foreach (var producer in producers)
         {
             foreach (var dependentStepId in producer.Dependents)
             {
-                if (incrementalPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep)
+                if (incrementalPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep
+                    && (!producerIds.Contains(dependentStepId) || dependentStep.Target.Equals(descriptor.Path)))
                 {
                     downstreamByStepId[dependentStepId] = dependentStep;
                 }
@@ -669,11 +731,9 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
-                // The provider must reach exactly the same entity as this defer's own
-                // anchor (or be a root re-fetch), matching FindDeferRequirementProducers'
-                // own restriction above; a provider targeting a shallower ancestor path
-                // only shares this requirement's field name by coincidence.
-                if (!providerStep.Target.Equals(descriptor.Path) && !providerStep.Target.IsRoot)
+                // The provider must target the defer's own anchor or one of its ancestors,
+                // matching FindDeferRequirementProducers' own restriction above.
+                if (!providerStep.Target.IsParentOfOrSame(descriptor.Path))
                 {
                     continue;
                 }
@@ -1484,7 +1544,8 @@ public sealed partial class OperationPlanner
 
             if (neededFieldName is null
                 || upstreamFieldName is null
-                || !neededFieldName.Equals(upstreamFieldName, StringComparison.Ordinal))
+                || !neededFieldName.Equals(upstreamFieldName, StringComparison.Ordinal)
+                || !upstreamRequirement.Path.Equals(currentRequirement.Path))
             {
                 return (current, currentRequirement);
             }
@@ -1540,10 +1601,10 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Finds every step in <paramref name="incrementalPlanSteps"/> that targets either
-    /// <paramref name="anchorPath"/> or the operation root and whose every selected field
-    /// is consumed as a requirement at or above <paramref name="anchorPath"/> by one of
-    /// its dependents.
+    /// Finds every step in <paramref name="incrementalPlanSteps"/> that targets
+    /// <paramref name="anchorPath"/> or one of its ancestors and whose every selected field
+    /// is consumed by one of its dependents as a requirement that does not lie below
+    /// <paramref name="anchorPath"/>.
     /// </summary>
     private static ImmutableArray<OperationPlanStep> FindDeferRequirementProducers(
         ImmutableList<PlanStep> incrementalPlanSteps,
@@ -1556,7 +1617,7 @@ public sealed partial class OperationPlanner
             if (step is OperationPlanStep operationStep
                 && operationStep.SchemaName is not null
                 && !operationStep.Dependents.IsEmpty
-                && (operationStep.Target.Equals(anchorPath) || operationStep.Target.IsRoot)
+                && operationStep.Target.IsParentOfOrSame(anchorPath)
                 && IsPureRequirementProducer(operationStep, incrementalPlanSteps, anchorPath))
             {
                 producers.Add(operationStep);
@@ -1567,19 +1628,22 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Determines whether every field <paramref name="step"/> selects is consumed as a
-    /// requirement at or above <paramref name="anchorPath"/> by one of its dependents,
-    /// meaning the step carries no output of its own beyond what the enclosing scope can supply.
+    /// Determines whether <paramref name="step"/> selects nothing at <paramref name="anchorPath"/>
+    /// except leaf fields that its dependents consume as requirements that do not lie below
+    /// <paramref name="anchorPath"/>.
     /// </summary>
     private static bool IsPureRequirementProducer(
         OperationPlanStep step,
         ImmutableList<PlanStep> incrementalPlanSteps,
         SelectionPath anchorPath)
     {
-        var ownFields = new HashSet<string>(StringComparer.Ordinal);
-        CollectLeafFieldNames(step.Definition.SelectionSet, ownFields);
+        var anchorSelectionSet = LocateSelectionSetAtPath(
+            GetStepEntitySelectionSet(step),
+            anchorPath,
+            step.Target.Length);
 
-        if (ownFields.Count == 0)
+        var ownFields = new HashSet<string>(StringComparer.Ordinal);
+        if (!TryCollectLeafFieldNames(anchorSelectionSet, ownFields) || ownFields.Count == 0)
         {
             return false;
         }
@@ -1596,7 +1660,8 @@ public sealed partial class OperationPlanner
             {
                 // A requirement below the anchor reads a value this step fetches as
                 // deferred output, which the enclosing scope does not reach.
-                if (!requirement.Path.IsParentOfOrSame(anchorPath))
+                if (!requirement.Path.IsParentOfOrSame(anchorPath)
+                    && anchorPath.IsParentOfOrSame(requirement.Path))
                 {
                     continue;
                 }
@@ -1622,21 +1687,21 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Collects the response names of every leaf field selection within
-    /// <paramref name="selectionSet"/>, descending through composite fields and inline
-    /// fragments (a composite field wraps a lookup or entity boundary, not output of its
-    /// own). The <c>__typename</c> discriminator is ignored; it never satisfies a
-    /// requirement.
+    /// Collects the response names of the leaf fields of <paramref name="selectionSet"/>,
+    /// descending through inline fragments. The <c>__typename</c> discriminator is ignored;
+    /// it never satisfies a requirement.
     /// </summary>
-    private static void CollectLeafFieldNames(SelectionSetNode selectionSet, HashSet<string> names)
+    /// <returns>
+    /// <c>false</c> when <paramref name="selectionSet"/> selects a composite field.
+    /// </returns>
+    private static bool TryCollectLeafFieldNames(SelectionSetNode selectionSet, HashSet<string> names)
     {
         foreach (var selection in selectionSet.Selections)
         {
             switch (selection)
             {
-                case FieldNode { SelectionSet: { } nested }:
-                    CollectLeafFieldNames(nested, names);
-                    break;
+                case FieldNode { SelectionSet: not null }:
+                    return false;
 
                 case FieldNode field:
                     if (!field.Name.Value.Equals("__typename", StringComparison.Ordinal))
@@ -1646,10 +1711,15 @@ public sealed partial class OperationPlanner
                     break;
 
                 case InlineFragmentNode fragment:
-                    CollectLeafFieldNames(fragment.SelectionSet, names);
+                    if (!TryCollectLeafFieldNames(fragment.SelectionSet, names))
+                    {
+                        return false;
+                    }
                     break;
             }
         }
+
+        return true;
     }
 
     /// <summary>

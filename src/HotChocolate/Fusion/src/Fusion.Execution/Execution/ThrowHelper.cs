@@ -24,6 +24,11 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
 
+    public static InvalidOperationException DeferredGroupPlannedToNothing(SelectionPath path)
+        => new(string.Format(
+            FusionExecutionResources.OperationPlan_DeferredGroupPlannedToNothing,
+            path));
+
     public static InvalidOperationException DeferredPlanNotFound(SelectionPath path)
         => new($"No plan was found for the @defer fragment at path '{path}'.");
 
@@ -124,6 +129,9 @@ internal static class ThrowHelper
             value,
             "The value must be a non-negative finite number or positive infinity.");
 
+    public static InvalidOperationException ImportedPathSelectionNotFound(string responseName)
+        => new($"The field `{responseName}` of the enclosing result path is not selected by the incremental plan.");
+
     public static InvalidOperationException InvalidTargetValueKind(
         SelectionPath selectionPath,
         Path resultPath,
@@ -183,6 +191,16 @@ internal static class ThrowHelper
                 .AddLocation(variableDefinition)
                 .Build());
     }
+
+    public static GraphQLException DeferIfVariableIsNull(string variableName)
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                "The variable `{0}` is null, but the `if` argument of the `@defer` directive must not be null.",
+                variableName)
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetExtension("variable", variableName)
+            .SetExtension("directive", DirectiveNames.Defer.Name)
+            .Build());
 
     public static GraphQLException VariableIsNotAnInputType(
         VariableDefinitionNode variableDefinition)

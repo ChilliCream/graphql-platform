@@ -29,7 +29,7 @@ public interface IResolverResultPostProcessor
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Post processes the result to an async enumerable that can be used to stream the result.
+    /// Post processes the result to an async enumerable that streams the elements of the result.
     /// </summary>
     /// <param name="result">
     /// The result of the resolver pipeline.
@@ -38,9 +38,10 @@ public interface IResolverResultPostProcessor
     /// The cancellation token.
     /// </param>
     /// <returns>
-    /// Returns an IAsyncEnumerable that represents the result stream.
+    /// Returns the async enumerable that streams the elements of the result, or <c>null</c> if the result
+    /// cannot be streamed and has to be completed through <see cref="ToCompletionResultAsync"/>.
     /// </returns>
-    IAsyncEnumerable<object?> ToStreamResultAsync(
+    IAsyncEnumerable<object?>? ToStreamResultAsync(
         object result,
         CancellationToken cancellationToken);
 }

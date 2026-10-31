@@ -1,0 +1,127 @@
+title: Defer_Should_NotStream_When_EmptyOuterGroupAndInnerGroupAreDisabled
+request:
+  document: |
+    query($a: Boolean!, $b: Boolean!) {
+      message {
+        id
+        ... @defer(if: $a) {
+          ... @defer(if: $b) {
+            body
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "a": false,
+      "b": false
+    }
+stableResponseStream: |
+  {
+    "data": {
+      "message": {
+        "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4",
+        "id": "TWVzc2FnZTo0MTY4NzUxNzE4"
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        message: Message
+      }
+
+      type Message {
+        id: ID!
+        title: String!
+        body: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_14e65707_1($a: Boolean!, $b: Boolean!) {
+              message {
+                id
+                ... @skip(if: $a) {
+                  ... @skip(if: $b) {
+                    body
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "a": false,
+              "b": false
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "message": {
+                    "id": "TWVzc2FnZTo0MTY4NzUxNzE4",
+                    "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query($a: Boolean!, $b: Boolean!) {
+          message {
+            id
+            ... @skip(if: $a) {
+              body @skip(if: $b)
+            }
+          }
+        }
+      hash: b39251f6d9a46cdb751bc560b84e2837
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_14e65707_1($a: Boolean!, $b: Boolean!) {
+          message {
+            id
+            ... @skip(if: $a) {
+              ... @skip(if: $b) {
+                body
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - a
+        - b
+  deliveryGroups:
+    - id: 0
+      path: $.message
+      ifVariable: $a
+    - id: 1
+      path: $.message
+      ifVariable: $b
+      parentId: 0
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              message {
+                body
+              }
+            }

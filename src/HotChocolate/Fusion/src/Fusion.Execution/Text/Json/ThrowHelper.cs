@@ -30,6 +30,12 @@ internal static class ThrowHelper
         return new FormatException { Source = Rethrowable };
     }
 
+    public static InvalidOperationException SelectionIdNotInResultObject(int selectionId)
+    {
+        return new InvalidOperationException(
+            $"The selection `{selectionId}` does not belong to the result object.");
+    }
+
     public static InvalidOperationException SourceElementIsNotAnObject()
         => new();
 

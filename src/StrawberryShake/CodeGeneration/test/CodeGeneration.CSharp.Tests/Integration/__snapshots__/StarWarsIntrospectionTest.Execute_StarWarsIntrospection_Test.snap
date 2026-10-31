@@ -2375,6 +2375,45 @@
         },
         {
           "Kind": "Object",
+          "Name": "FriendsEdge",
+          "Description": "An edge in a connection.",
+          "Fields": [
+            {
+              "Name": "cursor",
+              "Description": "A cursor for use in pagination.",
+              "Args": [],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "String",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "node",
+              "Description": "The item at the end of the edge.",
+              "Args": [],
+              "Type": {
+                "Kind": "Interface",
+                "Name": "Character",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            }
+          ],
+          "InputFields": null,
+          "Interfaces": [],
+          "EnumValues": null,
+          "PossibleTypes": null
+        },
+        {
+          "Kind": "Object",
           "Name": "PageInfo",
           "Description": "Information about pagination in a connection.",
           "Fields": [
@@ -2439,45 +2478,6 @@
           "Interfaces": [],
           "EnumValues": null,
           "PossibleTypes": null
-        },
-        {
-          "Kind": "Object",
-          "Name": "FriendsEdge",
-          "Description": "An edge in a connection.",
-          "Fields": [
-            {
-              "Name": "cursor",
-              "Description": "A cursor for use in pagination.",
-              "Args": [],
-              "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "String",
-                  "OfType": null
-                }
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            },
-            {
-              "Name": "node",
-              "Description": "The item at the end of the edge.",
-              "Args": [],
-              "Type": {
-                "Kind": "Interface",
-                "Name": "Character",
-                "OfType": null
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            }
-          ],
-          "InputFields": null,
-          "Interfaces": [],
-          "EnumValues": null,
-          "PossibleTypes": null
         }
       ],
       "Directives": [
@@ -2486,21 +2486,25 @@
           "Description": "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.",
           "Args": [
             {
+              "Name": "if",
+              "Description": "Deferred when true.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": "true"
+            },
+            {
               "Name": "label",
               "Description": "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to.",
               "Type": {
                 "Kind": "Scalar",
                 "Name": "String",
-                "OfType": null
-              },
-              "DefaultValue": null
-            },
-            {
-              "Name": "if",
-              "Description": "Deferred when true.",
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "Boolean",
                 "OfType": null
               },
               "DefaultValue": null
@@ -2514,6 +2518,20 @@
           "Name": "stream",
           "Description": "The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`.",
           "Args": [
+            {
+              "Name": "if",
+              "Description": "Streamed when true.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": "true"
+            },
             {
               "Name": "label",
               "Description": "If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to.",
@@ -2537,16 +2555,6 @@
                 }
               },
               "DefaultValue": "0"
-            },
-            {
-              "Name": "if",
-              "Description": "Streamed when true.",
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "Boolean",
-                "OfType": null
-              },
-              "DefaultValue": null
             }
           ],
           "OnOperation": false,
@@ -6971,6 +6979,70 @@
         },
         {
           "__typename": "__Type",
+          "Name": "FriendsEdge",
+          "Kind": "Object",
+          "Description": "An edge in a connection.",
+          "Fields": [
+            {
+              "__typename": "__Field",
+              "Name": "cursor",
+              "Description": "A cursor for use in pagination.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "String",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "node",
+              "Description": "The item at the end of the edge.",
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Character",
+                "Kind": "Interface",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            }
+          ],
+          "InputFields": null,
+          "Interfaces": [],
+          "EnumValues": null,
+          "PossibleTypes": null,
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
           "Name": "PageInfo",
           "Kind": "Object",
           "Description": "Information about pagination in a connection.",
@@ -7083,18 +7155,18 @@
           "EnumValues": null,
           "PossibleTypes": null,
           "OfType": null
-        },
+        }
+      ],
+      "Directives": [
         {
-          "__typename": "__Type",
-          "Name": "FriendsEdge",
-          "Kind": "Object",
-          "Description": "An edge in a connection.",
-          "Fields": [
+          "__typename": "__Directive",
+          "Name": "defer",
+          "Description": "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.",
+          "Args": [
             {
-              "__typename": "__Field",
-              "Name": "cursor",
-              "Description": "A cursor for use in pagination.",
-              "Args": [],
+              "__typename": "__InputValue",
+              "Name": "if",
+              "Description": "Deferred when true.",
               "Type": {
                 "__typename": "__Type",
                 "Name": null,
@@ -7107,7 +7179,7 @@
                 "PossibleTypes": null,
                 "OfType": {
                   "__typename": "__Type",
-                  "Name": "String",
+                  "Name": "Boolean",
                   "Kind": "Scalar",
                   "Description": null,
                   "Fields": null,
@@ -7118,43 +7190,8 @@
                   "OfType": null
                 }
               },
-              "IsDeprecated": false,
-              "DeprecationReason": null
+              "DefaultValue": "true"
             },
-            {
-              "__typename": "__Field",
-              "Name": "node",
-              "Description": "The item at the end of the edge.",
-              "Args": [],
-              "Type": {
-                "__typename": "__Type",
-                "Name": "Character",
-                "Kind": "Interface",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            }
-          ],
-          "InputFields": null,
-          "Interfaces": [],
-          "EnumValues": null,
-          "PossibleTypes": null,
-          "OfType": null
-        }
-      ],
-      "Directives": [
-        {
-          "__typename": "__Directive",
-          "Name": "defer",
-          "Description": "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.",
-          "Args": [
             {
               "__typename": "__InputValue",
               "Name": "label",
@@ -7162,24 +7199,6 @@
               "Type": {
                 "__typename": "__Type",
                 "Name": "String",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
-              },
-              "DefaultValue": null
-            },
-            {
-              "__typename": "__InputValue",
-              "Name": "if",
-              "Description": "Deferred when true.",
-              "Type": {
-                "__typename": "__Type",
-                "Name": "Boolean",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -7201,6 +7220,35 @@
           "Name": "stream",
           "Description": "The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`.",
           "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "if",
+              "Description": "Streamed when true.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": "true"
+            },
             {
               "__typename": "__InputValue",
               "Name": "label",
@@ -7247,24 +7295,6 @@
                 }
               },
               "DefaultValue": "0"
-            },
-            {
-              "__typename": "__InputValue",
-              "Name": "if",
-              "Description": "Streamed when true.",
-              "Type": {
-                "__typename": "__Type",
-                "Name": "Boolean",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
-              },
-              "DefaultValue": null
             }
           ],
           "OnOperation": false,

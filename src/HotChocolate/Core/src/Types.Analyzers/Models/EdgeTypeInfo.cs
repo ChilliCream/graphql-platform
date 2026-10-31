@@ -161,7 +161,13 @@ public sealed class EdgeTypeInfo
             switch (member)
             {
                 case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
-                    resolvers.Add(ObjectTypeInspector.CreateResolver(compilation, runtimeType, method, edgeName));
+                    resolvers.Add(
+                        ObjectTypeInspector.CreateResolver(
+                            compilation,
+                            runtimeType,
+                            method,
+                            FieldFlags.None,
+                            edgeName));
                     break;
 
                 case IPropertySymbol property:
@@ -171,7 +177,7 @@ public sealed class EdgeTypeInfo
                             property,
                             compilation.GetDescription(property),
                             compilation.GetDeprecationReason(property),
-                            ResolverResultKind.Pure,
+                            property.GetResultKind(),
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
                             compilation.CreateTypeReference(property),

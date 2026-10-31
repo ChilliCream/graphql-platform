@@ -22,6 +22,8 @@ internal static class IncrementalRfc1ResultFormatAdapter
         context.InitializeDocument(result.Document);
         var deferLookup = context.DeferSelectionLookup;
         var pending = context.PendingResults;
+        var isInitial = !context.IsInitialProcessed;
+        context.IsInitialProcessed = true;
 
         if (deferLookup is not null)
         {
@@ -115,7 +117,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
                                 objectResult.Errors));
                     }
                 }
-                else if (item is IIncrementalListResult listResult)
+                else if (item is IncrementalListResult listResult)
                 {
                     (entries ??= []).Add(
                         LegacyIncrementalEntry.ForItems(
@@ -153,23 +155,105 @@ internal static class IncrementalRfc1ResultFormatAdapter
             }
         }
 
-        if (entries is { Count: > 0 })
-        {
-            writer.WritePropertyName(ResultFieldNames.Incremental);
-            writer.WriteStartArray();
+        var hasNext = result.HasNext;
 
+        if (isInitial && context.CarryInitialEntries && entries is { Count: > 0 })
+        {
+            // The legacy initial payload only has data, errors and hasNext, so the entries that
+            // arrive with it are written with the next payload.
+            context.HasFinalCarriedPayload = hasNext is not true;
+            hasNext = true;
+            CarryEntries(writer, context, entries, options);
+        }
+        else
+        {
+            WriteIncrementalEntries(writer, context, entries, options);
+        }
+
+        if (hasNext.HasValue)
+        {
+            writer.WritePropertyName(ResultFieldNames.HasNext);
+            writer.WriteBooleanValue(hasNext.Value);
+        }
+    }
+
+    public static void WriteCarried(
+        JsonWriter writer,
+        OperationResultFormatterContext context)
+    {
+        writer.WritePropertyName(ResultFieldNames.Incremental);
+        writer.WriteStartArray();
+        WriteCarriedEntries(writer, context);
+        writer.WriteEndArray();
+
+        context.HasFinalCarriedPayload = false;
+
+        writer.WritePropertyName(ResultFieldNames.HasNext);
+        writer.WriteBooleanValue(false);
+    }
+
+    private static void WriteIncrementalEntries(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        List<LegacyIncrementalEntry>? entries,
+        JsonSerializerOptions options)
+    {
+        if (context.CarriedEntries is not { Count: > 0 } && entries is not { Count: > 0 })
+        {
+            return;
+        }
+
+        writer.WritePropertyName(ResultFieldNames.Incremental);
+        writer.WriteStartArray();
+        WriteCarriedEntries(writer, context);
+
+        if (entries is not null)
+        {
             for (var i = 0; i < entries.Count; i++)
             {
                 WriteLegacyIncrementalEntry(writer, entries[i], options);
             }
-
-            writer.WriteEndArray();
         }
 
-        if (result.HasNext.HasValue)
+        writer.WriteEndArray();
+    }
+
+    private static void WriteCarriedEntries(
+        JsonWriter writer,
+        OperationResultFormatterContext context)
+    {
+        if (context.CarriedEntries is not { } carried)
         {
-            writer.WritePropertyName(ResultFieldNames.HasNext);
-            writer.WriteBooleanValue(result.HasNext.Value);
+            return;
+        }
+
+        for (var i = 0; i < carried.Count; i++)
+        {
+            writer.WriteRawValue(carried[i].Span);
+        }
+
+        carried.Clear();
+    }
+
+    private static void CarryEntries(
+        JsonWriter writer,
+        OperationResultFormatterContext context,
+        List<LegacyIncrementalEntry> entries,
+        JsonSerializerOptions options)
+    {
+        // The entries reference result data that is released once the payload is written,
+        // so we serialize them into the cache buffer.
+        var cacheBuffer = context.CacheBuffer;
+
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var start = cacheBuffer.Length;
+            var entryWriter = new JsonWriter(cacheBuffer, s_jsonWriterOptions)
+            {
+                NullIgnoreCondition = writer.NullIgnoreCondition
+            };
+            WriteLegacyIncrementalEntry(entryWriter, entries[i], options);
+            context.Carry(cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start));
         }
     }
 
@@ -232,19 +316,105 @@ internal static class IncrementalRfc1ResultFormatAdapter
         out Path selectionPath,
         out DeferSelectionTree selection)
     {
-        if (deferLookup.TryResolveRoot(pendingPath, label, out selectionPath, out selection))
+        if (deferLookup.TryResolveRoot(ToFieldPath(pendingPath), label, out var fieldPath, out selection))
         {
+            selectionPath = ToResultPath(pendingPath, fieldPath);
             return true;
         }
 
-        if (deferLookup.TryResolveRoot(path, label, out selectionPath, out selection))
+        if (deferLookup.TryResolveRoot(ToFieldPath(path), label, out fieldPath, out selection))
         {
+            selectionPath = ToResultPath(path, fieldPath);
             return true;
         }
 
         selectionPath = Path.Root;
         selection = default!;
         return false;
+    }
+
+    private static Path ToFieldPath(Path path)
+    {
+        var segments = path.ToList();
+        var hasIndex = false;
+
+        for (var i = 0; i < segments.Count; i++)
+        {
+            if (segments[i] is int)
+            {
+                hasIndex = true;
+                break;
+            }
+        }
+
+        if (!hasIndex)
+        {
+            return path;
+        }
+
+        var fieldPath = Path.Root;
+
+        for (var i = 0; i < segments.Count; i++)
+        {
+            if (segments[i] is string fieldName)
+            {
+                fieldPath = fieldPath.Append(fieldName);
+            }
+        }
+
+        return fieldPath;
+    }
+
+    private static Path ToResultPath(Path path, Path fieldPath)
+    {
+        var segments = path.ToList();
+        var fieldSegments = fieldPath.ToList();
+        var matched = 0;
+        var end = fieldSegments.Count == 0 ? 0 : -1;
+
+        for (var i = 0; i < segments.Count; i++)
+        {
+            if (segments[i] is int)
+            {
+                if (matched == fieldSegments.Count)
+                {
+                    end = i + 1;
+                }
+
+                continue;
+            }
+
+            if (matched == fieldSegments.Count)
+            {
+                break;
+            }
+
+            if (!Equals(fieldSegments[matched], segments[i]))
+            {
+                return fieldPath;
+            }
+
+            matched++;
+
+            if (matched == fieldSegments.Count)
+            {
+                end = i + 1;
+            }
+        }
+
+        if (matched < fieldSegments.Count)
+        {
+            return fieldPath;
+        }
+
+        var resultSegments = new List<object>(end);
+
+        for (var i = 0; i < end; i++)
+        {
+            resultSegments.Add(segments[i]);
+        }
+
+        return Path.FromList(resultSegments);
     }
 
     private static bool TryGetRelativePathSegments(
@@ -695,7 +865,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
 
             case LegacyIncrementalEntryKind.Items:
                 writer.WritePropertyName(ResultFieldNames.Items);
-                WriteItems(writer, entry.Items, options);
+                entry.Items!.WriteDataTo(writer);
                 break;
         }
 
@@ -709,27 +879,6 @@ internal static class IncrementalRfc1ResultFormatAdapter
         }
 
         writer.WriteEndObject();
-    }
-
-    private static void WriteItems(
-        JsonWriter writer,
-        IReadOnlyList<object?>? items,
-        JsonSerializerOptions options)
-    {
-        if (items is null)
-        {
-            writer.WriteNullValue();
-            return;
-        }
-
-        writer.WriteStartArray();
-
-        for (var i = 0; i < items.Count; i++)
-        {
-            WriteValue(writer, items[i], options);
-        }
-
-        writer.WriteEndArray();
     }
 
     private static Path CombinePath(Path path, Path? subPath)
@@ -754,7 +903,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
         string? Label,
         OperationResultData? Data,
         ReadOnlyMemorySegment? RawData,
-        IReadOnlyList<object?>? Items,
+        OperationResultItemCollection? Items,
         IReadOnlyList<IError>? Errors)
     {
         public static LegacyIncrementalEntry ForData(
@@ -768,7 +917,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
         public static LegacyIncrementalEntry ForItems(
             Path path,
             string? label,
-            IReadOnlyList<object?>? items,
+            OperationResultItemCollection items,
             IReadOnlyList<IError>? errors)
             => new(LegacyIncrementalEntryKind.Items, path, label, null, null, items, errors);
     }

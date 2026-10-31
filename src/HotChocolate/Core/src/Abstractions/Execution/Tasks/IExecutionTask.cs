@@ -27,15 +27,15 @@ public interface IExecutionTask
     ExecutionTaskStatus Status { get; }
 
     /// <summary>
-    /// Next and previous are properties that are used by the execution engine to
-    /// track the execution state.
+    /// This property is not used by the execution engine and will be removed in Hot Chocolate 17.
     /// </summary>
+    [Obsolete("Not used by the execution engine and will be removed in Hot Chocolate 17.")]
     IExecutionTask? Next { get; set; }
 
     /// <summary>
-    /// Next and previous are properties that are used by the execution engine to
-    /// track the execution state.
+    /// This property is not used by the execution engine and will be removed in Hot Chocolate 17.
     /// </summary>
+    [Obsolete("Not used by the execution engine and will be removed in Hot Chocolate 17.")]
     IExecutionTask? Previous { get; set; }
 
     /// <summary>

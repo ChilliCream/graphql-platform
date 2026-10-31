@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq.Expressions;
 
 namespace GreenDonut.Data.Internal;
@@ -626,12 +627,284 @@ public static class ExpressionHasherTests
         Assert.NotEqual(hash1, hash3);
     }
 
+    [Fact]
+    public static void PagingArguments_Should_ProduceByteIdenticalHash_When_IncludeItemsIsTrue()
+    {
+        // arrange
+        // IncludeItems defaults to true, so setting it explicitly must not change the hash.
+        var defaultArguments = new PagingArguments(first: 5, after: "abc");
+        var explicitTrueArguments = defaultArguments with { IncludeItems = true };
+
+        // act
+        var hash1 = new ExpressionHasher().Add(defaultArguments).Compute();
+        var hash2 = new ExpressionHasher().Add(explicitTrueArguments).Compute();
+
+        // assert
+        Assert.Equal(hash1, hash2);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceDifferentHash_When_IncludeItemsIsFalse()
+    {
+        // arrange
+        var withItems = new PagingArguments(first: 5);
+        var withoutItems = withItems with { IncludeItems = false };
+
+        // act
+        var hashWithItems = new ExpressionHasher().Add(withItems).Compute();
+        var hashWithoutItems = new ExpressionHasher().Add(withoutItems).Compute();
+
+        // assert
+        Assert.NotEqual(hashWithItems, hashWithoutItems);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceDifferentHash_When_IncludeItemsIsFalse_And_NoOtherArgumentsSet()
+    {
+        // arrange
+        var withItems = new PagingArguments();
+        var withoutItems = withItems with { IncludeItems = false };
+
+        // act
+        var hashWithItems = new ExpressionHasher().Add(withItems).Compute();
+        var hashWithoutItems = new ExpressionHasher().Add(withoutItems).Compute();
+
+        // assert
+        Assert.NotEqual(hashWithItems, hashWithoutItems);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceByteIdenticalHash_When_DefaultCombination()
+    {
+        // arrange
+        var arguments = new PagingArguments();
+
+        // act
+        var hash = new ExpressionHasher().Add(arguments).Compute();
+
+        // assert
+        Assert.Equal("0d3176d9b62d3e18e03bc3f90a7b502c", hash);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceByteIdenticalHash_When_FirstAndAfterAreSet()
+    {
+        // arrange
+        var arguments = new PagingArguments(first: 5, after: "abc");
+
+        // act
+        var hash = new ExpressionHasher().Add(arguments).Compute();
+
+        // assert
+        Assert.Equal("0555bc0710c1d4dbad0442e5caaff58e", hash);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceByteIdenticalHash_When_LastAndBeforeAreSet()
+    {
+        // arrange
+        var arguments = new PagingArguments(last: 5, before: "xyz");
+
+        // act
+        var hash = new ExpressionHasher().Add(arguments).Compute();
+
+        // assert
+        Assert.Equal("45c0cc272f981d0b6054ef4d4e8983b8", hash);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceByteIdenticalHash_When_FirstIsNegative()
+    {
+        // arrange
+        var arguments = new PagingArguments(first: -5);
+
+        // act
+        var hash = new ExpressionHasher().Add(arguments).Compute();
+
+        // assert
+        Assert.Equal("f93e31463d6de14d9962c427ae7dc378", hash);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceDifferentHash_When_IncludeTotalCountIsTrue()
+    {
+        // arrange
+        var withoutTotalCount = new PagingArguments(first: 5);
+        var withTotalCount = withoutTotalCount with { IncludeTotalCount = true };
+
+        // act
+        var hashWithout = new ExpressionHasher().Add(withoutTotalCount).Compute();
+        var hashWith = new ExpressionHasher().Add(withTotalCount).Compute();
+
+        // assert
+        Assert.NotEqual(hashWithout, hashWith);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceDifferentHash_When_EnableRelativeCursorsIsTrue()
+    {
+        // arrange
+        var withoutRelativeCursors = new PagingArguments(first: 5);
+        var withRelativeCursors = withoutRelativeCursors with { EnableRelativeCursors = true };
+
+        // act
+        var hashWithout = new ExpressionHasher().Add(withoutRelativeCursors).Compute();
+        var hashWith = new ExpressionHasher().Add(withRelativeCursors).Compute();
+
+        // assert
+        Assert.NotEqual(hashWithout, hashWith);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceDifferentHash_When_NullOrderingIsNonDefault()
+    {
+        // arrange
+        var unspecified = new PagingArguments(first: 5);
+        var nullsFirst = unspecified with { NullOrdering = NullOrdering.NativeNullsFirst };
+        var nullsLast = unspecified with { NullOrdering = NullOrdering.NativeNullsLast };
+
+        // act
+        var hashUnspecified = new ExpressionHasher().Add(unspecified).Compute();
+        var hashNullsFirst = new ExpressionHasher().Add(nullsFirst).Compute();
+        var hashNullsLast = new ExpressionHasher().Add(nullsLast).Compute();
+
+        // assert
+        Assert.NotEqual(hashUnspecified, hashNullsFirst);
+        Assert.NotEqual(hashUnspecified, hashNullsLast);
+        Assert.NotEqual(hashNullsFirst, hashNullsLast);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceStableDistinctHash_When_NullOrderingIsUndefined()
+    {
+        // arrange
+        var undefined = new PagingArguments(first: 5) with { NullOrdering = (NullOrdering)(-1) };
+        var nullsFirst = new PagingArguments(first: 5) with { NullOrdering = NullOrdering.NativeNullsFirst };
+
+        // act
+        var hash1 = new ExpressionHasher().Add(undefined).Compute();
+        var hash2 = new ExpressionHasher().Add(undefined).Compute();
+        var hashNullsFirst = new ExpressionHasher().Add(nullsFirst).Compute();
+
+        // assert
+        Assert.Equal(hash1, hash2);
+        Assert.NotEqual(hash1, hashNullsFirst);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceSameHash_When_ArgumentsAreIdentical()
+    {
+        // arrange
+        var arguments1 = new PagingArguments(first: 5) with
+        {
+            IncludeTotalCount = true,
+            EnableRelativeCursors = true,
+            NullOrdering = NullOrdering.NativeNullsFirst
+        };
+        var arguments2 = new PagingArguments(first: 5) with
+        {
+            IncludeTotalCount = true,
+            EnableRelativeCursors = true,
+            NullOrdering = NullOrdering.NativeNullsFirst
+        };
+
+        // act
+        var hash1 = new ExpressionHasher().Add(arguments1).Compute();
+        var hash2 = new ExpressionHasher().Add(arguments2).Compute();
+
+        // assert
+        Assert.Equal(hash1, hash2);
+    }
+
+    [Fact]
+    public static void PagingArguments_Should_ProduceSameHash_When_CultureIsSvSE_And_FirstAndLastAreNegative()
+    {
+        // arrange
+        var arguments = new PagingArguments(first: -5, last: -3);
+        var originalCulture = CultureInfo.CurrentCulture;
+        string invariantHash;
+        string swedishHash;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            invariantHash = new ExpressionHasher().Add(arguments).Compute();
+
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
+
+            // act
+            swedishHash = new ExpressionHasher().Add(arguments).Compute();
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+
+        // assert
+        Assert.Equal(invariantHash, swedishHash);
+    }
+
+    [Fact]
+    public static void Captured_Enum_With_Negative_Value_Should_ProduceSameHash_When_CultureIsSvSE()
+    {
+        // arrange
+        var originalCulture = CultureInfo.CurrentCulture;
+        string invariantHash;
+        string swedishHash;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            invariantHash = HashConstant(SampleEnum.Negative);
+
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
+
+            // act
+            swedishHash = HashConstant(SampleEnum.Negative);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+
+        // assert
+        Assert.Equal(invariantHash, swedishHash);
+    }
+
+    [Fact]
+    public static void Captured_Enum_Should_ProduceByteIdenticalHash_When_ValueIsNegative()
+    {
+        // arrange
+        // act
+        var hash = HashConstant(SampleEnum.Negative);
+
+        // assert
+        Assert.Equal("36eaabb0a6a8b3852c69ff6bdba0b500", hash);
+    }
+
+    [Fact]
+    public static void Captured_Enum_Should_ProduceByteIdenticalHash_When_ValueIsPositive()
+    {
+        // arrange
+        // act
+        var hash = HashConstant(SampleEnum.Positive);
+
+        // assert
+        Assert.Equal("d1a41c292640b9272a93193aa8b1c11b", hash);
+    }
+
     private static string HashConstant(object value)
         => new ExpressionHasher().Add(Expression.Constant(value)).Compute();
 
     private readonly record struct ExpressionParameterMirror<T>(T p);
 
     private readonly record struct StructKey(int Id, string Name);
+
+    private enum SampleEnum
+    {
+        Negative = -5,
+        Positive = 5
+    }
 
     private readonly struct AmbiguousFormattable(string text) : IFormattable
     {

@@ -62,6 +62,17 @@ public readonly record struct PagingArguments
     /// </summary>
     public bool IncludeTotalCount { get; init; }
 
+    private readonly bool _excludeItems;
+
+    /// <summary>
+    /// Defines if items shall be included in the result. Set to <c>false</c> to run only a
+    /// total count query and return a page without rows; this is only meaningful together
+    /// with <see cref="IncludeTotalCount"/> set to <c>true</c>, otherwise the paging methods
+    /// raise an error. Defaults to <c>true</c> for every way of creating the arguments,
+    /// including <c>default</c>.
+    /// </summary>
+    public bool IncludeItems { get => !_excludeItems; init => _excludeItems = !value; }
+
     /// <summary>
     /// Defines if relative cursors are allowed.
     /// </summary>

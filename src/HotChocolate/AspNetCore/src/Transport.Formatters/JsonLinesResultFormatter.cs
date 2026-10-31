@@ -240,7 +240,8 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         SemaphoreSlim semaphore,
         ChunkedPipeBufferWriter writer)
     {
-        private OperationResultFormatterContext? _formatContext;
+        private OperationResultFormatterContext? _formatContext
+            = OperationResultFormatterContext.CreateForResponseStream(useIncrementalRfc1);
 
         public async Task ProcessAsync(CancellationToken ct)
         {
@@ -378,6 +379,15 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
             var span = writer.GetSpan(1);
             span[0] = NewLine;
             writer.Advance(1);
+
+            if (context is { HasFinalCarriedPayload: true })
+            {
+                payloadFormatter.FormatCarried(writer, context);
+
+                span = writer.GetSpan(1);
+                span[0] = NewLine;
+                writer.Advance(1);
+            }
         }
 
         public static ReadOnlySpan<byte> KeepAlive => " \n"u8;

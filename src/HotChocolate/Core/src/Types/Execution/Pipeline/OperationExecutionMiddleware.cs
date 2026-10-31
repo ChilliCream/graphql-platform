@@ -121,23 +121,24 @@ internal sealed class OperationExecutionMiddleware
             : queryRoot;
         var operationContextBuffer = ArrayPool<OperationContextOwner>.Shared.Rent(variableSets.Length);
         var resultBuffer = ArrayPool<IExecutionResult>.Shared.Rent(variableSets.Length);
-
-        for (var variableIndex = 0; variableIndex < variableSets.Length; variableIndex++)
-        {
-            Initialize(
-                context,
-                batchDispatcher,
-                operation,
-                rootValue,
-                queryRoot,
-                operationContextBuffer.AsSpan(0, variableSets.Length),
-                variableSets[variableIndex],
-                variableIndex,
-                _contextFactory);
-        }
+        operationContextBuffer.AsSpan(0, variableSets.Length).Clear();
 
         try
         {
+            for (var variableIndex = 0; variableIndex < variableSets.Length; variableIndex++)
+            {
+                Initialize(
+                    context,
+                    batchDispatcher,
+                    operation,
+                    rootValue,
+                    queryRoot,
+                    operationContextBuffer.AsSpan(0, variableSets.Length),
+                    variableSets[variableIndex],
+                    variableIndex,
+                    _contextFactory);
+            }
+
             await _queryExecutor.ExecuteBatchAsync(
                 operationContextBuffer,
                 resultBuffer,
@@ -151,13 +152,31 @@ internal sealed class OperationExecutionMiddleware
 
             context.Result = new OperationResultBatch([.. resultBuffer.AsSpan(0, variableSets.Length)]);
         }
-        catch (OperationCanceledException)
+        catch (Exception ex)
         {
-            // if an operation is canceled we will abandon the rented operation contexts
-            // to ensure that that abandoned tasks do not leak into new operations.
-            AbandonContexts(ref operationContextBuffer, variableSets.Length);
+            try
+            {
+                // No result will be built, so the cleanup tasks registered for the request would
+                // never run if we did not release them here.
+                for (var i = 0; i < variableSets.Length; i++)
+                {
+                    if (operationContextBuffer[i] is { } owner)
+                    {
+                        await ExecuteAbortCleanupAsync(owner.OperationContext).ConfigureAwait(false);
+                    }
+                }
+            }
+            finally
+            {
+                if (ex is OperationCanceledException)
+                {
+                    // If an operation is canceled we abandon the rented operation contexts so
+                    // abandoned tasks do not leak into new operations.
+                    AbandonContexts(ref operationContextBuffer, variableSets.Length);
+                }
+            }
 
-            // we rethrow so that another middleware can deal with the cancellation.
+            // We rethrow so that another middleware can deal with the failure.
             throw;
         }
         finally
@@ -285,18 +304,49 @@ internal sealed class OperationExecutionMiddleware
 
             return result;
         }
-        catch (OperationCanceledException)
+        catch (Exception ex)
         {
-            // if an operation is canceled we will abandon the rented operation context
-            // to ensure that that abandoned tasks do not leak into new operations.
-            operationContextOwner = null;
+            if (ex is OperationCanceledException)
+            {
+                // if an operation is canceled we will abandon the rented operation context
+                // to ensure that that abandoned tasks do not leak into new operations.
+                operationContextOwner = null;
+            }
 
-            // we rethrow so that another middleware can deal with the cancellation.
+            // No result will be built, so the cleanup tasks registered for the request would
+            // never run if we did not release them here.
+            await ExecuteAbortCleanupAsync(operationContext).ConfigureAwait(false);
+
+            // We rethrow so that another middleware can deal with the failure.
             throw;
         }
         finally
         {
             operationContextOwner?.Dispose();
+        }
+    }
+
+    private static async ValueTask ExecuteAbortCleanupAsync(OperationContext operationContext)
+    {
+        try
+        {
+            if (operationContext.RequestCleanup is { } requestCleanup)
+            {
+                await requestCleanup.ExecuteAsync().ConfigureAwait(false);
+            }
+        }
+        catch
+        {
+            // Preserve the execution exception that caused the abort.
+        }
+
+        try
+        {
+            await operationContext.Result.ExecuteCleanupTasksAsync().ConfigureAwait(false);
+        }
+        catch
+        {
+            // Preserve the execution exception that caused the abort.
         }
     }
 
