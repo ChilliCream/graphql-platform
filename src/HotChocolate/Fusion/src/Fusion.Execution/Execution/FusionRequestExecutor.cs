@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Policies.Audit;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -69,12 +70,13 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return ExecuteAsync(request, null, cancellationToken);
+        return ExecuteAsync(request, null, null, cancellationToken);
     }
 
     private async Task<IExecutionResult> ExecuteAsync(
         IOperationRequest request,
         int? requestIndex,
+        AuditInvocation? auditInvocation,
         CancellationToken cancellationToken)
     {
         IServiceScope? scope = null;
@@ -99,6 +101,11 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                 requestIndex ?? -1,
                 requestServices,
                 cancellationToken);
+
+            if (auditInvocation is not null)
+            {
+                context.Features.Set(auditInvocation);
+            }
 
             context.AttachMemory(new MemoryArena());
 
@@ -195,9 +202,10 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
         // wrapper's memory, so the wrappers must stay alive until the consumer has processed
         // all results; we dispose them once the batch response stream itself is disposed.
         var unwrappedResults = new ConcurrentQueue<IExecutionResult>();
+        var auditInvocation = new AuditInvocation();
 
         var response = new ResponseStream(
-            () => CreateResponseStream(requestBatch, unwrappedResults, cancellationToken),
+            () => CreateResponseStream(requestBatch, unwrappedResults, auditInvocation, cancellationToken),
             ExecutionResultKind.BatchResult);
 
         response.RegisterForCleanup(async () =>
@@ -214,6 +222,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     private async IAsyncEnumerable<OperationResult> CreateResponseStream(
         OperationRequestBatch requestBatch,
         ConcurrentQueue<IExecutionResult> unwrappedResults,
+        AuditInvocation auditInvocation,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         IServiceScope? scope = null;
@@ -229,7 +238,12 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 
         try
         {
-            await foreach (var result in ExecuteBatchStream(requestBatch, requestServices, unwrappedResults, ct)
+            await foreach (var result in ExecuteBatchStream(
+                requestBatch,
+                requestServices,
+                unwrappedResults,
+                auditInvocation,
+                ct)
                 .ConfigureAwait(false))
             {
                 yield return result;
@@ -252,6 +266,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
         OperationRequestBatch requestBatch,
         IServiceProvider services,
         ConcurrentQueue<IExecutionResult> unwrappedResults,
+        AuditInvocation auditInvocation,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         var requests = requestBatch.Requests;
@@ -262,7 +277,13 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 
         for (var i = 0; i < requestCount; i++)
         {
-            tasks.Add(ExecuteBatchItemAsync(WithServices(requests[i], services), i, completed, unwrappedResults, ct));
+            tasks.Add(ExecuteBatchItemAsync(
+                WithServices(requests[i], services),
+                i,
+                completed,
+                unwrappedResults,
+                auditInvocation,
+                ct));
         }
 
         var buffer = new OperationResult[Math.Min(16, requestCount)];
@@ -324,9 +345,11 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
         int requestIndex,
         ConcurrentQueue<OperationResult> completed,
         ConcurrentQueue<IExecutionResult> unwrappedResults,
+        AuditInvocation auditInvocation,
         CancellationToken cancellationToken)
     {
-        var result = await ExecuteAsync(request, requestIndex, cancellationToken).ConfigureAwait(false);
+        var result = await ExecuteAsync(request, requestIndex, auditInvocation, cancellationToken)
+            .ConfigureAwait(false);
         await UnwrapBatchItemResultAsync(result, completed, unwrappedResults, cancellationToken);
     }
 

@@ -32,6 +32,7 @@ public sealed partial class OperationPlanner
         int searchSpace,
         int expandedNodes,
         int nextNodeId,
+        PolicyPlanContext? policyContext,
         CancellationToken cancellationToken)
     {
         if (operation.IsIntrospectionOnly())
@@ -50,6 +51,7 @@ public sealed partial class OperationPlanner
                 nodes,
                 deliveryGroups,
                 incrementalPlans,
+                null,
                 searchSpace,
                 expandedNodes);
 
@@ -59,9 +61,20 @@ public sealed partial class OperationPlanner
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
-        var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
+        var marker = policyContext is null
+            ? null
+            : PolicyMarker.TryCreate(_schema, policyContext, operation);
 
-        planSteps = TransformPlanSteps(planSteps, operationDefinition);
+        planSteps = TransformPlanSteps(planSteps, operationDefinition, marker);
+
+        var hasVariables = operationDefinition.VariableDefinitions.Count > 0
+            || marker is { HasVariables: true };
+
+        if (policyContext is not null && marker is not null)
+        {
+            policyContext.AddRoot(marker);
+        }
+
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
         var splitForEntityReuse = _options.EnableEntityReuseSplitting
@@ -113,6 +126,7 @@ public sealed partial class OperationPlanner
             allNodes,
             deliveryGroups,
             incrementalPlans,
+            policyContext?.CreatePlan(),
             searchSpace,
             expandedNodes);
 
@@ -515,15 +529,27 @@ public sealed partial class OperationPlanner
 
     private static ImmutableList<PlanStep> TransformPlanSteps(
         ImmutableList<PlanStep> planSteps,
-        OperationDefinitionNode originalOperation)
+        OperationDefinitionNode originalOperation,
+        PolicyMarker? marker)
     {
-        var updatedPlanSteps = planSteps;
         var forwardVariableContext = new ForwardVariableRewriter.Context();
 
         foreach (var variableDef in originalOperation.VariableDefinitions)
         {
             forwardVariableContext.Variables[variableDef.Variable.Name.Value] = variableDef;
         }
+
+        if (marker is not null)
+        {
+            planSteps = marker.Mark(planSteps);
+
+            foreach (var variableDef in marker.GetVariableDefinitions())
+            {
+                forwardVariableContext.Variables[variableDef.Variable.Name.Value] = variableDef;
+            }
+        }
+
+        var updatedPlanSteps = planSteps;
 
         foreach (var step in planSteps)
         {

@@ -3,6 +3,7 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +22,8 @@ public sealed class FusionGatewaySetup
     public List<Action<FusionCostOptions>> CostOptionsModifiers { get; } = [];
 
     public List<Action<FusionParserOptions>> ParserOptionsModifiers { get; } = [];
+
+    public List<Action<FusionAuthorizationOptions>> AuthorizationOptionsModifiers { get; } = [];
 
     public List<Action<IServiceProvider, IServiceCollection>> SchemaServiceModifiers { get; } = [];
 

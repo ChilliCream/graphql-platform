@@ -9,7 +9,9 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.AspNetCore;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -59,6 +61,10 @@ public static class FusionServerServiceCollectionExtensions
         builder.ConfigureSchemaServices((applicationServices, sc) =>
         {
             sc.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
+
+            sc.TryAddSingleton<IAuthenticationSchemeLookup>(
+                _ => new AspNetCoreAuthenticationSchemeLookup(
+                    applicationServices.GetService<IAuthenticationSchemeProvider>()));
 
             sc.TryAddSingleton<IHttpResponseFormatter>(
                 sp => DefaultHttpResponseFormatter.Create(

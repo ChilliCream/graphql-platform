@@ -12,6 +12,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -176,7 +177,9 @@ public abstract partial class FusionTestBase
                 var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
                 var executor = await manager.GetExecutorAsync();
                 var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
-                var parser = new JsonOperationPlanParser(operationCompiler);
+                var parser = new JsonOperationPlanParser(
+                    operationCompiler,
+                    executor.Schema.Services.GetRequiredService<IPolicyResolver>());
 
                 var buffer = new PooledArrayWriter();
                 await using var jsonWriter = new Utf8JsonWriter(buffer);

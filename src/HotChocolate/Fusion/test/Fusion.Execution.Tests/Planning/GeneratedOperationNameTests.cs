@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
@@ -54,7 +55,10 @@ public sealed class GeneratedOperationNameTests : FusionTestBase
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
-        var planner = new OperationPlanner(schema, new OperationCompiler(schema, pool));
+        var planner = new OperationPlanner(
+            schema,
+            new OperationCompiler(schema, pool),
+            TestPolicyResolver.Create());
 
         return planner.CreatePlan(
             "operation-id",

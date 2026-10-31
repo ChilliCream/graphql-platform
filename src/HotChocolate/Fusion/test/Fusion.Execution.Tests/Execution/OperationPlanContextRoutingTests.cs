@@ -484,6 +484,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 requestContext,
                 _variables,
                 variableIndex: -1,
+                null,
                 _operationPlan,
                 cts,
                 new MemoryArena());

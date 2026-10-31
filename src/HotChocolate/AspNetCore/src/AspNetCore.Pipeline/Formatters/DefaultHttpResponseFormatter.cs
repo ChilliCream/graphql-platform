@@ -413,6 +413,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     response.Headers.AppendVary(varyHeaderValue);
                 }
 
+                if (statusCode is (int)HttpStatusCode.Unauthorized
+                    && result.ContextData.TryGetValue(
+                        ExecutionContextData.WwwAuthenticateHeaderValue,
+                        out var challengeValue)
+                    && challengeValue is string challengeHeaderValue)
+                {
+                    response.Headers.WWWAuthenticate = challengeHeaderValue;
+                }
+
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
 
                 if (format.Kind is ResponseContentType.GraphQLResponse or ResponseContentType.Json)

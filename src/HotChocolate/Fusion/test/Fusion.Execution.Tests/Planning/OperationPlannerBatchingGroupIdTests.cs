@@ -7,6 +7,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Rewriters;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -220,7 +221,7 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
 
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
-        var parser = new JsonOperationPlanParser(new OperationCompiler(schema, pool));
+        var parser = new JsonOperationPlanParser(new OperationCompiler(schema, pool), TestPolicyResolver.Create());
         plan = parser.Parse(
             Encoding.UTF8.GetBytes(
                 jsonDocument.ToJsonString(
@@ -293,7 +294,8 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
             new OperationPlannerOptions
             {
                 EnableRequestGrouping = enableRequestGrouping
-            });
+            },
+            TestPolicyResolver.Create());
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
     }
