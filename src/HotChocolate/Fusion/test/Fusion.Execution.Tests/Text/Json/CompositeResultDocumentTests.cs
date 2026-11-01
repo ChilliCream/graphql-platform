@@ -1160,6 +1160,112 @@ public class CompositeResultDocumentTests : FusionTestBase
         Assert.Equal("""{"productBySlug":{"id":1,"name":"Abc"}}""", inlineJson);
     }
 
+    [Theory]
+    [InlineData(0UL, 0UL)]
+    [InlineData(ulong.MaxValue, 0UL)]
+    [InlineData(0UL, ulong.MaxValue)]
+    [InlineData(ulong.MaxValue, ulong.MaxValue)]
+    [InlineData(0x5555555555555555UL, 0xAAAAAAAAAAAAAAAAUL)]
+    public void TryGetProperty_Should_ReturnRequestedSelection_When_ObjectHoldsConditionalAndDeferredSelections(
+        ulong includeFlags,
+        ulong deferFlags)
+    {
+        // arrange
+        // compile the operation directly so deferred fragments stay in one selection set
+        var schema = CreateCompositeSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query($include: Boolean!, $skip: Boolean!) {
+                productBySlug(slug: "1") {
+                    id
+                    name @include(if: $include)
+                    price @skip(if: $skip)
+                    ... @defer {
+                        description
+                        dimension {
+                            height
+                            ... @defer {
+                                width
+                            }
+                        }
+                    }
+                    averageRating
+                }
+            }
+            """);
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        var compiler = new OperationCompiler(
+            schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
+
+        var result = new CompositeResultDocument(
+            CommonTestExtensions.CreateArena(),
+            operation,
+            includeFlags,
+            deferFlags);
+        var productBySlug = result.Data.GetProperty("productBySlug");
+        var productSelectionSet = operation.GetSelectionSet(productBySlug.AssertSelection());
+        productBySlug.SetObjectValue(productSelectionSet);
+        var dimension = productBySlug.GetProperty("dimension");
+        var dimensionSelectionSet = operation.GetSelectionSet(dimension.AssertSelection());
+        dimension.SetObjectValue(dimensionSelectionSet);
+
+        // act
+        var report = string.Join(
+            Environment.NewLine,
+            DescribeNameLookups("productBySlug", productBySlug, productSelectionSet)
+                .Concat(DescribeNameLookups("dimension", dimension, dimensionSelectionSet)));
+
+        // assert
+        Assert.Equal(
+            """
+            productBySlug.id: ok
+            productBySlug.averageRating: ok
+            productBySlug.name: ok
+            productBySlug.price: ok
+            productBySlug.description: ok
+            productBySlug.dimension: ok
+            dimension.height: ok
+            dimension.width: ok
+            """.ReplaceLineEndings(),
+            report);
+    }
+
+    [Fact]
+    public void TryGetProperty_Should_ReturnFalse_When_NameIsNotPartOfTheSelectionSet()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            query($flag: Boolean!) {
+                productBySlug(slug: "1") {
+                    id
+                    name @include(if: $flag)
+                }
+            }
+            """);
+        var result = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var productBySlug = result.Data.GetProperty("productBySlug");
+        productBySlug.SetObjectValue(plan.Operation.GetSelectionSet(productBySlug.AssertSelection()));
+        var memo = default(PropertyLookupMemo);
+
+        // act
+        var outcome = new[]
+        {
+            productBySlug.TryGetProperty("price", out _),
+            productBySlug.TryGetProperty("price", ref memo, out _),
+            productBySlug.TryGetProperty("price"u8, out _),
+            productBySlug.TryGetProperty("price"u8, out _, out _)
+        };
+
+        // assert
+        Assert.Equal([false, false, false, false], outcome);
+    }
+
     [Fact]
     public void CreateObject_Should_EmitRowsIdenticalToPerRowAppends_When_TemplateIsApplied()
     {
@@ -1455,6 +1561,54 @@ public class CompositeResultDocumentTests : FusionTestBase
             + $"namePath={productBySlug.GetProperty("name").Path}";
 
         return (Encoding.UTF8.GetString(buffer.WrittenSpan), geometry);
+    }
+
+    private static List<string> DescribeNameLookups(
+        string objectName,
+        CompositeResultElement element,
+        SelectionSet selectionSet)
+    {
+        var report = new List<string>();
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            var memo = default(PropertyLookupMemo);
+            var lookups = new (string Overload, bool Found, CompositeResultElement Value)[5];
+
+            lookups[0].Overload = "string";
+            lookups[0].Found = element.TryGetProperty(selection.ResponseName, out lookups[0].Value);
+
+            lookups[1].Overload = "memo";
+            lookups[1].Found = element.TryGetProperty(selection.ResponseName, ref memo, out lookups[1].Value);
+
+            lookups[2].Overload = "memoHit";
+            lookups[2].Found = element.TryGetProperty(selection.ResponseName, ref memo, out lookups[2].Value);
+
+            lookups[3].Overload = "utf8";
+            lookups[3].Found = element.TryGetProperty(selection.Utf8ResponseName, out lookups[3].Value);
+
+            lookups[4].Overload = "utf8Selection";
+            lookups[4].Found = element.TryGetProperty(selection.Utf8ResponseName, out lookups[4].Value, out var found);
+
+            var mismatches = lookups
+                .Where(l => !l.Found
+                    || l.Value.GetPropertyName() != selection.ResponseName
+                    || !ReferenceEquals(l.Value.AssertSelection(), selection))
+                .Select(l => l.Overload)
+                .ToList();
+
+            if (!ReferenceEquals(found, selection))
+            {
+                mismatches.Add("utf8SelectionOut");
+            }
+
+            report.Add(
+                mismatches.Count == 0
+                    ? $"{objectName}.{selection.ResponseName}: ok"
+                    : $"{objectName}.{selection.ResponseName}: {string.Join(",", mismatches)}");
+        }
+
+        return report;
     }
 
     private static string MaterializeProductResult(
