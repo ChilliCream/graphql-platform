@@ -25,8 +25,8 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
               nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
             Arguments:
-              <allow-non-resolvable-interface-objects|cache-control-merge-behavior|default-list-size|enum-values-merge-behavior|exclude-by-tag|global-object-identification|include-satisfiability-paths|node-resolution|shareable-field-runtime-type-routing|tag-merge-behavior>  The name of the setting to change
-              <SETTING_VALUE>                                                                                                                                                                                                                                                      The value to set
+              <allow-non-resolvable-interface-objects|cache-control-merge-behavior|case-budget|case-budget-exceeded-behavior|cost-plan-cache-size|default-list-size|enforce-cost-limits|enum-values-merge-behavior|exclude-by-tag|global-object-identification|include-satisfiability-paths|max-field-cost|max-response-size|max-type-cost|node-resolution|shareable-field-runtime-type-routing|skip-cost-analyzer|tag-merge-behavior>  The name of the setting to change
+              <SETTING_VALUE>                                                                                                                                                                                                                                                                                                                                                                                                           The value to set
 
             Options:
               -a, --archive <archive> (REQUIRED)      The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
@@ -92,13 +92,21 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             Argument 'nonexistent-setting' not recognized. Must be one of:
             'allow-non-resolvable-interface-objects'
             'cache-control-merge-behavior'
+            'case-budget'
+            'case-budget-exceeded-behavior'
+            'cost-plan-cache-size'
             'default-list-size'
+            'enforce-cost-limits'
             'enum-values-merge-behavior'
             'exclude-by-tag'
             'global-object-identification'
             'include-satisfiability-paths'
+            'max-field-cost'
+            'max-response-size'
+            'max-type-cost'
             'node-resolution'
             'shareable-field-runtime-type-routing'
+            'skip-cost-analyzer'
             'tag-merge-behavior'
             """);
         Assert.Equal(1, result.ExitCode);
@@ -264,11 +272,35 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         "cacheControlMergeBehavior",
         "\"Ignore\"")]
     [InlineData(
+        "case-budget",
+        "-1",
+        "merger",
+        "caseBudget",
+        "-1")]
+    [InlineData(
+        "case-budget-exceeded-behavior",
+        "overestimate",
+        "merger",
+        "caseBudgetExceededBehavior",
+        "\"Overestimate\"")]
+    [InlineData(
+        "cost-plan-cache-size",
+        "1",
+        "merger",
+        "costPlanCacheSize",
+        "1")]
+    [InlineData(
         "default-list-size",
         "5",
         "merger",
         "defaultListSize",
         "5")]
+    [InlineData(
+        "enforce-cost-limits",
+        "false",
+        "merger",
+        "enforceCostLimits",
+        "false")]
     [InlineData(
         "enum-values-merge-behavior",
         "union",
@@ -294,6 +326,24 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         "includeSatisfiabilityPaths",
         "true")]
     [InlineData(
+        "max-field-cost",
+        "1.5",
+        "merger",
+        "maxFieldCost",
+        "1.5")]
+    [InlineData(
+        "max-response-size",
+        "2.5",
+        "merger",
+        "maxResponseSize",
+        "2.5")]
+    [InlineData(
+        "max-type-cost",
+        "3.5",
+        "merger",
+        "maxTypeCost",
+        "3.5")]
+    [InlineData(
         "node-resolution",
         "gateway",
         "merger",
@@ -305,6 +355,12 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         "apolloFederationCompatibility",
         "shareableFieldRuntimeTypeRouting",
         "\"CommonRuntimeTypes\"")]
+    [InlineData(
+        "skip-cost-analyzer",
+        "true",
+        "merger",
+        "skipCostAnalyzer",
+        "true")]
     [InlineData(
         "tag-merge-behavior",
         "include-private",
@@ -351,6 +407,119 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         {
             File.Delete(archiveFile);
         }
+    }
+
+    [Theory]
+    [InlineData("case-budget", "-1", "caseBudget")]
+    [InlineData("case-budget-exceeded-behavior", "overestimate", "caseBudgetExceededBehavior")]
+    [InlineData("cost-plan-cache-size", "1", "costPlanCacheSize")]
+    [InlineData("enforce-cost-limits", "false", "enforceCostLimits")]
+    [InlineData("max-field-cost", "1.5", "maxFieldCost")]
+    [InlineData("max-response-size", "2.5", "maxResponseSize")]
+    [InlineData("max-type-cost", "3.5", "maxTypeCost")]
+    [InlineData("skip-cost-analyzer", "true", "skipCostAnalyzer")]
+    public async Task Execute_Should_ClearNullableCostSetting(
+        string settingName,
+        string settingValue,
+        string propertyName)
+    {
+        // arrange
+        var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"),
+            archiveFile);
+        SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+
+        try
+        {
+            // act
+            var setResult = await ExecuteCommandAsync(
+                "fusion",
+                "settings",
+                "set",
+                settingName,
+                settingValue,
+                "--archive",
+                archiveFile);
+            var clearResult = await ExecuteCommandAsync(
+                "fusion",
+                "settings",
+                "set",
+                settingName,
+                "null",
+                "--archive",
+                archiveFile);
+
+            // assert
+            Assert.Equal(0, setResult.ExitCode);
+            Assert.Equal(0, clearResult.ExitCode);
+            using var archive = FusionArchive.Open(archiveFile);
+            using var settings = await archive.GetCompositionSettingsAsync(
+                TestContext.Current.CancellationToken);
+            Assert.Equal(
+                "null",
+                settings!.RootElement
+                    .GetProperty("merger")
+                    .GetProperty(propertyName)
+                    .GetRawText());
+        }
+        finally
+        {
+            File.Delete(archiveFile);
+        }
+    }
+
+    [Theory]
+    [InlineData(
+        "case-budget",
+        "not-an-integer",
+        "Expected an integer or 'null' for setting 'case-budget'.")]
+    [InlineData(
+        "case-budget-exceeded-behavior",
+        "invalid",
+        "Expected one of the following values or 'null' for setting "
+        + "'case-budget-exceeded-behavior': evaluate-per-request, overestimate")]
+    [InlineData(
+        "cost-plan-cache-size",
+        "0",
+        "Expected a positive integer or 'null' for setting 'cost-plan-cache-size'.")]
+    [InlineData(
+        "enforce-cost-limits",
+        "invalid",
+        "Expected a boolean value or 'null' for setting 'enforce-cost-limits'.")]
+    [InlineData(
+        "max-field-cost",
+        "-1",
+        "Expected a non-negative number or 'null' for setting 'max-field-cost'.")]
+    [InlineData(
+        "max-response-size",
+        "Infinity",
+        "Expected a non-negative number or 'null' for setting 'max-response-size'.")]
+    [InlineData(
+        "max-type-cost",
+        "-1",
+        "Expected a non-negative number or 'null' for setting 'max-type-cost'.")]
+    [InlineData(
+        "skip-cost-analyzer",
+        "invalid",
+        "Expected a boolean value or 'null' for setting 'skip-cost-analyzer'.")]
+    public async Task Execute_Should_ReturnError_When_CostSettingIsInvalid(
+        string settingName,
+        string settingValue,
+        string expectedError)
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            settingName,
+            settingValue,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.AssertError(expectedError);
     }
 
     [Fact]

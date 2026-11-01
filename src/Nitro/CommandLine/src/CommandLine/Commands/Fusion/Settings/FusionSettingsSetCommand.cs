@@ -56,7 +56,7 @@ internal sealed class FusionSettingsSetCommand : Command
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
 
         var compositionSettings = new CompositionSettings();
-        var unsetDefaultListSize = false;
+        Action<CompositionSettings>? clearSetting = null;
 
         switch (settingName)
         {
@@ -83,10 +83,70 @@ internal sealed class FusionSettingsSetCommand : Command
                 compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
                 break;
 
+            case FusionSettingsNameArgument.CaseBudget:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    clearSetting = settings => settings.Merger.CaseBudget = null;
+                }
+                else if (!int.TryParse(
+                        settingValue,
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out var caseBudget))
+                {
+                    throw new ExitException(
+                        $"Expected an integer or 'null' for setting '{settingName}'.");
+                }
+                else
+                {
+                    compositionSettings.Merger.CaseBudget = caseBudget;
+                }
+                break;
+
+            case FusionSettingsNameArgument.CaseBudgetExceededBehavior:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    clearSetting = settings => settings.Merger.CaseBudgetExceededBehavior = null;
+                }
+                else if (!CaseBudgetExceededBehaviorParser.TryParse(
+                        settingValue,
+                        out var caseBudgetExceededBehavior))
+                {
+                    throw new ExitException(
+                        $"Expected one of the following values or 'null' for setting '{settingName}': "
+                        + $"{string.Join(", ", CaseBudgetExceededBehaviorParser.Values)}");
+                }
+                else
+                {
+                    compositionSettings.Merger.CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
+                }
+                break;
+
+            case FusionSettingsNameArgument.CostPlanCacheSize:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    clearSetting = settings => settings.Merger.CostPlanCacheSize = null;
+                }
+                else if (!int.TryParse(
+                        settingValue,
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out var costPlanCacheSize)
+                    || costPlanCacheSize <= 0)
+                {
+                    throw new ExitException(
+                        $"Expected a positive integer or 'null' for setting '{settingName}'.");
+                }
+                else
+                {
+                    compositionSettings.Merger.CostPlanCacheSize = costPlanCacheSize;
+                }
+                break;
+
             case FusionSettingsNameArgument.DefaultListSize:
                 if (string.Equals(settingValue, "null", StringComparison.Ordinal))
                 {
-                    unsetDefaultListSize = true;
+                    clearSetting = settings => settings.Merger.DefaultListSize = null;
                 }
                 else if (!int.TryParse(
                         settingValue,
@@ -101,6 +161,22 @@ internal sealed class FusionSettingsSetCommand : Command
                 else
                 {
                     compositionSettings.Merger.DefaultListSize = defaultListSize;
+                }
+                break;
+
+            case FusionSettingsNameArgument.EnforceCostLimits:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    clearSetting = settings => settings.Merger.EnforceCostLimits = null;
+                }
+                else if (!bool.TryParse(settingValue, out var enforceCostLimits))
+                {
+                    throw new ExitException(
+                        $"Expected a boolean value or 'null' for setting '{settingName}'.");
+                }
+                else
+                {
+                    compositionSettings.Merger.EnforceCostLimits = enforceCostLimits;
                 }
                 break;
 
@@ -143,6 +219,72 @@ internal sealed class FusionSettingsSetCommand : Command
                     includeSatisfiabilityPaths;
                 break;
 
+            case FusionSettingsNameArgument.MaxFieldCost:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    clearSetting = settings => settings.Merger.MaxFieldCost = null;
+                }
+                else if (!double.TryParse(
+                        settingValue,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var maxFieldCost)
+                    || !double.IsFinite(maxFieldCost)
+                    || maxFieldCost < 0)
+                {
+                    throw new ExitException(
+                        $"Expected a non-negative number or 'null' for setting '{settingName}'.");
+                }
+                else
+                {
+                    compositionSettings.Merger.MaxFieldCost = maxFieldCost;
+                }
+                break;
+
+            case FusionSettingsNameArgument.MaxResponseSize:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    clearSetting = settings => settings.Merger.MaxResponseSize = null;
+                }
+                else if (!double.TryParse(
+                        settingValue,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var maxResponseSize)
+                    || !double.IsFinite(maxResponseSize)
+                    || maxResponseSize < 0)
+                {
+                    throw new ExitException(
+                        $"Expected a non-negative number or 'null' for setting '{settingName}'.");
+                }
+                else
+                {
+                    compositionSettings.Merger.MaxResponseSize = maxResponseSize;
+                }
+                break;
+
+            case FusionSettingsNameArgument.MaxTypeCost:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    clearSetting = settings => settings.Merger.MaxTypeCost = null;
+                }
+                else if (!double.TryParse(
+                        settingValue,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var maxTypeCost)
+                    || !double.IsFinite(maxTypeCost)
+                    || maxTypeCost < 0)
+                {
+                    throw new ExitException(
+                        $"Expected a non-negative number or 'null' for setting '{settingName}'.");
+                }
+                else
+                {
+                    compositionSettings.Merger.MaxTypeCost = maxTypeCost;
+                }
+                break;
+
             case FusionSettingsNameArgument.NodeResolution:
                 compositionSettings.Merger.NodeResolution = settingValue switch
                 {
@@ -165,6 +307,22 @@ internal sealed class FusionSettingsSetCommand : Command
                             $"Expected one of the following values for setting '{settingName}': "
                             + "source-local, common-runtime-types")
                     };
+                break;
+
+            case FusionSettingsNameArgument.SkipCostAnalyzer:
+                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
+                {
+                    clearSetting = settings => settings.Merger.SkipCostAnalyzer = null;
+                }
+                else if (!bool.TryParse(settingValue, out var skipCostAnalyzer))
+                {
+                    throw new ExitException(
+                        $"Expected a boolean value or 'null' for setting '{settingName}'.");
+                }
+                else
+                {
+                    compositionSettings.Merger.SkipCostAnalyzer = skipCostAnalyzer;
+                }
                 break;
 
             case FusionSettingsNameArgument.TagMergeBehavior:
@@ -196,10 +354,10 @@ internal sealed class FusionSettingsSetCommand : Command
 
         using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
 
-        if (unsetDefaultListSize)
+        if (clearSetting is not null)
         {
             // Clear the persisted value first: merging null settings preserves an existing value.
-            await ClearDefaultListSizeSettingAsync(archive, cancellationToken);
+            await ClearSettingAsync(archive, clearSetting, cancellationToken);
         }
 
         environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
@@ -244,8 +402,9 @@ internal sealed class FusionSettingsSetCommand : Command
         }
     }
 
-    private static async Task ClearDefaultListSizeSettingAsync(
+    private static async Task ClearSettingAsync(
         FusionArchive archive,
+        Action<CompositionSettings> clearSetting,
         CancellationToken cancellationToken)
     {
         var compositionLog = new CompositionLog();
@@ -261,7 +420,7 @@ internal sealed class FusionSettingsSetCommand : Command
             throw new ExitException(string.Join(Environment.NewLine, compositionLog.Select(e => e.Message)));
         }
 
-        existingSettings.Merger.DefaultListSize = null;
+        clearSetting(existingSettings);
 
         using var updatedSettingsJson = JsonSerializer.SerializeToDocument(
             existingSettings,
