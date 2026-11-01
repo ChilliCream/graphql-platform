@@ -60,6 +60,11 @@ internal static class SourceSchemaTransitionHelper
     /// <paramref name="transitionToSchemaName"/>, is re-rooted at, or <c>null</c> when the path
     /// cannot be re-rooted.
     /// </param>
+    /// <param name="budget">The budget for the explanation entries of the search.</param>
+    /// <param name="transitionFails">
+    /// Whether the transition is known to fail, so that every lookup it tries is listed even when the
+    /// budget is used up. Otherwise, a lookup that the budget cuts stands for one omitted entry.
+    /// </param>
     /// <returns>
     /// An empty array if the transition is satisfiable; otherwise the
     /// accumulated errors describing every direct and parent-call lookup that
@@ -77,7 +82,9 @@ internal static class SourceSchemaTransitionHelper
             ImmutableArray<SatisfiabilityError>> validateLookupRequirements,
         string noLookupsFoundForTypeMessageFormat,
         string unableToSatisfyRequirementForLookupMessageFormat,
-        MutableOutputFieldDefinition? queryViewerField)
+        MutableOutputFieldDefinition? queryViewerField,
+        SatisfiabilityExplanationBudget budget,
+        bool transitionFails)
     {
         var errors = new List<SatisfiabilityError>();
 
@@ -214,7 +221,7 @@ internal static class SourceSchemaTransitionHelper
         if (errors.Count == 0)
         {
             errors.Add(
-                new SatisfiabilityError(
+                budget.CreateError(
                     string.Format(
                         noLookupsFoundForTypeMessageFormat,
                         type.Name,
@@ -265,30 +272,44 @@ internal static class SourceSchemaTransitionHelper
 
             var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
             var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
+            ImmutableArray<SatisfiabilityError> requirementErrors = [];
 
-            IReadOnlyList<SatisfiabilityPathItem> pathFromParent =
-                parentIndex < pathFromLeaf.Count ? [.. pathFromLeaf.Skip(parentIndex)] : [];
-
-            var requirementErrors =
-                validateLookupRequirements(contextType, pathFromParent, lookupRequirements);
-
-            if (requirementErrors.IsEmpty)
+            if (!budget.IsExhausted)
             {
-                return true;
+                IReadOnlyList<SatisfiabilityPathItem> pathFromParent =
+                    parentIndex < pathFromLeaf.Count ? [.. pathFromLeaf.Skip(parentIndex)] : [];
+
+                requirementErrors =
+                    validateLookupRequirements(contextType, pathFromParent, lookupRequirements);
+
+                if (requirementErrors.IsEmpty && !budget.IsExhausted)
+                {
+                    return true;
+                }
+            }
+
+            // Once the budget is used up, the search of the lookup key does not decide whether the
+            // lookup works, which is only known when the transition fails.
+            if (budget.IsExhausted && !transitionFails)
+            {
+                sink.Add(SatisfiabilityError.Unexplained);
+                return false;
             }
 
             var lookupName = lookupPathArg is null
                 ? lookupFieldName
                 : $"{lookupPathArg}.{lookupFieldName}";
+            var message =
+                string.Format(
+                    unableToSatisfyRequirementForLookupMessageFormat,
+                    lookupRequirements.ToString(indented: false),
+                    lookupName,
+                    transitionToSchemaName);
 
             sink.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        unableToSatisfyRequirementForLookupMessageFormat,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
+                transitionFails
+                    ? budget.CreateKnownError(message, requirementErrors)
+                    : budget.CreateError(message, requirementErrors));
 
             return false;
         }
