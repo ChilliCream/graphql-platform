@@ -46,7 +46,9 @@ public static class FusionServerServiceCollectionExtensions
         }
         else
         {
-            builder.ModifyCostOptions(o => o.EnforceCostLimits = false);
+            FusionSetupUtilities.Configure(
+                builder,
+                options => options.CostOptionsModifiers.Add(o => o.EnforceCostLimits = false));
         }
 
         return builder;

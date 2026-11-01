@@ -17,6 +17,7 @@ public class CostPlanCacheTests : FusionTestBase
     {
         // arrange
         const int cacheCapacity = 517;
+#pragma warning disable CS0618
         var services = new ServiceCollection();
         services
             .AddGraphQLGateway()
@@ -28,6 +29,7 @@ public class CostPlanCacheTests : FusionTestBase
                       field: String!
                     }
                     """));
+#pragma warning restore CS0618
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
             cancellationToken: TestContext.Current.CancellationToken);
 

@@ -70,6 +70,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
     public async Task CostOptions_Should_ApplyCallbacksAfterSchemaValues_When_CallbacksAreConfigured()
     {
         // arrange
+#pragma warning disable CS0618
         var services = new ServiceCollection();
         services
             .AddGraphQLGateway()
@@ -87,6 +88,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
                         options.Merger.EnforceCostLimits = false;
                     },
                     SourceSchema));
+#pragma warning restore CS0618
 
         // act
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(

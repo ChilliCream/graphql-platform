@@ -49,7 +49,9 @@ public class CostEnforcementTests : FusionTestBase
         using var server = CreateSourceSchema("A", OverCostSchema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
+#pragma warning disable CS0618
             configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
+#pragma warning restore CS0618
         var request = new HotChocolate.Transport.OperationRequest(OverCostQuery);
 
         // act
@@ -77,7 +79,9 @@ public class CostEnforcementTests : FusionTestBase
             [("A", server)],
             configureGatewayBuilder: builder =>
             {
+#pragma warning disable CS0618
                 builder.ModifyCostOptions(o => o.MaxTypeCost = 1_000);
+#pragma warning restore CS0618
                 builder.UseRequest(
                     (_, next) => async context =>
                     {
@@ -124,7 +128,9 @@ public class CostEnforcementTests : FusionTestBase
         using var server = CreateSourceSchema("A", OverCostSchema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
+#pragma warning disable CS0618
             configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
+#pragma warning restore CS0618
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
             new Uri("http://localhost:5000/graphql"))
