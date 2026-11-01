@@ -164,15 +164,17 @@ builder.Services.AddGraphQLGatewayServer(
     disableDefaultSecurity: true);
 ```
 
-Set `EnforceCostLimits` to `false` when only cost enforcement should be disabled:
+Set `enforce-cost-limits` to `false` when only cost enforcement should be disabled:
 
-```csharp
-builder.Services
-    .AddGraphQLGatewayServer()
-    .ModifyCostOptions(options => options.EnforceCostLimits = false);
+```shell
+nitro fusion settings set enforce-cost-limits false --archive ./gateway.far
 ```
 
-Set `SkipAnalyzer` to `true` to bypass analysis, enforcement, and reporting.
+Set `skip-cost-analyzer` to `true` to bypass analysis, enforcement, and reporting:
+
+```shell
+nitro fusion settings set skip-cost-analyzer true --archive ./gateway.far
+```
 
 # Reporting and Validation
 
@@ -255,40 +257,38 @@ Cost enforcement runs before the operation-plan cache and before operation plann
 
 A custom pipeline must place `UseOperationVariableCoercion()` before `UseCostAnalysis()`, and place `UseCostAnalysis()` before `UseOperationPlanCache()`.
 
-# Options Reference
+# Composition Cost Settings
 
-Configure `FusionCostOptions` with `ModifyCostOptions`:
+Configure cost settings in the Fusion archive:
 
-| Option                       | Type                          | Default  | Contract                                                                                                                                       |
-| ---------------------------- | ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MaxFieldCost`               | `double`                      | `1,000`  | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                             |
-| `MaxTypeCost`                | `double`                      | `10,000` | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                              |
-| `EnforceCostLimits`          | `bool`                        | `true`   | Enforces the field, type, and response-size limits.                                                                                            |
-| `SkipAnalyzer`               | `bool`                        | `false`  | Skips analysis, enforcement, and reporting.                                                                                                    |
-| `MaxResponseSize`            | `double?`                     | `null`   | Maximum estimated response-field count. `null` disables this check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
-| `CostPlanCacheSize`          | `int`                         | `256`    | Maximum compiled cost plans cached per schema.                                                                                                 |
-| `CaseBudget`                 | `int?`                        | `null`   | Exact cases compiled per operation before `CaseBudgetExceededBehavior` decides the fallback. `null` uses the default (510).                    |
-| `CaseBudgetExceededBehavior` | `CaseBudgetExceededBehavior?` | `null`   | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                                   |
-
-```csharp
-builder.Services
-    .AddGraphQLGatewayServer()
-    .ModifyCostOptions(options =>
-    {
-        options.MaxFieldCost = 5_000;
-        options.MaxTypeCost = 5_000;
-        options.MaxResponseSize = 10_000;
-        options.CostPlanCacheSize = 512;
-    });
+```shell
+nitro fusion settings set max-field-cost 5000 --archive ./gateway.far
+nitro fusion settings set max-type-cost 5000 --archive ./gateway.far
+nitro fusion settings set max-response-size 10000 --archive ./gateway.far
+nitro fusion settings set cost-plan-cache-size 512 --archive ./gateway.far
 ```
 
-An operation whose exact compile would exceed `CaseBudget` is, by default (`CaseBudgetExceededBehavior.EvaluatePerRequest`), evaluated exactly per request instead of from a compiled plan: slower for that operation, but never over-estimated. `CaseBudgetExceededBehavior.Overestimate` restores the compiled, sound over-estimate for the unaffordable remainder instead.
+| Setting                         | Values                                                     | Default                         | Description                                                                |
+| ------------------------------- | ---------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------- |
+| `default-list-size`             | Non-negative integer, or `null` to unset                   | `null` (unbounded)              | Assumed size for lists without applicable `@listSize` metadata.            |
+| `max-field-cost`                | Non-negative finite number, or `null` to unset             | `1,000`                         | Maximum allowed field cost.                                                |
+| `max-type-cost`                 | Non-negative finite number, or `null` to unset             | `10,000`                        | Maximum allowed type cost.                                                 |
+| `enforce-cost-limits`           | `true`, `false`, or `null` to unset                        | `true`                          | Enforces the field, type, and response-size limits.                        |
+| `skip-cost-analyzer`            | `true`, `false`, or `null` to unset                        | `false`                         | Skips analysis, enforcement, and reporting.                                |
+| `max-response-size`             | Non-negative finite number, or `null` to unset             | `null` (disabled)               | Maximum estimated response-field count.                                    |
+| `cost-plan-cache-size`          | Positive integer, or `null` to unset                       | `256`                           | Maximum compiled cost plans cached per schema.                             |
+| `case-budget`                   | Integer, or `null` to unset                                | `null` (`510`)                  | Exact cases compiled before the case-budget behavior decides the fallback. |
+| `case-budget-exceeded-behavior` | `evaluate-per-request`, `overestimate`, or `null` to unset | `null` (`evaluate-per-request`) | Behavior once compiling one operation exhausts the case budget.            |
 
-> **Note:** The default list size from [List Size](#list-size) step 5 is not a gateway runtime option. It is a composition setting (`SourceSchemaMergerOptions.DefaultListSize`) carried into the execution schema by the `@fusion__cost_options(defaultListSize:)` directive, and the gateway reads it from there. See [Composition](./composition.md) for details.
+`ModifyCostOptions` is obsolete in v16. Values configured through it override the composition settings in the archive. It is removed in v17.
+
+An operation whose exact compile would exceed `case-budget` is, by default (`evaluate-per-request`), evaluated exactly per request instead of from a compiled plan: slower for that operation, but never over-estimated. `overestimate` restores the compiled, sound over-estimate for the unaffordable remainder instead.
+
+> **Note:** The default list size from [List Size](#list-size) step 5 is a composition setting carried into the execution schema by the `@fusion__cost_options(defaultListSize:)` directive. See [Composition](./composition.md) for details.
 
 # Per-Request Cost Options
 
-`FusionCostOptions` apply to every request by default, but a gateway can loosen or tighten those limits for a particular request or user by attaching a `FusionRequestCostOptions` to the request. A value set on the request replaces the corresponding gateway value for that request, in either direction: a request can raise a limit above the gateway default or lower it below the gateway default. Attached request options replace all of the gateway's limits for that request, and a `null` `MaxResponseSize` on the request means that request has no response-size limit.
+The composition cost settings apply to every request by default, but a gateway can loosen or tighten those limits for a particular request or user by attaching a `FusionRequestCostOptions` to the request. A value set on the request replaces the corresponding composition setting for that request, in either direction: a request can raise a limit above the composition setting or lower it below the composition setting. Attached request options replace all of the gateway's limits for that request, and a `null` `MaxResponseSize` on the request means that request has no response-size limit.
 
 The typical place to do this is an `IHttpRequestInterceptor`. Its `OnCreateAsync` method runs for every HTTP request and has access to the authenticated user, letting it pick request options based on group membership before the operation executes:
 
@@ -316,20 +316,25 @@ public class CostOptionsHttpRequestInterceptor : DefaultHttpRequestInterceptor
 }
 ```
 
+Configure the gateway's response-size limit before adding the interceptor:
+
+```shell
+nitro fusion settings set max-response-size 10000 --archive ./gateway.far
+```
+
 ```csharp
 builder.Services
     .AddGraphQLGatewayServer()
-    .ModifyCostOptions(options => options.MaxResponseSize = 10_000)
     .AddHttpRequestInterceptor<CostOptionsHttpRequestInterceptor>();
 ```
 
-Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost limits) than the gateway's configured limits, while every other request keeps enforcing the gateway's configured limits.
+Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost limits) than the configured composition settings, while every other request keeps enforcing those settings.
 
-Response-size analysis itself is an opt-in that is only ever enabled per gateway, by setting `FusionCostOptions.MaxResponseSize`. A request cannot turn the analysis on: if the gateway leaves `MaxResponseSize` unset (`null`) and a request nonetheless sets `FusionRequestCostOptions.MaxResponseSize`, the request fails fast with error code `HC0062` and the message:
+Response-size analysis itself is an opt-in that is only ever enabled through the `max-response-size` composition setting. A request cannot turn the analysis on: if the composition setting is unset (`null`) and a request nonetheless sets `FusionRequestCostOptions.MaxResponseSize`, the request fails fast with error code `HC0062` and the message:
 
 > The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.
 
-To enable the check, set `FusionCostOptions.MaxResponseSize` on the gateway first; requests may then raise or lower it as needed.
+To enable the check, set `max-response-size` in the archive first; requests may then raise or lower it as needed.
 
 Setting `FusionRequestCostOptions.SkipAnalyzer` for a request bypasses the cost analyzer entirely for that request. A `MaxResponseSize` set on the same request is then ignored.
 

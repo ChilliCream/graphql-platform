@@ -120,6 +120,24 @@ In 16.6, the answer depended on the gateway's other routes:
 
 # Deprecations
 
+## ModifyCostOptions is obsolete
+
+Configure Fusion cost settings in the archive instead of with `ModifyCostOptions`. In v16, values configured with `ModifyCostOptions` override the composition settings. The callback will be removed in v17.
+
+Before:
+
+```csharp
+builder.Services
+    .AddGraphQLGatewayServer()
+    .ModifyCostOptions(options => options.MaxFieldCost = 2_000);
+```
+
+After:
+
+```shell
+nitro fusion settings set max-field-cost 2000 --archive ./gateway.far
+```
+
 ## Raw condition masks replaced by ConditionFlags
 
 Fusion can now compile and execute operations with more than 64 distinct `@skip`/`@include` conditions or `@defer` conditions. `MaxAllowedIncludeConditions` limits the combined `@skip` and `@include` conditions, and `MaxAllowedDeferConditions` limits the `@defer` conditions. Both limits default to **1,024**. An operation that exceeds either limit produces a GraphQL request error during operation compilation.
