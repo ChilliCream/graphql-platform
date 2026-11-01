@@ -32,7 +32,7 @@ internal sealed partial class SatisfiabilityValidator
     private readonly SatisfiabilityFacts _facts;
     private readonly MutableSchemaDefinition _schema;
     private readonly ICompositionLog _log;
-    private readonly FieldOptionTable _fieldOptions;
+    private readonly FieldOptionCache _fieldOptions;
     private readonly HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string?, bool)>
         _dispatchedNodeFields = [];
     private readonly HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string?)>
@@ -58,7 +58,7 @@ internal sealed partial class SatisfiabilityValidator
             apolloFederationCompatibility ?? new ApolloFederationCompatibilityOptions();
         _apolloFederationSchemaNames = apolloFederationSchemaNames ?? new HashSet<string>();
         _schemaSets = new SchemaSetTable(GetSourceSchemaNames(schema));
-        _fieldOptions = new FieldOptionTable(schema, _schemaSets);
+        _fieldOptions = new FieldOptionCache(schema, _schemaSets);
         _lookupCache = new FusionLookupDirectiveCache(schema);
         _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache).Build();
         _requirementsValidator =

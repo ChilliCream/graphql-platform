@@ -41,7 +41,7 @@ internal sealed class FieldOption(
 
     /// <summary>
     /// Gets or sets the object types the field returns in the schema, or <c>null</c> until the
-    /// <see cref="FieldOptionTable"/> resolves them.
+    /// <see cref="FieldOptionCache"/> resolves them.
     /// </summary>
     internal MutableObjectTypeDefinition[]? PossibleTypes { get; set; }
 }

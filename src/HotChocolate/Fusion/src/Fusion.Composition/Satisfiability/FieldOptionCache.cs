@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// <summary>
 /// Caches the <see cref="FieldOptionSet"/> of the output fields of a merged schema.
 /// </summary>
-internal sealed class FieldOptionTable(MutableSchemaDefinition schema, SchemaSetTable schemaSets)
+internal sealed class FieldOptionCache(MutableSchemaDefinition schema, SchemaSetTable schemaSets)
 {
     private readonly Dictionary<MutableOutputFieldDefinition, FieldOptionSet> _options = [];
     private readonly Dictionary<(ITypeDefinition, string), MutableObjectTypeDefinition[]> _possibleTypes = [];
