@@ -12,7 +12,9 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Runtime.InteropServices.ImmutableCollectionsMarshal;
 using static HotChocolate.Types.DirectiveNames;
+using ArgumentNode = HotChocolate.Language.ArgumentNode;
 using IntValueNode = HotChocolate.Language.IntValueNode;
+using FloatValueNode = HotChocolate.Language.FloatValueNode;
 using StringValueNode = HotChocolate.Language.StringValueNode;
 using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
 using EnumValueNode = HotChocolate.Language.EnumValueNode;
@@ -40,7 +42,7 @@ internal static class CompositeSchemaBuilder
             options,
             executionSettings.NodeResolution,
             executionSettings.ShareableFieldRuntimeTypeRouting,
-            costSettings.DefaultListSize);
+            costSettings);
     }
 
     private static CompositeSchemaBuilderContext CreateTypes(
@@ -570,7 +572,7 @@ internal static class CompositeSchemaBuilder
         FusionSchemaOptions options,
         NodeResolution nodeResolution,
         ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
-        int? defaultListSize)
+        CostSettings costSettings)
     {
         foreach (var type in context.TypeDefinitions)
         {
@@ -661,7 +663,15 @@ internal static class CompositeSchemaBuilder
             new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
             nodeResolution,
             shareableFieldRuntimeTypeRouting,
-            defaultListSize,
+            costSettings.DefaultListSize,
+            costSettings.MaxFieldCost,
+            costSettings.MaxTypeCost,
+            costSettings.EnforceCostLimits,
+            costSettings.SkipAnalyzer,
+            costSettings.MaxResponseSize,
+            costSettings.CostPlanCacheSize,
+            costSettings.CaseBudget,
+            costSettings.CaseBudgetExceededBehavior,
             features,
             context.SourceSchemaLookup);
 
@@ -775,7 +785,7 @@ internal static class CompositeSchemaBuilder
 
         if (costOptionsDirectives.Length == 0)
         {
-            return new CostSettings(null);
+            return default;
         }
 
         if (costOptionsDirectives.Length > 1)
@@ -784,22 +794,29 @@ internal static class CompositeSchemaBuilder
                 "The fusion__cost_options directive may only be applied once per schema.");
         }
 
-        return new CostSettings(ParseDefaultListSize(costOptionsDirectives[0]));
+        var costOptionsDirective = costOptionsDirectives[0];
+        return new CostSettings(
+            ParseNonNegativeInt(costOptionsDirective, "defaultListSize"),
+            ParseNonNegativeDouble(costOptionsDirective, "maxFieldCost"),
+            ParseNonNegativeDouble(costOptionsDirective, "maxTypeCost"),
+            ParseBoolean(costOptionsDirective, "enforceCostLimits"),
+            ParseBoolean(costOptionsDirective, "skipAnalyzer"),
+            ParseNonNegativeDouble(costOptionsDirective, "maxResponseSize"),
+            ParsePositiveInt(costOptionsDirective, "costPlanCacheSize"),
+            ParseInt(costOptionsDirective, "caseBudget"),
+            ParseCaseBudgetExceededBehavior(costOptionsDirective));
     }
 
-    private static int? ParseDefaultListSize(DirectiveNode costOptionsDirective)
+    private static int? ParseNonNegativeInt(DirectiveNode costOptionsDirective, string argumentName)
     {
-        var defaultListSizeArgument = costOptionsDirective.Arguments.FirstOrDefault(
-            static argument => argument.Name.Value.Equals(
-                "defaultListSize",
-                StringComparison.Ordinal));
+        var argument = GetArgument(costOptionsDirective, argumentName);
 
-        if (defaultListSizeArgument is null || defaultListSizeArgument.Value is NullValueNode)
+        if (argument is null || argument.Value is NullValueNode)
         {
             return null;
         }
 
-        if (defaultListSizeArgument.Value is IntValueNode intValue
+        if (argument.Value is IntValueNode intValue
             && int.TryParse(
                 intValue.Value,
                 NumberStyles.Integer,
@@ -810,11 +827,139 @@ internal static class CompositeSchemaBuilder
             return value;
         }
 
-        throw new InvalidOperationException(
-            "The fusion__cost_options defaultListSize argument must be a non-negative integer.");
+        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "a non-negative integer");
     }
 
-    private readonly record struct CostSettings(int? DefaultListSize);
+    private static double? ParseNonNegativeDouble(DirectiveNode costOptionsDirective, string argumentName)
+    {
+        var argument = GetArgument(costOptionsDirective, argumentName);
+
+        if (argument is null || argument.Value is NullValueNode)
+        {
+            return null;
+        }
+
+        var value = argument.Value switch
+        {
+            FloatValueNode floatValue => floatValue.Value,
+            IntValueNode intValue => intValue.Value,
+            _ => null
+        };
+
+        if (value is not null
+            && double.TryParse(
+                value,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var parsedValue)
+            && double.IsFinite(parsedValue)
+            && parsedValue >= 0)
+        {
+            return parsedValue;
+        }
+
+        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "a non-negative finite number");
+    }
+
+    private static bool? ParseBoolean(DirectiveNode costOptionsDirective, string argumentName)
+    {
+        var argument = GetArgument(costOptionsDirective, argumentName);
+
+        if (argument is null || argument.Value is NullValueNode)
+        {
+            return null;
+        }
+
+        if (argument.Value is BooleanValueNode booleanValue)
+        {
+            return booleanValue.Value;
+        }
+
+        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "a Boolean");
+    }
+
+    private static int? ParsePositiveInt(DirectiveNode costOptionsDirective, string argumentName)
+    {
+        var argument = GetArgument(costOptionsDirective, argumentName);
+
+        if (argument is null || argument.Value is NullValueNode)
+        {
+            return null;
+        }
+
+        if (argument.Value is IntValueNode intValue
+            && int.TryParse(
+                intValue.Value,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var value)
+            && value > 0)
+        {
+            return value;
+        }
+
+        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "a positive integer");
+    }
+
+    private static int? ParseInt(DirectiveNode costOptionsDirective, string argumentName)
+    {
+        var argument = GetArgument(costOptionsDirective, argumentName);
+
+        if (argument is null || argument.Value is NullValueNode)
+        {
+            return null;
+        }
+
+        if (argument.Value is IntValueNode intValue
+            && int.TryParse(
+                intValue.Value,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var value))
+        {
+            return value;
+        }
+
+        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "an integer");
+    }
+
+    private static string? ParseCaseBudgetExceededBehavior(DirectiveNode costOptionsDirective)
+    {
+        const string argumentName = "caseBudgetExceededBehavior";
+        var argument = GetArgument(costOptionsDirective, argumentName);
+
+        if (argument is null || argument.Value is NullValueNode)
+        {
+            return null;
+        }
+
+        if (argument.Value is StringValueNode
+            {
+                Value: "EVALUATE_PER_REQUEST" or "OVERESTIMATE"
+            } stringValue)
+        {
+            return stringValue.Value;
+        }
+
+        throw ThrowHelper.InvalidCostOptionsArgument(
+            argumentName,
+            "EVALUATE_PER_REQUEST or OVERESTIMATE");
+    }
+
+    private static ArgumentNode? GetArgument(DirectiveNode directive, string argumentName)
+        => directive.Arguments.FirstOrDefault(
+            argument => argument.Name.Value.Equals(argumentName, StringComparison.Ordinal));
+
+    private readonly record struct CostSettings(
+        int? DefaultListSize,
+        double? MaxFieldCost,
+        double? MaxTypeCost,
+        bool? EnforceCostLimits,
+        bool? SkipAnalyzer,
+        double? MaxResponseSize,
+        int? CostPlanCacheSize,
+        int? CaseBudget,
+        string? CaseBudgetExceededBehavior);
 
     private static void CompleteObjectType(
         FusionObjectTypeDefinition type,

@@ -43,6 +43,14 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         NodeResolution nodeResolution,
         ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
         int? defaultListSize,
+        double? maxFieldCost,
+        double? maxTypeCost,
+        bool? enforceCostLimits,
+        bool? skipAnalyzer,
+        double? maxResponseSize,
+        int? costPlanCacheSize,
+        int? caseBudget,
+        string? caseBudgetExceededBehavior,
         IFeatureCollection features,
         ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup)
     {
@@ -58,6 +66,14 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         NodeResolution = nodeResolution;
         ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting;
         DefaultListSize = defaultListSize;
+        MaxFieldCost = maxFieldCost;
+        MaxTypeCost = maxTypeCost;
+        EnforceCostLimits = enforceCostLimits;
+        SkipAnalyzer = skipAnalyzer;
+        MaxResponseSize = maxResponseSize;
+        CostPlanCacheSize = costPlanCacheSize;
+        CaseBudget = caseBudget;
+        CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
         _features = features;
         _sourceSchemaLookup = sourceSchemaLookup;
     }
@@ -158,6 +174,22 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// directive is absent, meaning the assumed size is unbounded.
     /// </summary>
     public int? DefaultListSize { get; }
+
+    internal double? MaxFieldCost { get; }
+
+    internal double? MaxTypeCost { get; }
+
+    internal bool? EnforceCostLimits { get; }
+
+    internal bool? SkipAnalyzer { get; }
+
+    internal double? MaxResponseSize { get; }
+
+    internal int? CostPlanCacheSize { get; }
+
+    internal int? CaseBudget { get; }
+
+    internal string? CaseBudgetExceededBehavior { get; }
 
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;

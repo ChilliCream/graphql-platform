@@ -186,7 +186,6 @@ internal sealed class FusionRequestExecutorManager
         var options = CreateOptions(setup);
         var requestOptions = CreateRequestOptions(setup);
         var plannerOptions = CreatePlannerOptions(setup, options);
-        var costOptions = CreateCostOptions(setup);
         var parserOptions = CreateParserOptions(setup);
         var features = CreateSchemaFeatures(
             setup,
@@ -199,8 +198,7 @@ internal sealed class FusionRequestExecutorManager
             setup,
             options,
             requestOptions,
-            plannerOptions,
-            costOptions);
+            plannerOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
         _ = schemaServices.GetRequiredService<CostSchemaIndex>();
@@ -297,9 +295,57 @@ internal sealed class FusionRequestExecutorManager
         return plannerOptions;
     }
 
-    private static FusionCostOptions CreateCostOptions(FusionGatewaySetup setup)
+    private static FusionCostOptions CreateCostOptions(
+        FusionGatewaySetup setup,
+        FusionSchemaDefinition schema)
     {
         var costOptions = new FusionCostOptions();
+
+        if (schema.MaxFieldCost is { } maxFieldCost)
+        {
+            costOptions.MaxFieldCost = maxFieldCost;
+        }
+
+        if (schema.MaxTypeCost is { } maxTypeCost)
+        {
+            costOptions.MaxTypeCost = maxTypeCost;
+        }
+
+        if (schema.EnforceCostLimits is { } enforceCostLimits)
+        {
+            costOptions.EnforceCostLimits = enforceCostLimits;
+        }
+
+        if (schema.SkipAnalyzer is { } skipAnalyzer)
+        {
+            costOptions.SkipAnalyzer = skipAnalyzer;
+        }
+
+        if (schema.MaxResponseSize is { } maxResponseSize)
+        {
+            costOptions.MaxResponseSize = maxResponseSize;
+        }
+
+        if (schema.CostPlanCacheSize is { } costPlanCacheSize)
+        {
+            costOptions.CostPlanCacheSize = costPlanCacheSize;
+        }
+
+        if (schema.CaseBudget is { } caseBudget)
+        {
+            costOptions.CaseBudget = caseBudget;
+        }
+
+        switch (schema.CaseBudgetExceededBehavior)
+        {
+            case "EVALUATE_PER_REQUEST":
+                costOptions.CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.EvaluatePerRequest;
+                break;
+
+            case "OVERESTIMATE":
+                costOptions.CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate;
+                break;
+        }
 
         foreach (var configure in setup.CostOptionsModifiers)
         {
@@ -394,8 +440,7 @@ internal sealed class FusionRequestExecutorManager
         FusionGatewaySetup setup,
         FusionOptions options,
         FusionRequestOptions requestOptions,
-        OperationPlannerOptions plannerOptions,
-        FusionCostOptions costOptions)
+        OperationPlannerOptions plannerOptions)
     {
         var schemaServices = new ServiceCollection();
 
@@ -404,8 +449,7 @@ internal sealed class FusionRequestExecutorManager
             setup,
             schemaServices,
             options,
-            requestOptions,
-            costOptions);
+            requestOptions);
         AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices, options);
@@ -424,8 +468,7 @@ internal sealed class FusionRequestExecutorManager
         FusionGatewaySetup setup,
         IServiceCollection services,
         FusionOptions options,
-        FusionRequestOptions requestOptions,
-        FusionCostOptions costOptions)
+        FusionRequestOptions requestOptions)
     {
         services.AddSingleton<IRootServiceProviderAccessor>(
             new RootServiceProviderAccessor(_applicationServices));
@@ -451,7 +494,10 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(options);
         services.AddSingleton(requestOptions);
         services.AddSingleton(requestOptions.PersistedOperations);
-        services.AddSingleton(costOptions);
+        services.AddSingleton(
+            sp => CreateCostOptions(
+                setup,
+                sp.GetRequiredService<FusionSchemaDefinition>()));
         services.AddSingleton(
             static sp =>
             {

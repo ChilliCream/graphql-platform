@@ -29,6 +29,39 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
         Assert.Null(schema.DefaultListSize);
     }
 
+    [Fact]
+    public void Create_Should_LeaveCostSettingsUnset_When_ArgumentsAreOmitted()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema("@fusion__cost_options");
+
+        // assert
+        new
+        {
+            schema.MaxFieldCost,
+            schema.MaxTypeCost,
+            schema.EnforceCostLimits,
+            schema.SkipAnalyzer,
+            schema.MaxResponseSize,
+            schema.CostPlanCacheSize,
+            schema.CaseBudget,
+            schema.CaseBudgetExceededBehavior
+        }.MatchInlineSnapshot(
+            """
+            {
+              "MaxFieldCost": null,
+              "MaxTypeCost": null,
+              "EnforceCostLimits": null,
+              "SkipAnalyzer": null,
+              "MaxResponseSize": null,
+              "CostPlanCacheSize": null,
+              "CaseBudget": null,
+              "CaseBudgetExceededBehavior": null
+            }
+            """);
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
@@ -38,6 +71,54 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
         var schema = CreateSchema($"@fusion__cost_options(defaultListSize: {value})");
 
         Assert.Equal(value, schema.DefaultListSize);
+    }
+
+    [Fact]
+    public void Create_Should_ParseCostSettings_When_AllArgumentsAreSpecified()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            """
+            @fusion__cost_options(
+              defaultListSize: 7
+              maxFieldCost: 10.5
+              maxTypeCost: 20.5
+              enforceCostLimits: false
+              skipAnalyzer: true
+              maxResponseSize: 30.5
+              costPlanCacheSize: 40
+              caseBudget: -50
+              caseBudgetExceededBehavior: "OVERESTIMATE"
+            )
+            """);
+
+        // assert
+        new
+        {
+            schema.DefaultListSize,
+            schema.MaxFieldCost,
+            schema.MaxTypeCost,
+            schema.EnforceCostLimits,
+            schema.SkipAnalyzer,
+            schema.MaxResponseSize,
+            schema.CostPlanCacheSize,
+            schema.CaseBudget,
+            schema.CaseBudgetExceededBehavior
+        }.MatchInlineSnapshot(
+            """
+            {
+              "DefaultListSize": 7,
+              "MaxFieldCost": 10.5,
+              "MaxTypeCost": 20.5,
+              "EnforceCostLimits": false,
+              "SkipAnalyzer": true,
+              "MaxResponseSize": 30.5,
+              "CostPlanCacheSize": 40,
+              "CaseBudget": -50,
+              "CaseBudgetExceededBehavior": "OVERESTIMATE"
+            }
+            """);
     }
 
     [Fact]
@@ -106,6 +187,30 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
 
         Assert.Equal(
             "The fusion__cost_options defaultListSize argument must be a non-negative integer.",
+            exception.Message);
+    }
+
+    [Theory]
+    [InlineData("maxFieldCost", "-1", "a non-negative finite number")]
+    [InlineData("maxTypeCost", "-1", "a non-negative finite number")]
+    [InlineData("maxResponseSize", "-1", "a non-negative finite number")]
+    [InlineData("costPlanCacheSize", "0", "a positive integer")]
+    [InlineData("enforceCostLimits", "1", "a Boolean")]
+    [InlineData("caseBudget", "1.5", "an integer")]
+    [InlineData("caseBudgetExceededBehavior", "\"INVALID\"", "EVALUATE_PER_REQUEST or OVERESTIMATE")]
+    public void Create_Should_RejectInvalidCostSetting(
+        string argumentName,
+        string value,
+        string requirement)
+    {
+        // arrange
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => CreateSchema($"@fusion__cost_options({argumentName}: {value})"));
+
+        // assert
+        Assert.Equal(
+            $"The fusion__cost_options {argumentName} argument must be {requirement}.",
             exception.Message);
     }
 

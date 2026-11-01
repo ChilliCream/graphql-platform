@@ -17,4 +17,9 @@ internal static class ThrowHelper
 
     public static InvalidOperationException InvalidCompletionContext()
         => new("The context has an invalid state.");
+
+    public static InvalidOperationException InvalidCostOptionsArgument(
+        string argumentName,
+        string requirement)
+        => new($"The fusion__cost_options {argumentName} argument must be {requirement}.");
 }
