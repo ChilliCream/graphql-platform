@@ -514,6 +514,56 @@ public class SortingContextTests
             sortDefinition?.ToString());
     }
 
+    [Fact]
+    public async Task AsSortDefinition_Should_IncludeExpressionField_When_FieldIsDefinedByExpression()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseSorting<ExpressionSortType>()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            {
+                test(order: [{ total: DESC }, { title: ASC }]) {
+                    title
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Book>();
+
+        // assert
+        Assert.Equal(
+            "{t => (t.Pages * t.Chapters):DESC,t => t.Title:ASC}",
+            sortDefinition?.ToString());
+    }
+
+    public class ExpressionSortType : SortInputType<Book>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Pages * x.Chapters).Name("total");
+            descriptor.Field(x => x.Title);
+        }
+    }
+
     public class TestSortType : SortInputType<Book>
     {
         protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
