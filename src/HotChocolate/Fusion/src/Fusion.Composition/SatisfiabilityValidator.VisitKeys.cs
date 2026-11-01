@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion;
 
 internal sealed partial class SatisfiabilityValidator
 {
-    private readonly SchemaSetTable _schemaSets;
+    private readonly SchemaSetInterner _schemaSets;
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSet> _fieldSchemas = [];
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSelectionSets?> _fieldProvides = [];
     private readonly Dictionary<MutableObjectTypeDefinition, VisitTypeInfo> _visitTypeInfos = [];
@@ -110,7 +110,7 @@ internal sealed partial class SatisfiabilityValidator
                     fieldProvides?.Find(index),
                     out var providedSelectionSet))
                 {
-                    SchemaSetTable.Add(buffer, index);
+                    SchemaSetInterner.Add(buffer, index);
                     AddProvides(ref provides, index, providedSelectionSet);
                 }
             }
@@ -122,7 +122,7 @@ internal sealed partial class SatisfiabilityValidator
             {
                 var index = fieldProvides.GetSchemaIndex(i);
 
-                if (SchemaSetTable.Contains(buffer, index) && parentProvides?.Find(index) is null)
+                if (SchemaSetInterner.Contains(buffer, index) && parentProvides?.Find(index) is null)
                 {
                     AddProvides(ref provides, index, fieldProvides.GetSelectionSet(i));
                 }
@@ -137,7 +137,7 @@ internal sealed partial class SatisfiabilityValidator
             {
                 if (!_schemaSets.Contains(fieldSchemas, index))
                 {
-                    SchemaSetTable.Add(buffer, index);
+                    SchemaSetInterner.Add(buffer, index);
                     AddProvides(ref provides, index, viewerProvides?.Find(index));
                 }
             }
@@ -281,7 +281,7 @@ internal sealed partial class SatisfiabilityValidator
 
         if (!readsHolder)
         {
-            SchemaSetTable.Remove(buffer, holder);
+            SchemaSetInterner.Remove(buffer, holder);
         }
 
         _schemaSets.UnionWith(buffer, transitionFacts);
@@ -289,10 +289,10 @@ internal sealed partial class SatisfiabilityValidator
         foreach (var index in info.LookupSchemas)
         {
             if ((readsHolder || index != holder)
-                && !SchemaSetTable.Contains(buffer, index)
+                && !SchemaSetInterner.Contains(buffer, index)
                 && CanEnterWithLookup(type, _schemaSets.GetSchemaName(index), item))
             {
-                SchemaSetTable.Add(buffer, index);
+                SchemaSetInterner.Add(buffer, index);
             }
         }
 

@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// Assigns dense indexes to source schema names and interns schema sets, so that equal sets
 /// share one <see cref="SchemaSet"/>.
 /// </summary>
-internal sealed class SchemaSetTable
+internal sealed class SchemaSetInterner
 {
     private readonly Dictionary<string, int> _indexes = new(StringComparer.Ordinal);
     private readonly string[] _names;
@@ -15,10 +15,10 @@ internal sealed class SchemaSetTable
     private readonly ulong[] _buffer;
 
     /// <summary>
-    /// Creates a table that assigns each of the distinct <paramref name="schemaNames"/> its
+    /// Creates an interner that assigns each of the distinct <paramref name="schemaNames"/> its
     /// position as index.
     /// </summary>
-    public SchemaSetTable(IEnumerable<string> schemaNames)
+    public SchemaSetInterner(IEnumerable<string> schemaNames)
     {
         _names = [.. schemaNames];
 
@@ -32,7 +32,7 @@ internal sealed class SchemaSetTable
     }
 
     /// <summary>
-    /// Gets the index of <paramref name="schemaName"/>, which must be one of the schemas of the table.
+    /// Gets the index of <paramref name="schemaName"/>, which must be one of the schemas of the interner.
     /// </summary>
     public int GetIndex(string schemaName)
     {
@@ -81,7 +81,7 @@ internal sealed class SchemaSetTable
     public bool Contains(SchemaSet set, int index) => Contains(_members[set.Id], index);
 
     /// <summary>
-    /// Gets the shared scratch buffer, sized for every schema of the table and holding the members
+    /// Gets the shared scratch buffer, sized for every schema of the interner and holding the members
     /// of <paramref name="set"/>. The next call to <see cref="GetBuffer"/> or <see cref="Create"/>
     /// overwrites the buffer.
     /// </summary>

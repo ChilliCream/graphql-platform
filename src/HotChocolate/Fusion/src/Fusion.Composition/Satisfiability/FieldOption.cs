@@ -20,7 +20,7 @@ internal sealed class FieldOption(
     public string SchemaName { get; } = schemaName;
 
     /// <summary>
-    /// Gets the index of the schema in the <see cref="SchemaSetTable"/>.
+    /// Gets the index of the schema in the <see cref="SchemaSetInterner"/>.
     /// </summary>
     public int SchemaIndex { get; } = schemaIndex;
 
