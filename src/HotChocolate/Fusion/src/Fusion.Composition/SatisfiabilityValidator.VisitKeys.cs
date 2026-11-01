@@ -455,7 +455,13 @@ internal sealed partial class SatisfiabilityValidator
 
             if ((item.ProvidedSelectionSet is null
                     && CanResolveLeafSelections(key, type, item.SchemaName, excludeSchemaName))
-                || _requirementsValidator.Validate(key, type, item, ancestors: [], excludeSchemaName).IsEmpty)
+                || _requirementsValidator.Validate(
+                    key,
+                    type,
+                    item,
+                    ancestors: [],
+                    excludeSchemaName,
+                    _decisionBudget).IsEmpty)
             {
                 return true;
             }

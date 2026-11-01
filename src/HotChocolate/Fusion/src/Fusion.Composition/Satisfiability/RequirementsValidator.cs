@@ -32,6 +32,7 @@ internal sealed class RequirementsValidator(
     /// <param name="excludeSchemaName">
     /// The schema that must not resolve the requirement, or null to allow every schema.
     /// </param>
+    /// <param name="budget">The budget for the explanation entries of the search.</param>
     /// <param name="allowNestedFieldsFromExcludedSchema">
     /// Whether the excluded schema may resolve the fields below the first level of the requirement.
     /// </param>
@@ -47,6 +48,7 @@ internal sealed class RequirementsValidator(
         SatisfiabilityPathItem? parentPathItem,
         IReadOnlyList<SatisfiabilityPathItem> ancestors,
         string? excludeSchemaName,
+        SatisfiabilityExplanationBudget budget,
         bool allowNestedFieldsFromExcludedSchema = false,
         SatisfiabilityPath? cycleDetectionPath = null,
         ImmutableHashSet<string>? unavailableSchemaNames = null)
@@ -58,12 +60,18 @@ internal sealed class RequirementsValidator(
             excludeSchemaName,
             allowNestedFieldsFromExcludedSchema,
             cycleDetectionPath,
-            unavailableSchemaNames ?? []);
+            unavailableSchemaNames ?? [],
+            budget);
 
         var errors = new List<SatisfiabilityError>();
 
         foreach (var selection in requirements.Selections)
         {
+            if (budget.IsExhausted)
+            {
+                break;
+            }
+
             // Wrap each top-level selection in a selection set.
             var selectionSet = new SelectionSetNode([selection]);
 
@@ -71,11 +79,12 @@ internal sealed class RequirementsValidator(
 
             if (!requirementErrors.IsEmpty)
             {
-                errors.Add(new SatisfiabilityError(
-                    string.Format(
-                        RequirementsValidator_UnableToSatisfyRequirement,
-                        selection.ToString(indented: false)),
-                    requirementErrors));
+                errors.Add(
+                    budget.CreateError(
+                        string.Format(
+                            RequirementsValidator_UnableToSatisfyRequirement,
+                            selection.ToString(indented: false)),
+                        requirementErrors));
             }
         }
 
@@ -90,6 +99,11 @@ internal sealed class RequirementsValidator(
 
         foreach (var selection in selectionSet.Selections)
         {
+            if (context.Budget.IsExhausted)
+            {
+                break;
+            }
+
             switch (selection)
             {
                 case FieldNode fieldNode:
@@ -110,7 +124,7 @@ internal sealed class RequirementsValidator(
                                     type.Name,
                                     fieldNode.Name.Value);
 
-                        errors.Add(new SatisfiabilityError(message, [.. fieldErrors]));
+                        errors.Add(context.Budget.CreateError(message, [.. fieldErrors]));
                     }
 
                     break;
@@ -146,7 +160,7 @@ internal sealed class RequirementsValidator(
         if (!type.Fields.TryGetField(fieldNode.Name.Value, out var field))
         {
             errors.Add(
-                new SatisfiabilityError(
+                context.Budget.CreateError(
                     string.Format(
                         RequirementsValidator_FieldDoesNotExistOnType,
                         fieldNode.Name.Value,
@@ -190,6 +204,11 @@ internal sealed class RequirementsValidator(
 
         foreach (var schemaName in schemaNames)
         {
+            if (context.Budget.IsExhausted)
+            {
+                break;
+            }
+
             SelectionSetNode? providedSelectionSet = null;
 
             if (previousPathItem?.ProvidedSelectionSet is not null
@@ -219,7 +238,7 @@ internal sealed class RequirementsValidator(
             if (!context.CycleDetectionPath.Push(pathItem))
             {
                 errors.Add(
-                    new SatisfiabilityError(
+                    context.Budget.CreateError(
                         string.Format(
                             RequirementsValidator_CycleDetected,
                             context.CycleDetectionPath,
@@ -245,7 +264,7 @@ internal sealed class RequirementsValidator(
                 if (transitionErrors.Any())
                 {
                     errors.Add(
-                        new SatisfiabilityError(
+                        context.Budget.CreateError(
                             string.Format(
                                 RequirementsValidator_UnableToTransitionBetweenSchemas,
                                 previousSchemaName,
@@ -281,6 +300,7 @@ internal sealed class RequirementsValidator(
                         previousPathItem,
                         ancestors,
                         excludeSchemaName: schemaName,
+                        context.Budget,
                         allowNestedFieldsFromExcludedSchema: true,
                         cycleDetectionPath: context.CycleDetectionPath,
                         unavailableSchemaNames: context.UnavailableSchemaNames);
@@ -297,6 +317,7 @@ internal sealed class RequirementsValidator(
                             ancestors,
                             RequirementsValidator_NoLookupForRequiringField,
                             RequirementsValidator_UnableToSatisfyRequirementForLookup,
+                            context.Budget,
                             cycleDetectionPath: context.CycleDetectionPath,
                             unavailableSchemaNames: context.UnavailableSchemaNames);
                 }
@@ -304,7 +325,7 @@ internal sealed class RequirementsValidator(
                 if (requirementErrors.Length != 0)
                 {
                     errors.Add(
-                        new SatisfiabilityError(
+                        context.Budget.CreateError(
                             string.Format(
                                 SatisfiabilityValidator_UnableToSatisfyRequirement,
                                 requirements.ToString(indented: false),
@@ -336,6 +357,11 @@ internal sealed class RequirementsValidator(
 
             foreach (var possibleType in possibleTypes)
             {
+                if (context.Budget.IsExhausted)
+                {
+                    break;
+                }
+
                 context.TypeContext.Push(possibleType);
 
                 var requirementErrors = Visit(fieldNode.SelectionSet, context);
@@ -380,7 +406,7 @@ internal sealed class RequirementsValidator(
             || (optionCount == 0 && errors.Count == 0 && skippedDueToProvidedSelectionSet))
         {
             errors.Add(
-                new SatisfiabilityError(
+                context.Budget.CreateError(
                     string.Format(
                         RequirementsValidator_NoOtherSchemasContainField,
                         type.Name,
@@ -408,11 +434,14 @@ internal sealed class RequirementsValidator(
                     pathFromParent.Count > 0 ? pathFromParent[0] : null,
                     pathFromParent.Count > 1 ? [.. pathFromParent.Skip(1)] : [],
                     excludeSchemaName: transitionToSchemaName,
+                    context.Budget,
                     cycleDetectionPath: context.CycleDetectionPath,
                     unavailableSchemaNames: context.UnavailableSchemaNames),
             RequirementsValidator_NoLookupsFoundForType,
             RequirementsValidator_UnableToSatisfyRequirementForLookup,
-            queryViewerField: null);
+            queryViewerField: null,
+            context.Budget,
+            transitionFails: false);
     }
 
     /// <summary>
@@ -433,6 +462,7 @@ internal sealed class RequirementsValidator(
     /// <param name="unableToSatisfyRequirementForLookupMessageFormat">
     /// The message format used when a lookup key cannot be satisfied.
     /// </param>
+    /// <param name="budget">The budget for the explanation entries of the search.</param>
     /// <param name="cycleDetectionPath">The shared cycle detection path, or null to start a new one.</param>
     /// <param name="unavailableSchemaNames">
     /// Schemas whose data is unavailable at the position for any purpose.
@@ -447,6 +477,7 @@ internal sealed class RequirementsValidator(
         IReadOnlyList<SatisfiabilityPathItem> ancestors,
         string noLookupMessageFormat,
         string unableToSatisfyRequirementForLookupMessageFormat,
+        SatisfiabilityExplanationBudget budget,
         SatisfiabilityPath? cycleDetectionPath = null,
         ImmutableHashSet<string>? unavailableSchemaNames = null)
     {
@@ -461,6 +492,11 @@ internal sealed class RequirementsValidator(
 
         foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName))
         {
+            if (budget.IsExhausted)
+            {
+                break;
+            }
+
             var lookupKeyArg = (string)lookup.Arguments[WellKnownArgumentNames.Key].Value!;
             var lookupFieldArg = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
             var lookupPathArg = (string?)lookup.Arguments[WellKnownArgumentNames.Path].Value;
@@ -475,6 +511,7 @@ internal sealed class RequirementsValidator(
                     parentPathItem,
                     ancestors,
                     excludeSchemaName: null,
+                    budget,
                     cycleDetectionPath: cycleDetectionPath,
                     unavailableSchemaNames: unavailableSchemaNames);
 
@@ -489,7 +526,7 @@ internal sealed class RequirementsValidator(
                 : $"{lookupPathArg}.{lookupFieldName}";
 
             lookupErrors.Add(
-                new SatisfiabilityError(
+                budget.CreateError(
                     string.Format(
                         unableToSatisfyRequirementForLookupMessageFormat,
                         lookupRequirements.ToString(indented: false),
@@ -507,6 +544,7 @@ internal sealed class RequirementsValidator(
                 parentPathItem,
                 ancestors,
                 excludeSchemaName: schemaName,
+                budget,
                 cycleDetectionPath: cycleDetectionPath,
                 unavailableSchemaNames: unavailableSchemaNames.Add(schemaName));
 
@@ -517,7 +555,7 @@ internal sealed class RequirementsValidator(
 
         return
         [
-            new SatisfiabilityError(
+            budget.CreateError(
                 string.Format(noLookupMessageFormat, type.Name, field.Name, schemaName),
                 [.. lookupErrors])
         ];
@@ -533,7 +571,8 @@ internal sealed class RequirementsValidatorContext
         string? excludeSchemaName,
         bool allowNestedFieldsFromExcludedSchema,
         SatisfiabilityPath? cycleDetectionPath,
-        ImmutableHashSet<string> unavailableSchemaNames)
+        ImmutableHashSet<string> unavailableSchemaNames,
+        SatisfiabilityExplanationBudget budget)
     {
         TypeContext.Push(contextType);
 
@@ -547,6 +586,7 @@ internal sealed class RequirementsValidatorContext
         AllowNestedFieldsFromExcludedSchema = allowNestedFieldsFromExcludedSchema;
         CycleDetectionPath = cycleDetectionPath ?? [];
         UnavailableSchemaNames = unavailableSchemaNames;
+        Budget = budget;
     }
 
     public Stack<MutableObjectTypeDefinition> TypeContext { get; } = [];
@@ -582,6 +622,11 @@ internal sealed class RequirementsValidatorContext
     /// lookup keys and nested requirements.
     /// </summary>
     public ImmutableHashSet<string> UnavailableSchemaNames { get; }
+
+    /// <summary>
+    /// Gets the budget for the explanation entries of the search.
+    /// </summary>
+    public SatisfiabilityExplanationBudget Budget { get; }
 
     public HashSet<FieldAccessCacheKey> FieldAccessCache { get; } = [];
 }
