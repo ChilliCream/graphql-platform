@@ -288,7 +288,7 @@ An operation whose exact compile would exceed `case-budget` is, by default (`eva
 
 # Per-Request Cost Options
 
-The composition cost settings apply to every request by default, but a gateway can loosen or tighten those limits for a particular request or user by attaching a `FusionRequestCostOptions` to the request. A value set on the request replaces the corresponding composition setting for that request, in either direction: a request can raise a limit above the composition setting or lower it below the composition setting. Attached request options replace all of the gateway's limits for that request, and a `null` `MaxResponseSize` on the request means that request has no response-size limit.
+The composition cost settings supply the gateway defaults. In v16, values configured through `ModifyCostOptions` override those settings. Attached `FusionRequestCostOptions` replace the gateway's effective limits for that request, in either direction. A `null` `MaxResponseSize` on the request disables its response-size limit.
 
 The typical place to do this is an `IHttpRequestInterceptor`. Its `OnCreateAsync` method runs for every HTTP request and has access to the authenticated user, letting it pick request options based on group membership before the operation executes:
 
@@ -328,13 +328,13 @@ builder.Services
     .AddHttpRequestInterceptor<CostOptionsHttpRequestInterceptor>();
 ```
 
-Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost limits) than the configured composition settings, while every other request keeps enforcing those settings.
+Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost limits) than the effective gateway defaults, while every other request keeps enforcing those defaults.
 
-Response-size analysis itself is an opt-in that is only ever enabled through the `max-response-size` composition setting. A request cannot turn the analysis on: if the composition setting is unset (`null`) and a request nonetheless sets `FusionRequestCostOptions.MaxResponseSize`, the request fails fast with error code `HC0062` and the message:
+Response-size analysis must be enabled at the gateway level before a request can set a response-size limit. Configure it through the `max-response-size` composition setting. If the gateway's effective `MaxResponseSize` is `null` and a request sets `FusionRequestCostOptions.MaxResponseSize`, the request fails with error code `HC0062` and the message:
 
 > The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.
 
-To enable the check, set `max-response-size` in the archive first; requests may then raise or lower it as needed.
+To enable the check, set `max-response-size` in the archive and ensure the gateway's effective `MaxResponseSize` is not `null`; requests may then raise or lower it as needed.
 
 Setting `FusionRequestCostOptions.SkipAnalyzer` for a request bypasses the cost analyzer entirely for that request. A `MaxResponseSize` set on the same request is then ignored.
 
