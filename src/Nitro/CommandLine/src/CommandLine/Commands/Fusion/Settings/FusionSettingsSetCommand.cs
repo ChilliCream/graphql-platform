@@ -94,7 +94,7 @@ internal sealed class FusionSettingsSetCommand : Command
                         CultureInfo.InvariantCulture,
                         out var caseBudget))
                 {
-                    throw new ExitException(
+                    throw ThrowHelper.Exit(
                         $"Expected an integer or 'null' for setting '{settingName}'.");
                 }
                 else
@@ -112,7 +112,7 @@ internal sealed class FusionSettingsSetCommand : Command
                         settingValue,
                         out var caseBudgetExceededBehavior))
                 {
-                    throw new ExitException(
+                    throw ThrowHelper.Exit(
                         $"Expected one of the following values or 'null' for setting '{settingName}': "
                         + $"{string.Join(", ", CaseBudgetExceededBehaviorParser.Values)}");
                 }
@@ -134,7 +134,7 @@ internal sealed class FusionSettingsSetCommand : Command
                         out var costPlanCacheSize)
                     || costPlanCacheSize <= 0)
                 {
-                    throw new ExitException(
+                    throw ThrowHelper.Exit(
                         $"Expected a positive integer or 'null' for setting '{settingName}'.");
                 }
                 else
@@ -171,7 +171,7 @@ internal sealed class FusionSettingsSetCommand : Command
                 }
                 else if (!bool.TryParse(settingValue, out var enforceCostLimits))
                 {
-                    throw new ExitException(
+                    throw ThrowHelper.Exit(
                         $"Expected a boolean value or 'null' for setting '{settingName}'.");
                 }
                 else
@@ -232,7 +232,7 @@ internal sealed class FusionSettingsSetCommand : Command
                     || !double.IsFinite(maxFieldCost)
                     || maxFieldCost < 0)
                 {
-                    throw new ExitException(
+                    throw ThrowHelper.Exit(
                         $"Expected a non-negative number or 'null' for setting '{settingName}'.");
                 }
                 else
@@ -254,7 +254,7 @@ internal sealed class FusionSettingsSetCommand : Command
                     || !double.IsFinite(maxResponseSize)
                     || maxResponseSize < 0)
                 {
-                    throw new ExitException(
+                    throw ThrowHelper.Exit(
                         $"Expected a non-negative number or 'null' for setting '{settingName}'.");
                 }
                 else
@@ -276,7 +276,7 @@ internal sealed class FusionSettingsSetCommand : Command
                     || !double.IsFinite(maxTypeCost)
                     || maxTypeCost < 0)
                 {
-                    throw new ExitException(
+                    throw ThrowHelper.Exit(
                         $"Expected a non-negative number or 'null' for setting '{settingName}'.");
                 }
                 else
@@ -316,7 +316,7 @@ internal sealed class FusionSettingsSetCommand : Command
                 }
                 else if (!bool.TryParse(settingValue, out var skipCostAnalyzer))
                 {
-                    throw new ExitException(
+                    throw ThrowHelper.Exit(
                         $"Expected a boolean value or 'null' for setting '{settingName}'.");
                 }
                 else
