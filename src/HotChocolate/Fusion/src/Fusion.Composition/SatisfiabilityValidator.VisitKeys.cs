@@ -11,11 +11,11 @@ namespace HotChocolate.Fusion;
 internal sealed partial class SatisfiabilityValidator
 {
     private readonly SchemaSetInterner _schemaSets;
-    private readonly Dictionary<MutableOutputFieldDefinition, SchemaSet> _fieldSchemas = [];
+    private readonly Dictionary<MutableOutputFieldDefinition, SchemaSetRef> _fieldSchemas = [];
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSelectionSets?> _fieldProvides = [];
     private readonly Dictionary<MutableObjectTypeDefinition, VisitTypeInfo> _visitTypeInfos = [];
-    private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSet> _transitionFacts = [];
-    private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSet> _nodeReaches = [];
+    private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSetRef> _transitionFacts = [];
+    private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSetRef> _nodeReaches = [];
     private readonly Dictionary<(MutableObjectTypeDefinition, string, SatisfiabilityPathItem), bool>
         _lookupEntries = [];
     private readonly List<int> _schemaIndexes = [];
@@ -73,7 +73,7 @@ internal sealed partial class SatisfiabilityValidator
         var fieldProvides = GetFieldProvides(item.Field);
         var transitionFacts = item.ProvidedSelectionSet is null
             ? GetTransitionFacts(type, info, item.SchemaName)
-            : SchemaSet.Empty;
+            : SchemaSetRef.Empty;
         var holder = _schemaSets.GetIndex(item.SchemaName);
         var parentProvides = parent.Path is not null ? parent.Key.ReachProvides : null;
         var isViewerFallback =
@@ -202,7 +202,7 @@ internal sealed partial class SatisfiabilityValidator
     /// </summary>
     private SchemaSelectionSets? CreateReachProvides(
         List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides,
-        SchemaSet reach)
+        SchemaSetRef reach)
     {
         if (provides is null)
         {
@@ -230,7 +230,7 @@ internal sealed partial class SatisfiabilityValidator
         {
             var transitionFacts = GetTransitionFacts(type, info, lookupItem.SchemaName);
             var holder = _schemaSets.GetIndex(lookupItem.SchemaName);
-            var buffer = _schemaSets.GetBuffer(SchemaSet.Empty);
+            var buffer = _schemaSets.GetBuffer(SchemaSetRef.Empty);
             reach = CompleteReach(type, info, lookupItem, holder, transitionFacts, buffer);
             _nodeReaches.Add((type, lookupItem.SchemaName), reach);
         }
@@ -255,7 +255,7 @@ internal sealed partial class SatisfiabilityValidator
         => new(
             rootType,
             null,
-            SchemaSet.Empty,
+            SchemaSetRef.Empty,
             null,
             null,
             !ReferenceEquals(rootType, _schema.QueryType) && _viewerFallbackTypes.Contains(rootType));
@@ -266,12 +266,12 @@ internal sealed partial class SatisfiabilityValidator
     /// <paramref name="transitionFacts"/> and the other schemas the type can be entered in through a
     /// lookup from <paramref name="item"/>, and returns the resulting set.
     /// </summary>
-    private SchemaSet CompleteReach(
+    private SchemaSetRef CompleteReach(
         MutableObjectTypeDefinition type,
         VisitTypeInfo info,
         SatisfiabilityPathItem item,
         int holder,
-        SchemaSet transitionFacts,
+        SchemaSetRef transitionFacts,
         ulong[] buffer)
     {
         _schemaSets.IntersectWith(buffer, info.Schemas);
@@ -375,7 +375,7 @@ internal sealed partial class SatisfiabilityValidator
     /// Gets the schemas, other than <paramref name="schemaName"/>, that the facts confirm
     /// <paramref name="type"/> held in <paramref name="schemaName"/> can transition to.
     /// </summary>
-    private SchemaSet GetTransitionFacts(
+    private SchemaSetRef GetTransitionFacts(
         MutableObjectTypeDefinition type,
         VisitTypeInfo info,
         string schemaName)
@@ -408,7 +408,7 @@ internal sealed partial class SatisfiabilityValidator
         => !_facts.IsFieldResolvableOn(type, field, schemaName)
             && field.GetFusionRequiresRequirements(schemaName) is not null;
 
-    private SchemaSet GetFieldSchemas(MutableOutputFieldDefinition field)
+    private SchemaSetRef GetFieldSchemas(MutableOutputFieldDefinition field)
     {
         if (!_fieldSchemas.TryGetValue(field, out var schemas))
         {
@@ -573,8 +573,8 @@ internal sealed partial class SatisfiabilityValidator
     /// from the holding path item.
     /// </summary>
     private sealed record VisitTypeInfo(
-        SchemaSet Schemas,
-        SchemaSet CompositeFieldSchemas,
+        SchemaSetRef Schemas,
+        SchemaSetRef CompositeFieldSchemas,
         int[] LookupSchemas,
         bool ReadsLeaf);
 }
