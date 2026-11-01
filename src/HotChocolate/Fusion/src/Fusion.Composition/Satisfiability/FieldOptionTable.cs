@@ -5,17 +5,17 @@ using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion.Satisfiability;
 
 /// <summary>
-/// Caches the <see cref="FieldOptions"/> of the output fields of a merged schema.
+/// Caches the <see cref="FieldOptionSet"/> of the output fields of a merged schema.
 /// </summary>
 internal sealed class FieldOptionTable(MutableSchemaDefinition schema, SchemaSetTable schemaSets)
 {
-    private readonly Dictionary<MutableOutputFieldDefinition, FieldOptions> _options = [];
+    private readonly Dictionary<MutableOutputFieldDefinition, FieldOptionSet> _options = [];
     private readonly Dictionary<(ITypeDefinition, string), MutableObjectTypeDefinition[]> _possibleTypes = [];
 
     /// <summary>
     /// Gets the options of <paramref name="field"/>.
     /// </summary>
-    public FieldOptions GetOptions(MutableOutputFieldDefinition field)
+    public FieldOptionSet GetOptions(MutableOutputFieldDefinition field)
     {
         if (!_options.TryGetValue(field, out var options))
         {
@@ -30,10 +30,10 @@ internal sealed class FieldOptionTable(MutableSchemaDefinition schema, SchemaSet
     /// Gets the object types that the field of <paramref name="options"/> returns in the schema of
     /// <paramref name="option"/>.
     /// </summary>
-    public MutableObjectTypeDefinition[] GetPossibleTypes(FieldOptions options, FieldOption option)
+    public MutableObjectTypeDefinition[] GetPossibleTypes(FieldOptionSet options, FieldOption option)
         => option.PossibleTypes ??= GetPossibleTypes(options.FieldType, option.SchemaName);
 
-    private FieldOptions CreateOptions(MutableOutputFieldDefinition field)
+    private FieldOptionSet CreateOptions(MutableOutputFieldDefinition field)
     {
         // The schemas of an event stream replace the schemas of the field as its options.
         var schemaNames = field.GetFusionEventStreamSchemaNames();
@@ -57,7 +57,7 @@ internal sealed class FieldOptionTable(MutableSchemaDefinition schema, SchemaSet
                 field.GetFusionEventStreamMessage(schemaName));
         }
 
-        return new FieldOptions(field, options);
+        return new FieldOptionSet(field, options);
     }
 
     private MutableObjectTypeDefinition[] GetPossibleTypes(ITypeDefinition type, string schemaName)

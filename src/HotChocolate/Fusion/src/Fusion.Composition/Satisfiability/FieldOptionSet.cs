@@ -7,14 +7,14 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// The options of an output field: its event stream schemas when it has any, otherwise its
 /// schemas, in the order the field declares them.
 /// </summary>
-internal sealed class FieldOptions
+internal sealed class FieldOptionSet
 {
     private readonly FieldOption[] _options;
 
     /// <summary>
     /// Creates the options <paramref name="options"/> of <paramref name="field"/>.
     /// </summary>
-    public FieldOptions(MutableOutputFieldDefinition field, FieldOption[] options)
+    public FieldOptionSet(MutableOutputFieldDefinition field, FieldOption[] options)
     {
         Field = field;
         FieldType = field.Type.AsTypeDefinition();

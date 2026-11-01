@@ -259,7 +259,7 @@ internal sealed partial class SatisfiabilityValidator
     /// it is <c>null</c>.
     /// </summary>
     private SatisfiabilityPathItem? TryResolveField(
-        FieldOptions options,
+        FieldOptionSet options,
         FieldOption option,
         in WorkItem work,
         ref bool? canReenterWithLookup,
