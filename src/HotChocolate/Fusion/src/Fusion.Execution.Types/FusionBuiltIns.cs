@@ -21,10 +21,13 @@ internal static class FusionBuiltIns
     public const string UnionMember = "fusion__unionMember";
     public const string EnumValue = "fusion__enumValue";
     public const string Execution = "fusion__execution";
-    public const string CostOptions = "fusion__cost_options";
+    public const string CostOptions = "fusion__costOptions";
+    public const string LegacyCostOptions = "fusion__cost_options";
     public const string Inaccessible = "fusion__inaccessible";
-    public const string GatewayField = "fusion__gateway_field";
-    public const string SchemaMetadata = "fusion__schema_metadata";
+    public const string GatewayField = "fusion__gatewayField";
+    public const string LegacyGatewayField = "fusion__gateway_field";
+    public const string SchemaMetadata = "fusion__schemaMetadata";
+    public const string LegacySchemaMetadata = "fusion__schema_metadata";
     public const string EventStream = "fusion__eventStream";
     public const string Tag = "fusion__tag";
 
@@ -33,4 +36,16 @@ internal static class FusionBuiltIns
 
     public static bool IsBuiltInDirective(string directiveName)
         => directiveName.StartsWith(Prefix, StringComparison.Ordinal);
+
+    public static bool IsCostOptionsDirective(string directiveName)
+        => directiveName.Equals(CostOptions, StringComparison.Ordinal)
+            || directiveName.Equals(LegacyCostOptions, StringComparison.Ordinal);
+
+    public static bool IsGatewayFieldDirective(string directiveName)
+        => directiveName.Equals(GatewayField, StringComparison.Ordinal)
+            || directiveName.Equals(LegacyGatewayField, StringComparison.Ordinal);
+
+    public static bool IsSchemaMetadataDirective(string directiveName)
+        => directiveName.Equals(SchemaMetadata, StringComparison.Ordinal)
+            || directiveName.Equals(LegacySchemaMetadata, StringComparison.Ordinal);
 }
