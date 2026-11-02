@@ -14,38 +14,14 @@
     "physicalCores": 8,
     "threadsPerCore": 2,
     "coreThreads": [
-      [
-        0,
-        8
-      ],
-      [
-        1,
-        9
-      ],
-      [
-        2,
-        10
-      ],
-      [
-        3,
-        11
-      ],
-      [
-        4,
-        12
-      ],
-      [
-        5,
-        13
-      ],
-      [
-        6,
-        14
-      ],
-      [
-        7,
-        15
-      ]
+      [0, 8],
+      [1, 9],
+      [2, 10],
+      [3, 11],
+      [4, 12],
+      [5, 13],
+      [6, 14],
+      [7, 15]
     ],
     "memoryGb": 122,
     "os": "Linux 6.8.0-147-generic"
@@ -480,42 +456,22 @@
         "measuredRuns": 5,
         "cpuAllocation": {
           "system": {
-            "threadIds": [
-              0,
-              8
-            ],
+            "threadIds": [0, 8],
             "hardwareThreads": 2,
             "physicalCores": 1
           },
           "k6": {
-            "threadIds": [
-              1,
-              9
-            ],
+            "threadIds": [1, 9],
             "hardwareThreads": 2,
             "physicalCores": 1
           },
           "gateway": {
-            "threadIds": [
-              2,
-              3,
-              10,
-              11
-            ],
+            "threadIds": [2, 3, 10, 11],
             "hardwareThreads": 4,
             "physicalCores": 2
           },
           "subgraphs": {
-            "threadIds": [
-              4,
-              5,
-              6,
-              7,
-              12,
-              13,
-              14,
-              15
-            ],
+            "threadIds": [4, 5, 6, 7, 12, 13, 14, 15],
             "hardwareThreads": 8,
             "physicalCores": 4
           }
@@ -533,13 +489,7 @@
                 "bestRps": 276,
                 "worstRps": 274,
                 "cvPercent": 0.3,
-                "runsRps": [
-                  274,
-                  275,
-                  275,
-                  275,
-                  276
-                ]
+                "runsRps": [274, 275, 275, 275, 276]
               },
               "latencyMs": {
                 "avg": 179.828,
@@ -576,13 +526,7 @@
                 "bestRps": 527,
                 "worstRps": 526,
                 "cvPercent": 0.1,
-                "runsRps": [
-                  526,
-                  527,
-                  527,
-                  527,
-                  527
-                ]
+                "runsRps": [526, 527, 527, 527, 527]
               },
               "latencyMs": {
                 "avg": 94.172,
@@ -614,13 +558,7 @@
                 "bestRps": 405,
                 "worstRps": 399,
                 "cvPercent": 0.8,
-                "runsRps": [
-                  399,
-                  405,
-                  401,
-                  405,
-                  399
-                ]
+                "runsRps": [399, 405, 401, 405, 399]
               },
               "latencyMs": {
                 "avg": 123.556,
@@ -657,13 +595,7 @@
                 "bestRps": 1421,
                 "worstRps": 1418,
                 "cvPercent": 0.1,
-                "runsRps": [
-                  1421,
-                  1420,
-                  1420,
-                  1419,
-                  1418
-                ]
+                "runsRps": [1421, 1420, 1420, 1419, 1418]
               },
               "latencyMs": {
                 "avg": 34.884,
@@ -700,13 +632,7 @@
                 "bestRps": 1457,
                 "worstRps": 1447,
                 "cvPercent": 0.3,
-                "runsRps": [
-                  1448,
-                  1451,
-                  1447,
-                  1457,
-                  1451
-                ]
+                "runsRps": [1448, 1451, 1447, 1457, 1451]
               },
               "latencyMs": {
                 "avg": 34.172,
@@ -743,13 +669,7 @@
                 "bestRps": 1828,
                 "worstRps": 1823,
                 "cvPercent": 0.1,
-                "runsRps": [
-                  1826,
-                  1823,
-                  1825,
-                  1828,
-                  1824
-                ]
+                "runsRps": [1826, 1823, 1825, 1828, 1824]
               },
               "latencyMs": {
                 "avg": 27.097,
@@ -786,13 +706,7 @@
                 "bestRps": 267,
                 "worstRps": 266,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  266,
-                  267,
-                  267,
-                  267,
-                  267
-                ]
+                "runsRps": [266, 267, 267, 267, 267]
               },
               "latencyMs": {
                 "avg": 185.552,
@@ -824,13 +738,7 @@
                 "bestRps": 538,
                 "worstRps": 535,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  535,
-                  537,
-                  536,
-                  535,
-                  538
-                ]
+                "runsRps": [535, 537, 536, 535, 538]
               },
               "latencyMs": {
                 "avg": 92.587,
@@ -867,13 +775,7 @@
                 "bestRps": 2912,
                 "worstRps": 2885,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  2912,
-                  2911,
-                  2909,
-                  2885,
-                  2912
-                ]
+                "runsRps": [2912, 2911, 2909, 2885, 2912]
               },
               "latencyMs": {
                 "avg": 16.953,
@@ -910,13 +812,7 @@
                 "bestRps": 5069,
                 "worstRps": 5020,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  5040,
-                  5069,
-                  5051,
-                  5020,
-                  5056
-                ]
+                "runsRps": [5040, 5069, 5051, 5020, 5056]
               },
               "latencyMs": {
                 "avg": 9.683,
@@ -948,13 +844,7 @@
                 "bestRps": 4690,
                 "worstRps": 4663,
                 "cvPercent": 0.3,
-                "runsRps": [
-                  4667,
-                  4663,
-                  4673,
-                  4690,
-                  4689
-                ]
+                "runsRps": [4667, 4663, 4673, 4690, 4689]
               },
               "latencyMs": {
                 "avg": 10.481,
@@ -986,13 +876,7 @@
                 "bestRps": 4767,
                 "worstRps": 4726,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  4730,
-                  4759,
-                  4740,
-                  4726,
-                  4767
-                ]
+                "runsRps": [4730, 4759, 4740, 4726, 4767]
               },
               "latencyMs": {
                 "avg": 10.32,
@@ -1024,13 +908,7 @@
                 "bestRps": 4559,
                 "worstRps": 4529,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  4549,
-                  4559,
-                  4529,
-                  4543,
-                  4540
-                ]
+                "runsRps": [4549, 4559, 4529, 4543, 4540]
               },
               "latencyMs": {
                 "avg": 10.782,
@@ -1062,13 +940,7 @@
                 "bestRps": 5107,
                 "worstRps": 5046,
                 "cvPercent": 0.5,
-                "runsRps": [
-                  5046,
-                  5107,
-                  5076,
-                  5099,
-                  5079
-                ]
+                "runsRps": [5046, 5107, 5076, 5099, 5079]
               },
               "latencyMs": {
                 "avg": 9.628,
@@ -1100,13 +972,7 @@
                 "bestRps": 4789,
                 "worstRps": 4750,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  4789,
-                  4788,
-                  4778,
-                  4750,
-                  4763
-                ]
+                "runsRps": [4789, 4788, 4778, 4750, 4763]
               },
               "latencyMs": {
                 "avg": 10.255,
@@ -1138,13 +1004,7 @@
                 "bestRps": 4711,
                 "worstRps": 4661,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  4688,
-                  4661,
-                  4695,
-                  4711,
-                  4689
-                ]
+                "runsRps": [4688, 4661, 4695, 4711, 4689]
               },
               "latencyMs": {
                 "avg": 10.442,
@@ -1176,13 +1036,7 @@
                 "bestRps": 4528,
                 "worstRps": 4515,
                 "cvPercent": 0.1,
-                "runsRps": [
-                  4526,
-                  4528,
-                  4517,
-                  4522,
-                  4515
-                ]
+                "runsRps": [4526, 4528, 4517, 4522, 4515]
               },
               "latencyMs": {
                 "avg": 10.839,
@@ -1219,13 +1073,7 @@
                 "bestRps": 4464,
                 "worstRps": 4072,
                 "cvPercent": 3.7,
-                "runsRps": [
-                  4273,
-                  4464,
-                  4072,
-                  4266,
-                  4092
-                ]
+                "runsRps": [4273, 4464, 4072, 4266, 4092]
               },
               "latencyMs": {
                 "avg": 11.503,
@@ -1265,42 +1113,22 @@
         "measuredRuns": 5,
         "cpuAllocation": {
           "system": {
-            "threadIds": [
-              0,
-              8
-            ],
+            "threadIds": [0, 8],
             "hardwareThreads": 2,
             "physicalCores": 1
           },
           "k6": {
-            "threadIds": [
-              1,
-              9
-            ],
+            "threadIds": [1, 9],
             "hardwareThreads": 2,
             "physicalCores": 1
           },
           "gateway": {
-            "threadIds": [
-              2,
-              3,
-              10,
-              11
-            ],
+            "threadIds": [2, 3, 10, 11],
             "hardwareThreads": 4,
             "physicalCores": 2
           },
           "subgraphs": {
-            "threadIds": [
-              4,
-              5,
-              6,
-              7,
-              12,
-              13,
-              14,
-              15
-            ],
+            "threadIds": [4, 5, 6, 7, 12, 13, 14, 15],
             "hardwareThreads": 8,
             "physicalCores": 4
           }
@@ -1318,13 +1146,7 @@
                 "bestRps": 271,
                 "worstRps": 270,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  270,
-                  271,
-                  271,
-                  271,
-                  271
-                ]
+                "runsRps": [270, 271, 271, 271, 271]
               },
               "latencyMs": {
                 "avg": 179.889,
@@ -1361,13 +1183,7 @@
                 "bestRps": 482,
                 "worstRps": 481,
                 "cvPercent": 0.1,
-                "runsRps": [
-                  481,
-                  481,
-                  481,
-                  481,
-                  482
-                ]
+                "runsRps": [481, 481, 481, 481, 482]
               },
               "latencyMs": {
                 "avg": 101.716,
@@ -1399,13 +1215,7 @@
                 "bestRps": 418,
                 "worstRps": 417,
                 "cvPercent": 0.1,
-                "runsRps": [
-                  417,
-                  417,
-                  417,
-                  418,
-                  417
-                ]
+                "runsRps": [417, 417, 417, 418, 417]
               },
               "latencyMs": {
                 "avg": 117.265,
@@ -1442,13 +1252,7 @@
                 "bestRps": 1474,
                 "worstRps": 1470,
                 "cvPercent": 0.1,
-                "runsRps": [
-                  1474,
-                  1472,
-                  1473,
-                  1473,
-                  1470
-                ]
+                "runsRps": [1474, 1472, 1473, 1473, 1470]
               },
               "latencyMs": {
                 "avg": 33.174,
@@ -1485,13 +1289,7 @@
                 "bestRps": 1414,
                 "worstRps": 1395,
                 "cvPercent": 0.6,
-                "runsRps": [
-                  1412,
-                  1411,
-                  1414,
-                  1400,
-                  1395
-                ]
+                "runsRps": [1412, 1411, 1414, 1400, 1395]
               },
               "latencyMs": {
                 "avg": 34.663,
@@ -1528,13 +1326,7 @@
                 "bestRps": 1459,
                 "worstRps": 1443,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  1453,
-                  1443,
-                  1452,
-                  1452,
-                  1459
-                ]
+                "runsRps": [1453, 1443, 1452, 1452, 1459]
               },
               "latencyMs": {
                 "avg": 33.604,
@@ -1571,13 +1363,7 @@
                 "bestRps": 253,
                 "worstRps": 252,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  252,
-                  252,
-                  252,
-                  252,
-                  253
-                ]
+                "runsRps": [252, 252, 252, 252, 253]
               },
               "latencyMs": {
                 "avg": 194.542,
@@ -1609,13 +1395,7 @@
                 "bestRps": 522,
                 "worstRps": 519,
                 "cvPercent": 0.3,
-                "runsRps": [
-                  521,
-                  522,
-                  520,
-                  522,
-                  519
-                ]
+                "runsRps": [521, 522, 520, 522, 519]
               },
               "latencyMs": {
                 "avg": 93.973,
@@ -1652,13 +1432,7 @@
                 "bestRps": 2055,
                 "worstRps": 2032,
                 "cvPercent": 0.5,
-                "runsRps": [
-                  2055,
-                  2050,
-                  2032,
-                  2039,
-                  2035
-                ]
+                "runsRps": [2055, 2050, 2032, 2039, 2035]
               },
               "latencyMs": {
                 "avg": 23.926,
@@ -1695,13 +1469,7 @@
                 "bestRps": 3468,
                 "worstRps": 3427,
                 "cvPercent": 0.5,
-                "runsRps": [
-                  3468,
-                  3452,
-                  3427,
-                  3449,
-                  3464
-                ]
+                "runsRps": [3468, 3452, 3427, 3449, 3464]
               },
               "latencyMs": {
                 "avg": 14.165,
@@ -1733,13 +1501,7 @@
                 "bestRps": 3365,
                 "worstRps": 3332,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  3332,
-                  3345,
-                  3336,
-                  3343,
-                  3365
-                ]
+                "runsRps": [3332, 3345, 3336, 3343, 3365]
               },
               "latencyMs": {
                 "avg": 14.628,
@@ -1771,13 +1533,7 @@
                 "bestRps": 2792,
                 "worstRps": 2780,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  2780,
-                  2782,
-                  2787,
-                  2780,
-                  2792
-                ]
+                "runsRps": [2780, 2782, 2787, 2780, 2792]
               },
               "latencyMs": {
                 "avg": 17.55,
@@ -1809,13 +1565,7 @@
                 "bestRps": 2770,
                 "worstRps": 2728,
                 "cvPercent": 0.7,
-                "runsRps": [
-                  2730,
-                  2746,
-                  2770,
-                  2766,
-                  2728
-                ]
+                "runsRps": [2730, 2746, 2770, 2766, 2728]
               },
               "latencyMs": {
                 "avg": 17.791,
@@ -1847,13 +1597,7 @@
                 "bestRps": 3441,
                 "worstRps": 3414,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  3441,
-                  3428,
-                  3417,
-                  3440,
-                  3414
-                ]
+                "runsRps": [3441, 3428, 3417, 3440, 3414]
               },
               "latencyMs": {
                 "avg": 14.261,
@@ -1885,13 +1629,7 @@
                 "bestRps": 3402,
                 "worstRps": 3344,
                 "cvPercent": 0.6,
-                "runsRps": [
-                  3402,
-                  3384,
-                  3344,
-                  3380,
-                  3384
-                ]
+                "runsRps": [3402, 3384, 3344, 3380, 3384]
               },
               "latencyMs": {
                 "avg": 14.452,
@@ -1923,13 +1661,7 @@
                 "bestRps": 2793,
                 "worstRps": 2778,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  2778,
-                  2781,
-                  2793,
-                  2782,
-                  2779
-                ]
+                "runsRps": [2778, 2781, 2793, 2782, 2779]
               },
               "latencyMs": {
                 "avg": 17.561,
@@ -1961,13 +1693,7 @@
                 "bestRps": 2773,
                 "worstRps": 2754,
                 "cvPercent": 0.3,
-                "runsRps": [
-                  2773,
-                  2758,
-                  2754,
-                  2761,
-                  2762
-                ]
+                "runsRps": [2773, 2758, 2754, 2761, 2762]
               },
               "latencyMs": {
                 "avg": 17.69,
@@ -2004,13 +1730,7 @@
                 "bestRps": 3304,
                 "worstRps": 3278,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  3298,
-                  3304,
-                  3278,
-                  3278,
-                  3295
-                ]
+                "runsRps": [3298, 3304, 3278, 3278, 3295]
               },
               "latencyMs": {
                 "avg": 14.851,
@@ -2050,42 +1770,22 @@
         "measuredRuns": 5,
         "cpuAllocation": {
           "system": {
-            "threadIds": [
-              0,
-              8
-            ],
+            "threadIds": [0, 8],
             "hardwareThreads": 2,
             "physicalCores": 1
           },
           "k6": {
-            "threadIds": [
-              1,
-              9
-            ],
+            "threadIds": [1, 9],
             "hardwareThreads": 2,
             "physicalCores": 1
           },
           "gateway": {
-            "threadIds": [
-              2,
-              3,
-              10,
-              11
-            ],
+            "threadIds": [2, 3, 10, 11],
             "hardwareThreads": 4,
             "physicalCores": 2
           },
           "subgraphs": {
-            "threadIds": [
-              4,
-              5,
-              6,
-              7,
-              12,
-              13,
-              14,
-              15
-            ],
+            "threadIds": [4, 5, 6, 7, 12, 13, 14, 15],
             "hardwareThreads": 8,
             "physicalCores": 4
           }
@@ -2103,13 +1803,7 @@
                 "bestRps": 237,
                 "worstRps": 236,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  236,
-                  236,
-                  237,
-                  237,
-                  236
-                ]
+                "runsRps": [236, 236, 237, 237, 236]
               },
               "latencyMs": {
                 "avg": 891.386,
@@ -2146,13 +1840,7 @@
                 "bestRps": 491,
                 "worstRps": 459,
                 "cvPercent": 2.9,
-                "runsRps": [
-                  491,
-                  467,
-                  461,
-                  459,
-                  480
-                ]
+                "runsRps": [491, 467, 461, 459, 480]
               },
               "latencyMs": {
                 "avg": 433.534,
@@ -2184,13 +1872,7 @@
                 "bestRps": 377,
                 "worstRps": 352,
                 "cvPercent": 2.9,
-                "runsRps": [
-                  352,
-                  354,
-                  356,
-                  377,
-                  356
-                ]
+                "runsRps": [352, 354, 356, 377, 356]
               },
               "latencyMs": {
                 "avg": 422.117,
@@ -2227,13 +1909,7 @@
                 "bestRps": 1369,
                 "worstRps": 1367,
                 "cvPercent": 0.1,
-                "runsRps": [
-                  1368,
-                  1368,
-                  1369,
-                  1367,
-                  1369
-                ]
+                "runsRps": [1368, 1368, 1369, 1367, 1369]
               },
               "latencyMs": {
                 "avg": 166.985,
@@ -2270,13 +1946,7 @@
                 "bestRps": 1374,
                 "worstRps": 1366,
                 "cvPercent": 0.2,
-                "runsRps": [
-                  1373,
-                  1374,
-                  1368,
-                  1366,
-                  1369
-                ]
+                "runsRps": [1373, 1374, 1368, 1366, 1369]
               },
               "latencyMs": {
                 "avg": 166.853,
@@ -2313,13 +1983,7 @@
                 "bestRps": 1891,
                 "worstRps": 1791,
                 "cvPercent": 2.2,
-                "runsRps": [
-                  1856,
-                  1880,
-                  1891,
-                  1791,
-                  1828
-                ]
+                "runsRps": [1856, 1880, 1891, 1791, 1828]
               },
               "latencyMs": {
                 "avg": 118.288,
@@ -2356,13 +2020,7 @@
                 "bestRps": 254,
                 "worstRps": 252,
                 "cvPercent": 0.3,
-                "runsRps": [
-                  252,
-                  253,
-                  253,
-                  252,
-                  254
-                ]
+                "runsRps": [252, 253, 253, 252, 254]
               },
               "latencyMs": {
                 "avg": 854.261,
@@ -2394,13 +2052,7 @@
                 "bestRps": 480,
                 "worstRps": 474,
                 "cvPercent": 0.5,
-                "runsRps": [
-                  474,
-                  480,
-                  480,
-                  480,
-                  478
-                ]
+                "runsRps": [474, 480, 480, 480, 478]
               },
               "latencyMs": {
                 "avg": 462.051,
@@ -2437,13 +2089,7 @@
                 "bestRps": 2579,
                 "worstRps": 2555,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  2579,
-                  2563,
-                  2575,
-                  2566,
-                  2555
-                ]
+                "runsRps": [2579, 2563, 2575, 2566, 2555]
               },
               "latencyMs": {
                 "avg": 89.914,
@@ -2480,13 +2126,7 @@
                 "bestRps": 4679,
                 "worstRps": 4536,
                 "cvPercent": 1.3,
-                "runsRps": [
-                  4673,
-                  4673,
-                  4658,
-                  4679,
-                  4536
-                ]
+                "runsRps": [4673, 4673, 4658, 4679, 4536]
               },
               "latencyMs": {
                 "avg": 48.381,
@@ -2518,13 +2158,7 @@
                 "bestRps": 4445,
                 "worstRps": 4387,
                 "cvPercent": 0.5,
-                "runsRps": [
-                  4416,
-                  4387,
-                  4405,
-                  4445,
-                  4425
-                ]
+                "runsRps": [4416, 4387, 4405, 4445, 4425]
               },
               "latencyMs": {
                 "avg": 51.257,
@@ -2556,13 +2190,7 @@
                 "bestRps": 4605,
                 "worstRps": 4490,
                 "cvPercent": 1.0,
-                "runsRps": [
-                  4490,
-                  4503,
-                  4524,
-                  4522,
-                  4605
-                ]
+                "runsRps": [4490, 4503, 4524, 4522, 4605]
               },
               "latencyMs": {
                 "avg": 49.903,
@@ -2594,13 +2222,7 @@
                 "bestRps": 4319,
                 "worstRps": 4252,
                 "cvPercent": 0.6,
-                "runsRps": [
-                  4304,
-                  4252,
-                  4313,
-                  4319,
-                  4317
-                ]
+                "runsRps": [4304, 4252, 4313, 4319, 4317]
               },
               "latencyMs": {
                 "avg": 53.129,
@@ -2632,13 +2254,7 @@
                 "bestRps": 4738,
                 "worstRps": 4707,
                 "cvPercent": 0.3,
-                "runsRps": [
-                  4730,
-                  4707,
-                  4714,
-                  4731,
-                  4738
-                ]
+                "runsRps": [4730, 4707, 4714, 4731, 4738]
               },
               "latencyMs": {
                 "avg": 48.187,
@@ -2670,13 +2286,7 @@
                 "bestRps": 4558,
                 "worstRps": 4516,
                 "cvPercent": 0.4,
-                "runsRps": [
-                  4533,
-                  4547,
-                  4558,
-                  4516,
-                  4516
-                ]
+                "runsRps": [4533, 4547, 4558, 4516, 4516]
               },
               "latencyMs": {
                 "avg": 50.359,
@@ -2708,13 +2318,7 @@
                 "bestRps": 4579,
                 "worstRps": 4407,
                 "cvPercent": 1.7,
-                "runsRps": [
-                  4571,
-                  4407,
-                  4579,
-                  4504,
-                  4447
-                ]
+                "runsRps": [4571, 4407, 4579, 4504, 4447]
               },
               "latencyMs": {
                 "avg": 50.499,
@@ -2746,13 +2350,7 @@
                 "bestRps": 4425,
                 "worstRps": 4315,
                 "cvPercent": 1.1,
-                "runsRps": [
-                  4330,
-                  4399,
-                  4315,
-                  4409,
-                  4425
-                ]
+                "runsRps": [4330, 4399, 4315, 4409, 4425]
               },
               "latencyMs": {
                 "avg": 51.835,
@@ -2789,13 +2387,7 @@
                 "bestRps": 4275,
                 "worstRps": 4146,
                 "cvPercent": 1.2,
-                "runsRps": [
-                  4146,
-                  4186,
-                  4275,
-                  4213,
-                  4161
-                ]
+                "runsRps": [4146, 4186, 4275, 4213, 4161]
               },
               "latencyMs": {
                 "avg": 54.83,
