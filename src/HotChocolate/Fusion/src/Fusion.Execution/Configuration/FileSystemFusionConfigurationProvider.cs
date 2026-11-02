@@ -176,9 +176,11 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     }
                     catch (InvalidOperationException ex)
                     {
-                        NotifyError(ex);
+                        NotifyInitialLoadError(ex);
                         continue;
                     }
+
+                    ClearLoadError();
 
                     using var config = await archive.TryGetGatewayConfigurationAsync(
                         WellKnownVersions.LatestGatewayFormatVersion,
@@ -229,21 +231,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         }
     }
 
-    internal static async Task<GatewayConfiguration?> LoadGatewayConfigurationAsync(
-        FusionArchive archive,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(archive);
-
-        var metadata = await archive.GetArchiveMetadataAsync(cancellationToken);
-        ValidateExecutionSchemaVersion(metadata);
-
-        return await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
-            cancellationToken);
-    }
-
-    internal static void ValidateExecutionSchemaVersion(ArchiveMetadata? metadata)
+    private static void ValidateExecutionSchemaVersion(ArchiveMetadata? metadata)
     {
         if (metadata is not null
             && metadata.ExecutionSchemaVersion > WellKnownVersions.MaxSupportedExecutionSchemaVersion)
@@ -308,12 +296,25 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         }
     }
 
-    private void NotifyError(Exception exception)
+    private void ClearLoadError()
+    {
+        lock (_syncRoot)
+        {
+            _loadError = null;
+        }
+    }
+
+    private void NotifyInitialLoadError(Exception exception)
     {
         ImmutableArray<ObserverSession> sessions;
 
         lock (_syncRoot)
         {
+            if (Configuration is not null)
+            {
+                return;
+            }
+
             sessions = _sessions;
             _sessions = [];
             _loadError = exception;

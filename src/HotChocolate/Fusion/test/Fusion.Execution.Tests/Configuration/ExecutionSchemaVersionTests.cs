@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Threading.Channels;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -29,14 +30,12 @@ public sealed class ExecutionSchemaVersionTests
             + "MaxSupportedExecutionSchemaVersion in WellKnownVersions.");
 
         // act
-        stream.Position = 0;
-        using var archive = FusionArchive.Open(stream, leaveOpen: true);
-        using var configuration = await FileSystemFusionConfigurationProvider.LoadGatewayConfigurationAsync(
-            archive,
-            TestContext.Current.CancellationToken);
+        var configuration = await LoadGatewayConfigurationThroughProviderAsync(stream);
 
         // assert
-        Assert.Equal(WellKnownVersions.LatestGatewayFormatVersion, configuration?.Version);
+        Assert.Contains(
+            configuration.Schema.Definitions,
+            definition => definition is HotChocolate.Language.ObjectTypeDefinitionNode { Name.Value: "Query" });
     }
 
     [Theory]
@@ -46,16 +45,12 @@ public sealed class ExecutionSchemaVersionTests
     {
         // arrange
         await using var stream = await CreateGatewayArchiveAsync(new Version(version));
-        stream.Position = 0;
-        using var archive = FusionArchive.Open(stream, leaveOpen: true);
 
         // act
-        using var configuration = await FileSystemFusionConfigurationProvider.LoadGatewayConfigurationAsync(
-            archive,
-            TestContext.Current.CancellationToken);
+        var configuration = await LoadGatewayConfigurationThroughProviderAsync(stream);
 
         // assert
-        Assert.Equal(WellKnownVersions.LatestGatewayFormatVersion, configuration?.Version);
+        Assert.Equal("type Query {\n  product: String\n}", configuration.Schema.ToString());
     }
 
     [Theory]
@@ -66,16 +61,12 @@ public sealed class ExecutionSchemaVersionTests
     {
         // arrange
         await using var stream = await CreateGatewayArchiveAsync(new Version(version));
-        stream.Position = 0;
-        using var archive = FusionArchive.Open(stream, leaveOpen: true);
 
         // act
-        Task Act() => FileSystemFusionConfigurationProvider.LoadGatewayConfigurationAsync(
-            archive,
-            TestContext.Current.CancellationToken);
+        var exception = await LoadGatewayErrorThroughProviderAsync(stream);
 
         // assert
-        await Assert.ThrowsAsync<InvalidOperationException>(Act);
+        Assert.IsType<InvalidOperationException>(exception);
     }
 
     [Fact]
@@ -83,14 +74,9 @@ public sealed class ExecutionSchemaVersionTests
     {
         // arrange
         await using var stream = await CreateGatewayArchiveAsync(new Version("1.0.1"));
-        stream.Position = 0;
-        using var archive = FusionArchive.Open(stream, leaveOpen: true);
 
         // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => FileSystemFusionConfigurationProvider.LoadGatewayConfigurationAsync(
-                archive,
-                TestContext.Current.CancellationToken));
+        var exception = await LoadGatewayErrorThroughProviderAsync(stream);
 
         // assert
         exception.Message.MatchInlineSnapshot(
@@ -100,37 +86,112 @@ public sealed class ExecutionSchemaVersionTests
     }
 
     [Fact]
-    public async Task FileSystemProvider_Should_ExposeError_When_ExecutionSchemaVersionIsHigher()
+    public async Task FileSystemProvider_Should_KeepExistingSubscription_When_ExecutionSchemaVersionIsHigher()
     {
         // arrange
-        var fileName = IOPath.Combine(IOPath.GetTempPath(), $"{Guid.NewGuid()}.far");
+        var fileName = CreateFileName();
+        await using var initialArchive = await CreateGatewayArchiveAsync(
+            WellKnownVersions.MaxSupportedExecutionSchemaVersion,
+            "type Query { product: String }");
+        await using var unsupportedArchive = await CreateGatewayArchiveAsync(
+            new Version("1.0.1"),
+            "type Query { product: String }");
+        await using var updatedArchive = await CreateGatewayArchiveAsync(
+            WellKnownVersions.MaxSupportedExecutionSchemaVersion,
+            "type Query { product: String name: String }");
 
         try
         {
-            await using var stream = await CreateGatewayArchiveAsync(new Version("1.0.1"));
-            await File.WriteAllBytesAsync(
-                fileName,
-                stream.ToArray(),
-                TestContext.Current.CancellationToken);
+            await WriteArchiveAsync(fileName, initialArchive);
+            await using var provider = new FileSystemFusionConfigurationProvider(fileName);
+            var observer = new ConfigurationObserver();
+            using var subscription = provider.Subscribe(observer);
+            await observer.ReadConfigurationAsync(TestContext.Current.CancellationToken);
 
-            await using (var provider = new FileSystemFusionConfigurationProvider(fileName))
-            {
-                var initialObserver = new ErrorObserver();
-                var observer = new ErrorObserver();
+            // act
+            await WriteArchiveAsync(fileName, unsupportedArchive);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), TestContext.Current.CancellationToken);
+            await WriteArchiveAsync(fileName, updatedArchive);
+            var configuration = await observer.ReadConfigurationAsync(TestContext.Current.CancellationToken);
 
-                // act
-                using var initialSubscription = provider.Subscribe(initialObserver);
-                await initialObserver.Error.Task.WaitAsync(TestContext.Current.CancellationToken);
+            // assert
+            Assert.False(observer.Error.Task.IsCompleted);
+            Assert.Equal(
+                "type Query {\n  product: String\n  name: String\n}",
+                configuration.Schema.ToString());
+        }
+        finally
+        {
+            File.Delete(fileName);
+        }
+    }
 
-                using var subscription = provider.Subscribe(observer);
-                var exception = await observer.Error.Task.WaitAsync(TestContext.Current.CancellationToken);
+    [Fact]
+    public async Task FileSystemProvider_Should_ClearLoadError_When_SupportedConfigurationIsRestoredUnchanged()
+    {
+        // arrange
+        var fileName = CreateFileName();
+        await using var supportedArchive = await CreateGatewayArchiveAsync(
+            WellKnownVersions.MaxSupportedExecutionSchemaVersion);
+        await using var unsupportedArchive = await CreateGatewayArchiveAsync(new Version("1.0.1"));
 
-                // assert
-                exception.Message.MatchInlineSnapshot(
-                    """
-                    The Fusion archive requires execution schema version 1.0.1, but this gateway supports up to 1.0.0. Upgrade the gateway to load this archive.
-                    """);
-            }
+        try
+        {
+            await WriteArchiveAsync(fileName, supportedArchive);
+            await using var provider = new FileSystemFusionConfigurationProvider(fileName);
+            var existingObserver = new ConfigurationObserver();
+            using var existingSubscription = provider.Subscribe(existingObserver);
+            await existingObserver.ReadConfigurationAsync(TestContext.Current.CancellationToken);
+
+            // act
+            await WriteArchiveAsync(fileName, unsupportedArchive);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), TestContext.Current.CancellationToken);
+            await WriteArchiveAsync(fileName, supportedArchive);
+            await Task.Delay(TimeSpan.FromMilliseconds(250), TestContext.Current.CancellationToken);
+
+            var restoredObserver = new ConfigurationObserver();
+            using var restoredSubscription = provider.Subscribe(restoredObserver);
+            var configuration = await restoredObserver.ReadConfigurationAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            Assert.False(existingObserver.Error.Task.IsCompleted);
+            Assert.Equal("type Query {\n  product: String\n}", configuration.Schema.ToString());
+        }
+        finally
+        {
+            File.Delete(fileName);
+        }
+    }
+
+    private static async Task<FusionConfiguration> LoadGatewayConfigurationThroughProviderAsync(MemoryStream archive)
+    {
+        var fileName = CreateFileName();
+
+        try
+        {
+            await WriteArchiveAsync(fileName, archive);
+            await using var provider = new FileSystemFusionConfigurationProvider(fileName);
+            var observer = new ConfigurationObserver();
+            using var subscription = provider.Subscribe(observer);
+            return await observer.ReadConfigurationAsync(TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            File.Delete(fileName);
+        }
+    }
+
+    private static async Task<Exception> LoadGatewayErrorThroughProviderAsync(MemoryStream archive)
+    {
+        var fileName = CreateFileName();
+
+        try
+        {
+            await WriteArchiveAsync(fileName, archive);
+            await using var provider = new FileSystemFusionConfigurationProvider(fileName);
+            var observer = new ConfigurationObserver();
+            using var subscription = provider.Subscribe(observer);
+            return await observer.Error.Task.WaitAsync(TestContext.Current.CancellationToken);
         }
         finally
         {
@@ -170,7 +231,9 @@ public sealed class ExecutionSchemaVersionTests
         return stream;
     }
 
-    private static async Task<MemoryStream> CreateGatewayArchiveAsync(Version executionSchemaVersion)
+    private static async Task<MemoryStream> CreateGatewayArchiveAsync(
+        Version executionSchemaVersion,
+        string schema = "type Query { product: String }")
     {
         var stream = new MemoryStream();
         var metadata = new ArchiveMetadata
@@ -185,7 +248,7 @@ public sealed class ExecutionSchemaVersionTests
         {
             await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
             await archive.SetGatewayConfigurationAsync(
-                "type Query { product: String }",
+                schema,
                 settings,
                 WellKnownVersions.LatestGatewayFormatVersion,
                 TestContext.Current.CancellationToken);
@@ -196,8 +259,16 @@ public sealed class ExecutionSchemaVersionTests
         return stream;
     }
 
-    private sealed class ErrorObserver : IObserver<FusionConfiguration>
+    private static string CreateFileName()
+        => IOPath.Combine(IOPath.GetTempPath(), $"{Guid.NewGuid()}.far");
+
+    private static Task WriteArchiveAsync(string fileName, MemoryStream archive)
+        => File.WriteAllBytesAsync(fileName, archive.ToArray(), TestContext.Current.CancellationToken);
+
+    private sealed class ConfigurationObserver : IObserver<FusionConfiguration>
     {
+        private readonly Channel<FusionConfiguration> _configurations = Channel.CreateUnbounded<FusionConfiguration>();
+
         public TaskCompletionSource<Exception> Error { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -208,6 +279,9 @@ public sealed class ExecutionSchemaVersionTests
             => Error.TrySetResult(error);
 
         public void OnNext(FusionConfiguration value)
-            => Error.TrySetException(new InvalidOperationException("The archive should not load."));
+            => _configurations.Writer.TryWrite(value);
+
+        public ValueTask<FusionConfiguration> ReadConfigurationAsync(CancellationToken cancellationToken)
+            => _configurations.Reader.ReadAsync(cancellationToken);
     }
 }
