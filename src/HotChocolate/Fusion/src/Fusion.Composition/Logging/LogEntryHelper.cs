@@ -778,6 +778,54 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    /// <summary>
+    /// Creates a composition error for a non-positive cost-plan cache size, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidCostPlanCacheSizeSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidCostPlanCacheSizeSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidCostPlanCacheSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum field cost, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxFieldCostSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxFieldCostSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxFieldCostSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum response size, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxResponseSizeSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxResponseSizeSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxResponseSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum type cost, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxTypeCostSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxTypeCostSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxTypeCostSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
     public static LogEntry InvalidFieldSharing(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
