@@ -46,12 +46,12 @@ public sealed record FusionSchemaCostOptions
     public int? DefaultListSize { get; }
 
     /// <summary>
-    /// Gets the maximum allowed cost of an individual field.
+    /// Gets the maximum allowed field cost.
     /// </summary>
     public double? MaxFieldCost { get; }
 
     /// <summary>
-    /// Gets the maximum allowed cost of an output type.
+    /// Gets the maximum allowed type cost.
     /// </summary>
     public double? MaxTypeCost { get; }
 

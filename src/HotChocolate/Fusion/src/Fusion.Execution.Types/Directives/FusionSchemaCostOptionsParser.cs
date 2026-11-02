@@ -27,8 +27,7 @@ internal static class FusionSchemaCostOptionsParser
 
         if (costOptionsDirectives.Length > 1)
         {
-            throw new InvalidOperationException(
-                "The fusion__cost_options directive may only be applied once per schema.");
+            throw ThrowHelper.DuplicateCostOptionsDirective();
         }
 
         var costOptionsDirective = costOptionsDirectives[0];

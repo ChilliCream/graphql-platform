@@ -22,4 +22,7 @@ internal static class ThrowHelper
         string argumentName,
         string requirement)
         => new($"The fusion__cost_options {argumentName} argument must be {requirement}.");
+
+    public static InvalidOperationException DuplicateCostOptionsDirective()
+        => new("The fusion__cost_options directive may only be applied once per schema.");
 }
