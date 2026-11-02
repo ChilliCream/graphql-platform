@@ -167,13 +167,13 @@ builder.Services.AddGraphQLGatewayServer(
 Set `enforce-cost-limits` to `false` when only cost enforcement should be disabled:
 
 ```shell
-nitro fusion settings set enforce-cost-limits false --archive ./graph.far
+nitro fusion settings set enforce-cost-limits false --archive ./gateway.far
 ```
 
 Set `skip-cost-analyzer` to `true` to bypass analysis, enforcement, and reporting:
 
 ```shell
-nitro fusion settings set skip-cost-analyzer true --archive ./graph.far
+nitro fusion settings set skip-cost-analyzer true --archive ./gateway.far
 ```
 
 # Reporting and Validation
@@ -262,10 +262,10 @@ A custom pipeline must place `UseOperationVariableCoercion()` before `UseCostAna
 Configure cost settings in the Fusion archive:
 
 ```shell
-nitro fusion settings set max-field-cost 5000 --archive ./graph.far
-nitro fusion settings set max-type-cost 5000 --archive ./graph.far
-nitro fusion settings set max-response-size 10000 --archive ./graph.far
-nitro fusion settings set cost-plan-cache-size 512 --archive ./graph.far
+nitro fusion settings set max-field-cost 5000 --archive ./gateway.far
+nitro fusion settings set max-type-cost 5000 --archive ./gateway.far
+nitro fusion settings set max-response-size 10000 --archive ./gateway.far
+nitro fusion settings set cost-plan-cache-size 512 --archive ./gateway.far
 ```
 
 | Setting                         | Values                                                     | Default                         | Description                                                                |
@@ -319,7 +319,7 @@ public class CostOptionsHttpRequestInterceptor : DefaultHttpRequestInterceptor
 Configure the gateway's response-size limit before adding the interceptor:
 
 ```shell
-nitro fusion settings set max-response-size 10000 --archive ./graph.far
+nitro fusion settings set max-response-size 10000 --archive ./gateway.far
 ```
 
 ```csharp

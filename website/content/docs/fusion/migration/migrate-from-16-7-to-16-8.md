@@ -22,5 +22,5 @@ builder.Services
 After:
 
 ```shell
-nitro fusion settings set max-field-cost 2000 --archive ./graph.far
+nitro fusion settings set max-field-cost 2000 --archive ./gateway.far
 ```
