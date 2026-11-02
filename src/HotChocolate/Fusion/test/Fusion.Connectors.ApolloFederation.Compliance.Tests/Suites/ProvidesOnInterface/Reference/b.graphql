@@ -1,0 +1,34 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@external", "@shareable", "@provides"]
+  )
+
+type Query {
+  media: Media @shareable @provides(fields: "animals { id name }")
+}
+
+interface Media {
+  id: ID!
+  animals: [Animal]
+}
+
+interface Animal {
+  id: ID!
+  name: String
+}
+
+type Book implements Media {
+  id: ID! @shareable
+  animals: [Animal] @external
+}
+
+type Dog implements Animal {
+  id: ID! @external
+  name: String @external
+}
+
+type Cat implements Animal {
+  id: ID! @external
+  name: String @external
+}

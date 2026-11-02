@@ -10,7 +10,7 @@ namespace HotChocolate.Validation.Rules;
 /// Every input field provided in an input object value must be defined in
 /// the set of possible fields of that input object’s expected type.
 ///
-/// https://spec.graphql.org/June2018/#sec-Input-Object-Field-Names
+/// https://spec.graphql.org/September2025/#sec-Input-Object-Field-Names
 ///
 /// AND
 ///
@@ -18,7 +18,7 @@ namespace HotChocolate.Validation.Rules;
 /// otherwise an ambiguity would exist which includes an ignored portion
 /// of syntax.
 ///
-/// https://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness
+/// https://spec.graphql.org/September2025/#sec-Input-Object-Field-Uniqueness
 ///
 /// AND
 ///
@@ -28,7 +28,7 @@ namespace HotChocolate.Validation.Rules;
 /// An input field is required if it has a non‐null type and does not have
 /// a default value. Otherwise, the input object field is optional.
 ///
-/// https://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
+/// https://spec.graphql.org/September2025/#sec-Input-Object-Required-Fields
 ///
 /// AND
 ///
@@ -36,7 +36,7 @@ namespace HotChocolate.Validation.Rules;
 /// they are found as per the coercion rules defined in the Type System
 /// chapter.
 ///
-/// https://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
+/// https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type
 ///
 /// AND
 ///
@@ -145,6 +145,23 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         DocumentValidatorContext context)
     {
+        // An argument of a fragment spread is declared by a variable definition of the
+        // fragment it targets, not by a field or a directive.
+        if (context.Path.Peek() is FragmentSpreadNode spread)
+        {
+            if (FragmentArguments.TryGetArgumentType(
+                context,
+                spread,
+                node.Name.Value,
+                out var argumentType))
+            {
+                context.Types.Push(argumentType);
+                return Continue;
+            }
+
+            return Skip;
+        }
+
         if (context.Directives.TryPeek(out var directive))
         {
             if (directive.Arguments.TryGetField(node.Name.Value, out var argument))
@@ -177,6 +194,12 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         DocumentValidatorContext context)
     {
+        if (context.Path.Peek() is FragmentSpreadNode)
+        {
+            context.Types.Pop();
+            return Continue;
+        }
+
         context.InputFields.Pop();
         context.Types.Pop();
         return Continue;

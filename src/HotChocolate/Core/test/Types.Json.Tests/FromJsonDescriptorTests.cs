@@ -21,7 +21,7 @@ public class FromJsonDescriptorTests
                         d.Field("bar").Type<StringType>().FromJson();
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { bar } }");
+                .ExecuteRequestAsync("{ foo { bar } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -49,7 +49,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<StringType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -78,7 +78,7 @@ public class FromJsonDescriptorTests
                             .FromJson(t => t.GetProperty("bar").GetString());
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -137,7 +137,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<DateTimeType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -165,7 +165,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<DateType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -193,7 +193,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<LongType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -221,7 +221,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<IntType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -249,7 +249,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<ShortType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -277,7 +277,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<UrlType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -305,7 +305,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<UuidType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -333,7 +333,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<FloatType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -361,7 +361,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<DecimalType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -389,7 +389,7 @@ public class FromJsonDescriptorTests
                         d.Field("baz").Type<BooleanType>().FromJson("bar");
                     })
                 .AddJsonSupport()
-                .ExecuteRequestAsync("{ foo { baz } }");
+                .ExecuteRequestAsync("{ foo { baz } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

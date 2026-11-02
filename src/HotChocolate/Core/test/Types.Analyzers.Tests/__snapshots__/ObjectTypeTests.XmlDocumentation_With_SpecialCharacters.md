@@ -67,7 +67,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Query),
                 new global::HotChocolate.Types.QueryTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 
@@ -82,11 +82,12 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Use \"quotes\" and `backticks` here.\nPath: C:\\Windows\\System32";
+                    configuration.Description = GetDescription("Use \"quotes\" and `backticks` here.\nPath: C:\\Windows\\System32", true, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -112,9 +113,12 @@ namespace TestNamespace
                 return result;
             }
         }
+
+        [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static string? GetDescription(string value, bool isXmlDocumentation, bool useXmlDocumentation)
+            => !isXmlDocumentation || useXmlDocumentation ? value : null;
     }
 }
 
 
 ```
-

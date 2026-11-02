@@ -27,6 +27,7 @@ public class InputField : FieldBase, IInputValueDefinition, IInputValueInfo, IPr
     public InputField(InputFieldConfiguration configuration, int index)
         : base(configuration, index)
     {
+        NameNode = new NameNode(Name);
         DefaultValue = configuration.DefaultValue;
         Property = configuration.Property;
 
@@ -51,6 +52,11 @@ public class InputField : FieldBase, IInputValueDefinition, IInputValueInfo, IPr
     /// Gets the default value of this field.
     /// </summary>
     public IValueNode? DefaultValue { get; private set; }
+
+    /// <summary>
+    /// Gets the name of this field as a syntax node.
+    /// </summary>
+    internal NameNode NameNode { get; }
 
     /// <summary>
     /// Gets the input value formatter.

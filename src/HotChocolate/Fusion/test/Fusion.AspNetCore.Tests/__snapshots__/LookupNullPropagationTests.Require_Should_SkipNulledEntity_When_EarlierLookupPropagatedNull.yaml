@@ -1,0 +1,266 @@
+title: Require_Should_SkipNulledEntity_When_EarlierLookupPropagatedNull
+request:
+  document: |
+    {
+      products {
+        id
+        name
+        price
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": [
+          {
+            "id": "1",
+            "name": "Product 1",
+            "price": 900
+          },
+          null,
+          {
+            "id": "3",
+            "name": "Product 3",
+            "price": 900
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "NAME_UNAVAILABLE",
+          "path": [
+            "products",
+            1,
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: products-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product]!
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0c7e2fe4_1 {
+              products {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "1"
+                    },
+                    {
+                      "id": "2"
+                    },
+                    {
+                      "id": "3"
+                    }
+                  ]
+                }
+              }
+  - name: catalog-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        name: String!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_0c7e2fe4_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "1"
+              },
+              {
+                "__fusion_1_id": "2"
+              },
+              {
+                "__fusion_1_id": "3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product 1"
+                  }
+                }
+              }
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "NAME_UNAVAILABLE",
+                    "path": [
+                      "productById",
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "productById": null
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product 3"
+                  }
+                }
+              }
+  - name: pricing-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        price(name: String! @require(field: "name")): Int!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_0c7e2fe4_3($__fusion_2_id: ID!, $__fusion_3_name: String!) {
+              productById(id: $__fusion_2_id) {
+                price(name: $__fusion_3_name)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "1",
+                "__fusion_3_name": "Product 1"
+              },
+              {
+                "__fusion_2_id": "3",
+                "__fusion_3_name": "Product 3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 900
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 900
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          products {
+            id
+            id @fusion__requirement
+            name
+            name @fusion__requirement
+            price
+          }
+        }
+      hash: 6c1c50cf1650267863e5e8851f5ce7ad
+      searchSpace: 2
+      expandedNodes: 6
+  nodes:
+    - id: 1
+      type: Operation
+      schema: products-api
+      operation: |
+        query Op_0c7e2fe4_1 {
+          products {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: catalog-api
+      operation: |
+        query Op_0c7e2fe4_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.products
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: pricing-api
+      operation: |
+        query Op_0c7e2fe4_3($__fusion_2_id: ID!, $__fusion_3_name: String!) {
+          productById(id: $__fusion_2_id) {
+            price(name: $__fusion_3_name)
+          }
+        }
+      source: $.productById
+      target: $.products
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+        - name: __fusion_3_name
+          selectionMap: >-
+            name
+      dependencies:
+        - id: 1
+        - id: 2

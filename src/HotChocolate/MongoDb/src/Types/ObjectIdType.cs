@@ -33,7 +33,7 @@ public class ObjectIdType : ScalarType<ObjectId, StringValueNode>
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
-        SpecifiedBy = new Uri("https://docs.mongodb.com/manual/reference/bson-types/#objectid");
+        SpecifiedBy = "https://docs.mongodb.com/manual/reference/bson-types/#objectid";
         Description = description;
     }
 

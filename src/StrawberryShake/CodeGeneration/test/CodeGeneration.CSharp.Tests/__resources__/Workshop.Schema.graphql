@@ -56,7 +56,7 @@ type Session implements Node {
   abstract: String
   startTime: DateTime
   endTime: DateTime
-  duration: TimeSpan!
+  duration: Duration!
 }
 
 type Speaker implements Node {
@@ -111,8 +111,8 @@ type SessionEdge {
 "The `DateTime` scalar type represents a date and time with time zone offset information."
 scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/date-time.html")
 
-"The `TimeSpan` scalar type represents a duration of time."
-scalar TimeSpan @specifiedBy(url: "https://scalars.graphql.org/chillicream/time-span.html")
+"The `Duration` scalar type represents a duration of time."
+scalar Duration @specifiedBy(url: "https://scalars.graphql.org/chillicream/duration.html")
 
 "A connection to a list of items."
 type AttendeeConnection {
@@ -224,18 +224,18 @@ input ComparableOperationFilterInputOfNullableOfDateTimeOffsetFilterInput {
 }
 
 input ComparableOperationFilterInputOfTimeSpanFilterInput {
-  eq: TimeSpan
-  neq: TimeSpan
-  in: [TimeSpan!]
-  nin: [TimeSpan!]
-  gt: TimeSpan
-  ngt: TimeSpan
-  gte: TimeSpan
-  ngte: TimeSpan
-  lt: TimeSpan
-  nlt: TimeSpan
-  lte: TimeSpan
-  nlte: TimeSpan
+  eq: Duration
+  neq: Duration
+  in: [Duration!]
+  nin: [Duration!]
+  gt: Duration
+  ngt: Duration
+  gte: Duration
+  ngte: Duration
+  lt: Duration
+  nlt: Duration
+  lte: Duration
+  nlte: Duration
 }
 
 input ComparableOperationFilterInputOfNullableOfInt32FilterInput {

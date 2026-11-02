@@ -30,7 +30,7 @@ public class Base64StringType : ScalarType<byte[], StringValueNode>
     {
         Description = description;
         Pattern = @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$";
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Media_Book_Title_Without_Movie_Title",
+    "query": "query { media { ... on Book { id title } ... on Movie { id } } }",
+    "expectedData": {
+      "media": [
+        { "id": "m1", "title": "Book 1" },
+        { "id": "m2" }
+      ]
+    }
+  },
+  {
+    "name": "Media_Book_And_Movie_Titles",
+    "query": "query { media { ... on Book { id title } ... on Movie { id title } } }",
+    "expectedData": {
+      "media": [
+        { "id": "m1", "title": "Book 1" },
+        { "id": "m2", "title": "Movie 1" }
+      ]
+    }
+  }
+]

@@ -1,0 +1,31 @@
+<Project>
+
+  <!--
+    The C# compiler options file that carries CompilerVisibleProperty values to source generators
+    (the generated MSBuild editorconfig) is frozen by GenerateMSBuildEditorConfigFileCore. By
+    default that target runs BEFORE InitializeSourceControlInformation, so the git-derived
+    @(SourceRoot) items (which only carry a SourceControl value and a populated SourceRevisionId
+    after source-control initialization) do not exist yet when the options file freezes. This
+    target forces source-control initialization to run first, then flattens @(SourceRoot) into a
+    single compiler-visible property so the generator can derive a repository-relative path.
+  -->
+  <Target Name="_MochaCollectSourceRoots"
+          BeforeTargets="GenerateMSBuildEditorConfigFileCore"
+          DependsOnTargets="InitializeSourceControlInformation"
+          Condition="'$(SourceControlInformationFeatureSupported)' == 'true' and '$(MochaEmitSourceMetadata)' != 'false'">
+    <!--
+      Flatten each SourceRoot into "Identity>MappedPath>SourceControl", records joined by '|'.
+      Field separator '>' and record separator '|' are chosen because file system paths legally
+      contain ';' far more often than '|' or '>', so these separators avoid collisions with real
+      paths.
+    -->
+    <PropertyGroup>
+      <_MochaSourceRoots>@(SourceRoot->'%(Identity)>%(MappedPath)>%(SourceControl)', '|')</_MochaSourceRoots>
+    </PropertyGroup>
+  </Target>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="_MochaSourceRoots" />
+  </ItemGroup>
+
+</Project>

@@ -105,10 +105,7 @@ public sealed class ExtensionData
 
     public void CopyTo(KeyValuePair<string, object?>[] array, int arrayIndex)
     {
-        if (_dict is not null)
-        {
-            ((ICollection<KeyValuePair<string, object?>>)_dict).CopyTo(array, arrayIndex);
-        }
+        ((ICollection<KeyValuePair<string, object?>>?)_dict)?.CopyTo(array, arrayIndex);
     }
 
     public void Clear()

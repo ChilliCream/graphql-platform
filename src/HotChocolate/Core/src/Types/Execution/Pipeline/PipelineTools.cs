@@ -10,28 +10,6 @@ internal static class PipelineTools
 {
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
-    public static string CreateOperationId(string documentId, string? operationName)
-        => operationName is null
-            ? documentId
-            : $"{documentId}+{operationName}";
-
-    public static string CreateCacheId(this RequestContext context)
-    {
-        var documentId = context.GetOperationDocumentId();
-        var operationName = context.Request.OperationName;
-
-        if (documentId.IsEmpty)
-        {
-            throw new ArgumentException(
-                "The request context must have a valid document ID "
-                + "in order to create a cache ID.");
-        }
-
-        var operationId = CreateOperationId(documentId.Value, operationName);
-
-        return $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
-    }
-
     public static void CoerceVariables(
         RequestContext context,
         VariableCoercionHelper coercionHelper,

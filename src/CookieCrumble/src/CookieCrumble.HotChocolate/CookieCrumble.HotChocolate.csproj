@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>CookieCrumble.HotChocolate</AssemblyName>
     <RootNamespace>CookieCrumble.HotChocolate</RootNamespace>
-    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

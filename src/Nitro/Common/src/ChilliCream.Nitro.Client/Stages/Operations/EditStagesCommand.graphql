@@ -1,0 +1,16 @@
+mutation updateStages($input: UpdateStagesInput!) {
+  updateStages(input: $input) {
+    api {
+      stages {
+        ...StageDetailPrompt_Stage
+      }
+    }
+    errors {
+      ...ApiNotFoundError
+      ...StageNotFoundError
+      ...StagesHavePublishedDependenciesError
+      ...StageValidationError
+      ...Error
+    }
+  }
+}

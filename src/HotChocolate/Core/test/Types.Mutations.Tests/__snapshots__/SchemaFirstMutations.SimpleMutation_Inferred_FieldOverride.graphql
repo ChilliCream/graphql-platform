@@ -2,12 +2,12 @@ schema {
   mutation: Mutation
 }
 
-type DoSomethingPayload {
-  something: String
-}
-
 type Mutation {
   doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type DoSomethingPayload {
+  something: String
 }
 
 input DoSomethingInput {

@@ -1,0 +1,33 @@
+mutation BeginFusionConfigurationPublish(
+  $input: BeginFusionConfigurationPublishInput!
+) {
+  beginFusionConfigurationPublish(input: $input) {
+    requestId
+    errors {
+      ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
+      ...StageNotFoundError
+      ...ApiNotFoundError
+      ...SubgraphInvalidError
+      ...InvalidProcessingStateTransitionError
+      ...Error
+    }
+  }
+}
+
+subscription OnFusionConfigurationPublishingTaskChanged($requestId: ID!) {
+  onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
+    state
+    __typename
+    ...ProcessingTaskIsReady
+    ...ProcessingTaskIsQueued
+    ...FusionConfigurationPublishingSuccess
+    ...FusionConfigurationPublishingFailed
+    ...FusionConfigurationValidationSuccess
+    ...FusionConfigurationValidationFailed
+    ...ValidationInProgress
+    ...OperationInProgress
+    ...WaitForApproval
+    ...ProcessingTaskApproved
+  }
+}

@@ -4,11 +4,11 @@ namespace GreenDonut.Data.TestContext;
 
 public class FileSystemContext(string connectionString) : DbContext
 {
-    public DbSet<FileSystemEntry> Entries => Set<FileSystemEntry>();
+    public DbSet<FileSystemEntry> Entries { get; set; }
 
-    public DbSet<FileSystemDirectory> Directories => Set<FileSystemDirectory>();
+    public DbSet<FileSystemDirectory> Directories { get; set; }
 
-    public DbSet<FileSystemFile> Files => Set<FileSystemFile>();
+    public DbSet<FileSystemFile> Files { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

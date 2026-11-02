@@ -42,7 +42,7 @@ public abstract class QueryableListOperationHandlerBase
         if (node.Value.IsNull())
         {
             context.ReportError(
-                ErrorHelper.CreateNonNullError(field, node.Value, context));
+                ErrorHelper.CreateNonNullError(field, context));
 
             action = SyntaxVisitor.Skip;
 
@@ -77,11 +77,14 @@ public abstract class QueryableListOperationHandlerBase
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
         var runtimeType = context.RuntimeTypes.Pop();
+        context.TryCreateLambda(out var lambda);
 
-        if (context.TryCreateLambda(out var lambda))
+        context.Scopes.Pop();
+        var instance = context.PopInstance();
+
+        // an empty element filter produces no lambda, so the list operation adds no condition.
+        if (lambda is not null)
         {
-            context.Scopes.Pop();
-            var instance = context.PopInstance();
             var expression = HandleListOperation(
                 context,
                 field,
@@ -112,7 +115,7 @@ public abstract class QueryableListOperationHandlerBase
     /// <param name="node">The object field node</param>
     /// <param name="closureType">The runtime type of the scope</param>
     /// <param name="lambda">The expression of the nested operations</param>
-    /// <returns></returns>
+    /// <returns>The filter expression for the list operation.</returns>
     protected abstract Expression HandleListOperation(
         QueryableFilterContext context,
         IFilterField field,

@@ -1,0 +1,19 @@
+{
+  "Schema": "azuresb",
+  "TransportType": "AzureServiceBusMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "archive",
+      "AutoProvision": true,
+      "Origin": "declared"
+    },
+    {
+      "Kind": "queue",
+      "Name": "staging",
+      "AutoProvision": true,
+      "Origin": "declared"
+    }
+  ],
+  "Links": []
+}

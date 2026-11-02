@@ -412,6 +412,36 @@ public static class TagDirectiveExtensions
         return descriptor;
     }
 
+    /// <summary>
+    /// Adds a @tag(name: "your-value") to a <see cref="DirectiveType"/>.
+    /// <code>
+    /// directive @custom @tag(name: "your-value") on OBJECT
+    /// </code>
+    /// </summary>
+    /// <param name="descriptor">
+    /// The <paramref name="descriptor"/> on which this directive shall be annotated.
+    /// </param>
+    /// <param name="name">
+    /// The value represents the <paramref name="name"/> of the tag.
+    /// </param>
+    /// <returns>
+    /// Returns the <paramref name="descriptor"/> on which this directive
+    /// was applied for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
+    /// </exception>
+    public static IDirectiveTypeDescriptor Tag(
+        this IDirectiveTypeDescriptor descriptor,
+        string name)
+    {
+        ApplyTag(descriptor, name);
+        return descriptor;
+    }
+
     private static void ApplyTag(
         this IDescriptor descriptor,
         string name)
@@ -472,6 +502,10 @@ public static class TagDirectiveExtensions
                 break;
 
             case ISchemaTypeDescriptor desc:
+                desc.Directive(new Tag(name));
+                break;
+
+            case IDirectiveTypeDescriptor desc:
                 desc.Directive(new Tag(name));
                 break;
 

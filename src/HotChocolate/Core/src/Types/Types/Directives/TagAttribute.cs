@@ -102,6 +102,10 @@ public sealed class TagAttribute : DescriptorAttribute
                 desc.Tag(Name);
                 break;
 
+            case IDirectiveTypeDescriptor desc:
+                desc.Tag(Name);
+                break;
+
             default:
                 throw new SchemaException(
                     SchemaErrorBuilder.New()

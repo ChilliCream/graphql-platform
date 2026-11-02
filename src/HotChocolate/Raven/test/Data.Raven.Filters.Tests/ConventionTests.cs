@@ -19,7 +19,7 @@ public class ConventionTests
         await Snapshot
             .Create()
             .Add(tester.Schema.ToString(), "schema")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class TypeWithList

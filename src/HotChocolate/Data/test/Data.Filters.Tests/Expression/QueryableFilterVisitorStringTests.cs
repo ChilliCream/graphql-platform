@@ -210,6 +210,39 @@ public class QueryableFilterVisitorStringTests
         Assert.False(func(b));
     }
 
+    [Fact]
+    public void Build_Should_NotOverflow_When_OrContainsManyItems()
+    {
+        // arrange
+        var value = CreateOrFilter(10_000);
+        var tester = CreateProviderTester(new FooFilterInput());
+
+        // act
+        var func = tester.Build<Foo>(value);
+
+        // assert
+        Assert.True(func(new Foo { Bar = "a" }));
+        Assert.False(func(new Foo { Bar = "b" }));
+    }
+
+    private static ObjectValueNode CreateOrFilter(int itemCount)
+    {
+        var items = new IValueNode[itemCount];
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            items[i] =
+                new ObjectValueNode(
+                    new ObjectFieldNode(
+                        "bar",
+                        new ObjectValueNode(
+                            new ObjectFieldNode("eq", "a"))));
+        }
+
+        return new ObjectValueNode(
+            new ObjectFieldNode("or", new ListValueNode(items)));
+    }
+
     public class Foo
     {
         public string? Bar { get; set; }

@@ -1,0 +1,144 @@
+title: Defer_RootFragment_Should_DeliverDeferredFetch_When_RootSelectsNothingElse
+request:
+  document: |
+    {
+      ... @defer {
+        users {
+          id
+          name
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {}
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": []
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [],
+        "data": {
+          "users": [
+            {
+              "id": "VXNlcjoyNjE2NDgyNzU=",
+              "name": "User: VXNlcjoyNjE2NDgyNzU="
+            },
+            {
+              "id": "VXNlcjoxNTU5MzY4MDMx",
+              "name": "User: VXNlcjoxNTU5MzY4MDMx"
+            },
+            {
+              "id": "VXNlcjozNDQ5MTc0MTI0",
+              "name": "User: VXNlcjozNDQ5MTc0MTI0"
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "users": [
+          {
+            "id": "VXNlcjoyNjE2NDgyNzU=",
+            "name": "User: VXNlcjoyNjE2NDgyNzU="
+          },
+          {
+            "id": "VXNlcjoxNTU5MzY4MDMx",
+            "name": "User: VXNlcjoxNTU5MzY4MDMx"
+          },
+          {
+            "id": "VXNlcjozNDQ5MTc0MTI0",
+            "name": "User: VXNlcjozNDQ5MTc0MTI0"
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+      }
+
+      type User {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1 {
+              users {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjoyNjE2NDgyNzU=",
+                      "name": "User: VXNlcjoyNjE2NDgyNzU="
+                    },
+                    {
+                      "id": "VXNlcjoxNTU5MzY4MDMx",
+                      "name": "User: VXNlcjoxNTU5MzY4MDMx"
+                    },
+                    {
+                      "id": "VXNlcjozNDQ5MTc0MTI0",
+                      "name": "User: VXNlcjozNDQ5MTc0MTI0"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __typename @fusion__empty
+        }
+      hash: dd1bd23fc345ecaee364e3c2d04c95ae
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+  deliveryGroups:
+    - id: 0
+      path: $
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 0
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              users {
+                id
+                name
+              }
+            }

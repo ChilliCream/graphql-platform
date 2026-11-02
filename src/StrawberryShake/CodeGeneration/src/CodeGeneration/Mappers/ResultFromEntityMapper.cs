@@ -7,8 +7,8 @@ public static class ResultFromEntityMapper
     public static void Map(IMapperContext context)
     {
         foreach (var objectType in
-             context.Types.OfType<ObjectTypeDescriptor>()
-                 .Where(t => t.Kind is TypeKind.Entity))
+            context.Types.OfType<ObjectTypeDescriptor>()
+                .Where(t => t.Kind is TypeKind.Entity))
         {
             var result = new ResultFromEntityDescriptor(
                 objectType.Name,

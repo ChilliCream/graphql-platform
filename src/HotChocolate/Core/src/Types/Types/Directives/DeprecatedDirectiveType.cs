@@ -23,7 +23,8 @@ public sealed class DeprecatedDirectiveType : DirectiveType<DeprecatedDirective>
             .Location(DirectiveLocation.FieldDefinition)
             .Location(DirectiveLocation.ArgumentDefinition)
             .Location(DirectiveLocation.InputFieldDefinition)
-            .Location(DirectiveLocation.EnumValue);
+            .Location(DirectiveLocation.EnumValue)
+            .Location(DirectiveLocation.DirectiveDefinition);
 
         descriptor
             .Argument(t => t.Reason)

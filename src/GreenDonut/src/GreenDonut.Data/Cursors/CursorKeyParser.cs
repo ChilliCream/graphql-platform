@@ -15,6 +15,8 @@ public sealed class CursorKeyParser : ExpressionVisitor
     protected override Expression VisitExtension(Expression node)
         => node.CanReduce ? base.VisitExtension(node) : node;
 
+    protected override Expression VisitLambda<T>(Expression<T> node) => node;
+
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
         if (IsOrderBy(node))

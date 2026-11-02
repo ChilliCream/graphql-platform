@@ -22,6 +22,7 @@ internal sealed class TypeInitializer
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
     private readonly Func<TypeSystemObject, RootTypeKind> _getTypeKind;
+    private readonly IReadOnlySchemaOptions _options;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -46,6 +47,7 @@ internal sealed class TypeInitializer
         _typeRegistry = typeRegistry ?? throw new ArgumentNullException(nameof(typeRegistry));
         var initialTypes1 = initialTypes ?? throw new ArgumentNullException(nameof(initialTypes));
         _getTypeKind = getTypeKind ?? throw new ArgumentNullException(nameof(getTypeKind));
+        _options = options;
 
         _isOfType = isOfType ?? options.DefaultIsOfTypeCheck;
 
@@ -129,6 +131,8 @@ internal sealed class TypeInitializer
             throw new SchemaException(errors);
         }
 
+        EnsureQueryType();
+
         // let's tell the type interceptors what types we have initialized.
         _interceptor.OnTypesInitialized();
         _interceptor.OnAfterDiscoverTypes();
@@ -189,6 +193,30 @@ internal sealed class TypeInitializer
                 }
             }
         }
+    }
+
+    private void EnsureQueryType()
+    {
+        if (_options.StrictValidation)
+        {
+            return;
+        }
+
+        var queryTypeName = _options.QueryTypeName ?? OperationTypeNames.Query;
+
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (_getTypeKind(registeredType.Type) is RootTypeKind.Query
+                || registeredType.Type is ITypeDefinition type
+                    && type.Name.EqualsOrdinal(queryTypeName))
+            {
+                return;
+            }
+        }
+
+        InitializeType(
+            new ObjectType(
+                descriptor => descriptor.Name(queryTypeName)));
     }
 
     private List<RegisteredType> GetTypesWithRuntimeType(
@@ -429,6 +457,12 @@ internal sealed class TypeInitializer
         {
             foreach (var field in objectType.Configuration!.Fields)
             {
+                if ((CoreFieldFlags.BatchResolver & field.Flags) == CoreFieldFlags.BatchResolver)
+                {
+                    field.BatchResolver ??= CompileBatchResolver(field, _context.ResolverCompiler);
+                    continue;
+                }
+
                 if (!field.Resolvers.HasResolvers)
                 {
                     field.Resolvers = CompileResolver(field, _context.ResolverCompiler);
@@ -439,6 +473,12 @@ internal sealed class TypeInitializer
         {
             foreach (var field in interfaceType.Configuration!.Fields)
             {
+                if ((CoreFieldFlags.BatchResolver & field.Flags) == CoreFieldFlags.BatchResolver)
+                {
+                    field.BatchResolver ??= CompileBatchResolver(field, _context.ResolverCompiler);
+                    continue;
+                }
+
                 if (!field.Resolvers.HasResolvers)
                 {
                     field.Resolvers = CompileResolver(field, _context.ResolverCompiler);
@@ -510,6 +550,66 @@ internal sealed class TypeInitializer
                 }
             }
         }
+    }
+
+    private static BatchFieldDelegate? CompileBatchResolver(
+        ObjectFieldConfiguration definition,
+        IResolverCompiler resolverCompiler)
+    {
+        if ((definition.ResolverMember ?? definition.Member) is not MethodInfo method)
+        {
+            return null;
+        }
+
+        var map = TypeMemHelper.RentArgumentNameMap();
+
+        foreach (var argument in definition.Arguments)
+        {
+            if (argument.Parameter is not null)
+            {
+                map[argument.Parameter] = argument.Name;
+            }
+        }
+
+        var result = resolverCompiler.CompileBatchResolve(
+            method,
+            definition.SourceType,
+            definition.ResolverType,
+            map,
+            definition.GetParameterExpressionBuilders());
+
+        TypeMemHelper.Return(map);
+        return result;
+    }
+
+    private static BatchFieldDelegate? CompileBatchResolver(
+        InterfaceFieldConfiguration definition,
+        IResolverCompiler resolverCompiler)
+    {
+        if ((definition.ResolverMember ?? definition.Member) is not MethodInfo method)
+        {
+            return null;
+        }
+
+        var map = TypeMemHelper.RentArgumentNameMap();
+
+        foreach (var argument in definition.Arguments)
+        {
+            if (argument.Parameter is not null)
+            {
+                map[argument.Parameter] = argument.Name;
+            }
+        }
+
+        var result = resolverCompiler.CompileBatchResolve(
+            method,
+            definition.SourceType,
+            definition.ResolverType,
+            map,
+            definition.GetParameterExpressionBuilders());
+
+        TypeMemHelper.Return(map);
+        return result;
     }
 
     private static FieldResolverDelegates CompileResolver(
@@ -689,7 +789,7 @@ internal sealed class TypeInitializer
             {
                 // the name might not be set at this point.
                 var name = string.IsNullOrEmpty(type.Type.Name)
-                    ? type.References[0].ToString()!
+                    ? type.References[0].ToString()
                     : type.Type.Name;
 
                 IReadOnlyList<TypeReference> needed =

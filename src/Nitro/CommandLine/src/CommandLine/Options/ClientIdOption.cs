@@ -1,11 +1,12 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class ClientIdOption : Option<string>
+internal class ClientIdOption : Option<string>
 {
     public ClientIdOption() : base("--client-id")
     {
-        Description = "The id of the client";
-        IsRequired = true;
-        this.DefaultFromEnvironmentValue("CLIENT_ID");
+        Description = "The ID of the client";
+        Required = true;
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ClientId);
+        this.NonEmptyStringsOnly();
     }
 }

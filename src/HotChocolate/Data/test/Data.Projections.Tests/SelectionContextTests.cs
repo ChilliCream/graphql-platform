@@ -52,17 +52,19 @@ public class SelectionContextTests
 
                 return ValueTask.CompletedTask;
             })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foo {
                     bar {
                         baz
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -114,10 +116,11 @@ public class SelectionContextTests
 
                 return ValueTask.CompletedTask;
             })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foo {
                     bar {
@@ -126,7 +129,8 @@ public class SelectionContextTests
                         c: baz
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -196,10 +200,11 @@ public class SelectionContextTests
 
                 return ValueTask.CompletedTask;
             })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foo {
                     ... on Foo {
@@ -211,7 +216,8 @@ public class SelectionContextTests
                         baz
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
 
@@ -268,10 +274,11 @@ public class SelectionContextTests
 
                 return ValueTask.CompletedTask;
             })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foo {
                     ... on Foo {
@@ -283,7 +290,8 @@ public class SelectionContextTests
                         baz
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
@@ -343,17 +351,19 @@ public class SelectionContextTests
 
                 return ValueTask.CompletedTask;
             })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(@"
+        var result = await executor.ExecuteAsync(
+            @"
             {
                 foo {
                     bar {
                         baz
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(result).Errors);

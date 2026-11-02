@@ -80,13 +80,13 @@ internal sealed class ReadPersistedOperationMiddleware
             return nodeProvider.Document;
         }
 
-        return Utf8GraphQLParser.Parse(document.AsSpan());
+        return Utf8GraphQLParser.Parse(document.AsSpan(), ParserOptions.Trusted);
     }
 
     private OperationDocumentHash GetDocumentHash(IOperationDocument document)
     {
         if (document is IOperationDocumentHashProvider hashProvider
-            && _documentHashAlgorithm.Name.Equals(hashProvider.Hash.AlgorithmName)
+            && _documentHashAlgorithm.AlgorithmName.Equals(hashProvider.Hash.AlgorithmName)
             && _documentHashAlgorithm.Format.Equals(hashProvider.Hash.Format))
         {
             return hashProvider.Hash;

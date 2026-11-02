@@ -62,11 +62,12 @@ internal sealed class DeferTask : ExecutionTask
         deferContext.DeferExecutionCoordinator.EnqueueResult(deferContext.BuildResult(), _executionBranchId);
     }
 
-    protected override ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken)
+    protected override async ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken)
     {
-        // TODO : we need to give the context back here and not rest once we have a pool.
+        // the branch can still be running when the request was aborted, so the defer context
+        // is only given back once all of its tasks have been returned.
+        await _deferContextOwner.OperationContext.WaitForOutstandingTasksAsync().ConfigureAwait(false);
         Reset();
-        return ValueTask.CompletedTask;
     }
 
     public void Initialize(

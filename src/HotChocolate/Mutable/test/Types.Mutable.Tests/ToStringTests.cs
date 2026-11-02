@@ -151,4 +151,69 @@ public class ToStringTests
                 field: String
                 """);
     }
+
+    [Fact]
+    public void Schema_With_DirectivesOnDirectiveDefinition_ToString()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @foo @meta(value: "a") on OBJECT
+
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            directive @foo @meta(value: "a") on OBJECT
+
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public void Schema_With_DirectiveExtension_ToString()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+
+            extend directive @foo @meta(value: "a")
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            extend directive @foo @meta(value: "a")
+
+            directive @meta(value: String) on DIRECTIVE_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public void Schema_With_DeprecatedDirectiveDefinition_ToString()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @foo @deprecated(reason: "x") on OBJECT
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            directive @foo @deprecated(reason: "x") on OBJECT
+            """);
+    }
 }

@@ -7,45 +7,64 @@ namespace HotChocolate.Text.Json;
 public sealed partial class ResultDocument
 {
     /// <summary>
-    /// Comparable MetaDb cursor (chunk, row)
+    /// Comparable MetaDb cursor
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Size = 4)]
     internal readonly struct Cursor : IEquatable<Cursor>, IComparable<Cursor>
     {
-        public const int ChunkBytes = 1 << 17;
-        public const int RowsPerChunk = ChunkBytes / DbRow.Size;
-        public const int MaxChunks = 4096;
+        // The cursor packs (chunk, row) into a fixed split of the low 26 bits: the high 13 bits
+        // hold the chunk index and the low 13 bits hold the row within the chunk. The chunk-size
+        // bucket is not stored; it is derived from the chunk index through the geometric growth
+        // schedule (chunk i has ordinal Min(i, 7)). Keeping chunk in the high bits makes the raw
+        // value compare in linear (chunk, row) order.
+        public const int MaxChunks = 1 << ChunkBits;
 
-        private const int RowBits = 14;
-        private const int ChunkBits = 12;
+        private const int RowBits = 13;
+        private const int ChunkBits = 13;
         private const int ChunkShift = RowBits;
 
-        private const uint RowMask = (1u << RowBits) - 1u;
-        private const uint ChunkMask = (1u << ChunkBits) - 1u;
+        private const int RowMask = (1 << RowBits) - 1;
+        private const int ChunkMask = (1 << ChunkBits) - 1;
 
-        private readonly uint _value;
+        // The geometric ramp covers chunks 0..7 (Size1K..Size128K); chunk 8 and beyond stay at
+        // Size128K. s_rampPrefix[c] is the cumulative number of rows held by all chunks before
+        // chunk c, derived from RowsPerChunkFor for c = 0..RampLength.
+        private const int RampLength = (int)ChunkSize.Size128K;
+        private static readonly int[] s_rampPrefix = BuildRampPrefix();
 
-        public static readonly Cursor Zero = From(0, 0);
+        // Rows held by the chunk at ordinal i (i = Min(chunk, RampLength)); a direct table load
+        // replaces the Min+shift+div of RowsPerChunkFor on the AddRows fast path.
+        private static readonly int[] s_rowsPerChunk = BuildRowsPerChunk();
+
+        private readonly int _value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Cursor(uint value) => _value = value;
+        public Cursor(int value) => _value = value;
+
+        /// <summary>
+        /// Gets the chunk-size bucket for the given chunk index following the geometric schedule.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ChunkSize ChunkSizeFor(int chunkIndex)
+            => (ChunkSize)Math.Min(chunkIndex, (int)ChunkSize.Size128K);
+
+        /// <summary>
+        /// Gets the number of rows the chunk at the given index holds.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int RowsPerChunkFor(int chunkIndex)
+            => (1 << (10 + (int)ChunkSizeFor(chunkIndex))) / DbRow.Size;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Cursor From(int chunkIndex, int rowWithinChunk)
         {
             Debug.Assert((uint)chunkIndex < MaxChunks);
-            Debug.Assert((uint)rowWithinChunk < RowsPerChunk);
-            return new Cursor(((uint)chunkIndex << ChunkShift) | (uint)rowWithinChunk);
+            Debug.Assert((uint)rowWithinChunk <= RowMask);
+            return new Cursor((chunkIndex << ChunkShift) | rowWithinChunk);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Cursor FromIndex(int rowIndex)
-        {
-            Debug.Assert(rowIndex >= 0);
-            var chunk = rowIndex / RowsPerChunk;
-            var row = rowIndex - (chunk * RowsPerChunk);
-            return From(chunk, row);
-        }
+        public static Cursor CreateZero() => new(0);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Cursor FromByteOffset(int chunkIndex, int byteOffset)
@@ -54,24 +73,77 @@ public sealed partial class ResultDocument
             return From(chunkIndex, byteOffset / DbRow.Size);
         }
 
-        public uint Value => _value;
-
-        public int Chunk
+        /// <summary>
+        /// Gets the packed integer value that encodes this cursor and can be rebuilt
+        /// back into a cursor through the value constructor.
+        /// </summary>
+        public int Value
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)((_value >> ChunkShift) & ChunkMask);
+            get => _value;
         }
 
+        /// <summary>
+        /// Gets the zero-based position of the row within its chunk.
+        /// </summary>
         public int Row
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)(_value & RowMask);
+            get => _value & RowMask;
         }
 
+        /// <summary>
+        /// Gets the zero-based index of the chunk this cursor points into.
+        /// </summary>
+        public int Chunk
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (_value >>> ChunkShift) & ChunkMask;
+        }
+
+        /// <summary>
+        /// Gets the absolute linear row index across all chunks following the geometric schedule.
+        /// </summary>
+        public int Index
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => RowsBeforeChunk(Chunk) + Row;
+        }
+
+        /// <summary>
+        /// Gets the byte offset of this cursor's row from the start of its chunk.
+        /// </summary>
         public int ByteOffset
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Row * DbRow.Size;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this cursor points at chunk 0, row 0.
+        /// </summary>
+        public bool IsZero
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _value == 0;
+        }
+
+        /// <summary>
+        /// Gets the chunk-size bucket this cursor's chunk uses.
+        /// </summary>
+        public ChunkSize ChunkSize
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ChunkSizeFor(Chunk);
+        }
+
+        /// <summary>
+        /// Gets the number of rows the chunk this cursor points into holds.
+        /// </summary>
+        public int RowsPerChunk
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => RowsPerChunkFor(Chunk);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -82,58 +154,122 @@ public sealed partial class ResultDocument
                 return this;
             }
 
-            var row = Row + delta;
             var chunk = Chunk;
+            var row = Row + delta;
 
-            if (row >= RowsPerChunk)
+            // Fast path: the move stays inside the current chunk (the common +1/-1 step). One table
+            // load gives the chunk capacity and a single unsigned compare covers both bounds.
+            if ((uint)row < (uint)s_rowsPerChunk[Math.Min(chunk, RampLength)])
             {
-                var carry = row / RowsPerChunk;
-                row -= carry * RowsPerChunk;
-                chunk += carry;
-            }
-            else if (row < 0)
-            {
-                var borrow = (-row + RowsPerChunk - 1) / RowsPerChunk;
-                row += borrow * RowsPerChunk;
-                chunk -= borrow;
+                return From(chunk, row);
             }
 
-            if (chunk < 0)
+            // General path: project onto the linear row index and map it back to (chunk, row) in
+            // O(1). The ramp is a short prefix scan; the constant tail is closed-form division.
+            var linear = RowsBeforeChunk(chunk) + Row + delta;
+
+            if (linear < 0)
             {
                 Debug.Fail("Cursor underflow");
-                chunk = 0;
-                row = 0;
-            }
-            else if (chunk >= MaxChunks)
-            {
-                Debug.Fail("Cursor overflow");
-                chunk = MaxChunks - 1;
-                row = RowsPerChunk - 1;
+                return new Cursor(0);
             }
 
-            return From(chunk, row);
+            return FromLinear(linear);
         }
 
+        /// <summary>
+        /// Maps an absolute linear row index back to a (chunk, row) cursor following the geometric
+        /// schedule. Within the ramp this is a short prefix scan; past the ramp it is closed-form.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Cursor WithChunk(int chunk) => From(chunk, Row);
+        private static Cursor FromLinear(int linear)
+        {
+            if (linear >= s_rampPrefix[RampLength])
+            {
+                const int maxRowsPerChunk = (1 << (10 + (int)ChunkSize.Size128K)) / DbRow.Size;
+                var rem = linear - s_rampPrefix[RampLength];
+                var carry = rem / maxRowsPerChunk;
+                var chunk = RampLength + carry;
+                var row = rem - (carry * maxRowsPerChunk);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Cursor WithRow(int row) => From(Chunk, row);
+                if (chunk >= MaxChunks)
+                {
+                    Debug.Fail("Cursor overflow");
+                    chunk = MaxChunks - 1;
+                    row = maxRowsPerChunk - 1;
+                }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ToIndex() => (Chunk * RowsPerChunk) + Row;
+                return From(chunk, row);
+            }
 
+            // Ramp: locate the chunk whose prefix window contains the linear index. RampLength is a
+            // small constant, so this resolves in a fixed number of compares.
+            var c = RampLength - 1;
+
+            for (var i = 0; i < RampLength; i++)
+            {
+                if (s_rampPrefix[i + 1] > linear)
+                {
+                    c = i;
+                    break;
+                }
+            }
+
+            return From(c, linear - s_rampPrefix[c]);
+        }
+
+        /// <summary>
+        /// Gets the cumulative number of rows held by all chunks before the given chunk index,
+        /// following the geometric schedule. The ramp (chunks 0..7) is a small prefix table; from
+        /// chunk 8 on every chunk holds the same number of rows, so the tail is closed-form.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ToTotalBytes() => (Chunk * ChunkBytes) + ByteOffset;
+        private static int RowsBeforeChunk(int chunk)
+        {
+            if (chunk <= RampLength)
+            {
+                return s_rampPrefix[chunk];
+            }
+
+            const int maxRowsPerChunk = (1 << (10 + (int)ChunkSize.Size128K)) / DbRow.Size;
+            return s_rampPrefix[RampLength] + ((chunk - RampLength) * maxRowsPerChunk);
+        }
+
+        private static int[] BuildRampPrefix()
+        {
+            var prefix = new int[RampLength + 1];
+            var cumulative = 0;
+
+            for (var chunk = 0; chunk < RampLength; chunk++)
+            {
+                prefix[chunk] = cumulative;
+                cumulative += RowsPerChunkFor(chunk);
+            }
+
+            prefix[RampLength] = cumulative;
+            return prefix;
+        }
+
+        private static int[] BuildRowsPerChunk()
+        {
+            var rows = new int[RampLength + 1];
+
+            for (var ordinal = 0; ordinal <= RampLength; ordinal++)
+            {
+                rows[ordinal] = RowsPerChunkFor(ordinal);
+            }
+
+            return rows;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(Cursor other) => _value == other._value;
 
         public override bool Equals(object? obj) => obj is Cursor c && Equals(c);
 
-        public override int GetHashCode() => (int)_value;
+        public override int GetHashCode() => _value;
 
-        public override string ToString() => $"chunk={Chunk}, row={Row} (0x{_value:X8})";
+        public override string ToString() => $"chunk={Chunk}, row={Row}, size={ChunkSize} (0x{_value:X8})";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CompareTo(Cursor other) => _value.CompareTo(other._value);

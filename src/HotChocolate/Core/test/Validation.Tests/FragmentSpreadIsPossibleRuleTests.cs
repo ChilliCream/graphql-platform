@@ -469,6 +469,32 @@ public class FragmentSpreadIsPossibleRuleTests
             """);
     }
 
+    // When a fragment is reused under multiple parent types, the spread-is-possible
+    // check must run for each spread's parent, not only the first one walked. This
+    // case is order-dependent: a compatible spread first then an incompatible one.
+    [Fact]
+    public void FragmentReusedAcrossCompatibleThenIncompatibleParent()
+    {
+        ExpectErrors(
+            """
+            {
+              dog {
+                ...dogNameFragment
+              }
+              human {
+                ...dogNameFragment
+              }
+            }
+
+            fragment dogNameFragment on Dog {
+              name
+            }
+            """,
+            t => Assert.Equal(
+                "The parent type does not match the type condition on the fragment.",
+                t.Message));
+    }
+
     [Fact]
     public void InterfaceIntoNonOverlappingUnion()
     {

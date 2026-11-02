@@ -1,0 +1,49 @@
+import { BenchmarkVerdictSummary } from "@/src/components/benchmarks/BenchmarkVerdict";
+import {
+  SECTION_HEADING,
+  SUBSECTION_HEADING,
+} from "@/src/components/benchmarks/benchmarkHeadings";
+import {
+  COMPOSITION_GROUPS,
+  compositionReport,
+} from "@/src/components/benchmarks/benchmarkView";
+import type {
+  BenchmarkCatalogEntry,
+  BenchmarkReport,
+} from "@/src/helpers/benchmarkReport";
+
+interface BenchmarkGlanceProps {
+  readonly report: BenchmarkReport;
+  readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
+}
+
+/** The results summary across every scenario, one card per composition. */
+export function BenchmarkGlance({ report, variants }: BenchmarkGlanceProps) {
+  return (
+    <section aria-labelledby="benchmark-results-heading">
+      <h2 id="benchmark-results-heading" className={SECTION_HEADING}>
+        Results at a glance
+      </h2>
+      <div className="mt-6 grid gap-10 xl:grid-cols-2 xl:gap-12">
+        {COMPOSITION_GROUPS.map((group) => (
+          <section
+            key={group.id}
+            aria-labelledby={`benchmark-results-${group.id}-heading`}
+          >
+            <h3
+              id={`benchmark-results-${group.id}-heading`}
+              className={SUBSECTION_HEADING}
+            >
+              {group.name}
+            </h3>
+            <BenchmarkVerdictSummary
+              id={`benchmark-results-${group.id}`}
+              report={compositionReport(report, variants, group.id)}
+              composition={group.id}
+            />
+          </section>
+        ))}
+      </div>
+    </section>
+  );
+}

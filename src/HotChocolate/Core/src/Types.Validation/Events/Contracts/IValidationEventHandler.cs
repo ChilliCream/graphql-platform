@@ -4,7 +4,7 @@ namespace HotChocolate.Events.Contracts;
 /// Represents a handler for a schema validation event.
 /// </summary>
 /// <typeparam name="TEvent">The type of event to handle.</typeparam>
-public interface IValidationEventHandler<in TEvent> where TEvent : IValidationEvent
+public interface IValidationEventHandler<TEvent> where TEvent : IValidationEvent
 {
     /// <summary>
     /// Handles the specified schema validation event.

@@ -1,11 +1,11 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixture<MongoResource>
+public class MongoDbProjectionObjectTests(MongoResource resource)
 {
     private static readonly BarNullable[] s_barWithoutRelation =
     [
@@ -56,13 +56,14 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -83,13 +84,14 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -115,13 +117,14 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

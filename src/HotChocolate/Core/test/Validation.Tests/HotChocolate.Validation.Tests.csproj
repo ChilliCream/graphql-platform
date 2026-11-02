@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Validation.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Validation</RootNamespace>
@@ -8,7 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\src\Validation\HotChocolate.Validation.csproj" />
-    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.Tests.csproj" />
+    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
   </ItemGroup>
 
   <ItemGroup>

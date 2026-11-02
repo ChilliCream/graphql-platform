@@ -7,7 +7,11 @@ namespace HotChocolate.Execution;
 
 internal sealed class OperationResultBuilder : IOperationResultBuilder
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
 
     public int RequestIndex { get; set; } = -1;
 
@@ -21,7 +25,12 @@ internal sealed class OperationResultBuilder : IOperationResultBuilder
 
     public ImmutableOrderedDictionary<string, object?> Extensions { get; set; } = [];
 
-    public ImmutableDictionary<string, object?> ContextData { get; set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableDictionary<string, object?> ContextData { get; set; } =
+#if NET10_0_OR_GREATER
+        [];
+#else
+        ImmutableDictionary<string, object?>.Empty;
+#endif
 
     public ImmutableList<PendingResult> Pending { get; set; } = [];
 
@@ -125,7 +134,11 @@ internal sealed class OperationResultBuilder : IOperationResultBuilder
         Data = null!;
         Errors = [];
         Extensions = [];
+#if NET10_0_OR_GREATER
+        ContextData = [];
+#else
         ContextData = ImmutableDictionary<string, object?>.Empty;
+#endif
         CleanupTasks = [];
         NonNullViolations = [];
         Pending = [];

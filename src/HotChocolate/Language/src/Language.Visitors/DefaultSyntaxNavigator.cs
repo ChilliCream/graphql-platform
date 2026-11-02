@@ -169,6 +169,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
                 or SyntaxKind.InterfaceTypeExtension
                 or SyntaxKind.UnionTypeExtension
                 or SyntaxKind.DirectiveDefinition
+                or SyntaxKind.DirectiveExtension
                 or SyntaxKind.FieldDefinition
                 or SyntaxKind.InputValueDefinition)
             {
@@ -194,10 +195,10 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
 
         var next = _coordinate[--p];
 
-        if (next is DirectiveDefinitionNode directiveDefinition)
+        if (next is DirectiveDefinitionNode or DirectiveExtensionNode)
         {
             directive = true;
-            type = directiveDefinition.Name;
+            type = ((IHasName)next).Name;
         }
         else if (next is ITypeSystemDefinitionNode or ITypeSystemExtensionNode
             && next is NamedSyntaxNode n)

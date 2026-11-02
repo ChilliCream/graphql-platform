@@ -1,7 +1,11 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Serialization;
+#else
 namespace HotChocolate.Transport.Serialization;
+#endif
 
 /// <summary>
 /// A helper class that contains the default settings for JSON serialization.

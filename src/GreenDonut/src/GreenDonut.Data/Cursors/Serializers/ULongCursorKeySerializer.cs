@@ -8,7 +8,7 @@ internal sealed class ULongCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<ulong>();
 
     public bool IsSupported(Type type)
-        => type == typeof(ulong);
+        => type == typeof(ulong) || type == typeof(ulong?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

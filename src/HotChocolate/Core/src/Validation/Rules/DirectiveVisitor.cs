@@ -13,7 +13,7 @@ namespace HotChocolate.Validation.Rules;
 /// For each usage of a directive, the directive must be available
 /// on that server.
 ///
-/// https://spec.graphql.org/June2018/#sec-Directives-Are-Defined
+/// https://spec.graphql.org/September2025/#sec-Directives-Are-Defined
 ///
 /// AND
 ///
@@ -23,7 +23,7 @@ namespace HotChocolate.Validation.Rules;
 /// For each usage of a directive, the directive must be used in a
 /// location that the server has declared support for.
 ///
-/// https://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations
+/// https://spec.graphql.org/September2025/#sec-Directives-Are-in-Valid-Locations
 ///
 /// AND
 ///
@@ -171,10 +171,16 @@ internal sealed class DirectiveVisitor()
                 context.ReportError(context.DirectiveMustBeUniqueInLocation(directive));
             }
 
-            // Defer And Stream Directive Labels Are Unique
+            // Defer And Stream Directive Labels Are Unique.
+            // The rule is document-scoped: a label must be unique across all @defer and
+            // @stream directives in the document. The same lexical directive can be
+            // reached from multiple operations (each operation re-walks its spread fragments
+            // independently), so we must track the directive nodes already counted to avoid
+            // colliding a label with itself when revisited.
             if (node.Kind is Field or InlineFragment or FragmentSpread
                 && (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal)
-                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)))
+                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal))
+                && feature.ProcessedLabelDirectives.Add(directive))
             {
                 switch (directive.GetArgumentValue(DirectiveNames.Defer.Arguments.Label))
                 {
@@ -249,10 +255,13 @@ internal sealed class DirectiveVisitor()
 
         public HashSet<string> Labels { get; } = [];
 
+        public HashSet<DirectiveNode> ProcessedLabelDirectives { get; } = [];
+
         protected internal override void Reset()
         {
             DirectiveNames.Clear();
             Labels.Clear();
+            ProcessedLabelDirectives.Clear();
         }
     }
 }

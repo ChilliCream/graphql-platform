@@ -2,11 +2,21 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
+      "args": ["--yes", "@playwright/mcp@0.0.79"]
     },
-    "lighthouse": {
-      "command": "npx",
-      "args": ["-y", "@danielsogl/lighthouse-mcp@latest"]
+    "nuget": {
+      "command": "dotnet",
+      "args": [
+        "dnx",
+        "NuGet.Mcp.Server@1.4.16",
+        "--source",
+        "https://api.nuget.org/v3/index.json",
+        "--yes"
+      ]
+    },
+    "microsoft.docs.mcp": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp"
     }
   }
 }

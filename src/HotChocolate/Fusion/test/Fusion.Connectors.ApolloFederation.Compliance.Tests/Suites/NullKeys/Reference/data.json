@@ -1,0 +1,7 @@
+{
+  "books": [
+    { "id": "1", "upc": "b1", "author": { "id": "a1", "name": "Alice" } },
+    { "id": "2", "upc": "b2", "author": { "id": "a2", "name": "Bob" } },
+    { "id": "3", "upc": "b3", "author": { "id": "a3", "name": "Jack" } }
+  ]
+}

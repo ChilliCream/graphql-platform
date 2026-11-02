@@ -129,14 +129,18 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
 
         var directive = ((IDirectivesProvider)typeSystemMember).Directives[WellKnownDirectiveNames.Cost].Single();
         var costWeight = ((Directive)directive).GetArgumentValue<double>(WellKnownArgumentNames.Weight);
+        var namedType = type.NamedType();
 
-        if (type.IsLeafType() && costWeight == 0.0)
+        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
+        // Leaf-typed members (scalar, enum), including lists of leaves, default to 0.0.
+        if (namedType.IsLeafType() && costWeight == 0.0)
         {
             return null;
         }
 
+        // Composite- or input-object-typed members, including lists of those, default to 1.0.
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if ((type.IsCompositeType() || type.IsInputObjectType() || type.IsListType())
+        if ((namedType.IsCompositeType() || namedType.IsInputObjectType())
             && costWeight == 1.0)
         {
             return null;

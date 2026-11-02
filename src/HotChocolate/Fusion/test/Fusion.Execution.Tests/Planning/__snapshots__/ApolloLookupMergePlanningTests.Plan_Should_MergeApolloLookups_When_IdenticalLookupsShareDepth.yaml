@@ -1,0 +1,54 @@
+operation:
+  - document: |
+      {
+        products {
+          name
+          id @fusion__requirement
+        }
+        brands {
+          topProduct {
+            name
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+        }
+        brands {
+          topProduct {
+            id
+          }
+        }
+      }
+  - id: 2
+    type: ApolloOperationBatch
+    schema: c
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            name
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.brands.topProduct
+      - $.products
+    batchingGroupId: 4
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

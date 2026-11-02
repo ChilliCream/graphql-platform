@@ -1,0 +1,20 @@
+query GetNitroCompositionSettings($apiId: ID!, $stageName: String!) {
+  node(id: $apiId) {
+    ... on Api {
+      stage(name: $stageName) {
+        compositionSettings {
+          allowNonResolvableInterfaceObjects
+          cacheControlMergeBehavior
+          defaultListSize
+          enableGlobalObjectIdentification
+          enumValuesMergeBehavior
+          excludeByTag
+          nodeResolution
+          removeUnreferencedDefinitions
+          shareableFieldRuntimeTypeRouting
+          tagMergeBehavior
+        }
+      }
+    }
+  }
+}

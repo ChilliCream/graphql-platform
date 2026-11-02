@@ -3,8 +3,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Nullable.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(AnalyzerTargetFramework)</TargetFrameworks>
+    <TargetFramework>$(AnalyzerTargetFramework)</TargetFramework>
     <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
     <IncludeSymbols>false</IncludeSymbols>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -19,6 +19,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Primitives\src\Primitives\Types\DirectiveNames.cs" Link="Helpers\DirectiveNames.cs" />
+    <Compile Include="..\..\..\Primitives\src\Primitives\ErrorCodes.cs" Link="ErrorCodes.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="4.11.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="4.11.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" VersionOverride="3.11.0" PrivateAssets="all" />
@@ -28,10 +33,17 @@
     <PackageReference Include="Microsoft.Bcl.HashCode" VersionOverride="1.1.0" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- Package the generator in the analyzer directory of the nuget package -->
-    <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddGeneratorToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <!-- Package the generator into the analyzer directory of the NuGet package.
+       Runs after pack's build phase has populated $(OutputPath). -->
+  <Target Name="_AddGeneratorToPackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)*.dll" PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\SourceGenResources.resx">

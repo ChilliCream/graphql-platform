@@ -39,6 +39,20 @@ public class GraphQLParserSyntaxTests
     }
 
     [Fact]
+    public void ParseSelectionSet_Should_NotApplyRequestLimits_When_SelectionExceedsDefaultMaxFields()
+    {
+        // arrange
+        var fieldCount = ParserOptions.Default.MaxAllowedFields + 100;
+        var sourceText = "{ " + string.Join(" ", Enumerable.Range(0, fieldCount).Select(i => "f" + i)) + " }";
+
+        // act
+        var result = Utf8GraphQLParser.Syntax.ParseSelectionSet(sourceText);
+
+        // assert
+        Assert.Equal(fieldCount, result.Selections.Count);
+    }
+
+    [Fact]
     public void Parse_ValueNode_From_String() =>
         Utf8GraphQLParser.Syntax.ParseValueLiteral(@"""baz""").MatchSnapshot();
 

@@ -1,0 +1,18 @@
+query GetLocations {
+  location {
+    ... on Port {
+      countryCode
+    }
+    ... on Warehouse {
+      countryCode
+    }
+  }
+  port {
+    ...LocationFields
+    countryCode
+  }
+}
+
+fragment LocationFields on Location {
+  countryCode
+}

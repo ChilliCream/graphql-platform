@@ -74,6 +74,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")))));
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Product>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -94,6 +95,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetProductsAsync_productService(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetProductsAsync();
                     configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Product>.Default;
@@ -157,13 +164,14 @@ namespace TestNamespace
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args0_options.NullOrdering
                     };
                 var args1_selection = context.Selection;
                 var args1_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args1_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args1 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Brand>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args1_selection, context.IncludeFlags),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args1_selection, context.IncludeConditionFlags),
                     args1_filter?.AsPredicate<global::TestNamespace.Brand>(),
                     args1_sorting?.AsSortDefinition<global::TestNamespace.Brand>());
                 var args2 = _binding_GetProductsAsync_productService.Execute<global::TestNamespace.ProductService>(context);
@@ -195,4 +203,3 @@ namespace TestNamespace
   }
 ]
 ```
-

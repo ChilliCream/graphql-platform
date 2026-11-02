@@ -1,4 +1,9 @@
+#if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
+#endif
+using System.Net;
+using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -14,6 +19,9 @@ namespace HotChocolate.AspNetCore;
 
 public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
+    private const string CreateReviewMutation =
+        "mutation { createReview(episode: NEW_HOPE, review: { stars: 5 }) { stars } }";
+
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
 
     [Fact]
@@ -147,6 +155,39 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     }
 
     [Fact]
+    public async Task Post_Should_ExecuteSentQuery_When_PreviousRequestSentDocumentId()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        await server.PostAsync(
+            new ClientQueryRequest
+            {
+                Id = "acb8d5d513c260b3cef3e3a12b0e29af",
+                Query = "{ __typename }"
+            });
+
+        // act
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ hero { name } }" });
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SingleRequest_GetHeroName_Casing_Is_Preserved()
     {
         // arrange
@@ -218,8 +259,10 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         result.MatchInlineSnapshot(
             """
             Headers:
+            Vary: Accept
             abc: def
             Content-Type: application/graphql-response+json; charset=utf-8
+            Content-Length: 34
             -------------------------->
             Status Code: OK
             -------------------------->
@@ -794,7 +837,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json
@@ -805,7 +848,9 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 24
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -829,7 +874,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json
@@ -840,7 +885,9 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 24
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -869,7 +916,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ nullValues }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json
@@ -880,12 +927,510 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->
                 {"data":{"nullValues":["abc"]}}
                 """);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_ReportReasonToDiagnostics_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_ReportBatchSizeToDiagnostics_When_MaxSizeIsExceeded()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.MaxBatchSize = 1));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "The batch size exceeds the maximum allowed batch size of 1.",
+            diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal(
+            "The batch size exceeds the maximum allowed batch size of 1.",
+            responseError["message"]);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_ReportReasonToDiagnostics_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            [
+              { "query": "{ hero(episode: NEW_HOPE) { name } }" },
+              { "query": "{ hero(episode: EMPIRE) { name } }" }
+            ]
+            """);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Request batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_WriteRequestIndex_When_ItemFailsValidation()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
+        {
+            Content = new StringContent(
+                """
+                [
+                  { "query": "{ hero(episode: EMPIRE) { name } }" },
+                  { "query": "{ unknownField }" }
+                ]
+                """,
+                Encoding.UTF8,
+                "application/json")
+        };
+        request.Headers.Add("Accept", "application/jsonl");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(
+                result => result.TryGetProperty("requestIndex", out var index)
+                    ? index.GetInt32()
+                    : -1)
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "requestIndex": 0,
+                  "data": {
+                    "hero": {
+                      "name": "Luke Skywalker"
+                    }
+                  }
+                }
+                """,
+                """
+                {
+                  "requestIndex": 1,
+                  "errors": [
+                    {
+                      "message": "The field `unknownField` does not exist on the type `Query`.",
+                      "locations": [
+                        {
+                          "line": 1,
+                          "column": 3
+                        }
+                      ],
+                      "extensions": {
+                        "type": "Query",
+                        "field": "unknownField",
+                        "responseName": "unknownField",
+                        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+                      }
+                    }
+                  ]
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_ReportReasonToDiagnostics_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            {
+              "query": "query a { __typename } query b { __typename }"
+            }
+            """,
+            "/graphql?batchOperations=[a,b]");
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Request batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_ExecuteEachOperation_When_BatchingIsEnabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var results = await server.PostOperationAsync(
+            new ClientQueryRequest
+            {
+                Query =
+                    """
+                    query a { hero(episode: NEW_HOPE) { name } }
+                    query b { hero(episode: EMPIRE) { name } }
+                    """
+            },
+            "a,b");
+
+        // assert
+        results.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_ReportGenericError_When_OperationNamesAreInvalid()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            {
+              "query": "query a { __typename } query b { __typename }"
+            }
+            """,
+            "/graphql?batchOperations=");
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal("Invalid GraphQL Request.", diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task Post_Should_RefuseQuery_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """{ "query": "{ __typename }" }""",
+            "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Post_Should_ExecuteMutation_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            $$"""{ "query": {{JsonSerializer.Serialize(CreateReviewMutation)}} }""",
+            "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"createReview":{"stars":5}}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_BeRefused_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """,
+            "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(["GET", "HEAD"], response.Content.Headers.Allow);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_RefuseQueries_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            $$"""
+            [
+              { "query": "{ hero(episode: EMPIRE) { name } }" },
+              { "query": {{JsonSerializer.Serialize(CreateReviewMutation)}} }
+            ]
+            """,
+            "application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(
+                result => result.TryGetProperty("requestIndex", out var index)
+                    ? index.GetInt32()
+                    : -1)
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "requestIndex": 0,
+                  "errors": [
+                    {
+                      "message": "The specified operation kind is not allowed."
+                    }
+                  ]
+                }
+                """,
+                """
+                {
+                  "requestIndex": 1,
+                  "data": {
+                    "createReview": {
+                      "stars": 5
+                    }
+                  }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_RefuseQueries_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a { hero(episode: NEW_HOPE) { name } }
+            mutation b { createReview(episode: NEW_HOPE, review: { stars: 5 }) { stars } }
+            """;
+
+        // act
+        using var request = CreatePostRequest(
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"),
+            $$"""{ "query": {{JsonSerializer.Serialize(document)}} }""",
+            "application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(
+                result => result.TryGetProperty("requestIndex", out var index)
+                    ? index.GetInt32()
+                    : -1)
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "requestIndex": 0,
+                  "errors": [
+                    {
+                      "message": "The specified operation kind is not allowed."
+                    }
+                  ]
+                }
+                """,
+                """
+                {
+                  "requestIndex": 1,
+                  "data": {
+                    "createReview": {
+                      "stars": 5
+                    }
+                  }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task Post_Should_StreamSubscription_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """{ "query": "subscription { onReview(episode: NEW_HOPE) { stars } }" }""",
+            "text/event-stream");
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Post_Should_ExecuteQuery_When_InterceptorAllowsQueries()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpRequestInterceptor<AllowAllRequestInterceptor>(),
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """{ "query": "{ __typename }" }""",
+            "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"__typename":"Query"}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    private static HttpRequestMessage CreatePostRequest(Uri url, string body, string acceptHeader)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json")
+        };
+        request.Headers.Add("Accept", acceptHeader);
+
+        return request;
+    }
+
+    public sealed class AllowAllRequestInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override async ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            await base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+            requestBuilder.SetFlags(RequestFlags.AllowAll);
+        }
     }
 
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
@@ -914,5 +1459,13 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     public class NullListQuery
     {
         public List<string?> NullValues => [null, "abc", null];
+    }
+
+    public sealed class RecordingListener : ServerDiagnosticEventListener
+    {
+        public List<IError> Errors { get; } = [];
+
+        public override void HttpRequestError(HttpContext context, IError error)
+            => Errors.Add(error);
     }
 }

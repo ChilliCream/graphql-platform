@@ -1,6 +1,5 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList;
@@ -17,7 +16,7 @@ public class StarWarsUnionListTest : ServerTestBase
         // arrange
         using var cts = new CancellationTokenSource(20_000);
 
-        using var host = TestServerHelper.CreateServer(
+        await using var app = TestServerHelper.StartApp(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();

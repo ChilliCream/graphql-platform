@@ -3,7 +3,9 @@
     "__schema": "__Schema!",
     "__type": "__Type",
     "__typename": "String!",
-    "bar": "Bar!"
+    "bar": "Bar!",
+    "__search": "[__SearchResult!]!",
+    "__definitions": "[__SchemaDefinition!]!"
   },
   "barType": {
     "__typename": "String!",

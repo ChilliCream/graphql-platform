@@ -4,7 +4,11 @@ namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
 internal sealed class MessageStream : IObservable<IOperationMessage>, IObserver<IOperationMessage>
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private ImmutableList<Subscription> _subscriptions = [];
 
     public IDisposable Subscribe(IObserver<IOperationMessage> observer)

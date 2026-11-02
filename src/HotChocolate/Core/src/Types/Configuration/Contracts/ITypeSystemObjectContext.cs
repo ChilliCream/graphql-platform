@@ -17,7 +17,6 @@ public interface ITypeSystemObjectContext : IHasScope, IFeatureProvider
     /// <summary>
     /// A type reference that points to <see cref="Type"/>.
     /// </summary>
-    /// <value></value>
     TypeReference TypeReference { get; }
 
     /// <summary>
@@ -28,7 +27,6 @@ public interface ITypeSystemObjectContext : IHasScope, IFeatureProvider
     /// <summary>
     /// Defines if <see cref="Type" /> is an introspection type.
     /// </summary>
-    /// <value></value>
     bool IsIntrospectionType { get; }
 
     /// <summary>
@@ -81,7 +79,12 @@ public interface ITypeSystemObjectContext : IHasScope, IFeatureProvider
     /// <param name="typeRef">
     /// The type reference.
     /// </param>
-    /// <param name="kind"></param>
-    /// <returns></returns>
+    /// <param name="kind">
+    /// The predicted type kind.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the type kind could be predicted;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     bool TryPredictTypeKind(TypeReference typeRef, out TypeKind kind);
 }

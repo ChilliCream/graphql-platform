@@ -10,7 +10,7 @@ public struct MutationConventionOptions
     /// <summary>
     /// Specifies a name pattern for the input type name of a mutation.
     /// The pattern is specified like the following:
-    /// <code>"{MutationName}Input"</code>
+    /// <c>"{MutationName}Input"</c>
     ///
     /// <code>
     /// type Mutation {
@@ -43,7 +43,7 @@ public struct MutationConventionOptions
     /// <summary>
     /// Specifies a name pattern for the payload type name of a mutation.
     /// The pattern is specified like the following:
-    /// <code>"{MutationName}Payload"</code>
+    /// <c>"{MutationName}Payload"</c>
     ///
     /// <code>
     /// type Mutation {
@@ -61,7 +61,7 @@ public struct MutationConventionOptions
     /// <summary>
     /// Specifies a name pattern for the error union type name of a mutation.
     /// The pattern is specified like the following:
-    /// <code>"{MutationName}Error"</code>
+    /// <c>"{MutationName}Error"</c>
     ///
     /// <code>
     /// type Mutation {

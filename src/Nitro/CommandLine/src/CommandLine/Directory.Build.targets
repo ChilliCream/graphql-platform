@@ -7,9 +7,9 @@
       <_GenDir>$(IntermediateOutputPath)Generated</_GenDir>
       <_GenFile>$(_GenDir)\Secrets.g.cs</_GenFile>
 
-      <_NitroApiClientId>$(NitroApiClientId)</_NitroApiClientId>
       <_NitroIdentityClientId>$(NitroIdentityClientId)</_NitroIdentityClientId>
       <_NitroIdentityScopes>$(NitroIdentityScopes)</_NitroIdentityScopes>
+      <_NitroApiClientId>$(NitroApiClientId)</_NitroApiClientId>
     </PropertyGroup>
 
     <MakeDir Directories="$(_GenDir)" />
@@ -22,9 +22,9 @@ namespace $(_SecretsNamespace)
 {
     internal static class BuildSecrets
     {
-        internal const string NitroApiClientId = &quot;$(_NitroApiClientId)&quot;;
         internal const string NitroIdentityClientId = &quot;$(_NitroIdentityClientId)&quot;;
         internal const string NitroIdentityScopes = &quot;$(_NitroIdentityScopes)&quot;;
+        internal const string NitroApiClientId = &quot;$(_NitroApiClientId)&quot;;
     }
 }
 ))" />

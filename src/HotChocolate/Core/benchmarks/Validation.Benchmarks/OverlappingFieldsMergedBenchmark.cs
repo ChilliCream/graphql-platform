@@ -19,7 +19,7 @@ public class OverlappingFieldsMergedBenchmark
     public void Setup()
     {
         _schema = BuildSchema();
-        _rule = new OverlappingFieldsCanBeMergedRule();
+        _rule = new OverlappingFieldsCanBeMergedRule(100_000, enableCovariantFieldMerging: false);
 
         // Simple query: few inline fragments with overlapping fields
         _simpleQuery = Utf8GraphQLParser.Parse("""
@@ -149,7 +149,7 @@ public class OverlappingFieldsMergedBenchmark
     private DocumentValidatorContext CreateContext(DocumentNode document)
     {
         var context = new DocumentValidatorContext();
-        context.Initialize(_schema, default, document, 100, 100, null);
+        context.Initialize(_schema, default, document, 100, 100, 1_000, null);
         return context;
     }
 

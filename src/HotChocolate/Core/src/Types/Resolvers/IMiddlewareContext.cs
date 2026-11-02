@@ -21,7 +21,6 @@ public interface IMiddlewareContext : IResolverContext
     /// <summary>
     /// Defines if at least one middleware has modified the result.
     /// </summary>
-    /// <value></value>
     bool IsResultModified { get; }
 
     /// <summary>

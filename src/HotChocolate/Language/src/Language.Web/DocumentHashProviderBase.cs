@@ -15,6 +15,8 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
     public abstract string Name { get; }
 
+    public abstract string AlgorithmName { get; }
+
     public HashFormat Format { get; }
 
     public OperationDocumentHash ComputeHash(ReadOnlySpan<byte> document)
@@ -27,7 +29,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         {
             var hash = ComputeHash(rented, document.Length);
             var formattedHash = FormatHash(hash, Format);
-            return new OperationDocumentHash(formattedHash, Name, Format);
+            return new OperationDocumentHash(formattedHash, AlgorithmName, Format);
         }
         finally
         {
@@ -35,7 +37,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         }
 #else
         var hash = ComputeHash(document, Format);
-        return new OperationDocumentHash(hash, Name, Format);
+        return new OperationDocumentHash(hash, AlgorithmName, Format);
 #endif
     }
 
@@ -65,7 +67,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         }
 #else
         var hash = ComputeHash(document, Format);
-        return new OperationDocumentHash(hash, Name, Format);
+        return new OperationDocumentHash(hash, AlgorithmName, Format);
 #endif
     }
 

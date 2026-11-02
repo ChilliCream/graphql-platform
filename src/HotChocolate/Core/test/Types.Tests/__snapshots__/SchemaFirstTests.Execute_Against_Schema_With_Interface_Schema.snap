@@ -1,9 +1,9 @@
-﻿schema {
+schema {
   query: Query
 }
 
-interface Pet {
-  name: String
+type Query {
+  pet: Pet
 }
 
 type Cat implements Pet {
@@ -14,6 +14,6 @@ type Dog implements Pet {
   name: String
 }
 
-type Query {
-  pet: Pet
+interface Pet {
+  name: String
 }

@@ -2,12 +2,12 @@ schema {
   query: QueryStructEquals
 }
 
-type EquatableExample {
-  some: String!
-}
-
 type QueryStructEquals {
   foo(example: EquatableExampleInput!): EquatableExample!
+}
+
+type EquatableExample {
+  some: String!
 }
 
 input EquatableExampleInput {

@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.Serialization;
 using Microsoft.AspNetCore.Http;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.Utilities.ErrorHelper;
@@ -24,9 +25,10 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
         HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions,
         PathString path,
         MiddlewareRoutingType routing)
-        : base(next, executor)
+        : base(next, executor, baseOptions)
     {
         _path = path;
         _routing = routing;
@@ -34,29 +36,30 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var handle = _routing == MiddlewareRoutingType.Integrated
-            ? HttpMethods.IsGet(context.Request.Method)
+        var isCandidate = _routing == MiddlewareRoutingType.Integrated
+            ? context.Request.IsGetOrHeadMethod()
                 && (context.Request.Query.ContainsKey("SDL") || IsSchemaPath(context.Request))
-                && GetOptions(context).EnableSchemaRequests
-            : HttpMethods.IsGet(context.Request.Method)
-                && GetOptions(context).EnableSchemaRequests;
+            : context.Request.IsGetOrHeadMethod();
 
-        if (handle)
+        if (isCandidate)
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
             var options = GetOptions(context);
 
-            using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
+            if (options.EnableSchemaRequests)
             {
-                await HandleRequestAsync(context, session, options);
+                using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
+                {
+                    await HandleRequestAsync(context, session, options);
+                }
+
+                return;
             }
         }
-        else
-        {
-            // if the request is not a get request or if the content type is not correct
-            // we will just invoke the next middleware and do nothing.
-            await NextAsync(context);
-        }
+
+        // if the request is not a get request or if the content type is not correct
+        // we will just invoke the next middleware and do nothing.
+        await NextAsync(context);
     }
 
     private bool IsSchemaPath(HttpRequest request)
@@ -97,7 +100,25 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         }
         else
         {
-            await session.WriteSchemaAsync(context);
+            if (!context.Request.Query.TryGetValue("spec-version", out var specVersionValue))
+            {
+                await session.WriteSchemaAsync(context);
+                return;
+            }
+
+            var requestedSpecVersion = specVersionValue.ToString();
+
+            if (!GraphQLSpecVersions.TryParse(requestedSpecVersion, out var specVersion))
+            {
+                await session.WriteResultAsync(
+                    context,
+                    InvalidSpecVersion(requestedSpecVersion),
+                    s_mediaTypes,
+                    BadRequest);
+                return;
+            }
+
+            await session.WriteSchemaAsync(context, specVersion);
         }
     }
 

@@ -1,0 +1,147 @@
+### Return Processing Saga Demo
+### Tests the complex ReturnProcessingSaga with parallel execution and inspection
+### For physical product returns requiring shipping, inspection, and refund
+
+@catalogUrl = http://localhost:5133
+@billingUrl = http://localhost:5042
+@shippingUrl = http://localhost:5145
+
+@productHeadphones = aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+
+### ============================================
+### Step 1: Create an Order
+### ============================================
+
+# @name createOrder
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productHeadphones}}",
+  "quantity": 1,
+  "customerId": "return-test-customer",
+  "shippingAddress": "456 Return Lane, Test City, TC 67890"
+}
+
+###
+
+@orderId = {{createOrder.response.body.id}}
+
+### ============================================
+### Step 2: Wait 3 seconds, then get shipment
+### ============================================
+
+### Check Order Status
+GET {{catalogUrl}}/api/orders/{{orderId}}
+
+###
+
+### Get Shipment for Order
+# @name getShipment
+GET {{shippingUrl}}/api/shipments/order/{{orderId}}
+
+###
+
+@shipmentId = {{getShipment.response.body.id}}
+
+### ============================================
+### Step 3: Ship the Order (simulate delivery)
+### ============================================
+
+# @name shipOrder
+POST {{shippingUrl}}/api/shipments/{{shipmentId}}/ship
+Content-Type: application/json
+
+{
+  "carrier": "DemoCarrier",
+  "estimatedDays": 3
+}
+
+###
+
+### ============================================
+### Step 4: Initiate Return (creates label, returns immediately)
+### ============================================
+
+# @name initiateReturn
+POST {{catalogUrl}}/api/returns/initiate
+Content-Type: application/json
+
+{
+  "orderId": "{{orderId}}",
+  "shipmentId": "{{shipmentId}}",
+  "reason": "Product not as described"
+}
+
+###
+
+### Response contains returnId and returnTrackingNumber (immediate, not waiting for saga)
+@returnId = {{initiateReturn.response.body.returnId}}
+@returnTracking = {{initiateReturn.response.body.returnTrackingNumber}}
+
+### ============================================
+### Step 5: Check Return Shipment Record
+### ============================================
+
+### Get Return Shipment from Shipping
+# @name getReturnShipment
+GET {{shippingUrl}}/api/returns/order/{{orderId}}
+
+###
+
+@returnShipmentId = {{getReturnShipment.response.body.id}}
+
+### ============================================
+### Step 6: Simulate Package Receipt at Warehouse
+### This starts the saga: ReturnPackageReceivedEvent → Inspection → Refund + Restock
+### ============================================
+
+# @name receivePackage
+POST {{shippingUrl}}/api/returns/{{returnShipmentId}}/receive
+
+###
+
+### ============================================
+### Step 7: Wait 3 seconds, then verify results
+### ============================================
+
+### Check Refund Records
+GET {{billingUrl}}/api/refunds/order/{{orderId}}
+
+###
+
+### Check Product Stock (should be restocked)
+GET {{catalogUrl}}/api/products/{{productHeadphones}}
+
+###
+
+### Check Final Order Status
+GET {{catalogUrl}}/api/orders/{{orderId}}
+
+###
+
+### ============================================
+### Flow Summary
+### ============================================
+# Two-phase return process:
+#
+# Phase 1: Initiate Return (synchronous)
+#   POST /api/returns/initiate → Creates return label → Returns immediately
+#   Customer receives label and ships package
+#
+# Phase 2: Process Return (async saga, starts on package arrival)
+#   POST /api/returns/{id}/receive → Publishes ReturnPackageReceivedEvent
+#   
+#   ReturnProcessingSaga handles:
+#     1. AwaitingInspection  - Inspect the returned item
+#     2. AwaitingBothReplies - Parallel: Refund + Restock
+#     3. Completed           - All done
+#
+# Message Flow:
+#   1. Shipping → ReturnPackageReceivedEvent → Saga starts
+#   2. Saga → InspectReturnCommand → Catalog
+#   3. Catalog → InspectReturnResponse → Saga
+#   4. Saga does PARALLEL execution:
+#      - ProcessRefundCommand → Billing
+#      - RestockInventoryCommand → Catalog
+#   5. Both complete → Saga completes

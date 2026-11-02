@@ -1,0 +1,65 @@
+[
+  {
+    "Kind": "Name",
+    "Start": 0,
+    "End": 1,
+    "Line": 1,
+    "Column": 1
+  },
+  {
+    "Kind": "LeftParenthesis",
+    "Start": 1,
+    "End": 2,
+    "Line": 1,
+    "Column": 2
+  },
+  {
+    "Kind": "Name",
+    "Start": 2,
+    "End": 3,
+    "Line": 1,
+    "Column": 3
+  },
+  {
+    "Kind": "Colon",
+    "Start": 3,
+    "End": 4,
+    "Line": 1,
+    "Column": 4
+  },
+  {
+    "Kind": "BlockStringValue",
+    "Start": 5,
+    "End": 14,
+    "Line": 1,
+    "Column": 6
+  },
+  {
+    "Kind": "Name",
+    "Start": 16,
+    "End": 17,
+    "Line": 2,
+    "Column": 7
+  },
+  {
+    "Kind": "Colon",
+    "Start": 17,
+    "End": 18,
+    "Line": 2,
+    "Column": 8
+  },
+  {
+    "Kind": "IntValue",
+    "Start": 19,
+    "End": 20,
+    "Line": 2,
+    "Column": 10
+  },
+  {
+    "Kind": "RightParenthesis",
+    "Start": 20,
+    "End": 21,
+    "Line": 2,
+    "Column": 11
+  }
+]

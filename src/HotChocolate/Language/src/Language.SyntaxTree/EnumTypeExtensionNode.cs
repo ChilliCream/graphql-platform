@@ -6,7 +6,7 @@ namespace HotChocolate.Language;
 /// Enum type extensions are used to represent an enum type which has been extended
 /// from some original enum type. For example, this might be used to represent additional
 /// local data, or by a GraphQL service which is itself an extension of another GraphQL service.
-/// https://spec.graphql.org/October2021/#sec-Enum-Extensions
+/// https://spec.graphql.org/September2025/#sec-Enum-Extensions
 /// </summary>
 public sealed class EnumTypeExtensionNode : EnumTypeDefinitionNodeBase, ITypeExtensionNode
 {

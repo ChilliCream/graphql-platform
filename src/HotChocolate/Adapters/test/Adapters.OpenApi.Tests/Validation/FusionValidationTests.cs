@@ -13,7 +13,7 @@ public class FusionValidationTests : ValidationTestBase
 {
     private DocumentNode _compositeSchema = null!;
 
-    protected override async Task InitializeAsync(TestServerSession serverSession)
+    protected override async ValueTask InitializeAsync(TestServerSession serverSession)
     {
         var server = CreateSourceSchema();
 
@@ -55,6 +55,7 @@ public class FusionValidationTests : ValidationTestBase
     {
         var builder = services.AddGraphQLGatewayServer()
             .AddInMemoryConfiguration(_compositeSchema)
+            .AddOpenApi()
             .AddOpenApiDefinitionStorage(storage);
 
         if (eventListener is not null)

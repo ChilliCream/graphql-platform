@@ -1,15 +1,14 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;
-using Squadron;
 
 namespace HotChocolate.Data.Raven.Test;
 
-public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> resource)
-    : IClassFixture<RavenDBResource<CustomRavenDBDefaultOptions>>
+public class AnnotationBasedTests(RavenDBResource resource)
 {
     [Fact]
     public async Task Queryable_Should_BeExecuted()
@@ -29,10 +28,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -61,10 +61,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -93,10 +94,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -124,7 +126,8 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -155,10 +158,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
 
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -185,10 +189,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -209,10 +214,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -233,10 +239,11 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        await Snapshot.Create().AddResult(result).MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public ValueTask<IRequestExecutor> CreateExecutorAsync() => new ServiceCollection()

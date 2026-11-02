@@ -11,32 +11,57 @@ internal sealed class VariablePath(KeyPathSegment key) : IEnumerable<IVariablePa
     public static VariablePath Parse(string s)
     {
         const string variables = nameof(variables);
-        var segments = s.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        var length = s.Length;
+        var remaining = s.AsSpan(0, length);
+        ReadOnlySpan<char> first = default;
+        var count = 0;
 
-        if (segments.Length < 2)
+        while (!remaining.IsEmpty && count < 2)
+        {
+            var separator = remaining.IndexOf('.');
+            var item = separator < 0 ? remaining : remaining[..separator];
+            remaining = separator < 0 ? default : remaining[(separator + 1)..];
+
+            if (item.IsEmpty)
+            {
+                continue;
+            }
+
+            if (count == 0)
+            {
+                first = item;
+            }
+
+            count++;
+        }
+
+        if (count < 2)
         {
             throw ThrowHelper.HttpMultipartMiddleware_InvalidPath(s);
         }
 
-        if (!string.Equals(segments[0], variables, StringComparison.Ordinal))
+        if (!first.Equals(variables, StringComparison.Ordinal))
         {
             throw ThrowHelper.HttpMultipartMiddleware_PathMustStartWithVariable();
         }
 
         IVariablePathSegment? segment = null;
+        remaining = s.AsSpan();
 
-        for (var i = segments.Length - 1; i >= 0; i--)
+        while (!remaining.IsEmpty)
         {
-            var item = segments[i];
+            var separator = remaining.LastIndexOf('.');
+            var item = remaining[(separator + 1)..];
+            remaining = separator < 0 ? default : remaining[..separator];
 
-            if (item.Equals(variables, StringComparison.Ordinal))
+            if (item.IsEmpty || item.Equals(variables, StringComparison.Ordinal))
             {
                 continue;
             }
 
             segment = int.TryParse(item, out var index)
                 ? new IndexPathSegment(index, segment)
-                : new KeyPathSegment(item, segment);
+                : new KeyPathSegment(item.ToString(), segment);
         }
 
         if (segment is KeyPathSegment key)

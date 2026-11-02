@@ -6,7 +6,7 @@ namespace HotChocolate.Types;
 
 /// <summary>
 /// Represents a non-null type in GraphQL.
-/// https://spec.graphql.org/October2021/#sec-Non-Null
+/// https://spec.graphql.org/September2025/#sec-Non-Null
 /// </summary>
 public sealed class NonNullType : IWrapperType, ISyntaxNodeProvider<NonNullTypeNode>
 {

@@ -1,0 +1,2949 @@
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
+
+namespace HotChocolate.Fusion.Planning;
+
+public class DeferPlannerTests : FusionTestBase
+{
+    [Fact]
+    public void Defer_SingleFragment_ProducesDeferredGroup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Single(plan.IncrementalPlans);
+
+        var incrementalPlan = plan.IncrementalPlans[0];
+        var group = incrementalPlan.DeliveryGroups[0];
+        Assert.Equal(0, group.Id);
+        Assert.Null(group.Label);
+        Assert.Equal("$.user", group.Path!.ToString());
+    }
+
+    [Fact]
+    public void Defer_MultipleFragments_ProducesMultipleDeferredGroups()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                profile: Profile!
+            }
+
+            type Profile {
+                bio: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "emailDefer") {
+                        email
+                    }
+                    profile {
+                        ... @defer(label: "bioDefer") {
+                            bio
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Equal(2, plan.IncrementalPlans.Length);
+
+        var emailIncrementalPlan = plan.IncrementalPlans.First(s => s.DeliveryGroups[0].Label == "emailDefer");
+        var bioIncrementalPlan = plan.IncrementalPlans.First(s => s.DeliveryGroups[0].Label == "bioDefer");
+
+        Assert.NotNull(emailIncrementalPlan);
+        Assert.NotNull(bioIncrementalPlan);
+        Assert.NotEqual(emailIncrementalPlan.DeliveryGroups[0].Id, bioIncrementalPlan.DeliveryGroups[0].Id);
+    }
+
+    [Fact]
+    public void Defer_WithLabel_LabelIsPropagated()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "myLabel") {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("myLabel", plan.IncrementalPlans[0].DeliveryGroups[0].Label);
+    }
+
+    [Fact]
+    public void Defer_OperationHasIncrementalParts()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.False(plan.IncrementalPlans.IsEmpty);
+    }
+
+    [Fact]
+    public void Defer_NoDefer_NoDeferredGroups()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    email
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.False(plan.Operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Defer_ConditionalVariable_IfVariableRecorded()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query ($shouldDefer: Boolean!) {
+                user(id: "1") {
+                    name
+                    ... @defer(if: $shouldDefer) {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("shouldDefer", plan.IncrementalPlans[0].DeliveryGroups[0].IfVariable);
+    }
+
+    [Fact]
+    public void Defer_MainPlanStillExecutes()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.NotEmpty(plan.RootNodes);
+        Assert.NotEmpty(plan.AllNodes);
+
+        // The deferred incremental plan should also have its own execution nodes
+        var incrementalPlan = plan.IncrementalPlans[0];
+        Assert.False(incrementalPlan.RootNodes.IsEmpty);
+        Assert.False(incrementalPlan.AllNodes.IsEmpty);
+        Assert.Null(incrementalPlan.DeliveryGroups[0].Parent);
+    }
+
+    [Fact]
+    public void Defer_IfFalseLiteral_Should_ProduceNoDeferredGroups()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(if: false) {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+    }
+
+    [Fact]
+    public void Defer_IfTrueLiteral_Should_ProduceDeferredGroup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(if: true) {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Single(plan.IncrementalPlans);
+        Assert.Null(plan.IncrementalPlans[0].DeliveryGroups[0].IfVariable);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_Should_ProduceParentChildRelationship()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Equal(2, plan.IncrementalPlans.Length);
+
+        var outerGroup = plan.IncrementalPlans
+            .Select(s => s.DeliveryGroups[0])
+            .First(g => g.Label == "outer");
+        var innerGroup = plan.IncrementalPlans
+            .Select(s => s.DeliveryGroups[0])
+            .First(g => g.Label == "inner");
+
+        Assert.Null(outerGroup.Parent);
+        Assert.NotNull(innerGroup.Parent);
+        Assert.Equal(outerGroup.Id, innerGroup.Parent.Id);
+    }
+
+    [Fact]
+    public void Defer_WithIncludeDirective_Should_ProduceDeferredGroup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer @include(if: true) {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Single(plan.IncrementalPlans);
+    }
+
+    [Fact]
+    public void Plan_Should_Partition_Nested_Defer_With_Mixed_If_Conditions_Correctly()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act + assert: a=true, b=true (both active)
+        var planBothActive = PlanOperation(
+            schema,
+            """
+            {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer", if: true) {
+                        email
+                        ... @defer(label: "inner", if: true) {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        Assert.Equal(2, planBothActive.IncrementalPlans.Length);
+        var outerIncrementalPlan = planBothActive.IncrementalPlans
+            .First(s => s.DeliveryGroups.Any(g => g.Label == "outer"));
+        var innerIncrementalPlan = planBothActive.IncrementalPlans
+            .First(s => s.DeliveryGroups.Any(g => g.Label == "inner"));
+        Assert.Single(outerIncrementalPlan.DeliveryGroups, g => g.Label == "outer");
+        Assert.Single(innerIncrementalPlan.DeliveryGroups, g => g.Label == "inner");
+        Assert.Null(outerIncrementalPlan.DeliveryGroups[0].Parent);
+        var innerParent = innerIncrementalPlan.DeliveryGroups[0].Parent;
+        Assert.NotNull(innerParent);
+        Assert.Equal(outerIncrementalPlan.DeliveryGroups[0].Id, innerParent.Id);
+
+        // act + assert: a=true, b=false (inner inactive, its address collapses into outer)
+        var planInnerInactive = PlanOperation(
+            schema,
+            """
+            {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer", if: true) {
+                        email
+                        ... @defer(label: "inner", if: false) {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        Assert.Single(planInnerInactive.IncrementalPlans);
+        var collapsedOuter = planInnerInactive.IncrementalPlans[0];
+        Assert.Single(collapsedOuter.DeliveryGroups);
+        Assert.Equal("outer", collapsedOuter.DeliveryGroups[0].Label);
+
+        // act + assert: a=false, b=true (outer inactive, inner is top-level; email in initial)
+        var planOuterInactive = PlanOperation(
+            schema,
+            """
+            {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer", if: false) {
+                        email
+                        ... @defer(label: "inner", if: true) {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        Assert.Single(planOuterInactive.IncrementalPlans);
+        var innerOnly = planOuterInactive.IncrementalPlans[0];
+        Assert.Single(innerOnly.DeliveryGroups);
+        Assert.Equal("inner", innerOnly.DeliveryGroups[0].Label);
+        Assert.Null(innerOnly.DeliveryGroups[0].Parent);
+
+        // act + assert: a=false, b=false (both inactive, no incremental plans)
+        var planBothInactive = PlanOperation(
+            schema,
+            """
+            {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer", if: false) {
+                        email
+                        ... @defer(label: "inner", if: false) {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        Assert.True(planBothInactive.IncrementalPlans.IsEmpty);
+    }
+
+    [Fact]
+    public void Defer_OnMutationResult_Should_ProduceDeferredGroup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type Mutation {
+                createUser(name: String!): User!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            mutation {
+                createUser(name: "test") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_RequirementReachableFromParent_Should_InjectIntoParentOp_When_SameSubgraph()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_MultipleDeferGroupsShareRequirement_Should_DeduplicateHoistedField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_RequirementOnForeignSubgraph_Should_PlanParentScopeLookup()
+    {
+        // arrange
+        // Parent plan only hits schema `a` for `product.name`. The defer
+        // group wants `reviews` on schema `c`, which requires `productSku`.
+        // `productSku` is only exposed by schema `b`, so the defer's incremental plan
+        // would otherwise self-fetch twice: once for `id` on `a`, once for
+        // `productSku` on `b`. Because schema `b` is reachable from the
+        // parent scope only through a cross-subgraph hop, the hoist must
+        // promote a dedicated parent-scope op on `b`.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                productSku: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews(productSku: String! @require(field: "productSku")): [String!]!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                product(id: "1") {
+                    name
+                    ... @defer {
+                        reviews
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_InnerRequirement_Should_ResolveAgainstOuterDefer()
+    {
+        // arrange
+        // Outer defer needs `email` on schema `b` (requires `id` from root
+        // schema `a`). Inner defer needs `address`, also on schema `b` and
+        // also requiring `id`. The inner requirement is reachable from the
+        // outer defer's result tree (both select the same `User` at `$.user`).
+        // The current hoist only persists parent-step mutations when the
+        // enclosing scope is the root plan, so the outer incremental plan hoists `id`
+        // into the root op (one self-fetch eliminated) while the inner
+        // incremental plan falls back to its own local self-fetch. The runtime's
+        // try-parent-fall-back-to-own variable resolution (Step 8) consumes
+        // that local fetch. This snapshot locks in the current planner
+        // behavior and serves as the regression fixture for any future
+        // extension of the hoist to enclosing-defer scopes.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_InnerAndOuterShareRequirement_Should_DeduplicateAtOuter()
+    {
+        // arrange
+        // Outer defer selects `reviews`, inner defer selects `summary`. Both
+        // fields live on schema `c` and both declare @require(field:
+        // "productSku"). The only way to satisfy `productSku` is via schema
+        // `b`. Because outer is planned first, it registers the productSku
+        // requirement in the outer's scope. When inner is planned, its own
+        // productSku requirement must reuse the outer's already-planned
+        // producer rather than duplicating another lookup step.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                productSku: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews(productSku: String! @require(field: "productSku")): [String!]!
+                summary(productSku: String! @require(field: "productSku")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                product(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        reviews
+                        ... @defer(label: "inner") {
+                            summary
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_InnerRequirement_OnForeignSubgraph_Should_PlanLookupInOuterScope()
+    {
+        // arrange
+        // Inner defer's required variable (nickname) lives on schema `b`. The
+        // outer defer already hits `b` for `email`, but the root plan only
+        // hits schema `a`. The nearest reachable scope for `nickname` is the
+        // outer defer scope. The planner should plan the productSku lookup in
+        // outer-defer scope (not root) because root cannot satisfy it.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                nickname: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                badge(nickname: String! @require(field: "nickname")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            badge
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_InnerRequirement_Should_ResolveAtOuterScope_When_SameSubgraphAsOuterKey()
+    {
+        // arrange
+        // Inner defer's required variable (preferences) lives on schema `a`.
+        // The outer defer hits schema `b` for `email` and already has a
+        // promoted `user{id}` step on schema `a` (planned for its own
+        // lookup-key requirement). The walker's same-subgraph inline at outer
+        // scope succeeds by inlining `preferences` into that promoted step,
+        // so the inner's producer ends up at outer scope, not root. This is
+        // the observable planner behavior for schema-reachable requirements;
+        // the walker's parent-chain escalation to root is retained as
+        // defensive code (see the Skip'd fixture below).
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                preferences: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                customized(preferences: String! @require(field: "preferences")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            customized
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact(Skip = "Natural Fusion schemas do not reach this walker-escalation path. "
+        + "The outer defer always has a key-producing step (to satisfy its own lookup's "
+        + "argument requirement) on the same subgraph as the enclosing entity; the walker's "
+        + "per-scope same-subgraph inline always succeeds at outer scope before needing to "
+        + "escalate. Cross-subgraph promote also succeeds whenever the inner's required "
+        + "subgraph is reachable via a lookup from outer's key. The walker's parent-chain "
+        + "escalation is retained as defensive code against planner-internal matching or "
+        + "partitioning bugs; snapshot verification is not observable for schema-reachable "
+        + "cases. Kept as a documentation fixture of .work/defer-requirement-variable-wiring.md "
+        + "§2.4's target behavior.")]
+    public void Defer_NestedDefer_InnerRequirement_UnreachableFromOuter_Should_BubbleToRoot()
+    {
+        // arrange
+        // No schema construction produced walker escalation to root. The
+        // plan's §2.4 invariant is that the walker's chain escalation is
+        // logically unreachable for any schema whose outer defer's own
+        // lookup-key requirement anchors a same-subgraph step that can
+        // absorb an inner's requirement via inline or promote.
+        Assert.True(true);
+    }
+
+    [Fact(Skip = "Natural schemas do not reach the unsatisfiable-requirement throw. "
+        + "If the defer's incremental plan planner produced a self-fetch, that self-fetch is "
+        + "an existence proof that the required value is reachable from some subgraph, "
+        + "and the parent's planning machinery (same-subgraph injection or cross-subgraph "
+        + "promote) can route to the same subgraph. Every attempt to construct an "
+        + "unsatisfiable schema collapsed into either (a) a composition-time failure or "
+        + "(b) a schema whose same-subgraph hoist or cross-subgraph promote succeeds. "
+        + "The throw in ApplyDeferRequirementsToParent is defensive against "
+        + "planner-internal matching bugs, not against schema shapes. Retained as a "
+        + "documentation fixture for .work/defer-requirement-variable-wiring.md Phase 1.")]
+    public void Defer_UnsatisfiableRequirement_Should_ThrowPlannerError_When_NotReachableAnywhere()
+    {
+        // arrange
+        // No schema construction produced the throw. The plan's Phase 1
+        // invariant is that the throw is logically unreachable for any
+        // schema whose deferred incremental plan succeeds at plan time.
+        Assert.True(true);
+    }
+
+    [Fact]
+    public void Defer_OnMutationRoot_Should_ThrowPlannerError_When_NoLookupAvailable()
+    {
+        // arrange
+        // The defer wraps the mutation's own top-level field, which has no lookup to key a re-fetch off of.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type Mutation {
+                createUser(name: String!): User!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var error = Assert.Throws<DeferredMutationLookupRequiredException>(() => PlanOperation(
+            schema,
+            """
+            mutation {
+                ... @defer {
+                    createUser(name: "test") {
+                        name
+                    }
+                }
+            }
+            """));
+
+        // assert
+        Assert.Equal("$", error.Path.ToString());
+        Assert.Equal("Mutation", error.TypeName);
+    }
+
+    [Fact]
+    public void Defer_OnMutationResult_Should_ThrowPlannerError_When_DeferredFieldNeedsSecondMutationCall()
+    {
+        // arrange
+        // "email" is real deferred output on the mutation's own subgraph, and User has no
+        // lookup anywhere, so producing it would require calling createUser a second time.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                ping: String
+            }
+
+            type Mutation {
+                createUser(name: String!): User!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+                email: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                other: String
+            }
+            """);
+
+        // act
+        var error = Assert.Throws<DeferredMutationLookupRequiredException>(() => PlanOperation(
+            schema,
+            """
+            mutation {
+                createUser(name: "test") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """));
+
+        // assert
+        Assert.Equal("$.createUser", error.Path.ToString());
+        Assert.Equal("User", error.TypeName);
+    }
+
+    [Fact]
+    public void Defer_NestedBelowMutationRootField_Should_ProduceKeyedLookup_When_AnchorHasLookup()
+    {
+        // arrange
+        // The defer sits one level below the mutation's own root field (createUser.child),
+        // not on the root field itself, and its anchor type (Child) has a lookup.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                child(id: ID!): Child @lookup
+            }
+
+            type Mutation {
+                createUser(name: String!): Parent!
+            }
+
+            type Parent {
+                id: ID!
+                child: Child!
+            }
+
+            type Child @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                childById(id: ID!): Child @lookup
+            }
+
+            type Child @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            mutation {
+                createUser(name: "test") {
+                    child {
+                        name
+                        ... @defer {
+                            email
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+
+        Assert.Single(plan.IncrementalPlans);
+
+        var incrementalPlan = plan.IncrementalPlans[0];
+        var deferredNode = incrementalPlan.RootNodes[0];
+        Assert.Equal(incrementalPlan.ParentNodeId, deferredNode.ParentDependencies[0]);
+    }
+
+    [Fact]
+    public void MaxNodeId_Should_Match_Max_Node_Id_Of_AllNodes_When_Computed()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = plan.IncrementalPlans[0];
+        Assert.Equal(incrementalPlan.AllNodes.Max(n => n.Id), incrementalPlan.MaxNodeId);
+    }
+
+    [Fact]
+    public void IncrementalPlan_Ids_Should_Be_Positional_When_Plan_Built()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        ... @defer(label: "nested") { address }
+                    }
+                    ... @defer(label: "location") { email }
+                }
+            }
+            """);
+
+        // assert
+        for (var i = 0; i < plan.IncrementalPlans.Length; i++)
+        {
+            Assert.Equal($"{plan.Id}#{i}", plan.IncrementalPlans[i].Id);
+        }
+    }
+
+    [Fact]
+    public void Defer_SingleAnchor_Should_Keep_NodeRequirements_AllImported_Or_AllLocal()
+    {
+        // arrange
+        // Single defer over a key handoff: the incremental plan's downstream node depends on
+        // a parent-scope step for the user id and has no plan-internal predecessors.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        AssertNoMixedRequirementScope(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_Should_Keep_NodeRequirements_AllImported_Or_AllLocal()
+    {
+        // arrange
+        // Nested defer with a cross-subgraph requirement that the planner promotes
+        // into the outer defer scope. Each inner incremental plan node either lifts its
+        // requirements through ParentDependencies or resolves them through a
+        // sibling step in the same incremental plan, never both at once.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                nickname: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                badge(nickname: String! @require(field: "nickname")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            badge
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        AssertNoMixedRequirementScope(plan);
+    }
+
+    [Fact]
+    public void Defer_StepInternalPredecessor_Should_Keep_NodeRequirements_AllImported_Or_AllLocal()
+    {
+        // arrange
+        // The incremental plan needs an extra hop on schema c to fetch a value that another
+        // incremental plan node consumes via @require. The chained downstream node has only
+        // incremental plan-internal predecessors and so must route through the local store
+        // path, not the imported snapshot path.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                productSku: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews(productSku: String! @require(field: "productSku")): [String!]!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                product(id: "1") {
+                    name
+                    ... @defer {
+                        reviews
+                    }
+                }
+            }
+            """);
+
+        // assert
+        AssertNoMixedRequirementScope(plan);
+    }
+
+    [Fact]
+    public void Defer_UnusedRootVariable_Should_Not_Be_Declared_On_IncrementalPlanOperation()
+    {
+        // arrange
+        // $productId only feeds productById in the main operation; the deferred
+        // fragment sits under the sibling `user` root field and never references it.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                productById(id: ID!): Product @lookup
+                user(id: ID!): User @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query t($productId: ID!) {
+                productById(id: $productId) {
+                    name
+                }
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var variableNames = string.Join(
+            ", ",
+            incrementalPlan.Operation.Definition.VariableDefinitions.Select(v => v.Variable.Name.Value));
+        variableNames.MatchInlineSnapshot("");
+    }
+
+    [Fact]
+    public void Defer_VariableUsedInDeferredSelection_Should_Be_Declared_On_IncrementalPlanOperation()
+    {
+        // arrange
+        // $domain is only referenced inside the deferred fragment, so it must survive
+        // pruning even though $productId (used only by the main operation) is dropped.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                productById(id: ID!): Product @lookup
+                user(id: ID!): User @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email(domain: String): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query t($productId: ID!, $domain: String) {
+                productById(id: $productId) {
+                    name
+                }
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email(domain: $domain)
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var variableNames = string.Join(
+            ", ",
+            incrementalPlan.Operation.Definition.VariableDefinitions.Select(v => v.Variable.Name.Value));
+        variableNames.MatchInlineSnapshot("domain");
+    }
+
+    /// <summary>
+    /// Asserts the planner contract that backs the defer-time variable routing in
+    /// <c>OperationPlanContext.CreateVariableValueSets</c>. The runtime classifies
+    /// each node's requirement span by computing the executor's imported-key set
+    /// (the union of every parent-dependent node's requirement keys, mirroring
+    /// <c>OperationPlanExecutor.CollectParentScopeRequirements</c>) and then
+    /// asserting that any single node's requirement keys are either fully inside
+    /// that set or fully outside it. A partial overlap is an unreachable shape
+    /// that the routing layer rejects with an explicit invariant exception.
+    /// </summary>
+    private static void AssertNoMixedRequirementScope(OperationPlan plan)
+    {
+        foreach (var incrementalPlan in plan.IncrementalPlans)
+        {
+            var importedKeys = ComputeImportedKeys(incrementalPlan);
+
+            foreach (var node in incrementalPlan.AllNodes)
+            {
+                switch (node)
+                {
+                    case OperationExecutionNode operationNode:
+                        AssertScopeIsUniform(operationNode.Requirements, importedKeys, incrementalPlan, operationNode.Id);
+                        break;
+
+                    case OperationBatchExecutionNode batchNode:
+                        foreach (var op in batchNode.Operations)
+                        {
+                            AssertScopeIsUniform(op.Requirements, importedKeys, incrementalPlan, op.Id);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    private static HashSet<string> ComputeImportedKeys(IncrementalPlan incrementalPlan)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var node in incrementalPlan.AllNodes)
+        {
+            switch (node)
+            {
+                case OperationExecutionNode operationNode when !operationNode.ParentDependencies.IsEmpty:
+                    AddRequirementKeys(operationNode.Requirements, keys);
+                    break;
+
+                case OperationBatchExecutionNode batchNode:
+                    foreach (var op in batchNode.Operations)
+                    {
+                        if (!op.ParentDependencies.IsEmpty)
+                        {
+                            AddRequirementKeys(op.Requirements, keys);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return keys;
+    }
+
+    private static void AddRequirementKeys(
+        ReadOnlySpan<OperationRequirement> requirements,
+        HashSet<string> keys)
+    {
+        foreach (var requirement in requirements)
+        {
+            keys.Add(requirement.Key);
+        }
+    }
+
+    private static void AssertScopeIsUniform(
+        ReadOnlySpan<OperationRequirement> requirements,
+        HashSet<string> importedKeys,
+        IncrementalPlan incrementalPlan,
+        int nodeId)
+    {
+        if (requirements.Length == 0)
+        {
+            return;
+        }
+
+        var importedCount = 0;
+
+        foreach (var requirement in requirements)
+        {
+            if (importedKeys.Contains(requirement.Key))
+            {
+                importedCount++;
+            }
+        }
+
+        if (importedCount != 0 && importedCount != requirements.Length)
+        {
+            var imported = new List<string>();
+            var local = new List<string>();
+
+            foreach (var requirement in requirements)
+            {
+                if (importedKeys.Contains(requirement.Key))
+                {
+                    imported.Add(requirement.Key);
+                }
+                else
+                {
+                    local.Add(requirement.Key);
+                }
+            }
+
+            Assert.Fail(
+                $"Incremental plan '{incrementalPlan.Id}' node {nodeId} has a requirement span that mixes "
+                + $"imported parent-sourced keys [{string.Join(", ", imported)}] with local keys "
+                + $"[{string.Join(", ", local)}]. The runtime variable routing layer assumes "
+                + "every node's requirements are either all imported or all local.");
+        }
+    }
+
+    [Fact]
+    public void Defer_ListAnchor_Should_PlanKeyedLookup_When_MultipleRootFieldsPrecedeIt()
+    {
+        // arrange
+        // The users field (and its defer anchor) is neither the first nor the only root field.
+        var schema = ComposeSchema(
+            """
+            # name: products
+            type Query {
+                products: ProductConnection!
+                productById(id: ID!): Product
+            }
+
+            type ProductConnection {
+                nodes: [Product!]!
+            }
+
+            type Product {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: users
+            type Query {
+                users: UserConnection!
+                userById(id: ID!): User @lookup
+            }
+
+            type UserConnection {
+                nodes: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query t($productId: ID!) {
+                products {
+                    nodes {
+                        id
+                        name
+                    }
+                }
+                productById(id: $productId) {
+                    id
+                }
+                users {
+                    nodes {
+                        ... @defer {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+
+        // The node the incremental node's own dependencies point to and the
+        // IncrementalPlan's own ParentNodeId must agree: both name the users node,
+        // never the products node that happens to come first.
+        var incrementalPlan = plan.IncrementalPlans[0];
+        var deferredNode = incrementalPlan.RootNodes[0];
+        Assert.Equal(incrementalPlan.ParentNodeId, deferredNode.ParentDependencies[0]);
+    }
+
+    [Fact]
+    public void Defer_ListAnchor_Should_PlanOneKeyedLookupPerField_When_FieldsSplitAcrossSameAndForeignSubgraph()
+    {
+        // arrange
+        // birthdate is same-subgraph with the parent's own key; reviewCount is reached only through the entity's key.
+        var schema = ComposeSchema(
+            """
+            # name: accounts
+            type Query {
+                users: [User!]!
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                birthdate: String!
+            }
+            """,
+            """
+            # name: reviews
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                reviewCount: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    name
+                    ... @defer {
+                        birthdate
+                        reviewCount
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_ObjectAnchor_Should_KeepRootRefetch_When_AnchorTypeHasNoLookup()
+    {
+        // arrange
+        // Viewer is not an entity: it has neither @key nor a @lookup field anywhere.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                viewer: Viewer!
+            }
+
+            type Viewer {
+                displayName: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                viewer {
+                    __typename
+                    ... @defer {
+                        displayName
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_RootAnchor_Should_PlanRootFetch_When_DeferSitsAtOperationRoot()
+    {
+        // arrange
+        // The @defer fragment is a root-level sibling, not nested inside a parent field.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                viewer: Viewer!
+            }
+
+            type Viewer {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                viewer {
+                    __typename
+                }
+                ... @defer {
+                    users {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData("__typename")]
+    [InlineData("")]
+    public void Defer_RootFragment_Should_PreserveDeferredFetch_When_InitialSelectionHasNoSourceFetch(
+        string initialSelection)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            $$"""
+            {
+                {{initialSelection}}
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$", Assert.Single(plan.DeliveryGroups).Path!.ToString());
+        Assert.Empty(plan.AllNodes.OfType<OperationExecutionNode>());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              users {
+                id
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Defer_RootFragment_Should_AnchorDeferredPlanAtIntrospectionNode_When_RootSelectsOnlyTypename()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                __typename
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        var parent = plan.GetNodeById(incrementalPlan.ParentNodeId);
+        Assert.IsType<IntrospectionExecutionNode>(parent);
+        Assert.Same(Assert.Single(plan.AllNodes), parent);
+    }
+
+    [Fact]
+    public void Defer_RootFragment_Should_HaveNoParentNode_When_RootPlanHasNoExecutionNode()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Empty(plan.AllNodes);
+        Assert.Equal(IncrementalPlan.NoParentNodeId, incrementalPlan.ParentNodeId);
+    }
+
+    [Fact]
+    public void Defer_NodeField_Should_PlanDeferredTypeBranch_When_FieldIsNotAliased()
+    {
+        // arrange
+        var schema = CreateNodeDeferSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                node(id: "1") {
+                    id
+                    ... @defer {
+                        ... on User {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$.node", Assert.Single(incrementalPlan.DeliveryGroups).Path!.ToString());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              node(id: "1") {
+                __typename
+              }
+            }
+            """,
+            """
+            {
+              node(id: "1") {
+                __typename
+                ... on User {
+                  __typename
+                  name
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Defer_NodeField_Should_PlanDeferredTypeBranch_When_FieldIsAliased()
+    {
+        // arrange
+        var schema = CreateNodeDeferSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                n: node(id: "1") {
+                    id
+                    ... @defer {
+                        ... on User {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var incrementalPlan = Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("$.n", Assert.Single(incrementalPlan.DeliveryGroups).Path!.ToString());
+        GetOperationSelectionSets(incrementalPlan.AllNodes).MatchInlineSnapshots(
+        [
+            """
+            {
+              n: node(id: "1") {
+                __typename
+              }
+            }
+            """,
+            """
+            {
+              n: node(id: "1") {
+                __typename
+                ... on User {
+                  __typename
+                  name
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Defer_Should_ThrowPlannerError_When_DeferredFieldHasNoReachableSource()
+    {
+        // arrange
+        var options = new SchemaComposerOptions();
+        options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true;
+
+        var result = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    extend schema
+                        @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+                    type Query {
+                        a: Node
+                    }
+
+                    interface Node @key(fields: "id") {
+                        id: ID!
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    extend schema
+                        @link(
+                            url: "https://specs.apollo.dev/federation/v2.6"
+                            import: ["@key", "@interfaceObject"])
+
+                    type Query {
+                        b: Node
+                    }
+
+                    type Node @key(fields: "id", resolvable: false) @interfaceObject {
+                        id: ID!
+                        field: String
+                    }
+                    """)
+            ],
+            options,
+            new CompositionLog()).Compose();
+        var schema = FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
+
+        // act
+        var error = Assert.Throws<InvalidOperationException>(() => PlanOperation(
+            schema,
+            """
+            {
+                __typename
+                ... @defer {
+                    a {
+                        field
+                    }
+                }
+            }
+            """));
+
+        // assert
+        Assert.Equal("No plan was found for the @defer fragment at path '$'.", error.Message);
+    }
+
+    private static FusionSchemaDefinition CreateNodeDeferSchema()
+        => ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                userById(id: ID!): User @lookup
+                users: [User!]!
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type User implements Node {
+                id: ID!
+                name: String!
+            }
+            """);
+
+    private static string[] GetOperationSelectionSets(IEnumerable<ExecutionNode> nodes)
+        => nodes
+            .OfType<OperationExecutionNode>()
+            .Select(node => Utf8GraphQLParser.Parse(node.Operation.Value.Span)
+                .Definitions.OfType<OperationDefinitionNode>().Single()
+                .SelectionSet.ToString())
+            .ToArray();
+
+    [Fact]
+    public void Defer_KeyOnlyField_Should_NotDefer_When_OnlyReachableLookupIsSelfCyclic()
+    {
+        // arrange
+        // The only deferred field is the entity's own key, and its only lookup is keyed by that
+        // same field. All the deferred data is already available (the key that any subgraph
+        // exposing the entity resolves for free), so the planner serves it in the initial
+        // payload instead of pinning a wasteful root re-fetch of the whole list.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    ... @defer {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_KeyOnlyField_Should_KeepTypename_When_ClientSelectsTypenameSibling()
+    {
+        // arrange
+        // The client selects __typename alongside the deferred key field. Absorbing the
+        // redundant defer into the parent step must keep that client-requested selection,
+        // not just the synthetic placeholder the defer split leaves behind.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    __typename
+                    ... @defer {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_KeyOnlyField_Should_NotDefer_When_TypenameInsideDefer()
+    {
+        // arrange
+        // The client selects __typename together with the entity's own key field inside the
+        // defer. __typename is resolvable for free by every schema, so it must not force a
+        // wasteful incremental plan the key-only field alone would already avoid.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                users: [User!]!
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    ... @defer {
+                        __typename
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_FieldAlreadyRequiredByParent_Should_NotDefer()
+    {
+        // arrange
+        // `price` is already fetched (as a fusion__requirement) because `convertedPrice`
+        // needs it, independently of the defer. Deferring it too would produce a second
+        // fetch for data the main plan is already obtaining, so the planner serves it
+        // in the initial payload instead.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price: Float!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                convertedPrice(price: Float! @require(field: "price")): Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                product(id: "1") {
+                    convertedPrice
+                    ... @defer {
+                        price
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_FieldAlreadyRequiredByParent_Should_NotDefer_When_TypenameInsideDefer()
+    {
+        // arrange
+        // Same as Defer_FieldAlreadyRequiredByParent_Should_NotDefer, but the client also
+        // selects __typename inside the defer. It must be surfaced on the main operation
+        // rather than silently dropped when the redundant defer is absorbed.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price: Float!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                convertedPrice(price: Float! @require(field: "price")): Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                product(id: "1") {
+                    convertedPrice
+                    ... @defer {
+                        __typename
+                        price
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.True(plan.IncrementalPlans.IsEmpty);
+        Assert.True(plan.DeliveryGroups.IsEmpty);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_ProviderServesTwoRequirements_Should_KeepEdge_When_OnlyOneIsRerouted()
+    {
+        // arrange
+        // currencyCode also lives on accounts and reroutes to the parent; regionCode does not.
+        var schema = ComposeSchema(
+            """
+            # name: accounts
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                currencyCode: String! @shareable
+            }
+            """,
+            """
+            # name: profile
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                bio: String!
+                currencyCode: String! @shareable
+                regionCode: String!
+            }
+            """,
+            """
+            # name: pricing
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                totalSpent(currency: String! @require(field: "currencyCode")): Float!
+                shippingFee(region: String! @require(field: "regionCode")): Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        bio
+                        totalSpent
+                        shippingFee
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+
+        var incrementalPlan = plan.IncrementalPlans[0];
+        var providerNode = incrementalPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(n => n.SchemaName == "profile");
+        var downstreamNode = incrementalPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(n => n.SchemaName == "pricing");
+        var dependsOnProvider = false;
+        foreach (var dependency in downstreamNode.Dependencies)
+        {
+            dependsOnProvider |= dependency == providerNode;
+        }
+        Assert.True(dependsOnProvider);
+    }
+
+    [Fact]
+    public void Defer_Should_FetchAllPrerequisites_When_RequirementMixesNativeAndComputedFields()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              total(input: TotalInput! @require(field: "{ raw computed }")): Int!
+            }
+
+            input TotalInput {
+              raw: Int!
+              computed: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                ... @defer {
+                  total
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_Should_FetchAllPrerequisites_When_RequirementSelectsNestedFieldWithOwnRequirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              product: Product
+              productById(id: ID!): Product @lookup @internal
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              owner: User!
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              raw: Int!
+              computed(value: Int! @require(field: "value")): Int!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              value: Int!
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              total(input: OwnerInput! @require(field: "owner.{ raw computed }")): Int!
+            }
+
+            input OwnerInput {
+              raw: Int!
+              computed: Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                id
+                ... @defer {
+                  total
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+}

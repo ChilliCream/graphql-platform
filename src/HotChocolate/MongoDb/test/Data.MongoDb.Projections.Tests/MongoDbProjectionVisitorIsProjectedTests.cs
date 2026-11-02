@@ -1,12 +1,11 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
 public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
-    : IClassFixture<MongoResource>
 {
     private static readonly Foo[] s_fooEntities =
     [
@@ -40,13 +39,14 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root { isProjectedFalse }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -59,13 +59,14 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root { isProjectedFalse isProjectedTrue  }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -78,13 +79,14 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root { isProjectedFalse }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -101,13 +103,14 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
                 isProjectedFalse
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

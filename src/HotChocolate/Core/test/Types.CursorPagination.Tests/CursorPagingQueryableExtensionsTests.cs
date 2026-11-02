@@ -35,7 +35,9 @@ public class CursorPagingQueryableExtensionsTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ExecuteRequestAsync("{ persons { nodes { name } } }")
+            .ExecuteRequestAsync(
+                "{ persons { nodes { name } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -45,7 +47,9 @@ public class CursorPagingQueryableExtensionsTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ExecuteRequestAsync("{ persons(first: 1) { nodes { name } } }")
+            .ExecuteRequestAsync(
+                "{ persons(first: 1) { nodes { name } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -76,7 +80,9 @@ public class CursorPagingQueryableExtensionsTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryEnumerable>()
-            .ExecuteRequestAsync("{ persons { nodes { name } } }")
+            .ExecuteRequestAsync(
+                "{ persons { nodes { name } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -86,7 +92,9 @@ public class CursorPagingQueryableExtensionsTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryEnumerable>()
-            .ExecuteRequestAsync("{ persons(first: 1) { nodes { name } } }")
+            .ExecuteRequestAsync(
+                "{ persons(first: 1) { nodes { name } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

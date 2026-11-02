@@ -38,6 +38,21 @@ internal static class ErrorHelper
                 .Build();
         }
 
+        public IError FragmentVariableNotUsed(
+            FragmentDefinitionNode node,
+            IEnumerable<string> unusedVariables)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_FragmentVariableNotUsed,
+                    node.Name.Value,
+                    string.Join(", ", unusedVariables))
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SpecifiedBy("sec-All-Variables-Used")
+                .Build();
+        }
+
         public IError VariableNotDeclared(
             OperationDefinitionNode node,
             IEnumerable<string> usedVariables)
@@ -155,7 +170,7 @@ internal static class ErrorHelper
 
         public IError LeafFieldsCannotHaveSelections(
             FieldNode node,
-            IComplexTypeDefinition declaringType,
+            ITypeDefinition declaringType,
             IType fieldType)
         {
             return ErrorBuilder.New()
@@ -253,6 +268,19 @@ internal static class ErrorHelper
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("operation", node.Name?.Value ?? "Unnamed")
                 .SetExtension("type", fieldType.FullTypeName())
+                .SpecifiedBy("sec-Field-Selections")
+                .Build();
+        }
+
+        public IError NoSelectionOnFragment(SelectionSetNode node, IType typeCondition)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_NoSelectionOnFragment,
+                    typeCondition.NamedType().Name)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("type", typeCondition.NamedType().Name)
                 .SpecifiedBy("sec-Field-Selections")
                 .Build();
         }
@@ -470,7 +498,8 @@ internal static class ErrorHelper
         public IError ArgumentNotUnique(
             ArgumentNode node,
             SchemaCoordinate? field = null,
-            IDirectiveDefinition? directive = null)
+            IDirectiveDefinition? directive = null,
+            string? fragment = null)
         {
             var builder = ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_ArgumentNotUnique)
@@ -489,6 +518,11 @@ internal static class ErrorHelper
                 builder.SetExtension("directive", directive.Name);
             }
 
+            if (fragment is not null)
+            {
+                builder.SetExtension("fragment", fragment);
+            }
+
             return builder
                 .SetExtension("argument", node.Name.Value)
                 .SpecifiedBy("sec-Argument-Uniqueness")
@@ -499,7 +533,8 @@ internal static class ErrorHelper
             ISyntaxNode node,
             string argumentName,
             SchemaCoordinate? field = null,
-            IDirectiveDefinition? directive = null)
+            IDirectiveDefinition? directive = null,
+            string? fragment = null)
         {
             var builder = ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_ArgumentRequired, argumentName)
@@ -518,6 +553,11 @@ internal static class ErrorHelper
                 builder.SetExtension("directive", directive.Name);
             }
 
+            if (fragment is not null)
+            {
+                builder.SetExtension("fragment", fragment);
+            }
+
             return builder
                 .SetExtension("argument", argumentName)
                 .SpecifiedBy("sec-Required-Arguments")
@@ -527,7 +567,8 @@ internal static class ErrorHelper
         public IError ArgumentDoesNotExist(
             ArgumentNode node,
             SchemaCoordinate? field = null,
-            IDirectiveDefinition? directive = null)
+            IDirectiveDefinition? directive = null,
+            string? fragment = null)
         {
             var builder = ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_ArgumentDoesNotExist, node.Name.Value)
@@ -546,9 +587,14 @@ internal static class ErrorHelper
                 builder.SetExtension("directive", directive.Name);
             }
 
+            if (fragment is not null)
+            {
+                builder.SetExtension("fragment", fragment);
+            }
+
             return builder
                 .SetExtension("argument", node.Name.Value)
-                .SpecifiedBy("sec-Required-Arguments")
+                .SpecifiedBy("sec-Argument-Names")
                 .Build();
         }
 
@@ -669,6 +715,34 @@ internal static class ErrorHelper
                     .SetMessage("Maximum allowed coordinate cycle depth was exceeded.")
                     .SetCode(ErrorCodes.Validation.MaxCoordinateCycleDepthOverflow)
                     .AddLocation(selection)
+                    .SetPath(context.CreateErrorPath())
+                    .Build());
+        }
+
+        public void ReportMaxFragmentVisitsOverflow(ISyntaxNode selection)
+        {
+            context.FatalErrorDetected = true;
+
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage("Maximum allowed fragment visits were exceeded.")
+                    .SetCode(ErrorCodes.Validation.MaxFragmentVisitsOverflow)
+                    .AddLocation(selection)
+                    .SetPath(context.CreateErrorPath())
+                    .Build());
+        }
+
+        public void ReportMaxSelectionSetDepthOverflow(ISyntaxNode node, int maxAllowedSelectionSetDepth)
+        {
+            context.FatalErrorDetected = true;
+
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The document exceeds the maximum allowed selection set depth of {0}.",
+                        maxAllowedSelectionSetDepth)
+                    .SetCode(ErrorCodes.Validation.MaxSelectionSetDepthOverflow)
+                    .AddLocation(node)
                     .SetPath(context.CreateErrorPath())
                     .Build());
         }

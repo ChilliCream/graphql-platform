@@ -1,22 +1,21 @@
 using Microsoft.EntityFrameworkCore;
-using Squadron;
 
 namespace HotChocolate.Data.Spatial.Filters;
 
 public class DatabaseContext<T> : DbContext
     where T : class
 {
-    private readonly PostgreSqlResource<PostgisConfig> _resource;
+    private readonly PostgisResource _resource;
     private readonly string _databaseName;
     private bool _disposed;
 
-    public DatabaseContext(PostgreSqlResource<PostgisConfig> resource, string databaseName)
+    public DatabaseContext(PostgisResource resource, string databaseName)
     {
         _resource = resource;
         _databaseName = databaseName;
     }
 
-    public DbSet<T> Data { get; set; } = null!;
+    public DbSet<T> Data { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

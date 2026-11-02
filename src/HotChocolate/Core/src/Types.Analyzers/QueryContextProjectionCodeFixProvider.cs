@@ -60,8 +60,7 @@ public sealed class QueryContextProjectionCodeFixProvider : CodeFixProvider
         }
 
         // Get the attribute list that contains this attribute
-        var attributeList = attribute.Parent as AttributeListSyntax;
-        if (attributeList is null)
+        if (attribute.Parent is not AttributeListSyntax attributeList)
         {
             return document;
         }

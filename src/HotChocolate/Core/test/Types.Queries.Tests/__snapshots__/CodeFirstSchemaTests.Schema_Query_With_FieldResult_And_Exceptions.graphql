@@ -2,8 +2,8 @@ schema {
   query: QueryWithFieldResultAndExceptionType
 }
 
-interface Error {
-  message: String!
+type QueryWithFieldResultAndExceptionType {
+  userById(id: String!): UserByIdResult!
 }
 
 type Address {
@@ -21,10 +21,6 @@ type InvalidUserIdError implements Error {
   message: String!
 }
 
-type QueryWithFieldResultAndExceptionType {
-  userById(id: String!): UserByIdResult!
-}
-
 type User {
   id: String!
   name: String!
@@ -34,6 +30,10 @@ type User {
 
 type UserNotFound implements Error {
   id: String!
+  message: String!
+}
+
+interface Error {
   message: String!
 }
 

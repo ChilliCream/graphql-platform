@@ -1,0 +1,22 @@
+{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "foo",
+        "nullable_prop",
+        "b"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    }
+  ],
+  "data": {
+    "foo": {
+      "nullable_prop": {
+        "b": null
+      }
+    }
+  }
+}

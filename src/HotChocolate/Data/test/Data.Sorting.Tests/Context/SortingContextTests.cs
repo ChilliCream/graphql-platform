@@ -26,7 +26,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -37,11 +37,11 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
-        var field = Assert.Single(Assert.Single(context!.GetFields()));
+        var field = Assert.Single(Assert.Single(context.GetFields()));
         var operation = Assert.IsType<SortingValue>(field.Value).Value;
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("DESC", operation);
@@ -65,7 +65,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -77,11 +77,11 @@ public class SortingContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
-        Assert.False(context!.IsDefined);
+        Assert.False(context.IsDefined);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -114,11 +114,11 @@ public class SortingContextTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
-        Assert.True(context!.IsDefined);
+        Assert.True(context.IsDefined);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -150,12 +150,12 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
-        Assert.Equal(2, context!.GetFields().Count);
-        var field = Assert.Single(context!.GetFields()[0]);
+        Assert.Equal(2, context.GetFields().Count);
+        var field = Assert.Single(context.GetFields()[0]);
         var operation = Assert.IsType<SortingValue>(field.Value).Value;
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("DESC", operation);
@@ -179,7 +179,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -190,11 +190,11 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
-        var field = Assert.Single(Assert.Single(context!.GetFields()));
+        var field = Assert.Single(Assert.Single(context.GetFields()));
         var name =
             Assert.Single(Assert.IsType<SortingInfo>(field.Value).GetFields());
         var operation = Assert.IsType<SortingValue>(name.Value).Value;
@@ -223,7 +223,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -234,11 +234,11 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(localContextData);
-        Assert.False(localContextData!.ContainsKey(QueryableSortProvider.SkipSortingKey));
+        Assert.False(localContextData.ContainsKey(QueryableSortProvider.SkipSortingKey));
     }
 
     [Fact]
@@ -261,7 +261,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -272,11 +272,11 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(localContextData);
-        Assert.True(localContextData!.ContainsKey(QueryableSortProvider.SkipSortingKey));
+        Assert.True(localContextData.ContainsKey(QueryableSortProvider.SkipSortingKey));
     }
 
     [Fact]
@@ -297,7 +297,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -308,7 +308,7 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(obj);
@@ -332,7 +332,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -343,11 +343,11 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
-        context!.ToList().MatchSnapshot();
+        context.ToList().MatchSnapshot();
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -379,11 +379,11 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
-        context!.ToList().MatchSnapshot();
+        context.ToList().MatchSnapshot();
     }
 
     [Fact]
@@ -404,7 +404,7 @@ public class SortingContextTests
                     return Array.Empty<Book>();
                 }))
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query = @"
@@ -415,11 +415,103 @@ public class SortingContextTests
             }
         ";
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(context);
-        context!.ToList().MatchSnapshot();
+        context.ToList().MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData(
+        "{ author: { name: ASC }, title: ASC }",
+        "{t => t.Author.Name:ASC,t => t.Title:ASC}")]
+    [InlineData(
+        "[{ author: { name: ASC } }, { title: ASC }]",
+        "{t => t.Author.Name:ASC,t => t.Title:ASC}")]
+    [InlineData(
+        "{ author: { id: ASC }, id: ASC }",
+        "{t => t.Author.Id:ASC,t => t.Id:ASC}")]
+    [InlineData(
+        "{ title: ASC, author: { name: ASC } }",
+        "{t => t.Title:ASC,t => t.Author.Name:ASC}")]
+    public async Task AsSortDefinition_Should_KeepEveryField_When_FieldFollowsNestedObject(
+        string order,
+        string expected)
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseSorting()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var query =
+            $$"""
+            {
+                test(order: {{order}}) {
+                    title
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Book>();
+
+        // assert
+        Assert.Equal(expected, sortDefinition?.ToString());
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Should_KeepEveryField_When_FieldFollowsDeeperNestedObject()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Shelf>>>()
+                .UseSorting()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Shelf>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            {
+                test(order: { book: { author: { name: ASC }, title: ASC } }) {
+                    id
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Shelf>();
+
+        // assert
+        Assert.Equal(
+            "{t => t.Book.Author.Name:ASC,t => t.Book.Title:ASC}",
+            sortDefinition?.ToString());
     }
 
     public class TestSortType : SortInputType<Book>
@@ -456,5 +548,12 @@ public class SortingContextTests
         public int Id { get; set; }
 
         public string? Name { get; set; }
+    }
+
+    public class Shelf
+    {
+        public int Id { get; set; }
+
+        public Book? Book { get; set; }
     }
 }

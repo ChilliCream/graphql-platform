@@ -6,12 +6,297 @@ namespace HotChocolate.Language;
 public class QueryParserTests
 {
     [Fact]
+    public void Default_MaxAllowedRecursionDepth_Is_200()
+    {
+        Assert.Equal(200, ParserOptions.Default.MaxAllowedRecursionDepth);
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_Selection_Sets()
+    {
+        // Vector B: nested selection sets { a { a { ... } } }
+        const int depth = 201;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_Object_Values()
+    {
+        // Vector A: nested object values { a(x: {a: {a: ... 1 }}) }
+        const int depth = 201;
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("{a: ", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("}", depth))
+            + ") }";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_List_Values()
+    {
+        // Vector C: nested list values [[[...1...]]]
+        const int depth = 201;
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("[", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("]", depth))
+            + ") }";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_List_Types()
+    {
+        // Vector D: nested list types [[[...Int...]]]
+        const int depth = 201;
+        var query = $"query($v: {string.Concat(Enumerable.Repeat("[", depth))}Int{string.Concat(Enumerable.Repeat("]", depth))}) {{ a }}";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Queries_Within_Max_Recursion_Depth()
+    {
+        // 50 levels of nesting is well within the default 200 limit
+        const int depth = 50;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        var document = Utf8GraphQLParser.Parse(query);
+
+        Assert.NotNull(document);
+        Assert.Single(document.Definitions);
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Custom_Recursion_Depth()
+    {
+        var options = new ParserOptions(maxAllowedRecursionDepth: 10);
+        const int depth = 11;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query, options))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 10. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Queries_Within_Custom_Recursion_Depth()
+    {
+        var options = new ParserOptions(maxAllowedRecursionDepth: 10);
+        const int depth = 10;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        var document = Utf8GraphQLParser.Parse(query, options);
+
+        Assert.NotNull(document);
+        Assert.Single(document.Definitions);
+    }
+
+    [Theory]
+    [InlineData(20_000)]
+    [InlineData(50_000)]
+    public void Reject_Attack_Payload_Nested_Selection_Sets(int depth)
+    {
+        // Payloads at these depths would cause a StackOverflowException
+        // (process-fatal, uncatchable) without the recursion depth limit.
+        // With the limit, they throw a catchable SyntaxException at depth 201.
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query));
+    }
+
+    [Theory]
+    [InlineData(20_000)]
+    [InlineData(50_000)]
+    public void Reject_Attack_Payload_Nested_List_Values(int depth)
+    {
+        // Vector C from the vulnerability report — smallest crashing payload (~40 KB).
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("[", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("]", depth))
+            + ") }";
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query));
+    }
+
+    [Fact]
     public void Reject_Queries_With_More_Than_2048_Fields()
     {
         Assert
             .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(FileResource.Open("aliases.graphql")))
             .Message
             .MatchInlineSnapshot("The GraphQL request document contains more than 2048 fields. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Default_MaxAllowedDirectives_Is_4()
+    {
+        Assert.Equal(4, ParserOptions.Default.MaxAllowedDirectives);
+    }
+
+    [Fact]
+    public void Reject_Fields_Exceeding_Max_Allowed_Directives_Per_Location()
+    {
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse("{ a @d @d @d @d @d }"))
+            .Message
+            .MatchInlineSnapshot(
+                "A location in the GraphQL document contains more than 4 directives. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Fields_Within_Max_Allowed_Directives_Per_Location()
+    {
+        // does not throw with 4 directives, which is the default limit
+        Utf8GraphQLParser.Parse("{ a @d @d @d @d }");
+    }
+
+    [Fact]
+    public void Reject_Fields_Exceeding_Custom_Directive_Limit()
+    {
+        var options = new ParserOptions(maxAllowedDirectives: 2);
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse("{ a @d @d @d }", options))
+            .Message
+            .MatchInlineSnapshot(
+                "A location in the GraphQL document contains more than 2 directives. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Directive_Limit_Is_Per_Location_Not_Per_Document()
+    {
+        // 4 directives per location are allowed by default
+        Utf8GraphQLParser.Parse("{ a @d @d @d @d b @d @d @d @d c @d @d @d @d }");
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(1_000)]
+    [InlineData(30_000)]
+    public void Reject_Attack_Payload_Directive_Overloading(int directiveCount)
+    {
+        // CVE-2022-37734: 30,000+ directives on a single field.
+        var sb = new StringBuilder();
+        sb.Append("{ a");
+
+        for (var i = 0; i < directiveCount; i++)
+        {
+            sb.Append(" @d");
+        }
+
+        sb.Append(" }");
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(sb.ToString()));
+    }
+
+    [Fact]
+    public void Allow_Aliased_Fields_Within_Max_Allowed_Fields()
+    {
+        // 2000 aliased fields — within the 2048 default limit.
+        // See: CVE-2024-39895, CVE-2026-35441 (alias overloading)
+        const int aliasCount = 2000;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < aliasCount; i++)
+        {
+            sb.Append($" a{i}: __typename");
+        }
+
+        sb.Append(" }");
+
+        var document = Utf8GraphQLParser.Parse(sb.ToString());
+
+        Assert.NotNull(document);
+    }
+
+    [Fact]
+    public void Reject_Aliased_Fields_Exceeding_Max_Allowed_Fields()
+    {
+        // 2049 aliased fields — exceeds the 2048 default limit.
+        const int aliasCount = 2049;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < aliasCount; i++)
+        {
+            sb.Append($" a{i}: __typename");
+        }
+
+        sb.Append(" }");
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(sb.ToString()));
+    }
+
+    [Fact]
+    public void Parse_Should_Succeed_When_Trusted_Options_And_Fields_Exceed_Default_Limit()
+    {
+        // arrange
+        // 2100 aliased fields exceed the default limit of 2048
+        const int fieldCount = 2_100;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < fieldCount; i++)
+        {
+            sb.Append($" a{i}: __typename");
+        }
+
+        sb.Append(" }");
+
+        // act
+        var document = Utf8GraphQLParser.Parse(sb.ToString(), ParserOptions.Trusted);
+
+        // assert
+        Assert.Equal(fieldCount, document.FieldsCount);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_SyntaxException_When_Trusted_Options_And_Depth_Exceeds_Default_Limit()
+    {
+        // arrange
+        // 250 nested selection sets exceed the default recursion depth of 200
+        const int depth = 250;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        // act
+        var exception = Assert.Throws<SyntaxException>(
+            () => Utf8GraphQLParser.Parse(query, ParserOptions.Trusted));
+
+        // assert
+        exception.Message.MatchInlineSnapshot(
+            "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
     }
 
     [Fact]
@@ -481,11 +766,11 @@ public class QueryParserTests
         document.ToString().MatchSnapshot(extension: ".graphql");
     }
 
-    [Fact(Skip = "Implement Parse Variable Directives")]
+    [Fact]
     public void ParseVariablesWithDirective()
     {
         // arrange
-        var sourceText = @"query ($a: String! @foo) a(a: $a)"u8.ToArray();
+        var sourceText = "query ($a: String! @foo) { a(a: $a) }"u8.ToArray();
 
         // act
         var parser = new Utf8GraphQLParser(
@@ -494,5 +779,74 @@ public class QueryParserTests
 
         // assert
         document.ToString().MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public void Parse_Should_ReadSpreadArguments_When_FragmentArgumentsAllowed()
+    {
+        // arrange
+        const string query = "{ ...Bar(baz: 1) }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // assert
+        var operation = (OperationDefinitionNode)document.Definitions[0];
+        var spread = (FragmentSpreadNode)operation.SelectionSet.Selections[0];
+        var argument = Assert.Single(spread.Arguments);
+        Assert.Equal("baz: 1", argument.ToString());
+    }
+
+    [Fact]
+    public void Parse_Should_ReadVariableDefinitions_When_FragmentArgumentsAllowed()
+    {
+        // arrange
+        const string query = "fragment Bar($baz: Int!) on Foo { id }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // assert
+        var fragment = (FragmentDefinitionNode)document.Definitions[0];
+        var variableDefinition = Assert.Single(fragment.VariableDefinitions);
+        Assert.Equal("$baz: Int!", variableDefinition.ToString());
+    }
+
+    [Fact]
+    public void Parse_Should_ReadEmptyArguments_When_SpreadHasNoArguments()
+    {
+        // arrange
+        const string query = "{ ...Bar }";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(
+            query,
+            new ParserOptions(new ParserOptionsExperimental(allowFragmentArguments: true)));
+
+        // assert
+        var operation = (OperationDefinitionNode)document.Definitions[0];
+        var spread = (FragmentSpreadNode)operation.SelectionSet.Selections[0];
+        Assert.Empty(spread.Arguments);
+    }
+
+    [Fact]
+    public void Parse_Should_Throw_When_SpreadHasArgumentsAndFragmentArgumentsNotAllowed()
+    {
+        // arrange
+        const string query = "{ ...Bar(baz: 1) }";
+
+        // act
+        static void Action() => Utf8GraphQLParser.Parse(query);
+
+        // assert
+        Assert
+            .Throws<SyntaxException>(Action)
+            .Message
+            .MatchInlineSnapshot(
+                "Expected a `Name`-token, but found a `LeftParenthesis`-token.");
     }
 }

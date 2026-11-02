@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -8,6 +9,8 @@ namespace HotChocolate.Execution;
 /// </summary>
 public abstract class RequestContext : IFeatureProvider
 {
+    private MemoryArena? _memory;
+
     /// <summary>
     /// Gets the GraphQL schema definition against which the request is executed.
     /// </summary>
@@ -62,4 +65,28 @@ public abstract class RequestContext : IFeatureProvider
     /// Gets the request context data which allows arbitrary data to be stored on the request context.
     /// </summary>
     public abstract IDictionary<string, object?> ContextData { get; }
+
+    /// <summary>
+    /// Gets the memory arena that backs request-scoped allocations, or <c>null</c> when none is attached.
+    /// </summary>
+    internal MemoryArena? Memory => _memory;
+
+    /// <summary>
+    /// Attaches a memory arena to this request. The arena is owned by the request until it is
+    /// detached on success or disposed when the context is reset.
+    /// </summary>
+    internal void AttachMemory(MemoryArena memory)
+    {
+        if (_memory is not null)
+        {
+            throw new InvalidOperationException("A memory arena is already attached to this request.");
+        }
+
+        _memory = memory;
+    }
+
+    /// <summary>
+    /// Detaches the memory arena so its ownership can be transferred to the execution result.
+    /// </summary>
+    internal MemoryArena? TryDetachMemory() => Interlocked.Exchange(ref _memory, null);
 }

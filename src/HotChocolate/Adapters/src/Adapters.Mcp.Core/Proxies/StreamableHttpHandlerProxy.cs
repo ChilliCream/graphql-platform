@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using ModelContextProtocol.AspNetCore;
 
 namespace HotChocolate.Adapters.Mcp.Proxies;
 
@@ -13,24 +12,46 @@ internal sealed class StreamableHttpHandlerProxy
         _mcpRequestExecutor = mcpRequestExecutor;
     }
 
-    public HttpServerTransportOptions HttpServerTransportOptions
-        => _mcpRequestExecutor.GetOrCreateSession().StreamableHttpHandler.HttpServerTransportOptions;
-
     public async Task HandlePostRequestAsync(HttpContext context)
     {
-        var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
-        await session.StreamableHttpHandler.HandlePostRequestAsync(context);
+        var handler =
+            await _mcpRequestExecutor.GetStreamableHttpHandlerAsync(context.RequestAborted);
+        await handler.HandlePostRequestAsync(context);
     }
 
     public async Task HandleGetRequestAsync(HttpContext context)
     {
-        var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
-        await session.StreamableHttpHandler.HandleGetRequestAsync(context);
+        var handler =
+            await _mcpRequestExecutor.GetStreamableHttpHandlerAsync(context.RequestAborted);
+
+        if (handler.HttpServerTransportOptions.Stateless)
+        {
+            WriteMethodNotAllowed(context);
+
+            return;
+        }
+
+        await handler.HandleGetRequestAsync(context);
     }
 
     public async Task HandleDeleteRequestAsync(HttpContext context)
     {
-        var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
-        await session.StreamableHttpHandler.HandleDeleteRequestAsync(context);
+        var handler =
+            await _mcpRequestExecutor.GetStreamableHttpHandlerAsync(context.RequestAborted);
+
+        if (handler.HttpServerTransportOptions.Stateless)
+        {
+            WriteMethodNotAllowed(context);
+
+            return;
+        }
+
+        await handler.HandleDeleteRequestAsync(context);
+    }
+
+    private static void WriteMethodNotAllowed(HttpContext context)
+    {
+        context.Response.Headers.Allow = "POST";
+        context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
     }
 }

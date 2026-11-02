@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.ApolloFederation.ImplementationFirst.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.ApolloFederation</RootNamespace>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>.generated</CompilerGeneratedFilesOutputPath>
+    <!--Required since otherwise the XML docs won't be inferred by the source generator.-->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ApolloFederation\HotChocolate.ApolloFederation.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data\GreenDonut.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+  </ItemGroup>
+
+</Project>

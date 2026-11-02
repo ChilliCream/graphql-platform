@@ -171,7 +171,8 @@ public partial class TypeConverterTests
                     {
                       set(set: ["abc", "abc"])
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -197,7 +198,8 @@ public partial class TypeConverterTests
                     {
                       set2(set: ["abc", "abc"])
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

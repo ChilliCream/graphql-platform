@@ -30,7 +30,7 @@ public sealed class AnyType : ScalarType<JsonElement>
         : base(name, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public sealed class AnyType : ScalarType<JsonElement>
             case JsonValueKind.String:
             {
                 var value = JsonMarshal.GetRawUtf8Value(runtimeValue);
-                resultValue.SetStringValue(value[1..^1]);
+                resultValue.SetStringValue(value[1..^1], isEncoded: true);
                 break;
             }
 

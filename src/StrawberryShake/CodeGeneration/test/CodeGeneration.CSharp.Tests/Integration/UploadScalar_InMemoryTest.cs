@@ -27,7 +27,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
             null,
             null,
             null,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[test-file:a|{contentType}]", result.Data!.Upload);
@@ -51,7 +52,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
             null,
             null,
             null,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
@@ -75,7 +77,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
             new[] { new Upload?[] { new Upload(dataA, "A", contentType), new Upload(dataB, "B", contentType) } },
             null,
             null,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
@@ -104,7 +107,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
                 }
             },
             null,
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[test-file:a|{contentType}]", result.Data!.Upload);
@@ -143,7 +147,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
                     }
                 }
             },
-            null);
+            null,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
@@ -186,7 +191,8 @@ public class UploadScalarInMemoryTest : ServerTestBase
                         }
                     }
                 }
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);

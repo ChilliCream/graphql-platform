@@ -58,17 +58,20 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: { barShort: { eq: 12}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: { barShort: { eq: 13}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: { barShort: { eq: null}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -76,7 +79,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
             .Add(res1, "12")
             .Add(res2, "13")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -90,17 +93,20 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: { barShort: { eq: 12}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: { barShort: { eq: 13}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: { barShort: { eq: null}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -108,7 +114,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
             .Add(res1, "12")
             .Add(res2, "13")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -122,15 +128,18 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: { barShort: { neq: 123}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { foo: null}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root { foo { barShort }}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -138,7 +147,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
             .Add(res1, "selected")
             .Add(res2, "null")
             .Add(res3, "all")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -153,19 +162,22 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNullableList:{ some: { barShort: { eq: 12}}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNullableList:{ some: { barShort: { eq: 13}}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNullableList:{ some: { barShort: { eq: null}}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -173,7 +185,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
             .Add(res1, "12")
             .Add(res2, "13")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -188,19 +200,22 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooList:{ some: { barShort: { eq: 12}}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooList:{ some: { barShort: { eq: 13}}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooList:{ some: { barShort: { eq: null}}}}) { foo{ barShort}}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -208,7 +223,7 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
             .Add(res1, "12")
             .Add(res2, "13")
             .Add(res3, "null")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public struct Foo

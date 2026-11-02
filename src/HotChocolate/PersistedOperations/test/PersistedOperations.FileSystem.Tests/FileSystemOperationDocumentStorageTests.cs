@@ -24,11 +24,13 @@ public class FileSystemOperationDocumentStorageTests
             var documentId = new OperationDocumentId("1234");
 
             // act
-            await storage.SaveAsync(documentId, document);
+            await storage.SaveAsync(documentId, document, TestContext.Current.CancellationToken);
 
             // assert
             Assert.True(File.Exists(IOPath.Combine(path, "1234.graphql")));
-            var content = await File.ReadAllBytesAsync(IOPath.Combine(path, "1234.graphql"));
+            var content = await File.ReadAllBytesAsync(
+                IOPath.Combine(path, "1234.graphql"),
+                TestContext.Current.CancellationToken);
             Utf8GraphQLParser.Parse(content).Print().MatchSnapshot();
         }
         finally
@@ -112,10 +114,15 @@ public class FileSystemOperationDocumentStorageTests
             var storage = new FileSystemOperationDocumentStorage(new DefaultOperationDocumentFileMap(path));
 
             const string documentId = "1234";
-            await File.WriteAllTextAsync(IOPath.Combine(path, documentId + ".graphql"), "{ foo }");
+            await File.WriteAllTextAsync(
+                IOPath.Combine(path, documentId + ".graphql"),
+                "{ foo }",
+                TestContext.Current.CancellationToken);
 
             // act
-            var document = await storage.TryReadAsync(new OperationDocumentId(documentId));
+            var document = await storage.TryReadAsync(
+                new OperationDocumentId(documentId),
+                TestContext.Current.CancellationToken);
 
             // assert
             Assert.NotNull(document);

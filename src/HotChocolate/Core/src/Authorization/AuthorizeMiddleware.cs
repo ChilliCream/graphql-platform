@@ -29,7 +29,7 @@ internal sealed class AuthorizeMiddleware(
 
                     if (state != AuthorizeResult.Allowed && !IsErrorResult(context))
                     {
-                        SetError(context, state);
+                        SetError(context, _directive, state);
                     }
                 }
                 break;
@@ -45,7 +45,7 @@ internal sealed class AuthorizeMiddleware(
                 }
                 else
                 {
-                    SetError(context, state);
+                    SetError(context, _directive, state);
                 }
                 break;
             }
@@ -56,11 +56,12 @@ internal sealed class AuthorizeMiddleware(
         }
     }
 
-    private static bool IsErrorResult(IMiddlewareContext context)
+    internal static bool IsErrorResult(IMiddlewareContext context)
         => context.Result is IError or IEnumerable<IError>;
 
-    private void SetError(
+    internal static void SetError(
         IMiddlewareContext context,
+        AuthorizeDirective directive,
         AuthorizeResult state)
         => context.Result = state switch
         {
@@ -69,16 +70,14 @@ internal sealed class AuthorizeMiddleware(
                     .SetMessage(AuthorizeMiddleware_NoDefaultPolicy)
                     .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
                     .SetPath(context.Path)
-                    .AddLocations(context.Selection)
                     .Build(),
             AuthorizeResult.PolicyNotFound
                 => ErrorBuilder.New()
                     .SetMessage(
                         AuthorizeMiddleware_PolicyNotFound,
-                        _directive.Policy)
+                        directive.Policy)
                     .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                     .SetPath(context.Path)
-                    .AddLocations(context.Selection)
                     .Build(),
             _
                 => ErrorBuilder.New()
@@ -88,7 +87,6 @@ internal sealed class AuthorizeMiddleware(
                             ? ErrorCodes.Authentication.NotAuthorized
                             : ErrorCodes.Authentication.NotAuthenticated)
                     .SetPath(context.Path)
-                    .AddLocations(context.Selection)
                     .Build()
         };
 }

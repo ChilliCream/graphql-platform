@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
-/// Represents an exception that is thrown when a fusion graph package is invalid.
+/// Represents an exception that is thrown when a Fusion graph package is invalid.
 /// </summary>
 public class FusionGraphPackageException : Exception
 {

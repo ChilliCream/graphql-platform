@@ -64,4 +64,22 @@ public class VariablesAreInputTypesRuleTests
             }
             """);
     }
+
+    [Fact]
+    public void Validate_Should_Report_When_AFragmentDeclaresAnOutputTypeVariable()
+    {
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ...withVariable(bad: null)
+                }
+            }
+
+            fragment withVariable($bad: Dog) on Dog {
+                name
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
 }

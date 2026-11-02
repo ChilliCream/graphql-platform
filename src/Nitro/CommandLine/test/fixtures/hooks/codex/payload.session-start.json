@@ -1,0 +1,9 @@
+{
+    "session_id": "session-1",
+    "transcript_path": "/workspace/.codex/sessions/rollout-session-1.jsonl",
+    "cwd": "/workspace/project",
+    "hook_event_name": "SessionStart",
+    "model": "test-model",
+    "permission_mode": "default",
+    "source": "startup"
+}

@@ -1,0 +1,8 @@
+title: Explore the UI
+items:
+  - path: index
+    title: Overview
+  - path: status-bar
+    title: Status Bar
+  - path: explorer
+    title: Explorer

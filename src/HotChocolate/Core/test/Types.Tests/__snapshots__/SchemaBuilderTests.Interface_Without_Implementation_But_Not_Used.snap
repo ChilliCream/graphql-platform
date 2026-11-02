@@ -1,15 +1,15 @@
-﻿schema {
+schema {
   query: Query
 }
 
-interface Bar {
-  baz: String
+type Query {
+  foo: Baz
 }
 
 type Baz {
   baz: String
 }
 
-type Query {
-  foo: Baz
+interface Bar {
+  baz: String
 }

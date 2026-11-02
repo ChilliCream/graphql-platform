@@ -4,85 +4,89 @@ namespace HotChocolate.Types.Mutable;
 internal static class DirectiveLocationExtensions
 {
     private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> s_typeToLang =
-       new()
-       {
-           {
-               DirectiveLocation.Query,
-               Language.DirectiveLocation.Query
-           },
-           {
-               DirectiveLocation.Mutation,
-               Language.DirectiveLocation.Mutation
-           },
-           {
-               DirectiveLocation.Subscription,
-               Language.DirectiveLocation.Subscription
-           },
-           {
-               DirectiveLocation.Field,
-               Language.DirectiveLocation.Field
-           },
-           {
-               DirectiveLocation.FragmentDefinition,
-               Language.DirectiveLocation.FragmentDefinition
-           },
-           {
-               DirectiveLocation.FragmentSpread,
-               Language.DirectiveLocation.FragmentSpread
-           },
-           {
-               DirectiveLocation.InlineFragment,
-               Language.DirectiveLocation.InlineFragment
-           },
-           {
-               DirectiveLocation.VariableDefinition,
-               Language.DirectiveLocation.VariableDefinition
-           },
-           {
-               DirectiveLocation.Schema,
-               Language.DirectiveLocation.Schema
-           },
-           {
-               DirectiveLocation.Scalar,
-               Language.DirectiveLocation.Scalar
-           },
-           {
-               DirectiveLocation.Object,
-               Language.DirectiveLocation.Object
-           },
-           {
-               DirectiveLocation.FieldDefinition,
-               Language.DirectiveLocation.FieldDefinition
-           },
-           {
-               DirectiveLocation.ArgumentDefinition,
-               Language.DirectiveLocation.ArgumentDefinition
-           },
-           {
-               DirectiveLocation.Interface,
-               Language.DirectiveLocation.Interface
-           },
-           {
-               DirectiveLocation.Union,
-               Language.DirectiveLocation.Union
-           },
-           {
-               DirectiveLocation.Enum,
-               Language.DirectiveLocation.Enum
-           },
-           {
-               DirectiveLocation.EnumValue,
-               Language.DirectiveLocation.EnumValue
-           },
-           {
-               DirectiveLocation.InputObject,
-               Language.DirectiveLocation.InputObject
-           },
-           {
-               DirectiveLocation.InputFieldDefinition,
-               Language.DirectiveLocation.InputFieldDefinition
-           }
-       };
+        new()
+        {
+            {
+                DirectiveLocation.Query,
+                Language.DirectiveLocation.Query
+            },
+            {
+                DirectiveLocation.Mutation,
+                Language.DirectiveLocation.Mutation
+            },
+            {
+                DirectiveLocation.Subscription,
+                Language.DirectiveLocation.Subscription
+            },
+            {
+                DirectiveLocation.Field,
+                Language.DirectiveLocation.Field
+            },
+            {
+                DirectiveLocation.FragmentDefinition,
+                Language.DirectiveLocation.FragmentDefinition
+            },
+            {
+                DirectiveLocation.FragmentSpread,
+                Language.DirectiveLocation.FragmentSpread
+            },
+            {
+                DirectiveLocation.InlineFragment,
+                Language.DirectiveLocation.InlineFragment
+            },
+            {
+                DirectiveLocation.VariableDefinition,
+                Language.DirectiveLocation.VariableDefinition
+            },
+            {
+                DirectiveLocation.Schema,
+                Language.DirectiveLocation.Schema
+            },
+            {
+                DirectiveLocation.Scalar,
+                Language.DirectiveLocation.Scalar
+            },
+            {
+                DirectiveLocation.Object,
+                Language.DirectiveLocation.Object
+            },
+            {
+                DirectiveLocation.FieldDefinition,
+                Language.DirectiveLocation.FieldDefinition
+            },
+            {
+                DirectiveLocation.ArgumentDefinition,
+                Language.DirectiveLocation.ArgumentDefinition
+            },
+            {
+                DirectiveLocation.Interface,
+                Language.DirectiveLocation.Interface
+            },
+            {
+                DirectiveLocation.Union,
+                Language.DirectiveLocation.Union
+            },
+            {
+                DirectiveLocation.Enum,
+                Language.DirectiveLocation.Enum
+            },
+            {
+                DirectiveLocation.EnumValue,
+                Language.DirectiveLocation.EnumValue
+            },
+            {
+                DirectiveLocation.InputObject,
+                Language.DirectiveLocation.InputObject
+            },
+            {
+                DirectiveLocation.InputFieldDefinition,
+                Language.DirectiveLocation.InputFieldDefinition
+            },
+            {
+                DirectiveLocation.DirectiveDefinition,
+                Language.DirectiveLocation.DirectiveDefinition
+            }
+        };
 
     private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> s_langToType =
         new()
@@ -162,6 +166,10 @@ internal static class DirectiveLocationExtensions
             {
                 Language.DirectiveLocation.InputFieldDefinition,
                 DirectiveLocation.InputFieldDefinition
+            },
+            {
+                Language.DirectiveLocation.DirectiveDefinition,
+                DirectiveLocation.DirectiveDefinition
             }
         };
 
@@ -269,6 +277,12 @@ internal static class DirectiveLocationExtensions
             == DirectiveLocation.InputFieldDefinition)
         {
             yield return DirectiveLocation.InputFieldDefinition;
+        }
+
+        if ((locations & DirectiveLocation.DirectiveDefinition)
+            == DirectiveLocation.DirectiveDefinition)
+        {
+            yield return DirectiveLocation.DirectiveDefinition;
         }
     }
 

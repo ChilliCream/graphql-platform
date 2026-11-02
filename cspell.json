@@ -3,6 +3,7 @@
   "version": "0.2",
   "language": "en",
   "dictionaries": ["csharp", "custom"],
+  "words": ["unkeyed"],
   "dictionaryDefinitions": [
     {
       "name": "custom",
@@ -20,6 +21,7 @@
   ],
   "ignoreRegExpList": [
     "featuredVideoId:(.*)", // video hash
+    "youtubeId:(.*)", // video hash
     "videoId=\"(.*)\"" // video hash
   ]
 }

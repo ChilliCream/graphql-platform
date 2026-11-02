@@ -6,7 +6,7 @@ public class InMemoryConnectionTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        Func<CancellationToken, ValueTask<IInMemoryClient>> create = _ => default!;
+        Func<CancellationToken, ValueTask<IInMemoryClient>> create = _ => default;
 
         // act
         var ex = Record.Exception(() => new InMemoryConnection(create));

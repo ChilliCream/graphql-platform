@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Fetching;
@@ -16,6 +18,10 @@ internal sealed partial class SubscriptionExecutor
         private readonly QueryExecutor _queryExecutor;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IErrorHandler _errorHandler;
+        private readonly ExecutionConcurrencyGate? _concurrencyGate;
+        private readonly TimeSpan _eventTimeout;
+        private readonly CancellationTokenSource _eventCts;
+        private readonly CancellationTokenRegistration _eventCtsRegistration;
         private IDisposable? _subscriptionScope;
         private readonly RequestContext _requestContext;
         private readonly ObjectType _subscriptionType;
@@ -34,7 +40,9 @@ internal sealed partial class SubscriptionExecutor
             ObjectType subscriptionType,
             SelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
-            IExecutionDiagnosticEvents diagnosticEvents)
+            IExecutionDiagnosticEvents diagnosticEvents,
+            ExecutionConcurrencyGate? concurrencyGate,
+            TimeSpan eventTimeout)
         {
             unchecked
             {
@@ -48,7 +56,14 @@ internal sealed partial class SubscriptionExecutor
             _rootSelections = rootSelections;
             _resolveQueryRootValue = resolveQueryRootValue;
             _diagnosticEvents = diagnosticEvents;
+            _concurrencyGate = concurrencyGate;
+            _eventTimeout = eventTimeout;
             _errorHandler = _requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
+
+            _eventCts = new CancellationTokenSource();
+            _eventCtsRegistration = _requestContext.RequestAborted.UnsafeRegister(
+                static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
+                _eventCts);
         }
 
         /// <summary>
@@ -76,6 +91,14 @@ internal sealed partial class SubscriptionExecutor
         /// <param name="diagnosticsEvents">
         /// The internal diagnostic events to report telemetry.
         /// </param>
+        /// <param name="concurrencyGate">
+        /// The per-schema concurrency gate that bounds the number of in-flight
+        /// executions. Each event acquires a slot before invoking the query
+        /// executor, mirroring the pipeline gate for queries and mutations.
+        /// </param>
+        /// <param name="executionTimeout">
+        /// The maximum execution time applied to each subscription event.
+        /// </param>
         /// <returns>
         /// Returns a new subscription instance.
         /// </returns>
@@ -86,7 +109,9 @@ internal sealed partial class SubscriptionExecutor
             ObjectType subscriptionType,
             SelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
-            IExecutionDiagnosticEvents diagnosticsEvents)
+            IExecutionDiagnosticEvents diagnosticsEvents,
+            ExecutionConcurrencyGate? concurrencyGate,
+            TimeSpan executionTimeout)
         {
             var subscription = new Subscription(
                 operationContextPool,
@@ -95,7 +120,9 @@ internal sealed partial class SubscriptionExecutor
                 subscriptionType,
                 rootSelections,
                 resolveQueryRootValue,
-                diagnosticsEvents);
+                diagnosticsEvents,
+                concurrencyGate,
+                executionTimeout);
 
             subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(requestContext, subscription.Id);
             subscription._sourceStream = await subscription.SubscribeAsync().ConfigureAwait(false);
@@ -132,6 +159,11 @@ internal sealed partial class SubscriptionExecutor
                     // gracefully dispose the subscription scope.
                 }
 
+                // Release the registration before disposing the CTS so that a late
+                // client-abort callback cannot race on a disposed source.
+                await _eventCtsRegistration.DisposeAsync().ConfigureAwait(false);
+                _eventCts.Dispose();
+
                 _subscriptionScope?.Dispose();
                 _disposed = true;
             }
@@ -154,10 +186,28 @@ internal sealed partial class SubscriptionExecutor
 
             serviceScope.ServiceProvider.InitializeDataLoaderScope();
 
-            var operationContext = _operationContextPool.Get();
+            // Per-event concurrency gate acquire. The slot is released in the finally
+            // block below so it is returned even if the query executor throws or the
+            // subscription is cancelled mid-execution.
+            var gateAcquired = false;
+            OperationContext? operationContext = null;
+            MemoryArena? arena = null;
+
+            // Arm the shared CTS so that execution is bounded by the configured event timeout.
+            _eventCts.CancelAfter(_eventTimeout);
+            var eventToken = _eventCts.Token;
 
             try
             {
+                if (_concurrencyGate is { IsEnabled: true })
+                {
+                    await _concurrencyGate.WaitAsync(eventToken).ConfigureAwait(false);
+                    gateAcquired = true;
+                }
+
+                operationContext = _operationContextPool.Get();
+                arena = new MemoryArena();
+
                 var eventServices = serviceScope.ServiceProvider;
                 var dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
 
@@ -181,7 +231,9 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext.GetOperation(),
                     _requestContext.VariableValues[0],
                     rootValue,
-                    _resolveQueryRootValue);
+                    _resolveQueryRootValue,
+                    requestAbortedOverride: eventToken,
+                    memoryArena: arena);
 
                 operationContext.Result.SetResultState(WellKnownContextData.EventMessage, payload);
 
@@ -190,7 +242,10 @@ internal sealed partial class SubscriptionExecutor
                     .ConfigureAwait(false);
 
                 // todo : we still need to think about defer in subscriptions
-                return result.ExpectOperationResult();
+                var operationResult = result.ExpectOperationResult();
+                operationResult.RegisterForCleanup(arena);
+                arena = null; // ownership handed to the result; the executor already sealed it
+                return operationResult;
             }
             catch (OperationCanceledException ex)
             {
@@ -205,6 +260,10 @@ internal sealed partial class SubscriptionExecutor
             }
             finally
             {
+                // a non-null arena means the event failed before ownership was handed to the
+                // result; the arena is then unsealed, so Dispose abandons it.
+                arena?.Dispose();
+
                 // if the operation context is null a cancellation has happened, and we will
                 // abandon the operation context in order to not have leakage into the
                 // new operations.
@@ -212,6 +271,17 @@ internal sealed partial class SubscriptionExecutor
                 {
                     _operationContextPool.Return(operationContext);
                 }
+
+                if (gateAcquired)
+                {
+                    _concurrencyGate!.Release();
+                }
+
+                // Reset the shared CTS so the next event can start with a fresh budget.
+                // If TryReset() returns false the source was cancelled (timeout or
+                // client-abort); the thrown OperationCanceledException has already
+                // propagated and SubscriptionEnumerator will surface the teardown.
+                _eventCts.TryReset();
             }
         }
 

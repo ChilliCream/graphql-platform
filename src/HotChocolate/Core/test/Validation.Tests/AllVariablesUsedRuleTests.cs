@@ -177,7 +177,7 @@ public class AllVariablesUsedRuleTests
             """
             query queryWithListInput($value: Boolean!)
             {
-              booleanList(booleanListArg: [ $value ])
+              booleanList(booleanListArg: [$value])
             }
             """);
     }
@@ -275,5 +275,59 @@ public class AllVariablesUsedRuleTests
             t => Assert.Equal(
                 "The following variables were not declared: "
                 + "atOtherHomes.", t.Message));
+    }
+
+    [Fact]
+    public void Validate_Should_TreatAFragmentVariableAsDeclared_When_OnlyTheFragmentDeclaresIt()
+    {
+        ExpectValid(
+            """
+            {
+                dog {
+                    ...withOwnVariable(atOtherHomes: true)
+                }
+            }
+
+            fragment withOwnVariable($atOtherHomes: Boolean) on Dog {
+                isHouseTrained(atOtherHomes: $atOtherHomes)
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
+
+    [Fact]
+    public void Validate_Should_Report_When_AFragmentDeclaresAVariableItDoesNotUse()
+    {
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ...unusedVariable(atOtherHomes: true)
+                }
+            }
+
+            fragment unusedVariable($atOtherHomes: Boolean) on Dog {
+                name
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
+
+    [Fact]
+    public void Validate_Should_Report_When_AnOperationVariableIsOnlyUsedInsideAShadowingFragment()
+    {
+        ExpectErrors(
+            """
+            query ($x: Boolean!) {
+                dog {
+                    ...shadowing(x: false)
+                }
+            }
+
+            fragment shadowing($x: Boolean) on Dog {
+                isHouseTrained(atOtherHomes: $x)
+            }
+            """,
+            FragmentArgumentParserOptions);
     }
 }

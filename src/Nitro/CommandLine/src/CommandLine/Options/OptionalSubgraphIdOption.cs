@@ -1,11 +1,12 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalSubgraphIdOption : Option<string>
 {
-    public OptionalSubgraphIdOption() : base("--subgraph-id", "The id of the subgraph")
+    public OptionalSubgraphIdOption() : base("--subgraph-id")
     {
-        IsRequired = false;
-        IsHidden = true;
-        this.DefaultFromEnvironmentValue("SUBGRAPH_ID");
+        Description = "The ID of the subgraph";
+        Required = false;
+        Hidden = true;
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.SubgraphId);
     }
 }

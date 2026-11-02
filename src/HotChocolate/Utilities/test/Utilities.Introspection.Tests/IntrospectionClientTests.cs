@@ -1,5 +1,9 @@
 using System.Net;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
+using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable AccessToDisposedClosure
 
@@ -16,16 +20,23 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         // act
-        var features = await IntrospectionClient.InspectServerAsync(client);
+        var features = await IntrospectionClient.InspectServerAsync(client, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.True(features.HasArgumentDeprecation);
-        Assert.True(features.HasDirectiveLocations);
-        Assert.True(features.HasSubscriptionSupport);
-        Assert.True(features.HasSchemaDescription);
-        Assert.True(features.HasRepeatableDirectives);
-        Assert.True(features.HasDeferSupport);
-        Assert.True(features.HasStreamSupport);
+        features.MatchInlineSnapshot(
+            """
+            {
+              "HasDirectiveLocations": true,
+              "HasRepeatableDirectives": true,
+              "HasSubscriptionSupport": true,
+              "HasDeferSupport": true,
+              "HasStreamSupport": true,
+              "HasArgumentDeprecation": true,
+              "HasDirectiveDeprecation": true,
+              "HasObjectDeprecation": false,
+              "HasSchemaDescription": true
+            }
+            """);
     }
 
     [Fact]
@@ -48,10 +59,63 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         client.BaseAddress = new Uri("http://localhost:5000/graphql");
 
         // act
-        var schema = await IntrospectionClient.IntrospectServerAsync(client);
+        var schema = await IntrospectionClient.IntrospectServerAsync(client, TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString(true).MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task IntrospectServer_With_DeprecatedDirective()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQL()
+                .AddDirectiveType<ObsoleteDirectiveType>());
+        var client = server.CreateClient();
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        // act
+        var schema = await IntrospectionClient.IntrospectServerAsync(client, TestContext.Current.CancellationToken);
+
+        // assert
+        var directive = Assert.Single(
+            schema.Definitions.OfType<DirectiveDefinitionNode>(),
+            t => t.Name.Value.Equals("obsolete", StringComparison.Ordinal));
+        directive.Print(indented: true).MatchInlineSnapshot(
+            """
+            directive @obsolete(
+              obsoleteArg: String @deprecated(reason: "Argument no longer supported.")
+            ) @deprecated(reason: "Directive no longer supported.") on FIELD
+            """);
+    }
+
+    [Fact]
+    public async Task IntrospectServer_With_DeprecatedObject()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQL()
+                .AddType<DeprecatedObjectType>()
+                .ModifyOptions(o => o.EnableObjectDeprecation = true));
+        var client = server.CreateClient();
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        // act
+        var schema = await IntrospectionClient.IntrospectServerAsync(client, TestContext.Current.CancellationToken);
+
+        // assert
+        var type = Assert.Single(
+            schema.Definitions.OfType<ObjectTypeDefinitionNode>(),
+            t => t.Name.Value.Equals("DeprecatedObject", StringComparison.Ordinal));
+        type.Print(indented: true).MatchInlineSnapshot(
+            """
+            type DeprecatedObject @deprecated(reason: "Object no longer supported.") {
+              field: String
+            }
+            """);
     }
 
     [Fact]
@@ -108,6 +172,37 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         // assert
         var exception = await Assert.ThrowsAsync<Exception>(Error);
         Assert.Equal("Something went wrong", exception.Message);
+    }
+
+    private sealed class ObsoleteDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor
+                .Name("obsolete")
+                .Location(Types.DirectiveLocation.Field)
+                .Deprecated("Directive no longer supported.");
+
+            descriptor
+                .Argument("obsoleteArg")
+                .Type<StringType>()
+                .Deprecated("Argument no longer supported.");
+        }
+    }
+
+    private sealed class DeprecatedObjectType : ObjectType<DeprecatedObject>
+    {
+        protected override void Configure(IObjectTypeDescriptor<DeprecatedObject> descriptor)
+        {
+            descriptor
+                .Name("DeprecatedObject")
+                .Deprecated("Object no longer supported.");
+        }
+    }
+
+    public class DeprecatedObject
+    {
+        public string? Field { get; set; }
     }
 
     private class CustomHttpClientHandler(HttpStatusCode? httpStatusCode = null) : HttpClientHandler

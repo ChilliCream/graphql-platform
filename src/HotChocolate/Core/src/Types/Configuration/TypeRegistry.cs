@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -10,8 +11,6 @@ internal sealed class TypeRegistry
 {
     private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = [];
     private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
-        new(new ExtendedTypeRefEqualityComparer());
-    private readonly HashSet<ExtendedTypeReference> _explicitRuntimeTypeRefs =
         new(new ExtendedTypeRefEqualityComparer());
     private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);
     private readonly Dictionary<FactoryTypeReference, TypeReference> _lookups = new(new TypeRefEqualityComparer());
@@ -78,12 +77,53 @@ internal sealed class TypeRegistry
         return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
     }
 
-    public bool IsExplicitBinding(ExtendedTypeReference runtimeTypeRef)
+    public bool TryGetNonInferredTypeRef(
+        ExtendedTypeReference runtimeTypeRef,
+        [NotNullWhen(true)] out TypeReference? typeRef)
     {
         ArgumentNullException.ThrowIfNull(runtimeTypeRef);
 
-        return _explicitRuntimeTypeRefs.Contains(runtimeTypeRef);
+        if (RuntimeTypeBindingHelper.RequiresExactBinding(runtimeTypeRef.Type)
+            || !IsKeyValuePair(runtimeTypeRef.Type))
+        {
+            typeRef = null;
+            return false;
+        }
+
+        foreach (var (candidateRef, candidateTypeRef) in _runtimeTypeRefs)
+        {
+            if (!candidateRef.Scope.EqualsOrdinal(runtimeTypeRef.Scope))
+            {
+                continue;
+            }
+
+            if (candidateRef.Context != runtimeTypeRef.Context
+                && candidateRef.Context != TypeContext.None
+                && runtimeTypeRef.Context != TypeContext.None)
+            {
+                continue;
+            }
+
+            if (candidateRef.Type.Type != runtimeTypeRef.Type.Type
+                || candidateRef.Type.Kind != runtimeTypeRef.Type.Kind)
+            {
+                continue;
+            }
+
+            if (_typeRegister.TryGetValue(candidateTypeRef, out var registeredType)
+                && !registeredType.IsInferred)
+            {
+                typeRef = candidateTypeRef;
+                return true;
+            }
+        }
+
+        typeRef = null;
+        return false;
     }
+
+    private static bool IsKeyValuePair(IExtendedType type)
+        => type.IsGeneric && type.Definition == typeof(KeyValuePair<,>);
 
     public bool TryGetTypeRef(
         string typeName,
@@ -104,18 +144,12 @@ internal sealed class TypeRegistry
 
     public void TryRegister(
         ExtendedTypeReference runtimeTypeRef,
-        TypeReference typeRef,
-        bool explicitBinding = false)
+        TypeReference typeRef)
     {
         ArgumentNullException.ThrowIfNull(runtimeTypeRef);
         ArgumentNullException.ThrowIfNull(typeRef);
 
         _runtimeTypeRefs.TryAdd(runtimeTypeRef, typeRef);
-
-        if (explicitBinding)
-        {
-            _explicitRuntimeTypeRefs.Add(runtimeTypeRef);
-        }
     }
 
     public void Register(RegisteredType registeredType)

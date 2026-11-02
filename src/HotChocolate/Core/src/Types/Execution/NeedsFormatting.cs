@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Text.Json;
 
@@ -35,6 +36,8 @@ internal abstract class NeedsFormatting : IResultDataJsonFormatter
         JsonSerializerOptions? options)
         => FormatValue(writer, options ?? JsonSerializerOptionDefaults.GraphQL);
 
+    [RequiresDynamicCode("JSON serialization may require runtime code generation.")]
+    [RequiresUnreferencedCode("JSON serialization may require types that cannot be statically analyzed.")]
     public static JsonNeedsFormatting Create<TValue>(TValue value)
     {
         var documents = JsonSerializer.SerializeToDocument(value, JsonSerializerOptionDefaults.GraphQL);

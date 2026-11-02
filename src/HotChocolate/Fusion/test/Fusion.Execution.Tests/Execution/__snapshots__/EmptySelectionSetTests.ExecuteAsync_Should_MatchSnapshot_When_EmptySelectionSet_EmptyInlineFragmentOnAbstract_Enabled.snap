@@ -1,0 +1,7 @@
+{
+  "data": {
+    "character": {}
+  }
+}
+--- source requests ---
+query Op_7ae20b1f_1 { character { __typename ... on Bot { __typename } } }

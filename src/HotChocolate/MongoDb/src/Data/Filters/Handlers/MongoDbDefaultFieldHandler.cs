@@ -13,7 +13,7 @@ namespace HotChocolate.Data.MongoDb.Filters;
 public class MongoDbDefaultFieldHandler
     : FilterFieldHandler<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
 {
-    public static MongoDbDefaultFieldHandler Create(FilterProviderContext context)
+    public static MongoDbDefaultFieldHandler Create(FilterProviderContext _)
         => new();
 
     /// <summary>
@@ -38,7 +38,7 @@ public class MongoDbDefaultFieldHandler
     {
         if (node.Value.IsNull())
         {
-            context.ReportError(ErrorHelper.CreateNonNullError(field, node.Value, context));
+            context.ReportError(ErrorHelper.CreateNonNullError(field, context));
 
             action = SyntaxVisitor.Skip;
             return true;

@@ -9,7 +9,9 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     public T ArgumentValue<T>(string name)
     {
@@ -26,9 +28,8 @@ internal partial class MiddlewareContext
         }
         catch (LeafCoercionException ex)
         {
-            var syntaxNode = Selection.Arguments[argument.Name].ValueLiteral;
             throw new LeafCoercionException(
-                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).TryAddLocation(syntaxNode).Build(),
+                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).Build(),
                 ex.Type,
                 Path);
         }

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Fusion.Caching</PackageId>
+    <AssemblyName>HotChocolate.Fusion.Caching</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Caching</RootNamespace>
+    <Description>Provides Hot Chocolate Fusion Cache Control support.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Caching.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Caching\src\Caching.Core\HotChocolate.Caching.Core.csproj" />
+    <ProjectReference Include="..\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+  </ItemGroup>
+
+</Project>

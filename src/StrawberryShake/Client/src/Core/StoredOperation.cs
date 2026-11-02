@@ -7,7 +7,11 @@ internal class StoredOperation<T>
     , IObservable<IOperationResult<T>>
     where T : class
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private ImmutableList<Subscription> _subscriptions = [];
     private bool _disposed;
     private IOperationResult<T>? _lastResult;

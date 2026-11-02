@@ -86,7 +86,7 @@ public interface ISyntaxNavigator
     /// <summary>
     /// Creates a Schema Coordinate from the current path.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The schema coordinate for the current path.</returns>
     /// <exception cref="InvalidOperationException">
     /// If the path does not allow to create a Schema Coordinate.
     /// For instance, if traversing an executable document it is not possible to create a

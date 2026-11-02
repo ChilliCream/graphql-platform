@@ -1,0 +1,283 @@
+title: Interface_Field_With_And_Without_Type_Refinements_All_Fields_On_Dedicated_Schemas
+request:
+  document: |
+    {
+      abstractTypes {
+        upvotes
+        ... on Discussion {
+          score
+        }
+        ... on Author {
+          score
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "abstractTypes": [
+          {
+            "upvotes": 123,
+            "score": 123
+          },
+          {
+            "upvotes": 123,
+            "score": 123
+          },
+          {
+            "upvotes": 123,
+            "score": 123
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        abstractTypes: [Votable]
+        node(id: ID!): Node @lookup @shareable
+      }
+
+      type Author implements Votable & Node @key(fields: "id") {
+        id: ID!
+      }
+
+      type Discussion implements Votable & Node @key(fields: "id") {
+        id: ID!
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_13354b96_1 {
+              abstractTypes {
+                __typename
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "abstractTypes": [
+                    {
+                      "__typename": "Discussion",
+                      "id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
+                    },
+                    {
+                      "__typename": "Author",
+                      "id": "QXV0aG9yOjI0NTA2NDI1Nw=="
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @shareable
+      }
+
+      type Discussion implements Votable & Node @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+        score: Int!
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+        score: Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_13354b96_2($__fusion_1_id: ID!) {
+              discussionById(id: $__fusion_1_id) {
+                upvotes
+                ... on Discussion {
+                  score
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
+              },
+              {
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "upvotes": 123,
+                    "score": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "discussionById": {
+                    "upvotes": 123,
+                    "score": 123
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        authorById(id: ID!): Author @lookup @shareable
+      }
+
+      type Author implements Votable & Node @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+        score: Int!
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+        score: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_13354b96_3($__fusion_2_id: ID!) {
+              authorById(id: $__fusion_2_id) {
+                upvotes
+                ... on Author {
+                  score
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "QXV0aG9yOjI0NTA2NDI1Nw=="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "upvotes": 123,
+                    "score": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          abstractTypes {
+            __typename @fusion__requirement
+            upvotes
+            id @fusion__requirement
+            ... on Discussion {
+              score
+            }
+            ... on Author {
+              score
+            }
+          }
+        }
+      hash: f235c2c8196655defd31ba724ceb73d3
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_13354b96_1 {
+          abstractTypes {
+            __typename
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_13354b96_2($__fusion_1_id: ID!) {
+          discussionById(id: $__fusion_1_id) {
+            upvotes
+            ... on Discussion {
+              score
+            }
+          }
+        }
+      source: $.discussionById
+      target: $.abstractTypes<Discussion>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: C
+      operation: |
+        query Op_13354b96_3($__fusion_2_id: ID!) {
+          authorById(id: $__fusion_2_id) {
+            upvotes
+            ... on Author {
+              score
+            }
+          }
+        }
+      source: $.authorById
+      target: $.abstractTypes<Author>
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

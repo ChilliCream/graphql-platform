@@ -1,0 +1,92 @@
+operation:
+  - document: |
+      {
+        test {
+          id
+          id @fusion__requirement
+          fieldWithRequiresAndArgs
+          anotherWithRequiresAndArgs
+          otherField(arg: 1)
+          fusion__requirement_otherField_0: otherField @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 8
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        test {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_otherField: String!
+        $__fusion_2_id: ID!
+        $__fusion_5_otherField: String!
+      ) {
+        testById(id: $__fusion_2_id) {
+          anotherWithRequiresAndArgs(otherField: $__fusion_1_otherField)
+          fieldWithRequiresAndArgs(otherField: $__fusion_5_otherField)
+        }
+      }
+    source: $.testById
+    target: $.test
+    requirements:
+      - name: __fusion_1_otherField
+        internalAlias: fusion__requirement_otherField_0
+        selectionMap: >-
+          otherField
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_5_otherField
+        internalAlias: fusion__requirement_otherField_0
+        selectionMap: >-
+          otherField
+    dependencies:
+      - id: 1
+      - id: 6
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        testById(id: $__fusion_3_id) {
+          fusion__requirement_otherField_0: otherField
+        }
+      }
+    source: $.testById
+    target: $.test
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_5($__fusion_6_id: ID!) {
+        testById(id: $__fusion_6_id) {
+          otherField(arg: 1)
+        }
+      }
+    source: $.testById
+    target: $.test
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

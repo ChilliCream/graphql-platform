@@ -15,6 +15,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
 {
     private readonly List<IError> _errors = [];
     private readonly PooledFeatureCollection _features;
+    private readonly List<int> _fragmentVariableScopes = [];
+    private readonly List<(string Name, VariableDefinitionNode? Shadowed)> _shadowedVariables = [];
     private ISchemaDefinition? _schema;
     private int _maxAllowedErrors;
     private int _maxLocationsPerError;
@@ -144,6 +146,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         DocumentNode document,
         int maxAllowedErrors,
         int maxLocationsPerError,
+        int maxAllowedFragmentVisits,
         IFeatureCollection? features)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -156,6 +159,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         _maxAllowedErrors = maxAllowedErrors;
         _maxLocationsPerError = maxLocationsPerError;
 
+        Fragments.SetMaxAllowedFragmentVisits(maxAllowedFragmentVisits);
+
         _features.Initialize(features);
 
         foreach (var definitionNode in document.Definitions)
@@ -166,6 +171,82 @@ public sealed class DocumentValidatorContext : IFeatureProvider
                 Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
             }
         }
+    }
+
+    /// <summary>
+    /// Brings the variables that <paramref name="fragment"/> declares into scope. A declaration
+    /// shadows a variable of the same name until the scope is left.
+    /// </summary>
+    /// <param name="fragment">
+    /// The fragment definition whose variables shall be brought into scope.
+    /// </param>
+    public void EnterFragmentVariableScope(FragmentDefinitionNode fragment)
+    {
+        _fragmentVariableScopes.Add(_shadowedVariables.Count);
+
+        var variableDefinitions = fragment.VariableDefinitions;
+
+        for (var i = 0; i < variableDefinitions.Count; i++)
+        {
+            var variableDefinition = variableDefinitions[i];
+            var variableName = variableDefinition.Variable.Name.Value;
+
+            Variables.TryGetValue(variableName, out var shadowed);
+            _shadowedVariables.Add((variableName, shadowed));
+            Variables[variableName] = variableDefinition;
+        }
+    }
+
+    /// <summary>
+    /// Defines whether a fragment that is currently in scope declares
+    /// <paramref name="variableName"/>.
+    /// </summary>
+    /// <param name="variableName">
+    /// The name of the variable, without the leading dollar sign.
+    /// </param>
+    public bool IsFragmentVariable(string variableName)
+    {
+        // The innermost scope is at the end of the list.
+        for (var i = _shadowedVariables.Count - 1; i >= 0; i--)
+        {
+            if (_shadowedVariables[i].Name.Equals(variableName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Takes the variables of the innermost fragment scope out of scope and restores the
+    /// declarations they shadowed.
+    /// </summary>
+    public void LeaveFragmentVariableScope()
+    {
+        if (_fragmentVariableScopes.Count == 0)
+        {
+            return;
+        }
+
+        var start = _fragmentVariableScopes[^1];
+        _fragmentVariableScopes.RemoveAt(_fragmentVariableScopes.Count - 1);
+
+        for (var i = _shadowedVariables.Count - 1; i >= start; i--)
+        {
+            var (variableName, shadowed) = _shadowedVariables[i];
+
+            if (shadowed is null)
+            {
+                Variables.Remove(variableName);
+            }
+            else
+            {
+                Variables[variableName] = shadowed;
+            }
+        }
+
+        _shadowedVariables.RemoveRange(start, _shadowedVariables.Count - start);
     }
 
     /// <summary>
@@ -201,6 +282,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         Fields.Clear();
         InputFields.Clear();
         VisitedFragments.Clear();
+        _shadowedVariables.Clear();
+        _fragmentVariableScopes.Clear();
 
         // we just make sure that all features are reset but we do not want
         // to fully reset the feature collection.
@@ -229,6 +312,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         SelectionSets.Clear();
         Fragments.Clear();
         Variables.Clear();
+        _shadowedVariables.Clear();
+        _fragmentVariableScopes.Clear();
         Types.Clear();
         Directives.Clear();
         OutputFields.Clear();
@@ -247,6 +332,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     {
         private readonly HashSet<string> _visited = [];
         private readonly Dictionary<string, FragmentDefinitionNode> _fragments = new(StringComparer.Ordinal);
+        private int _maxAllowedFragmentVisits;
+        private int _fragmentVisits;
 
         public IEnumerable<string> Names => _fragments.Keys;
 
@@ -267,9 +354,16 @@ public sealed class DocumentValidatorContext : IFeatureProvider
 
         public bool TryEnter(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
         {
+            if (_fragmentVisits >= _maxAllowedFragmentVisits)
+            {
+                fragment = null;
+                return false;
+            }
+
             if (_visited.Add(spread.Name.Value)
                 && _fragments.TryGetValue(spread.Name.Value, out fragment))
             {
+                _fragmentVisits++;
                 return true;
             }
 
@@ -277,6 +371,11 @@ public sealed class DocumentValidatorContext : IFeatureProvider
             return false;
         }
 
+        // Removes the fragment name from _visited so that sibling spreads of the same
+        // fragment can re-enter and re-walk the body. Callers that want per-spread
+        // re-walks (e.g. CostAnalyzer) call this on leave. The base validation walker
+        // intentionally does NOT call Leave so each fragment is walked at most once per
+        // operation by default, which is what most validation rules want.
         public void Leave(FragmentSpreadNode spread)
             => _visited.Remove(spread.Name.Value);
 
@@ -286,13 +385,31 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         public bool Exists(FragmentSpreadNode spread)
             => _fragments.ContainsKey(spread.Name.Value);
 
+        internal void SetMaxAllowedFragmentVisits(int maxAllowedFragmentVisits)
+        {
+            _maxAllowedFragmentVisits = maxAllowedFragmentVisits;
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the fragment of <paramref name="spread"/> exists and was not
+        /// visited yet, but the fragment visits are used up.
+        /// </summary>
+        internal bool IsRefusedByVisitLimit(FragmentSpreadNode spread)
+            => _fragmentVisits >= _maxAllowedFragmentVisits
+                && !_visited.Contains(spread.Name.Value)
+                && _fragments.ContainsKey(spread.Name.Value);
+
         internal void Reset()
-            => _visited.Clear();
+        {
+            _visited.Clear();
+            _fragmentVisits = 0;
+        }
 
         internal void Clear()
         {
             _visited.Clear();
             _fragments.Clear();
+            _fragmentVisits = 0;
         }
     }
 }

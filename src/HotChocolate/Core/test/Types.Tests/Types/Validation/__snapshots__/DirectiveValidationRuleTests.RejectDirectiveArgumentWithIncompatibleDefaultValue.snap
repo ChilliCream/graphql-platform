@@ -1,0 +1,8 @@
+{
+  "message": "The default value of argument 'foo.arg' is not compatible with the type 'Int'.",
+  "extensions": {
+    "argument": "arg",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Type-System.Directives.Type-Validation"
+  }
+}
+

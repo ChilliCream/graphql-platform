@@ -30,7 +30,7 @@ public class SortProviderExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.OperationHandlerConfigurations,
+            convention.DefinitionAccessor.OperationHandlerConfigurations,
             x => Assert.Equal(extensionFieldHandler, x.Instance),
             x => Assert.Equal(firstFieldHandler, x.Instance));
     }
@@ -58,7 +58,7 @@ public class SortProviderExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.FieldHandlerConfigurations,
+            convention.DefinitionAccessor.FieldHandlerConfigurations,
             x => Assert.Equal(extensionFieldHandler, x.Instance),
             x => Assert.Equal(firstFieldHandler, x.Instance));
     }

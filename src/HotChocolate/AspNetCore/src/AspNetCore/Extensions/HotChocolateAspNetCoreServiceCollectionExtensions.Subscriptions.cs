@@ -1,10 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -28,7 +31,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/>.
     /// </remarks>
-    public static IRequestExecutorBuilder AddSocketSessionInterceptor<T>(
+    public static IRequestExecutorBuilder AddSocketSessionInterceptor<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, ISocketSessionInterceptor =>
         builder.ConfigureSchemaServices(s => s
@@ -83,7 +87,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             s => s.AddSingleton<IProtocolHandler>(
                 sp => new ApolloSubscriptionProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
-                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 
     private static IRequestExecutorBuilder AddGraphQLOverWebSocketProtocol(
         this IRequestExecutorBuilder builder)
@@ -91,7 +96,11 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             s => s.AddSingleton<IProtocolHandler>(
                 sp => new GraphQLOverWebSocketProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
-                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>(),
+                    sp.GetRequiredService<IDocumentCache>(),
+                    sp.GetRequiredService<IDocumentHashProvider>(),
+                    sp.GetRequiredService<ParserOptions>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 
     /// <summary>
     /// Adds a custom WebSocket payload formatter to the DI.
@@ -105,7 +114,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
-    public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<T>(
+    public static IRequestExecutorBuilder AddWebSocketPayloadFormatter<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IWebSocketPayloadFormatter
     {

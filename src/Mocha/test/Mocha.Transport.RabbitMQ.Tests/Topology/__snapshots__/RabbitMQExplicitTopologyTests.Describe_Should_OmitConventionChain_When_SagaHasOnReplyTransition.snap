@@ -1,0 +1,52 @@
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "exchange",
+      "Name": "mocha.transport.rabbit-m-q.tests.topology.rabbit-m-q-explicit-topology-tests.stock-check-started",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "exchange",
+      "Name": "rabbit-m-q-explicit-topology-tests.stock-check-started",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-stock-check-saga",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-stock-check-saga_error",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-stock-check-saga_skipped",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/mocha.transport.rabbit-m-q.tests.topology.rabbit-m-q-explicit-topology-tests.stock-check-started",
+      "To": "rabbitmq://localhost:5672/e/rabbit-m-q-explicit-topology-tests.stock-check-started",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/rabbit-m-q-explicit-topology-tests.stock-check-started",
+      "To": "rabbitmq://localhost:5672/q/mocha.transport.rabbit-m-q.tests.order-stock-check-saga",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ]
+}

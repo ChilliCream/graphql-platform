@@ -92,7 +92,7 @@ public class UnionTypeDescriptor
         ResolveAbstractType resolveAbstractType)
     {
         Configuration.ResolveAbstractType = resolveAbstractType
-           ?? throw new ArgumentNullException(nameof(resolveAbstractType));
+            ?? throw new ArgumentNullException(nameof(resolveAbstractType));
         return this;
     }
 

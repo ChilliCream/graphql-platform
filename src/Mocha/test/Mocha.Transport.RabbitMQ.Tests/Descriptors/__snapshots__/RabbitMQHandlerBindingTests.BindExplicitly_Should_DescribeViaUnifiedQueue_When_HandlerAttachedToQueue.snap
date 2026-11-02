@@ -1,0 +1,25 @@
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "my-orders",
+      "AutoProvision": true,
+      "Origin": "declared"
+    },
+    {
+      "Kind": "queue",
+      "Name": "my-orders_error",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "my-orders_skipped",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ],
+  "Links": []
+}

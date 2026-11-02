@@ -3,9 +3,7 @@
 ## Operation
 
 ```graphql
-query(
-  $first: Int
-) {
+query($first: Int) {
   books(first: $first) {
     nodes {
       title
@@ -26,9 +24,8 @@ query(
   "extensions": {
     "operationCost": {
       "fieldCost": 11,
-      "typeCost": 52
+      "typeCost": 12
     }
   }
 }
 ```
-

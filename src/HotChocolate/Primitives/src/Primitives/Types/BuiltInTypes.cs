@@ -12,6 +12,8 @@ public static class BuiltInTypes
         IntrospectionTypeNames.__Field,
         IntrospectionTypeNames.__InputValue,
         IntrospectionTypeNames.__Schema,
+        IntrospectionTypeNames.__SchemaDefinition,
+        IntrospectionTypeNames.__SearchResult,
         IntrospectionTypeNames.__Type,
         IntrospectionTypeNames.__TypeKind,
         SpecScalarNames.String.Name,

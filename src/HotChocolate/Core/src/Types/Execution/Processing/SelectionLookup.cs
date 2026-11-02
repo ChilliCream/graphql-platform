@@ -88,7 +88,7 @@ internal sealed class SelectionLookup
 
         if (table.Length == 0)
         {
-            selection = null!;
+            selection = null;
             return false;
         }
 

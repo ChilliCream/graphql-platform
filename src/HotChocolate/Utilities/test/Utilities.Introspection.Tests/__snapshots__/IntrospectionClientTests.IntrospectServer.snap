@@ -5,74 +5,143 @@ schema {
 }
 
 type Query {
-  hero(episode: Episode! = NEW_HOPE): Character
-  heroByTraits(traits: Any!): Character
-  heroes(episodes: [Episode!]!): [Character!]
+  "Retrieve a hero by a particular Star Wars episode.\n\n\n**Returns:**\nThe character."
+  hero("The episode to look up by." episode: Episode! = NEW_HOPE): Character
+  "Retrieve a hero by their traits.\n\n\n**Returns:**\nThe character."
+  heroByTraits("The traits to look up by." traits: Any!): Character
+  "Retrieve heroes by particular Star Wars episodes.\n\n\n**Returns:**\nThe characters."
+  heroes("The episodes to look up by." episodes: [Episode!]!): [Character!]
   character(characterIds: [String!]!): [Character!]!
   search(text: String!): [SearchResult]
-  human(id: String!): Human
-  droid(id: String!): Droid
+  "Gets a human by Id.\n\n\n**Returns:**\nThe human."
+  human("The Id of the human to retrieve." id: String!): Human
+  "Get a particular droid by Id.\n\n\n**Returns:**\nThe droid."
+  droid("The Id of the droid." id: String!): Droid
   time: Long!
   evict: Boolean!
   wait(m: Int!): Boolean!
-  someDeprecatedField(deprecatedArg: String! = "foo" @deprecated(reason: "use something else")): String! @deprecated(reason: "use something else")
+  someDeprecatedField(
+    deprecatedArg: String! = "foo" @deprecated(reason: "use something else")
+  ): String! @deprecated(reason: "use something else")
 }
 
 type Mutation {
-  createReview(episode: Episode! review: ReviewInput!): Review!
+  "Creates a review for a given Star Wars episode.\n\n\n**Returns:**\nThe created review."
+  createReview(
+    "The episode to review."
+    episode: Episode!
+    "The review."
+    review: ReviewInput!
+  ): Review!
   complete(episode: Episode!): Boolean!
 }
 
 type Subscription {
   onReview(episode: Episode!): Review!
-  delay(delay: Int! count: Int!): String!
+  delay(delay: Int!, count: Int!): String!
 }
 
+"A human character in the Star Wars universe."
 type Human implements Character {
+  "The unique identifier for the character."
   id: ID!
+  "The name of the character."
   name: String!
+  "The episodes the character appears in."
   appearsIn: [Episode]
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  friends(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): FriendsConnection
   otherHuman: Human
   height(unit: Unit): Float
+  "The planet the character is originally from."
   homePlanet: String
+  "The traits of this character."
   traits: Any
 }
 
+"A droid in the Star Wars universe."
 type Droid implements Character {
+  "The unique identifier for the character."
   id: ID!
+  "The name of the character."
   name: String!
+  "The episodes the character appears in."
   appearsIn: [Episode]
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  friends(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): FriendsConnection
   height(unit: Unit): Float
+  "The droid's primary function."
   primaryFunction: String
+  "The traits of this character."
   traits: Any
 }
 
+"The Star Wars episodes."
 enum Episode {
+  "Star Wars Episode IV: A New Hope"
   NEW_HOPE
+  "Star Wars Episode V: Empire Strikes Back"
   EMPIRE
+  "Star Wars Episode VI: Return of the Jedi"
   JEDI
 }
 
+"A character in the Star Wars universe."
 interface Character {
+  "The unique identifier for the character."
   id: ID!
+  "The name of the character."
   name: String!
-  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  "The names of the character's friends."
+  friends(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): FriendsConnection
+  "The episodes the character appears in."
   appearsIn: [Episode]
+  "The traits of this character."
   traits: Any
+  "The height of the character."
   height(unit: Unit): Float
 }
 
 union SearchResult = Starship | Human | Droid
 
+"A review of a particular movie."
 type Review {
+  "An explanation for the rating."
   commentary: String
+  "The number of stars given for this review."
   stars: Int!
 }
 
+"A review of a particular movie."
 input ReviewInput {
+  "The number of stars given for this review."
   stars: Int!
+  "An explanation for the rating."
   commentary: String
 }
 
@@ -86,6 +155,7 @@ type FriendsConnection {
   nodes: [Character]
 }
 
+"Different units of measurement."
 enum Unit {
   FOOT
   METERS
@@ -94,8 +164,11 @@ enum Unit {
 "The `Any` scalar type represents any valid GraphQL value."
 scalar Any
 
+"A starship in the Star Wars universe."
 type Starship {
+  "The Id of the starship."
   id: ID!
+  "The name of the starship."
   name: String!
   length(unit: Unit): Float!
 }
@@ -124,9 +197,29 @@ type FriendsEdge {
 scalar Long
 
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
-directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+directive @cost(
+  "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
+  weight: String!
+) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
 
 "The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
-directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!] "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query." slicingArgumentDefaultValue: Int "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+directive @listSize(
+  "The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field."
+  assumedSize: Int
+  "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments."
+  slicingArguments: [String!]
+  "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query."
+  slicingArgumentDefaultValue: Int
+  "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields."
+  sizedFields: [String!]
+  "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error."
+  requireOneSlicingArgument: Boolean = true
+) on FIELD_DEFINITION
 
 directive @foo(bar: Int!) on SUBSCRIPTION

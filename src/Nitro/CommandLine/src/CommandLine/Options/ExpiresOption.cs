@@ -1,10 +1,11 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class ExpiresOption : Option<int>
 {
-    public ExpiresOption() : base("--expires", "The expiration time of the pat in days")
+    public ExpiresOption() : base("--expires")
     {
-        IsRequired = false;
-        this.DefaultFromEnvironmentValue("EXPIRES", defaultValue: 180);
+        Description = "The expiration time of the personal access token in days";
+        Required = false;
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.Expires, defaultValue: 180);
     }
 }

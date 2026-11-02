@@ -67,7 +67,7 @@ public interface ISocketClient : IAsyncDisposable
     /// <param name="message">A message why the connection was closes</param>
     /// <param name="closeStatus">The close status on how the socket was closes</param>
     /// <param name="cancellationToken">The cancellation token to cancel the operation</param>
-    /// <returns></returns>
+    /// <returns>A task representing the asynchronous close operation.</returns>
     Task CloseAsync(
         string message,
         SocketCloseStatus closeStatus,

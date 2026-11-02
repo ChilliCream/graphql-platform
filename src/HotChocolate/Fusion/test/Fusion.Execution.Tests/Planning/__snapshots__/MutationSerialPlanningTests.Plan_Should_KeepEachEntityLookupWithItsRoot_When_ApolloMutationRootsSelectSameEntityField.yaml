@@ -1,0 +1,73 @@
+operation:
+  - document: |
+      mutation Serial {
+        a: bump(counter: "serial", by: 1) {
+          value
+          id @fusion__requirement
+        }
+        b: bump(counter: "serial", by: 10) {
+          value
+          id @fusion__requirement
+        }
+      }
+    name: Serial
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: ledger
+    operation: |
+      mutation Serial_123456789101112_1 {
+        a: bump(counter: "serial", by: 1) {
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: reader
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Counter {
+            value
+          }
+        }
+      }
+    source: $._entities
+    target: $.a
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: ledger
+    operation: |
+      mutation Serial_123456789101112_3 {
+        b: bump(counter: "serial", by: 10) {
+          id
+        }
+      }
+  - id: 4
+    type: ApolloOperation
+    schema: reader
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Counter {
+            value
+          }
+        }
+      }
+    source: $._entities
+    target: $.b
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3

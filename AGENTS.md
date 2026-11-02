@@ -1,238 +1,177 @@
-# AGENTS.md - OpenAI Codex Configuration
+# AGENTS.md
 
-This file provides guidance to OpenAI Codex and other AI coding agents when working with this repository.
+This file provides guidance to coding agents when working with this repository.
 
-## Project Summary
+## Attribution
 
-**ChilliCream GraphQL Platform** - A comprehensive GraphQL ecosystem for .NET
+- Do not add `Co-authored-by` trailers or other co-author attribution for agents.
 
-| Product         | Description                                            |
-| --------------- | ------------------------------------------------------ |
-| Hot Chocolate   | GraphQL server framework                               |
-| Strawberry Shake| Type-safe GraphQL client                               |
-| Green Donut     | Data fetching primitives (DataLoader, pagination, etc.)|
-| Nitro           | GraphQL IDE                                            |
+## Commit Messages
 
-## Setup Instructions
+- Wrap every `@`-prefixed token in backticks, so GitHub does not turn it into a mention. This covers directive names, package scopes, and user handles: ``Fix pruning of list-wrapped `@require` input types``.
 
-### Using Devcontainer (Recommended)
+## Pull Requests
 
-This repository includes a devcontainer (`.devcontainer/`) with everything pre-installed:
+- Start a bug fix PR title with `Fix`: `Fix the gateway ignoring subgraph timeouts`. The title becomes the squash commit subject and the release note entry.
+- Area prefixes are optional. Write them in title case (`[Fusion]`, not `[fusion]`), and put `Fix` after one: `[Fusion] Fix the gateway ignoring subgraph timeouts`.
 
-- .NET SDKs 6, 7, 8, 9, 10
-- Node.js LTS + Yarn
-- GitHub CLI + Azure CLI
-- Docker-in-docker support
+## Build
 
-The devcontainer automatically runs `init.sh` on creation - no manual setup needed.
+### Website
 
-### Manual Setup
-
-If not using devcontainer, initialize first:
+Use `npm`.
 
 ```bash
-./init.sh
+cd website
+npm ci
 ```
 
-This restores website packages (yarn) and .NET packages.
+npm 11 before 11.21.1 and npm 12 before 12.2.1 write `allowScripts` entries from `npm install-scripts approve` that npm cannot match under the linked install strategy ([npm/cli#9939](https://github.com/npm/cli/issues/9939)), so on those versions add approvals by hand as `"<package>@<version>": true`.
 
-### Build
+### C# Source Code
+
+Builds report IDE code-style violations (`IDE*`) as build errors, the same as CI does. Fix every reported style error.
+
+Build the full solution:
 
 ```bash
-./build.sh compile
+dotnet build src/All.slnx
 ```
 
-### Test
+Each area has its own solution file, so you can build or test a subset directly:
 
 ```bash
-./build.sh test
+dotnet test src/HotChocolate/Fusion
 ```
 
-### Single Project Build
+## Updating .NET
+
+When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK version in `global.json`, work through [docs/updating-dotnet.md](docs/updating-dotnet.md) before handoff.
+
+## Code Quality
+
+### C# / .NET
+
+- Always use curly braces for loops and conditionals, no exceptions.
+- Use file-scoped namespaces and 4-space indentation.
+- Test naming: `Method_Should_Outcome_When_Condition`.
+- No vacuous assertions (`Assert.NotNull` alone is not a test).
+- If a test requires excessive stubs and reflection, you're at the wrong test tier.
+- Do not use em dash style sentences in docs, comments, or XML documentation. Use commas, periods, parentheses, or colons instead.
+- XML docs should describe the contract and concepts, not internals like pooling or iteration mechanics, and should not leak other implementation details.
+- XML docs and comments are 1-2 sentences stating the contract: what it is, what null or edge values mean. No rationale, no use-case examples, no design justification. If a sentence explains why the design is right instead of what the member promises, delete it. The same applies to docs pages: every sentence must inform the reader, none may justify the design.
+- Do not make new parameters optional just to avoid updating call sites. A parameter should only be optional when it has a sensible semantic default and the API is frequently used (where call-site brevity outweighs explicitness). If a parameter is logically required, make it required and update all call sites.
+
+### Testing
+
+- Prefer snapshot tests over manual `Assert` calls, use **CookieCrumble** for snapshots.
+- CookieCrumble has native snapshot support for `IExecutionResult`, `GraphQLHttpResponse`, and other core types.
+- For smaller snapshots, prefer **inline snapshots** (`MatchInlineSnapshot`) over snapshot files.
+- For a collection of results (for example a stream of subscription events), snapshot the list with `MatchInlineSnapshots` (a parallel list of per-element inline snapshots). Do NOT concatenate with `string.Join("---", values).MatchInlineSnapshot(...)`: a manual separator hides element boundaries and reinvents what the collection overload does natively.
+- For tests with multiple assertions, use **Markdown snapshots** (`MatchMarkdownSnapshot`).
+- Hard limit: a single test method must contain at most 5 `Assert.*` calls. Anything beyond that is too hard to reason about in review, switch to a snapshot (Markdown for multi-shape state, inline or file for a single output).
+- Use the AAA section marker style. Each section starts with a single-line comment, the test name documents intent, no paragraph-style block comments above sections:
+
+  ```csharp
+  // arrange
+  // optional one-line description, only when the next code is non-obvious
+  ... arrange code ...
+
+  // act
+  ... act code ...
+
+  // assert
+  ... assert code ...
+  ```
+
+- Avoid `Assert.DoesNotContain` as it is a weak assertion that easily goes out of date, it only proves something is absent without verifying what *is* present. Prefer `Assert.Equal` to check the entire string value, or `Assert.Collection` to verify the complete contents of a collection.
+- Snapshot tests: update from `__mismatch__/` directory, understand ordering issues before updating.
+- Filter tests during iteration, never run the full suite unnecessarily.
+- Use real databases in integration tests, not mocks (unless explicitly instructed otherwise).
+
+## Performance
+
+### C# / .NET
+
+This is framework code, performance matters. Aim for zero allocations on hot paths.
+
+- Use `ChunkedArrayWriter` or `PooledArrayWriter` when you need an `IBufferWriter<byte>` for in-memory byte writing.
+
+## Tools
+
+### C# / .NET
+
+If you need to search for packages on nuget.org, use the `dotnet` CLI, e.g. `dotnet package search HotChocolate`.
+
+### Profiling
+
+The dev container has `dotnet-trace`, `dotnet-counters`, `dotnet-gcdump`, `dotnet-dump`, `dotnet-symbol`, `dottrace` and `dotmemory` installed. Versions are pinned in `.devcontainer/dockerfile`, and `docs/profiling.md` has the full commands and caveats. The tools attach to a running process in the same container. Write outputs to `perf/<label>-<git-short-sha>/`, which is gitignored.
 
 ```bash
-dotnet build src/HotChocolate/Core/src/Types/HotChocolate.Types.csproj
+OUT=perf/<label>-$(git rev-parse --short HEAD); mkdir -p "$OUT"
+dotnet-trace ps
+dotnet-trace collect -p <pid> --duration 00:00:00:30 --format speedscope -o "$OUT/cpu.nettrace"
+dotnet-trace report "$OUT/cpu.nettrace" topN -n 25 --inclusive
+dotnet-trace collect -p <pid> --profile gc-verbose --duration 00:00:00:15 -o "$OUT/alloc.nettrace"
+dotnet-gcdump collect -p <pid> -o "$OUT/heap.gcdump" && dotnet-gcdump report "$OUT/heap.gcdump" > "$OUT/heap-report.txt"
+dotnet-counters collect -p <pid> --format json -o "$OUT/counters.json" --duration 00:00:00:20 --counters System.Runtime,Microsoft.AspNetCore.Hosting,System.Net.Http
 ```
 
-## Repository Layout
+- Profile Release builds. Debug builds distort time and allocations.
+- Sampling gives time, not call counts. Call counts need dotTrace Tracing mode, which only `dottrace start` offers; `dottrace attach` is limited to Sampling and Timeline.
+- On Linux, EventPipe samples measure thread time. Ignore idle thread pool frames such as `LowLevelLifoSemaphore.WaitForSignal` and `WaitHandle.WaitOneNoCheck`.
+- `.dtp` (dotTrace) and `.dmw` (dotMemory) snapshots are for Rider on the host. Use the `dotnet-trace` and `dotnet-gcdump` outputs for analysis inside the container.
 
-```text
-src/All.slnx                   # Master solution (244 projects)
+### Nitro persisted operations (Fusion Aspire)
 
-src/HotChocolate/              # GraphQL Server
-  Core/
-    Abstractions/              # Interfaces, contracts
-    Execution/                 # Query execution
-    Types/                     # Type system
-    Validation/                # Query validation
-    Subscriptions/             # Real-time updates
-  AspNetCore/                  # HTTP integration
-  Language/                    # Parser, syntax tree
-  Fusion-vnext/                # Distributed GraphQL
-  Data/                        # Database integrations
-
-src/GreenDonut/                # Data fetching primitives
-src/StrawberryShake/           # GraphQL client
-src/CookieCrumble/             # Snapshot testing
-
-website/                       # Documentation (Next.js)
-templates/                     # Project templates
-.build/                        # Build scripts (Nuke)
-```
-
-## Tech Stack
-
-| Component | Technology      |
-| --------- | --------------- |
-| Runtime   | .NET 8/9/10     |
-| SDK       | 10.0.102        |
-| Build     | Nuke.Build      |
-| Tests     | xUnit           |
-| Snapshots | CookieCrumble   |
-| Docs      | Next.js + React |
-
-## Coding Standards
-
-### C# Conventions
-
-- File-scoped namespaces: `namespace HotChocolate.Types;`
-- 4-space indentation
-- Use records for immutable types
-- Expression-bodied members preferred
-- No trailing whitespace
-
-### Naming Conventions
-
-- Projects: `HotChocolate.{Feature}`
-- Tests: `HotChocolate.{Feature}.Tests`
-- Interfaces: `I{Name}` prefix
-- Async methods: `{Name}Async` suffix
-
-### File Organization
-
-- One type per file (generally)
-- Test files mirror source structure
-- Snapshots in `__snapshots__/` folders
-
-## Testing Guidelines
-
-### Running Tests
+After adding or editing any `.graphql` document under `src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations`, regenerate the `.sha256` sidecars and verify them:
 
 ```bash
-# All tests
-./build.sh test
-
-# Specific project
-dotnet test src/HotChocolate/Core/test/Types.Tests/
-
-# Specific test
-dotnet test --filter "FullyQualifiedName~MyTestName"
+.github/scripts/nitro-aspire-operations.sh update \
+    --source src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations
+.github/scripts/nitro-aspire-operations.sh verify \
+    --source src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations \
+    --output /tmp/nitro-aspire-operations.json
 ```
 
-### Snapshot Testing
+Never hand-write or hand-edit a `.sha256` sidecar. The `update` command is the only source of sidecar content, and `verify` must pass before handoff.
 
-- Uses CookieCrumble library
-- Snapshots stored in `__snapshots__/`
-- Update snapshots by deleting old file and re-running test
+## Components
 
-### Test Structure
+### All components
 
-```csharp
-[Fact]
-public async Task MyFeature_Should_WorkCorrectly()
-{
-    // Arrange
-    var schema = await new ServiceCollection()
-        .AddGraphQL()
-        .AddQueryType<Query>()
-        .BuildSchemaAsync();
+#### Exceptions
 
-    // Act
-    var result = await schema.ExecuteAsync("{ field }");
+Create exceptions through the `ThrowHelper` class of the project you are editing instead of inlining `throw new ...`. Each project keeps its own, which centralizes exception messages.
+Example: `src/HotChocolate/Fusion/src/Fusion.Execution/Execution/ThrowHelper.cs`
 
-    // Assert
-    result.MatchSnapshot();
-}
-```
+#### GraphQL errors
 
-## Key Abstractions
+Create GraphQL errors through the `ErrorHelper` class of the project you are editing instead of inlining `ErrorBuilder` calls. Each project keeps its own, which centralizes error messages.
+Example: `src/HotChocolate/AspNetCore/src/AspNetCore.Pipeline/Utilities/ErrorHelper.cs`
 
-### GraphQL Types
+### src/Fusion
 
-```csharp
-public class BookType : ObjectType<Book>
-{
-    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
-    {
-        descriptor.Field(b => b.Title).Type<NonNullType<StringType>>();
-    }
-}
-```
+#### Execution nodes
 
-### DataLoader
+When you add a value to `ExecutionNodeType`, map it in two places:
 
-```csharp
-public class BookByIdDataLoader : BatchDataLoader<int, Book>
-{
-    protected override async Task<IReadOnlyDictionary<int, Book>> LoadBatchAsync(
-        IReadOnlyList<int> keys, CancellationToken ct)
-    {
-        // Batch load implementation
-    }
-}
-```
+- `ExecutePlanNodeSpan.KindValues` in `src/HotChocolate/Fusion/src/Fusion.Diagnostics/Spans/ExecutePlanNodeSpan.cs`
+- `GraphQL.Operation.Step.KindValues` in `src/HotChocolate/Diagnostics/src/Diagnostics.Core/SemanticConventions.cs`, if the kind needs a new constant. Tag values are snake_case.
 
-### Resolvers
+`KindValues` supplies the `graphql.operation.step.kind` tag on the step span. An unmapped type does not fail execution. `ExecutePlanNodeSpan.Start` falls back to an untagged span, so the node silently loses its kind in traces. The guard test `StepSpan_Should_MapEveryExecutionNodeTypeToAKindValue` in `src/HotChocolate/Fusion/test/Fusion.Diagnostics.Tests/FusionActivityExecutionDiagnosticListenerTests.cs` fails until the mapping exists.
 
-```csharp
-public class Query
-{
-    public Book GetBook([Service] IBookRepository repo, int id)
-        => repo.GetById(id);
-}
-```
+#### Operation planner version
 
-## Important Paths
+`OperationPlanner.Version` identifies planning behavior and is independent of the package version. Bump the minor version when an existing operation can plan differently, the major version when consumers must react to a new plan structure. Refactors, performance work and fixes that cannot change a plan do not bump it.
 
-| Path                 | Purpose              |
-| -------------------- | -------------------- |
-| `src/All.slnx`       | Open this in IDE     |
-| `global.json`        | .NET SDK version     |
-| `.editorconfig`      | Code style rules     |
-| `.build/Build.csproj`| Build configuration  |
-| `website/`           | Documentation source |
+#### Operation plan JSON format
 
-## Common Modifications
+`JsonOperationPlanFormatter` in `src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/Serialization/JsonOperationPlanFormatter.cs` writes the plan document that tooling consumes. Its shape is published as a JSON schema, so any change to the emitted JSON is a two part change:
 
-### Add New Type Extension
+1. Bump `JsonOperationPlanFormatter.FormatVersion`. It is written as the root `version` property and is the discriminator consumers pin against. Additive optional properties bump the minor version, anything that changes or removes an existing property bumps the major version.
+2. Add the matching variant to `website/public/schemas/fusion/operation-plan.json`, published at `https://chillicream.com/schemas/fusion/operation-plan.json`. Add a `#/$defs/<version>_plan` entry and the `allOf` branch that selects it for that root `version`, and list the new version in the root `version` enum. Every other definition is unprefixed and shared across versions. When a version changes one of them, fork only that definition to `<version>_<name>` and point the new plan at the fork, so a released version keeps validating exactly what it validated before.
 
-1. Create in `src/HotChocolate/Core/src/Types/Types/`
-2. Add tests in `src/HotChocolate/Core/test/Types.Tests/`
-3. Export from appropriate namespace
+The root `version` enum and the `allOf` branch that selects `v1_0_0_plan` are the pattern to copy: a new version adds one enum entry, one branch and one plan definition.
 
-### Add Database Integration
-
-1. Create project in `src/HotChocolate/Data/`
-2. Reference `HotChocolate.Execution`
-3. Implement `IQueryableExecutable` or similar
-
-### Modify Execution Pipeline
-
-1. Changes go in `src/HotChocolate/Core/src/Execution/`
-2. Middleware in `Processing/` directory
-3. Add tests covering the pipeline stage
-
-## Troubleshooting
-
-| Issue             | Solution                                   |
-| ----------------- | ------------------------------------------ |
-| Build fails       | Run `./init.sh` first                      |
-| Missing packages  | Run `./build.sh restore`                   |
-| Snapshot mismatch | Check `__snapshots__/` for expected output |
-| SDK not found     | Install .NET SDK 10.0.102                  |
-
-## Links
-
-- Documentation: `website/src/docs/`
-- Examples: `templates/`
-- Build scripts: `.build/`
+The internal `Format(IBufferWriter<byte>, Operation, ImmutableArray<ExecutionNode>)` overload feeds the SHA-256 that becomes `OperationPlan.Id`. It deliberately omits the `version` property, so leave it alone unless you intend to change every plan id.

@@ -40,7 +40,7 @@ public class UnsignedByteType : IntegerTypeBase<byte>
         : base(name, min, max, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

@@ -2,8 +2,8 @@ schema {
   mutation: SimpleMutationInputOverride
 }
 
-interface Error {
-  message: String!
+type SimpleMutationInputOverride {
+  doSomething(something: DoSomethingInput!): DoSomethingPayload!
 }
 
 type DoSomethingPayload {
@@ -15,8 +15,8 @@ type OutOfMemoryError implements Error {
   message: String!
 }
 
-type SimpleMutationInputOverride {
-  doSomething(something: DoSomethingInput!): DoSomethingPayload!
+interface Error {
+  message: String!
 }
 
 union DoSomethingError = OutOfMemoryError

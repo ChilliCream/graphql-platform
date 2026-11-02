@@ -13,6 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Validation.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
   </ItemGroup>
 

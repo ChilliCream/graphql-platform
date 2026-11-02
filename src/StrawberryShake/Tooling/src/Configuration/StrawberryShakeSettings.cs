@@ -31,6 +31,11 @@ public class StrawberryShakeSettings
     public bool? StrictSchemaValidation { get; set; }
 
     /// <summary>
+    /// Defines if fields whose return types differ only in nullability can be merged.
+    /// </summary>
+    public bool? EnableCovariantFieldMerging { get; set; }
+
+    /// <summary>
     /// Gets or sets the persisted operation hash algorithm.
     /// </summary>
     public string? HashAlgorithm { get; set; }

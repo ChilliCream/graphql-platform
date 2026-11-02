@@ -45,10 +45,20 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     public override void OnAfterCompleteName(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
+        if (completionContext.IsIntrospectionType)
+        {
+            return;
+        }
+
         if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
+                if (fieldDef.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 if (fieldDef.Features.TryGet(out PagingOptions? options)
                     && !fieldDef.HasListSizeDirective()
                     && ((fieldDef.Flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
@@ -78,10 +88,12 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                         slicingArgs.Length > 0
                             && (options.RequirePagingBoundaries ?? false);
 
+                    // The paging handlers cap the default page size at the max page size.
                     int? slicingArgumentDefaultValue = null;
                     if (_options.ApplySlicingArgumentDefaultValue)
                     {
-                        slicingArgumentDefaultValue = options.DefaultPageSize ?? DefaultPageSize;
+                        slicingArgumentDefaultValue =
+                            Math.Min(options.DefaultPageSize ?? DefaultPageSize, assumedSize);
                     }
 
                     fieldDef.AddDirective(
@@ -97,19 +109,19 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                 foreach (var argumentDef in fieldDef.Arguments)
                 {
                     if ((argumentDef.Flags & CoreFieldFlags.FilterArgument) == CoreFieldFlags.FilterArgument
-                        && _options.Sorting.DefaultSortArgumentCost.HasValue
-                        && !fieldDef.HasCostDirective())
-                    {
-                        argumentDef.AddDirective(
-                            new CostDirective(_options.Sorting.DefaultSortArgumentCost.Value),
-                            completionContext.DescriptorContext.TypeInspector);
-                    }
-                    else if ((argumentDef.Flags & CoreFieldFlags.SortArgument) == CoreFieldFlags.SortArgument
                         && _options.Filtering.DefaultFilterArgumentCost.HasValue
-                        && !fieldDef.HasCostDirective())
+                        && !argumentDef.HasCostDirective())
                     {
                         argumentDef.AddDirective(
                             new CostDirective(_options.Filtering.DefaultFilterArgumentCost.Value),
+                            completionContext.DescriptorContext.TypeInspector);
+                    }
+                    else if ((argumentDef.Flags & CoreFieldFlags.SortArgument) == CoreFieldFlags.SortArgument
+                        && _options.Sorting.DefaultSortArgumentCost.HasValue
+                        && !argumentDef.HasCostDirective())
+                    {
+                        argumentDef.AddDirective(
+                            new CostDirective(_options.Sorting.DefaultSortArgumentCost.Value),
                             completionContext.DescriptorContext.TypeInspector);
                     }
                 }
@@ -151,10 +163,20 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
+        if (completionContext.IsIntrospectionType)
+        {
+            return;
+        }
+
         if (configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
+                if (fieldDef.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 if ((fieldDef.PureResolver is null
                         || (fieldDef.Flags & CoreFieldFlags.TotalCount) == CoreFieldFlags.TotalCount)
                     && _options.DefaultResolverCost.HasValue

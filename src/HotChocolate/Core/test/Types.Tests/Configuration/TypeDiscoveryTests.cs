@@ -1,3 +1,4 @@
+using System.Numerics;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration;
@@ -49,6 +50,16 @@ public class TypeDiscoveryTests
     {
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithComputedProperty>()
+            .Create()
+            .ToString()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void InferGenericRecordStructInput()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<QueryTypeWithGenericRecordStructInput>()
             .Create()
             .ToString()
             .MatchSnapshot();
@@ -166,6 +177,16 @@ public class TypeDiscoveryTests
     {
         public int Foo(InputTypeWithReadOnlyProperties arg) => arg.Property1;
     }
+
+    public class QueryTypeWithGenericRecordStructInput
+    {
+        public string Foo(RangeSpec<int> range) => "bar";
+    }
+
+    public readonly record struct RangeSpec<T>(
+        T? Min,
+        T? Max)
+        where T : struct, IComparable<T>, IComparisonOperators<T, T, bool>;
 
     public class QueryTypeWithCustomLocalDate
     {

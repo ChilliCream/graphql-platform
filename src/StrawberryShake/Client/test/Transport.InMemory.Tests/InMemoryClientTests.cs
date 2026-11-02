@@ -46,7 +46,9 @@ public class InMemoryClientTests
 
         // act
         var ex =
-            await Record.ExceptionAsync(async () => await client.ExecuteAsync(null!));
+            await Record.ExceptionAsync(async () => await client.ExecuteAsync(
+                null!,
+                TestContext.Current.CancellationToken));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);
@@ -63,7 +65,7 @@ public class InMemoryClientTests
         // act
         var ex =
             await Record.ExceptionAsync(async () =>
-                await client.ExecuteAsync(operationRequest));
+                await client.ExecuteAsync(operationRequest, TestContext.Current.CancellationToken));
 
         // assert
         Assert.IsType<GraphQLClientException>(ex);
@@ -79,7 +81,7 @@ public class InMemoryClientTests
         client.Executor = executor;
 
         // act
-        await client.ExecuteAsync(operationRequest);
+        await client.ExecuteAsync(operationRequest, TestContext.Current.CancellationToken);
 
         // assert
         var request = Assert.IsType<HotChocolate.Execution.OperationRequest>(executor.Request);
@@ -108,7 +110,7 @@ public class InMemoryClientTests
                     It.IsAny<CancellationToken>()));
 
         // act
-        await client.ExecuteAsync(operationRequest);
+        await client.ExecuteAsync(operationRequest, TestContext.Current.CancellationToken);
 
         // assert
         interceptorMock

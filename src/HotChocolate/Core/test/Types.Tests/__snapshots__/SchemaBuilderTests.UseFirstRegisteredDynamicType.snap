@@ -1,5 +1,9 @@
-﻿schema {
+schema {
   query: Query
+}
+
+type Query {
+  foo: MyFoo
 }
 
 type MyBar {
@@ -8,8 +12,4 @@ type MyBar {
 
 type MyFoo {
   bar: String
-}
-
-type Query {
-  foo: MyFoo
 }

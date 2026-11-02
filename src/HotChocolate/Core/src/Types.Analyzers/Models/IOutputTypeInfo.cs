@@ -18,6 +18,21 @@ public interface IOutputTypeInfo : IDiagnosticsProvider
     string Name { get; }
 
     /// <summary>
+    /// Gets the schema type name info.
+    /// </summary>
+    TypeNameInfo? SchemaTypeName { get; }
+
+    /// <summary>
+    /// Gets the runtime type name info.
+    /// </summary>
+    TypeNameInfo? RuntimeTypeName { get; }
+
+    /// <summary>
+    /// Gets the registration key of the type.
+    /// </summary>
+    string? RegistrationKey { get; }
+
+    /// <summary>
     /// Gets the namespace that the generator shall use to generate the output type.
     /// </summary>
     string Namespace { get; }
@@ -33,38 +48,18 @@ public interface IOutputTypeInfo : IDiagnosticsProvider
     bool IsPublic { get; }
 
     /// <summary>
-    /// Gets the schema type symbol.
-    /// </summary>
-    INamedTypeSymbol? SchemaSchemaType { get; }
-
-    /// <summary>
-    /// Gets the full schema type name.
-    /// </summary>
-    string? SchemaTypeFullName { get; }
-
-    /// <summary>
     /// Specifies if this type info has a schema type.
     /// </summary>
 #if NET8_0_OR_GREATER
-    [MemberNotNull(nameof(RuntimeTypeFullName), nameof(RuntimeType))]
+    [MemberNotNull(nameof(SchemaTypeName))]
 #endif
     bool HasSchemaType { get; }
-
-    /// <summary>
-    /// Gets the runtime type symbol.
-    /// </summary>
-    INamedTypeSymbol? RuntimeType { get; }
-
-    /// <summary>
-    /// Gets the full runtime type name.
-    /// </summary>
-    string? RuntimeTypeFullName { get; }
 
     /// <summary>
     /// Specifies if this type info has a runtime type.
     /// </summary>
 #if NET8_0_OR_GREATER
-    [MemberNotNull(nameof(RuntimeTypeFullName), nameof(RuntimeType))]
+    [MemberNotNull(nameof(RuntimeTypeName))]
 #endif
     bool HasRuntimeType { get; }
 
@@ -87,11 +82,6 @@ public interface IOutputTypeInfo : IDiagnosticsProvider
     /// Specifies if the @inaccessible directive is annotated to this type.
     /// </summary>
     DirectiveScope Inaccessible { get; }
-
-    /// <summary>
-    /// Gets all attributes on this type.
-    /// </summary>
-    ImmutableArray<AttributeData> Attributes { get; }
 
     /// <summary>
     /// Gets descriptor attributes annotated to this type.

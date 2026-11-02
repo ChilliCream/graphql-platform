@@ -394,7 +394,8 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public byte ToByte()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -418,16 +419,16 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            IntValueKind.Byte => MemoryMarshal.Read<byte>(_value.AsSpan(1)),
-            IntValueKind.SByte => CastByte(MemoryMarshal.Read<sbyte>(_value.AsSpan(1))),
-            IntValueKind.Short => CastByte(MemoryMarshal.Read<short>(_value.AsSpan(1))),
-            IntValueKind.UShort => CastByte(MemoryMarshal.Read<ushort>(_value.AsSpan(1))),
-            IntValueKind.Int => CastByte(MemoryMarshal.Read<int>(_value.AsSpan(1))),
-            IntValueKind.UInt => CastByte(MemoryMarshal.Read<uint>(_value.AsSpan(1))),
-            IntValueKind.Long => CastByte(MemoryMarshal.Read<long>(_value.AsSpan(1))),
-            IntValueKind.ULong => CastByte(MemoryMarshal.Read<ulong>(_value.AsSpan(1))),
+            IntValueKind.Byte => MemoryMarshal.Read<byte>(cachedValue.AsSpan(1)),
+            IntValueKind.SByte => CastByte(MemoryMarshal.Read<sbyte>(cachedValue.AsSpan(1))),
+            IntValueKind.Short => CastByte(MemoryMarshal.Read<short>(cachedValue.AsSpan(1))),
+            IntValueKind.UShort => CastByte(MemoryMarshal.Read<ushort>(cachedValue.AsSpan(1))),
+            IntValueKind.Int => CastByte(MemoryMarshal.Read<int>(cachedValue.AsSpan(1))),
+            IntValueKind.UInt => CastByte(MemoryMarshal.Read<uint>(cachedValue.AsSpan(1))),
+            IntValueKind.Long => CastByte(MemoryMarshal.Read<long>(cachedValue.AsSpan(1))),
+            IntValueKind.ULong => CastByte(MemoryMarshal.Read<ulong>(cachedValue.AsSpan(1))),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
 
@@ -448,7 +449,8 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public short ToInt16()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -472,16 +474,16 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            IntValueKind.Byte => CastInt16(MemoryMarshal.Read<byte>(_value.AsSpan(1))),
-            IntValueKind.SByte => CastInt16(MemoryMarshal.Read<sbyte>(_value.AsSpan(1))),
-            IntValueKind.Short => MemoryMarshal.Read<short>(_value.AsSpan(1)),
-            IntValueKind.UShort => CastInt16(MemoryMarshal.Read<ushort>(_value.AsSpan(1))),
-            IntValueKind.Int => CastInt16(MemoryMarshal.Read<int>(_value.AsSpan(1))),
-            IntValueKind.UInt => CastInt16(MemoryMarshal.Read<uint>(_value.AsSpan(1))),
-            IntValueKind.Long => CastInt16(MemoryMarshal.Read<long>(_value.AsSpan(1))),
-            IntValueKind.ULong => CastInt16(MemoryMarshal.Read<ulong>(_value.AsSpan(1))),
+            IntValueKind.Byte => CastInt16(MemoryMarshal.Read<byte>(cachedValue.AsSpan(1))),
+            IntValueKind.SByte => CastInt16(MemoryMarshal.Read<sbyte>(cachedValue.AsSpan(1))),
+            IntValueKind.Short => MemoryMarshal.Read<short>(cachedValue.AsSpan(1)),
+            IntValueKind.UShort => CastInt16(MemoryMarshal.Read<ushort>(cachedValue.AsSpan(1))),
+            IntValueKind.Int => CastInt16(MemoryMarshal.Read<int>(cachedValue.AsSpan(1))),
+            IntValueKind.UInt => CastInt16(MemoryMarshal.Read<uint>(cachedValue.AsSpan(1))),
+            IntValueKind.Long => CastInt16(MemoryMarshal.Read<long>(cachedValue.AsSpan(1))),
+            IntValueKind.ULong => CastInt16(MemoryMarshal.Read<ulong>(cachedValue.AsSpan(1))),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
 
@@ -502,7 +504,8 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public int ToInt32()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -526,16 +529,16 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            IntValueKind.Byte => CastInt32(MemoryMarshal.Read<byte>(_value.AsSpan(1))),
-            IntValueKind.SByte => CastInt32(MemoryMarshal.Read<sbyte>(_value.AsSpan(1))),
-            IntValueKind.Short => CastInt32(MemoryMarshal.Read<short>(_value.AsSpan(1))),
-            IntValueKind.UShort => CastInt32(MemoryMarshal.Read<ushort>(_value.AsSpan(1))),
-            IntValueKind.Int => MemoryMarshal.Read<int>(_value.AsSpan(1)),
-            IntValueKind.UInt => CastInt32(MemoryMarshal.Read<uint>(_value.AsSpan(1))),
-            IntValueKind.Long => CastInt32(MemoryMarshal.Read<long>(_value.AsSpan(1))),
-            IntValueKind.ULong => CastInt32(MemoryMarshal.Read<ulong>(_value.AsSpan(1))),
+            IntValueKind.Byte => CastInt32(MemoryMarshal.Read<byte>(cachedValue.AsSpan(1))),
+            IntValueKind.SByte => CastInt32(MemoryMarshal.Read<sbyte>(cachedValue.AsSpan(1))),
+            IntValueKind.Short => CastInt32(MemoryMarshal.Read<short>(cachedValue.AsSpan(1))),
+            IntValueKind.UShort => CastInt32(MemoryMarshal.Read<ushort>(cachedValue.AsSpan(1))),
+            IntValueKind.Int => MemoryMarshal.Read<int>(cachedValue.AsSpan(1)),
+            IntValueKind.UInt => CastInt32(MemoryMarshal.Read<uint>(cachedValue.AsSpan(1))),
+            IntValueKind.Long => CastInt32(MemoryMarshal.Read<long>(cachedValue.AsSpan(1))),
+            IntValueKind.ULong => CastInt32(MemoryMarshal.Read<ulong>(cachedValue.AsSpan(1))),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
 
@@ -556,7 +559,8 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public long ToInt64()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -580,16 +584,16 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            IntValueKind.Byte => CastInt64(MemoryMarshal.Read<byte>(_value.AsSpan(1))),
-            IntValueKind.SByte => CastInt64(MemoryMarshal.Read<sbyte>(_value.AsSpan(1))),
-            IntValueKind.Short => CastInt64(MemoryMarshal.Read<short>(_value.AsSpan(1))),
-            IntValueKind.UShort => CastInt64(MemoryMarshal.Read<ushort>(_value.AsSpan(1))),
-            IntValueKind.Int => CastInt64(MemoryMarshal.Read<int>(_value.AsSpan(1))),
-            IntValueKind.UInt => CastInt64(MemoryMarshal.Read<uint>(_value.AsSpan(1))),
-            IntValueKind.Long => MemoryMarshal.Read<long>(_value.AsSpan(1)),
-            IntValueKind.ULong => CastInt64(MemoryMarshal.Read<ulong>(_value.AsSpan(1))),
+            IntValueKind.Byte => CastInt64(MemoryMarshal.Read<byte>(cachedValue.AsSpan(1))),
+            IntValueKind.SByte => CastInt64(MemoryMarshal.Read<sbyte>(cachedValue.AsSpan(1))),
+            IntValueKind.Short => CastInt64(MemoryMarshal.Read<short>(cachedValue.AsSpan(1))),
+            IntValueKind.UShort => CastInt64(MemoryMarshal.Read<ushort>(cachedValue.AsSpan(1))),
+            IntValueKind.Int => CastInt64(MemoryMarshal.Read<int>(cachedValue.AsSpan(1))),
+            IntValueKind.UInt => CastInt64(MemoryMarshal.Read<uint>(cachedValue.AsSpan(1))),
+            IntValueKind.Long => MemoryMarshal.Read<long>(cachedValue.AsSpan(1)),
+            IntValueKind.ULong => CastInt64(MemoryMarshal.Read<ulong>(cachedValue.AsSpan(1))),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
 
@@ -610,7 +614,8 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public sbyte ToSByte()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -634,16 +639,16 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            IntValueKind.Byte => CastSByte(MemoryMarshal.Read<byte>(_value.AsSpan(1))),
-            IntValueKind.SByte => MemoryMarshal.Read<sbyte>(_value.AsSpan(1)),
-            IntValueKind.Short => CastSByte(MemoryMarshal.Read<short>(_value.AsSpan(1))),
-            IntValueKind.UShort => CastSByte(MemoryMarshal.Read<ushort>(_value.AsSpan(1))),
-            IntValueKind.Int => CastSByte(MemoryMarshal.Read<int>(_value.AsSpan(1))),
-            IntValueKind.UInt => CastSByte(MemoryMarshal.Read<uint>(_value.AsSpan(1))),
-            IntValueKind.Long => CastSByte(MemoryMarshal.Read<long>(_value.AsSpan(1))),
-            IntValueKind.ULong => CastSByte(MemoryMarshal.Read<ulong>(_value.AsSpan(1))),
+            IntValueKind.Byte => CastSByte(MemoryMarshal.Read<byte>(cachedValue.AsSpan(1))),
+            IntValueKind.SByte => MemoryMarshal.Read<sbyte>(cachedValue.AsSpan(1)),
+            IntValueKind.Short => CastSByte(MemoryMarshal.Read<short>(cachedValue.AsSpan(1))),
+            IntValueKind.UShort => CastSByte(MemoryMarshal.Read<ushort>(cachedValue.AsSpan(1))),
+            IntValueKind.Int => CastSByte(MemoryMarshal.Read<int>(cachedValue.AsSpan(1))),
+            IntValueKind.UInt => CastSByte(MemoryMarshal.Read<uint>(cachedValue.AsSpan(1))),
+            IntValueKind.Long => CastSByte(MemoryMarshal.Read<long>(cachedValue.AsSpan(1))),
+            IntValueKind.ULong => CastSByte(MemoryMarshal.Read<ulong>(cachedValue.AsSpan(1))),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
 
@@ -664,7 +669,8 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public ushort ToUInt16()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -688,16 +694,16 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            IntValueKind.Byte => CastUInt16(MemoryMarshal.Read<byte>(_value.AsSpan(1))),
-            IntValueKind.SByte => CastUInt16(MemoryMarshal.Read<sbyte>(_value.AsSpan(1))),
-            IntValueKind.Short => CastUInt16(MemoryMarshal.Read<short>(_value.AsSpan(1))),
-            IntValueKind.UShort => MemoryMarshal.Read<ushort>(_value.AsSpan(1)),
-            IntValueKind.Int => CastUInt16(MemoryMarshal.Read<int>(_value.AsSpan(1))),
-            IntValueKind.UInt => CastUInt16(MemoryMarshal.Read<uint>(_value.AsSpan(1))),
-            IntValueKind.Long => CastUInt16(MemoryMarshal.Read<long>(_value.AsSpan(1))),
-            IntValueKind.ULong => CastUInt16(MemoryMarshal.Read<ulong>(_value.AsSpan(1))),
+            IntValueKind.Byte => CastUInt16(MemoryMarshal.Read<byte>(cachedValue.AsSpan(1))),
+            IntValueKind.SByte => CastUInt16(MemoryMarshal.Read<sbyte>(cachedValue.AsSpan(1))),
+            IntValueKind.Short => CastUInt16(MemoryMarshal.Read<short>(cachedValue.AsSpan(1))),
+            IntValueKind.UShort => MemoryMarshal.Read<ushort>(cachedValue.AsSpan(1)),
+            IntValueKind.Int => CastUInt16(MemoryMarshal.Read<int>(cachedValue.AsSpan(1))),
+            IntValueKind.UInt => CastUInt16(MemoryMarshal.Read<uint>(cachedValue.AsSpan(1))),
+            IntValueKind.Long => CastUInt16(MemoryMarshal.Read<long>(cachedValue.AsSpan(1))),
+            IntValueKind.ULong => CastUInt16(MemoryMarshal.Read<ulong>(cachedValue.AsSpan(1))),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
 
@@ -718,7 +724,8 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public uint ToUInt32()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -742,16 +749,16 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            IntValueKind.Byte => CastUInt32(MemoryMarshal.Read<byte>(_value.AsSpan(1))),
-            IntValueKind.SByte => CastUInt32(MemoryMarshal.Read<sbyte>(_value.AsSpan(1))),
-            IntValueKind.Short => CastUInt32(MemoryMarshal.Read<short>(_value.AsSpan(1))),
-            IntValueKind.UShort => CastUInt32(MemoryMarshal.Read<ushort>(_value.AsSpan(1))),
-            IntValueKind.Int => CastUInt32(MemoryMarshal.Read<int>(_value.AsSpan(1))),
-            IntValueKind.UInt => MemoryMarshal.Read<uint>(_value.AsSpan(1)),
-            IntValueKind.Long => CastUInt32(MemoryMarshal.Read<long>(_value.AsSpan(1))),
-            IntValueKind.ULong => CastUInt32(MemoryMarshal.Read<ulong>(_value.AsSpan(1))),
+            IntValueKind.Byte => CastUInt32(MemoryMarshal.Read<byte>(cachedValue.AsSpan(1))),
+            IntValueKind.SByte => CastUInt32(MemoryMarshal.Read<sbyte>(cachedValue.AsSpan(1))),
+            IntValueKind.Short => CastUInt32(MemoryMarshal.Read<short>(cachedValue.AsSpan(1))),
+            IntValueKind.UShort => CastUInt32(MemoryMarshal.Read<ushort>(cachedValue.AsSpan(1))),
+            IntValueKind.Int => CastUInt32(MemoryMarshal.Read<int>(cachedValue.AsSpan(1))),
+            IntValueKind.UInt => MemoryMarshal.Read<uint>(cachedValue.AsSpan(1)),
+            IntValueKind.Long => CastUInt32(MemoryMarshal.Read<long>(cachedValue.AsSpan(1))),
+            IntValueKind.ULong => CastUInt32(MemoryMarshal.Read<ulong>(cachedValue.AsSpan(1))),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
 
@@ -772,7 +779,8 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
     /// </summary>
     public ulong ToUInt64()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -796,16 +804,16 @@ public sealed class IntValueNode : IValueNode<string>, IIntValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            IntValueKind.Byte => CastUInt64(MemoryMarshal.Read<byte>(_value.AsSpan(1))),
-            IntValueKind.SByte => CastUInt64(MemoryMarshal.Read<sbyte>(_value.AsSpan(1))),
-            IntValueKind.Short => CastUInt64(MemoryMarshal.Read<short>(_value.AsSpan(1))),
-            IntValueKind.UShort => CastUInt64(MemoryMarshal.Read<ushort>(_value.AsSpan(1))),
-            IntValueKind.Int => CastUInt64(MemoryMarshal.Read<int>(_value.AsSpan(1))),
-            IntValueKind.UInt => CastUInt64(MemoryMarshal.Read<uint>(_value.AsSpan(1))),
-            IntValueKind.Long => CastUInt64(MemoryMarshal.Read<long>(_value.AsSpan(1))),
-            IntValueKind.ULong => MemoryMarshal.Read<ulong>(_value.AsSpan(1)),
+            IntValueKind.Byte => CastUInt64(MemoryMarshal.Read<byte>(cachedValue.AsSpan(1))),
+            IntValueKind.SByte => CastUInt64(MemoryMarshal.Read<sbyte>(cachedValue.AsSpan(1))),
+            IntValueKind.Short => CastUInt64(MemoryMarshal.Read<short>(cachedValue.AsSpan(1))),
+            IntValueKind.UShort => CastUInt64(MemoryMarshal.Read<ushort>(cachedValue.AsSpan(1))),
+            IntValueKind.Int => CastUInt64(MemoryMarshal.Read<int>(cachedValue.AsSpan(1))),
+            IntValueKind.UInt => CastUInt64(MemoryMarshal.Read<uint>(cachedValue.AsSpan(1))),
+            IntValueKind.Long => CastUInt64(MemoryMarshal.Read<long>(cachedValue.AsSpan(1))),
+            IntValueKind.ULong => MemoryMarshal.Read<ulong>(cachedValue.AsSpan(1)),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
 

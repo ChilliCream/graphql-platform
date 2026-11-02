@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
@@ -35,21 +34,25 @@ public class NodeDescriptor<TNode>
         var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Configuration;
 
         var configuration = new OnCompleteTypeSystemConfigurationTask(
-            (c, d) => OnCompleteConfiguration(c, (ObjectTypeConfiguration)d),
+            (_, _) => OnConfigureResolver(),
             ownerDef,
             ApplyConfigurationOn.AfterNaming);
 
         ownerDef.Tasks.Add(configuration);
+
+        // the resolver pipeline is compiled before completion,
+        // when the directive types of the resolver are available.
+        _typeDescriptor.Extend().OnBeforeCompletion(CompleteResolver);
     }
 
-    private void OnCompleteConfiguration(
-        ITypeCompletionContext context,
-        ObjectTypeConfiguration configuration)
+    private void OnConfigureResolver()
     {
         if (Configuration.ResolverField is null)
         {
+#pragma warning disable IL2087 // 'TNode' does not satisfy DAM requirements
             var resolverMethod =
                 Context.TypeInspector.GetNodeResolverMethod(typeof(TNode), typeof(TNode));
+#pragma warning restore IL2087
 
             // we allow a node to not have a node resolver.
             // this opens up type interceptors bringing these in later.
@@ -64,8 +67,6 @@ public class NodeDescriptor<TNode>
                 ConfigureNodeField();
             }
         }
-
-        CompleteResolver(context, configuration);
     }
 
     protected override IObjectFieldDescriptor ConfigureNodeField()
@@ -144,16 +145,24 @@ public class NodeDescriptor<TNode>
     /// <inheritdoc cref="INodeDescriptor{TNode}.ResolveNodeWith{TResolver}()"/>
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
     {
+#pragma warning disable IL2087 // 'TNode'/'TResolver' does not satisfy DAM requirements
         return ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 typeof(TNode),
                 typeof(TResolver))!);
+#pragma warning restore IL2087
     }
 
     /// <inheritdoc cref="INodeDescriptor{TNode}.ResolveNodeWith(Type)"/>
-    public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
-        ResolveNodeWith(
+    public IObjectFieldDescriptor ResolveNodeWith(Type type)
+    {
+#pragma warning disable IL2087 // 'TNode' does not satisfy DAM requirements
+#pragma warning disable IL2067 // 'type' does not satisfy DAM requirements
+        return ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 typeof(TNode),
                 type)!);
+#pragma warning restore IL2067
+#pragma warning restore IL2087
+    }
 }

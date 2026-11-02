@@ -5,5 +5,6 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/CommandLine.Tests/Nitro.CommandLine.Tests.csproj" />
+    <Project Path="test/CommandLine.Smoke.Tests/Nitro.CommandLine.Smoke.Tests.csproj" />
   </Folder>
 </Solution>

@@ -41,4 +41,11 @@ public static class CommonMiddleware
     /// </summary>
     public static RequestMiddlewareConfiguration SkipWarmupExecution
         => SkipWarmupExecutionMiddleware.Create();
+
+    /// <summary>
+    /// Gets the middleware configuration for limiting the number of concurrent
+    /// GraphQL executions against the current schema.
+    /// </summary>
+    public static RequestMiddlewareConfiguration ConcurrencyGate
+        => ConcurrencyGateMiddleware.Create();
 }

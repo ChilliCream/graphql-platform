@@ -1,0 +1,23 @@
+schema {
+  query: Query
+}
+
+type Query {
+  publisher: String!
+  reviews: [Review!]!
+}
+
+type Review implements Node {
+  body: String!
+  id: ID!
+  stars: Int!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+directive @defer(if: Boolean = true, label: String) on
+  | FRAGMENT_SPREAD
+  | INLINE_FRAGMENT

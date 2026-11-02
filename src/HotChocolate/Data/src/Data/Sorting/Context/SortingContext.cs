@@ -159,10 +159,12 @@ public class SortingContext : ISortingContext
             var type = context.Types.Peek();
             if (!type.Fields.TryGetField(node.Name.Value, out var inputField))
             {
+                context.Fields.Push(null);
                 context.Parents.Push(null);
                 return base.Leave(node, context);
             }
 
+            context.Fields.Push(inputField);
             var fieldType = inputField.Type.NamedType();
 
             if (inputField is SortField field)
@@ -186,12 +188,12 @@ public class SortingContext : ISortingContext
             ObjectFieldNode node,
             Context context)
         {
-            var type = context.Types.Peek();
+            var inputField = context.Fields.Pop();
+            var expression = context.Parents.Pop();
 
-            if (type.Fields.TryGetField(node.Name.Value, out var inputField))
+            if (inputField is not null)
             {
                 var fieldType = inputField.Type.NamedType();
-                var expression = context.Parents.Pop();
 
                 if (fieldType.IsInputObjectType())
                 {
@@ -202,10 +204,6 @@ public class SortingContext : ISortingContext
                     var ascending = node.Value.Value?.Equals("ASC") ?? true;
                     context.Completed.Add((expression, ascending, expression.Type));
                 }
-            }
-            else
-            {
-                context.Parents.Pop();
             }
 
             return base.Leave(node, context);
@@ -229,6 +227,8 @@ public class SortingContext : ISortingContext
         public class Context
         {
             public Stack<InputObjectType> Types { get; } = new();
+
+            public Stack<InputField?> Fields { get; } = new();
 
             public Stack<Expression?> Parents { get; } = new();
 

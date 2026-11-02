@@ -1,8 +1,11 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Interceptors;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -18,15 +21,27 @@ internal sealed class __Schema : ObjectType
         var typeListType = Parse($"[{nameof(__Type)}!]!");
         var typeType = Create(nameof(__Type));
         var nonNullTypeType = Parse($"{nameof(__Type)}!");
+        var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
         var directiveListType = Parse($"[{nameof(__Directive)}!]!");
         var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
+        var optInFeatureStabilityListType = Parse($"[{nameof(__OptInFeatureStability)}!]!");
+
+        var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
+        var objectDeprecationEnabled = context.DescriptorContext.Options.EnableObjectDeprecation;
 
         var def = new ObjectTypeConfiguration(Names.__Schema, Schema_Description, typeof(ISchemaDefinition))
         {
             Fields =
                 {
                     new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                    new(Names.Types, Schema_Types, typeListType, pureResolver: Resolvers.Types),
+                    new(
+                        Names.Types,
+                        Schema_Types,
+                        typeListType,
+                        pureResolver: objectDeprecationEnabled
+                            ? Resolvers.TypesWithDeprecation
+                            : Resolvers.Types),
                     new(Names.QueryType,
                         Schema_QueryType,
                         nonNullTypeType,
@@ -42,7 +57,19 @@ internal sealed class __Schema : ObjectType
                     new(Names.Directives,
                         Schema_Directives,
                         directiveListType,
-                        pureResolver: Resolvers.Directives)
+                        pureResolver: optInFeaturesEnabled
+                            ? Resolvers.DirectivesWithOptIn
+                            : Resolvers.Directives)
+                    {
+                        Arguments =
+                        {
+                            new(Names.IncludeDeprecated, type: nonNullBooleanType)
+                            {
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false
+                            }
+                        }
+                    }
                 }
         };
 
@@ -52,6 +79,34 @@ internal sealed class __Schema : ObjectType
                 Names.AppliedDirectives,
                 type: appDirectiveListType,
                 pureResolver: Resolvers.AppliedDirectives));
+        }
+
+        if (optInFeaturesEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.Directives)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Add(new(
+                Names.OptInFeatures,
+                type: nonNullStringListType,
+                pureResolver: Resolvers.OptInFeatures));
+
+            def.Fields.Add(new(
+                Names.OptInFeatureStability,
+                type: optInFeatureStabilityListType,
+                pureResolver: Resolvers.OptInFeatureStability));
+        }
+
+        if (objectDeprecationEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.Types)
+                .Arguments
+                .Add(new(Names.IncludeDeprecated, type: nonNullBooleanType)
+                {
+                    DefaultValue = BooleanValueNode.False,
+                    RuntimeDefaultValue = false
+                });
         }
 
         return def;
@@ -65,6 +120,15 @@ internal sealed class __Schema : ObjectType
         public static object Types(IResolverContext context)
             => context.Parent<ISchemaDefinition>().Types;
 
+        public static object TypesWithDeprecation(IResolverContext context)
+        {
+            var types = context.Parent<ISchemaDefinition>().Types;
+
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? types
+                : types.Where(t => t is not IObjectTypeDefinition o || !o.IsDeprecated);
+        }
+
         public static object QueryType(IResolverContext context)
             => context.Parent<ISchemaDefinition>().QueryType;
 
@@ -74,14 +138,36 @@ internal sealed class __Schema : ObjectType
         public static object? SubscriptionType(IResolverContext context)
             => context.Parent<ISchemaDefinition>().SubscriptionType;
 
-        public static object Directives(IResolverContext context)
-            => context.Parent<ISchemaDefinition>()
+        public static IEnumerable<IDirectiveDefinition> Directives(IResolverContext context)
+        {
+            var directiveDefinitions = context.Parent<ISchemaDefinition>()
                 .DirectiveDefinitions
                 .Where(t => Unsafe.As<DirectiveType>(t).IsPublic);
+
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? directiveDefinitions
+                : directiveDefinitions.Where(t => !t.IsDeprecated);
+        }
+
+        public static IEnumerable<IDirectiveDefinition> DirectivesWithOptIn(IResolverContext context)
+        {
+            var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+            return Directives(context).Where(
+                t => OptInIntrospectionHelper.IsIncluded(t.Directives, includeOptIn));
+        }
 
         public static object AppliedDirectives(IResolverContext context)
             => context.Parent<ISchemaDefinition>().Directives
                 .Where(t => Unsafe.As<DirectiveType>(t).IsPublic)
+                .Select(d => d.ToSyntaxNode());
+
+        public static object OptInFeatures(IResolverContext context)
+            => context.Parent<ISchemaDefinition>().Features.GetRequired<OptInFeatures>();
+
+        public static object OptInFeatureStability(IResolverContext context)
+            => context.Parent<ISchemaDefinition>().Directives
+                .Where(t => t.Definition is OptInFeatureStabilityDirectiveType)
                 .Select(d => d.ToSyntaxNode());
     }
 
@@ -95,7 +181,11 @@ internal sealed class __Schema : ObjectType
         public const string MutationType = "mutationType";
         public const string SubscriptionType = "subscriptionType";
         public const string Directives = "directives";
+        public const string IncludeDeprecated = "includeDeprecated";
+        public const string IncludeOptIn = "includeOptIn";
         public const string AppliedDirectives = "appliedDirectives";
+        public const string OptInFeatures = "optInFeatures";
+        public const string OptInFeatureStability = "optInFeatureStability";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

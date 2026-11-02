@@ -42,14 +42,24 @@ internal sealed partial class OperationContext
     }
 
     /// <summary>
-    /// Gets the include flags for the current request.
+    /// Gets the include condition flags for the current request.
     /// </summary>
-    public ulong IncludeFlags { get; private set; }
+    public ConditionFlags IncludeConditionFlags { get; private set; }
 
     /// <summary>
-    /// Gets the include flags for the current request.
+    /// Gets the defer condition flags for the current request.
     /// </summary>
-    public ulong DeferFlags { get; private set; }
+    public ConditionFlags DeferConditionFlags { get; private set; }
+
+    /// <summary>
+    /// Gets the include flags for condition indexes 0 through 63.
+    /// </summary>
+    public ulong IncludeFlags => IncludeConditionFlags.Word0;
+
+    /// <summary>
+    /// Gets the defer flags for condition indexes 0 through 63.
+    /// </summary>
+    public ulong DeferFlags => DeferConditionFlags.Word0;
 
     /// <summary>
     /// Gets the value representing the instance of the
@@ -74,7 +84,9 @@ internal sealed partial class OperationContext
     /// <param name="typeContext">
     /// The type context.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The compiled selection set for the given selection and type.
+    /// </returns>
     public SelectionSet CollectFields(Selection selection, ObjectType typeContext)
     {
         AssertInitialized();

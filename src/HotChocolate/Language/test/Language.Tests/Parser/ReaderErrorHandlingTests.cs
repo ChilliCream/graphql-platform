@@ -28,6 +28,7 @@ public class ReaderErrorHandlingTests
     [InlineData("1.")]
     [InlineData("1e")]
     [InlineData("1e+")]
+    [InlineData("1e-")]
     [InlineData("\"abc\\")]
     [InlineData("\"\"\"abc\"")]
     [InlineData("\"\"\"abc\\\"\"")]

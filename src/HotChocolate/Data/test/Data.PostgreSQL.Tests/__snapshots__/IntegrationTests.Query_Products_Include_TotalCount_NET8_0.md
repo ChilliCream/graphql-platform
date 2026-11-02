@@ -30,4 +30,3 @@ FROM "Products" AS p
 ORDER BY p."Name" DESC, p."Id"
 LIMIT @__p_0
 ```
-

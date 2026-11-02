@@ -1,0 +1,47 @@
+operation:
+  - document: |
+      {
+        items {
+          __typename @fusion__requirement
+          id
+          id @fusion__requirement
+          common
+          extra
+        }
+        alive
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: catalog
+    operation: |
+      query Op_123456789101112_1 {
+        items {
+          __typename
+          id
+          common
+        }
+        alive
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: extra
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Item {
+            extra
+          }
+        }
+      }
+    source: $._entities
+    target: $.items
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

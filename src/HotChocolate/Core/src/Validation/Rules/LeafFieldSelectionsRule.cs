@@ -5,6 +5,13 @@ namespace HotChocolate.Validation.Rules;
 
 internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
 {
+    private readonly bool _enableEmptySelectionSets;
+
+    public LeafFieldSelectionsRule(bool enableEmptySelectionSets = false)
+    {
+        _enableEmptySelectionSets = enableEmptySelectionSets;
+    }
+
     public ushort Priority => ushort.MaxValue;
 
     public bool IsCacheable => true;
@@ -22,10 +29,13 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
             {
                 if (operationDef.SelectionSet.Selections.Count == 0)
                 {
-                    context.ReportError(
-                        context.NoSelectionOnRootType(
-                            operationDef,
-                            rootType));
+                    if (!_enableEmptySelectionSets || operationDef.Operation == OperationType.Subscription)
+                    {
+                        context.ReportError(
+                            context.NoSelectionOnRootType(
+                                operationDef,
+                                rootType));
+                    }
 
                     continue;
                 }
@@ -40,6 +50,16 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
         SelectionSetNode selectionSet,
         IType type)
     {
+        if (selectionSet.Selections.Count == 0)
+        {
+            if (!_enableEmptySelectionSets)
+            {
+                context.ReportError(context.NoSelectionOnFragment(selectionSet, type));
+            }
+
+            return;
+        }
+
         foreach (var selection in selectionSet.Selections)
         {
             if (selection is FieldNode field)
@@ -80,7 +100,25 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
         FieldNode field,
         IType parentType)
     {
-        if (parentType is not IComplexTypeDefinition complex
+        var namedParentType = parentType.NamedType();
+
+        // __typename can be selected on unions and interfaces, which don't have this field,
+        // so we need this special case for it.
+        if (IntrospectionFieldNames.TypeName.Equals(field.Name.Value, StringComparison.Ordinal))
+        {
+            if (field.SelectionSet is not null)
+            {
+                context.ReportError(
+                    context.LeafFieldsCannotHaveSelections(
+                        field,
+                        namedParentType,
+                        new NonNullType(context.Schema.Types["String"])));
+            }
+
+            return;
+        }
+
+        if (namedParentType is not IComplexTypeDefinition complex
             || !complex.Fields.TryGetField(field.Name.Value, out var fieldDef))
         {
             // handled by other rules like KnownFieldNames
@@ -99,10 +137,18 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
         }
         else
         {
-            if (field.SelectionSet is null or { Selections.Count: 0 })
+            if (field.SelectionSet is null)
             {
                 context.ReportError(
                     context.NoSelectionOnCompositeField(field, complex, fieldDef.Type));
+            }
+            else if (field.SelectionSet.Selections.Count == 0)
+            {
+                if (!_enableEmptySelectionSets)
+                {
+                    context.ReportError(
+                        context.NoSelectionOnCompositeField(field, complex, fieldDef.Type));
+                }
             }
             else
             {

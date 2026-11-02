@@ -1,0 +1,16 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+interface Post {
+  id: ID!
+  createdAt: String!
+}
+
+type ImagePost implements Post @key(fields: "id") {
+  id: ID!
+  createdAt: String!
+}
+
+type Query {
+  feed: [Post]
+}

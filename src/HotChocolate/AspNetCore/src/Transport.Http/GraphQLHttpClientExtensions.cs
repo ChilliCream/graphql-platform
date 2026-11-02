@@ -1,5 +1,6 @@
 #if FUSION
-using HotChocolate.Transport;
+using System.Text;
+using HotChocolate.Fusion.Execution;
 #endif
 
 #if FUSION
@@ -33,10 +34,21 @@ public static class GraphQLHttpClientExtensions
         string query,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return GetAsync(client, operation, cancellationToken);
     }
 
+#if !FUSION
     /// <summary>
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
@@ -132,6 +144,7 @@ public static class GraphQLHttpClientExtensions
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
     }
+#endif
 
     /// <summary>
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
@@ -157,7 +170,17 @@ public static class GraphQLHttpClientExtensions
         Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return uri is null
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
@@ -187,7 +210,17 @@ public static class GraphQLHttpClientExtensions
         string? uri = null,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return uri is null
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
@@ -313,10 +346,21 @@ public static class GraphQLHttpClientExtensions
         string query,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return PostAsync(client, operation, cancellationToken);
     }
 
+#if !FUSION
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
@@ -344,6 +388,7 @@ public static class GraphQLHttpClientExtensions
         var operation = new OperationRequest(query, variables: variables);
         return PostAsync(client, operation, cancellationToken);
     }
+#endif
 
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
@@ -369,7 +414,17 @@ public static class GraphQLHttpClientExtensions
         Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return uri is null
             ? PostAsync(client, operation, cancellationToken)
             : PostAsync(client, operation, uri, cancellationToken);
@@ -399,12 +454,23 @@ public static class GraphQLHttpClientExtensions
         string? uri = null,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return uri is null
             ? PostAsync(client, operation, cancellationToken)
             : PostAsync(client, operation, uri, cancellationToken);
     }
 
+#if !FUSION
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
@@ -472,6 +538,7 @@ public static class GraphQLHttpClientExtensions
             ? PostAsync(client, operation, cancellationToken)
             : PostAsync(client, operation, uri, cancellationToken);
     }
+#endif
 
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
@@ -756,6 +823,418 @@ public static class GraphQLHttpClientExtensions
         var request = new GraphQLHttpRequest(batch, uri)
         {
             Method = GraphQLHttpMethod.Post
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        string query,
+        CancellationToken cancellationToken = default)
+    {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
+        var operation = new OperationRequest(query);
+#endif
+        return QueryAsync(client, operation, cancellationToken);
+    }
+
+#if !FUSION
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="variables">
+    /// The variables of the operation.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        string query,
+        IReadOnlyDictionary<string, object?>? variables,
+        CancellationToken cancellationToken = default)
+    {
+        var operation = new OperationRequest(query, variables: variables);
+        return QueryAsync(client, operation, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="variables">
+    /// The variables of the operation.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        string query,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        Uri? uri = null,
+        CancellationToken cancellationToken = default)
+    {
+        var operation = new OperationRequest(query, variables: variables);
+        return uri is null
+            ? QueryAsync(client, operation, cancellationToken)
+            : QueryAsync(client, operation, uri, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="variables">
+    /// The variables of the operation.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        string query,
+        IReadOnlyDictionary<string, object?>? variables = null,
+        string? uri = null,
+        CancellationToken cancellationToken = default)
+    {
+        var operation = new OperationRequest(query, variables: variables);
+        return uri is null
+            ? QueryAsync(client, operation, cancellationToken)
+            : QueryAsync(client, operation, uri, cancellationToken);
+    }
+#endif
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        string query,
+        Uri? uri = null,
+        CancellationToken cancellationToken = default)
+    {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
+        var operation = new OperationRequest(query);
+#endif
+        return uri is null
+            ? QueryAsync(client, operation, cancellationToken)
+            : QueryAsync(client, operation, uri, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="query">
+    /// The GraphQL query string.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        string query,
+        string? uri = null,
+        CancellationToken cancellationToken = default)
+    {
+#if FUSION
+        var operation = new OperationRequest(
+            Encoding.UTF8.GetBytes(query),
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
+        var operation = new OperationRequest(query);
+#endif
+        return uri is null
+            ? QueryAsync(client, operation, cancellationToken)
+            : QueryAsync(client, operation, uri, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="operation">
+    /// The <see cref="OperationRequest"/> to send.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        OperationRequest operation,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var request = new GraphQLHttpRequest(operation)
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var request = new GraphQLHttpRequest(batch)
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="operation">
+    /// The <see cref="OperationRequest"/> to send.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        OperationRequest operation,
+        string uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(operation, new Uri(uri))
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        string uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(batch, new Uri(uri))
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="operation">
+    /// The <see cref="OperationRequest"/> to send.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        OperationRequest operation,
+        Uri uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(operation, uri)
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        Uri uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(batch, uri)
+        {
+            Method = GraphQLHttpMethod.Query
         };
 
         return client.SendAsync(request, cancellationToken);

@@ -1,6 +1,5 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
-using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -8,6 +7,27 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
     protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
+    public override void WriteBeginClass(IOutputTypeInfo type)
+    {
+        if (type is RootTypeInfo { IsStatic: false } rootType)
+        {
+            Writer.WriteIndentedLine(
+                "{0} partial class {1}",
+                rootType.IsPublic ? "public" : "internal",
+                rootType.Name);
+            Writer.WriteIndentedLine("{");
+            Writer.IncreaseIndent();
+            return;
+        }
+
+        base.WriteBeginClass(type);
+    }
+
+    protected override string GetInstanceReceiver(
+        string fullyQualifiedTypeName,
+        string contextExpression = "context")
+        => $"{contextExpression}.Resolver<{fullyQualifiedTypeName}>()";
 
     public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
@@ -26,7 +46,7 @@ public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
         using (Writer.IncreaseIndent())
         {
             WriteInitializationBase(
-                rootType.SchemaSchemaType.ToFullyQualified(),
+                rootType.SchemaTypeName.FullyQualifiedName,
                 rootType.Resolvers.Length > 0,
                 rootType.Resolvers.Any(t => t.RequiresParameterBindings),
                 rootType.DescriptorAttributes,

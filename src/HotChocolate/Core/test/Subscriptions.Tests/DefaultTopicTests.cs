@@ -1,6 +1,5 @@
 using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Tests;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions;
 
@@ -12,7 +11,7 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
         var sessionMock = new StubAsyncDisposableSession();
         var pubSub = new NoOpPubSub(sessionMock, new SubscriptionTestDiagnostics(outputHelper));
 
-        var sourceStream = await pubSub.SubscribeAsync<string>("topic");
+        var sourceStream = await pubSub.SubscribeAsync<string>("topic", TestContext.Current.CancellationToken);
         await sourceStream.DisposeAsync();
 
         SpinWait.SpinUntil(() => sessionMock.AsyncDisposableCalled, TimeSpan.FromSeconds(5));

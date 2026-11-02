@@ -1,0 +1,7 @@
+{
+  "message": "InputObject `E` has no fields declared.",
+  "code": "TS_MISSING_TYPE",
+  "type": "E",
+  "extensions": {}
+}
+

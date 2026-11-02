@@ -2,13 +2,13 @@ schema {
   query: QueryType
 }
 
-type Foo {
-  bar: String!
-}
-
 type QueryType {
   foos(order: [FooSortInput!]): [Foo]
   foosBar(order: [Bar_FooSortInput!]): [Foo]
+}
+
+type Foo {
+  bar: String!
 }
 
 input Bar_FooSortInput {

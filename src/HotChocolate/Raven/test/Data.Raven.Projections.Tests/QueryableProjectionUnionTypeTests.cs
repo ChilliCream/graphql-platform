@@ -70,12 +70,13 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "As currently not supported")]
@@ -116,12 +117,13 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "As currently not supported")]
@@ -148,12 +150,13 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "As currently not supported")]
@@ -180,12 +183,13 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact(Skip = "As currently not supported")]
@@ -207,12 +211,13 @@ public class QueryableProjectionUnionTypeTests
                                 }
                             }
                         }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create().AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static void ConfigureSchema(IRequestExecutorBuilder builder)

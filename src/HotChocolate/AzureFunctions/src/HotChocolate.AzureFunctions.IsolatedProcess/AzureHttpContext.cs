@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -20,11 +19,6 @@ internal sealed class AzureHttpContext : HttpContext
         _innerContext = new DefaultHttpContext();
         _innerResponse = new AzureHttpResponse(_innerContext.Response, requestData);
 
-        var contentType =
-            requestData.Headers.TryGetValues(HeaderNames.ContentType, out var headerValue)
-                ? headerValue.First()
-                : ContentType.Json;
-
         _innerContext.User = new ClaimsPrincipal(requestData.Identities);
 
         var request = _innerContext.Request;
@@ -34,7 +28,11 @@ internal sealed class AzureHttpContext : HttpContext
         request.Path = new PathString(requestData.Url.AbsolutePath);
         request.QueryString = new QueryString(requestData.Url.Query);
         request.Body = requestData.Body;
-        request.ContentType = contentType;
+
+        if (requestData.Headers.TryGetValues(HeaderNames.ContentType, out var contentType))
+        {
+            request.ContentType = contentType.First();
+        }
 
         foreach (var (key, value) in requestData.Headers)
         {

@@ -25,6 +25,10 @@ internal sealed class __Type : ObjectType
         var enumValueListType = Parse($"[{nameof(__EnumValue)}!]");
         var inputValueListType = Parse($"[{nameof(__InputValue)}!]");
         var directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+        var nonNullStringListType = Parse($"[{ScalarNames.String}!]");
+
+        var optInFeaturesEnabled = context.DescriptorContext.Options.EnableOptInFeatures;
+        var objectDeprecationEnabled = context.DescriptorContext.Options.EnableObjectDeprecation;
 
         var def = new ObjectTypeConfiguration(
             Names.__Type,
@@ -36,7 +40,12 @@ internal sealed class __Type : ObjectType
                 new(Names.Kind, type: kindType, pureResolver: Resolvers.Kind),
                 new(Names.Name, type: stringType, pureResolver: Resolvers.Name),
                 new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                new(Names.Fields, type: fieldListType, pureResolver: Resolvers.Fields)
+                new(
+                    Names.Fields,
+                    type: fieldListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.FieldsWithOptIn
+                        : Resolvers.Fields)
                 {
                     Arguments =
                     {
@@ -48,8 +57,18 @@ internal sealed class __Type : ObjectType
                     }
                 },
                 new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
-                new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
-                new(Names.EnumValues, type: enumValueListType, pureResolver: Resolvers.EnumValues)
+                new(
+                    Names.PossibleTypes,
+                    type: typeListType,
+                    pureResolver: objectDeprecationEnabled
+                        ? Resolvers.PossibleTypesWithDeprecation
+                        : Resolvers.PossibleTypes),
+                new(
+                    Names.EnumValues,
+                    type: enumValueListType,
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.EnumValuesWithOptIn
+                        : Resolvers.EnumValues)
                 {
                     Arguments =
                     {
@@ -60,9 +79,12 @@ internal sealed class __Type : ObjectType
                         }
                     }
                 },
-                new(Names.InputFields,
+                new(
+                    Names.InputFields,
                     type: inputValueListType,
-                    pureResolver: Resolvers.InputFields)
+                    pureResolver: optInFeaturesEnabled
+                        ? Resolvers.InputFieldsWithOptIn
+                        : Resolvers.InputFields)
                 {
                     Arguments =
                     {
@@ -89,6 +111,42 @@ internal sealed class __Type : ObjectType
                 pureResolver: Resolvers.AppliedDirectives));
         }
 
+        if (optInFeaturesEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.EnumValues)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Single(f => f.Name == Names.Fields)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+
+            def.Fields.Single(f => f.Name == Names.InputFields)
+                .Arguments
+                .Add(new(Names.IncludeOptIn, type: nonNullStringListType));
+        }
+
+        if (objectDeprecationEnabled)
+        {
+            def.Fields.Single(f => f.Name == Names.PossibleTypes)
+                .Arguments
+                .Add(new(Names.IncludeDeprecated, type: nonNullBooleanType)
+                {
+                    DefaultValue = BooleanValueNode.False,
+                    RuntimeDefaultValue = false
+                });
+
+            def.Fields.Add(new(
+                Names.IsDeprecated,
+                type: booleanType,
+                pureResolver: Resolvers.IsDeprecated));
+
+            def.Fields.Add(new(
+                Names.DeprecationReason,
+                type: stringType,
+                pureResolver: Resolvers.DeprecationReason));
+        }
+
         return def;
     }
 
@@ -103,7 +161,29 @@ internal sealed class __Type : ObjectType
         public static object? Description(IResolverContext context)
             => context.Parent<IType>() is ITypeDefinition n ? n.Description : null;
 
-        public static object? Fields(IResolverContext context)
+        public static IEnumerable<IOutputFieldDefinition>? FieldsWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is IComplexTypeDefinition)
+            {
+                var fields = Fields(context);
+
+                if (fields is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                return fields.Where(
+                    f => OptInIntrospectionHelper.IsIncluded(f.Directives, includeOptIn));
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IOutputFieldDefinition>? Fields(IResolverContext context)
         {
             var type = context.Parent<IType>();
             var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
@@ -123,6 +203,21 @@ internal sealed class __Type : ObjectType
                 ? complexType.Implements
                 : null;
 
+        public static object? PossibleTypesWithDeprecation(IResolverContext context)
+        {
+            if (context.Parent<IType>() is not ITypeDefinition typeDefinition
+                || !typeDefinition.IsAbstractType())
+            {
+                return null;
+            }
+
+            var possibleTypes = context.Schema.GetPossibleTypes(typeDefinition);
+
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? possibleTypes
+                : possibleTypes.Where(t => !t.IsDeprecated);
+        }
+
         public static object? PossibleTypes(IResolverContext context)
             => context.Parent<IType>() is ITypeDefinition nt
                 ? nt.IsAbstractType()
@@ -130,14 +225,58 @@ internal sealed class __Type : ObjectType
                     : null
                 : null;
 
-        public static object? EnumValues(IResolverContext context)
+        public static IEnumerable<IEnumValue>? EnumValuesWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is EnumType)
+            {
+                var enumValues = EnumValues(context);
+
+                if (enumValues is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                return enumValues.Where(
+                    v => OptInIntrospectionHelper.IsIncluded(v.Directives, includeOptIn));
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IEnumValue>? EnumValues(IResolverContext context)
             => context.Parent<IType>() is EnumType et
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? et.Values
                     : et.Values.Where(t => !t.IsDeprecated)
                 : null;
 
-        public static object? InputFields(IResolverContext context)
+        public static IEnumerable<IInputValueDefinition>? InputFieldsWithOptIn(IResolverContext context)
+        {
+            var type = context.Parent<IType>();
+
+            if (type is IInputObjectTypeDefinition)
+            {
+                var inputFields = InputFields(context);
+
+                if (inputFields is null)
+                {
+                    return default;
+                }
+
+                var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
+
+                return inputFields.Where(
+                    f => OptInIntrospectionHelper.IsIncluded(f.Directives, includeOptIn));
+            }
+
+            return default;
+        }
+
+        public static IEnumerable<IInputValueDefinition>? InputFields(IResolverContext context)
             => context.Parent<IType>() is IInputObjectTypeDefinition iot
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                     ? iot.Fields
@@ -157,9 +296,19 @@ internal sealed class __Type : ObjectType
                 ? iot.Directives.ContainsName(DirectiveNames.OneOf.Name)
                 : null;
 
+        public static object? IsDeprecated(IResolverContext context)
+            => context.Parent<IType>() is IObjectTypeDefinition objectType
+                ? objectType.IsDeprecated
+                : null;
+
+        public static object? DeprecationReason(IResolverContext context)
+            => context.Parent<IType>() is IObjectTypeDefinition objectType
+                ? objectType.DeprecationReason
+                : null;
+
         public static object? SpecifiedBy(IResolverContext context)
             => context.Parent<IType>() is ScalarType scalar
-                ? scalar.SpecifiedBy?.ToString()
+                ? scalar.SpecifiedBy
                 : null;
 
         public static object AppliedDirectives(IResolverContext context) =>
@@ -187,6 +336,9 @@ internal sealed class __Type : ObjectType
         public const string SpecifiedByUrl = "specifiedByURL";
         public const string IncludeDeprecated = "includeDeprecated";
         public const string AppliedDirectives = "appliedDirectives";
+        public const string IncludeOptIn = "includeOptIn";
+        public const string IsDeprecated = "isDeprecated";
+        public const string DeprecationReason = "deprecationReason";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

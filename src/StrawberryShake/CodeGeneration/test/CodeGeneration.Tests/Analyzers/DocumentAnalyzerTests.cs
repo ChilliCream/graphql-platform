@@ -18,7 +18,7 @@ public class DocumentAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema =
             SchemaHelper.Load(
@@ -80,7 +80,7 @@ public class DocumentAnalyzerTests
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWars()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema =
             SchemaHelper.Load(

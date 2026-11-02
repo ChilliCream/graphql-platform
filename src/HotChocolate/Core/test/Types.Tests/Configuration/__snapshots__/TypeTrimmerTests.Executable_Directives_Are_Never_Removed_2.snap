@@ -1,9 +1,5 @@
-﻿schema {
+schema {
   query: abc
-}
-
-interface def {
-  field: String
 }
 
 type abc {
@@ -11,6 +7,10 @@ type abc {
 }
 
 type ghi implements def {
+  field: String
+}
+
+interface def {
   field: String
 }
 

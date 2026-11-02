@@ -1,0 +1,21 @@
+{
+  "Topics": [
+    "get-order-status",
+    "mocha.test-helpers.get-order-status"
+  ],
+  "Queues": [
+    "get-order-status"
+  ],
+  "Bindings": [
+    {
+      "Source": "get-order-status",
+      "Destination": "get-order-status",
+      "Kind": "Queue"
+    },
+    {
+      "Source": "mocha.test-helpers.get-order-status",
+      "Destination": "get-order-status",
+      "Kind": "Topic"
+    }
+  ]
+}

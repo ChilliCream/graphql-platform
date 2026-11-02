@@ -189,6 +189,40 @@ public static class QueryableFilterVisitorGeometryTests
             };
             Assert.True(func(a));
         }
+
+        [Fact]
+        public void Build_Should_CheckGeometryForNull_When_DistanceFollowsAnotherOperation()
+        {
+            // arrange
+            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                """
+                {
+                    bar: {
+                        intersects: {
+                            geometry: {
+                                type: Point
+                                coordinates: [1, 0]
+                            }
+                        }
+                        distance: {
+                            geometry: {
+                                type: Point
+                                coordinates: [1, 1]
+                            }
+                            eq: 1
+                        }
+                    }
+                }
+                """);
+            var tester = CreateProviderTester(new FilterInputType<Foo>());
+
+            // act
+            var func = tester.Build<Foo>(value);
+
+            // assert
+            Assert.True(func(new Foo { Bar = new LineString([new(0, 0), new(2, 0)]) }));
+            Assert.False(func(new Foo { Bar = null }));
+        }
     }
 
     public class IntersectTests : FilterVisitorTestBase

@@ -19,14 +19,14 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         Writer.WriteIndentedLine(
             "internal static void Initialize(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IObjectTypeDescriptor,
-            objectType.RuntimeTypeFullName);
+            objectType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
         {
             WriteInitializationBase(
-                objectType.SchemaTypeFullName,
+                objectType.SchemaTypeName.FullName,
                 objectType.Resolvers.Length > 0 || objectType.NodeResolver is not null,
                 objectType.Resolvers.Any(t => t.RequiresParameterBindings)
                     || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
@@ -41,15 +41,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
 
             if (objectType.NodeResolver is not null)
             {
-                Writer.WriteLine();
-                Writer.WriteIndentedLine("descriptor");
-                using (Writer.IncreaseIndent())
-                {
-                    Writer.WriteIndentedLine(".ImplementsNode()");
-                    Writer.WriteIndentedLine(
-                        ".ResolveNode(resolvers.{0}().Resolver!);",
-                        objectType.NodeResolver.Member.Name);
-                }
+                WriteNodeResolver(objectType.NodeResolver, typeLookup);
             }
 
             WriteResolverBindings(objectType, typeLookup);
@@ -60,6 +52,72 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
 
         Writer.WriteIndentedLine("}");
         Writer.WriteLine();
+    }
+
+    private void WriteNodeResolver(Resolver nodeResolver, ILocalTypeLookup typeLookup)
+    {
+        Writer.WriteLine();
+
+        if (nodeResolver.DescriptorAttributes.Length == 0)
+        {
+            Writer.WriteIndentedLine("descriptor");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine(".ImplementsNode()");
+                Writer.WriteIndentedLine(
+                    ".ResolveNode(resolvers.{0}().Resolver!);",
+                    nodeResolver.Member.Name);
+            }
+
+            return;
+        }
+
+        Writer.WriteIndentedLine("var nodeDescriptor = descriptor.ImplementsNode();");
+        Writer.WriteIndentedLine(
+            "nodeDescriptor.ResolveNode(resolvers.{0}().Resolver!);",
+            nodeResolver.Member.Name);
+
+        // the node resolver is not a field of the type, so its descriptor attributes
+        // are applied to the field configuration from which the node resolver pipeline is compiled.
+        Writer.WriteLine();
+        Writer.WriteIndentedLine(
+            "var nodeResolverConfiguration = ((global::{0})nodeDescriptor).Extend().Configuration.ResolverField!;",
+            WellKnownTypes.NodeDescriptorBase);
+        Writer.WriteIndentedLine("nodeResolverConfiguration.Member = thisType.GetMethod(");
+        WriteGetMethodArguments(nodeResolver, typeLookup);
+
+        Writer.WriteLine();
+        Writer.WriteIndentedLine(
+            "var nodeResolverDescriptor = global::{0}.From(extension.Context, nodeResolverConfiguration);",
+            OutputFieldDescriptorType);
+        Writer.WriteIndentedLine(
+            "{0}.ApplyConfiguration(",
+            WellKnownTypes.ConfigurationHelper);
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine("extension.Context,");
+            Writer.WriteIndentedLine("nodeResolverDescriptor,");
+            Writer.WriteIndentedLine("nodeResolverConfiguration.Member,");
+
+            var first = true;
+
+            foreach (var attribute in nodeResolver.DescriptorAttributes)
+            {
+                if (!first)
+                {
+                    Writer.WriteLine(',');
+                }
+
+                Writer.WriteIndent();
+                Writer.Write(GenerateAttributeInstantiation(attribute));
+                first = false;
+            }
+
+            Writer.WriteLine([')', ';']);
+        }
+
+        Writer.WriteIndentedLine("nodeResolverConfiguration.ConfigurationsAreApplied = true;");
+        Writer.WriteIndentedLine("nodeResolverDescriptor.CreateConfiguration();");
     }
 
     public override void WriteResolverFields(IOutputTypeInfo type)
@@ -78,6 +136,8 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
             {
                 WriteResolverField(objectType.NodeResolver);
             }
+
+            WriteIsSelectedFields(objectType.NodeResolver);
         }
     }
 
@@ -92,9 +152,10 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         WriteResolverConstructor(
             objectType,
             typeLookup,
-            $"global::{objectType.SchemaTypeFullName}",
             type.Resolvers.Any(t => t.RequiresParameterBindings)
-            || (objectType.NodeResolver?.RequiresParameterBindings ?? false));
+            || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
+            type.Resolvers.Any(HasIsSelectedFields)
+            || HasIsSelectedFields(objectType.NodeResolver));
     }
 
     protected override void WriteResolversBindingInitialization(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
@@ -111,8 +172,10 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         {
             if (objectType.NodeResolver.RequiresParameterBindings)
             {
-                WriteResolverBindingInitialization(objectType.NodeResolver, typeLookup);
+                WriteResolverBindingInitialization(objectType.NodeResolver);
             }
+
+            WriteIsSelectedInitialization(objectType.NodeResolver);
         }
     }
 

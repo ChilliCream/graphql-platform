@@ -6,5 +6,5 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 public class MongoDbAscendingSortOperationHandler()
     : MongoDbSortOperationHandlerBase(DefaultSortOperations.Ascending, SortDirection.Ascending)
 {
-    public static MongoDbAscendingSortOperationHandler Create(SortProviderContext context) => new();
+    public static MongoDbAscendingSortOperationHandler Create(SortProviderContext _) => new();
 }

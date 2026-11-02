@@ -16,7 +16,7 @@ public static class SerializeAsTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -29,7 +29,7 @@ public static class SerializeAsTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.ApplySerializeAsToScalars = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

@@ -1,0 +1,52 @@
+operation:
+  - document: |
+      {
+        products {
+          discountedPrice
+          id @fusion__requirement
+          variants @fusion__requirement {
+            price @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+          variants {
+            price
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+        $__fusion_2_prices: [PriceInput!]!
+      ) {
+        productById(id: $__fusion_1_id) {
+          discountedPrice(prices: $__fusion_2_prices)
+        }
+      }
+    source: $.productById
+    target: $.products
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_prices
+        selectionMap: >-
+          variants[{
+            price: price
+          }]
+    dependencies:
+      - id: 1

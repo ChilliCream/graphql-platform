@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
@@ -199,6 +200,118 @@ public class DocumentValidatorTests
             t => Assert.Equal(
                 "Subscription operations must have exactly one root field.",
                 t.Message));
+    }
+
+    [Fact]
+    public void EmptySubscription_Should_ReportRootSelectionAndSingleRootFieldErrors()
+    {
+        ExpectErrors(
+            """
+            subscription { }
+            """,
+            t => Assert.Equal(
+                "Operation `Unnamed` has an empty selection set. Root types without "
+                + "selections are disallowed.",
+                t.Message),
+            t => Assert.Equal(
+                "Subscription operations must have exactly one root field.",
+                t.Message));
+    }
+
+    [Fact]
+    public void EmptyQuery_Should_BeValid_WhenEnabled()
+    {
+        // arrange
+        var validator = CreateValidator(b => b.ModifyOptions(o => o.EnableEmptySelectionSets = true));
+
+        // act
+        var result = validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("{ }"));
+
+        // assert
+        Assert.Empty(result.Errors);
+    }
+
+    [Fact]
+    public void EmptyQuery_Should_BeInvalid_WhenDisabled()
+    {
+        // arrange
+        var validator = CreateValidator();
+
+        // act
+        var result = validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("{ }"));
+
+        // assert
+        Assert.Equal(
+            "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
+            Assert.Single(result.Errors).Message);
+    }
+
+    [Fact]
+    public void EmptySubscription_Should_ReportRootSelectionAndSingleRootFieldErrors_WhenEnabled()
+    {
+        // arrange
+        var validator = CreateValidator(b => b.ModifyOptions(o => o.EnableEmptySelectionSets = true));
+
+        // act
+        var result =
+            validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("subscription { }"));
+
+        // assert
+        Assert.Collection(
+            result.Errors,
+            t => Assert.Equal(
+                "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
+                t.Message),
+            t => Assert.Equal("Subscription operations must have exactly one root field.", t.Message));
+    }
+
+    [Fact]
+    public void CovariantFields_Should_Merge_WhenEnabled()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddDocumentFromString(
+                    """
+                    interface Item {
+                        label: String
+                    }
+
+                    type OptionalItem implements Item {
+                        label: String
+                    }
+
+                    type RequiredItem implements Item {
+                        label: String!
+                    }
+
+                    type Query {
+                        item: Item
+                    }
+                    """)
+                .Use(_ => _ => default)
+                .Create();
+        var validator =
+            CreateValidator(b => b.ModifyOptions(o => o.EnableCovariantFieldMerging = true));
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                item {
+                    ... on OptionalItem {
+                        label
+                    }
+                    ... on RequiredItem {
+                        label
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = validator.Validate(schema, document);
+
+        // assert
+        Assert.Empty(result.Errors);
     }
 
     [Fact]
@@ -444,7 +557,7 @@ public class DocumentValidatorTests
             """
                 {
                     dog {
-                       ... inlineFragOnScalar
+                        ... inlineFragOnScalar
                     }
                 }
 
@@ -868,6 +981,188 @@ public class DocumentValidatorTests
     public void Introspection_Cycle_Detected()
         => ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
 
+    /// <summary>
+    /// Fragment traversal bomb: each fragment spreads the next one N times.
+    /// Without deduplication this creates N^(levels-1) traversals.
+    /// Validation must deduplicate fragment visits so this completes instantly.
+    /// See: CVE-2025-32032
+    /// </summary>
+    [Fact]
+    public void Fragment_Traversal_Bomb_Should_Complete_Quickly()
+    {
+        // 10 fragment levels, each spreading the next 50 times.
+        // Without dedup: 50^9 ≈ 2×10^15 traversals (would hang forever).
+        // With dedup: 10 fragment visits (completes instantly).
+        var sb = new StringBuilder();
+        sb.AppendLine("{...A}");
+
+        const string names = "ABCDEFGHIJ";
+        for (var i = 0; i < names.Length - 1; i++)
+        {
+            sb.Append($"fragment {names[i]} on Query {{");
+            for (var j = 0; j < 50; j++)
+            {
+                if (j > 0)
+                {
+                    sb.Append(' ');
+                }
+
+                sb.Append($"...{names[i + 1]}");
+            }
+
+            sb.AppendLine("}");
+        }
+
+        sb.AppendLine($"fragment {names[^1]} on Query {{ __typename }}");
+
+        ExpectValid(sb.ToString());
+    }
+
+    /// <summary>
+    /// Fragment expansion bomb: each fragment level doubles the number of
+    /// field expansions via two aliased sub-selections that reference the
+    /// same child fragment. At depth 20 this creates 2^20 ≈ 1M recursive
+    /// expansions in naive implementations.
+    /// See: CVE-2025-32032
+    /// </summary>
+    [Fact]
+    public void Fragment_Expansion_Bomb_Should_Complete_Quickly()
+    {
+        // 20 levels, 2 branches per level = 2^20 ≈ 1,048,576 expansions
+        // in naive implementations. Fragment deduplication in the visitor
+        // layer reduces this to O(depth) visits.
+        const int depth = 20;
+        var sb = new StringBuilder();
+        sb.AppendLine("{ field { ...F0 } }");
+
+        for (var i = 0; i < depth; i++)
+        {
+            sb.AppendLine(
+                $"fragment F{i} on Query {{ fa: field {{ ...F{i + 1} }} fb: field {{ ...F{i + 1} }} }}");
+        }
+
+        sb.AppendLine($"fragment F{depth} on Query {{ __typename }}");
+
+        ExpectValid(sb.ToString());
+    }
+
+    /// <summary>
+    /// Inline fragment amplification: multiple inline fragments on the same type,
+    /// each with many aliased __typename fields, cause O(n²) comparisons in the
+    /// overlapping-fields-can-be-merged rule.
+    /// The parser's MaxAllowedFields limit (default 2048) catches this before
+    /// validation even starts.
+    /// See: CVE-2023-26144 (graphql-js)
+    /// </summary>
+    [Fact]
+    public void Inline_Fragment_TypeName_Amplification_Should_Be_Rejected_By_Parser()
+    {
+        // 10 inline fragments × 500 aliased __typename fields = 5000 fields.
+        // Exceeds the parser's MaxAllowedFields limit (2048).
+        const int fragments = 10;
+        const int fieldsPerFragment = 500;
+        var sb = new StringBuilder();
+        sb.AppendLine("{");
+
+        for (var i = 0; i < fragments; i++)
+        {
+            sb.Append("  ... on Query {");
+            for (var j = 0; j < fieldsPerFragment; j++)
+            {
+                if (j > 0)
+                {
+                    sb.Append(' ');
+                }
+
+                sb.Append($"f{j}: __typename");
+            }
+
+            sb.AppendLine("}");
+        }
+
+        sb.AppendLine("}");
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(sb.ToString()));
+    }
+
+    [Fact]
+    public void Validate_Should_RejectOperation_When_FragmentVisitsAreExhausted()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query a {
+              dog {
+                ...budget
+                ...nameFragment
+              }
+            }
+
+            query b {
+              dog {
+                ...budget
+                ...barkVolumeFragment
+              }
+            }
+
+            fragment budget on Dog {
+              name
+            }
+
+            fragment nameFragment on Dog {
+              name
+              ...barkVolumeFragment
+            }
+
+            fragment barkVolumeFragment on Dog {
+              barkVolume
+            }
+            """);
+
+        var validator = CreateValidator(b => b.ModifyOptions(o => o.MaxAllowedFragmentVisits = 2));
+
+        // act
+        var result = validator.Validate(ValidationUtils.CreateSchema(), document);
+
+        // assert
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("Maximum allowed fragment visits were exceeded.", error.Message);
+        Assert.Equal(ErrorCodes.Validation.MaxFragmentVisitsOverflow, error.Code);
+    }
+
+    [Fact]
+    public void Validate_Should_AcceptDocument_When_SpreadsAfterFragmentVisitLimitWereAlreadyVisited()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              dog {
+                ...nameFragment
+                ...barkVolumeFragment
+                ...nameFragment
+              }
+            }
+
+            fragment nameFragment on Dog {
+              name
+            }
+
+            fragment barkVolumeFragment on Dog {
+              barkVolume
+              ...nameFragment
+            }
+            """);
+
+        var validator = CreateValidator(b => b.ModifyOptions(o => o.MaxAllowedFragmentVisits = 2));
+
+        // act
+        var result = validator.Validate(ValidationUtils.CreateSchema(), document);
+
+        // assert
+        Assert.Empty(result.Errors);
+    }
+
     private static void ExpectValid([StringSyntax("graphql")] string sourceText)
         => ExpectValid(null, null, sourceText);
 
@@ -925,10 +1220,10 @@ public class DocumentValidatorTests
         snapshot.Match();
     }
 
-    private static DocumentValidator CreateValidator()
+    private static DocumentValidator CreateValidator(Action<DocumentValidatorBuilder>? configure = null)
     {
-        return DocumentValidatorBuilder.New()
-            .AddDefaultRules()
-            .Build();
+        var builder = DocumentValidatorBuilder.New().AddDefaultRules();
+        configure?.Invoke(builder);
+        return builder.Build();
     }
 }

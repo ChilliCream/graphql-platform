@@ -15,7 +15,7 @@ public class GraphQLFunction
 
     [Function("GraphQLHttpFunction")]
     public Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "graphql/{**slug}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, Route = "graphql/{**slug}")]
         HttpRequestData request)
         => _executor.ExecuteAsync(request);
 }

@@ -10,7 +10,7 @@ public class FilterVisitorTestBase
     {
         convention ??=
             new FilterConvention(
-               x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
+                x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
 
         var builder = SchemaBuilder.New()
             .AddConvention<IFilterConvention>(convention)
@@ -21,7 +21,7 @@ public class FilterVisitorTestBase
                 .Type<StringType>()
                 .Resolve("bar"))
             .AddType(type)
-            .AddType(new TimeSpanType(TimeSpanFormat.DotNet));
+            .AddType(new DurationType(DurationFormat.DotNet));
 
         builder.Create();
 

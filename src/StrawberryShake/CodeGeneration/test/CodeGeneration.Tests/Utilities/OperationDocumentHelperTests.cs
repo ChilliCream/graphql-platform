@@ -1,6 +1,5 @@
 using HotChocolate.Language;
-using Snapshooter.Xunit;
-using static ChilliCream.Testing.FileResource;
+using static CookieCrumble.FileResource;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;
 

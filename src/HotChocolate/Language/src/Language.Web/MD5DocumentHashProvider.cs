@@ -18,6 +18,8 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "md5Hash";
 
+    public override string AlgorithmName => "md5";
+
 #if NETSTANDARD2_0
     protected override byte[] ComputeHash(byte[] document, int length)
     {
@@ -27,17 +29,9 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {
-        var hashBytes = new byte[16];
-        var hashSpan = hashBytes.AsSpan();
-
+        Span<byte> hashBytes = stackalloc byte[16];
         _md5.Value!.TryComputeHash(document, hashBytes, out var written);
-
-        if (written < 16)
-        {
-            hashSpan = hashSpan[..written];
-        }
-
-        return FormatHash(hashSpan, format);
+        return FormatHash(hashBytes[..written], format);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

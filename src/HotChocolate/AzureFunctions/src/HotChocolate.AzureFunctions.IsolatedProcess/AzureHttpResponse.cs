@@ -13,7 +13,11 @@ internal sealed class AzureHttpResponse : HttpResponse
     private ImmutableList<(Func<object, Task>, object)> _onCompletedCallbacks = [];
     private readonly HttpResponse _response;
     private readonly HttpRequestData _requestData;
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private HttpResponseData? _responseData;
     private AzureHeaderDictionary? _headers;
     private PipeWriter? _writer;
@@ -107,6 +111,9 @@ internal sealed class AzureHttpResponse : HttpResponse
 
     public override void Redirect(string location, bool permanent)
         => throw new NotSupportedException();
+
+    public override Task StartAsync(CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
 
     public override async Task CompleteAsync()
     {

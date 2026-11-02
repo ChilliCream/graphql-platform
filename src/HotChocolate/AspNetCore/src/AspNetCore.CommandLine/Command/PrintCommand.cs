@@ -17,13 +17,15 @@ internal sealed class PrintCommand : Command
     {
         Description = "Prints the graphql schema to the console output";
 
-        Options.Add(Opt<SchemaNameOption>.Instance);
+        var schemaNameOption = new SchemaNameOption();
+
+        Options.Add(schemaNameOption);
 
         SetAction(
             (parseResult, cancellationToken) =>
             {
                 var output = parseResult.InvocationConfiguration.Output;
-                var schemaName = parseResult.GetValue(Opt<SchemaNameOption>.Instance);
+                var schemaName = parseResult.GetValue(schemaNameOption);
 
                 return ExecuteAsync(output, host, schemaName, cancellationToken);
             });

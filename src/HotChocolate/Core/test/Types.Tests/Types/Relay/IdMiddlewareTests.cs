@@ -13,7 +13,7 @@ public class IdMiddlewareTests
                 .AddGraphQLServer()
                 .AddQueryType<SomeQuery>()
                 .AddGlobalObjectIdentification(false)
-                .ExecuteRequestAsync("{ id string }");
+                .ExecuteRequestAsync("{ id string }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -28,7 +28,7 @@ public class IdMiddlewareTests
             .AddMutationType<Mutation>()
             .AddGlobalObjectIdentification(false)
             .AddMutationConventions()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -38,7 +38,8 @@ public class IdMiddlewareTests
                     string
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

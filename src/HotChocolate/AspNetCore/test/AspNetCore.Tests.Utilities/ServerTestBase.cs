@@ -9,11 +9,12 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
-using Xunit.Abstractions;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFixture<TestServerFactory>
+public abstract class ServerTestBase(TestServerFactory serverFactory)
+    : IClassFixture<TestServerFactory>
+    , IAsyncDisposable
 {
     protected TestServerFactory ServerFactory { get; } = serverFactory;
 
@@ -37,6 +38,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .AddSingleton(mockHostEnvironment.Object)
                     .AddRouting()
                     .AddGraphQLServer()
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddHttpResponseFormatter()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
@@ -44,6 +46,12 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .AddType<Foo>()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
+                    .ModifyServerOptions(o =>
+                    {
+                        o.Batching = AllowedBatching.All;
+                        o.AllowedGetOperations =
+                            AllowedGetOperations.Query | AllowedGetOperations.Subscription;
+                    })
                     .UseInstrumentation()
                     .UseExceptions()
                     .UseTimeout()
@@ -54,7 +62,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .UseDocumentParser()
                     .UseDocumentValidation()
                     .UseOperationCache()
-                    .UseOperationResolver()
+                    .UseOperationCompiler()
                     .UseOperationVariableCoercion()
                     .UseOperationExecution()
                     .ConfigureSchemaServices(
@@ -66,6 +74,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                             o.EnableStream = true;
                         })
                     .AddGraphQLServer("StarWars")
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddStarWarsTypes()
                     .AddGraphQLServer("evict")
                     .AddQueryType(d => d.Name("Query"))
@@ -119,27 +128,16 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     {
                         endpoints.MapGraphQLPersistedOperations(requireOperationName: requireOperationName);
 
-                        var builder = endpoints.MapGraphQL(pattern)
-                            .WithOptions(new GraphQLServerOptions
-                            {
-                                EnableBatching = true,
-                                AllowedGetOperations =
-                                    AllowedGetOperations.Query | AllowedGetOperations.Subscription
-                            });
+                        var builder = endpoints.MapGraphQL(pattern);
 
                         configureConventions?.Invoke(builder);
+                        endpoints.MapGraphQLSemanticNonNullSchema();
                         endpoints.MapGraphQL("/notnull", "notnull");
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
                         endpoints.MapGraphQL("/test", "test");
-                        endpoints.MapGraphQL("/batching").WithOptions(
-                            new GraphQLServerOptions
-                            {
-                                // with defaults
-                                // EnableBatching = false
-                            });
                     }));
     }
 
@@ -150,6 +148,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddHttpResponseFormatter()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
@@ -166,6 +165,11 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .UseRouting()
                 .UseEndpoints(endpoints => configureConventions?.Invoke(endpoints)));
     }
+
+    /// <summary>
+    /// Disposes the servers the current test created.
+    /// </summary>
+    public virtual ValueTask DisposeAsync() => ServerFactory.DisposeServersAsync();
 
     [DirectiveType(DirectiveLocation.Subscription)]
     public class Foo

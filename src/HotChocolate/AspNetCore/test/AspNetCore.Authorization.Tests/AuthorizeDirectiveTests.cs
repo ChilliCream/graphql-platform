@@ -286,7 +286,7 @@ public class AuthorizeDirectiveTests
                         .Authorize(ApplyPolicy.BeforeResolver)
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -309,7 +309,7 @@ public class AuthorizeDirectiveTests
                         .Authorize(apply: ApplyPolicy.AfterResolver)
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -332,7 +332,7 @@ public class AuthorizeDirectiveTests
                         .Authorize(apply: ApplyPolicy.BeforeResolver)
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -355,7 +355,7 @@ public class AuthorizeDirectiveTests
                         .Authorize(apply: ApplyPolicy.Validation)
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -391,7 +391,7 @@ public class AuthorizeDirectiveTests
                         .Authorize("MyPolicy", ApplyPolicy.BeforeResolver)
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -414,7 +414,7 @@ public class AuthorizeDirectiveTests
                         .Authorize("MyPolicy", apply: ApplyPolicy.AfterResolver)
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -437,7 +437,7 @@ public class AuthorizeDirectiveTests
                         .Authorize("MyPolicy", apply: ApplyPolicy.BeforeResolver)
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -460,7 +460,7 @@ public class AuthorizeDirectiveTests
                         .Authorize("MyPolicy", apply: ApplyPolicy.Validation)
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -496,7 +496,7 @@ public class AuthorizeDirectiveTests
                         .Authorize(["MyRole"])
                         .Resolve("bar"))
                 .AddAuthorization()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();

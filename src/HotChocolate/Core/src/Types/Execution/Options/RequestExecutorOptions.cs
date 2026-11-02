@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Execution.Options;
@@ -9,6 +10,7 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
+    internal const int DefaultMaxAllowedConditions = 1024;
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
 
@@ -67,4 +69,33 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
             field = value;
         }
     } = new();
+
+    /// <summary>
+    /// Gets or sets the default error handling mode for null propagation.
+    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
+    /// </summary>
+    public ErrorHandlingMode DefaultErrorHandlingMode { get; set; } = ErrorHandlingMode.Propagate;
+
+    /// <summary>
+    /// Gets or sets whether the <see cref="DefaultErrorHandlingMode"/> can be overridden
+    /// on a per-request basis.
+    /// <c>false</c> by default.
+    /// </summary>
+    public bool AllowErrorHandlingModeOverride { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@skip</c>/<c>@include</c>
+    /// conditions an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedIncludeConditions { get; set; } = DefaultMaxAllowedConditions;
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@defer</c> conditions
+    /// an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedDeferConditions { get; set; } = DefaultMaxAllowedConditions;
 }

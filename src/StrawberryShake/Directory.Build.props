@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <Product>Strawberry Shake</Product>
-    <PackageIcon>strawberryshake-signet.png</PackageIcon>
+    <PackageIcon>strawberryshake-icon.png</PackageIcon>
   </PropertyGroup>
 
 </Project>

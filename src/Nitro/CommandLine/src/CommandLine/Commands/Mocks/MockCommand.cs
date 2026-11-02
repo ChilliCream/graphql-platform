@@ -12,13 +12,11 @@ internal sealed class MockCommand : Command
 {
     public MockCommand() : base("mock")
     {
-        Description = "Create, Update and Delete Mocks";
-        IsHidden = true;
+        Description = "Create, update, and delete mocks.";
+        Hidden = true;
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new CreateMockCommand());
-        AddCommand(new ListMockCommand());
-        AddCommand(new UpdateMockCommand());
+        Subcommands.Add(new CreateMockCommand());
+        Subcommands.Add(new ListMockCommand());
+        Subcommands.Add(new UpdateMockCommand());
     }
 }

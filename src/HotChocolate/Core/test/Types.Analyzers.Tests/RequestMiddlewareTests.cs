@@ -48,6 +48,6 @@ public class RequestMiddlewareTests
                 public class Service2;
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

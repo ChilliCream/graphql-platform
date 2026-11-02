@@ -207,7 +207,8 @@ public class GeoJsonMultiPolygonInputTests
                     }
                   )
                 }
-                ");
+                ",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

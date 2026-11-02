@@ -26,7 +26,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     public JsonResultFormatter(bool indented = false)
         : this(new JsonResultFormatterOptions { Indented = indented })
     {
-        _nullIgnoreCondition = JsonNullIgnoreCondition.None;
     }
 
     /// <summary>
@@ -56,16 +55,33 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     public ValueTask FormatAsync(
         IExecutionResult result,
         PipeWriter writer,
+        ExecutionResultFormatFlags flags,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
 
+        var useIncrementalRfc1 =
+            (flags & ExecutionResultFormatFlags.IncrementalRfc1)
+                == ExecutionResultFormatFlags.IncrementalRfc1;
+
         return result switch
         {
-            OperationResult singleResult => FormatInternalAsync(singleResult, writer, cancellationToken),
-            OperationResultBatch resultBatch => FormatInternalAsync(resultBatch, writer, cancellationToken),
-            IResponseStream responseStream => FormatInternalAsync(responseStream, writer, cancellationToken),
+            OperationResult singleResult => FormatInternalAsync(
+                singleResult,
+                writer,
+                useIncrementalRfc1,
+                cancellationToken),
+            OperationResultBatch resultBatch => FormatInternalAsync(
+                resultBatch,
+                writer,
+                useIncrementalRfc1,
+                cancellationToken),
+            IResponseStream responseStream => FormatInternalAsync(
+                responseStream,
+                writer,
+                useIncrementalRfc1,
+                cancellationToken),
             _ => throw new NotSupportedException($"The result type '{result.GetType().FullName}' is not supported.")
         };
     }
@@ -75,8 +91,23 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
 
-        FormatInternal(result, writer);
+        OperationResultFormatterContext? context = null;
+        try
+        {
+            FormatInternal(result, writer, useIncrementalRfc1: false, ref context);
+        }
+        finally
+        {
+            context?.Dispose();
+        }
     }
+
+    internal void Format(
+        OperationResult result,
+        IBufferWriter<byte> writer,
+        bool useIncrementalRfc1,
+        ref OperationResultFormatterContext? context)
+        => FormatInternal(result, writer, useIncrementalRfc1, ref context);
 
     public ValueTask FormatAsync(
         OperationResult result,
@@ -86,16 +117,38 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
 
-        return FormatInternalAsync(result, writer, cancellationToken);
+        return FormatSingleResultAsync(result, writer, cancellationToken);
     }
 
-    private void FormatInternal(OperationResult result, IBufferWriter<byte> bufferWriter)
+    internal ValueTask FormatAsync(
+        OperationResult result,
+        PipeWriter writer,
+        bool useIncrementalRfc1,
+        ref OperationResultFormatterContext? context,
+        CancellationToken cancellationToken = default)
+        => FormatInternalAsync(result, writer, useIncrementalRfc1, ref context, cancellationToken);
+
+    private void FormatInternal(
+        OperationResult result,
+        IBufferWriter<byte> bufferWriter,
+        bool useIncrementalRfc1,
+        ref OperationResultFormatterContext? context)
     {
         var jsonWriter = new JsonWriter(bufferWriter, _options, _nullIgnoreCondition);
-        Format(result, jsonWriter);
+        Format(result, jsonWriter, useIncrementalRfc1, ref context);
     }
 
     public void Format(OperationResult result, JsonWriter writer)
+    {
+        OperationResultFormatterContext? context = null;
+        Format(result, writer, useIncrementalRfc1: false, ref context);
+    }
+
+    private void Format(
+        OperationResult result,
+        JsonWriter writer,
+        bool useIncrementalRfc1,
+        ref OperationResultFormatterContext? context)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
@@ -132,51 +185,132 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
         if (result.IsIncremental)
         {
-            WriteIncremental(
-                writer,
-                result,
-                _serializerOptions);
+            if (useIncrementalRfc1)
+            {
+                context ??= new OperationResultFormatterContext();
+                IncrementalRfc1ResultFormatAdapter.WriteIncremental(writer, result, _serializerOptions, context);
+            }
+            else
+            {
+                WriteIncremental(writer, result, _serializerOptions);
+            }
         }
 
         writer.WriteEndObject();
     }
 
-    private async ValueTask FormatInternalAsync(
+    private ValueTask FormatInternalAsync(
         OperationResult result,
         PipeWriter writer,
+        bool useIncrementalRfc1,
+        CancellationToken cancellationToken)
+        => FormatSingleResultAsync(result, writer, cancellationToken, useIncrementalRfc1);
+
+    private async ValueTask FormatSingleResultAsync(
+        OperationResult result,
+        PipeWriter writer,
+        CancellationToken cancellationToken,
+        bool useIncrementalRfc1 = false)
+    {
+        OperationResultFormatterContext? context = null;
+
+        try
+        {
+            await FormatInternalAsync(
+                result,
+                writer,
+                useIncrementalRfc1,
+                ref context,
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            context?.Dispose();
+        }
+    }
+
+    private ValueTask FormatInternalAsync(
+        OperationResult result,
+        PipeWriter writer,
+        bool useIncrementalRfc1,
+        ref OperationResultFormatterContext? context,
         CancellationToken cancellationToken)
     {
-        FormatInternal(result, writer);
-        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        var buffer = ChunkedPipeBufferWriter.Rent(writer, growPipeSpans: true);
+
+        try
+        {
+            FormatInternal(result, buffer, useIncrementalRfc1, ref context);
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
+        }
+
+        return FlushAsync(buffer, cancellationToken);
+
+        static async ValueTask FlushAsync(ChunkedPipeBufferWriter buffer, CancellationToken ct)
+        {
+            try
+            {
+                await buffer.FlushAsync(ct).ConfigureAwait(false);
+            }
+            finally
+            {
+                buffer.Dispose();
+            }
+        }
     }
 
     private async ValueTask FormatInternalAsync(
         OperationResultBatch resultBatch,
-        PipeWriter writer,
+        PipeWriter pipe,
+        bool useIncrementalRfc1,
         CancellationToken cancellationToken = default)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
+
         foreach (var result in resultBatch.Results)
         {
             switch (result)
             {
                 case OperationResult singleResult:
-                    FormatInternal(singleResult, writer);
+                    OperationResultFormatterContext? singleContext = null;
+
+                    try
+                    {
+                        FormatInternal(singleResult, writer, useIncrementalRfc1, ref singleContext);
+                    }
+                    finally
+                    {
+                        singleContext?.Dispose();
+                    }
+
                     break;
 
                 case IResponseStream batchResult:
-                    await foreach (var partialResult in batchResult.ReadResultsAsync()
-                        .WithCancellation(cancellationToken)
-                        .ConfigureAwait(false))
+                    OperationResultFormatterContext? streamContext = null;
+                    try
                     {
-                        try
+                        await foreach (var partialResult in batchResult.ReadResultsAsync()
+                            .WithCancellation(cancellationToken)
+                            .ConfigureAwait(false))
                         {
-                            FormatInternal(partialResult, writer);
-                            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                            try
+                            {
+                                FormatInternal(partialResult, writer, useIncrementalRfc1, ref streamContext);
+                                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                await partialResult.DisposeAsync().ConfigureAwait(false);
+                            }
                         }
-                        finally
-                        {
-                            await partialResult.DisposeAsync().ConfigureAwait(false);
-                        }
+                    }
+                    finally
+                    {
+                        streamContext?.Dispose();
                     }
 
                     break;
@@ -187,22 +321,33 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     }
 
     private async ValueTask FormatInternalAsync(
-        IResponseStream batchResult,
-        PipeWriter writer,
+        IResponseStream responseStream,
+        PipeWriter pipe,
+        bool useIncrementalRfc1,
         CancellationToken cancellationToken = default)
     {
-        await foreach (var partialResult in batchResult.ReadResultsAsync()
-            .WithCancellation(cancellationToken)
-            .ConfigureAwait(false))
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
+        OperationResultFormatterContext? context = null;
+        try
         {
-            try
+            await foreach (var partialResult in responseStream.ReadResultsAsync()
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(false))
             {
-                FormatInternal(partialResult, writer);
+                try
+                {
+                    FormatInternal(partialResult, writer, useIncrementalRfc1, ref context);
+                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await partialResult.DisposeAsync().ConfigureAwait(false);
+                }
             }
-            finally
-            {
-                await partialResult.DisposeAsync().ConfigureAwait(false);
-            }
+        }
+        finally
+        {
+            context?.Dispose();
         }
     }
 }

@@ -48,6 +48,12 @@ public interface IReadOnlySchemaOptions
     bool SortFieldsByName { get; }
 
     /// <summary>
+    /// Defines if enum values shall be sorted by name.
+    /// Default: <c>false</c>
+    /// </summary>
+    bool SortEnumValuesByName { get; }
+
+    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>
@@ -81,9 +87,21 @@ public interface IReadOnlySchemaOptions
     bool EnableDirectiveIntrospection { get; }
 
     /// <summary>
+    /// Defines if the experimental object type deprecation feature shall be enabled.
+    /// </summary>
+    bool EnableObjectDeprecation { get; }
+
+    /// <summary>
     /// The default directive visibility when directive introspection is enabled.
     /// </summary>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
+
+    /// <summary>
+    /// Disables the concept of internal directives so that all directives are treated as public.
+    /// When set to <c>true</c>, this overrides any explicit <c>Internal()</c> calls on
+    /// directive types and the <see cref="DefaultDirectiveVisibility"/> setting.
+    /// </summary>
+    bool DisableInternalDirectives { get; }
 
     /// <summary>
     /// Defines that the default resolver execution strategy.
@@ -154,11 +172,17 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
-    /// Enables the @semanticNonNull directive and rewrites Non-Null types to nullable types
-    /// with this directive attached to indicate semantic non-nullability.
-    /// This feature is experimental and might be changed or removed in the future.
+    /// Enables merging of fields whose return types differ only in nullability,
+    /// as proposed in GraphQL specification PR 883; defaults to <c>false</c>.
+    /// When disabled, such fields are a field selection merging validation error.
     /// </summary>
-    bool EnableSemanticNonNull { get; }
+    bool EnableCovariantFieldMerging { get; }
+
+    /// <summary>
+    /// Enables empty selection sets according to GraphQL specification PR 1227; defaults to <c>false</c>.
+    /// When disabled, an empty selection set is a validation error, and an empty subscription root is invalid in either state.
+    /// </summary>
+    bool EnableEmptySelectionSets { get; }
 
     /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
@@ -169,6 +193,22 @@ public interface IReadOnlySchemaOptions
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }
+
+    /// <summary>
+    /// Enables opt-in features functionality, including the <c>@requiresOptIn</c> and
+    /// <c>@optInFeatureStability</c> directives. When enabled, schema elements can be marked as
+    /// requiring explicit opt-in, and introspection queries can filter results based on opted-in
+    /// features.
+    /// </summary>
+    bool EnableOptInFeatures { get; }
+
+    /// <summary>
+    /// Enables semantic introspection, including the <c>__search</c> and <c>__definitions</c>
+    /// introspection fields for AI-driven schema discovery.
+    /// When core introspection is disabled, semantic introspection is also disabled
+    /// regardless of this setting.
+    /// </summary>
+    bool EnableSemanticIntrospection { get; }
 
     /// <summary>
     /// Specifies the default dependency injection scope for query fields.
@@ -213,13 +253,35 @@ public interface IReadOnlySchemaOptions
     bool ApplyShareableToConnections { get; }
 
     /// <summary>
+    /// Applies the @shareable directive to all collection segment types.
+    /// </summary>
+    bool ApplyShareableToCollectionSegments { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the CollectionSegmentInfo type.
+    /// </summary>
+    bool ApplyShareableToCollectionSegmentInfo { get; }
+
+    /// <summary>
     /// Applies the @sharable directive to the `node(id)` and `nodes(id)`
     /// field when Global Object Identification is turned on.
     /// </summary>
     bool ApplyShareableToNodeFields { get; }
 
     /// <summary>
+    /// Applies the @inaccessible directive to the `node(id)` and `nodes(ids)`
+    /// field when Global Object Identification is turned on.
+    /// </summary>
+    bool ApplyInaccessibleToNodeFields { get; }
+
+    /// <summary>
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
+
+    /// <summary>
+    /// Infers @key directives from the arguments of @lookup fields so that the published
+    /// source schema describes the entity keys that the lookups resolve.
+    /// </summary>
+    bool InferKeysFromLookups { get; }
 }

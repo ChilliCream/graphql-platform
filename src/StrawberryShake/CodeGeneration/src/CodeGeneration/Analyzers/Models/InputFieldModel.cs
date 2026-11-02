@@ -13,8 +13,8 @@ public class InputFieldModel : IFieldModel
     /// </summary>
     /// <param name="name">The property name.</param>
     /// <param name="description">The property xml documentation summary.</param>
-    /// <param name="field"></param>
-    /// <param name="type"></param>
+    /// <param name="field">The GraphQL input value definition.</param>
+    /// <param name="type">The GraphQL input type of the field.</param>
     public InputFieldModel(
         string name,
         string? description,

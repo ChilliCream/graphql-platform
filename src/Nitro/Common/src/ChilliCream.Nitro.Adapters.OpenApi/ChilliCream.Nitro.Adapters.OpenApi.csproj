@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>ChilliCream.Nitro.Adapters.OpenApi</AssemblyName>
+    <RootNamespace>ChilliCream.Nitro.Adapters.OpenApi</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+
+</Project>

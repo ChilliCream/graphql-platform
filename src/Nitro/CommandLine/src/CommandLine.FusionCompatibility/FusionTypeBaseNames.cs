@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
-/// The base type names for the fusion gateway.
+/// The base type names for the Fusion gateway.
 /// </summary>
 internal static class FusionTypeBaseNames
 {
@@ -41,7 +41,7 @@ internal static class FusionTypeBaseNames
     public const string TransportDirective = "transport";
 
     /// <summary>
-    /// The base name of the fusion directive.
+    /// The base name of the Fusion directive.
     /// </summary>
     public const string FusionDirective = "fusion";
 

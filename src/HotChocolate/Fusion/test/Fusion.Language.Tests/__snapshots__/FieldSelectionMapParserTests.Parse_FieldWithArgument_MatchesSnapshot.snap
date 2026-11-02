@@ -1,0 +1,62 @@
+{
+  "Kind": "Path",
+  "Location": {
+    "Start": 0,
+    "End": 21,
+    "Line": 1,
+    "Column": 1
+  },
+  "PathSegment": {
+    "Kind": "PathSegment",
+    "Location": {
+      "Start": 0,
+      "End": 21,
+      "Line": 1,
+      "Column": 1
+    },
+    "FieldName": {
+      "Kind": "Name",
+      "Location": {
+        "Start": 0,
+        "End": 6,
+        "Line": 1,
+        "Column": 1
+      },
+      "Value": "width"
+    },
+    "Arguments": [
+      {
+        "Kind": "Argument",
+        "Location": {
+          "Start": 6,
+          "End": 21,
+          "Line": 1,
+          "Column": 7
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 6,
+            "End": 11,
+            "Line": 1,
+            "Column": 7
+          },
+          "Value": "unit"
+        },
+        "Value": {
+          "Kind": "EnumValue",
+          "Location": {
+            "Start": 12,
+            "End": 21,
+            "Line": 1,
+            "Column": 13
+          },
+          "Value": "IMPERIAL"
+        }
+      }
+    ],
+    "TypeName": null,
+    "PathSegment": null
+  },
+  "TypeName": null
+}

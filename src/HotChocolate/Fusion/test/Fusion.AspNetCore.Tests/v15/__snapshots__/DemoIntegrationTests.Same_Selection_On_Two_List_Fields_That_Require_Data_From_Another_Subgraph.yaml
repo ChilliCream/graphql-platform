@@ -1,0 +1,311 @@
+title: Same_Selection_On_Two_List_Fields_That_Require_Data_From_Another_Subgraph
+request:
+  document: |
+    {
+      productsA {
+        id
+        name
+        price
+        reviewCount
+      }
+      productsB {
+        id
+        name
+        price
+        reviewCount
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productsA": [
+          {
+            "id": "UHJvZHVjdDoxMzMwODI0Mjcx",
+            "name": "Product: UHJvZHVjdDoxMzMwODI0Mjcx",
+            "price": 123.456,
+            "reviewCount": 123
+          },
+          {
+            "id": "UHJvZHVjdDozNDA3NzgyNjc0",
+            "name": "Product: UHJvZHVjdDozNDA3NzgyNjc0",
+            "price": 123.456,
+            "reviewCount": 123
+          },
+          {
+            "id": "UHJvZHVjdDoyNzI4ODE4NjYx",
+            "name": "Product: UHJvZHVjdDoyNzI4ODE4NjYx",
+            "price": 123.456,
+            "reviewCount": 123
+          }
+        ],
+        "productsB": [
+          {
+            "id": "UHJvZHVjdDozMTEyNDkyOTE2",
+            "name": "Product: UHJvZHVjdDozMTEyNDkyOTE2",
+            "price": 123.456,
+            "reviewCount": 123
+          },
+          {
+            "id": "UHJvZHVjdDoxODE0NzM0ODA1",
+            "name": "Product: UHJvZHVjdDoxODE0NzM0ODA1",
+            "price": 123.456,
+            "reviewCount": 123
+          },
+          {
+            "id": "UHJvZHVjdDozNDg1MDkxNDcz",
+            "name": "Product: UHJvZHVjdDozNDg1MDkxNDcz",
+            "price": 123.456,
+            "reviewCount": 123
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productsA: [Product]
+        productsB: [Product]
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_9ad18dbf_1 {
+              productsA {
+                id
+                name
+              }
+              productsB {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productsA": [
+                    {
+                      "id": "UHJvZHVjdDoxMzMwODI0Mjcx",
+                      "name": "Product: UHJvZHVjdDoxMzMwODI0Mjcx"
+                    },
+                    {
+                      "id": "UHJvZHVjdDozNDA3NzgyNjc0",
+                      "name": "Product: UHJvZHVjdDozNDA3NzgyNjc0"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoyNzI4ODE4NjYx",
+                      "name": "Product: UHJvZHVjdDoyNzI4ODE4NjYx"
+                    }
+                  ],
+                  "productsB": [
+                    {
+                      "id": "UHJvZHVjdDozMTEyNDkyOTE2",
+                      "name": "Product: UHJvZHVjdDozMTEyNDkyOTE2"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoxODE0NzM0ODA1",
+                      "name": "Product: UHJvZHVjdDoxODE0NzM0ODA1"
+                    },
+                    {
+                      "id": "UHJvZHVjdDozNDg1MDkxNDcz",
+                      "name": "Product: UHJvZHVjdDozNDg1MDkxNDcz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+      }
+
+      type Product implements Node {
+        id: ID!
+        price: Float!
+        reviewCount: Int!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_9ad18dbf_2($__fusion_1_id: ID!) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  price
+                  reviewCount
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDozMTEyNDkyOTE2"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxODE0NzM0ODA1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDozNDg1MDkxNDcz"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxMzMwODI0Mjcx"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDozNDA3NzgyNjc0"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoyNzI4ODE4NjYx"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "price": 123.456,
+                    "reviewCount": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productsA {
+            id
+            id @fusion__requirement
+            name
+            price
+            reviewCount
+          }
+          productsB {
+            id
+            id @fusion__requirement
+            name
+            price
+            reviewCount
+          }
+        }
+      hash: 12f71308af490ce2da2bc0dd9764cd3a
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_9ad18dbf_1 {
+          productsA {
+            id
+            name
+          }
+          productsB {
+            id
+            name
+          }
+        }
+    - id: 2
+      type: OperationBatch
+      schema: B
+      operation: |
+        query Op_9ad18dbf_2($__fusion_1_id: ID!) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              price
+              reviewCount
+            }
+          }
+        }
+      source: $.node<Product>
+      targets:
+        - $.productsB
+        - $.productsA
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

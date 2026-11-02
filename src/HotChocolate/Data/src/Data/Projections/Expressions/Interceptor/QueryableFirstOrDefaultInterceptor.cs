@@ -8,5 +8,5 @@ public class QueryableFirstOrDefaultInterceptor : QueryableTakeHandlerIntercepto
     {
     }
 
-    public static QueryableFirstOrDefaultInterceptor Create(ProjectionProviderContext context) => new();
+    public static QueryableFirstOrDefaultInterceptor Create(ProjectionProviderContext _) => new();
 }

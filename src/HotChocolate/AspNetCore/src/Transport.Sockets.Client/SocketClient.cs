@@ -10,6 +10,11 @@ namespace HotChocolate.Transport.Sockets.Client;
 
 public sealed class SocketClient : ISocket
 {
+    // The close code the client reports when the connection is lost without a close frame
+    // (for example a TCP reset, a server crash, or a proxy idle-kill). It mirrors the
+    // 1006 "abnormal closure" code that the WebSocket protocol reserves for this condition.
+    private const WebSocketCloseStatus AbnormalClosure = (WebSocketCloseStatus)1006;
+
     private static readonly IProtocolHandler[] s_protocolHandlers =
     [
         new GraphQLOverWebSocketProtocolHandler()
@@ -29,20 +34,33 @@ public sealed class SocketClient : ISocket
         _protocol = protocol;
         _context = new SocketClientContext(socket);
         _pipeline = new MessagePipeline(this, new MessageHandler(_context, protocol));
+        _ct = _cts.Token;
+        var ct = _ct;
         _pipeline.OnCompleted(
-            static context =>
+            context =>
             {
                 if (context.Socket.CloseStatus is not null)
                 {
+                    // the server ended the connection with a close frame, so we surface the
+                    // close status the server reported.
                     context.Messages.OnError(
                         new SocketClosedException(
                             context.Socket.CloseStatusDescription ?? "Socket was closed.",
                             context.Socket.CloseStatus.Value));
                 }
+                else if (!ct.IsCancellationRequested)
+                {
+                    // the connection was lost without a close frame and the client did not
+                    // initiate the teardown, so the completion is not clean.
+                    context.Messages.OnError(
+                        new SocketClosedException(
+                            "Connection closed abnormally (no close frame received).",
+                            AbnormalClosure));
+                }
+
                 context.Messages.OnCompleted();
             },
             _context);
-        _ct = _cts.Token;
     }
 
     public bool IsClosed => _socket.IsClosed();
@@ -84,7 +102,20 @@ public sealed class SocketClient : ISocket
         }
 
         var client = new SocketClient(socket, protocolHandler);
-        await client.InitializeAsync(payload, cancellationToken);
+
+        try
+        {
+            await client.InitializeAsync(payload, cancellationToken);
+        }
+        catch
+        {
+            // the handshake faulted (cancellation, a missing ack, or a send failure), so the
+            // fire-and-forget receive pipeline is still running. Dispose the client to cancel it
+            // before the failure propagates, otherwise the client is unreachable but not torn down.
+            await client.DisposeAsync();
+            throw;
+        }
+
         return client;
     }
 
@@ -98,12 +129,26 @@ public sealed class SocketClient : ISocket
         => _pipeline.RunAsync(_ct).FireAndForget();
 
     public ValueTask<SocketResult> ExecuteAsync(
-        OperationRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         return _protocol.ExecuteAsync(_context, request, cancellationToken);
+    }
+
+    public ValueTask<SocketResult> ExecuteBatchAsync(
+        OperationBatchRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.Requests.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException(
+                "The batch request must contain at least one operation.",
+                nameof(request));
+        }
+
+        return _protocol.ExecuteBatchAsync(_context, request, cancellationToken);
     }
 
     async Task<bool> ISocket.ReadMessageAsync(
@@ -140,16 +185,15 @@ public sealed class SocketClient : ISocket
 
             return read > 0;
         }
-        catch
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // swallow exception, there's nothing we can reasonably do.
             return false;
         }
     }
 
     public ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (!_disposed)
         {
             _cts.Cancel();
             _cts.Dispose();
@@ -164,21 +208,9 @@ public sealed class SocketClient : ISocket
         IProtocolHandler protocolHandler)
         : IMessageHandler
     {
-        public async ValueTask OnReceiveAsync(
+        public ValueTask OnReceiveAsync(
             ReadOnlySequence<byte> message,
             CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                await protocolHandler.OnReceiveAsync(context, message, cancellationToken);
-            }
-            finally
-            {
-                if (context.Socket.IsClosed())
-                {
-                    context.Messages.OnCompleted();
-                }
-            }
-        }
+            => protocolHandler.OnReceiveAsync(context, message, cancellationToken);
     }
 }

@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
-/// Defines the names of the arguments that can be used with the fusion directives.
+/// Defines the names of the arguments that can be used with the Fusion directives.
 /// </summary>
 internal static class FusionDirectiveArgumentNames
 {

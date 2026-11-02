@@ -25,7 +25,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new ObjectTypeInspector(),
         new InterfaceTypeInfoInspector(),
         new RequestMiddlewareInspector(),
-        new ConnectionInspector()
+        new ConnectionInspector(),
+        new NodeIdValueSerializerInspector()
     ];
 
     private static readonly IPostCollectSyntaxTransformer[] s_postCollectTransformers =
@@ -39,7 +40,8 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new TypesSyntaxGenerator(),
         new MiddlewareGenerator(),
         new DataLoaderModuleGenerator(),
-        new DataLoaderGenerator()
+        new DataLoaderGenerator(),
+        new NodeIdValueSerializerGenerator()
     ];
 
     private static readonly FrozenDictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_inspectorLookup;

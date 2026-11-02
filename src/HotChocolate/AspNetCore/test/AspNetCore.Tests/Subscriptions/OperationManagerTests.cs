@@ -20,7 +20,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -53,7 +53,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -88,7 +88,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -127,7 +127,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -174,7 +174,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var session = new Mock<ISocketSession>();
         var subscriptions = new OperationManager(session.Object, new ExecutorSession(executor));
@@ -198,7 +198,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var session = new Mock<ISocketSession>();
         var subscriptions = new OperationManager(session.Object, new ExecutorSession(executor));
@@ -222,7 +222,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -243,6 +243,59 @@ public class OperationManagerTests
     }
 
     [Fact]
+    public async Task Complete_Should_Not_Dispose_Successor_When_Stale_Session_Completes()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var socketSession = new TestSocketSession();
+
+        var sessions = new List<TestOperationSession>();
+        using var operations = new OperationManager(
+            socketSession,
+            new ExecutorSession(executor),
+            id =>
+            {
+                var session = new TestOperationSession(id);
+                sessions.Add(session);
+                return session;
+            });
+        socketSession.Operations = operations;
+
+        var query = Utf8GraphQLParser.Parse(
+            "subscription { onReview(episode: NEW_HOPE) { stars } }");
+        var request = new GraphQLRequest(query);
+
+        // act
+        // first subscription with id "A" registers session1
+        operations.Enqueue("A", request);
+        var session1 = sessions[0];
+
+        // the first operation finishes and its id is released
+        operations.Complete("A");
+
+        // the client re-uses the id "A" for a new subscription, registering session2
+        operations.Enqueue("A", request);
+        var session2 = sessions[1];
+
+        // the stale Completed event of the already removed session1 fires late
+        session1.RaiseCompleted();
+        var registered = operations.ToArray();
+
+        // assert
+        Assert.False(session2.WasDisposed);
+        Assert.Collection(
+            registered,
+            t => Assert.Same(session2, t));
+    }
+
+    [Fact]
     public async Task Dispose_OperationManager()
     {
         // arrange
@@ -252,7 +305,7 @@ public class OperationManagerTests
                 .AddStarWars()
                 .AddInMemorySubscriptions()
                 .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var socketSession = new TestSocketSession();
 
@@ -276,6 +329,33 @@ public class OperationManagerTests
 
         // assert
         Assert.Empty(registered);
+    }
+
+    private sealed class TestOperationSession(string id) : IOperationSession
+    {
+        public event EventHandler? Completed;
+
+        public string Id { get; } = id;
+
+        public bool IsCompleted { get; private set; }
+
+        public bool WasDisposed { get; private set; }
+
+        public void RaiseCompleted()
+        {
+            IsCompleted = true;
+            Completed?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken)
+        {
+        }
+
+        public void BeginExecuteBatch(GraphQLRequest[] requests, CancellationToken cancellationToken)
+        {
+        }
+
+        public void Dispose() => WasDisposed = true;
     }
 
     private class TestSocketSession : ISocketSession

@@ -39,7 +39,7 @@ public class OperationBatchRequestTests
 
         // act
         request.WriteTo(writer);
-        await writer.FlushAsync();
+        await writer.FlushAsync(TestContext.Current.CancellationToken);
 
         // assert
         var result = Encoding.UTF8.GetString(memory.ToArray());

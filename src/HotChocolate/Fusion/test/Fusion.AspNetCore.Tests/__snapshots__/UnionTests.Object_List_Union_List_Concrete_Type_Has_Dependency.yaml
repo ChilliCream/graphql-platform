@@ -1,0 +1,312 @@
+title: Object_List_Union_List_Concrete_Type_Has_Dependency
+request:
+  document: |
+    query testQuery {
+      users {
+        posts {
+          ... on Photo {
+            subgraph2
+          }
+          ... on Discussion {
+            subgraph1
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "users": [
+          {
+            "posts": [
+              {
+                "subgraph2": "Photo: UGhvdG86MzM1NDMxNDA0Mw=="
+              },
+              {
+                "subgraph1": "Discussion: RGlzY3Vzc2lvbjoyODYxMzQ0NDc="
+              },
+              {
+                "subgraph2": "Photo: UGhvdG86MTAwNzk3OTUw"
+              }
+            ]
+          },
+          {
+            "posts": [
+              {
+                "subgraph2": "Photo: UGhvdG86MzQwMjAzNjgzMg=="
+              },
+              {
+                "subgraph1": "Discussion: RGlzY3Vzc2lvbjozNzg0MTcwOTI1"
+              },
+              {
+                "subgraph2": "Photo: UGhvdG86NTUwMzUzNzIz"
+              }
+            ]
+          },
+          {
+            "posts": [
+              {
+                "subgraph2": "Photo: UGhvdG86Mzc2NjA5NDU0NQ=="
+              },
+              {
+                "subgraph1": "Discussion: RGlzY3Vzc2lvbjoyODg2MjY3NDU5"
+              },
+              {
+                "subgraph2": "Photo: UGhvdG86MjM0NDg1NTYzMg=="
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User]
+      }
+
+      type Discussion {
+        id: ID!
+        subgraph1: String
+      }
+
+      type Photo @key(fields: "id") {
+        id: ID!
+      }
+
+      type User {
+        posts: [Post]
+      }
+
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_e46e034a_1 {
+              users {
+                posts {
+                  __typename
+                  ... on Photo {
+                    id
+                  }
+                  ... on Discussion {
+                    subgraph1
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "id": "UGhvdG86MzM1NDMxNDA0Mw=="
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjoyODYxMzQ0NDc="
+                        },
+                        {
+                          "__typename": "Photo",
+                          "id": "UGhvdG86MTAwNzk3OTUw"
+                        }
+                      ]
+                    },
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "id": "UGhvdG86MzQwMjAzNjgzMg=="
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjozNzg0MTcwOTI1"
+                        },
+                        {
+                          "__typename": "Photo",
+                          "id": "UGhvdG86NTUwMzUzNzIz"
+                        }
+                      ]
+                    },
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "id": "UGhvdG86Mzc2NjA5NDU0NQ=="
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjoyODg2MjY3NDU5"
+                        },
+                        {
+                          "__typename": "Photo",
+                          "id": "UGhvdG86MjM0NDg1NTYzMg=="
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+
+      type Photo {
+        id: ID!
+        subgraph2: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_e46e034a_2($__fusion_1_id: ID!) {
+              photoById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UGhvdG86MzM1NDMxNDA0Mw=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86MTAwNzk3OTUw"
+              },
+              {
+                "__fusion_1_id": "UGhvdG86MzQwMjAzNjgzMg=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86NTUwMzUzNzIz"
+              },
+              {
+                "__fusion_1_id": "UGhvdG86Mzc2NjA5NDU0NQ=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86MjM0NDg1NTYzMg=="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86MzM1NDMxNDA0Mw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86MTAwNzk3OTUw"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86MzQwMjAzNjgzMg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86NTUwMzUzNzIz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86Mzc2NjA5NDU0NQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86MjM0NDg1NTYzMg=="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          users {
+            posts {
+              __typename @fusion__requirement
+              ... on Photo {
+                subgraph2
+                id @fusion__requirement
+              }
+              ... on Discussion {
+                subgraph1
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 4b9630b15b7f0114e6837dc89b64b3e6
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_e46e034a_1 {
+          users {
+            posts {
+              __typename
+              ... on Photo {
+                id
+              }
+              ... on Discussion {
+                subgraph1
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_e46e034a_2($__fusion_1_id: ID!) {
+          photoById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.photoById
+      target: $.users.posts<Photo>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

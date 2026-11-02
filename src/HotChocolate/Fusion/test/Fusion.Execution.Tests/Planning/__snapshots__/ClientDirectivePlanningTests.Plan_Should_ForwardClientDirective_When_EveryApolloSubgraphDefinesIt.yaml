@@ -1,0 +1,43 @@
+operation:
+  - document: |
+      {
+        products @marker(note: "root") {
+          id
+          id @fusion__requirement
+          name
+          price @marker(note: "entity")
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: catalog
+    operation: |
+      query Op_123456789101112_1 {
+        products @marker(note: "root") {
+          id
+          name
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: pricing
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            price @marker(note: "entity")
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

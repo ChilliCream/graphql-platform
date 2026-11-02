@@ -479,6 +479,100 @@ public sealed partial class JsonWriter
     }
 
     /// <summary>
+    /// Begins writing a raw value that may be provided in multiple chunks.
+    /// Writes the list separator if needed and prepares for subsequent
+    /// <see cref="WriteRawValueContinuation"/> calls.
+    /// </summary>
+    /// <param name="utf8Json">The first chunk of raw UTF-8 encoded JSON.</param>
+    internal void WriteRawValueStart(ReadOnlySpan<byte> utf8Json)
+    {
+        FlushDeferredPropertyName();
+
+        var maxRequired = utf8Json.Length + 1;
+        var bytesWritten = 0;
+
+        var output = _writer.GetSpan(maxRequired);
+
+        if (_currentDepth < 0)
+        {
+            output[bytesWritten++] = JsonConstants.Comma;
+        }
+
+        utf8Json.CopyTo(output[bytesWritten..]);
+        bytesWritten += utf8Json.Length;
+
+        _writer.Advance(bytesWritten);
+    }
+
+    /// <summary>
+    /// Gets the buffer writer this writer emits to. Valid between
+    /// <see cref="WriteRawValueStart"/> and <see cref="WriteRawValueEnd()"/>, where it lets a
+    /// producer place the bytes of an open raw value directly into the output.
+    /// </summary>
+    internal IBufferWriter<byte> InnerWriter => _writer;
+
+    /// <summary>
+    /// Continues writing raw bytes for a value started with <see cref="WriteRawValueStart"/>.
+    /// Does not write separators or update token state.
+    /// </summary>
+    /// <param name="utf8Json">The next chunk of raw UTF-8 encoded JSON.</param>
+    internal void WriteRawValueContinuation(ReadOnlySpan<byte> utf8Json)
+    {
+        var output = _writer.GetSpan(utf8Json.Length);
+        utf8Json.CopyTo(output);
+        _writer.Advance(utf8Json.Length);
+    }
+
+    /// <summary>
+    /// Completes a multi-chunk raw value write started with <see cref="WriteRawValueStart"/>.
+    /// Sets the list separator flag for the next item.
+    /// </summary>
+    internal void WriteRawValueEnd() => SetFlagToAddListSeparatorBeforeNextItem();
+
+    internal void WriteRawValueEnd(JsonTokenType tokenType)
+    {
+        Debug.Assert(tokenType is JsonTokenType.String or JsonTokenType.Number or JsonTokenType.EndObject);
+        WriteRawValueEnd();
+        _tokenType = tokenType;
+    }
+
+    /// <summary>
+    /// Writes raw UTF-8 JSON object properties into the current object without validation.
+    /// Supported for minimized output only. An empty span writes nothing.
+    /// </summary>
+    /// <param name="utf8Properties">
+    /// Comma separated properties without the enclosing braces.
+    /// </param>
+    internal void WriteRawProperties(ReadOnlySpan<byte> utf8Properties)
+    {
+        Debug.Assert(!_indented, "Raw properties are only supported for minimized output.");
+        Debug.Assert(_tokenType is not JsonTokenType.PropertyName && !HasDeferredPropertyName);
+        Debug.Assert(CurrentDepth > 0 && !IsInArray);
+
+        if (utf8Properties.IsEmpty)
+        {
+            return;
+        }
+
+        var maxRequired = utf8Properties.Length + 1; // Optionally, 1 list separator
+        var bytesWritten = 0;
+
+        var output = _writer.GetSpan(maxRequired);
+
+        if (_currentDepth < 0)
+        {
+            output[bytesWritten++] = JsonConstants.Comma;
+        }
+
+        utf8Properties.CopyTo(output[bytesWritten..]);
+        bytesWritten += utf8Properties.Length;
+
+        _writer.Advance(bytesWritten);
+
+        SetFlagToAddListSeparatorBeforeNextItem();
+    }
+
+    /// <summary>
     /// Internal buffer used for deferred property name writes.
     /// </summary>
     private sealed class DeferBuffer : IBufferWriter<byte>

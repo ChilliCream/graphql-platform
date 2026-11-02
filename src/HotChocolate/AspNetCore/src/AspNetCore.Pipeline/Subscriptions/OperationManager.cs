@@ -1,7 +1,4 @@
 using System.Collections;
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -11,10 +8,6 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 /// The operation manager ensures that operation are correctly tracked and cleaned up after they
 /// have been completed.
 /// </summary>
-#if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
 public sealed class OperationManager : IOperationManager
 {
     private readonly ReaderWriterLockSlim _lock = new();
@@ -83,8 +76,41 @@ public sealed class OperationManager : IOperationManager
 
         if (session is not null)
         {
-            session.Completed += (_, _) => Complete(sessionId);
+            session.Completed += (_, _) => CompleteSession(sessionId, session);
             session.BeginExecute(request, _cancellationToken);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc />
+    public bool EnqueueBatch(string sessionId, GraphQLRequest[] requests)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
+        ArgumentNullException.ThrowIfNull(requests);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        IOperationSession? session = null;
+        _lock.EnterWriteLock();
+
+        try
+        {
+            if (!_subs.ContainsKey(sessionId))
+            {
+                session = _createSession(sessionId);
+                _subs.Add(sessionId, session);
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+
+        if (session is not null)
+        {
+            session.Completed += (_, _) => CompleteSession(sessionId, session);
+            session.BeginExecuteBatch(requests, _cancellationToken);
             return true;
         }
 
@@ -115,6 +141,24 @@ public sealed class OperationManager : IOperationManager
         return false;
     }
 
+    private void CompleteSession(string sessionId, IOperationSession session)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            if (_subs.TryGetValue(sessionId, out var current) && ReferenceEquals(current, session))
+            {
+                _subs.Remove(sessionId);
+                session.Dispose();
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
     private OperationSession CreateSession(string sessionId)
         => new(_socketSession, _executorSession, sessionId);
 
@@ -125,7 +169,18 @@ public sealed class OperationManager : IOperationManager
         {
             _cts.Cancel();
             _cts.Dispose();
-            _subs.Clear();
+
+            _lock.EnterWriteLock();
+
+            try
+            {
+                _subs.Clear();
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+
             _disposed = true;
         }
     }

@@ -1,6 +1,6 @@
 using System.Text.Json;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Diagnostics;
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -8,9 +8,9 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
@@ -21,6 +21,132 @@ namespace HotChocolate.Adapters.Mcp;
 public sealed class CoreIntegrationTests : IntegrationTestBase
 {
     [Fact]
+    public async Task MapGraphQLMcp_Should_ResolveSchemaName_When_SingleNamedSchemaRegistered()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services
+            .AddRouting()
+            .AddGraphQL("NamedSchema")
+            .AddAuthorization()
+            .AddQueryType<TestSchema.Query>()
+            .AddMutationType<TestSchema.Mutation>()
+            .AddInterfaceType<TestSchema.IPet>()
+            .AddUnionType<TestSchema.IPet>()
+            .AddObjectType<TestSchema.Cat>()
+            .AddObjectType<TestSchema.Dog>()
+            .AddMcp()
+            .AddMcpStorage(storage);
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
+        webApp.MapGraphQLMcp();
+        webApp.Start();
+        var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books", Assert.Single(tools).Name);
+    }
+
+    [Fact]
+    public async Task MapGraphQLMcp_Should_ResolveSchemaName_When_SingleNamedSchemaHasPostConfiguredStorage()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services
+            .AddRouting()
+            .AddGraphQL("NamedSchema")
+            .AddAuthorization()
+            .AddQueryType<TestSchema.Query>()
+            .AddMutationType<TestSchema.Mutation>()
+            .AddInterfaceType<TestSchema.IPet>()
+            .AddUnionType<TestSchema.IPet>()
+            .AddObjectType<TestSchema.Cat>()
+            .AddObjectType<TestSchema.Dog>()
+            .AddMcp();
+        webAppBuilder.Services
+            .AddOptions<McpSetup>("NamedSchema")
+            .PostConfigure(setup => setup.StorageFactory = _ => storage);
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
+        webApp.MapGraphQLMcp();
+        webApp.Start();
+        var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books", Assert.Single(tools).Name);
+    }
+
+    [Fact]
+    public void MapGraphQLMcp_Should_Throw_When_AddMcpNotCalled()
+    {
+        // arrange
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services
+            .AddRouting()
+            .AddGraphQL()
+            .AddQueryType<TestSchema.Query>();
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => webApp.MapGraphQLMcp());
+
+        // assert
+        Assert.Equal(
+            "Call `AddMcp()` when configuring the GraphQL server.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void MapGraphQLMcp_Should_NotBuildSchema_When_Mapping()
+    {
+        // arrange
+        var schemaBuilt = false;
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services
+            .AddRouting()
+            .AddGraphQLServer()
+            .ConfigureSchemaServices(_ => schemaBuilt = true)
+            .AddAuthorization()
+            .AddQueryType<TestSchema.Query>()
+            .AddMutationType<TestSchema.Mutation>()
+            .AddInterfaceType<TestSchema.IPet>()
+            .AddUnionType<TestSchema.IPet>()
+            .AddObjectType<TestSchema.Cat>()
+            .AddObjectType<TestSchema.Dog>()
+            .AddMcp()
+            .AddMcpStorage(new TestMcpStorage());
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
+
+        // act
+        webApp.MapGraphQLMcp();
+
+        // assert
+        Assert.False(schemaBuilt);
+    }
+
+    [Fact]
     public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
     {
         // arrange
@@ -28,23 +154,25 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
-                    await File.ReadAllTextAsync("__resources__/GetSingleField.graphql"))));
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetSingleField.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
         var typeModule = new TestTypeModule();
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services => services
-                    .AddRouting()
-                    .AddGraphQL()
-                    .AddTypeModule(_ => typeModule)
-                    .AddMcp()
-                    .AddMcpStorage(storage))
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
-        var server = new TestServer(builder);
-        var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
-        var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services
+            .AddRouting()
+            .AddGraphQL()
+            .AddTypeModule(_ => typeModule)
+            .AddMcp()
+            .AddMcpStorage(storage);
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
+        webApp.MapGraphQLMcp();
+        webApp.Start();
+        var mcpClient1 = await CreateMcpClientAsync(webApp.GetTestClient());
+        var mcpClient2 = await CreateMcpClientAsync(webApp.GetTestClient());
         var listChangedResetEvent1 = new ManualResetEventSlim(false);
         var listChangedResetEvent2 = new ManualResetEventSlim(false);
         mcpClient1.RegisterNotificationHandler(
@@ -63,17 +191,19 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             });
 
         // act
-        var tools = await mcpClient1.ListToolsAsync();
+        var tools = await mcpClient1.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         typeModule.TriggerChange();
         IList<McpClientTool>? updatedTools = null;
 
-        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
         {
-            var mcpClient3 = await CreateMcpClientAsync(server.CreateClient());
-            updatedTools = await mcpClient3.ListToolsAsync();
+            var mcpClient3 = await CreateMcpClientAsync(webApp.GetTestClient());
+            updatedTools = await mcpClient3.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
-        var secondClientNotified = listChangedResetEvent2.Wait(TimeSpan.FromSeconds(5));
+        var secondClientNotified = listChangedResetEvent2.Wait(
+            TimeSpan.FromSeconds(5),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(updatedTools);
@@ -101,53 +231,53 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null)
     {
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services =>
-                {
-                    services
-                        .AddLogging()
-                        .AddRouting()
-                        .AddAuthentication()
-                        .AddJwtBearer(
-                            o => o.TokenValidationParameters =
-                                new TokenValidationParameters
-                                {
-                                    ValidIssuer = TokenIssuer,
-                                    ValidAudience = TokenAudience,
-                                    IssuerSigningKey = TokenKey
-                                });
-
-                    var builder =
-                        services
-                            .AddGraphQL()
-                            .AddAuthorization()
-                            .AddMcp(configureMcpServerOptions, configureMcpServer)
-                            .AddMcpStorage(storage)
-                            .AddQueryType<TestSchema.Query>()
-                            .AddMutationType<TestSchema.Mutation>()
-                            .AddInterfaceType<TestSchema.IPet>()
-                            .AddUnionType<TestSchema.IPet>()
-                            .AddObjectType<TestSchema.Cat>()
-                            .AddObjectType<TestSchema.Dog>();
-
-                    if (additionalTypes is not null)
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services
+            .AddLogging()
+            .AddRouting()
+            .AddAuthentication()
+            .AddJwtBearer(
+                o => o.TokenValidationParameters =
+                    new TokenValidationParameters
                     {
-                        builder.AddTypes(additionalTypes);
-                    }
+                        ValidIssuer = TokenIssuer,
+                        ValidAudience = TokenAudience,
+                        IssuerSigningKey = TokenKey
+                    });
 
-                    if (diagnosticEventListener is not null)
-                    {
-                        builder.AddDiagnosticEventListener(_ => diagnosticEventListener);
-                    }
-                })
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseAuthentication()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+        var graphqlBuilder =
+            webAppBuilder.Services
+                .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
+                .AddAuthorization()
+                .AddMcp(configureMcpServerOptions, configureMcpServer)
+                .AddMcpStorage(storage)
+                .AddQueryType<TestSchema.Query>()
+                .AddMutationType<TestSchema.Mutation>()
+                .AddInterfaceType<TestSchema.IPet>()
+                .AddUnionType<TestSchema.IPet>()
+                .AddObjectType<TestSchema.Cat>()
+                .AddObjectType<TestSchema.Dog>();
 
-        return Task.FromResult(new TestServer(builder));
+        if (additionalTypes is not null)
+        {
+            graphqlBuilder.AddTypes(additionalTypes);
+        }
+
+        if (diagnosticEventListener is not null)
+        {
+            graphqlBuilder.AddDiagnosticEventListener(_ => diagnosticEventListener);
+        }
+
+        var app = webAppBuilder.Build();
+        StopAndDisposeAfterTest(app);
+        app.UseRouting();
+        app.UseAuthentication();
+        app.MapGraphQLMcp();
+        app.Start();
+
+        return Task.FromResult(app.GetTestServer());
     }
 
     private sealed class TestTypeModule : TypeModule

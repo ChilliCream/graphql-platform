@@ -98,13 +98,20 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $upload: Upload!
-    ///     $uploadNullable: Upload
-    ///     $list: [Upload!]!
-    ///     $listNullable: [Upload!]
-    ///     $nestedList: [[Upload!]!]!
-    ///     $nestedListNullable: [[Upload!]]
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
     /// ) {
-    ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
+    ///   foo(
+    ///     upload: $upload
+    ///     uploadNullable: $uploadNullable
+    ///     list: $list
+    ///     listNullable: $listNullable
+    ///     nestedList: $nestedList
+    ///     nestedListNullable: $nestedListNullable
+    ///   )
     /// }
     /// </code>
     /// </summary>
@@ -136,13 +143,20 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $upload: Upload!
-    ///     $uploadNullable: Upload
-    ///     $list: [Upload!]!
-    ///     $listNullable: [Upload!]
-    ///     $nestedList: [[Upload!]!]!
-    ///     $nestedListNullable: [[Upload!]]
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
     /// ) {
-    ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
+    ///   foo(
+    ///     upload: $upload
+    ///     uploadNullable: $uploadNullable
+    ///     list: $list
+    ///     listNullable: $listNullable
+    ///     nestedList: $nestedList
+    ///     nestedListNullable: $nestedListNullable
+    ///   )
     /// }
     /// </code>
     /// </summary>
@@ -407,13 +421,20 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $upload: Upload!
-    ///     $uploadNullable: Upload
-    ///     $list: [Upload!]!
-    ///     $listNullable: [Upload!]
-    ///     $nestedList: [[Upload!]!]!
-    ///     $nestedListNullable: [[Upload!]]
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
     /// ) {
-    ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
+    ///   foo(
+    ///     upload: $upload
+    ///     uploadNullable: $uploadNullable
+    ///     list: $list
+    ///     listNullable: $listNullable
+    ///     nestedList: $nestedList
+    ///     nestedListNullable: $nestedListNullable
+    ///   )
     /// }
     /// </code>
     /// </summary>
@@ -633,6 +654,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DurationSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
@@ -642,7 +664,6 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedByteSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedIntSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedLongSerializer>(services);

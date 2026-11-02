@@ -30,7 +30,6 @@ internal sealed class NodeResolverInfo(
     /// <summary>
     /// Defines if the node resolver was inferred from a query field.
     /// </summary>
-    /// <value></value>
     [MemberNotNullWhen(true, nameof(QueryField), nameof(Id))]
     public bool IsQueryFieldResolver { get; } = resolverField is not null;
 }

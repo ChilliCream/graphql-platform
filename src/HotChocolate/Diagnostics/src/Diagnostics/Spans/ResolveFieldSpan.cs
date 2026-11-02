@@ -1,0 +1,52 @@
+using System.Diagnostics;
+using HotChocolate.Resolvers;
+using static HotChocolate.Diagnostics.SemanticConventions;
+
+namespace HotChocolate.Diagnostics;
+
+internal sealed class ResolveFieldSpan(
+    Activity activity,
+    IMiddlewareContext context,
+    ActivityEnricher enricher) : SpanBase(activity)
+{
+    public static ResolveFieldSpan? Start(
+        ActivitySource source,
+        IMiddlewareContext context,
+        ActivityEnricher enricher)
+    {
+        var selection = context.Selection;
+        var coordinate = selection.Field.Coordinate;
+
+        var activity = source.StartActivity(coordinate.ToString());
+
+        if (activity is null)
+        {
+            return null;
+        }
+
+        activity.SetTag(GraphQL.Processing.Type, GraphQL.Processing.TypeValues.Resolve);
+
+        activity.SetTag(GraphQL.Field.Alias, selection.ResponseName);
+        activity.SetTag(GraphQL.Field.Path, context.Path.Print());
+        activity.SetTag(GraphQL.Field.Name, coordinate.MemberName);
+        activity.SetTag(GraphQL.Field.SchemaCoordinate, activity.DisplayName);
+        activity.SetTag(GraphQL.Field.ParentType, coordinate.Name);
+
+        return new ResolveFieldSpan(activity, context, enricher);
+    }
+
+    protected override void OnComplete()
+    {
+        // A resolver that was still in flight when the request was cancelled did
+        // not complete successfully, so it is left Unset instead of being forced
+        // to Ok, mirroring the request and subscription event spans. A resolver
+        // that finished before any cancellation is reported as Ok.
+        if (Activity.Status != ActivityStatusCode.Error
+            && !context.RequestAborted.IsCancellationRequested)
+        {
+            Activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
+        enricher.EnrichResolveFieldValue(context, Activity);
+    }
+}

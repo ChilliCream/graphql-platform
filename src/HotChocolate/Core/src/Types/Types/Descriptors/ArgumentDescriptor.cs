@@ -1,10 +1,10 @@
-#nullable disable
-
 // ReSharper disable VirtualMemberCallInConstructor
 
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -45,13 +45,25 @@ public class ArgumentDescriptor
     /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
-        ParameterInfo parameter)
+        ParameterInfo parameter,
+        bool isBatchResolverArgument)
         : base(context)
     {
         Configuration.Name = context.Naming.GetArgumentName(parameter);
         Configuration.Description = context.Naming.GetArgumentDescription(parameter);
-        Configuration.Type = context.TypeInspector.GetArgumentTypeRef(parameter);
         Configuration.Parameter = parameter;
+
+        if (isBatchResolverArgument)
+        {
+            var elementType = BatchResolverCompiler.GetListElementType(parameter.ParameterType)
+                ?? throw ThrowHelper.BatchResolver_ArgumentMustBeList(parameter);
+
+            Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Input);
+        }
+        else
+        {
+            Configuration.Type = context.TypeInspector.GetArgumentTypeRef(parameter);
+        }
 
         if (context.TypeInspector.TryGetDefaultValue(parameter, out var defaultValue))
         {
@@ -96,7 +108,7 @@ public class ArgumentDescriptor
     }
 
     /// <inheritdoc />
-    public new IArgumentDescriptor Deprecated(string reason)
+    public new IArgumentDescriptor Deprecated(string? reason)
     {
         base.Deprecated(reason);
         return this;
@@ -110,7 +122,7 @@ public class ArgumentDescriptor
     }
 
     /// <inheritdoc />
-    public new IArgumentDescriptor Description(string value)
+    public new IArgumentDescriptor Description(string? value)
     {
         base.Description(value);
         return this;
@@ -147,14 +159,14 @@ public class ArgumentDescriptor
     }
 
     /// <inheritdoc />
-    public new IArgumentDescriptor DefaultValue(IValueNode value)
+    public new IArgumentDescriptor DefaultValue(IValueNode? value)
     {
         base.DefaultValue(value);
         return this;
     }
 
     /// <inheritdoc />
-    public new IArgumentDescriptor DefaultValue(object value)
+    public new IArgumentDescriptor DefaultValue(object? value)
     {
         base.DefaultValue(value);
         return this;
@@ -214,11 +226,15 @@ public class ArgumentDescriptor
     /// </summary>
     /// <param name="context">The descriptor context</param>
     /// <param name="parameter">The parameter this argument is used for</param>
+    /// <param name="isBatchResolverArgument">
+    /// Specifies if the argument type needs to be unwrapped as its part of a batch resolver.
+    /// </param>
     /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor New(
         IDescriptorContext context,
-        ParameterInfo parameter) =>
-        new(context, parameter);
+        ParameterInfo parameter,
+        bool isBatchResolverArgument = false) =>
+        new(context, parameter, isBatchResolverArgument);
 
     /// <summary>
     /// Creates a new instance of <see cref="ArgumentDescriptor"/>

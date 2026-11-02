@@ -144,9 +144,6 @@
   <data name="Utf8Helper_InvalidEscapeChar" xml:space="preserve">
     <value>The escape char `{0}` is invalid.</value>
   </data>
-  <data name="Utf8Helper_InvalidQuoteEscapeCount" xml:space="preserve">
-    <value>The quote escape string has to consist of three quotes `\"""`.</value>
-  </data>
   <data name="NewLineMustBeGreaterOrEqualToOne" xml:space="preserve">
     <value>Must be greater or equal to 1.</value>
   </data>
@@ -206,5 +203,11 @@
   </data>
   <data name="Utf8GraphQLParser_Start_MaxAllowedFieldsReached" xml:space="preserve">
     <value>The GraphQL request document contains more than {0} fields. Parsing aborted.</value>
+  </data>
+  <data name="Utf8GraphQLParser_ParseDirective_MaxAllowedDirectivesReached" xml:space="preserve">
+    <value>A location in the GraphQL document contains more than {0} directives. Parsing aborted.</value>
+  </data>
+  <data name="Utf8GraphQLParser_Start_MaxAllowedRecursionDepthReached" xml:space="preserve">
+    <value>Document exceeds the maximum allowed recursion depth of {0}. Parsing aborted.</value>
   </data>
 </root>

@@ -52,12 +52,6 @@ null
   "errors": [
     {
       "message": "The provided value for filter `ngt` of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 34
-        }
-      ],
       "path": [
         "root"
       ],

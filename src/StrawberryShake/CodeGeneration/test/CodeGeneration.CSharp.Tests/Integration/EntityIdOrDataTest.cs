@@ -1,7 +1,6 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData;
 
@@ -19,6 +18,7 @@ public class EntityIdOrDataTest : ServerTestBase
         var serviceCollection = new ServiceCollection();
         serviceCollection
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<IBar>()
             .AddType<Baz>()

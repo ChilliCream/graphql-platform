@@ -14,7 +14,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -25,7 +25,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.AddNodesField = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -36,7 +36,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -47,8 +47,64 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Without_Node_Field()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.AddNodeField = false);
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.AddNodesField = false;
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Without_Node_Field_MarkNodeFieldAsLookup_Is_NoOp()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.MarkNodeFieldAsLookup = true;
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -59,7 +115,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -72,7 +128,7 @@ public class RelaySchemaTests
             .AddMutationType(d => d.Name("Mutation"))
             .AddTypeExtension<MutationExtension>()
             .AddQueryFieldToMutationPayloads()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -84,7 +140,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads(o => o.QueryFieldName = "rootQuery")
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -97,7 +153,7 @@ public class RelaySchemaTests
             .AddMutationType<Mutation2>()
             .AddQueryFieldToMutationPayloads(
                 o => o.MutationPayloadPredicate = type => type.Name.EndsWith("Result"))
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -110,7 +166,9 @@ public class RelaySchemaTests
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
+            .ExecuteRequestAsync(
+                "mutation { foo { query { some { id } } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -123,7 +181,9 @@ public class RelaySchemaTests
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
+            .ExecuteRequestAsync(
+                "mutation { foo { query { some { id } } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -137,7 +197,9 @@ public class RelaySchemaTests
                 .Type<UserType>()
                 .Resolve(_ => new User { Name = "TEST" }))
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("query { user { id name } } ")
+            .ExecuteRequestAsync(
+                "query { user { id name } } ",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

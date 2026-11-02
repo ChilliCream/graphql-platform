@@ -1,0 +1,19 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@shareable"]
+  )
+
+input UsersFilter {
+  offset: Int
+  first: Int!
+}
+
+type User @key(fields: "id") {
+  id: ID!
+  name: String! @shareable
+}
+
+type Query {
+  usersInB(filter: UsersFilter!): [User!]
+}

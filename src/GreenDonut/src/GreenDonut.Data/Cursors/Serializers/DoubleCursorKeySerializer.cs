@@ -8,7 +8,7 @@ internal sealed class DoubleCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<double>();
 
     public bool IsSupported(Type type)
-        => type == typeof(double);
+        => type == typeof(double) || type == typeof(double?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

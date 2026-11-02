@@ -102,6 +102,11 @@ public enum DirectiveLocation
     /// </summary>
     InputFieldDefinition = 0x20000,
 
+    /// <summary>
+    /// Location adjacent to a directive definition.
+    /// </summary>
+    DirectiveDefinition = 0x80000,
+
     // see: https://spec.graphql.org/draft/#ExecutableDirectiveLocation
     Executable =
         Query
@@ -125,7 +130,8 @@ public enum DirectiveLocation
         | Enum
         | EnumValue
         | InputObject
-        | InputFieldDefinition,
+        | InputFieldDefinition
+        | DirectiveDefinition,
 
     Operation =
         Query

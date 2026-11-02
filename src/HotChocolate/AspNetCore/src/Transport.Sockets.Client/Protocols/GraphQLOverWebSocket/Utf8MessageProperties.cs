@@ -15,4 +15,8 @@ internal static class Utf8MessageProperties
     public static ReadOnlySpan<byte> ErrorsProp => Utf8GraphQLResultProperties.ErrorsProp;
 
     public static ReadOnlySpan<byte> ExtensionsProp => Utf8GraphQLRequestProperties.ExtensionsProp;
+
+    public static ReadOnlySpan<byte> RequestIndexProp => Utf8GraphQLResultProperties.RequestIndexProp;
+
+    public static ReadOnlySpan<byte> VariableIndexProp => Utf8GraphQLResultProperties.VariableIndexProp;
 }

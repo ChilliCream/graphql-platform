@@ -1,17 +1,18 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types;
 
 public static class MiddlewareObjectFieldDescriptorExtensions
 {
-    public static IObjectFieldDescriptor Use<TMiddleware>(
+    public static IObjectFieldDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IObjectFieldDescriptor descriptor)
         where TMiddleware : class
     {
         return descriptor.Use(FieldClassMiddlewareFactory.Create<TMiddleware>());
     }
 
-    public static IObjectFieldDescriptor Use<TMiddleware>(
+    public static IObjectFieldDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IObjectFieldDescriptor descriptor,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class

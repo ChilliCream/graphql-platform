@@ -1,0 +1,20 @@
+{
+  "Schema": "memory",
+  "TransportType": "InMemoryMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "orders",
+      "Flow": "outbound",
+      "Origin": "declared"
+    }
+  ],
+  "Links": [],
+  "ReceiveEndpoints": [
+    {
+      "Name": "orders",
+      "Kind": "Default"
+    }
+  ],
+  "DispatchEndpoints": []
+}

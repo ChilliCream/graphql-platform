@@ -1,0 +1,13 @@
+type Query {
+  items(limit: Int!): [Item]
+    @listSize(slicingArguments: ["limit"])
+}
+
+type Item {
+  value: Int @cost(weight: "3")
+  details: Details
+}
+
+type Details {
+  label: String @cost(weight: "2")
+}

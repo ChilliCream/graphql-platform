@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text;
 using HotChocolate;
-using StrawberryShake.CodeGeneration.CSharp;
 using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
@@ -28,7 +27,7 @@ public static class NameUtils
         var builder = new StringBuilder();
         var current = path;
 
-        while (current is not null or { IsRoot: false })
+        while (current is { IsRoot: false })
         {
             if (current is NamePathSegment nameSegment)
             {

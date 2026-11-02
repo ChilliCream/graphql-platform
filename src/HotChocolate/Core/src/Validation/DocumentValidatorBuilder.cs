@@ -229,7 +229,8 @@ public sealed class DocumentValidatorBuilder
             contextPool,
             [.. rules],
             _options.MaxAllowedErrors,
-            _options.MaxLocationsPerError);
+            _options.MaxLocationsPerError,
+            _options.MaxAllowedFragmentVisits);
     }
 
     private static T CreateInstance<T>(

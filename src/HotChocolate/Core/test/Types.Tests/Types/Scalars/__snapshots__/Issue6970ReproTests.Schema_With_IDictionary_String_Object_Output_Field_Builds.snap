@@ -1,0 +1,14 @@
+schema {
+  query: Query
+}
+
+type Query {
+  item: PageVOAllergyIntolerance!
+}
+
+type PageVOAllergyIntolerance {
+  extension: Any!
+}
+
+"The `Any` scalar type represents any valid GraphQL value."
+scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")

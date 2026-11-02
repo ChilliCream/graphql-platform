@@ -117,7 +117,7 @@ public class FilterConventionExtensionsTests
         // assert
         Assert.NotNull(convention.ConfigurationAccessor);
         Assert.Collection(
-            convention.ConfigurationAccessor!.Operations,
+            convention.ConfigurationAccessor.Operations,
             x => Assert.Equal(1, x.Id),
             x => Assert.Equal(2, x.Id));
     }
@@ -143,8 +143,8 @@ public class FilterConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.ConfigurationAccessor);
-        Assert.Contains(typeof(int), convention.ConfigurationAccessor!.Bindings);
-        Assert.Contains(typeof(double), convention.ConfigurationAccessor!.Bindings);
+        Assert.Contains(typeof(int), convention.ConfigurationAccessor.Bindings);
+        Assert.Contains(typeof(double), convention.ConfigurationAccessor.Bindings);
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public class FilterConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.ConfigurationAccessor);
-        var configuration = Assert.Single(convention.ConfigurationAccessor!.Configurations.Values);
+        var configuration = Assert.Single(convention.ConfigurationAccessor.Configurations.Values);
         Assert.Equal(2, configuration.Count);
     }
 
@@ -193,7 +193,7 @@ public class FilterConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.ConfigurationAccessor);
-        Assert.Equal(2, convention.ConfigurationAccessor!.Configurations.Count);
+        Assert.Equal(2, convention.ConfigurationAccessor.Configurations.Count);
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class FilterConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.ConfigurationAccessor);
-        Assert.Equal(2, convention.ConfigurationAccessor!.ProviderExtensionsTypes.Count);
+        Assert.Equal(2, convention.ConfigurationAccessor.ProviderExtensionsTypes.Count);
     }
 
     [Fact]
@@ -243,7 +243,7 @@ public class FilterConventionExtensionsTests
         // assert
         Assert.NotNull(convention.ConfigurationAccessor);
         Assert.Collection(
-            convention.ConfigurationAccessor!.ProviderExtensions,
+            convention.ConfigurationAccessor.ProviderExtensions,
             x => Assert.Equal(provider1, x),
             x => Assert.Equal(provider2, x));
     }

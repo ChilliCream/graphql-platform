@@ -7,7 +7,7 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
-/// The <code>Policy</code> scalar representing an authorization policy. Serializes as a string.
+/// The <c>Policy</c> scalar representing an authorization policy. Serializes as a string.
 /// </summary>
 public sealed class PolicyType : ScalarType<Policy, StringValueNode>
 {

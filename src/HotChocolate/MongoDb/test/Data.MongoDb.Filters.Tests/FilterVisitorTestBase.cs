@@ -1,9 +1,9 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
@@ -52,7 +52,7 @@ public class FilterVisitorTestBase
                             }
                         })
                     .UseFiltering<T>())
-            .AddType(new TimeSpanType(TimeSpanFormat.DotNet))
+            .AddType(new DurationType(DurationFormat.DotNet))
             .UseRequest(
                 (_, next) => async context =>
                 {

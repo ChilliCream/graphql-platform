@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 
@@ -11,7 +11,7 @@ internal sealed class OpenApiCollectionDetailPrompt
         _data = data;
     }
 
-    public OpenApiCollectionDetailPromptResult ToObject(string[] formats)
+    public OpenApiCollectionDetailPromptResult ToObject()
     {
         return new OpenApiCollectionDetailPromptResult
         {

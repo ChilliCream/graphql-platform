@@ -80,29 +80,6 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     IDisposable CompileOperation(RequestContext context);
 
     /// <summary>
-    /// Called within the execute operation scope when the result is a streamed result.
-    /// The ExecuteStream scope will run longer than the ExecuteOperation scope.
-    /// The ExecuteOperation scope completes once the initial operation is executed,
-    /// while all deferred elements are executed and delivered within the ExecuteStream scope.
-    /// </summary>
-    /// <param name="operation">
-    /// The compiled operation that is being streamed.
-    /// </param>
-    /// <returns>
-    /// A scope that will be disposed when the streaming execution has finished.
-    /// </returns>
-    IDisposable ExecuteStream(IOperation operation);
-
-    /// <summary>
-    /// Called when starting to execute a deferred part of an operation
-    /// within the ExecuteStream scope or ExecuteSubscription scope.
-    /// </summary>
-    /// <returns>
-    /// A scope that will be disposed when the deferred task execution has finished.
-    /// </returns>
-    IDisposable ExecuteDeferredTask();
-
-    /// <summary>
     /// Called when starting to resolve a field value.
     /// </summary>
     /// <remarks>
@@ -132,26 +109,6 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     void ResolverError(IMiddlewareContext context, IError error);
 
     /// <summary>
-    /// Called for field errors that occur outside the resolver task execution,
-    /// typically during result processing or validation.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <param name="selection">
-    /// The field selection that is affected by the error.
-    /// </param>
-    /// <param name="error">
-    /// The error that occurred during field processing.
-    /// </param>
-    /// <remarks>
-    /// Some field-level errors are handled after the resolver completes and these
-    /// are processed in the request scope rather than the resolver scope.
-    /// </remarks>
-    void ResolverError(RequestContext context, ISelection selection, IError error);
-
-    /// <summary>
     /// Called when starting to execute an execution engine task.
     /// </summary>
     /// <remarks>
@@ -159,8 +116,7 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     /// for a listener to receive this event.
     /// </remarks>
     /// <param name="task">
-    /// The execution task being run, such as DataLoader batch execution or other
-    /// background processing tasks.
+    /// The execution task being run, such as the execution of a deferred fragment.
     /// </param>
     /// <returns>
     /// A scope that will be disposed when the task execution has finished.
@@ -172,8 +128,8 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     /// during task execution.
     /// </summary>
     /// <param name="task">
-    /// The execution task that encountered an error, such as DataLoader batch execution
-    /// or other background processing tasks.
+    /// The execution task that encountered an error, such as the execution of a deferred
+    /// fragment.
     /// </param>
     /// <param name="error">
     /// The error that occurred while running the execution task.
@@ -181,8 +137,8 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     void TaskError(IExecutionTask task, IError error);
 
     /// <summary>
-    /// Called when the request execution pipeline starts processing tasks,
-    /// typically when scaling task processors up.
+    /// Called when the execution engine starts or resumes processing the execution tasks
+    /// of a request.
     /// </summary>
     /// <param name="context">
     /// The request context for the request being executed.
@@ -190,8 +146,8 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     void StartProcessing(RequestContext context);
 
     /// <summary>
-    /// Called when the request execution pipeline stops processing tasks,
-    /// typically when scaling task processors down or completing execution.
+    /// Called when the execution engine pauses while execution tasks of the request,
+    /// such as resolvers, are still running.
     /// </summary>
     /// <param name="context">
     /// The request context for the request being executed.
@@ -215,19 +171,4 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     /// individual GraphQL request.
     /// </param>
     void RetrievedOperationFromCache(RequestContext context);
-
-    /// <summary>
-    /// Called when the execution engine dispatches deferred execution batches.
-    /// During execution, components like DataLoader defer data resolver execution
-    /// to be processed in batches. When the execution engine has no immediate work,
-    /// these batches are dispatched for execution.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <returns>
-    /// A scope that will be disposed when the batch dispatch has finished.
-    /// </returns>
-    IDisposable DispatchBatch(RequestContext context);
 }

@@ -6,7 +6,6 @@
     <RootNamespace>StrawberryShake.CodeGeneration</RootNamespace>
     <Description>StrawberryShake code generation GraphQL query analyzers.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

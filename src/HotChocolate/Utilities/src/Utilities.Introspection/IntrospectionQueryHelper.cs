@@ -13,6 +13,7 @@ internal static class IntrospectionQueryHelper
     private const string InspectDirectiveType = "inspect_directive_type.graphql";
     private const string InspectDirectives = "inspect_directives.graphql";
     private const string InspectSchema = "inspect_schema.graphql";
+    private const string InspectType = "inspect_type.graphql";
     private const string OperationName = "IntrospectionQuery";
 
     public static GraphQLHttpRequest CreateInspectArgumentDeprecationRequest(IntrospectionOptions options)
@@ -26,6 +27,9 @@ internal static class IntrospectionQueryHelper
 
     public static GraphQLHttpRequest CreateInspectSchemaRequest(IntrospectionOptions options)
         => CreateRequest(CreateOperation(GetInspectSchemaQuery()), options);
+
+    public static GraphQLHttpRequest CreateInspectTypeRequest(IntrospectionOptions options)
+        => CreateRequest(CreateOperation(GetInspectTypeQuery()), options);
 
     public static GraphQLHttpRequest CreateIntrospectionRequest(ServerCapabilities features, IntrospectionOptions options)
         => CreateRequest(CreateOperation(Build(features, options).Print(false)), options);
@@ -48,6 +52,8 @@ internal static class IntrospectionQueryHelper
     private static string GetInspectDirectivesQuery() => GetQueryFile(InspectDirectives);
 
     private static string GetInspectSchemaQuery() => GetQueryFile(InspectSchema);
+
+    private static string GetInspectTypeQuery() => GetQueryFile(InspectType);
 
     private static string GetQueryFile(string fileName)
     {

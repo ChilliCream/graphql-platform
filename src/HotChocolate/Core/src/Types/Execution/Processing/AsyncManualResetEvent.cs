@@ -5,7 +5,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class AsyncManualResetEvent : INotifyCompletion
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private Action? _continuation;
     private bool _continue;
 

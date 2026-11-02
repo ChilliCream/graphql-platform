@@ -1,0 +1,101 @@
+### Place Single Order Flow
+### This demonstrates the basic order flow: Order → Payment → Shipment
+
+@catalogUrl = http://localhost:5133
+@billingUrl = http://localhost:5042
+@shippingUrl = http://localhost:5145
+
+@productHeadphones = aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+@productKeyboard = bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+@productBook = cccccccc-cccc-cccc-cccc-cccccccccccc
+
+### ============================================
+### Health Checks
+### ============================================
+
+### Check Catalog Service
+GET {{catalogUrl}}/
+
+###
+
+### Check Billing Service
+GET {{billingUrl}}/
+
+###
+
+### Check Shipping Service
+GET {{shippingUrl}}/
+
+###
+
+### List Products
+GET {{catalogUrl}}/api/products
+
+###
+
+### ============================================
+### Step 1: Place Order
+### ============================================
+
+# @name placeOrder
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productHeadphones}}",
+  "quantity": 1,
+  "customerId": "demo-customer-001",
+  "shippingAddress": "123 Demo Street, Test City, TC 12345"
+}
+
+###
+
+### Save the order ID from the response
+@orderId = {{placeOrder.response.body.id}}
+
+### ============================================
+### Step 2: Check Results (wait 2-3 seconds after placing order)
+### ============================================
+
+### Check Order Status
+GET {{catalogUrl}}/api/orders/{{orderId}}
+
+###
+
+### Check Invoice in Billing
+GET {{billingUrl}}/api/invoices/order/{{orderId}}
+
+###
+
+### Check Shipment in Shipping
+GET {{shippingUrl}}/api/shipments/order/{{orderId}}
+
+###
+
+### ============================================
+### List All Data
+### ============================================
+
+### All Orders
+GET {{catalogUrl}}/api/orders
+
+###
+
+### All Invoices
+GET {{billingUrl}}/api/invoices
+
+###
+
+### All Shipments
+GET {{shippingUrl}}/api/shipments
+
+###
+
+### ============================================
+### Event Flow Summary
+### ============================================
+# 1. POST /api/orders → Creates order, publishes OrderPlacedEvent
+# 2. Billing receives OrderPlacedEvent → Creates invoice & payment, publishes PaymentCompletedEvent
+# 3. Catalog receives PaymentCompletedEvent → Updates order status to Paid
+# 4. Shipping receives PaymentCompletedEvent → Creates shipment, publishes ShipmentCreatedEvent
+# 5. Catalog receives ShipmentCreatedEvent → Updates order status to Shipping

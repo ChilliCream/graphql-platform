@@ -2,9 +2,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Environments.Options;
 
 public sealed class EnvironmentNameOption : Option<string>
 {
-    public EnvironmentNameOption() : base(["--name", "-n"])
+    public EnvironmentNameOption() : base("--name")
     {
-        IsRequired = false;
-        Description = "The name of the environment.";
+        Required = false;
+        Description = "The name of the environment";
+        Aliases.Add("-n");
     }
 }

@@ -161,4 +161,3 @@ ORDER BY s."OwnerId", s1."OwnerId", s1."Name", s1."Id"
   }
 }
 ```
-

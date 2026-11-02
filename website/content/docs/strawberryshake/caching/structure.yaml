@@ -1,0 +1,8 @@
+title: Caching
+items:
+  - path: index
+    title: Overview
+  - path: entities
+    title: Entities
+  - path: invalidation
+    title: Invalidation

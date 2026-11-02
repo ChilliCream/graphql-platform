@@ -1,0 +1,30 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+type Query {
+  union: Product
+  interface: Node
+}
+
+union Product = Oven | Toaster
+
+interface Node {
+  id: ID!
+}
+
+type Oven implements Node {
+  id: ID!
+}
+
+type Toaster implements Node {
+  id: ID!
+}
+
+interface User @key(fields: "id") {
+  id: ID!
+}
+
+type Admin implements User @key(fields: "id") {
+  id: ID!
+  isMain: Boolean!
+}

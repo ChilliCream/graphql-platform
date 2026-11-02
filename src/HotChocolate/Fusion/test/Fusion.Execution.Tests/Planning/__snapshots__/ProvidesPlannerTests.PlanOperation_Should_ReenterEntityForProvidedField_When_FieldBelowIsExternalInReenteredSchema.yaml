@@ -1,0 +1,52 @@
+operation:
+  - document: |
+      {
+        orders {
+          item {
+            customer {
+              name
+              email
+            }
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        orders {
+          item {
+            customer {
+              email
+            }
+          }
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        orderById(id: $__fusion_1_id) {
+          item {
+            customer {
+              name
+            }
+          }
+        }
+      }
+    source: $.orderById
+    target: $.orders
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

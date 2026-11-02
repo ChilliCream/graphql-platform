@@ -46,6 +46,11 @@ internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<Extend
             return false;
         }
 
+        if (IsKeyValuePair(x) || IsKeyValuePair(y))
+        {
+            return x.Equals(y);
+        }
+
         return ReferenceEquals(x.Type, y.Type) && x.Kind == y.Kind;
     }
 
@@ -66,10 +71,14 @@ internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<Extend
 
     private static int GetHashCode(IExtendedType obj)
     {
+        if (IsKeyValuePair(obj))
+        {
+            return obj.GetHashCode();
+        }
+
         unchecked
         {
-            var hashCode = (obj.Type.GetHashCode() * 397)
-               ^ (obj.Kind.GetHashCode() * 397);
+            var hashCode = (obj.Type.GetHashCode() * 397) ^ (obj.Kind.GetHashCode() * 397);
 
             for (var i = 0; i < obj.TypeArguments.Count; i++)
             {
@@ -79,4 +88,7 @@ internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<Extend
             return hashCode;
         }
     }
+
+    private static bool IsKeyValuePair(IExtendedType type)
+        => type.IsGeneric && type.Definition == typeof(KeyValuePair<,>);
 }

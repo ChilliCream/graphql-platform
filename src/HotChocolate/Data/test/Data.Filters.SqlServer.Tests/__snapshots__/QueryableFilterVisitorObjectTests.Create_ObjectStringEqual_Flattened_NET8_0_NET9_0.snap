@@ -1,0 +1,76 @@
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+.param set @__p_0 'testatest'
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarString" = @__p_0
+---------------
+
+testbtest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+testbtest SQL:
+---------------
+.param set @__p_0 'testbtest'
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarString" = @__p_0
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+null SQL:
+---------------
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE 0
+---------------

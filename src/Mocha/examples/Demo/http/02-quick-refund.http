@@ -1,0 +1,80 @@
+### Quick Refund Saga Demo
+### Tests the QuickRefundSaga - immediate refund without physical return
+### Good for digital products or customer goodwill refunds
+
+@catalogUrl = http://localhost:5133
+@billingUrl = http://localhost:5042
+@shippingUrl = http://localhost:5145
+
+@productBook = cccccccc-cccc-cccc-cccc-cccccccccccc
+
+### ============================================
+### Step 1: Create an Order First
+### ============================================
+
+# @name createOrder
+POST {{catalogUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "productId": "{{productBook}}",
+  "quantity": 1,
+  "customerId": "refund-test-customer",
+  "shippingAddress": "123 Test Street, Demo City, DC 12345"
+}
+
+###
+
+@orderId = {{createOrder.response.body.id}}
+
+### ============================================
+### Step 2: Wait 2 seconds, then check order was processed
+### ============================================
+
+### Check Order Status (should be Paid or Shipping)
+GET {{catalogUrl}}/api/orders/{{orderId}}
+
+###
+
+### ============================================
+### Step 3: Request Quick Refund via Saga
+### ============================================
+
+# @name quickRefund
+POST {{catalogUrl}}/api/refunds/quick
+Content-Type: application/json
+
+{
+  "orderId": "{{orderId}}",
+  "amount": null,
+  "reason": "Customer requested refund for digital product"
+}
+
+###
+
+### ============================================
+### Step 4: Verify Results
+### ============================================
+
+### Check Refund Records in Billing
+GET {{billingUrl}}/api/refunds/order/{{orderId}}
+
+###
+
+### Check Updated Order Status
+GET {{catalogUrl}}/api/orders/{{orderId}}
+
+###
+
+### ============================================
+### Saga Flow Summary
+### ============================================
+# QuickRefundSaga States:
+#   1. Requested     - Initial state
+#   2. Processing    - Processing refund via Billing
+#   3. Completed     - Refund successful
+#   4. Failed        - Refund failed (compensation needed)
+#
+# Message Flow:
+#   Catalog (saga) → ProcessRefundCommand → Billing
+#   Billing → RefundProcessedEvent → Catalog (saga completes)

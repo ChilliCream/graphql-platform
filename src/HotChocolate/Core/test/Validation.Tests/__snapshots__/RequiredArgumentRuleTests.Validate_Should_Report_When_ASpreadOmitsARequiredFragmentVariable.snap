@@ -1,0 +1,17 @@
+{
+  "message": "The argument \u0060atOtherHomes\u0060 is required.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 9
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "fragment": "withRequiredVariable",
+    "argument": "atOtherHomes",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+  }
+}

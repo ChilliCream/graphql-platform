@@ -880,4 +880,141 @@ public class JsonWriterTests
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
         Assert.Equal("[\"line1\\nline2\"]", result);
     }
+
+    [Fact]
+    public void WriteStringValue_Should_FrameBareContent_When_SkipEscapingAndNoQuotes()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act - bare pre-escaped content without surrounding quotes (like Utf8JsonReader.ValueSpan)
+        writer.WriteStartArray();
+        writer.WriteStringValue("already\\nescaped"u8, skipEscaping: true);
+        writer.WriteEndArray();
+
+        // assert - quotes are added and the backslash-n is preserved, not double-escaped
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("[\"already\\nescaped\"]", result);
+    }
+
+    [Fact]
+    public void WriteStringValue_Should_NotDoubleFrame_When_SkipEscapingAndAlreadyQuoted()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act - already-quoted literal must not gain a second pair of quotes
+        writer.WriteStartArray();
+        writer.WriteStringValue("\"already\\nescaped\""u8, skipEscaping: true);
+        writer.WriteEndArray();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("[\"already\\nescaped\"]", result);
+    }
+
+    [Fact]
+    public void WriteStringValue_Should_FrameToEmptyString_When_SkipEscapingAndEmpty()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act - empty span frames to an empty JSON string
+        writer.WriteStartArray();
+        writer.WriteStringValue([], skipEscaping: true);
+        writer.WriteEndArray();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("[\"\"]", result);
+    }
+
+    [Fact]
+    public void WriteStringValue_Should_FrameBareContent_When_SkipEscapingAndIndented()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act - bare pre-escaped content under an indented writer must be quoted correctly
+        writer.WriteStartArray();
+        writer.WriteStringValue("already\\nescaped"u8, skipEscaping: true);
+        writer.WriteEndArray();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        const string expected = """
+            [
+              "already\nescaped"
+            ]
+            """;
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void WriteRawProperties_Should_WriteWithoutSeparator_When_PropertiesAreFirstInObject()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act
+        writer.WriteStartObject();
+        writer.WriteRawProperties("\"a\":1,\"b\":\"x\""u8);
+        writer.WritePropertyName("c");
+        writer.WriteBooleanValue(true);
+        writer.WriteEndObject();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("""{"a":1,"b":"x","c":true}""", result);
+    }
+
+    [Fact]
+    public void WriteRawProperties_Should_WriteSeparator_When_ObjectAlreadyHasProperties()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act
+        writer.WriteStartObject();
+        writer.WritePropertyName("a");
+        writer.WriteNumberValue(1);
+        writer.WriteRawProperties("\"b\":2"u8);
+        writer.WriteEndObject();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("""{"a":1,"b":2}""", result);
+    }
+
+    [Fact]
+    public void WriteRawProperties_Should_WriteNothing_When_PropertiesAreEmpty()
+    {
+        // arrange
+        var buffer = new ArrayBufferWriter<byte>();
+        var options = new JsonWriterOptions { Indented = false, SkipValidation = true };
+        var writer = new JsonWriter(buffer, options);
+
+        // act
+        writer.WriteStartObject();
+        writer.WriteRawProperties([]);
+        writer.WritePropertyName("a");
+        writer.WriteNumberValue(1);
+        writer.WriteEndObject();
+
+        // assert
+        var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
+        Assert.Equal("""{"a":1}""", result);
+    }
 }

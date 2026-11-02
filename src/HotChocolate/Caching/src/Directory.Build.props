@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <NoWarn>$(NoWarn);CA1812</NoWarn>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
 </Project>

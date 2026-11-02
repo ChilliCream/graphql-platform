@@ -2,11 +2,11 @@ schema {
   query: Query
 }
 
+type Query {
+  foo: String
+}
+
 interface FooDeprecated {
   bar: String! @deprecated(reason: "Use Bar2.")
   bar2: String!
-}
-
-type Query {
-  foo: String
 }

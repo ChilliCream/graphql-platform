@@ -10,4 +10,4 @@ input FooChildInput {
   bar: String!
 }
 
-directive @Foo(bar: String! child: FooChildInput!) on QUERY
+directive @Foo(bar: String!, child: FooChildInput!) on QUERY

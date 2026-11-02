@@ -19,7 +19,7 @@ public class IdAttributeOnRecordParameterAnalyzerTests
 
             public record Author([property: ID] int Id, string Name);
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class IdAttributeOnRecordParameterAnalyzerTests
 
             public record Author([ID] int Id, string Name);
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class IdAttributeOnRecordParameterAnalyzerTests
 
             public record Author([ID][Description("The author ID")] int Id, string Name);
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class IdAttributeOnRecordParameterAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class IdAttributeOnRecordParameterAnalyzerTests
 
             public record AuthorBook([ID] int AuthorId, [ID] int BookId);
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class IdAttributeOnRecordParameterAnalyzerTests
 
             public record Author([ID] int Id, [property: ID] int SecondaryId);
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class IdAttributeOnRecordParameterAnalyzerTests
 
             public record Author([ID<Author>] int Id, string Name);
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -165,6 +165,6 @@ public class IdAttributeOnRecordParameterAnalyzerTests
 
             public record Author([property: ID<Author>] int Id, string Name);
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

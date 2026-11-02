@@ -137,7 +137,7 @@ type cars_mutation_response {
 "on conflict condition type for table \"cars\""
 input cars_on_conflict {
   constraint: cars_constraint!
-  update_columns: [cars_update_column!]! = [  ]
+  update_columns: [cars_update_column!]! = []
   where: cars_bool_exp
 }
 
@@ -306,7 +306,7 @@ input people_obj_rel_insert_input {
 "on conflict condition type for table \"people\""
 input people_on_conflict {
   constraint: people_constraint!
-  update_columns: [people_update_column!]! = [  ]
+  update_columns: [people_update_column!]! = []
   where: people_bool_exp
 }
 

@@ -16,6 +16,14 @@ public class JsonSerializationHelperTests
     }
 
     [Fact]
+    public void WriteSByteAsNumber()
+    {
+        var json = JsonSerializationHelper.WriteValue((sbyte)2);
+
+        Assert.Equal("2", json);
+    }
+
+    [Fact]
     public void ReadNestedScalarList()
     {
         var list = JsonSerializationHelper.ReadList("[[1, 2, 3, 4]]");

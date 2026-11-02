@@ -1,0 +1,11 @@
+import { Meta, StoryObj } from "@storybook/react";
+import { LeftSidebar } from "./LeftSidebar";
+declare const meta: Meta<typeof LeftSidebar>;
+export default meta;
+type Story = StoryObj<typeof LeftSidebar>;
+export declare const SagasTab: Story;
+export declare const SearchTab: Story;
+export declare const Collapsed: Story;
+export declare const NoSagas: Story;
+export declare const DeveloperTab: Story;
+export declare const VisibleTabsSubset: Story;

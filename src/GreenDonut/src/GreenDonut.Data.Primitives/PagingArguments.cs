@@ -67,6 +67,9 @@ public readonly record struct PagingArguments
     /// </summary>
     public bool EnableRelativeCursors { get; init; }
 
+    /// <summary>Defines the null ordering to be used.</summary>
+    public NullOrdering NullOrdering { get; init; }
+
     /// <summary>
     /// Deconstructs the paging arguments into its components.
     /// </summary>
@@ -85,17 +88,22 @@ public readonly record struct PagingArguments
     /// <param name="includeTotalCount">
     /// Defines if the total count of items in the dataset shall be included in the result.
     /// </param>
+    /// <param name="nullOrdering">
+    /// Defines the null ordering to be used.
+    /// </param>
     public void Deconstruct(
         out int? first,
         out string? after,
         out int? last,
         out string? before,
-        out bool includeTotalCount)
+        out bool includeTotalCount,
+        out NullOrdering nullOrdering)
     {
         first = First;
         after = After;
         last = Last;
         before = Before;
         includeTotalCount = IncludeTotalCount;
+        nullOrdering = NullOrdering;
     }
 }

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Filters;
 
@@ -36,32 +37,32 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) "
                     + "{ test{ prop }}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { test: { prop: { eq: null}}}) "
                     + "{ test{ prop}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "a")
             .AddResult(res2, "ba")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     private static void Configure(ISchemaBuilder builder)

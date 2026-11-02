@@ -99,6 +99,11 @@ public interface IFilterConvention : IConvention
     string GetArgumentName();
 
     /// <summary>
+    /// Gets the maximum number of filter operations allowed in a single filter argument.
+    /// </summary>
+    int? GetMaxAllowedFilterOperations();
+
+    /// <summary>
     /// Applies configurations to a filter type.
     /// </summary>
     /// <param name="typeReference">

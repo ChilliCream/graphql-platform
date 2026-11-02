@@ -1,0 +1,833 @@
+using System.Diagnostics;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Rewriters;
+using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
+
+namespace HotChocolate.Fusion.Execution.Nodes;
+
+public sealed class OperationCompiler
+{
+    private readonly FusionSchemaDefinition _schema;
+    private readonly DocumentRewriter _documentRewriter;
+    private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
+    private readonly TypeNameField _typeNameField;
+    private readonly int _maxAllowedIncludeConditions;
+    private readonly int _maxAllowedDeferConditions;
+
+    public OperationCompiler(
+        FusionSchemaDefinition schema,
+        ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool,
+        int maxAllowedIncludeConditions = FusionRequestOptions.DefaultMaxAllowedConditions,
+        int maxAllowedDeferConditions = FusionRequestOptions.DefaultMaxAllowedConditions)
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(fieldsPool);
+
+        _schema = schema;
+        _fieldsPool = fieldsPool;
+        _maxAllowedIncludeConditions = maxAllowedIncludeConditions;
+        _maxAllowedDeferConditions = maxAllowedDeferConditions;
+        _documentRewriter = new(schema, removeStaticallyExcludedSelections: true);
+        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String.Name));
+        _typeNameField = new TypeNameField(nonNullStringType);
+    }
+
+    /// <summary>
+    /// Gets the Fusion schema definition for which we can compile operations.
+    /// </summary>
+    public FusionSchemaDefinition Schema => _schema;
+
+    /// <summary>
+    /// Gets the maximum number of include conditions an operation may declare.
+    /// </summary>
+    internal int MaxAllowedIncludeConditions => _maxAllowedIncludeConditions;
+
+    /// <summary>
+    /// Gets the maximum number of defer conditions an operation may declare.
+    /// </summary>
+    internal int MaxAllowedDeferConditions => _maxAllowedDeferConditions;
+
+    /// <summary>
+    /// Gets the largest id a selection set or a selection of an operation can have.
+    /// </summary>
+    internal int MaxElementId { get; init; } = CompositeResultDocument.DbRow.OperationReferenceIdMask;
+
+    public Operation Compile(
+        string id,
+        string hash,
+        string shortHash,
+        OperationDefinitionNode operationDefinition)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentNullException.ThrowIfNull(operationDefinition);
+
+        var document = new DocumentNode(new IDefinitionNode[] { operationDefinition });
+        document = _documentRewriter.RewriteDocument(document);
+        operationDefinition = (OperationDefinitionNode)document.Definitions[0];
+
+        var includeConditions = new IncludeConditionCollection(_maxAllowedIncludeConditions);
+        var deferConditions = new DeferConditionCollection(_maxAllowedDeferConditions);
+        IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
+
+        // Scans the operation for @defer fragments and creates one
+        // DeliveryGroup object for each. Also fills deferConditions with any
+        // @defer(if: ...) expressions found along the way.
+        //
+        // Important: each @defer must always map to the same DeliveryGroup
+        // instance. Runtime matching checks if two are the same object,
+        // not just equal in content, so handing back a fresh copy with
+        // equal field values would silently break it.
+        var partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
+
+        var fields = _fieldsPool.Get();
+
+        var compilationContext = new CompilationContext(new object[128]);
+
+        try
+        {
+            var lastId = 0;
+            var rootType = _schema.GetOperationType(operationDefinition.Operation);
+
+            // The include visitor and the defer partitioner have seen the whole
+            // operation, so the mask width per kind is final before any field is collected.
+            var hasWideIncludeFlags = includeConditions.Count > 64;
+            var hasWideDeferFlags = deferConditions.Count > 64;
+
+            CollectFields(
+                default,
+                operationDefinition.SelectionSet.Selections,
+                rootType,
+                fields,
+                includeConditions,
+                partitioning.ByFragment,
+                parentDeliveryGroup: null);
+
+            var hasIncrementalParts = HasDeferDirective(operationDefinition);
+
+            var selectionSet = BuildSelectionSet(
+                fields,
+                rootType,
+                compilationContext,
+                hasWideIncludeFlags,
+                includeConditions.Count,
+                hasWideDeferFlags,
+                ref lastId,
+                declaringSelection: null);
+
+            compilationContext.Register(selectionSet, selectionSet.Id);
+
+            return new Operation(
+                id,
+                hash,
+                shortHash,
+                operationDefinition,
+                rootType,
+                _schema,
+                selectionSet,
+                this,
+                includeConditions,
+                deferConditions,
+                partitioning.ByFragment,
+                hasIncrementalParts,
+                lastId,
+                compilationContext.ElementsById);
+        }
+        finally
+        {
+            _fieldsPool.Return(fields);
+        }
+    }
+
+    internal SelectionSet CompileSelectionSet(
+        Selection selection,
+        FusionComplexTypeDefinition objectType,
+        IncludeConditionCollection includeConditions,
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deliveryGroupByFragment,
+        bool hasWideIncludeFlags,
+        bool hasWideDeferFlags,
+        ref object[] elementsById,
+        ref int lastId)
+    {
+        var compilationContext = new CompilationContext(elementsById);
+        var fields = _fieldsPool.Get();
+        fields.Clear();
+
+        try
+        {
+            var nodes = selection.SyntaxNodes;
+            var first = nodes[0];
+
+            CollectFields(
+                new PathIncludeFlagsBuilder(first.PathConditionFlags.Word0, first.PathConditionFlags.Overflow),
+                first.Node.SelectionSet!.Selections,
+                objectType,
+                fields,
+                includeConditions,
+                deliveryGroupByFragment,
+                parentDeliveryGroup: first.DeliveryGroup);
+
+            if (nodes.Length > 1)
+            {
+                for (var i = 1; i < nodes.Length; i++)
+                {
+                    var node = nodes[i];
+
+                    CollectFields(
+                        new PathIncludeFlagsBuilder(node.PathConditionFlags.Word0, node.PathConditionFlags.Overflow),
+                        node.Node.SelectionSet!.Selections,
+                        objectType,
+                        fields,
+                        includeConditions,
+                        deliveryGroupByFragment,
+                        parentDeliveryGroup: node.DeliveryGroup);
+                }
+            }
+
+            var selectionSet = BuildSelectionSet(
+                fields,
+                objectType,
+                compilationContext,
+                hasWideIncludeFlags,
+                includeConditions.Count,
+                hasWideDeferFlags,
+                ref lastId,
+                selection);
+            compilationContext.Register(selectionSet, selectionSet.Id);
+            elementsById = compilationContext.ElementsById;
+            return selectionSet;
+        }
+        finally
+        {
+            _fieldsPool.Return(fields);
+        }
+    }
+
+    private void CollectFields(
+        PathIncludeFlagsBuilder parentIncludeFlags,
+        IReadOnlyList<ISelectionNode> selections,
+        IComplexTypeDefinition typeContext,
+        OrderedDictionary<string, List<FieldSelectionNode>> fields,
+        IncludeConditionCollection includeConditions,
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deliveryGroupByFragment,
+        DeliveryGroup? parentDeliveryGroup)
+    {
+        for (var i = 0; i < selections.Count; i++)
+        {
+            var selection = selections[i];
+
+            if (selection is FieldNode fieldNode)
+            {
+                var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+                var pathIncludeFlags = parentIncludeFlags;
+
+                if (!fields.TryGetValue(responseName, out var nodes))
+                {
+                    nodes = [];
+                    fields.Add(responseName, nodes);
+                }
+
+                if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
+                {
+                    var index = includeConditions.IndexOf(includeCondition);
+                    pathIncludeFlags = pathIncludeFlags.Add(index);
+                }
+
+                nodes.Add(
+                    new FieldSelectionNode(
+                        fieldNode,
+                        new ConditionFlags(pathIncludeFlags.Word0, pathIncludeFlags.Overflow),
+                        parentDeliveryGroup));
+            }
+            else if (selection is InlineFragmentNode inlineFragmentNode
+                && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
+            {
+                var pathIncludeFlags = parentIncludeFlags;
+
+                if (IncludeCondition.TryCreate(inlineFragmentNode, out var includeCondition))
+                {
+                    var index = includeConditions.IndexOf(includeCondition);
+                    pathIncludeFlags = pathIncludeFlags.Add(index);
+                }
+
+                // Look up the canonical DeliveryGroup from the pre-computed
+                // partitioning. The partitioner created one instance per
+                // `... @defer` occurrence; using it here guarantees downstream
+                // set-identity comparisons work correctly.
+                var deliveryGroup = deliveryGroupByFragment.TryGetValue(inlineFragmentNode, out var canonical)
+                    ? canonical
+                    : parentDeliveryGroup;
+
+                CollectFields(
+                    pathIncludeFlags,
+                    inlineFragmentNode.SelectionSet.Selections,
+                    typeContext,
+                    fields,
+                    includeConditions,
+                    deliveryGroupByFragment,
+                    deliveryGroup);
+            }
+        }
+    }
+
+    private SelectionSet BuildSelectionSet(
+        OrderedDictionary<string, List<FieldSelectionNode>> fieldMap,
+        FusionComplexTypeDefinition typeContext,
+        CompilationContext compilationContext,
+        bool hasWideIncludeFlags,
+        int includeConditionCount,
+        bool hasWideDeferFlags,
+        ref int lastId,
+        Selection? declaringSelection)
+    {
+        var i = 0;
+        var selections = new Selection[fieldMap.Count];
+        var isConditional = false;
+        var hasIncrementalParts = false;
+        var includeFlags = new List<ulong>();
+        // Aligned with includeFlags per path; only materialized for wide operations.
+        var wideIncludeFlags = hasWideIncludeFlags ? new List<ulong[]>() : null;
+        var wideIncludeFlagsStride = hasWideIncludeFlags ? (includeConditionCount - 1) >> 6 : 0;
+        var deliveryGroups = new List<DeliveryGroup>();
+        var selectionSetId = NewElementId(ref lastId);
+
+        foreach (var (responseName, nodes) in fieldMap)
+        {
+            includeFlags.Clear();
+            wideIncludeFlags?.Clear();
+            deliveryGroups.Clear();
+
+            var alwaysIncluded = false;
+            var hasOverflowIncludeFlags = false;
+            var first = nodes[0];
+            var isInternal = IsInternal(nodes);
+            var hasImmediateNode = first.DeliveryGroup is null;
+
+            AddIncludeFlags(
+                first,
+                isInternal,
+                includeFlags,
+                wideIncludeFlags,
+                ref alwaysIncluded,
+                ref hasOverflowIncludeFlags);
+
+            if (first.DeliveryGroup is not null)
+            {
+                deliveryGroups.Add(first.DeliveryGroup);
+            }
+
+            if (nodes.Count > 1)
+            {
+                for (var j = 1; j < nodes.Count; j++)
+                {
+                    var next = nodes[j];
+
+                    if (!first.Node.Name.Value.Equals(next.Node.Name.Value, StringComparison.Ordinal))
+                    {
+                        throw new InvalidOperationException(
+                            $"The syntax nodes for the response name {responseName} are not all the same.");
+                    }
+
+                    AddIncludeFlags(
+                        next,
+                        isInternal,
+                        includeFlags,
+                        wideIncludeFlags,
+                        ref alwaysIncluded,
+                        ref hasOverflowIncludeFlags);
+
+                    if (next.DeliveryGroup is null)
+                    {
+                        hasImmediateNode = true;
+                    }
+                    else if (!hasImmediateNode)
+                    {
+                        deliveryGroups.Add(next.DeliveryGroup);
+                    }
+                }
+            }
+
+            if (includeFlags.Count > 1 && wideIncludeFlags is null)
+            {
+                // Collapsing is a dedup optimization on single-word masks. Wide path
+                // masks skip it; a word-aware subsumption check is not worth the cost.
+                CollapseIncludeFlags(includeFlags);
+            }
+
+            ulong[]? flatWideIncludeFlags = null;
+            if (hasOverflowIncludeFlags && wideIncludeFlags is { Count: > 0 })
+            {
+                flatWideIncludeFlags = new ulong[wideIncludeFlags.Count * wideIncludeFlagsStride];
+
+                for (var j = 0; j < wideIncludeFlags.Count; j++)
+                {
+                    var pathOverflow = wideIncludeFlags[j];
+                    pathOverflow.AsSpan().CopyTo(
+                        flatWideIncludeFlags.AsSpan(j * wideIncludeFlagsStride, pathOverflow.Length));
+                }
+            }
+
+            // If any field node is not inside a deferred fragment, the selection
+            // is not deferred, so it must be included in the initial response.
+            ulong deferMask = 0;
+            ulong[]? wideDeferMask = null;
+            DeliveryGroup[]? selectionDeliveryGroups = null;
+
+            if (!hasImmediateNode && deliveryGroups.Count > 0)
+            {
+                // Remove child delivery groups when their parent is also in the set.
+                // A field should be delivered with the outermost (earliest) defer
+                // that contains it.
+                for (var j = deliveryGroups.Count - 1; j >= 0; j--)
+                {
+                    var parent = deliveryGroups[j].Parent;
+                    while (parent is not null)
+                    {
+                        if (deliveryGroups.Contains(parent))
+                        {
+                            deliveryGroups.RemoveAt(j);
+                            break;
+                        }
+
+                        parent = parent.Parent;
+                    }
+                }
+
+                if (!hasWideDeferFlags)
+                {
+                    foreach (var deliveryGroup in deliveryGroups)
+                    {
+                        // This path only runs for operations with at most 64 defer
+                        // conditions, so the shift cannot wrap.
+                        Debug.Assert((uint)deliveryGroup.DeferConditionIndex < 64);
+                        deferMask |= 1ul << deliveryGroup.DeferConditionIndex;
+                    }
+                }
+                else
+                {
+                    (deferMask, wideDeferMask) = BuildWideDeferMask(deliveryGroups);
+                }
+
+                // Preserve the pruned list on the Selection so the runtime can
+                // answer GetActiveDeliveryGroups and HasActiveDeliveryGroup.
+                selectionDeliveryGroups = deliveryGroups.ToArray();
+
+                hasIncrementalParts = true;
+            }
+
+            IOutputFieldDefinition field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+                ? _typeNameField
+                : typeContext.Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
+
+            if (field.Type.NamedType() is FusionInterfaceTypeDefinition interfaceType
+                && interfaceType.TypeNameLookupTypes.IsDefault)
+            {
+                interfaceType.PrepareTypeNameLookupTypes(
+                    _schema.GetPossibleTypes(interfaceType));
+            }
+
+            var selection = new Selection(
+                NewElementId(ref lastId),
+                responseName,
+                field,
+                nodes.ToArray(),
+                includeFlags.ToArray(),
+                isInternal,
+                wideIncludeFlags: flatWideIncludeFlags,
+                wideIncludeFlagsStride: wideIncludeFlagsStride,
+                deferMask: deferMask,
+                wideDeferMask: wideDeferMask,
+                deliveryGroups: selectionDeliveryGroups);
+
+            // Register the selection in the elements array
+            compilationContext.Register(selection, selection.Id);
+            selections[i++] = selection;
+
+            if (includeFlags.Count > 0)
+            {
+                isConditional = true;
+            }
+        }
+
+        return new SelectionSet(
+            selectionSetId,
+            typeContext,
+            selections,
+            isConditional,
+            hasIncrementalParts,
+            declaringSelection);
+    }
+
+    /// <summary>
+    /// Gets the next operation unique id for a selection set or a selection.
+    /// </summary>
+    /// <exception cref="GraphQLException">
+    /// The operation needs more ids than a result document can reference.
+    /// </exception>
+    private int NewElementId(ref int lastId)
+    {
+        if (lastId >= MaxElementId)
+        {
+            throw ThrowHelper.OperationCompiler_TooManySelections();
+        }
+
+        return ++lastId;
+    }
+
+    private static void CollapseIncludeFlags(List<ulong> includeFlags)
+    {
+        // we sort the include flags to improve early elimination and stability
+        includeFlags.Sort();
+
+        var write = 0;
+
+        for (var read = 0; read < includeFlags.Count; read++)
+        {
+            var candidate = includeFlags[read];
+            var covered = false;
+
+            // we check if the candidate is already covered
+            for (var i = 0; i < write; i++)
+            {
+                if ((candidate & includeFlags[i]) == includeFlags[i])
+                {
+                    covered = true;
+                    break;
+                }
+            }
+
+            if (!covered)
+            {
+                // lastly we remove more restrictive flags from the already written range
+                for (var i = 0; i < write;)
+                {
+                    if ((includeFlags[i] & candidate) == candidate)
+                    {
+                        includeFlags[i] = includeFlags[--write];
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+
+                if (write < read)
+                {
+                    includeFlags[write] = candidate;
+                }
+                write++;
+            }
+        }
+
+        // we trim the list to the collapsed set
+        if (write < includeFlags.Count)
+        {
+            includeFlags.RemoveRange(write, includeFlags.Count - write);
+        }
+    }
+
+    private static void AddIncludeFlags(
+        FieldSelectionNode node,
+        bool isInternalSelection,
+        List<ulong> includeFlags,
+        List<ulong[]>? wideIncludeFlags,
+        ref bool alwaysIncluded,
+        ref bool hasOverflowIncludeFlags)
+    {
+        if (!isInternalSelection && IsInternal(node.Node))
+        {
+            return;
+        }
+
+        if (node.PathConditionFlags.Word0 == 0 && IsOverflowEmpty(node.PathConditionFlags.Overflow))
+        {
+            alwaysIncluded = true;
+            if (includeFlags.Count > 0)
+            {
+                includeFlags.Clear();
+                wideIncludeFlags?.Clear();
+                hasOverflowIncludeFlags = false;
+            }
+        }
+        else if (!alwaysIncluded)
+        {
+            includeFlags.Add(node.PathIncludeFlags);
+            if (wideIncludeFlags is not null)
+            {
+                var overflow = node.PathConditionFlags.Overflow;
+                wideIncludeFlags.Add(overflow ?? []);
+                hasOverflowIncludeFlags |= !IsOverflowEmpty(overflow);
+            }
+        }
+    }
+
+    private static bool IsOverflowEmpty(ulong[]? overflow)
+    {
+        if (overflow is null)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < overflow.Length; i++)
+        {
+            if (overflow[i] != 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static (ulong Word0, ulong[]? Overflow) BuildWideDeferMask(List<DeliveryGroup> deliveryGroups)
+    {
+        var word0 = 0ul;
+        var maxWord = 0;
+
+        foreach (var deliveryGroup in deliveryGroups)
+        {
+            var word = deliveryGroup.DeferConditionIndex >> 6;
+
+            if (word > maxWord)
+            {
+                maxWord = word;
+            }
+        }
+
+        var overflow = maxWord > 0 ? new ulong[maxWord] : null;
+
+        foreach (var deliveryGroup in deliveryGroups)
+        {
+            var index = deliveryGroup.DeferConditionIndex;
+            var word = index >> 6;
+
+            if (word == 0)
+            {
+                word0 |= 1ul << index;
+            }
+            else
+            {
+                overflow![word - 1] |= 1ul << (index & 63);
+            }
+        }
+
+        return (word0, overflow);
+    }
+
+    private static bool IsInternal(List<FieldSelectionNode> nodes)
+    {
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            if (!IsInternal(nodes[i].Node))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool DoesTypeApply(NamedTypeNode? typeCondition, IComplexTypeDefinition typeContext)
+    {
+        if (typeCondition is null)
+        {
+            return true;
+        }
+
+        if (typeCondition.Name.Value.Equals(typeContext.Name, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (_schema.Types.TryGetType(typeCondition.Name.Value, allowInaccessibleFields: true, out var type))
+        {
+            return type.IsAssignableFrom(typeContext);
+        }
+
+        return false;
+    }
+
+    private static bool IsInternal(FieldNode fieldNode)
+    {
+        const string requirementDirective = "fusion__requirement";
+        const string emptyDirective = "fusion__empty";
+        var directives = fieldNode.Directives;
+
+        if (directives.Count == 0)
+        {
+            return false;
+        }
+
+        if (directives.Count == 1)
+        {
+            var name = directives[0].Name.Value;
+            return name.Equals(requirementDirective, StringComparison.Ordinal)
+                || name.Equals(emptyDirective, StringComparison.Ordinal);
+        }
+
+        if (directives.Count == 2)
+        {
+            var name1 = directives[0].Name.Value;
+            var name2 = directives[1].Name.Value;
+            return name1.Equals(requirementDirective, StringComparison.Ordinal)
+                || name1.Equals(emptyDirective, StringComparison.Ordinal)
+                || name2.Equals(requirementDirective, StringComparison.Ordinal)
+                || name2.Equals(emptyDirective, StringComparison.Ordinal);
+        }
+
+        if (directives.Count == 3)
+        {
+            var name1 = directives[0].Name.Value;
+            var name2 = directives[1].Name.Value;
+            var name3 = directives[2].Name.Value;
+            return name1.Equals(requirementDirective, StringComparison.Ordinal)
+                || name1.Equals(emptyDirective, StringComparison.Ordinal)
+                || name2.Equals(requirementDirective, StringComparison.Ordinal)
+                || name2.Equals(emptyDirective, StringComparison.Ordinal)
+                || name3.Equals(requirementDirective, StringComparison.Ordinal)
+                || name3.Equals(emptyDirective, StringComparison.Ordinal);
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var directive = directives[i];
+            var name = directive.Name.Value;
+
+            if (name.Equals(requirementDirective, StringComparison.Ordinal)
+                || name.Equals(emptyDirective, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasDeferDirective(OperationDefinitionNode operation)
+        => DeferDetectionVisitor.Instance.HasDefer(operation);
+
+    private sealed class DeferDetectionVisitor : SyntaxWalker<DeferDetectionVisitor.Context>
+    {
+        public static readonly DeferDetectionVisitor Instance = new();
+
+        public bool HasDefer(OperationDefinitionNode operation)
+        {
+            var context = new Context();
+            Visit(operation, context);
+            return context.Found;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            Context context)
+        {
+            if (HasDeferDirectiveOnNode(node.Directives))
+            {
+                context.Found = true;
+                return Break;
+            }
+
+            return base.Enter(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FragmentSpreadNode node,
+            Context context)
+        {
+            if (HasDeferDirectiveOnNode(node.Directives))
+            {
+                context.Found = true;
+                return Break;
+            }
+
+            return base.Enter(node, context);
+        }
+
+        private static bool HasDeferDirectiveOnNode(IReadOnlyList<DirectiveNode> directives)
+        {
+            for (var i = 0; i < directives.Count; i++)
+            {
+                if (directives[i].Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal sealed class Context
+        {
+            public bool Found;
+        }
+    }
+
+    private class IncludeConditionVisitor : SyntaxWalker<IncludeConditionCollection>
+    {
+        public static readonly IncludeConditionVisitor Instance = new();
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            IncludeConditionCollection context)
+        {
+            if (IncludeCondition.TryCreate(node, out var condition))
+            {
+                context.Add(condition);
+            }
+
+            return base.Enter(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            IncludeConditionCollection context)
+        {
+            if (IncludeCondition.TryCreate(node, out var condition))
+            {
+                context.Add(condition);
+            }
+
+            return base.Enter(node, context);
+        }
+    }
+
+    private class DeferConditionVisitor : SyntaxWalker<DeferConditionCollection>
+    {
+        public static readonly DeferConditionVisitor Instance = new();
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            DeferConditionCollection context)
+        {
+            if (DeferCondition.TryCreate(node, out var condition))
+            {
+                context.Add(condition);
+            }
+
+            return base.Enter(node, context);
+        }
+    }
+
+    private class CompilationContext(object[] elementsById)
+    {
+        private object[] _elementsById = elementsById;
+
+        public object[] ElementsById => _elementsById;
+
+        public void Register(object element, int id)
+        {
+            if (id >= _elementsById.Length)
+            {
+                // Existing readers may continue using the previous array.
+                Array.Resize(ref _elementsById, Math.Max(_elementsById.Length * 2, id + 1));
+            }
+
+            _elementsById[id] = element;
+        }
+    }
+}

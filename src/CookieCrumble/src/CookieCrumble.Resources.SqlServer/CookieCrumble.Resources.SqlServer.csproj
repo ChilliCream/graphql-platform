@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>CookieCrumble.Resources.SqlServer</AssemblyName>
+    <RootNamespace>CookieCrumble.Resources</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <!-- Dependency of Microsoft.Data.SqlClient. Pinned to secure version. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+    <PackageReference Include="Testcontainers.MsSql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../CookieCrumble.Resources/CookieCrumble.Resources.csproj" />
+  </ItemGroup>
+
+</Project>

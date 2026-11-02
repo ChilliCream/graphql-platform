@@ -11,5 +11,5 @@ public class MatchAnyQueryableFieldHandler : FilterFieldHandler<QueryableFilterC
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration) => true;
 
-    public static MatchAnyQueryableFieldHandler Create(FilterProviderContext context) => new();
+    public static MatchAnyQueryableFieldHandler Create(FilterProviderContext _) => new();
 }

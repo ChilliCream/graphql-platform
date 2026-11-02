@@ -1,0 +1,41 @@
+using Testcontainers.RabbitMq;
+
+namespace CookieCrumble.Resources;
+
+public class RabbitMQResource : ContainerResource<RabbitMqContainer>
+{
+    /// <summary>
+    /// Gets the broker image the resource runs. Defaults to <c>rabbitmq:4.3</c>.
+    /// </summary>
+    public string Image { get; init; } = "rabbitmq:4.3";
+
+    public string ConnectionString => Container.GetConnectionString();
+
+    public string Hostname => Container.Hostname;
+
+    public ushort Port => Container.GetMappedPublicPort(RabbitMqBuilder.RabbitMqPort);
+
+    public async Task<string> InvokeCommandAsync(IEnumerable<string> command)
+    {
+        var arguments = command.ToArray();
+        var result = await Container.ExecAsync(arguments);
+
+        if (result.ExitCode != 0)
+        {
+            throw new InvalidOperationException(
+                $"'{string.Join(' ', arguments)}' failed with exit code {result.ExitCode}: "
+                + result.Stderr);
+        }
+
+        return result.Stdout;
+    }
+
+    protected override RabbitMqContainer Build()
+        => Configure(
+            new RabbitMqBuilder(Image)
+                .WithUsername("guest")
+                .WithPassword("guest"))
+            .Build();
+
+    protected virtual RabbitMqBuilder Configure(RabbitMqBuilder builder) => builder;
+}

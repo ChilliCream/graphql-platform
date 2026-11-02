@@ -53,7 +53,7 @@ public ref partial struct Utf8GraphQLParser
               ParseVariableDefinitions();
             ExpectOnKeyword();
             var typeCondition = ParseNamedType();
-            var directives = ParseDirectives(false);
+            var directives = ParseDirectives(false, isQueryLocation: true);
             var selectionSet = ParseSelectionSet();
             var location = CreateLocation(in start);
 
@@ -73,7 +73,7 @@ public ref partial struct Utf8GraphQLParser
             var name = ParseFragmentName();
             ExpectOnKeyword();
             var typeCondition = ParseNamedType();
-            var directives = ParseDirectives(false);
+            var directives = ParseDirectives(false, isQueryLocation: true);
             var selectionSet = ParseSelectionSet();
             var location = CreateLocation(in start);
 
@@ -93,7 +93,7 @@ public ref partial struct Utf8GraphQLParser
     /// <summary>
     /// Parses a fragment spread.
     /// <see cref="FragmentSpreadNode" />:
-    /// ... FragmentName Directives?
+    /// ... FragmentName Arguments? Directives?
     /// </summary>
     /// <param name="start">
     /// The start token of the current fragment node.
@@ -101,13 +101,22 @@ public ref partial struct Utf8GraphQLParser
     private FragmentSpreadNode ParseFragmentSpread(in TokenInfo start)
     {
         var name = ParseFragmentName();
-        var directives = ParseDirectives(false);
+
+        // Experimental support for passing arguments to a fragment spread
+        // changes the grammar of FragmentSpread:
+        // ... FragmentName Arguments? Directives?
+        var arguments = _allowFragmentArgs
+            ? ParseArguments(isConstant: false)
+            : s_emptyArguments;
+
+        var directives = ParseDirectives(false, isQueryLocation: true);
         var location = CreateLocation(in start);
 
         return new FragmentSpreadNode
         (
             location,
             name,
+            arguments,
             directives
         );
     }
@@ -127,7 +136,7 @@ public ref partial struct Utf8GraphQLParser
         in TokenInfo start,
         NamedTypeNode? typeCondition)
     {
-        var directives = ParseDirectives(false);
+        var directives = ParseDirectives(false, isQueryLocation: true);
         var selectionSet = ParseSelectionSet();
         var location = CreateLocation(in start);
 

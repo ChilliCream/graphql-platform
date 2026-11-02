@@ -1,6 +1,5 @@
 using HotChocolate;
 using HotChocolate.CostAnalysis;
-using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -32,8 +31,6 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .ConfigureSchemaServices(
                 static services =>
                 {
-                    services.TryAddSingleton<ICostMetricsCache, DefaultCostMetricsCache>();
-
                     services.TryAddEnumerable(
                         Singleton<ISchemaDocumentFormatter, CostSchemaDocumentFormatter>());
 
@@ -51,23 +48,51 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
 
                     services.TryAddSingleton(sp =>
                     {
+                        var options = sp.GetRequiredService<CostOptions>();
+                        return new CostPlanCache(options.CostPlanCacheSize);
+                    });
+
+                    services.TryAddSingleton(sp =>
+                    {
+                        var options = sp.GetRequiredService<CostOptions>();
+                        var schemaIndexOptions = new CostSchemaIndexOptions
+                        {
+                            DefaultListSize = options.DefaultListSize
+                        };
+
+                        if (options.CaseBudget is { } caseBudget)
+                        {
+                            schemaIndexOptions.CaseBudget = caseBudget;
+                        }
+
+                        if (options.CaseBudgetExceededBehavior is { } caseBudgetExceededBehavior)
+                        {
+                            schemaIndexOptions.CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
+                        }
+
+                        return CostSchemaIndex.Create(
+                            sp.GetRequiredService<ISchemaDefinition>(),
+                            schemaIndexOptions);
+                    });
+
+                    services.TryAddSingleton(sp =>
+                    {
                         var requestOptions = sp.GetRequiredService<CostOptions>();
                         return new RequestCostOptions(
                             requestOptions.MaxFieldCost,
                             requestOptions.MaxTypeCost,
                             requestOptions.EnforceCostLimits,
                             requestOptions.SkipAnalyzer,
-                            requestOptions.Filtering.VariableMultiplier);
+                            requestOptions.MaxResponseSize);
                     });
                 })
             .AddDirectiveType<CostDirectiveType>()
             .AddDirectiveType<ListSizeDirectiveType>()
             .TryAddTypeInterceptor<CostTypeInterceptor>()
             .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
-            .AppendUseRequest(
-                after: WellKnownRequestMiddleware.DocumentValidationMiddleware,
-                configuration: CostAnalyzerMiddleware.Create(),
-                allowMultiple: false);
+            .UseRequest(
+                CostAnalyzerMiddleware.Create(),
+                after: WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);
     }
 
     /// <summary>

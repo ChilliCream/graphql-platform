@@ -1,8 +1,12 @@
+
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
+using Skills.Commands;
+using Skills.Extensions;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-using System.CommandLine.Builder;
-using System.CommandLine.Parsing;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -12,15 +16,55 @@ namespace ChilliCream.Nitro.CommandLine;
 #endif
 public static class Program
 {
-    public static async Task Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
-        var builder = new CommandLineBuilder(new NitroRootCommand())
-            .AddNitroCloudConfiguration()
-            .UseDefaults()
-            .UseExceptionMiddleware()
-            .UseExtendedConsole();
+        using var cts = new CancellationTokenSource();
 
-        builder.Command.AddNitroCloudCommands();
-        await builder.Build().InvokeAsync(args);
+        Console.CancelKeyPress += (sender, e) =>
+        {
+            e.Cancel = true;
+            cts.Cancel();
+        };
+
+        var services = new ServiceCollection();
+
+        services.AddNitroServices();
+        services.AddSkillsServices("nitro skills");
+
+        services.AddSingleton<NitroClientContext>();
+        services.AddSingleton<INitroClientContextProvider>(sp => sp.GetRequiredService<NitroClientContext>());
+        services.AddNitroClients();
+
+        var outConsole = AnsiConsole.Console;
+        var errorConsole = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Out = new AnsiConsoleOutput(Console.Error)
+        });
+
+        // When output is not a terminal (CI, pipes), Spectre.Console defaults
+        // to 80 chars width. Use a wide width so the consumer handles wrapping.
+        if (Console.IsOutputRedirected)
+        {
+            outConsole.Profile.Width = Constants.DefaultPrintWidth;
+        }
+
+        if (Console.IsErrorRedirected)
+        {
+            errorConsole.Profile.Width = Constants.DefaultPrintWidth;
+        }
+
+        services
+            .AddSingleton<INitroConsole>(_ =>
+                new NitroConsole(
+                    outConsole,
+                    errorConsole,
+                    new ActivitySinkFactory()));
+
+        await using var provider = services.BuildServiceProvider();
+
+        var rootCommand = new NitroRootCommand();
+        rootCommand.Subcommands.Add(new SkillsCommand(provider));
+
+        return await rootCommand.ExecuteAsync(args, provider, null, cts.Token);
     }
 }

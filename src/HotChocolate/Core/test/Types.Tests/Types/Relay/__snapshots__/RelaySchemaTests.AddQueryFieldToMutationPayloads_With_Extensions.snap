@@ -3,23 +3,23 @@ schema {
   mutation: Mutation
 }
 
-"The node interface is implemented by entities that have a global unique identifier."
-interface Node {
-  id: ID!
-}
-
-type FooPayload {
-  query: QueryType!
+type QueryType {
+  some: Some
 }
 
 type Mutation {
   foo: FooPayload!
 }
 
-type QueryType {
-  some: Some
+type FooPayload {
+  query: QueryType!
 }
 
 type Some implements Node {
+  id: ID!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
   id: ID!
 }

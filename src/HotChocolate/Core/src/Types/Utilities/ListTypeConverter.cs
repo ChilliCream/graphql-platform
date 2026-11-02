@@ -7,6 +7,10 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Utilities;
 
+[RequiresDynamicCode(
+    "Uses MakeGenericMethod, MakeGenericType, Array.CreateInstance and Activator.CreateInstance for list type "
+    + "conversion.")]
+[RequiresUnreferencedCode("Uses MakeGenericMethod which cannot be statically analyzed.")]
 internal sealed class ListTypeConverter : IChangeTypeProvider
 {
     private static readonly MethodInfo s_dictionaryConvert =
@@ -24,6 +28,11 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
             nameof(GenericCollectionConverter),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2067",
+        Justification =
+            "List types are concrete generic types from the type converter system and are preserved at runtime.")]
     public bool TryCreateConverter(
         Type source,
         Type target,
@@ -127,6 +136,11 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
         return array;
     }
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2067",
+        Justification =
+            "The list type is a concrete generic collection type from the converter system.")]
     private static object? GenericListConverter(
         ICollection? input,
         Type listType,
@@ -142,6 +156,11 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
         return list;
     }
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2067",
+        Justification =
+            "The list type is a concrete generic collection type from the converter system.")]
     private static object? GenericCollectionConverter<T>(
         ICollection? input,
         Type listType,
@@ -193,7 +212,13 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
         return set;
     }
 
-    private static bool IsGenericCollection(Type type)
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2070",
+        Justification =
+            "The type is a concrete generic type from the converter system with interfaces preserved.")]
+    private static bool IsGenericCollection(
+        Type type)
     {
         var interfaces = type.GetInterfaces();
         ref var start = ref MemoryMarshal.GetArrayDataReference(interfaces);

@@ -1,0 +1,20 @@
+{
+  "errors": [
+    {
+      "message": "Field \"hero\" of type \"Droid!\" must have a selection of subfields. Did you mean \"hero { ... }\"?",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "declaringType": "Query",
+        "field": "hero",
+        "type": "Droid!",
+        "responseName": "hero",
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+      }
+    }
+  ]
+}

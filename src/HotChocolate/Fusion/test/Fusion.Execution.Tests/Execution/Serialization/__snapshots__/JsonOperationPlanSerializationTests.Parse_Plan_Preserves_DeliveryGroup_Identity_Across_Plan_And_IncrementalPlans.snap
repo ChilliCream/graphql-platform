@@ -1,0 +1,170 @@
+{
+  "version": "1.2.0",
+  "id": "8714fc9992e82158b0f6d15d7f4b5f8644c53d1faab749b121824826cab4bcc9",
+  "operation": {
+    "kind": "Query",
+    "document": "{ user(id: \"1\") { name id @fusion__requirement } }",
+    "id": "123456789101112",
+    "hash": "123456789101112",
+    "shortHash": "123456789101112"
+  },
+  "searchSpace": 1,
+  "expandedNodes": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Operation",
+      "schema": "a",
+      "operation": {
+        "name": "Op_123456789101112_1",
+        "kind": "Query",
+        "document": "query Op_123456789101112_1 { user(id: \"1\") { name id } }",
+        "hash": "ccf3d796e1f197921a35131b6dd91f4219cb985ac217c172b56acff4113969e0",
+        "shortHash": "ccf3d796",
+        "xxHash": 4742382551289352197
+      },
+      "resultSelectionSet": "{ user }"
+    }
+  ],
+  "deliveryGroups": [
+    {
+      "id": 0,
+      "path": "$.user",
+      "label": "contact"
+    },
+    {
+      "id": 1,
+      "path": "$.user",
+      "label": "nested",
+      "parentId": 0
+    },
+    {
+      "id": 2,
+      "path": "$.user",
+      "label": "location"
+    }
+  ],
+  "incrementalPlans": [
+    {
+      "deliveryGroupIds": [
+        0,
+        2
+      ],
+      "parentNodeId": 1,
+      "requirements": [
+        {
+          "name": "__fusion_1_id",
+          "type": "ID!",
+          "path": "$.user",
+          "selectionMap": "id"
+        }
+      ],
+      "operation": {
+        "kind": "Query",
+        "document": "{ user(id: \"1\") { email id @fusion__requirement } }",
+        "id": "123456789101112#defer_0",
+        "hash": "123456789101112#defer_0",
+        "shortHash": "123456789101112"
+      },
+      "nodes": [
+        {
+          "id": 1,
+          "type": "Operation",
+          "schema": "b",
+          "operation": {
+            "name": "Op_defer_1",
+            "kind": "Query",
+            "document": "query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }",
+            "hash": "2aab5972b753c9acb689478907ffd733cc3ea02794566e0aea0dd8c4c269412f",
+            "shortHash": "2aab5972",
+            "xxHash": 17733049673571298455
+          },
+          "lookupTypeName": "User",
+          "resultSelectionSet": "{ email }",
+          "source": "$.userById",
+          "target": "$.user",
+          "requirements": [
+            {
+              "name": "__fusion_1_id",
+              "type": "ID!",
+              "path": "$.user",
+              "selectionMap": "id"
+            }
+          ],
+          "dependencies": [
+            {
+              "parentNodeId": 1
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "Operation",
+          "schema": "a",
+          "operation": {
+            "name": "Op_defer_2",
+            "kind": "Query",
+            "document": "query Op_defer_2 { user(id: \"1\") { id } }",
+            "hash": "1458dc538a1a50fd74a5b1d8f1f385fdc6a17aade3e2d5e6204885b5fd48b115",
+            "shortHash": "1458dc53",
+            "xxHash": 12093050853580119070
+          },
+          "resultSelectionSet": "{ user }"
+        }
+      ]
+    },
+    {
+      "deliveryGroupIds": [
+        1
+      ],
+      "parentNodeId": 1,
+      "requirements": [
+        {
+          "name": "__fusion_1_id",
+          "type": "ID!",
+          "path": "$.user",
+          "selectionMap": "id"
+        }
+      ],
+      "operation": {
+        "kind": "Query",
+        "document": "{ user(id: \"1\") { address id @fusion__requirement } }",
+        "id": "123456789101112#defer_1",
+        "hash": "123456789101112#defer_1",
+        "shortHash": "123456789101112"
+      },
+      "nodes": [
+        {
+          "id": 1,
+          "type": "Operation",
+          "schema": "b",
+          "operation": {
+            "name": "Op_defer_1",
+            "kind": "Query",
+            "document": "query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { address } }",
+            "hash": "a56aa2e152b8bb318ecbf4f0873ae958a7ab1397aa96cce78f910dc8d854be89",
+            "shortHash": "a56aa2e1",
+            "xxHash": 6720347005588463869
+          },
+          "lookupTypeName": "User",
+          "resultSelectionSet": "{ address }",
+          "source": "$.userById",
+          "target": "$.user",
+          "requirements": [
+            {
+              "name": "__fusion_1_id",
+              "type": "ID!",
+              "path": "$.user",
+              "selectionMap": "id"
+            }
+          ],
+          "dependencies": [
+            {
+              "parentNodeId": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

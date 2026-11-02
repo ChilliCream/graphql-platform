@@ -1,0 +1,15 @@
+{
+  "id": "schema_argument_default_applies_when_an_optional_variable_is_undefined",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\ntype User { name: String }\ntype Query { users(first: Int = 3): [User] @listSize(slicingArguments: [\"first\"]) }\n",
+  "operation": "query Example($first: Int) { users(first: $first) { name } }",
+  "operationName": "Example",
+  "variables": {},
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 4,
+    "fieldCost": 1
+  },
+  "notes": "Port of estimator.rs test `schema_argument_default_applies_when_an_optional_variable_is_undefined` at line 1355, commit fec57fd7a980b5399637fa464a9bdce0781d91dd."
+}

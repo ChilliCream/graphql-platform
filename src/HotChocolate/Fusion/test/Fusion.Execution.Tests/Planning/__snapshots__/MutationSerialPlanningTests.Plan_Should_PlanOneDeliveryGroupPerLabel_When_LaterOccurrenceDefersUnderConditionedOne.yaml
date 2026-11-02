@@ -1,0 +1,55 @@
+operation:
+  - document: |
+      mutation M($x: Boolean!) {
+        a: bump(counter: "s", by: 1) {
+          id @fusion__requirement
+          id @include(if: $x)
+        }
+      }
+    name: M
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: ledger
+    operation: |
+      mutation M_123456789101112_1($x: Boolean!) {
+        a: bump(counter: "s", by: 1) {
+          id @include(if: $x)
+          id
+        }
+      }
+    forwardedVariables:
+      - x
+deliveryGroups:
+  - id: 0
+    path: $.a
+    label: d
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 1
+        type: Operation
+        schema: reader
+        operation: |
+          query M_defer_2($__fusion_1_id: ID!) {
+            counterById(id: $__fusion_1_id) {
+              value
+            }
+          }
+        source: $.counterById
+        target: $.a
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1

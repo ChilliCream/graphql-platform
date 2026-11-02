@@ -1,0 +1,23 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "__typename": "Bar",
+        "barProp": "BarProp"
+      },
+      {
+        "__typename": "Foo",
+        "fooProp": "FooProp"
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."d" = 'bar', "d"."BarProp", "d"."d" = 'foo', "d"."FooProp"
+FROM "Data" AS "d"
+---------------

@@ -1,0 +1,23 @@
+mutation ValidateFusionConfiguration(
+  $input: ValidateFusionConfigurationInput!
+) {
+  validateFusionConfiguration(input: $input) {
+    id
+    errors {
+      ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
+      ...ApiNotFoundError
+      ...Error
+    }
+  }
+}
+
+subscription OnFusionConfigurationValidationUpdated($requestId: ID!) {
+  onFusionConfigurationValidationUpdate(requestId: $requestId) {
+    __typename
+    ...FusionConfigurationValidationFailed
+    ...FusionConfigurationValidationSuccess
+    ...OperationInProgress
+    ...ValidationInProgress
+  }
+}

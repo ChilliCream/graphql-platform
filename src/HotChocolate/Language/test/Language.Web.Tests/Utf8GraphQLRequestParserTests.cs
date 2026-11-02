@@ -186,7 +186,7 @@ public class Utf8GraphQLRequestParserTests
     }
 
     [Fact]
-    public void Parse_Unknown_Property_Throws()
+    public void Parse_Unknown_Property_Is_Ignored()
     {
         // arrange
         var request = new CustomGraphQLRequestDto(
@@ -196,10 +196,38 @@ public class Utf8GraphQLRequestParserTests
         var source = Encoding.UTF8.GetBytes(
             JsonConvert.SerializeObject(request).NormalizeLineBreaks());
 
-        // act & assert
-        var exception = Assert.Throws<InvalidGraphQLRequestException>(
-            () => Utf8GraphQLRequestParser.Parse(source));
-        Assert.Contains("CustomProperty", exception.Message);
+        // act
+        var batch = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var r = Assert.Single(batch);
+        Assert.Null(r.OperationName);
+        Assert.Null(r.DocumentId);
+        Assert.Null(r.Variables);
+        Assert.Null(r.Extensions);
+        r.Document.MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData("\"a string\"")]
+    [InlineData("42")]
+    [InlineData("true")]
+    [InlineData("null")]
+    // A nested "query" must not be mistaken for the request's own.
+    [InlineData("""{ "nested": { "deep": [1, 2] }, "query": "{ decoy }" }""")]
+    [InlineData("""[1, { "query": "{ decoy }" }, null]""")]
+    public void Parse_Unknown_Property_Of_Any_Json_Shape_Is_Ignored(string value)
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            $$"""{ "unknownProperty": {{value}}, "query": "{ __typename }" }""");
+
+        // act
+        var batch = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var r = Assert.Single(batch);
+        Assert.Equal("{ __typename }", r.Document!.ToString(indented: false));
     }
 
     [Fact]
@@ -248,12 +276,9 @@ public class Utf8GraphQLRequestParserTests
     [Theory]
     [InlineData("PROPAGATE", ErrorHandlingMode.Propagate)]
     [InlineData("NULL", ErrorHandlingMode.Null)]
-    [InlineData("HALT", ErrorHandlingMode.Halt)]
     [InlineData("propagate", ErrorHandlingMode.Propagate)]
     [InlineData("null", ErrorHandlingMode.Null)]
-    [InlineData("halt", ErrorHandlingMode.Halt)]
     [InlineData(null, null)]
-    [InlineData("bla", null)]
     public void Parse_OnError(string? onError, ErrorHandlingMode? expectedErrorHandlingMode)
     {
         // arrange
@@ -458,7 +483,7 @@ public class Utf8GraphQLRequestParserTests
         Assert.True(request.Extensions!.RootElement.TryGetProperty("persistedQuery", out _));
         Assert.Null(request.Document);
         Assert.Equal("hashOfQuery", request.DocumentHash?.Value);
-        Assert.Equal("sha256Hash", request.DocumentHash?.AlgorithmName);
+        Assert.Equal("sha256", request.DocumentHash?.AlgorithmName);
     }
 
     [Fact]
@@ -522,6 +547,39 @@ public class Utf8GraphQLRequestParserTests
                     Assert.Equal(hashElement.GetString(), r.DocumentHash?.Value);
                 }
             });
+    }
+
+    [Fact]
+    public void Parse_Should_UseDocumentHashAsId_When_QuerySpansSegmentsWithPersistedQueryHash()
+    {
+        // arrange
+        // the query is long enough that the split in the middle of the request falls inside it.
+        var query = "{" + new string(' ', 200) + "__typename }";
+        var source = SequenceHelper.CreateMultiSegment(
+            Encoding.UTF8.GetBytes(
+                $$"""
+                {
+                  "query": "{{query}}",
+                  "extensions": {
+                    "persistedQuery": {
+                      "version": 1,
+                      "md5Hash": "acb8d5d513c260b3cef3e3a12b0e29af"
+                    }
+                  }
+                }
+                """));
+
+        var requestParser = new Utf8GraphQLRequestParser(
+            new ParserOptions(),
+            new DocumentCache(),
+            new MD5DocumentHashProvider(HashFormat.Hex));
+
+        // act
+        var batch = requestParser.Parse(source);
+
+        // assert
+        var request = Assert.Single(batch);
+        Assert.Equal("646e8290b92bb4b6742a6e88c4f52535", request.DocumentId?.Value);
     }
 
     [Fact]
@@ -1047,6 +1105,18 @@ public class Utf8GraphQLRequestParserTests
     }
 
     [Fact]
+    public void Parse_OnError_Unknown_Value_Throws()
+    {
+        // arrange
+        var source = "{\"onError\": \"HALT\", \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("onError", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Parse_OnError_Invalid_Type_Number_Throws()
     {
         // arrange
@@ -1062,7 +1132,7 @@ public class Utf8GraphQLRequestParserTests
     public void Parse_OnError_Invalid_Type_Object_Throws()
     {
         // arrange
-        var source = "{\"onError\": {\"mode\": \"HALT\"}, \"query\": \"{ __typename }\"}"u8.ToArray();
+        var source = "{\"onError\": {\"mode\": \"NULL\"}, \"query\": \"{ __typename }\"}"u8.ToArray();
 
         // act & assert
         var exception = Assert.Throws<InvalidGraphQLRequestException>(

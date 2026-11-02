@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore.CommandLine</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.CommandLine</RootNamespace>
     <Description>This package contains the command line extensions for HotChocolate</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

@@ -22,11 +22,11 @@ BAR Result:
 
 BAR SQL:
 ---------------
-.param set @__p_0 1
+.param set @p 1
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" <> @__p_0 OR "d"."BarEnum" IS NULL
+WHERE "d"."BarEnum" <> @p OR "d"."BarEnum" IS NULL
 ---------------
 
 FOO Result:
@@ -53,11 +53,11 @@ FOO Result:
 
 FOO SQL:
 ---------------
-.param set @__p_0 0
+.param set @p 0
 
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" <> @__p_0 OR "d"."BarEnum" IS NULL
+WHERE "d"."BarEnum" <> @p OR "d"."BarEnum" IS NULL
 ---------------
 
 null Result:

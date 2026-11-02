@@ -11,7 +11,7 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
     private readonly ThreadLocal<SHA256> _sha = new(SHA256.Create);
 
     public Sha256DocumentHashProvider()
-       : this(HashFormat.Base64)
+        : this(HashFormat.Base64)
     {
     }
 
@@ -22,6 +22,8 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "sha256Hash";
 
+    public override string AlgorithmName => "sha256";
+
 #if NETSTANDARD2_0
     protected override byte[] ComputeHash(byte[] document, int length)
     {
@@ -31,17 +33,9 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {
-        var hashBytes = new byte[32];
-        var hashSpan = hashBytes.AsSpan();
-
+        Span<byte> hashBytes = stackalloc byte[32];
         _sha.Value!.TryComputeHash(document, hashBytes, out var written);
-
-        if (written < 32)
-        {
-            hashSpan = hashSpan[..written];
-        }
-
-        return FormatHash(hashSpan, format);
+        return FormatHash(hashBytes[..written], format);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

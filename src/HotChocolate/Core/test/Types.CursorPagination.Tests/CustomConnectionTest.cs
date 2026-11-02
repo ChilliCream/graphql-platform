@@ -13,13 +13,14 @@ public class CustomConnectionTest
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ products { edges { node { name } } } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

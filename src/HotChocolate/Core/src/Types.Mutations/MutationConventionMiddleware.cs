@@ -27,10 +27,10 @@ internal sealed class MutationConventionMiddleware(
 
         foreach (var argument in _resolverArguments)
         {
-            input.TryGetValue(argument.Name, out var value);
+            input.TryGetValue(argument.InputName, out var value);
 
             var omitted = false;
-            if (!inputLiteral.TryGetValue(argument.Name, out var valueLiteral))
+            if (!inputLiteral.TryGetValue(argument.InputName, out var valueLiteral))
             {
                 omitted = true;
                 valueLiteral = argument.DefaultValue;

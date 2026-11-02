@@ -1,0 +1,199 @@
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail.Options;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+
+namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
+
+internal sealed class ReadMailCommand : Command
+{
+    public ReadMailCommand() : base("read")
+    {
+        Description = "Print a message and mark it read.";
+
+        Options.Add(Opt<MailMessageOption>.Instance);
+        Options.Add(Opt<MailThreadOption>.Instance);
+        Options.Add(Opt<MailActorOption>.Instance);
+        Options.Add(Opt<OptionalOutputFormatOption>.Instance);
+
+        this.AddExamples(
+            "agent mail read --message \"m-abc123\" --actor \"maya\"",
+            "agent mail read --message \"m-abc123\" --thread --actor \"maya\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
+    }
+
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
+        CancellationToken cancellationToken)
+    {
+        var console = services.GetRequiredService<INitroConsole>();
+        var store = services.GetRequiredService<IMailStore>();
+        var agentStore = services.GetRequiredService<IAgentStore>();
+        var ledger = services.GetRequiredService<ITakeoverLedger>();
+        var actorResolver = services.GetRequiredService<IActingActorResolver>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        var messageId = parseResult.GetRequiredValue(Opt<MailMessageOption>.Instance);
+        var thread = parseResult.GetValue(Opt<MailThreadOption>.Instance);
+        var actor = await MailActor.ResolveAsync(
+            parseResult.GetValue(Opt<MailActorOption>.Instance), actorResolver, cancellationToken);
+
+        var message = await store.GetRequiredMessageAsync(messageId, cancellationToken);
+
+        RequireParticipant(message, messageId, actor);
+
+        var messages = thread
+            ? await MarkThreadReadAsync(store, message.ThreadId, actor, cancellationToken)
+            : [await MarkMessageReadAsync(store, message, actor, cancellationToken)];
+        var takeovers = await GetTakeoversAsync(ledger, messages, cancellationToken);
+
+        if (!console.IsHumanReadable)
+        {
+            var results = messages
+                .Select((message, index) => MailMessageDetailResult.Create(message, actor, takeovers[index]))
+                .ToArray();
+
+            resultHolder.SetResult(
+                thread
+                    ? new ListResult<MailMessageDetailResult>(results)
+                    : new ObjectResult(results[0]));
+
+            return ExitCodes.Success;
+        }
+
+        for (var i = 0; i < messages.Count; i++)
+        {
+            if (i > 0)
+            {
+                console.WriteLine();
+                console.WriteLine("---");
+                console.WriteLine();
+            }
+
+            var sender = await agentStore.FindAsync(messages[i].Sender, cancellationToken);
+            WriteMessage(console, messages[i], sender?.Role ?? "", takeovers[i]);
+        }
+
+        return ExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Throws <see cref="ExitException"/> when the actor is neither the
+    /// message's sender nor one of its recipients.
+    /// </summary>
+    private static void RequireParticipant(MailMessage message, string messageId, string actor)
+    {
+        if (message.Sender == actor || message.Recipients.Any(r => r.Name == actor))
+        {
+            return;
+        }
+
+        throw new ExitException(
+            $"'{actor}' is not the sender or a recipient of '{messageId}' and cannot read it.");
+    }
+
+    private static async Task<MailMessage> MarkMessageReadAsync(
+        IMailStore store,
+        MailMessage message,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        if (!message.Recipients.Any(r => r.Name == actor))
+        {
+            return message;
+        }
+
+        await store.MarkReadAsync([message.Id], actor, cancellationToken);
+
+        return await store.GetRequiredMessageAsync(message.Id, cancellationToken);
+    }
+
+    private static async Task<IReadOnlyList<MailMessage>> MarkThreadReadAsync(
+        IMailStore store,
+        string threadId,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var messages = await store.GetThreadMessagesAsync(threadId, cancellationToken);
+
+        var markable = messages
+            .Where(m => m.Recipients.Any(r => r.Name == actor))
+            .Select(m => m.Id)
+            .ToArray();
+
+        if (markable.Length == 0)
+        {
+            return messages;
+        }
+
+        await store.MarkReadAsync(markable, actor, cancellationToken);
+
+        return await store.GetThreadMessagesAsync(threadId, cancellationToken);
+    }
+
+    private static async Task<IReadOnlyList<TakeoverReferenceResult>[]> GetTakeoversAsync(
+        ITakeoverLedger ledger,
+        IReadOnlyList<MailMessage> messages,
+        CancellationToken cancellationToken)
+    {
+        var takeovers = new IReadOnlyList<TakeoverReferenceResult>[messages.Count];
+
+        for (var index = 0; index < messages.Count; index++)
+        {
+            var records = await ledger.QueryAsync(
+                new TakeoverFilter { MessageId = messages[index].Id },
+                cancellationToken);
+            takeovers[index] = records.Select(TakeoverReferenceResult.FromRecord).ToArray();
+        }
+
+        return takeovers;
+    }
+
+    private static void WriteMessage(
+        INitroConsole console,
+        MailMessage message,
+        string senderRole,
+        IReadOnlyList<TakeoverReferenceResult> takeovers)
+    {
+        var to = message.Recipients
+            .Where(r => r.Kind == MailRecipientKinds.To)
+            .OrderBy(r => r.Ordinal)
+            .Select(r => r.Name)
+            .ToArray();
+
+        var cc = message.Recipients
+            .Where(r => r.Kind == MailRecipientKinds.Cc)
+            .OrderBy(r => r.Ordinal)
+            .Select(r => r.Name)
+            .ToArray();
+
+        console.WriteLine(
+            senderRole.Length > 0
+                ? $"From: {message.Sender} ({senderRole})"
+                : $"From: {message.Sender}");
+        console.WriteLine($"To: {string.Join(", ", to)}");
+
+        if (cc.Length > 0)
+        {
+            console.WriteLine($"Cc: {string.Join(", ", cc)}");
+        }
+
+        console.WriteLine($"Date: {TaskDates.Format(message.CreatedAt)}");
+        console.WriteLine($"Subject: {message.Subject}");
+        console.WriteLine($"Thread: {message.ThreadId}");
+
+        foreach (var takeover in takeovers)
+        {
+            console.WriteLine(
+                $"Takeover: {takeover.From} -> {takeover.To} "
+                + $"({takeover.Id}, {takeover.CreatedAt.ToUniversalTime():yyyy-MM-dd})");
+        }
+
+        console.WriteLine();
+        console.WriteLine(message.Body);
+    }
+}

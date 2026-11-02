@@ -62,6 +62,6 @@ public class ArgumentNonNullValidatorTests
 
         // assert
         Assert.True(report.HasErrors);
-        Assert.Equal("/root/a", report.Path.ToString());
+        Assert.Equal("root.a", report.Path.ToString());
     }
 }

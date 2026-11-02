@@ -1,0 +1,299 @@
+some
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+all
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+none
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+some with empty field
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------

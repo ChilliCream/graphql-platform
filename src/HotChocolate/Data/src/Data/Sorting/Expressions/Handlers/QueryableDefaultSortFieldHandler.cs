@@ -25,7 +25,7 @@ public class QueryableDefaultSortFieldHandler
         if (node.Value.IsNull())
         {
             context.ReportError(
-                ErrorHelper.CreateNonNullError(field, node.Value, context));
+                ErrorHelper.CreateNonNullError(field, context));
 
             action = SyntaxVisitor.Skip;
             return true;
@@ -102,7 +102,7 @@ public class QueryableDefaultSortFieldHandler
         return true;
     }
 
-    public static QueryableDefaultSortFieldHandler Create(SortProviderContext context) => new();
+    public static QueryableDefaultSortFieldHandler Create(SortProviderContext _) => new();
 
     private sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
     {

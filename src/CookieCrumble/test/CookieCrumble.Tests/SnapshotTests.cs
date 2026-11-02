@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using CookieCrumble.Formatters;
-using CookieCrumble.Xunit;
+using CookieCrumble.Xunit3;
 using Xunit.Sdk;
 
 namespace CookieCrumble;
@@ -16,7 +16,7 @@ public class SnapshotTests
 
     static SnapshotTests()
     {
-        Snapshot.RegisterTestFramework(new XunitFramework());
+        Snapshot.RegisterTestFramework(new Xunit3Framework());
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class SnapshotTests
         snapshot.Add(new MyClass());
         snapshot.Add(new MyClass { Foo = "Bar" });
         snapshot.Add(new MyClass { Foo = "Baz" });
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -159,13 +159,14 @@ public class SnapshotTests
     {
         Environment.SetEnvironmentVariable("COOKIE_CRUMBLE_STRICT_MODE", strictMode);
 
+        var suffix = $"{number}_{TestEnvironment.TargetFramework}";
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass { Foo = "123" });
 
-        async Task Act1() => await snapshot.SetPostFix($"MA_{number}").MatchAsync();
-        void Act2() => snapshot.SetPostFix($"M_{number}").Match();
-        async Task Act3() => await snapshot.SetPostFix($"MMA_{number}").MatchMarkdownAsync();
-        void Act4() => snapshot.SetPostFix($"MM_{number}").MatchMarkdown();
+        async Task Act1() => await snapshot.SetPostFix($"MA_{suffix}").MatchAsync();
+        void Act2() => snapshot.SetPostFix($"M_{suffix}").Match();
+        async Task Act3() => await snapshot.SetPostFix($"MMA_{suffix}").MatchMarkdownAsync();
+        void Act4() => snapshot.SetPostFix($"MM_{suffix}").MatchMarkdown();
 
         try
         {
@@ -177,10 +178,10 @@ public class SnapshotTests
             static string GetCallerFilePath([CallerFilePath] string filePath = "") => filePath;
             var directory = Path.GetDirectoryName(GetCallerFilePath()) + "/__snapshots__";
 
-            File.Delete($"{directory}/SnapshotTests.Match_StrictMode_Off_MA_{number}.snap");
-            File.Delete($"{directory}/SnapshotTests.Match_StrictMode_Off_M_{number}.snap");
-            File.Delete($"{directory}/SnapshotTests.Match_StrictMode_Off_MMA_{number}.md");
-            File.Delete($"{directory}/SnapshotTests.Match_StrictMode_Off_MM_{number}.md");
+            File.Delete($"{directory}/SnapshotTests.Match_StrictMode_Off_MA_{suffix}.snap");
+            File.Delete($"{directory}/SnapshotTests.Match_StrictMode_Off_M_{suffix}.snap");
+            File.Delete($"{directory}/SnapshotTests.Match_StrictMode_Off_MMA_{suffix}.md");
+            File.Delete($"{directory}/SnapshotTests.Match_StrictMode_Off_MM_{suffix}.md");
 
             Assert.Null(result1);
             Assert.Null(result2);

@@ -11,11 +11,11 @@ public class CatalogContext : DbContext
         optionsBuilder.UseSqlite($"Data Source={randomDbName}.db");
     }
 
-    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<Product> Products { get; set; }
 
-    public DbSet<ProductType> ProductTypes { get; set; } = null!;
+    public DbSet<ProductType> ProductTypes { get; set; }
 
-    public DbSet<Brand> Brands { get; set; } = null!;
+    public DbSet<Brand> Brands { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

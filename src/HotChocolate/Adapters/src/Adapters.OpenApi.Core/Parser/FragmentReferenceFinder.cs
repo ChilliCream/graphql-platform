@@ -21,10 +21,12 @@ public static class FragmentReferenceFinder
     {
         var localFragmentLookup = CreateLocalFragmentLookup(document);
 
-        localFragmentLookup.Remove(fragment.Name.Value);
-
         var context = new VisitorContext(localFragmentLookup);
         s_visitor.Visit(document, context);
+
+        // The anchor is carried separately as the definition's own fragment, so it is
+        // excluded from the local lookup only after the document has been visited.
+        localFragmentLookup.Remove(fragment.Name.Value);
 
         return new FragmentReferenceFinderResult(localFragmentLookup, context.ExternalFragmentReferences);
     }

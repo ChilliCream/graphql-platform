@@ -87,10 +87,40 @@ public static class CompilationExtensions
 
     public static IMemberDescription? GetDescription(
         this Compilation compilation,
-        ISymbol methodOrProperty,
-        ImmutableArray<ResolverParameter> parameters)
+        ISymbol symbol)
     {
-        switch (methodOrProperty)
+        if (compilation.DisableXmlDocumentation())
+        {
+            switch (symbol)
+            {
+                case IPropertySymbol property:
+                    return new PropertyDescription(
+                        property.GetDescriptionFromAttribute(),
+                        IsDescriptionFromAttribute: true);
+
+                case IMethodSymbol method:
+                    var paramDescs = ImmutableArray.CreateBuilder<(string?, bool)>(method.Parameters.Length);
+                    foreach (var p in method.Parameters)
+                    {
+                        paramDescs.Add((p.GetDescriptionFromAttribute(), true));
+                    }
+
+                    return new MethodDescription(
+                        method.GetDescriptionFromAttribute(),
+                        paramDescs.ToImmutable(),
+                        isDescriptionFromAttribute: true);
+
+                case IParameterSymbol parameter:
+                    return new ParameterDescription(
+                        parameter.GetDescriptionFromAttribute(),
+                        IsDescriptionFromAttribute: true);
+
+                default:
+                    return null;
+            }
+        }
+
+        switch (symbol)
         {
             case IPropertySymbol property:
                 return property.GetDescription(compilation);
@@ -98,17 +128,30 @@ public static class CompilationExtensions
             case IMethodSymbol method:
                 return method.GetDescription(compilation);
 
+            case IParameterSymbol parameter:
+                return parameter.GetDescription(compilation);
+
             default:
                 return null;
         }
+    }
+
+    public static string? GetDescription(
+        this Compilation compilation,
+        INamedTypeSymbol type)
+    {
+        if (compilation.DisableXmlDocumentation())
+        {
+            return type.GetDescriptionFromAttribute();
+        }
+
+        return type.GetDescription(compilation);
     }
 
     public static string? GetDeprecationReason(this Compilation compilation, ISymbol symbol)
     {
         var graphQLDeprecatedAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLDeprecatedAttribute);
         var obsoleteAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.ObsoleteAttribute);
-
-        const string defaultReason = "No longer supported.";
 
         foreach (var attributeData in symbol.GetAttributes())
         {
@@ -123,7 +166,7 @@ public static class CompilationExtensions
                     return deprecatedReason;
                 }
 
-                return defaultReason;
+                return DirectiveNames.Deprecated.Arguments.DefaultReason;
             }
 
             // Check for ObsoleteAttribute
@@ -137,7 +180,7 @@ public static class CompilationExtensions
                     return obsoleteReason;
                 }
 
-                return defaultReason;
+                return DirectiveNames.Deprecated.Arguments.DefaultReason;
             }
         }
 
@@ -326,21 +369,21 @@ public static class CompilationExtensions
             return ResolverParameterKind.HttpResponse;
         }
 
-        if (parameter.IsGlobalState(out key))
+        if (parameter.IsGlobalState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetGlobalState
                 : ResolverParameterKind.GetGlobalState;
         }
 
-        if (parameter.IsScopedState(out key))
+        if (parameter.IsScopedState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetScopedState
                 : ResolverParameterKind.GetScopedState;
         }
 
-        if (parameter.IsLocalState(out key))
+        if (parameter.IsLocalState(compilation, out key))
         {
             return parameter.IsSetState()
                 ? ResolverParameterKind.SetLocalState
@@ -370,6 +413,16 @@ public static class CompilationExtensions
         if (compilation.IsConnectionFlagsType(parameter.Type))
         {
             return ResolverParameterKind.ConnectionFlags;
+        }
+
+        if (parameter.IsIsSelected())
+        {
+            return ResolverParameterKind.IsSelected;
+        }
+
+        if (parameter.IsSelection())
+        {
+            return ResolverParameterKind.Selection;
         }
 
         return ResolverParameterKind.Unknown;

@@ -2,6 +2,7 @@ namespace HotChocolate.Execution.Instrumentation;
 
 internal sealed class NoopExecutionDiagnosticEvents
     : ExecutionDiagnosticEventListener
+    , INoopExecutionDiagnosticEvents
 {
     private NoopExecutionDiagnosticEvents()
     {

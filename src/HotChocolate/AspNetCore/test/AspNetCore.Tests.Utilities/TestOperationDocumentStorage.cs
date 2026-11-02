@@ -21,6 +21,17 @@ public sealed class TestOperationDocumentStorage : IOperationDocumentStorage
         _cache.Add(
             "a73defcdf38e5891e91b9ba532cf4c36",
             Utf8GraphQLParser.Parse("query GetHeroName { hero { name } }"));
+
+        _cache.Add(
+            "createReview",
+            Utf8GraphQLParser.Parse(
+                """
+                mutation CreateReview {
+                    createReview(episode: EMPIRE, review: { stars: 5, commentary: "Great" }) {
+                        stars
+                    }
+                }
+                """));
     }
 
     public async ValueTask<IOperationDocument?> TryReadAsync(

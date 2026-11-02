@@ -8,7 +8,7 @@ internal sealed class GuidCursorKeySerializer : ICursorKeySerializer
     private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<Guid>();
 
     public bool IsSupported(Type type)
-        => type == typeof(Guid);
+        => type == typeof(Guid) || type == typeof(Guid?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

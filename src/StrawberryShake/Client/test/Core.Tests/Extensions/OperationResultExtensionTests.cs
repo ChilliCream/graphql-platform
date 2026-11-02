@@ -52,7 +52,7 @@ public class OperationResultExtensionTests
         var hasErrors = successResult.IsErrorResult();
 
         // assert
-        Assert.False(hasErrors!);
+        Assert.False(hasErrors);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class OperationResultExtensionTests
         var hasErrors = successResult.IsSuccessResult();
 
         // assert
-        Assert.True(hasErrors!);
+        Assert.True(hasErrors);
     }
 
     [Fact]
@@ -130,11 +130,11 @@ public class OperationResultExtensionTests
             Errors = new[] { error };
         }
 
-        public object? Data => null!;
+        public object? Data => null;
 
         public Type DataType => null!;
 
-        public IOperationResultDataInfo? DataInfo => null!;
+        public IOperationResultDataInfo? DataInfo => null;
 
         public object DataFactory => null!;
 

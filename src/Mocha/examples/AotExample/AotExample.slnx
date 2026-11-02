@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="../../src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
+  <Project Path="../../src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
+  <Project Path="../../src/Mocha.Threading/Mocha.Threading.csproj" />
+  <Project Path="../../src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
+  <Project Path="../../src/Mocha.Utilities/Mocha.Utilities.csproj" />
+  <Project Path="../../src/Mocha/Mocha.csproj" />
+  <Project Path="AotExample.Contracts/AotExample.Contracts.csproj" />
+  <Project Path="AotExample.OrderService/AotExample.OrderService.csproj" />
+  <Project Path="AotExample.FulfillmentService/AotExample.FulfillmentService.csproj" />
+</Solution>

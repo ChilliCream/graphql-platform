@@ -86,6 +86,8 @@ public static class ArgumentCoercionHelper
                     argument.Type,
                     argument.DefaultValue,
                     variableValues);
+                var isDefaultValue = argument.IsDefaultValue
+                    || VariableRewriter.IsUnsetVariable(argument.ValueLiteral!, variableValues);
 
                 coercedArgs.Add(
                     argument.Name,
@@ -93,7 +95,7 @@ public static class ArgumentCoercionHelper
                         argument,
                         literal.TryGetValueKind(out var kind) ? kind : ValueKind.Unknown,
                         argument.IsFullyCoerced,
-                        argument.IsDefaultValue,
+                        isDefaultValue,
                         null,
                         literal));
             }

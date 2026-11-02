@@ -69,6 +69,33 @@ namespace HotChocolate.Types.Mutable.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; on field &apos;{1}&apos; was extended with a different default value than the original definition..
+        /// </summary>
+        internal static string SchemaParser_ArgumentDefaultValueMismatchInExtension {
+            get {
+                return ResourceManager.GetString("SchemaParser_ArgumentDefaultValueMismatchInExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The description on argument &apos;{0}&apos; of field &apos;{1}&apos; in the extension does not match the original definition..
+        /// </summary>
+        internal static string SchemaParser_ArgumentDescriptionMismatchInExtension {
+            get {
+                return ResourceManager.GetString("SchemaParser_ArgumentDescriptionMismatchInExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; on field &apos;{1}&apos; was extended with a different type than the original definition..
+        /// </summary>
+        internal static string SchemaParser_ArgumentTypeMismatchInExtension {
+            get {
+                return ResourceManager.GetString("SchemaParser_ArgumentTypeMismatchInExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An argument with the name &apos;{0}&apos; has already been defined on the field &apos;{1}&apos;..
         /// </summary>
         internal static string SchemaParser_DuplicateArgumentDefinition {
@@ -114,6 +141,24 @@ namespace HotChocolate.Types.Mutable.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The description on field &apos;{0}&apos; of type &apos;{1}&apos; in the extension does not match the original definition..
+        /// </summary>
+        internal static string SchemaParser_FieldDescriptionMismatchInExtension {
+            get {
+                return ResourceManager.GetString("SchemaParser_FieldDescriptionMismatchInExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; on type &apos;{1}&apos; was extended with a different type than the original definition..
+        /// </summary>
+        internal static string SchemaParser_FieldTypeMismatchInExtension {
+            get {
+                return ResourceManager.GetString("SchemaParser_FieldTypeMismatchInExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; must accept an input type..
         /// </summary>
         internal static string SchemaParser_InvalidArgumentType {
@@ -141,11 +186,38 @@ namespace HotChocolate.Types.Mutable.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} root type &apos;{1}&apos; must be an Object type..
+        /// </summary>
+        internal static string SchemaParser_InvalidRootType {
+            get {
+                return ResourceManager.GetString("SchemaParser_InvalidRootType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Union type &apos;{0}&apos; cannot include the type &apos;{1}&apos;. Unions can only contain Object types..
         /// </summary>
         internal static string SchemaParser_InvalidUnionMemberType {
             get {
                 return ResourceManager.GetString("SchemaParser_InvalidUnionMemberType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0} root type &apos;{1}&apos; is not defined..
+        /// </summary>
+        internal static string SchemaParser_RootTypeNotDefined {
+            get {
+                return ResourceManager.GetString("SchemaParser_RootTypeNotDefined", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The Union type &apos;{0}&apos; cannot include the undefined type &apos;{1}&apos;..
+        /// </summary>
+        internal static string SchemaParser_UnionMemberTypeNotDefined {
+            get {
+                return ResourceManager.GetString("SchemaParser_UnionMemberTypeNotDefined", resourceCulture);
             }
         }
     }

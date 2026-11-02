@@ -54,8 +54,8 @@ internal static class DescriptorHelpers
     }
 
     private static bool IsTypeMoreSpecific(
-       TypeReference typeReference,
-       ITypeNode typeNode)
+        TypeReference typeReference,
+        ITypeNode typeNode)
     {
         if (typeReference is SchemaTypeReference)
         {

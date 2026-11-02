@@ -6,6 +6,7 @@ internal interface ISessionService
 
     Task<Session> LoginAsync(
         string? authority,
+        Action<string, bool> onAuthorizationUrl,
         CancellationToken cancellationToken);
 
     Task LogoutAsync(CancellationToken cancellationToken);

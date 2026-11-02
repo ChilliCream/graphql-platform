@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
-public class InterfaceTypeTests : TypeTestBase
+public partial class InterfaceTypeTests : TypeTestBase
 {
     [Fact]
     public void InterfaceType_DynamicName()
@@ -593,7 +593,7 @@ public class InterfaceTypeTests : TypeTestBase
             .AddQueryType(x => x.Name("Query").Field("foo").Resolve(1))
             .AddInterfaceType<DeprecatedInterface>()
             .AddType<DeprecatedImplementation>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -638,7 +638,7 @@ public class InterfaceTypeTests : TypeTestBase
                 .Resolve("asd")
                 .Type<IntType>()
                 .Argument("baz", y => y.Type<IntType>().Deprecated("b")))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -692,7 +692,7 @@ public class InterfaceTypeTests : TypeTestBase
                 }
                 """)
             .AddResolver("Foo", "bar", x => 1)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.ToString().MatchSnapshot();
@@ -738,7 +738,7 @@ public class InterfaceTypeTests : TypeTestBase
                 .Resolve(() => null!))
             .AddResolver("Foo", "bar", x => 1)
             .ModifyOptions(o => o.StrictValidation = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -755,23 +755,25 @@ public class InterfaceTypeTests : TypeTestBase
             .AddResolver("Foo", "bar", x => 1)
             .ModifyOptions(o => o.StrictValidation = false)
             .ModifyOptions(o => o.StripLeadingIFromInterface = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
-    private sealed class SnakeCaseNamingConventions : DefaultNamingConventions
+    private sealed partial class SnakeCaseNamingConventions : DefaultNamingConventions
     {
         public override string GetMemberName(MemberInfo member, MemberKind kind)
         {
             if (kind == MemberKind.InterfaceField)
             {
-                var pattern = new Regex(
-                    @"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+");
+                var pattern = SnakeCasePatternRegex();
                 return string.Join("_", pattern.Matches(member.Name)).ToLower();
             }
 
             return base.GetMemberName(member, kind);
         }
+
+        [GeneratedRegex(@"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+")]
+        private static partial Regex SnakeCasePatternRegex();
     }
 
     private interface IFooNaming

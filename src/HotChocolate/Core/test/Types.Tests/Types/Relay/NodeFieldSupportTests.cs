@@ -18,11 +18,12 @@ public class NodeFieldSupportTests
                     .ImplementsNode()
                     .IdField(t => t.Id)
                     .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -35,17 +36,19 @@ public class NodeFieldSupportTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo>()
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
                     .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: \"QmFyOjEyMw==\") { id } }");
+            "{ nodes(ids: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -58,20 +61,54 @@ public class NodeFieldSupportTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 1)
                 .AddQueryType<Foo>()
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
                     .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }");
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Should_AwaitStartedNodeResolvers_When_LaterIdIsInvalid()
+    {
+        // arrange
+        var completed = false;
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNode(async (_, id) =>
+                    {
+                        await Task.Delay(250);
+                        completed = true;
+                        return new Bar { Id = id };
+                    }))
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await executor.ExecuteAsync(
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"%%%\"]) { id } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(completed);
     }
 
     [Fact]
@@ -81,17 +118,19 @@ public class NodeFieldSupportTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo>()
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
                     .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }");
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -113,10 +152,12 @@ public class NodeFieldSupportTests
                     .ImplementsNode()
                     .IdField(t => t.Id)
                     .ResolveNode((_, id) => Task.FromResult<Child?>(new Child { Id = id })))
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ childs { id } }");
+        var result = await executor.ExecuteAsync(
+            "{ childs { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -134,11 +175,12 @@ public class NodeFieldSupportTests
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -154,11 +196,12 @@ public class NodeFieldSupportTests
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo1>()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -173,11 +216,12 @@ public class NodeFieldSupportTests
                 .AddGraphQLServer()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Bar5>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -192,11 +236,12 @@ public class NodeFieldSupportTests
                 .AddGraphQLServer()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo2>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -211,11 +256,12 @@ public class NodeFieldSupportTests
                 .AddGraphQLServer()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo6>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -230,11 +276,12 @@ public class NodeFieldSupportTests
                 .AddGraphQLServer()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo3>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -249,11 +296,12 @@ public class NodeFieldSupportTests
                 .AddGraphQLServer()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo7>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -268,11 +316,12 @@ public class NodeFieldSupportTests
                 .AddGraphQLServer()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo8>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -287,11 +336,12 @@ public class NodeFieldSupportTests
             .AddGraphQL()
             .AddGlobalObjectIdentification()
             .AddQueryType<Foo9>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -306,11 +356,12 @@ public class NodeFieldSupportTests
                 .AddGraphQLServer()
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo4>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyOjEyMw==\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

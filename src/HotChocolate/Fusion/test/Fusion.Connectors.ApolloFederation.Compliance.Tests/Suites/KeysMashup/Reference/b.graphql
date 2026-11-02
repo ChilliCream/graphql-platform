@@ -1,0 +1,32 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.5"
+    import: ["@key", "@requires", "@external"]
+  )
+
+type Query {
+  b: B
+}
+
+type B @key(fields: "id") {
+  id: ID!
+  a: [A!]!
+}
+
+type A
+  @key(fields: "compositeId { one two }", resolvable: false)
+  @key(fields: "id compositeId { two three }", resolvable: true)
+  @key(fields: "pId", resolvable: false)
+  @key(fields: "id", resolvable: false) {
+  id: ID!
+  pId: ID!
+  compositeId: CompositeID!
+  name: String! @external
+  nameInB: String! @requires(fields: "name")
+}
+
+type CompositeID {
+  one: ID!
+  two: ID!
+  three: ID!
+}

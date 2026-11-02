@@ -10,13 +10,13 @@ query IntrospectionQuery {
       name
     }
     types {
-      ... FullType
+      ...FullType
     }
     directives {
       name
       description
       args {
-        ... InputValue
+        ...InputValue
       }
       onOperation
       onFragment
@@ -33,19 +33,19 @@ fragment FullType on __Type {
     name
     description
     args {
-      ... InputValue
+      ...InputValue
     }
     type {
-      ... TypeRef
+      ...TypeRef
     }
     isDeprecated
     deprecationReason
   }
   inputFields {
-    ... InputValue
+    ...InputValue
   }
   interfaces {
-    ... TypeRef
+    ...TypeRef
   }
   enumValues(includeDeprecated: true) {
     name
@@ -54,7 +54,7 @@ fragment FullType on __Type {
     deprecationReason
   }
   possibleTypes {
-    ... TypeRef
+    ...TypeRef
   }
 }
 
@@ -62,7 +62,7 @@ fragment InputValue on __InputValue {
   name
   description
   type {
-    ... TypeRef
+    ...TypeRef
   }
   defaultValue
 }

@@ -40,7 +40,9 @@ public static class ExecutionResultExtensions
     /// <param name="withIndentations">
     /// Defines if the JSON should be formatted with indentations.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The JSON string representation of the execution result.
+    /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>

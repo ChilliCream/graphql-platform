@@ -51,14 +51,22 @@ public ref struct JsonValueParser
             throw new ArgumentException("Undefined JSON value kind.");
         }
 
+        // A builder this parse creates is never handed to the caller when parsing fails,
+        // so it is abandoned even when the caller seals the builder it provided.
+        var createdBuilder = _memory is null;
+
         try
         {
             return Parse(element, 0);
         }
         catch
         {
-            _memory?.Abandon();
-            _memory = null;
+            if (!_doNotSeal || createdBuilder)
+            {
+                _memory?.Abandon();
+                _memory = null;
+            }
+
             throw;
         }
         finally
@@ -205,14 +213,20 @@ public ref struct JsonValueParser
     /// <returns>The parsed GraphQL value node.</returns>
     public IValueNode Parse(ref Utf8JsonReader reader)
     {
+        var createdBuilder = _memory is null;
+
         try
         {
             return Parse(ref reader, 0);
         }
         catch
         {
-            _memory?.Abandon();
-            _memory = null;
+            if (!_doNotSeal || createdBuilder)
+            {
+                _memory?.Abandon();
+                _memory = null;
+            }
+
             throw;
         }
         finally
@@ -250,9 +264,11 @@ public ref struct JsonValueParser
 
             case JsonTokenType.String:
             {
-                var segment = reader.HasValueSequence
-                    ? WriteValue(reader.ValueSequence)
-                    : WriteValue(reader.ValueSpan);
+                var segment = reader.ValueIsEscaped
+                    ? WriteUnescapedValue(ref reader)
+                    : reader.HasValueSequence
+                        ? WriteValue(reader.ValueSequence)
+                        : WriteValue(reader.ValueSpan);
                 return new StringValueNode(null, segment, false);
             }
 
@@ -379,6 +395,19 @@ public ref struct JsonValueParser
         }
 
         return (start, buffer.WrittenSpan.Length - start);
+    }
+
+    private ReadOnlyMemorySegment WriteUnescapedValue(ref Utf8JsonReader reader)
+    {
+        var buffer = (IWritableMemory?)_externalBuffer ?? (_memory ??= new Utf8MemoryBuilder());
+
+        var maxLength = reader.HasValueSequence
+            ? checked((int)reader.ValueSequence.Length)
+            : reader.ValueSpan.Length;
+        var start = buffer.WrittenSpan.Length;
+        var written = reader.CopyString(buffer.GetSpan(maxLength));
+        buffer.Advance(written);
+        return new ReadOnlyMemorySegment(buffer, start, written);
     }
 
     private ReadOnlyMemorySegment WriteValue(ReadOnlySpan<byte> value)

@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Transport.Sockets.Client.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Transport.Sockets</RootNamespace>
@@ -8,6 +10,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Transport.Sockets.Client\HotChocolate.Transport.Sockets.Client.csproj" />
     <ProjectReference Include="..\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
   </ItemGroup>
 
   <ItemGroup>

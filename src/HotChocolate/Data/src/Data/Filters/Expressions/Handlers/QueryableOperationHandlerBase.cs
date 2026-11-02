@@ -36,7 +36,7 @@ public abstract class QueryableOperationHandlerBase
 
         if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
         {
-            var error = ErrorHelper.CreateNonNullError(field, value, context);
+            var error = ErrorHelper.CreateNonNullError(field, context);
             context.ReportError(error);
             result = null!;
             return false;
@@ -44,7 +44,7 @@ public abstract class QueryableOperationHandlerBase
 
         if (!ValueNullabilityHelpers.IsListValueValid(field.Type, runtimeType, node.Value))
         {
-            var error = ErrorHelper.CreateNonNullError(field, value, context, true);
+            var error = ErrorHelper.CreateNonNullError(field, context, true);
             context.ReportError(error);
             result = null!;
             return false;

@@ -79,6 +79,11 @@ public static class QueryableSortVisitorContextExtensions
 
         public static bool OrderMethodExists(Expression expression)
         {
+            if (!typeof(IOrderedQueryable).IsAssignableFrom(expression.Type))
+            {
+                return false;
+            }
+
             var visitor = new OrderingMethodFinder();
             visitor.Visit(expression);
             return visitor._orderingMethodFound;

@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "properties": {
+    "filter": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RecursiveFilterInput"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [],
+  "$defs": {
+    "RecursiveFilterInput": {
+      "type": "object",
+      "properties": {
+        "and": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/RecursiveFilterInput"
+          }
+        },
+        "or": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/$defs/RecursiveFilterInput"
+          }
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": []
+    }
+  }
+}

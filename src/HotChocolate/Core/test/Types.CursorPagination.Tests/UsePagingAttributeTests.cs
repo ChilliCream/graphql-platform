@@ -15,7 +15,7 @@ public class UsePagingAttributeTests
             .AddQueryType<Query>()
             .Services
             .BuildServiceProvider()
-            .GetSchemaAsync()
+            .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -27,7 +27,9 @@ public class UsePagingAttributeTests
             .AddQueryType<Query>()
             .Services
             .BuildServiceProvider()
-            .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
+            .ExecuteRequestAsync(
+                "{ foos(first: 1) { nodes { bar } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -40,7 +42,7 @@ public class UsePagingAttributeTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Services
             .BuildServiceProvider()
-            .GetSchemaAsync()
+            .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -53,7 +55,7 @@ public class UsePagingAttributeTests
             .AddType<QueryExtension>()
             .Services
             .BuildServiceProvider()
-            .GetSchemaAsync()
+            .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -66,7 +68,9 @@ public class UsePagingAttributeTests
             .AddType<QueryExtension>()
             .Services
             .BuildServiceProvider()
-            .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
+            .ExecuteRequestAsync(
+                "{ foos(first: 1) { nodes { bar } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -77,7 +81,7 @@ public class UsePagingAttributeTests
             .AddGraphQL()
             .AddQueryType<Query1>()
             .AddType<Query1Extensions>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -88,7 +92,9 @@ public class UsePagingAttributeTests
             .AddGraphQL()
             .AddQueryType<Query1>()
             .AddType<Query1Extensions>()
-            .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
+            .ExecuteRequestAsync(
+                "{ foos(first: 1) { nodes { bar } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -101,7 +107,7 @@ public class UsePagingAttributeTests
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
                 .AddType<NoNodeType>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
         catch (SchemaException ex)
         {

@@ -17,7 +17,9 @@ public class FieldMiddlewareTests
                 .Field("foo")
                 .Resolve("bar")
                 .Use<TaskFieldMiddleware>())
-            .ExecuteRequestAsync("{ foo }")
+            .ExecuteRequestAsync(
+                "{ foo }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -31,7 +33,9 @@ public class FieldMiddlewareTests
                 .Field("foo")
                 .Resolve("bar")
                 .Use<ValueTaskFieldMiddleware>())
-            .ExecuteRequestAsync("{ foo }")
+            .ExecuteRequestAsync(
+                "{ foo }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

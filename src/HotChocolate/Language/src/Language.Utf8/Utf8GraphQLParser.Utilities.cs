@@ -11,8 +11,8 @@ public ref partial struct Utf8GraphQLParser
     private NameNode ParseName()
     {
         var start = Start();
-        var name = ExpectName();
         var location = CreateLocation(in start);
+        var name = ExpectName();
 
         return new NameNode
         (
@@ -23,6 +23,25 @@ public ref partial struct Utf8GraphQLParser
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool MoveNext() => _reader.MoveNext();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void IncreaseDepth()
+    {
+        if (++_recursionDepth > _maxAllowedRecursionDepth)
+        {
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    Utf8GraphQLParser_Start_MaxAllowedRecursionDepthReached,
+                    _maxAllowedRecursionDepth));
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void DecreaseDepth()
+    {
+        --_recursionDepth;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private TokenInfo Start()

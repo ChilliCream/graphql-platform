@@ -22,7 +22,9 @@ public class MapFieldTests
                     context.Result = "Correct";
                     return default;
                 })
-            .ExecuteRequestAsync("{ foo }")
+            .ExecuteRequestAsync(
+                "{ foo }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -36,7 +38,9 @@ public class MapFieldTests
                 .Field("foo")
                 .Resolve("Wrong"))
             .MapField<Middleware>(new FieldReference("Query", "foo"))
-            .ExecuteRequestAsync("{ foo }")
+            .ExecuteRequestAsync(
+                "{ foo }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -55,7 +59,9 @@ public class MapFieldTests
             .MapField(
                 new FieldReference("Query", "foo"),
                 (sp, _) => sp.GetRequiredService<Middleware>())
-            .ExecuteRequestAsync("{ foo }")
+            .ExecuteRequestAsync(
+                "{ foo }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

@@ -244,7 +244,7 @@ public partial class DefaultTypeConverter
     }
 
     private static void RegisterInt16Conversions(
-       DefaultTypeConverter registry)
+        DefaultTypeConverter registry)
     {
         registry.Register<short, byte>(SysConvert.ToByte);
         registry.Register<short, int>(SysConvert.ToInt32);

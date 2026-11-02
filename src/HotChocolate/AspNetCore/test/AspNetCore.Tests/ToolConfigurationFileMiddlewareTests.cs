@@ -1,9 +1,11 @@
 using System.Net;
 using System.Net.Http.Headers;
+using ChilliCream.Nitro.App;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore;
 
@@ -31,8 +33,8 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
-        var server = CreateServer(builder => builder.MapNitroApp().WithOptions(options));
+        var server = CreateServer(builder => builder.MapNitroApp()
+            .WithOptions(o => o.ServeMode = ServeMode.Embedded));
 
         // act
         var result = await GetNitroConfigAsync(server, "/graphql/ui");
@@ -45,11 +47,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
         var server = CreateServer(builder =>
         {
             builder.MapGraphQLHttp();
-            builder.MapNitroApp().WithOptions(options);
+            builder.MapNitroApp()
+                .WithOptions(o => o.ServeMode = ServeMode.Embedded);
         });
 
         // act
@@ -63,8 +65,8 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
-        var server = CreateServer(b => b.MapNitroApp("/foo/bar").WithOptions(options));
+        var server = CreateServer(b => b.MapNitroApp("/foo/bar")
+            .WithOptions(o => o.ServeMode = ServeMode.Embedded));
 
         // act
         var result = await GetNitroConfigAsync(server, "/foo/bar");
@@ -81,11 +83,15 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_When_Disabled(string version)
     {
         // arrange
-        var options = new GraphQLServerOptions
-        {
-            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false }
-        };
-        var server = CreateStarWarsServer(configureConventions: e => e.WithOptions(options));
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o => o.Tool.Enable = false),
+            configureConventions: e => e.WithOptions(o =>
+                {
+                    o.ServeMode = ServeMode.Version(version);
+                    o.Enable = false;
+                }));
 
         // act
         var result = await GetAsync(server, "/graphql/index.html");
@@ -95,29 +101,56 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Fetch_Tool_When_Disabled_With_ServerOptions_Override()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(o => o.Tool.Enable = false));
+
+        // act
+        var result = await GetAsync(server, "/graphql/index.html");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Tool_Config_With_ServerOptions_Override_Using_Global_Tool_Options()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o => o.Tool.Title = "Global"),
+            configureConventions: e => e.WithOptions(o => o.Tool.Title += " Local"));
+
+        // act
+        var result = await GetNitroConfigAsync(server);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Fetch_Tool_Config_With_Options()
     {
         // arrange
-        var options = new GraphQLServerOptions
-        {
-            Tool =
+        var server = CreateStarWarsServer("/graphql",
+            configureConventions: builder => builder.WithOptions(o =>
             {
-                ServeMode = GraphQLToolServeMode.Embedded,
-                Document = "# foo",
-                IncludeCookies = true,
-                HttpHeaders =
-                    new HeaderDictionary { { "Content-Type", "application/json" } },
-                HttpMethod = DefaultHttpMethod.Get,
-                Enable = true,
-                Title = "Hello",
-                GaTrackingId = "GA-FOO",
-                GraphQLEndpoint = "/foo/bar",
-                UseBrowserUrlAsGraphQLEndpoint = true,
-                DisableTelemetry = true
-            }
-        };
-
-        var server = CreateStarWarsServer("/graphql", configureConventions: builder => builder.WithOptions(options));
+                o.ServeMode = ServeMode.Embedded;
+                o.Document = "# foo";
+                o.IncludeCookies = true;
+                o.HttpHeaders =
+                    new HeaderDictionary { { "Content-Type", "application/json" } };
+                o.UseGet = true;
+                o.Enable = true;
+                o.Title = "Hello";
+                o.GaTrackingId = "GA-FOO";
+                o.GraphQLEndpoint = "/foo/bar";
+                o.UseBrowserUrlAsGraphQLEndpoint = true;
+                o.DisableTelemetry = true;
+            }));
 
         // act
         var result = await GetNitroConfigAsync(server);
@@ -130,8 +163,8 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapNitroApp_Tool_Config()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
-        var server = CreateServer(endpoint => endpoint.MapNitroApp().WithOptions(options));
+        var server = CreateServer(endpoint => endpoint.MapNitroApp()
+            .WithOptions(o => o.ServeMode = ServeMode.Embedded));
 
         // act
         var result = await GetNitroConfigAsync(server, "/graphql/ui");
@@ -144,11 +177,8 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapNitroApp_Tool_FromCdn()
     {
         // arrange
-        var options = new GraphQLToolOptions
-        {
-            ServeMode = GraphQLToolServeMode.Version("5.0.8")
-        };
-        var server = CreateServer(endpoint => endpoint.MapNitroApp().WithOptions(options));
+        var server = CreateServer(endpoint => endpoint.MapNitroApp()
+            .WithOptions(o => o.ServeMode = ServeMode.Version("5.0.8")));
 
         // act
         var result = await GetAsync(server, "/graphql/ui/index.html");

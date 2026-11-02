@@ -6,5 +6,7 @@ public enum ModuleOptions
     Default = RegisterDataLoader | RegisterTypes,
     RegisterTypes = 1,
     RegisterDataLoader = 2,
-    Disabled = 4
+    IncludeInternalMembers = 4,
+    DisableXmlDocumentation = 8,
+    Disabled = 16
 }

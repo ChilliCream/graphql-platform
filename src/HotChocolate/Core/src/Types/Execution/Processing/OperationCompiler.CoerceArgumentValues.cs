@@ -74,7 +74,7 @@ public sealed partial class OperationCompiler
                     _inputValueParser.ParseLiteral(value, argument),
                     value);
             }
-            catch (LeafCoercionException ex)
+            catch (GraphQLException ex)
             {
                 return new ArgumentValue(argument, ex.Errors[0]);
             }

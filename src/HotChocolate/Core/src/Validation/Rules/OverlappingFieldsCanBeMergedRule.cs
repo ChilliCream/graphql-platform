@@ -6,7 +6,7 @@ namespace HotChocolate.Validation.Rules;
 
 /// <summary>
 /// Implements the field selection merging rule as described in the GraphQL Spec.
-/// https://spec.graphql.org/June2018/#sec-Field-Selection-Merging
+/// https://spec.graphql.org/September2025/#sec-Field-Selection-Merging
 /// </summary>
 /// <remarks>
 /// The algorithm implemented here is not the one from the Spec, but is based on
@@ -15,6 +15,19 @@ namespace HotChocolate.Validation.Rules;
 /// </remarks>
 internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 {
+    private readonly int _maxAllowedFieldMergeComparisons;
+    private readonly bool _enableCovariantFieldMerging;
+
+    public OverlappingFieldsCanBeMergedRule(
+        int maxAllowedFieldMergeComparisons,
+        bool enableCovariantFieldMerging)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxAllowedFieldMergeComparisons, 1);
+
+        _maxAllowedFieldMergeComparisons = maxAllowedFieldMergeComparisons;
+        _enableCovariantFieldMerging = enableCovariantFieldMerging;
+    }
+
     public ushort Priority => ushort.MaxValue;
 
     public bool IsCacheable => true;
@@ -24,7 +37,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(document);
 
-        ValidateInternal(new MergeContext(context), document);
+        var mergeContext = new MergeContext(
+            context,
+            _maxAllowedFieldMergeComparisons,
+            _enableCovariantFieldMerging);
+
+        ValidateInternal(mergeContext, document);
     }
 
     private static void ValidateInternal(MergeContext context, DocumentNode document)
@@ -168,9 +186,20 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     {
         foreach (var entry in fieldMap)
         {
+            if (context.BudgetExhausted)
+            {
+                return;
+            }
+
             if (context.SameResponseShapeChecked.Contains(entry.Value))
             {
                 continue;
+            }
+
+            if (!context.TryConsumeBudget(entry.Value.Count))
+            {
+                context.ReportBudgetExhausted();
+                return;
             }
 
             context.SameResponseShapeChecked.Add(entry.Value);
@@ -198,14 +227,30 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     {
         foreach (var entry in fieldMap)
         {
+            if (context.BudgetExhausted)
+            {
+                return;
+            }
+
             var groups = GroupByCommonParents(entry.Value);
             var newPath = path.Append(entry.Key);
 
             foreach (var group in groups)
             {
+                if (context.BudgetExhausted)
+                {
+                    return;
+                }
+
                 if (context.SameForCommonParentsChecked.Contains(group))
                 {
                     continue;
+                }
+
+                if (!context.TryConsumeBudget(group.Count))
+                {
+                    context.ReportBudgetExhausted();
+                    return;
                 }
 
                 context.SameForCommonParentsChecked.Add(group);
@@ -413,7 +458,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
             while (true)
             {
-                if (a is NonNullType || b is NonNullType)
+                if (context.IsCovariantFieldMergingEnabled)
+                {
+                    a = a.NullableType();
+                    b = b.NullableType();
+                }
+                else if (a is NonNullType || b is NonNullType)
                 {
                     if (a is not NonNullType || b is not NonNullType)
                     {
@@ -735,22 +785,66 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
     }
 
-    private sealed class MergeContext(DocumentValidatorContext context)
+    private sealed class MergeContext
     {
         private const int MaxPoolSize = 8;
 
+        private readonly DocumentValidatorContext _context;
+        private readonly int _maxAllowedFieldMergeComparisons;
         private readonly Stack<Dictionary<string, HashSet<FieldAndType>>> _fieldMapPool = new();
         private readonly Stack<HashSet<string>> _stringSetPool = new();
         private readonly Stack<List<Conflict>> _conflictListPool = new();
+        private int _remainingBudget;
+
+        public MergeContext(
+            DocumentValidatorContext context,
+            int maxAllowedFieldMergeComparisons,
+            bool enableCovariantFieldMerging)
+        {
+            _context = context;
+            _maxAllowedFieldMergeComparisons = maxAllowedFieldMergeComparisons;
+            _remainingBudget = maxAllowedFieldMergeComparisons;
+            IsCovariantFieldMergingEnabled = enableCovariantFieldMerging;
+            TypenameFieldType = new NonNullType(context.Schema.Types["String"]);
+            IsStreamEnabled = context.Schema.DirectiveDefinitions.ContainsName(DirectiveNames.Stream.Name);
+        }
+
+        public bool BudgetExhausted { get; private set; }
+
+        public bool TryConsumeBudget(int cost)
+        {
+            _remainingBudget -= cost;
+
+            if (_remainingBudget < 0)
+            {
+                BudgetExhausted = true;
+                return false;
+            }
+
+            return true;
+        }
+
+        public void ReportBudgetExhausted()
+        {
+            _context.FatalErrorDetected = true;
+            ReportError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The field merge validation budget of {0} comparisons was exhausted. "
+                        + "The document is too complex to validate.",
+                        _maxAllowedFieldMergeComparisons)
+                    .SetCode(ErrorCodes.Validation.BudgetExceeded)
+                    .SpecifiedBy("sec-Field-Selection-Merging")
+                    .Build());
+        }
 
         public ISchemaDefinition Schema
-            => context.Schema;
+            => _context.Schema;
 
         public int MaxLocationsPerError
-            => context.MaxLocationsPerError;
+            => _context.MaxLocationsPerError;
 
-        public IType TypenameFieldType { get; } =
-            new NonNullType(context.Schema.Types["String"]);
+        public IType TypenameFieldType { get; }
 
         public HashSet<HashSet<FieldAndType>> SameResponseShapeChecked { get; } =
             new HashSet<HashSet<FieldAndType>>(HashSetComparer<FieldAndType>.Instance);
@@ -761,10 +855,11 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         public HashSet<HashSet<FieldNode>> ConflictsReported { get; } =
             new HashSet<HashSet<FieldNode>>(HashSetComparer<FieldNode>.Instance);
 
-        public DocumentValidatorContext.FragmentContext Fragments => context.Fragments;
+        public DocumentValidatorContext.FragmentContext Fragments => _context.Fragments;
 
-        public bool IsStreamEnabled { get; } =
-            context.Schema.DirectiveDefinitions.ContainsName(DirectiveNames.Stream.Name);
+        public bool IsStreamEnabled { get; }
+
+        public bool IsCovariantFieldMergingEnabled { get; }
 
         public Dictionary<string, HashSet<FieldAndType>> RentFieldMap()
         {
@@ -830,7 +925,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
 
         public void ReportError(IError error)
-            => context.ReportError(error);
+            => _context.ReportError(error);
     }
 
     private sealed class FieldLocationComparer : IComparer<FieldNode>

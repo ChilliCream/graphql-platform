@@ -53,6 +53,12 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
             _queryTypeConfiguration.Fields.Insert(position++, CreateSchemaField(_context));
             _queryTypeConfiguration.Fields.Insert(position++, CreateTypeField(_context));
             _queryTypeConfiguration.Fields.Insert(position, CreateTypeNameField(_context));
+
+            if (_context.Options.EnableSemanticIntrospection)
+            {
+                _queryTypeConfiguration.Fields.Add(CreateSearchField(_context));
+                _queryTypeConfiguration.Fields.Add(CreateDefinitionsField(_context));
+            }
         }
 
         foreach (var typeDef in _objectTypeConfigurations)

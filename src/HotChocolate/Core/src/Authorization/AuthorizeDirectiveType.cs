@@ -45,8 +45,8 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             .Argument(t => t.Apply)
             .Name(Names.Apply)
             .Description(
-                "Defines when when the authorize directive shall be applied."
-                + "By default the authorize directives are applied during the validation phase.")
+                "Defines when the authorize directive shall be applied."
+                + " By default the authorize directive is applied before the resolver is executed.")
             .Type<NonNullType<ApplyPolicyType>>()
             .DefaultValue(ApplyPolicy.BeforeResolver);
 

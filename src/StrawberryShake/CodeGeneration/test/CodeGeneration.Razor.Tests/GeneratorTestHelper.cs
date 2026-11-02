@@ -1,15 +1,11 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using ChilliCream.Testing;
 using HotChocolate;
 using HotChocolate.Language;
-using Snapshooter;
-using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
-using Snapshot = Snapshooter.Xunit.Snapshot;
 using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
@@ -138,11 +134,7 @@ public static class GeneratorTestHelper
 
         if (settings.SnapshotFile is not null)
         {
-            documents.ToString()
-                .MatchSnapshot(
-                    new SnapshotFullName(
-                        settings.SnapshotFile,
-                        Snapshot.FullName().FolderPath));
+            MatchSnapshotAtPath(documents.ToString(), settings.SnapshotFile);
         }
         else
         {
@@ -197,12 +189,17 @@ public static class GeneratorTestHelper
         RequestStrategyGen requestStrategy = RequestStrategyGen.Default,
         TransportProfile[]? profiles = null,
         bool noStore = false,
-        [CallerMemberName] string? testName = null)
+        [CallerMemberName] string? testName = null,
+        [CallerFilePath] string? callerFilePath = null)
     {
-        var snapshotFullName = Snapshot.FullName();
-        var testFile = System.IO.Path.Combine(
-            snapshotFullName.FolderPath,
-            testName + "Test.cs");
+        ArgumentException.ThrowIfNullOrEmpty(testName);
+        ArgumentException.ThrowIfNullOrEmpty(callerFilePath);
+
+        var folder = System.IO.Path.GetDirectoryName(callerFilePath)
+            ?? throw new ArgumentException(
+                $"Could not determine directory from caller file path '{callerFilePath}'.",
+                nameof(callerFilePath));
+        var testFile = System.IO.Path.Combine(folder, testName + "Test.cs");
         var ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
 
         if (!File.Exists(testFile))
@@ -216,12 +213,10 @@ public static class GeneratorTestHelper
 
         return new AssertSettings
         {
-            ClientName = testName! + "Client",
+            ClientName = testName + "Client",
             Namespace = ns,
             StrictValidation = true,
-            SnapshotFile = System.IO.Path.Combine(
-                snapshotFullName.FolderPath,
-                testName + "Test.Client.cs"),
+            SnapshotFile = System.IO.Path.Combine(folder, testName + "Test.Client.cs"),
             RequestStrategy = requestStrategy,
             NoStore = noStore,
             Profiles = (profiles ??
@@ -229,6 +224,46 @@ public static class GeneratorTestHelper
                 TransportProfile.Default
             ]).ToList()
         };
+    }
+
+    private static void MatchSnapshotAtPath(string content, string snapshotFile)
+    {
+        content = content.Replace("\r\n", "\n");
+
+        if (!File.Exists(snapshotFile))
+        {
+            CheckStrictMode();
+            File.WriteAllText(snapshotFile, content);
+            return;
+        }
+
+        var existing = File.ReadAllText(snapshotFile).Replace("\r\n", "\n");
+        if (string.Equals(existing, content, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var folder = System.IO.Path.GetDirectoryName(snapshotFile)!;
+        var mismatchDir = System.IO.Path.Combine(folder, "__snapshots__", "__mismatch__");
+        Directory.CreateDirectory(mismatchDir);
+        var mismatchFile = System.IO.Path.Combine(mismatchDir, System.IO.Path.GetFileName(snapshotFile));
+        File.WriteAllText(mismatchFile, content);
+
+        Assert.Fail($"Snapshot mismatch. Mismatch file written to {mismatchFile}");
+    }
+
+    private static void CheckStrictMode()
+    {
+        var value = Environment.GetEnvironmentVariable("COOKIE_CRUMBLE_STRICT_MODE");
+
+        if (string.Equals(value, "on", StringComparison.Ordinal)
+            || (bool.TryParse(value, out var b) && b))
+        {
+            Assert.Fail(
+                "Strict mode is enabled and no snapshot has been found "
+                + "for the current test. Create a new snapshot locally and "
+                + "rerun your tests.");
+        }
     }
 
     private static ClientModel CreateClientModel(

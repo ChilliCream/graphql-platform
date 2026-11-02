@@ -1,6 +1,3 @@
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -10,22 +7,21 @@ using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
-#if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
 public sealed class HttpGetMiddleware : MiddlewareBase
 {
     public HttpGetMiddleware(
         HttpRequestDelegate next,
-        HttpRequestExecutorProxy executor)
-        : base(next, executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions)
+        : base(next, executor, baseOptions)
     {
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (HttpMethods.IsGet(context.Request.Method))
+        // RFC 9110, section 9.3.2 defines HEAD as GET without the response content, so a
+        // GraphQL request carried over HEAD is answered on the same terms as over GET.
+        if (context.Request.IsGetOrHeadMethod())
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
             var options = GetOptions(context);
@@ -34,7 +30,8 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
                 // Verify that the request is relevant to this middleware.
                 && (context.Request.Query.ContainsKey(QueryKey)
-                    || context.Request.Query.ContainsKey(QueryIdKey)
+                    || context.Request.Query.ContainsKey(IdKey)
+                    || context.Request.Query.ContainsKey(DocumentIdKey)
                     || context.Request.Query.ContainsKey(ExtensionsKey))
 
                 // Allow ALL GET requests if we do NOT enforce preflight
@@ -50,7 +47,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             {
                 using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
                 {
-                    await HandleRequestAsync(context, session);
+                    await HandleRequestAsync(context, session, options);
                 }
 
                 return;
@@ -62,7 +59,10 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         await NextAsync(context);
     }
 
-    private async Task HandleRequestAsync(HttpContext context, ExecutorSession session)
+    private static async Task HandleRequestAsync(
+        HttpContext context,
+        ExecutorSession session,
+        GraphQLServerOptions options)
     {
         HttpStatusCode? statusCode;
         IExecutionResult? result;
@@ -84,14 +84,13 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
         if (!parserResult.IsValid)
         {
-            statusCode = parserResult.StatusCode.Value;
+            statusCode = parserResult.StatusCode;
             result = parserResult.Error;
             goto HANDLE_RESULT;
         }
 
         // before we can execute the request we need to determine the request flags.
         var request = parserResult.Request!;
-        var options = GetOptions(context);
         var requestFlags =
             MiddlewareHelper.DetermineHttpGetRequestFlags(
                 validationResult.RequestFlags,
@@ -102,10 +101,16 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             await MiddlewareHelper.ExecuteRequestAsync(
                 request,
                 requestFlags,
+                options,
                 context,
                 session);
         statusCode = executionResult.StatusCode;
         result = executionResult.Result;
+
+        if (!options.EnableQueriesOverPost)
+        {
+            MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: false);
+        }
 
 HANDLE_RESULT:
         await MiddlewareHelper.WriteResultAsync(

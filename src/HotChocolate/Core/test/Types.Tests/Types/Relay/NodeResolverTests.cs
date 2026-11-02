@@ -1,9 +1,11 @@
 #pragma warning disable RCS1102 // Make class static
+using System.Reflection;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,12 +23,13 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -48,12 +51,13 @@ public class NodeResolverTests
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -75,12 +79,13 @@ public class NodeResolverTests
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -112,12 +117,13 @@ public class NodeResolverTests
                         .Type(new NamedTypeNode("Entity"))
                         .Resolve(new Entity { Name = "foo" });
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -149,12 +155,13 @@ public class NodeResolverTests
                         .Type(new NamedTypeNode("Entity"))
                         .Resolve(new Entity { Name = "foo" });
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -182,7 +189,8 @@ public class NodeResolverTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -195,7 +203,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -206,7 +214,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -217,7 +225,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension3>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -228,7 +236,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension4>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -249,7 +257,8 @@ public class NodeResolverTests
                         }
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -270,12 +279,13 @@ public class NodeResolverTests
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
 
         Assert.True(
-            operationResult.Errors is null || operationResult.Errors.Count == 0,
+            operationResult.Errors.Count == 0,
             $"Expected no errors but got: {operationResult.ToJson()}");
 
         using var document = JsonDocument.Parse(operationResult.ToJson());
@@ -301,7 +311,8 @@ public class NodeResolverTests
                     data
                   }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -312,11 +323,12 @@ public class NodeResolverTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification()
                 .AddTypeExtension<EntityExtension5>()
                 .AddTypeExtension<Entity2Extension1>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -326,10 +338,161 @@ public class NodeResolverTests
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.ExpectOperationResult().Errors);
+    }
+
+    [Fact]
+    public async Task NodeResolver_QueryField_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithoutNodeAndNodesFields>()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.AddNodesField = false;
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NodeResolver_ResolveNode_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithoutNodeAndNodesFields>()
+                .AddGlobalObjectIdentification(o =>
+                {
+                    o.AddNodeField = false;
+                    o.AddNodesField = false;
+                })
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ entity(id: \"RW50aXR5OmZvbw==\") { id name } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NodeResolver_InvalidId_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithoutNodeAndNodesFields>()
+                .AddGlobalObjectIdentification(o =>
+                {
+                    o.AddNodeField = false;
+                    o.AddNodesField = false;
+                })
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ entity(id: \"invalid\") { id name } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public void NodeAttribute_Type_Builds_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.AddNodesField = false;
+            })
+            .AddQueryType<Query>()
+            .AddType<Entity3>();
+
+        // act
+        var schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ImplementsNode_ResolveNode_Type_Builds_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.AddNodesField = false;
+            })
+            .AddObjectType<Entity>(d =>
+            {
+                d.ImplementsNode()
+                    .ResolveNode<string>(
+                        (_, id) => Task.FromResult<Entity?>(new Entity { Name = id }))
+                    .Resolve(ctx => ctx.Parent<Entity>().Id);
+            })
+            .AddQueryType<Query>();
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ResolveNodeWith_Should_ApplyResolverDirectives_When_NodeDescriptorIsTyped()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddGlobalObjectIdentification()
+            .AddDirectiveType<UpperCaseDirectiveType>()
+            .AddObjectType<Entity>(d =>
+            {
+                d.ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<EntityResolvers>(t => EntityResolvers.GetEntity(null!));
+            })
+            .AddQueryType<Query>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ node(id: \"RW50aXR5OmZvbw==\") { ... on Entity { name } } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": {
+                  "name": "FOO"
+                }
+              }
+            }
+            """);
     }
 
     public class Query
@@ -337,6 +500,12 @@ public class NodeResolverTests
         public Entity GetEntity(string name) => new Entity { Name = name };
 
         public Entity2 GetEntity2(string name) => new Entity2 { Name = name };
+    }
+
+    public class QueryWithoutNodeAndNodesFields
+    {
+        [NodeResolver]
+        public Entity GetEntity(string id) => new() { Name = id };
     }
 
     public class EntityType : ObjectType<Entity>
@@ -360,6 +529,39 @@ public class NodeResolverTests
         }
 
         public required string Name { get; set; }
+    }
+
+    public class EntityResolvers
+    {
+        [UpperCase]
+        public static Entity GetEntity(string id) => new() { Name = id };
+    }
+
+    public class UpperCaseDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("upperCase");
+            descriptor.Location(DirectiveLocation.FieldDefinition);
+            descriptor.Use((next, _) => async context =>
+            {
+                await next(context);
+
+                if (context.Result is Entity entity)
+                {
+                    entity.Name = entity.Name.ToUpperInvariant();
+                }
+            });
+        }
+    }
+
+    public class UpperCaseAttribute : ObjectFieldDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo? member)
+            => descriptor.Directive("upperCase");
     }
 
     public class Entity2

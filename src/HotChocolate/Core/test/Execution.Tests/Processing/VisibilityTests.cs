@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using Moq;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -28,11 +27,10 @@ public class VisibilityTests
     public void TryExtract_False()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
         var field = Utf8GraphQLParser.Syntax.ParseField("field @test(test: true)");
 
         // act
-        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out _);
 
         // assert
         Assert.False(hasIncludeCondition);
@@ -42,11 +40,10 @@ public class VisibilityTests
     public void TryExtract_False_2()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
         var field = Utf8GraphQLParser.Syntax.ParseField("field");
 
         // act
-        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out _);
 
         // assert
         Assert.False(hasIncludeCondition);

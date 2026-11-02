@@ -1,5 +1,6 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -33,6 +34,55 @@ public static class HotChocolateDataQueryableExtensions
     {
         ArgumentNullException.ThrowIfNull(selection);
         return queryable.Select(selection.AsSelector<T>());
+    }
+
+    /// <summary>
+    /// Applies a selection to the queryable and applies runtime include/skip directive flags.
+    /// </summary>
+    /// <param name="queryable">
+    /// The queryable that shall be projected.
+    /// </param>
+    /// <param name="selection">
+    /// The selection that shall be applied to the queryable.
+    /// </param>
+    /// <param name="includeFlags">
+    /// The runtime include/skip directive flags, available as
+    /// <see cref="HotChocolate.Resolvers.IResolverContext.IncludeFlags"/>.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the queryable.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a queryable that has the selection applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// Throws if <paramref name="selection"/> is <c>null</c>.
+    /// </exception>
+    [Obsolete("Use Select<T>(Selection, ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
+    public static IQueryable<T> Select<T>(this IQueryable<T> queryable, Selection selection, ulong includeFlags)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+
+        if (selection.DeclaringOperation.HasWideIncludeFlags)
+        {
+            throw new InvalidOperationException(
+                "The operation has more than 64 include conditions; this projection requires "
+                + "the wide include flags. Use Select<T>(Selection, ConditionFlags).");
+        }
+
+        return Select(queryable, selection, new ConditionFlags(includeFlags));
+    }
+
+    /// <summary>
+    /// Applies a selection to the queryable using runtime condition flags.
+    /// </summary>
+    public static IQueryable<T> Select<T>(
+        this IQueryable<T> queryable,
+        Selection selection,
+        ConditionFlags includeFlags)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        return queryable.Select(selection.AsSelector<T>(includeFlags));
     }
 
     /// <summary>

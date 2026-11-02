@@ -1,0 +1,651 @@
+using Microsoft.Extensions.Time.Testing;
+using Mocha.Middlewares;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+
+namespace Mocha.Transport.RabbitMQ.Tests;
+
+public class RabbitMQMessageEnvelopeParserTests
+{
+    private readonly RabbitMQMessageEnvelopeParser _parser = RabbitMQMessageEnvelopeParser.Instance;
+
+    [Fact]
+    public void Parse_Should_ExtractMessageId_When_PropertySet()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.MessageId = "msg-123");
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("msg-123", envelope.MessageId);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractCorrelationId_When_PropertySet()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.CorrelationId = "corr-456");
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("corr-456", envelope.CorrelationId);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractResponseAddress_When_ReplyToSet()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.ReplyTo = "reply-queue");
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("reply-queue", envelope.ResponseAddress);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractContentType_When_PropertySet()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.ContentType = "application/json");
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("application/json", envelope.ContentType);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractMessageType_When_TypePropertySet()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Type = "OrderCreated");
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("OrderCreated", envelope.MessageType);
+    }
+
+    [Fact]
+    public void Parse_Should_FallbackToHeader_When_TypePropertyNull()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?> { ["x-message-type"] = "FallbackType"u8.ToArray() });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("FallbackType", envelope.MessageType);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractTimestamp_When_UnixTimePositive()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Timestamp = new AmqpTimestamp(1700000000));
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.NotNull(envelope.SentAt);
+        Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(1700000000), envelope.SentAt.Value);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnNullSentAt_When_TimestampZero()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Timestamp = new AmqpTimestamp(0));
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Null(envelope.SentAt);
+    }
+
+    [Fact]
+    public void Parse_Should_PreferSentAtHeader_When_HeaderAndTimestampPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = new AmqpTimestamp(1700000000);
+            props.Headers = new Dictionary<string, object?> { ["x-sent-at"] = 1699999990750L };
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1699999990750), envelope.SentAt);
+    }
+
+    [Fact]
+    public void Parse_Should_FallbackToTimestamp_When_SentAtHeaderIsOutOfRange()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = new AmqpTimestamp(1700000000);
+            props.Headers = new Dictionary<string, object?> { ["x-sent-at"] = long.MaxValue };
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(1700000000), envelope.SentAt);
+    }
+
+    [Fact]
+    public void Parse_Should_HideTimeHeaders_When_HeadersPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+            props.Headers = new Dictionary<string, object?>
+            {
+                ["x-sent-at"] = 1700000000750L,
+                ["x-deliver-by"] = 1700000060750L,
+                ["x-tenant"] = "acme"u8.ToArray()
+            });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Collection(
+            envelope.Headers!,
+            header =>
+            {
+                Assert.Equal("x-tenant", header.Key);
+                Assert.Equal("acme", header.Value);
+            });
+    }
+
+    [Fact]
+    public void Parse_Should_RestoreExactTimes_When_PublishedLaterThanSent()
+    {
+        // arrange
+        // an outbox or scheduler publishes the stored envelope after it was sent
+        var sentAt = new DateTimeOffset(2026, 8, 12, 10, 0, 0, 750, TimeSpan.Zero);
+        var deliverBy = sentAt.AddHours(2).AddMilliseconds(125);
+        var published = RabbitMQMessageEnvelopeFormatter.Format(
+            new MessageEnvelope { SentAt = sentAt, DeliverBy = deliverBy },
+            new FakeTimeProvider(sentAt.AddHours(1)));
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = published.Timestamp;
+            props.Expiration = published.Expiration;
+            props.Headers = published.Headers;
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(sentAt, envelope.SentAt);
+        Assert.Equal(deliverBy, envelope.DeliverBy);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractBody_When_BodyPresent()
+    {
+        // arrange
+        var body = "{\"orderId\":\"ORD-1\"}"u8.ToArray();
+        var args = CreateDeliverEventArgs(body: body);
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(body, envelope.Body.ToArray());
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractCustomHeaders_When_HeadersPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?> { ["x-custom"] = "custom-value"u8.ToArray() });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.True(envelope.Headers!.TryGetValue("x-custom", out var value));
+        Assert.Equal("custom-value", value);
+    }
+
+    [Fact]
+    public void Parse_Should_DecodeByteArrayHeaders_When_Utf8Bytes()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Headers = new Dictionary<string, object?>
+            {
+                ["x-source-address"] = "rabbitmq:///q/source"u8.ToArray()
+            };
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("rabbitmq:///q/source", envelope.SourceAddress);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepBytes_When_HeaderIsBinaryTableValue()
+    {
+        // arrange
+        // the shape a client that maps a byte array onto the binary field type sends
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-signature"] = new BinaryTableValue("signature-123"u8.ToArray())
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.True(envelope.Headers!.TryGetValue("x-signature", out var signature));
+        Assert.Equal("signature-123"u8.ToArray(), signature);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepBytes_When_BinaryTableValueIsNestedInHeader()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-origin"] = new Dictionary<string, object?>
+            {
+                ["signature"] = new BinaryTableValue("signature-123"u8.ToArray())
+            }
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        envelope.Headers!.TryGetValue("x-origin", out var origin);
+        Assert.Equal(
+            new Dictionary<string, object?> { ["signature"] = "signature-123"u8.ToArray() },
+            Assert.IsType<Dictionary<string, object?>>(origin));
+    }
+
+    [Fact]
+    public void Parse_Should_KeepBytes_When_AByteHeaderIsPublishedAndReadBack()
+    {
+        // arrange
+        var payload = "COM1"u8.ToArray();
+        var published = new MessageEnvelope
+        {
+            Headers = new Headers([new HeaderValue { Key = "x-signature", Value = payload }])
+        };
+        var args = CreateDeliverEventArgs(props =>
+            props.Headers = RabbitMQMessageEnvelopeFormatter.Format(published, TimeProvider.System).Headers);
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        envelope.Headers!.TryGetValue("x-signature", out var signature);
+        Assert.Equal(payload, Assert.IsType<byte[]>(signature));
+    }
+
+    [Fact]
+    public void Parse_Should_ThrowNamingTheHeader_When_HeaderIsNestedTooDeeply()
+    {
+        // a crafted delivery, nested past the depth a legitimate broker header reaches
+        object value = "leaf";
+        for (var i = 0; i < 200; i++)
+        {
+            value = new List<object?> { value };
+        }
+
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-deep"] = value
+        });
+
+        // act
+        var exception = Record.Exception(() => _parser.Parse(args, TimeProvider.System));
+
+        // assert
+        Assert.Equal(
+            "The header 'x-deep' exceeds the maximum AMQP field-table nesting depth of 64.",
+            Assert.IsType<InvalidOperationException>(exception).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_ConvertAmqpTimestamp_When_HeaderIsTimestamp()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?> { ["x-timestamp"] = new AmqpTimestamp(1700000000) });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.True(envelope.Headers!.TryGetValue("x-timestamp", out var ts));
+        Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(1700000000), ts);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepTheNumber_When_TimestampIsOutOfRange()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-millis"] = new AmqpTimestamp(1700000000000),
+            ["x-extreme"] = new AmqpTimestamp(long.MaxValue)
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        envelope.Headers!.TryGetValue("x-millis", out var millis);
+        envelope.Headers.TryGetValue("x-extreme", out var extreme);
+        Assert.Equal(1700000000000L, millis);
+        Assert.Equal(long.MaxValue, extreme);
+    }
+
+    [Fact]
+    public void Parse_Should_DecodeNestedByteArrays_When_HeaderIsDeathTable()
+    {
+        // arrange
+        // the shape the broker uses for x-death: an array of field tables
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-death"] = new List<object?>
+            {
+                new Dictionary<string, object?>
+                {
+                    ["queue"] = "product-queue"u8.ToArray(),
+                    ["reason"] = "rejected"u8.ToArray(),
+                    ["time"] = new AmqpTimestamp(1700000000),
+                    ["count"] = 1L
+                }
+            }
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        envelope.Headers!.TryGetValue("x-death", out var death);
+        var entry = Assert.IsType<Dictionary<string, object?>>(Assert.Single(Assert.IsType<object?[]>(death)));
+        Assert.Equal(
+            new Dictionary<string, object?>
+            {
+                ["queue"] = "product-queue",
+                ["reason"] = "rejected",
+                ["time"] = DateTimeOffset.FromUnixTimeSeconds(1700000000),
+                ["count"] = 1L
+            },
+            entry);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepBytes_When_HeaderValueIsNotValidUtf8()
+    {
+        // arrange
+        var value = new byte[] { 0x00, 0xFF, 0xFE, 0x41 };
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?>
+        {
+            ["x-binary"] = value
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.True(envelope.Headers!.TryGetValue("x-binary", out var parsed));
+        Assert.Equal(value, parsed);
+    }
+
+    [Fact]
+    public void Parse_Should_SetDeliveryCountOne_When_Redelivered()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(redelivered: true);
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(1, envelope.DeliveryCount);
+    }
+
+    [Fact]
+    public void Parse_Should_SetDeliveryCountZero_When_NotRedelivered()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(redelivered: false);
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(0, envelope.DeliveryCount);
+    }
+
+    [Fact]
+    public void Parse_Should_UseXDeliveryCount_When_QuorumQueueHeaderPresent()
+    {
+        // arrange - quorum queues set x-delivery-count as a long
+        var args = CreateDeliverEventArgs(
+            props => props.Headers = new Dictionary<string, object?>
+            {
+                ["x-delivery-count"] = 3L
+            },
+            redelivered: true);
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert - exact count from header, not the boolean fallback
+        Assert.Equal(3, envelope.DeliveryCount);
+    }
+
+    [Fact]
+    public void Parse_Should_UseXDeliveryCount_When_ValueIsZero()
+    {
+        // arrange - first delivery on a quorum queue
+        var args = CreateDeliverEventArgs(
+            props => props.Headers = new Dictionary<string, object?>
+            {
+                ["x-delivery-count"] = 0L
+            },
+            redelivered: false);
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(0, envelope.DeliveryCount);
+    }
+
+    [Fact]
+    public void Parse_Should_FallbackToRedelivered_When_XDeliveryCountAbsent()
+    {
+        // arrange - classic queue, no x-delivery-count header
+        var args = CreateDeliverEventArgs(
+            props => props.Headers = new Dictionary<string, object?>
+            {
+                ["x-some-other-header"] = "value"u8.ToArray()
+            },
+            redelivered: true);
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert - falls back to redelivered flag
+        Assert.Equal(1, envelope.DeliveryCount);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractEnclosedMessageTypes_When_HeaderPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Headers = new Dictionary<string, object?>
+            {
+                ["x-enclosed-message-types"] = new List<object> { "OrderCreated"u8.ToArray(), "IEvent"u8.ToArray() }
+            };
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.NotNull(envelope.EnclosedMessageTypes);
+        Assert.Equal(2, envelope.EnclosedMessageTypes.Value.Length);
+        Assert.Equal("OrderCreated", envelope.EnclosedMessageTypes.Value[0]);
+        Assert.Equal("IEvent", envelope.EnclosedMessageTypes.Value[1]);
+    }
+
+    [Fact]
+    public void Parse_Should_ComputeDeliverByFromSentAt_When_TimestampAndExpirationPresent()
+    {
+        // arrange
+        const long sentAtUnix = 1700000000L;
+        var sentAt = DateTimeOffset.FromUnixTimeSeconds(sentAtUnix);
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = new AmqpTimestamp(sentAtUnix);
+            props.Expiration = "60000"; // 60 seconds TTL
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.NotNull(envelope.DeliverBy);
+        Assert.Equal(sentAt.AddMilliseconds(60000), envelope.DeliverBy.Value);
+    }
+
+    [Fact]
+    public void Parse_Should_PreferDeliverByHeader_When_HeaderAndExpirationPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = new AmqpTimestamp(1700000000);
+            props.Expiration = "60000";
+            props.Headers = new Dictionary<string, object?> { ["x-deliver-by"] = 1700000060125L };
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1700000060125), envelope.DeliverBy);
+    }
+
+    [Fact]
+    public void Parse_Should_FallbackToUtcNow_When_ExpirationPresentButNoTimestamp()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Expiration = "60000"; // 60 seconds
+        });
+
+        // act
+        var beforeParse = TimeProvider.System.GetUtcNow();
+        var envelope = _parser.Parse(args, TimeProvider.System);
+        var afterParse = TimeProvider.System.GetUtcNow();
+
+        // assert
+        Assert.NotNull(envelope.DeliverBy);
+        var expectedMin = beforeParse.AddMilliseconds(60000);
+        var expectedMax = afterParse.AddMilliseconds(60000);
+        Assert.InRange(envelope.DeliverBy.Value, expectedMin, expectedMax);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnNullDeliverBy_When_ExpirationEmpty()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Expiration = null);
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Null(envelope.DeliverBy);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractConversationId_When_HeaderPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?> { ["x-conversation-id"] = "conv-789"u8.ToArray() });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("conv-789", envelope.ConversationId);
+    }
+
+    [Fact]
+    public void Parse_Should_ExtractCausationId_When_HeaderPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props => props.Headers = new Dictionary<string, object?> { ["x-causation-id"] = "cause-101"u8.ToArray() });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal("cause-101", envelope.CausationId);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnEmptyHeaders_When_NoHeaders()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs();
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.NotNull(envelope.Headers);
+        Assert.Equal(0, envelope.Headers.Count);
+    }
+
+    private static BasicDeliverEventArgs CreateDeliverEventArgs(
+        Action<BasicProperties>? configureProps = null,
+        byte[]? body = null,
+        bool redelivered = false)
+    {
+        var props = new BasicProperties();
+        configureProps?.Invoke(props);
+
+        return new BasicDeliverEventArgs(
+            consumerTag: "test-consumer",
+            deliveryTag: 1,
+            redelivered: redelivered,
+            exchange: "test-exchange",
+            routingKey: "test-key",
+            properties: props,
+            body: body ?? ReadOnlyMemory<byte>.Empty);
+    }
+}

@@ -1,14 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
-using ModelContextProtocol.Server;
 
 namespace HotChocolate.Adapters.Mcp.Handlers;
 
 internal static class ListToolsHandler
 {
-    public static ListToolsResult Handle(RequestContext<ListToolsRequestParams> context)
+    public static ListToolsResult Handle(IServiceProvider schemaServices)
     {
-        var registry = context.Services!.GetRequiredService<McpFeatureRegistry>();
+        var registry = schemaServices.GetRequiredService<McpFeatureRegistry>();
 
         return new ListToolsResult
         {

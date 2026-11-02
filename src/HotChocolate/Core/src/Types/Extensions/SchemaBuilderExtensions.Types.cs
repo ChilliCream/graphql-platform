@@ -206,8 +206,8 @@ public static partial class SchemaBuilderExtensions
     }
 
     public static ISchemaBuilder AddUnionType(
-       this ISchemaBuilder builder,
-       Action<IUnionTypeDescriptor> configure)
+        this ISchemaBuilder builder,
+        Action<IUnionTypeDescriptor> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
@@ -250,8 +250,8 @@ public static partial class SchemaBuilderExtensions
     }
 
     public static ISchemaBuilder AddEnumType(
-       this ISchemaBuilder builder,
-       Action<IEnumTypeDescriptor> configure)
+        this ISchemaBuilder builder,
+        Action<IEnumTypeDescriptor> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
@@ -294,8 +294,8 @@ public static partial class SchemaBuilderExtensions
     }
 
     public static ISchemaBuilder AddInterfaceType(
-       this ISchemaBuilder builder,
-       Action<IInterfaceTypeDescriptor> configure)
+        this ISchemaBuilder builder,
+        Action<IInterfaceTypeDescriptor> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
@@ -338,8 +338,8 @@ public static partial class SchemaBuilderExtensions
     }
 
     public static ISchemaBuilder AddInputObjectType(
-       this ISchemaBuilder builder,
-       Action<IInputObjectTypeDescriptor> configure)
+        this ISchemaBuilder builder,
+        Action<IInputObjectTypeDescriptor> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
@@ -466,6 +466,16 @@ public static partial class SchemaBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         return AddDirectiveType(builder, typeof(TDirective));
+    }
+
+    public static ISchemaBuilder AddDirectiveType(
+        this ISchemaBuilder builder,
+        Action<IDirectiveTypeDescriptor> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return builder.AddDirectiveType(new DirectiveType(configure));
     }
 
     public static ISchemaBuilder SetSchema<TSchema>(

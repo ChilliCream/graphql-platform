@@ -78,7 +78,6 @@ internal static partial class ValueCompletion
 
             var error = UnableToResolveTheAbstractType(
                 fieldType.Print(),
-                selection,
                 resultValue.Path);
             context.OperationContext.ReportError(error, context.ResolverContext);
         }
@@ -87,7 +86,6 @@ internal static partial class ValueCompletion
             var error = UnexpectedErrorWhileResolvingAbstractType(
                 ex,
                 fieldType.Print(),
-                selection,
                 resultValue.Path);
             context.OperationContext.ReportError(error, context.ResolverContext);
         }

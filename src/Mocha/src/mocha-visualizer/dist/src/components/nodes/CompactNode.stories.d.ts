@@ -1,0 +1,16 @@
+import { Meta, StoryObj } from "@storybook/react";
+declare const meta: Meta;
+export default meta;
+type Story = StoryObj;
+export declare const Consumer: Story;
+export declare const Saga: Story;
+export declare const Message: Story;
+export declare const Endpoint: Story;
+export declare const EntityExchange: Story;
+export declare const EntityQueue: Story;
+export declare const BatchConsumer: Story;
+export declare const WithTraceBadge: Story;
+export declare const EndpointDispatch: Story;
+export declare const EntityNoKind: Story;
+export declare const EntityTopic: Story;
+export declare const LongLabel: Story;

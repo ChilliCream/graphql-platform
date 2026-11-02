@@ -1,0 +1,42 @@
+operation:
+  - document: |
+      {
+        wrapper {
+          entity {
+            name
+            age @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 6
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        wrapper {
+          entity {
+            age
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_age: Int) {
+        wrapper {
+          entity {
+            name(age: $__fusion_1_age)
+          }
+        }
+      }
+    requirements:
+      - name: __fusion_1_age
+        selectionMap: >-
+          age
+    dependencies:
+      - id: 1

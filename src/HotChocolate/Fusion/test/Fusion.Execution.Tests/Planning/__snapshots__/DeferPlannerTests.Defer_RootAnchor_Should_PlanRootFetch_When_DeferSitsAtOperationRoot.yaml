@@ -1,0 +1,38 @@
+operation:
+  - document: |
+      {
+        viewer {
+          __typename
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        viewer {
+          __typename
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_1 {
+            users {
+              id
+              name
+            }
+          }

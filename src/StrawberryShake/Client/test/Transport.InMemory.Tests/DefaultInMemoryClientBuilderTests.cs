@@ -71,7 +71,7 @@ public class DefaultInMemoryClientBuilderTests
         var factory = new DefaultInMemoryClientFactory(executorResolver, optionsMonitor);
 
         // act
-        await factory.CreateAsync("Foo");
+        await factory.CreateAsync("Foo", TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(wasCalled);
@@ -91,7 +91,7 @@ public class DefaultInMemoryClientBuilderTests
         var factory = new DefaultInMemoryClientFactory(executorResolver, optionsMonitor);
 
         // act
-        var client = await factory.CreateAsync("Foo");
+        var client = await factory.CreateAsync("Foo", TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(client);
@@ -123,7 +123,7 @@ public class DefaultInMemoryClientBuilderTests
             .ReturnsAsync(executor);
 
         // act
-        var client = await factory.CreateAsync("Foo");
+        var client = await factory.CreateAsync("Foo", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(client.Executor, executor);
@@ -135,7 +135,7 @@ public class DefaultInMemoryClientBuilderTests
         // arrange
         const string nameString = "FooBar";
         var executorProvider = CreateExecutorProvider(nameString);
-        var executor = await executorProvider.GetExecutorAsync(nameString);
+        var executor = await executorProvider.GetExecutorAsync(nameString, TestContext.Current.CancellationToken);
 
         var optionsMonitor =
             new ServiceCollection()
@@ -152,7 +152,7 @@ public class DefaultInMemoryClientBuilderTests
         var factory = new DefaultInMemoryClientFactory(executorProvider, optionsMonitor);
 
         // act
-        var client = await factory.CreateAsync("Foo");
+        var client = await factory.CreateAsync("Foo", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(nameString, client.SchemaName);

@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
+using EmptyServiceProvider = HotChocolate.Utilities.EmptyServiceProvider;
 using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;
@@ -154,7 +155,6 @@ public sealed partial class DescriptorContext : IDescriptorContext
         CreateConventions<T>(scope, out convention, out var extensions);
 
         convention ??= convention as T;
-        convention ??= _serviceHelper.GetService<T>();
         convention ??= factory();
 
         if (convention is Convention init)

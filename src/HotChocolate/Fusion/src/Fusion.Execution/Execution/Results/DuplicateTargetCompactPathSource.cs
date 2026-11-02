@@ -1,0 +1,51 @@
+using HotChocolate.Fusion.Text.Json;
+
+namespace HotChocolate.Fusion.Execution.Results;
+
+/// <summary>
+/// A compact path source for the duplicate targets of a lookup, which keeps the targets as cursors
+/// into the result document until their paths are requested.
+/// </summary>
+internal sealed class DuplicateTargetCompactPathSource : CompactPathSource
+{
+    private readonly FetchResultStore _store;
+    private readonly CompositeResultDocument _document;
+    private readonly int[] _cursors;
+    private readonly int _layoutVersion;
+    private CompactPath[]? _paths;
+
+    public DuplicateTargetCompactPathSource(FetchResultStore store, CompositeResultDocument document, int[] cursors)
+    {
+        _store = store;
+        _document = document;
+        _cursors = cursors;
+        _layoutVersion = document.LayoutVersion;
+    }
+
+    /// <summary>
+    /// Gets the result document the cursors point into.
+    /// </summary>
+    public CompositeResultDocument Document => _document;
+
+    /// <summary>
+    /// Gets <c>true</c> while every cursor still points to the element at its path.
+    /// </summary>
+    public bool IsCurrent => _document.LayoutVersion == _layoutVersion;
+
+    /// <summary>
+    /// Gets the element at the cursor with the given index.
+    /// </summary>
+    public CompositeResultElement GetElement(int index)
+        => new(_document, new CompositeResultDocument.Cursor(_cursors[index]));
+
+    public override CompactPath[] GetPaths()
+    {
+        if (Volatile.Read(ref _paths) is { } paths)
+        {
+            return paths;
+        }
+
+        paths = _store.CreateCompactPaths(_document, _cursors);
+        return Interlocked.CompareExchange(ref _paths, paths, null) ?? paths;
+    }
+}

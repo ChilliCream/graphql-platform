@@ -143,7 +143,7 @@ public interface ITypeInspector : IConvention
     /// <param name="scope">
     /// The type scope.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The extended type reference.</returns>
     ExtendedTypeReference GetTypeRef(
         Type type,
         TypeContext context = TypeContext.None,
@@ -249,7 +249,24 @@ public interface ITypeInspector : IConvention
     /// <returns>
     /// The member that represents node resolver or <c>null</c>.
     /// </returns>
-    MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null);
+    MethodInfo? GetNodeResolverMethod(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods
+            | DynamicallyAccessedMemberTypes.PublicFields
+            | DynamicallyAccessedMemberTypes.PublicNestedTypes
+            | DynamicallyAccessedMemberTypes.PublicProperties
+            | DynamicallyAccessedMemberTypes.PublicEvents
+            | DynamicallyAccessedMemberTypes.Interfaces)]
+        Type nodeType,
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods
+            | DynamicallyAccessedMemberTypes.PublicFields
+            | DynamicallyAccessedMemberTypes.PublicNestedTypes
+            | DynamicallyAccessedMemberTypes.PublicProperties
+            | DynamicallyAccessedMemberTypes.PublicEvents)]
+        Type? resolverType = null);
 
     /// <summary>
     /// Extracts the named type from a type structure.

@@ -1,0 +1,30 @@
+[
+  {
+    "query": "query {\n  product {\n    id\n    name { id brand model }\n    category { id name }\n    price { id amount currency }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "product": {
+          "id": "1",
+          "name": { "id": "1", "brand": "Brand 1", "model": "Model 1" },
+          "price": { "id": "1", "amount": 1000, "currency": "USD" },
+          "category": { "id": "1", "name": "Category 1" }
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  products {\n    id\n    name { id brand model }\n    category { id name }\n    price { id amount currency }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "1",
+            "name": { "id": "1", "brand": "Brand 1", "model": "Model 1" },
+            "price": { "id": "1", "amount": 1000, "currency": "USD" },
+            "category": { "id": "1", "name": "Category 1" }
+          }
+        ]
+      }
+    }
+  }
+]

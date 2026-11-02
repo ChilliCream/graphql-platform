@@ -28,15 +28,15 @@ internal sealed class AsyncTaskDispatcher : IAsyncDisposable
 
         await _sync.WaitAsync(cancellationToken);
 
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        if (_initialized)
-        {
-            return;
-        }
-
         try
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
+            if (_initialized)
+            {
+                return;
+            }
+
             _event.Set();
             await _initialize.Task
                 .WaitAsync(cancellationToken) // in case the caller cancels the operation

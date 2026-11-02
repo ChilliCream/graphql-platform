@@ -159,7 +159,7 @@ public sealed class Session : ISession
         if (!_disposed)
         {
             _disposed = true;
-            if (_operations.Count > 0)
+            if (!_operations.IsEmpty)
             {
                 var operations = _operations.Values.ToArray();
 

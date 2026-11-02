@@ -65,7 +65,6 @@ public sealed class ScalarTypeDefinitionNode : NamedSyntaxNode, ITypeDefinitionN
     /// <summary>
     /// Gets the scalar description.
     /// </summary>
-    /// <value></value>
     public StringValueNode? Description { get; }
 
     /// <inheritdoc />

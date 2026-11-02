@@ -1,0 +1,205 @@
+title: Execute_Should_ResolveRequiringField_When_RequirementIsAnchoredBelowLookupTarget
+request:
+  document: |
+    {
+      products {
+        id
+        details {
+          shippingEstimate
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": [
+          {
+            "id": 1,
+            "details": {
+              "shippingEstimate": 20
+            }
+          },
+          {
+            "id": 2,
+            "details": {
+              "shippingEstimate": 40
+            }
+          },
+          {
+            "id": 3,
+            "details": null
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]!
+      }
+
+      type Details {
+        weight: Int!
+      }
+
+      type Product {
+        details: Details @shareable
+        id: Int! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_b4bb855f_1 {
+              products {
+                id
+                details {
+                  weight
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": 1,
+                      "details": {
+                        "weight": 10
+                      }
+                    },
+                    {
+                      "id": 2,
+                      "details": {
+                        "weight": 20
+                      }
+                    },
+                    {
+                      "id": 3,
+                      "details": null
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: Int!): Product @lookup @internal
+      }
+
+      type Details {
+        shippingEstimate(weight: Int! @require(field: "weight")): Int!
+      }
+
+      type Product @key(fields: "id") {
+        details: Details @shareable
+        id: Int! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_b4bb855f_2($__fusion_1_id: Int!, $__fusion_2_weight: Int!) {
+              productById(id: $__fusion_1_id) {
+                details {
+                  shippingEstimate(weight: $__fusion_2_weight)
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1,
+                "__fusion_2_weight": 10
+              },
+              {
+                "__fusion_1_id": 2,
+                "__fusion_2_weight": 20
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "details": {
+                      "shippingEstimate": 20
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "details": {
+                      "shippingEstimate": 40
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          products {
+            id
+            id @fusion__requirement
+            details {
+              shippingEstimate
+              weight @fusion__requirement
+            }
+          }
+        }
+      hash: a376330ac7d38f54161eacf8938dc778
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_b4bb855f_1 {
+          products {
+            id
+            details {
+              weight
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_b4bb855f_2($__fusion_1_id: Int!, $__fusion_2_weight: Int!) {
+          productById(id: $__fusion_1_id) {
+            details {
+              shippingEstimate(weight: $__fusion_2_weight)
+            }
+          }
+        }
+      source: $.productById
+      target: $.products
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_weight
+          selectionMap: >-
+            weight
+      dependencies:
+        - id: 1

@@ -1,0 +1,95 @@
+empty object
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      },
+      {
+        "foo": null
+      }
+    ]
+  }
+}
+---------------
+
+empty operations
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      },
+      {
+        "foo": null
+      }
+    ]
+  }
+}
+---------------
+
+empty field first
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      }
+    ]
+  }
+}
+---------------
+
+empty field last
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      }
+    ]
+  }
+}
+---------------

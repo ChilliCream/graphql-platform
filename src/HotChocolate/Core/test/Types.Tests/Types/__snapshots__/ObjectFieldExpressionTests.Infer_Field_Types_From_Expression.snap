@@ -1,10 +1,5 @@
-﻿schema {
+schema {
   query: Query
-}
-
-type Bar {
-  text: String!
-  count: Int!
 }
 
 type Query {
@@ -12,4 +7,9 @@ type Query {
   texts: [String!]!
   bars: [Bar!]!
   bar: Bar!
+}
+
+type Bar {
+  text: String!
+  count: Int!
 }

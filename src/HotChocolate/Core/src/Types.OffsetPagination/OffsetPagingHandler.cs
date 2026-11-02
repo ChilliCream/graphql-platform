@@ -32,7 +32,6 @@ public abstract class OffsetPagingHandler : IPagingHandler
     /// <summary>
     /// The maximum allowed page size configured for this handler.
     /// </summary>
-    /// <value></value>
     protected int MaxPageSize { get; }
 
     /// <summary>

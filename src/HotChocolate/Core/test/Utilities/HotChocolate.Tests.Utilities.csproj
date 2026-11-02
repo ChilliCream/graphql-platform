@@ -6,8 +6,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="CookieCrumble" />
+    <Using Include="CookieCrumble.HotChocolate" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
     <ProjectReference Include="..\..\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
-    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.Tests.csproj" />
+    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3.assert" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
   </ItemGroup>
 
 </Project>

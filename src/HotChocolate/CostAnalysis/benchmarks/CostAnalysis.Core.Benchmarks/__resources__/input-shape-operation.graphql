@@ -1,0 +1,5 @@
+query InputShape($filter: SearchFilter!) {
+  search(filter: $filter) {
+    count
+  }
+}

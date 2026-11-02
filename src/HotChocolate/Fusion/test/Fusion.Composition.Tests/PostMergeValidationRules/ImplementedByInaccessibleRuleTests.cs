@@ -1,0 +1,223 @@
+namespace HotChocolate.Fusion.PostMergeValidationRules;
+
+public sealed class ImplementedByInaccessibleRuleTests : RuleTestBase
+{
+    protected override object Rule { get; } = new ImplementedByInaccessibleRule();
+
+    // In the following example, "User.id" is accessible and implements "Node.id" which is also
+    // accessible, no error occurs.
+    [Fact]
+    public void Validate_NotImplementedByInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Node {
+                id: ID!
+            }
+
+            type User implements Node {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
+    }
+
+    // Since "Auditable" and its field "lastAudit" are @inaccessible, the "Order.lastAudit" field is
+    // allowed to be @inaccessible because it does not implement any visible interface field in the
+    // composed schema.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleObjectFieldInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Auditable @inaccessible {
+                lastAudit: DateTime!
+            }
+
+            type Order implements Auditable {
+                lastAudit: DateTime! @inaccessible
+                orderNumber: String
+            }
+            """
+        ]);
+    }
+
+    // Accessible interface field "User.id" implementing accessible field "Node.id" in another
+    // interface.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleFieldAccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Node {
+                id: ID!
+            }
+
+            interface User implements Node {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
+    }
+
+    // Inaccessible interface field "Order.lastAudit" implementing inaccessible field
+    // "Auditable.lastAudit" in another interface.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleInterfaceFieldInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Auditable @inaccessible {
+                lastAudit: DateTime!
+            }
+
+            interface Order implements Auditable {
+                lastAudit: DateTime! @inaccessible
+                orderNumber: String
+            }
+            """
+        ]);
+    }
+
+    // In this example, "Node.id" is visible in the public schema (no @inaccessible), but "User.id"
+    // is marked @inaccessible. This violates the interface contract because "User" claims to
+    // implement "Node", yet does not expose the "id" field to the public schema.
+    [Fact]
+    public void Validate_ImplementedByInaccessibleObjectFieldInaccessible_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                interface Node {
+                    id: ID!
+                }
+
+                type User implements Node {
+                    id: ID! @inaccessible
+                    name: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The field 'User.id' implementing interface field 'Node.id' is inaccessible in the composed schema.",
+                    "code": "IMPLEMENTED_BY_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "User.id",
+                    "member": "id",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    // Same as above, for an interface type.
+    [Fact]
+    public void Validate_ImplementedByInaccessibleInterfaceFieldInaccessible_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                interface Node {
+                    id: ID!
+                }
+
+                interface User implements Node {
+                    id: ID! @inaccessible
+                    name: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The field 'User.id' implementing interface field 'Node.id' is inaccessible in the composed schema.",
+                    "code": "IMPLEMENTED_BY_INACCESSIBLE",
+                    "severity": "Error",
+                    "coordinate": "User.id",
+                    "member": "id",
+                    "schema": "default",
+                    "extensions": {}
+                }
+                """
+            ]);
+    }
+
+    // When two source schemas declare the same-named interface with different fields, the merged
+    // interface holds the union of those fields, so an implementing type does not necessarily
+    // provide every field of the interface. This rule must not assume the field exists on the
+    // implementing type; the unimplemented field is reported by InterfaceFieldNoImplementationRule.
+    [Fact]
+    public void Validate_MergedInterfaceFieldNotOnAllImplementers_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Error {
+                code: String!
+            }
+
+            type ErrorWithCode implements Error {
+                code: String!
+            }
+            """,
+            """
+            interface Error {
+                message: String!
+            }
+
+            type ErrorWithMessage implements Error {
+                message: String!
+            }
+            """
+        ]);
+    }
+
+    // The entire 'User' type is @inaccessible and thus removed from the public schema, so it is
+    // not a visible implementor of 'Node' and no interface contract is violated.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleObjectTypeInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Node {
+                id: ID!
+            }
+
+            type User implements Node @inaccessible {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
+    }
+
+    // The entire 'User' interface type is @inaccessible and thus removed from the public schema,
+    // so it is not a visible implementor of 'Node' and no interface contract is violated.
+    [Fact]
+    public void Validate_NotImplementedByInaccessibleInterfaceTypeInaccessible_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            interface Node {
+                id: ID!
+            }
+
+            interface User implements Node @inaccessible {
+                id: ID!
+                name: String
+            }
+            """
+        ]);
+    }
+}

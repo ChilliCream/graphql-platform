@@ -1,9 +1,7 @@
-using System.Text;
 using HotChocolate.Diagnostics;
 using HotChocolate.Diagnostics.Listeners;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -67,6 +65,7 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
 
         builder.AddDiagnosticEventListener(
             sp => new ActivityServerDiagnosticListener(
+                builder.Name,
                 sp.GetService<ActivityEnricher>() ??
                     sp.GetRequiredService<InternalActivityEnricher>(),
                 sp.GetRequiredService<InstrumentationOptions>()));
@@ -80,13 +79,5 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         return builder;
     }
 
-    private sealed class InternalActivityEnricher : ActivityEnricher
-    {
-        public InternalActivityEnricher(
-            ObjectPool<StringBuilder> stringBuilderPool,
-            InstrumentationOptions options)
-            : base(stringBuilderPool, options)
-        {
-        }
-    }
+    private sealed class InternalActivityEnricher(InstrumentationOptions options) : ActivityEnricher(options);
 }

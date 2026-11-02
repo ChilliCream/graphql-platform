@@ -64,12 +64,16 @@ public class DocumentValidatorVisitor : SyntaxWalker<DocumentValidatorContext>
         if (context.Fragments.TryEnter(node, out var fragment))
         {
             var result = Visit(fragment, node, context);
-            context.Fragments.Leave(fragment);
 
             if (result.IsBreak())
             {
                 return Break;
             }
+        }
+        else if (context.Fragments.IsRefusedByVisitLimit(node))
+        {
+            context.ReportMaxFragmentVisitsOverflow(node);
+            return Break;
         }
 
         return DefaultAction;

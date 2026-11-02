@@ -1,0 +1,70 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 1
+              }
+            },
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 3
+              }
+            },
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 12
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 1
+              }
+            },
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 3
+              }
+            },
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 12
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "d"."Id", "s"."BarString", "s"."BarShort", "s"."Id"
+FROM "Data" AS "d"
+INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+LEFT JOIN (
+    SELECT "f0"."BarString", "f0"."BarShort", "b"."Id", "b"."FooId"
+    FROM "BarDeep" AS "b"
+    INNER JOIN "FooDeep" AS "f0" ON "b"."FooId1" = "f0"."Id"
+) AS "s" ON "f"."Id" = "s"."FooId"
+ORDER BY "d"."Id", "s"."BarShort"
+---------------

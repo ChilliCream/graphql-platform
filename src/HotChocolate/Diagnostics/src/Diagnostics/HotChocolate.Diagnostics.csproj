@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Diagnostics.Core\HotChocolate.Diagnostics.Core.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
   </ItemGroup>

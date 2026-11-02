@@ -11,7 +11,7 @@ public interface IOpaService
     /// <param name="policyPath">The string parameter representing path of the evaluating policy.</param>
     /// <param name="request">The instance <see cref="OpaQueryRequest"/>.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns></returns>
+    /// <returns>The OPA policy decision response.</returns>
     Task<OpaQueryResponse> QueryAsync(
         string policyPath,
         OpaQueryRequest request,

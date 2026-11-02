@@ -7,6 +7,7 @@ public static class BuiltInScalarNames
     private static readonly HashSet<string> s_typeNames =
     [
         "Guid",
+        "TimeSpan",
         "Uri",
         "Url",
         "Uuid",
@@ -18,6 +19,7 @@ public static class BuiltInScalarNames
         ScalarNames.Date,
         ScalarNames.DateTime,
         ScalarNames.Decimal,
+        ScalarNames.Duration,
         ScalarNames.Float,
         ScalarNames.ID,
         ScalarNames.Int,
@@ -27,7 +29,6 @@ public static class BuiltInScalarNames
         ScalarNames.Long,
         ScalarNames.Short,
         ScalarNames.String,
-        ScalarNames.TimeSpan,
         ScalarNames.UnsignedByte,
         ScalarNames.UnsignedInt,
         ScalarNames.UnsignedLong,

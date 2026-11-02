@@ -1,0 +1,20 @@
+{
+  "data": {
+    "tenants": [
+      {
+        "name": "tenant-1",
+        "entries": [
+          {
+            "fileName": "file-1.txt"
+          },
+          {
+            "folderName": "folder-1"
+          },
+          {
+            "fileName": "file-2.txt"
+          }
+        ]
+      }
+    ]
+  }
+}

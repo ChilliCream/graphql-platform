@@ -1,5 +1,7 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
@@ -66,6 +68,16 @@ internal class CollectionSegmentType : ObjectType, IPageType
     {
         var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
         context.Dependencies.Add(new(typeRef));
+
+        if (context.DescriptorContext.Options.ApplyShareableToCollectionSegments)
+        {
+            context.Dependencies.Add(new TypeDependency(
+                context.TypeInspector.GetOutputTypeRef(typeof(Shareable))));
+
+            var config = (ObjectTypeConfiguration)configuration;
+            config.AddDirective(Shareable.Instance, context.TypeInspector);
+        }
+
         base.OnBeforeRegisterDependencies(context, configuration);
     }
 
@@ -87,7 +99,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
             Names.Items,
             CollectionSegmentType_Items_Description,
             pureResolver: GetItems)
-        { Flags = CoreFieldFlags.CollectionSegmentItemsField });
+        { Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.CollectionSegmentItemsField });
 
         if (withTotalCount)
         {
@@ -96,7 +108,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
                 pureResolver: GetTotalCount)
             {
-                Flags = CoreFieldFlags.TotalCount
+                Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.TotalCount
             });
         }
 

@@ -9,6 +9,7 @@
     <AssemblyName>HotChocolate.Types.Scalars</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>Adds additional scalars for better data integrity and validation</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

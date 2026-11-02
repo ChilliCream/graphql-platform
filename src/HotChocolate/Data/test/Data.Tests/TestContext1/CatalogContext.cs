@@ -10,11 +10,11 @@ public class CatalogContext(string connectionString) : DbContext
         optionsBuilder.UseNpgsql(connectionString);
     }
 
-    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<Product> Products { get; set; }
 
-    public DbSet<ProductType> ProductTypes { get; set; } = null!;
+    public DbSet<ProductType> ProductTypes { get; set; }
 
-    public DbSet<Brand> Brands { get; set; } = null!;
+    public DbSet<Brand> Brands { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

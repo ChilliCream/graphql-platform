@@ -32,3 +32,34 @@ public interface IParameterFieldConfiguration
     /// </param>
     void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor);
 }
+
+/// <summary>
+/// The parameter descriptor field configuration allows extensions to configure a field when a
+/// certain parameter is detected on a source-generated field resolver.
+/// </summary>
+public interface IParameterDescriptorFieldConfiguration : IParameterFieldConfiguration
+{
+    /// <summary>
+    /// Checks if this configuration can handle the specified parameter descriptor.
+    /// </summary>
+    /// <param name="parameter">
+    /// The parameter descriptor that needs to be inspected.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the parameter descriptor can be handled by this configuration;
+    /// otherwise <c>false</c>.
+    /// </returns>
+    bool CanHandle(ParameterDescriptor parameter);
+
+    /// <summary>
+    /// Applies configuration to a field descriptor based on a source-generated resolver
+    /// parameter.
+    /// </summary>
+    /// <param name="parameter">
+    /// The source-generated resolver parameter descriptor.
+    /// </param>
+    /// <param name="descriptor">
+    /// The field descriptor.
+    /// </param>
+    void ApplyConfiguration(ParameterDescriptor parameter, ObjectFieldDescriptor descriptor);
+}

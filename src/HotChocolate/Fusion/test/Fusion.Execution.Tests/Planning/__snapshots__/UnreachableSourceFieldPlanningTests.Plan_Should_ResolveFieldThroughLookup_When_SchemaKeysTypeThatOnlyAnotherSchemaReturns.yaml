@@ -1,0 +1,86 @@
+operation:
+  - document: |
+      {
+        products {
+          id
+          id @fusion__requirement
+          price
+          warehouse {
+            id
+            id @fusion__requirement
+            address
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 3
+    expandedNodes: 7
+nodes:
+  - id: 1
+    type: Operation
+    schema: catalog
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: inventory
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            warehouse {
+              id
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: ApolloOperation
+    schema: pricing
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            price
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: ApolloOperation
+    schema: catalog
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Warehouse {
+            address
+          }
+        }
+      }
+    source: $._entities
+    target: $.products.warehouse
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2

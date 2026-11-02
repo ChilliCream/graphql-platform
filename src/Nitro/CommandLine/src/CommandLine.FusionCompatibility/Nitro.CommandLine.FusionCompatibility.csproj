@@ -4,8 +4,11 @@
     <RootNamespace>ChilliCream.Nitro.CommandLine.FusionCompatibility</RootNamespace>
     <AssemblyName>ChilliCream.Nitro.CommandLine.FusionCompatibility</AssemblyName>
     <PackageId>ChilliCream.Nitro.CommandLine.FusionCompatibility</PackageId>
-    <IsPackable>true</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="nitro" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />

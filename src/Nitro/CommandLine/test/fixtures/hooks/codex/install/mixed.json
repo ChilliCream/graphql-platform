@@ -1,0 +1,35 @@
+{
+  "hooks": {
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/usr/local/bin/herdr hook session-start",
+          "timeout": 5
+        }
+      ]
+    },
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/opt/old/nitro agent hook codex session-start",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/home/agent/.dotnet/tools/nitro agent hook codex user-prompt-submit",
+          "timeout": 10
+        }
+      ]
+    }
+  ]
+  }
+}

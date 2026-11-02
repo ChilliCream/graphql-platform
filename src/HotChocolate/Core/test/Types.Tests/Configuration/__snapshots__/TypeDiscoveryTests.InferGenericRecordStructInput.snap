@@ -1,0 +1,12 @@
+schema {
+  query: QueryTypeWithGenericRecordStructInput
+}
+
+type QueryTypeWithGenericRecordStructInput {
+  foo(range: RangeSpecOfInt32Input!): String!
+}
+
+input RangeSpecOfInt32Input {
+  min: Int
+  max: Int
+}

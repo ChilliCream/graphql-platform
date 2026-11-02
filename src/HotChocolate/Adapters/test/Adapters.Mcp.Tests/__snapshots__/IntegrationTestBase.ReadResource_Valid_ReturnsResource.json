@@ -1,7 +1,7 @@
 {
   "contents": [
     {
-      "uri": "ui://views/get-books-with-title-1-A3466F8D1004DE6FF9F8786180799B3534129EE7ABD562AA77F9973EEC4D2898.html",
+      "uri": "ui://views/get-books-with-title1-A3466F8D1004DE6FF9F8786180799B3534129EE7ABD562AA77F9973EEC4D2898.html",
       "mimeType": "text/html;profile=mcp-app",
       "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>MCP App View</title>\n</head>\n<body>\n  <h1>MCP App View</h1>\n</body>\n</html>\n",
       "_meta": {

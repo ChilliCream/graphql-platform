@@ -9,10 +9,15 @@
     <AssemblyName>HotChocolate.Types.NodaTime</AssemblyName>
     <RootNamespace>HotChocolate.Types.NodaTime</RootNamespace>
     <Description>Adds additional scalars that map to NodaTime runtime types</Description>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
     <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Types.NodaTime.Tests" />
   </ItemGroup>
 
   <ItemGroup>

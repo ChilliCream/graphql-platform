@@ -75,7 +75,10 @@ internal sealed class TypeReferenceResolver
             return true;
         }
 
-        if (!_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
+        if (!_typeLookup.TryNormalizeReference(
+            typeRef,
+            out var namedTypeRef,
+            out var componentIndex))
         {
             type = null;
             return false;
@@ -97,17 +100,7 @@ internal sealed class TypeReferenceResolver
         switch (typeRef)
         {
             case ExtendedTypeReference r:
-                if (_typeRegistry.IsExplicitBinding(r)
-                    && RuntimeTypeBindingHelper.RequiresExactBinding(r.Type))
-                {
-                    type = CreateExplicitBoundType(typeDefinition, r.Type);
-                }
-                else
-                {
-                    var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
-                    type = typeFactory.CreateType(typeDefinition);
-                }
-
+                type = CreateType(typeDefinition, r.Type, componentIndex);
                 _typeCache[typeId] = type;
                 return true;
 
@@ -147,6 +140,35 @@ internal sealed class TypeReferenceResolver
         return false;
     }
 
+    /// <summary>
+    /// Creates the type structure of <paramref name="runtimeType"/> around
+    /// <paramref name="typeDefinition"/>. The component at <paramref name="componentIndex"/>
+    /// is the one that resolved to the type definition; the components nested inside it are
+    /// not part of the type structure.
+    /// </summary>
+    private IType CreateType(
+        ITypeDefinition typeDefinition,
+        IExtendedType runtimeType,
+        int componentIndex)
+    {
+        var components = _typeInspector.CreateTypeInfo(runtimeType).Components;
+        IType type = typeDefinition;
+
+        if (components[componentIndex].Kind is TypeComponentKind.NonNull)
+        {
+            type = new NonNullType(type);
+        }
+
+        for (var i = componentIndex - 1; i >= 0; i--)
+        {
+            type = components[i].Kind is TypeComponentKind.List
+                ? new ListType(type)
+                : new NonNullType(type);
+        }
+
+        return type;
+    }
+
     private static IType CreateType(
         IType namedType,
         ITypeNode typeNode)
@@ -162,18 +184,6 @@ internal sealed class TypeReferenceResolver
         }
 
         return namedType;
-    }
-
-    private static IType CreateExplicitBoundType(ITypeDefinition typeDefinition, IExtendedType runtimeType)
-    {
-        IType type = typeDefinition;
-
-        if (!runtimeType.IsNullable && typeDefinition.Kind is not TypeKind.NonNull)
-        {
-            type = new NonNullType(typeDefinition);
-        }
-
-        return type;
     }
 
     private TypeId CreateId(TypeReference typeRef, TypeReference namedTypeRef)

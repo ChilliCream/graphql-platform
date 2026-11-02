@@ -37,6 +37,27 @@ public class InputObjectFieldNamesRuleTests
                 t.Message));
     }
 
+    // The rule must fire once per lexical input field, not once per fragment spread.
+    [Fact]
+    public void InvalidInputObjectFieldInReusedFragment()
+    {
+        ExpectErrors(
+            """
+            query {
+              ...badField
+              ...badField
+            }
+
+            fragment badField on Query {
+              findDog(complex: { favoriteCookieFlavor: "Bacon" })
+            }
+            """,
+            t => Assert.Equal(
+                "The specified input object field "
+                + "`favoriteCookieFlavor` does not exist.",
+                t.Message));
+    }
+
     [Fact]
     public void InvalidNestedInputObjectFieldsExist()
     {

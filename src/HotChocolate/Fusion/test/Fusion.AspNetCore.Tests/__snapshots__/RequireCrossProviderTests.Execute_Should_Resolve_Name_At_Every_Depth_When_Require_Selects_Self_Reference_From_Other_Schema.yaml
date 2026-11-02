@@ -1,0 +1,238 @@
+title: Execute_Should_Resolve_Name_At_Every_Depth_When_Require_Selects_Self_Reference_From_Other_Schema
+request:
+  document: |
+    {
+      entity {
+        name
+        entity {
+          name
+          entity {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "entity": {
+          "name": "1:20",
+          "entity": {
+            "name": "2:30",
+            "entity": {
+              "name": "3:40"
+            }
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        entity: Entity! @shareable
+        entityById(id: ID!): Entity @lookup @internal
+      }
+
+      type Entity @key(fields: "id") @shareable {
+        name(entityAge: Int! @require(field: "entity.age")): String!
+        id: ID
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_58c26fe9_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
+              entityById(id: $__fusion_1_id) {
+                name(entityAge: $__fusion_2_entityAge)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "1",
+                "__fusion_2_entityAge": 20
+              },
+              {
+                "__fusion_1_id": "2",
+                "__fusion_2_entityAge": 30
+              },
+              {
+                "__fusion_1_id": "3",
+                "__fusion_2_entityAge": 40
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "entityById": {
+                    "name": "1:20"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "entityById": {
+                    "name": "2:30"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "entityById": {
+                    "name": "3:40"
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        entity: Entity @shareable
+      }
+
+      type Entity @shareable {
+        entity: Entity!
+        id: ID
+        age: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_58c26fe9_1 {
+              entity {
+                entity {
+                  entity {
+                    age
+                    id
+                    entity {
+                      age
+                    }
+                  }
+                  age
+                  id
+                }
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "entity": {
+                    "entity": {
+                      "entity": {
+                        "age": 30,
+                        "id": "3",
+                        "entity": {
+                          "age": 40
+                        }
+                      },
+                      "age": 20,
+                      "id": "2"
+                    },
+                    "id": "1"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          entity {
+            name
+            entity {
+              name
+              entity {
+                name
+                id @fusion__requirement
+                entity @fusion__requirement {
+                  age @fusion__requirement
+                }
+              }
+              entity @fusion__requirement {
+                age @fusion__requirement
+                id @fusion__requirement
+                entity @fusion__requirement {
+                  age @fusion__requirement
+                }
+              }
+              id @fusion__requirement
+            }
+            entity @fusion__requirement {
+              age @fusion__requirement
+              id @fusion__requirement
+              entity @fusion__requirement {
+                age @fusion__requirement
+                id @fusion__requirement
+                entity @fusion__requirement {
+                  age @fusion__requirement
+                }
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: c87d0ad280a6ed5c169e04793af5bcb4
+      searchSpace: 3
+      expandedNodes: 5
+  nodes:
+    - id: 1
+      type: Operation
+      schema: b
+      operation: |
+        query Op_58c26fe9_1 {
+          entity {
+            entity {
+              entity {
+                age
+                id
+                entity {
+                  age
+                }
+              }
+              age
+              id
+            }
+            id
+          }
+        }
+    - id: 2
+      type: OperationBatch
+      schema: a
+      operation: |
+        query Op_58c26fe9_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
+          entityById(id: $__fusion_1_id) {
+            name(entityAge: $__fusion_2_entityAge)
+          }
+        }
+      source: $.entityById
+      targets:
+        - $.entity
+        - $.entity.entity
+        - $.entity.entity.entity
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_entityAge
+          selectionMap: >-
+            entity.age
+      dependencies:
+        - id: 1

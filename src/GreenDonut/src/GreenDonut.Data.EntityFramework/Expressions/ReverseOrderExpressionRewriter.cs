@@ -52,6 +52,8 @@ public class ReverseOrderExpressionRewriter : ExpressionVisitor
         return base.VisitMethodCall(node);
     }
 
+    protected override Expression VisitLambda<T>(Expression<T> node) => node;
+
     public static IQueryable<T> Rewrite<T>(IQueryable<T> query)
     {
         var reversedExpression = new ReverseOrderExpressionRewriter().Visit(query.Expression);

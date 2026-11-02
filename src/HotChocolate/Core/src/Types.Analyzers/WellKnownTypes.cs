@@ -15,6 +15,8 @@ public static class WellKnownTypes
     public const string InputObjectTypeExtension = "HotChocolate.Types.InputObjectTypeExtension";
     public const string EnumTypeExtension = "HotChocolate.Types.EnumTypeExtension";
     public const string DataLoader = "GreenDonut.IDataLoader";
+    public const string BatchDataLoader = "GreenDonut.IBatchDataLoader";
+    public const string CacheDataLoader = "GreenDonut.ICacheDataLoader";
     public const string DbContext = "Microsoft.EntityFrameworkCore.DbContext";
     public const string CancellationToken = "System.Threading.CancellationToken";
     public const string GlobalCancellationToken = "global::System.Threading.CancellationToken";
@@ -33,13 +35,15 @@ public static class WellKnownTypes
     public const string FieldResolverDelegate = "HotChocolate.Resolvers.FieldResolverDelegate";
     public const string ResolverContext = "HotChocolate.Resolvers.IResolverContext";
     public const string ParameterBinding = "HotChocolate.Internal.IParameterBinding";
+    public const string Optional = "HotChocolate.Optional";
+    public const string OptionalGeneric = Optional + "<";
     public const string MemoryMarshal = "System.Runtime.InteropServices.MemoryMarshal";
     public const string Unsafe = "System.Runtime.CompilerServices.Unsafe";
     public const string Object = "System.Object";
     public const string Executable = "HotChocolate.IExecutable";
     public const string ClaimsPrincipal = "System.Security.Claims.ClaimsPrincipal";
     public const string DocumentNode = "HotChocolate.Language.DocumentNode";
-    public const string OutputField = "HotChocolate.Types.IOutputField";
+    public const string OutputField = "HotChocolate.Types.IOutputFieldDefinition";
     public const string ParameterBindingResolver = "HotChocolate.Resolvers.ParameterBindingResolver";
     public const string CustomAttributeData = "HotChocolate.Internal.GenCustomAttributeData";
     public const string ParameterInfo = "HotChocolate.Internal.GenParameterInfo";
@@ -103,9 +107,15 @@ public static class WellKnownTypes
     public const string ConfigurationHelper = "HotChocolate.Internal.ConfigurationHelper";
     public const string InterfaceFieldDescriptor = "HotChocolate.Types.Descriptors.InterfaceFieldDescriptor";
     public const string ObjectFieldDescriptor = "HotChocolate.Types.Descriptors.ObjectFieldDescriptor";
+    public const string NodeDescriptorBase = "HotChocolate.Types.Relay.Descriptors.NodeDescriptorBase";
     public const string NonNullTypeNode = "HotChocolate.Language.NonNullTypeNode";
     public const string ListTypeNode = "HotChocolate.Language.ListTypeNode";
     public const string NamedTypeNode = "HotChocolate.Language.NamedTypeNode";
+    public const string BatchFieldDelegate = "HotChocolate.Resolvers.BatchFieldDelegate";
+    public const string ImmutableArrayOfMiddlewareContext = "System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext>";
+    public const string IList = "System.Collections.IList";
+    public const string MiddlewareContext = "HotChocolate.Resolvers.IMiddlewareContext";
+    public const string ISelection = "HotChocolate.Execution.ISelection";
 
     public static HashSet<string> TypeClass { get; } =
     [

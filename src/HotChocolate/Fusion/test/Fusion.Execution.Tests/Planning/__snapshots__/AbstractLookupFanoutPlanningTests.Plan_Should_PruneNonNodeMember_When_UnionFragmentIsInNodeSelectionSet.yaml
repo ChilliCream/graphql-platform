@@ -1,0 +1,54 @@
+operation:
+  - document: |
+      {
+        node(id: "test-id") {
+          __typename @fusion__requirement
+          id
+          ... on CommunityContributor {
+            ... on User {
+              name
+            }
+            ... on FormerUser {
+              name
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Node
+    idValue: "test-id"
+    responseName: node
+    branches:
+      - User: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: |
+      query Op_123456789101112_2 {
+        node(id: "test-id") {
+          __typename
+          id
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: contributors
+    operation: |
+      query Op_123456789101112_3 {
+        node(id: "test-id") {
+          __typename
+          ... on User {
+            __typename
+            id
+            name
+          }
+        }
+      }
+    dependencies:
+      - id: 1

@@ -33,7 +33,7 @@ public class IntegrationTests : IAsyncLifetime
         {
             await using var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
             session.Store(new Foo { Id = 1, Bar = true });
-            await session.SaveChangesAsync();
+            await session.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
 
         await using (var scope = services.CreateAsyncScope())
@@ -43,11 +43,12 @@ public class IntegrationTests : IAsyncLifetime
                 .SetDocument("{ foos { nodes { id } } }")
                 .Build();
 
-            var executor = await scope.ServiceProvider.GetRequestExecutorAsync();
-            snapshot.Add(await executor.ExecuteAsync(request));
+            var executor = await scope.ServiceProvider.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+            snapshot.Add(await executor.ExecuteAsync(request, TestContext.Current.CancellationToken));
         }
 
-        await snapshot.MatchMarkdownAsync();
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     public class Query
@@ -66,7 +67,7 @@ public class IntegrationTests : IAsyncLifetime
         public bool Bar { get; set; }
     }
 
-    public async Task InitializeAsync() => await Container.InitializeAsync();
+    public async ValueTask InitializeAsync() => await Container.InitializeAsync();
 
-    public async Task DisposeAsync() => await Container.DisposeAsync();
+    public async ValueTask DisposeAsync() => await Container.DisposeAsync();
 }

@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -7,11 +8,10 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
-public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
+public class MongoDbAggregateFluentTests
 {
     private static readonly Foo[] s_fooEntities =
     [
@@ -48,19 +48,21 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "true")
             .AddResult(res2, "false")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -84,19 +86,21 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\" } }){ baz } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\" } }){ baz } }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "2020-01-11")
             .AddResult(res2, "2020-01-12")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

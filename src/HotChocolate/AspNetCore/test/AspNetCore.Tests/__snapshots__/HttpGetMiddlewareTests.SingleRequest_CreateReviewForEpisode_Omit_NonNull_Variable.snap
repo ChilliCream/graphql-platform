@@ -5,12 +5,6 @@
   "Errors": [
     {
       "message": "Variable `ep` is required.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 77
-        }
-      ],
       "extensions": {
         "code": "HC0018",
         "variable": "ep"

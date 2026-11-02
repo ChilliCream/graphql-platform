@@ -5,11 +5,11 @@ namespace eShop.Catalog.Data;
 
 public class CatalogContext(DbContextOptions<CatalogContext> options) : DbContext(options)
 {
-    public DbSet<ProductEntity> Products => Set<ProductEntity>();
+    public DbSet<ProductEntity> Products { get; set; }
 
-    public DbSet<ProductTypeEntity> ProductTypes => Set<ProductTypeEntity>();
+    public DbSet<ProductTypeEntity> ProductTypes { get; set; }
 
-    public DbSet<BrandEntity> Brands => Set<BrandEntity>();
+    public DbSet<BrandEntity> Brands { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

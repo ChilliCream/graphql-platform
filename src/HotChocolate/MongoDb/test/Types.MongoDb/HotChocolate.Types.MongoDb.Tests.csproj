@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.MongoDb.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
@@ -12,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" />
-    <PackageReference Include="Squadron.Mongo" />
   </ItemGroup>
 
 </Project>

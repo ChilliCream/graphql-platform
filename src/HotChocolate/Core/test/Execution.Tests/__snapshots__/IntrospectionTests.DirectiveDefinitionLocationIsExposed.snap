@@ -1,0 +1,98 @@
+{
+  "data": {
+    "__type": {
+      "enumValues": [
+        {
+          "name": "QUERY"
+        },
+        {
+          "name": "MUTATION"
+        },
+        {
+          "name": "SUBSCRIPTION"
+        },
+        {
+          "name": "FIELD"
+        },
+        {
+          "name": "FRAGMENT_DEFINITION"
+        },
+        {
+          "name": "FRAGMENT_SPREAD"
+        },
+        {
+          "name": "INLINE_FRAGMENT"
+        },
+        {
+          "name": "VARIABLE_DEFINITION"
+        },
+        {
+          "name": "SCHEMA"
+        },
+        {
+          "name": "SCALAR"
+        },
+        {
+          "name": "OBJECT"
+        },
+        {
+          "name": "FIELD_DEFINITION"
+        },
+        {
+          "name": "ARGUMENT_DEFINITION"
+        },
+        {
+          "name": "INTERFACE"
+        },
+        {
+          "name": "UNION"
+        },
+        {
+          "name": "ENUM"
+        },
+        {
+          "name": "ENUM_VALUE"
+        },
+        {
+          "name": "INPUT_OBJECT"
+        },
+        {
+          "name": "INPUT_FIELD_DEFINITION"
+        },
+        {
+          "name": "DIRECTIVE_DEFINITION"
+        }
+      ]
+    },
+    "__schema": {
+      "directives": [
+        {
+          "name": "skip",
+          "locations": [
+            "FIELD",
+            "FRAGMENT_SPREAD",
+            "INLINE_FRAGMENT"
+          ]
+        },
+        {
+          "name": "include",
+          "locations": [
+            "FIELD",
+            "FRAGMENT_SPREAD",
+            "INLINE_FRAGMENT"
+          ]
+        },
+        {
+          "name": "deprecated",
+          "locations": [
+            "FIELD_DEFINITION",
+            "ARGUMENT_DEFINITION",
+            "ENUM_VALUE",
+            "INPUT_FIELD_DEFINITION",
+            "DIRECTIVE_DEFINITION"
+          ]
+        }
+      ]
+    }
+  }
+}

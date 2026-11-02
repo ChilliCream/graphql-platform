@@ -13,6 +13,7 @@ public class ProjectionVisitorTestBase
     protected string? FileName { get; set; } = Guid.NewGuid().ToString("N") + ".db";
 
     private Func<IResolverContext, IQueryable<TResult>> BuildResolver<TResult>(
+        bool asNoTracking,
         Action<ModelBuilder>? onModelCreating = null,
         params TResult[] results)
         where TResult : class
@@ -34,7 +35,9 @@ public class ProjectionVisitorTestBase
             dbContext.SaveChanges();
         }
 
-        return _ => dbContext.Data.AsQueryable();
+        return _ => asNoTracking
+            ? dbContext.Data.AsNoTracking()
+            : dbContext.Data.AsQueryable();
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
@@ -47,13 +50,14 @@ public class ProjectionVisitorTestBase
         bool useOffsetPaging = false,
         ITypeDefinition? objectType = null,
         Action<ISchemaBuilder>? configure = null,
-        Type? schemaType = null)
+        Type? schemaType = null,
+        bool asNoTracking = false)
         where TEntity : class
     {
         provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
         var convention = new ProjectionConvention(x => x.Provider(provider));
 
-        var resolver = BuildResolver(onModelCreating, entities);
+        var resolver = BuildResolver(asNoTracking, onModelCreating, entities);
         ISchemaBuilder builder = SchemaBuilder.New();
 
         if (objectType is not null)

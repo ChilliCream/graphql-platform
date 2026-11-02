@@ -69,7 +69,7 @@ public sealed class SelectionIncludeCondition
             return variables.GetValue<BooleanValueNode>(v.Name.Value).Value;
         }
 
-        throw FieldVisibility_ValueNotSupported(value);
+        throw FieldVisibility_ValueNotSupported();
     }
 
     public bool Equals(SelectionIncludeCondition visibility)

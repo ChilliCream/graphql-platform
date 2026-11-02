@@ -2,12 +2,16 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
 internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 {
+    // The close code the client uses when the server sends a message that violates the
+    // graphql-transport-ws protocol. It mirrors the code the server itself uses for the
+    // same condition.
+    private const WebSocketCloseStatus InvalidMessage = (WebSocketCloseStatus)4400;
+
     public string Name => WellKnownProtocols.GraphQL_Transport_WS;
 
     public async ValueTask InitializeAsync(
@@ -22,7 +26,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                 nameof(payload));
         }
 
-        var observer = new ConnectionMessageObserver<ConnectionAcceptMessage>(cancellationToken);
+        using var observer = new ConnectionMessageObserver<ConnectionAcceptMessage>(
+            context.Socket,
+            cancellationToken);
         using var subscription = context.Messages.Subscribe(observer);
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
         await observer.Accepted;
@@ -30,7 +36,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
     public async ValueTask<SocketResult> ExecuteAsync(
         SocketClientContext context,
-        OperationRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid().ToString("N");
@@ -38,18 +44,64 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         var completion = new DataCompletion(context.Socket, id);
         var subscription = context.Messages.Subscribe(observer);
 
-        await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
-
-        // if the user cancels this stream, we will send the server a complete request
-        // so that we no longer receive new result messages.
-        cancellationToken.Register(completion.TrySendCompleteMessage);
-
         try
         {
-            return new SocketResult(observer, subscription, completion);
+            await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
+
+            // if the user cancels this stream, we send the server a complete request so that we
+            // no longer receive new result messages, and we complete the local observer so that a
+            // pending read terminates gracefully instead of blocking forever.
+            void OnCancelled()
+            {
+                completion.TrySendCompleteMessage();
+                observer.OnCompleted();
+            }
+
+            var cancellationRegistration = cancellationToken.Register(OnCancelled);
+
+            return new SocketResult(observer, subscription, completion, cancellationRegistration);
         }
         catch
         {
+            // the subscribe send (or the cancellation registration) faulted, so the observer was
+            // never handed to a SocketResult. Release it and remove it from the message stream.
+            subscription.Dispose();
+            observer.Dispose();
+            throw;
+        }
+    }
+
+    public async ValueTask<SocketResult> ExecuteBatchAsync(
+        SocketClientContext context,
+        OperationBatchRequest request,
+        CancellationToken cancellationToken)
+    {
+        var id = Guid.NewGuid().ToString("N");
+        var observer = new DataMessageObserver(id);
+        var completion = new DataCompletion(context.Socket, id);
+        var subscription = context.Messages.Subscribe(observer);
+
+        try
+        {
+            await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
+
+            // if the user cancels this stream, we send the server a complete request so that we
+            // no longer receive new result messages, and we complete the local observer so that a
+            // pending read terminates gracefully instead of blocking forever.
+            void OnCancelled()
+            {
+                completion.TrySendCompleteMessage();
+                observer.OnCompleted();
+            }
+
+            var cancellationRegistration = cancellationToken.Register(OnCancelled);
+
+            return new SocketResult(observer, subscription, completion, cancellationRegistration);
+        }
+        catch
+        {
+            // the subscribe send (or the cancellation registration) faulted, so the observer was
+            // never handed to a SocketResult. Release it and remove it from the message stream.
             subscription.Dispose();
             observer.Dispose();
             throw;
@@ -61,44 +113,56 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         ReadOnlySequence<byte> message,
         CancellationToken cancellationToken = default)
     {
-        switch (ParseMessageType(message))
+        // A malformed server frame must not fault the shared message pipeline. Any parsing
+        // or structural failure while classifying or reading the message is treated as a
+        // protocol violation and closes the socket with code 4400 instead of propagating.
+        try
         {
-            case MessageType.Ping:
-                return context.Socket.SendPongMessageAsync(cancellationToken);
+            switch (ParseMessageType(message))
+            {
+                case MessageType.Ping:
+                    return context.Socket.SendPongMessageAsync(cancellationToken);
 
-            case MessageType.Pong:
-                // we do nothing and just accept the pong as a valid message.
-                return default;
+                case MessageType.Pong:
+                    // we do nothing and just accept the pong as a valid message.
+                    return default;
 
-            case MessageType.Next:
-                context.Messages.OnNext(NextMessage.From(message));
-                return default;
+                case MessageType.Next:
+                    context.Messages.OnNext(NextMessage.From(message));
+                    return default;
 
-            case MessageType.Error:
-                context.Messages.OnNext(ErrorMessage.From(message));
-                return default;
+                case MessageType.Error:
+                    context.Messages.OnNext(ErrorMessage.From(message));
+                    return default;
 
-            case MessageType.Complete:
-                context.Messages.OnNext(CompleteMessage.From(message));
-                return default;
+                case MessageType.Complete:
+                    context.Messages.OnNext(CompleteMessage.From(message));
+                    return default;
 
-            case MessageType.ConnectionAccept:
-                context.Messages.OnNext(ConnectionAcceptMessage.Default);
-                return default;
+                case MessageType.ConnectionAccept:
+                    context.Messages.OnNext(ConnectionAcceptMessage.Default);
+                    return default;
 
-            default:
-                return FatalError(context, cancellationToken);
+                default:
+                    return FatalError(context, cancellationToken);
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return FatalError(context, cancellationToken);
         }
 
         static async ValueTask FatalError(
             SocketClientContext context,
             CancellationToken cancellationToken = default)
         {
-            context.Messages.OnCompleted();
-            await context.Socket.CloseAsync(
-                WebSocketCloseStatus.ProtocolError,
-                "Invalid Message Structure",
-                cancellationToken);
+            const string reason = "Invalid message structure.";
+
+            // Surface the error to consumers first so a pending ReadResultsAsync unblocks
+            // immediately, then close the socket. Channel completion is idempotent, so a
+            // later close-triggered SocketClosedException is a harmless no-op.
+            context.Messages.OnError(new SocketClosedException(reason, InvalidMessage));
+            await context.Socket.CloseAsync(InvalidMessage, reason, cancellationToken);
         }
     }
 
@@ -108,10 +172,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         while (reader.Read())
         {
-            if (reader.TokenType == JsonTokenType.PropertyName
+            if (reader.CurrentDepth == 1
+                && reader.TokenType == JsonTokenType.PropertyName
                 && reader.ValueTextEquals(Utf8MessageProperties.TypeProp))
             {
-                reader.Read();
+                if (!reader.Read() || reader.TokenType != JsonTokenType.String)
+                {
+                    // The top-level type must be a string. Anything else is not a valid
+                    // message type, so keep scanning rather than misclassifying it.
+                    continue;
+                }
 
                 if (reader.ValueTextEquals(Utf8Messages.Ping))
                 {
@@ -152,17 +222,16 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
     private sealed class DataCompletion(WebSocket socket, string id) : IDataCompletion
     {
-        private bool _completed;
+        private int _completed;
 
         public void MarkDataStreamCompleted()
-            => _completed = true;
+            => Interlocked.Exchange(ref _completed, 1);
 
         public void TrySendCompleteMessage()
         {
-            if (!_completed)
+            if (Interlocked.CompareExchange(ref _completed, 1, 0) == 0)
             {
                 _ = TrySendCompleteMessageInternalAsync(socket, id);
-                _completed = true;
             }
         }
     }

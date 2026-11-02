@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
@@ -39,6 +42,11 @@ internal sealed partial class WorkScheduler
         {
             work.Push(task);
             RegisterBranchTaskUnsafe(task.BranchId);
+
+            if (task is Tasks.ResolverTask rt)
+            {
+                IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
+            }
         }
 
         _signal.Set();
@@ -69,6 +77,11 @@ internal sealed partial class WorkScheduler
                 }
 
                 RegisterBranchTaskUnsafe(task.BranchId);
+
+                if (task is Tasks.ResolverTask rt)
+                {
+                    IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
+                }
             }
         }
 
@@ -82,27 +95,80 @@ internal sealed partial class WorkScheduler
     {
         AssertNotPooled();
 
-        if (task.IsRegistered)
+        if (!task.IsRegistered)
         {
-            var work = task.IsSerial ? _serial : _work;
+            return;
+        }
 
-            CompleteBranchTask(task.BranchId);
+        var work = task.IsSerial ? _serial : _work;
 
-            // complete is thread-safe
-            if (work.Complete())
-            {
+        switch (task)
+        {
+            case Tasks.ResolverTask resolverTask:
                 lock (_sync)
                 {
-                    _completed.Add(task.Id);
-                }
+                    CompleteBranchTaskUnsafe(task.BranchId);
 
-                _signal.Set();
-            }
+                    if (CompleteWorkUnsafe(work))
+                    {
+                        _completed.Add(resolverTask.Id);
+                        DecrementPathCountUnsafe(resolverTask.FieldSelectionPath);
+                    }
+                }
+                break;
+
+            case Tasks.BatchResolverTask batchResolverTask:
+                lock (_sync)
+                {
+                    foreach (var additionalBranchId in batchResolverTask.BranchIds)
+                    {
+                        CompleteBranchTaskUnsafe(additionalBranchId);
+                    }
+
+                    if (CompleteWorkUnsafe(work))
+                    {
+                        _completed.Add(task.Id);
+                        DecrementPathCountUnsafe(batchResolverTask.FieldSelectionPath);
+                    }
+                }
+                break;
+
+            default:
+                lock (_sync)
+                {
+                    CompleteBranchTaskUnsafe(task.BranchId);
+
+                    if (CompleteWorkUnsafe(work))
+                    {
+                        _completed.Add(task.Id);
+                    }
+                }
+                break;
         }
+
+        _signal.Set();
+    }
+
+    private bool CompleteWorkUnsafe(WorkQueue work)
+    {
+        AssertLockHeld();
+        return work.Complete();
+    }
+
+    [Conditional("DEBUG")]
+    private void AssertLockHeld()
+    {
+#if NET9_0_OR_GREATER
+        Debug.Assert(_sync.IsHeldByCurrentThread);
+#else
+        Debug.Assert(Monitor.IsEntered(_sync));
+#endif
     }
 
     private void RegisterBranchTaskUnsafe(int branchId)
     {
+        AssertLockHeld();
+
         if (branchId == BranchTracker.SystemBranchId)
         {
             return;
@@ -117,21 +183,20 @@ internal sealed partial class WorkScheduler
         branch.RegisterTask();
     }
 
-    private void CompleteBranchTask(int branchId)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void CompleteBranchTaskUnsafe(int branchId)
     {
+        AssertLockHeld();
+
         if (branchId == BranchTracker.SystemBranchId)
         {
             return;
         }
-
-        lock (_sync)
+        if (_activeBranches.TryGetValue(branchId, out var branch)
+            && branch.CompleteTask())
         {
-            if (_activeBranches.TryGetValue(branchId, out var branch)
-                && branch.CompleteTask())
-            {
-                _activeBranches.Remove(branchId);
-                branch.Complete();
-            }
+            _activeBranches.Remove(branchId);
+            branch.Complete();
         }
     }
 

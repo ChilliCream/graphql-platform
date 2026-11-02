@@ -88,8 +88,8 @@ public class OperationModel
         ArgumentNullException.ThrowIfNull(fieldSyntax);
 
         if (!_selectionSets.TryGetValue(
-           new SelectionSetInfo(fieldNamedType, fieldSyntax.SelectionSet!),
-           out var selectionSetNode))
+            new SelectionSetInfo(fieldNamedType, fieldSyntax.SelectionSet!),
+            out var selectionSetNode))
         {
             selectionSetNode = fieldSyntax.SelectionSet;
         }

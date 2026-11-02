@@ -1,0 +1,272 @@
+title: Execute_Should_ResolveBatchedOperation_When_RequirementAnchorIsBelowList
+request:
+  document: |
+    {
+      products {
+        id
+        variants {
+          shippingEstimate
+        }
+      }
+      reviews {
+        id
+        text
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": [
+          {
+            "id": 1,
+            "variants": [
+              {
+                "shippingEstimate": null
+              },
+              {
+                "shippingEstimate": null
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "variants": [
+              {
+                "shippingEstimate": null
+              },
+              {
+                "shippingEstimate": null
+              }
+            ]
+          }
+        ],
+        "reviews": [
+          {
+            "id": 7,
+            "text": "T7"
+          },
+          {
+            "id": 8,
+            "text": "T8"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]!
+        reviews: [Review!]!
+      }
+
+      type Product {
+        variants: [Variant!]! @shareable
+        id: Int! @shareable
+      }
+
+      type Review {
+        id: Int! @shareable
+      }
+
+      type Variant {
+        weight: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_b3de1d94_1 {
+              products {
+                id
+                variants {
+                  weight
+                }
+              }
+              reviews {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": 1,
+                      "variants": [
+                        {
+                          "weight": 10
+                        },
+                        {
+                          "weight": 11
+                        }
+                      ]
+                    },
+                    {
+                      "id": 2,
+                      "variants": [
+                        {
+                          "weight": 20
+                        },
+                        {
+                          "weight": 21
+                        }
+                      ]
+                    }
+                  ],
+                  "reviews": [
+                    {
+                      "id": 7
+                    },
+                    {
+                      "id": 8
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: Int!): Product @lookup @internal
+        reviewById(id: Int!): Review @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        variants: [Variant!]! @shareable
+        id: Int! @shareable
+      }
+
+      type Review @key(fields: "id") {
+        text: String!
+        id: Int! @shareable
+      }
+
+      type Variant {
+        shippingEstimate(weight: Int! @require(field: "weight")): Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_b3de1d94_2($__fusion_1_id: Int!) {
+              reviewById(id: $__fusion_1_id) {
+                text
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 7
+              },
+              {
+                "__fusion_1_id": 8
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "reviewById": {
+                    "text": "T7"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "reviewById": {
+                    "text": "T8"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          products {
+            id
+            id @fusion__requirement
+            variants {
+              shippingEstimate
+              weight @fusion__requirement
+            }
+          }
+          reviews {
+            id
+            id @fusion__requirement
+            text
+          }
+        }
+      hash: 2c4dfb05f06b343db9a9c8811b9a789f
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_b3de1d94_1 {
+          products {
+            id
+            variants {
+              weight
+            }
+          }
+          reviews {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_b3de1d94_2($__fusion_1_id: Int!) {
+          reviewById(id: $__fusion_1_id) {
+            text
+          }
+        }
+      source: $.reviewById
+      target: $.reviews
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: b
+      operation: |
+        query Op_b3de1d94_3($__fusion_2_id: Int!, $__fusion_3_weight: Int!) {
+          productById(id: $__fusion_2_id) {
+            variants {
+              shippingEstimate(weight: $__fusion_3_weight)
+            }
+          }
+        }
+      source: $.productById
+      target: $.products
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+        - name: __fusion_3_weight
+          selectionMap: >-
+            weight
+      dependencies:
+        - id: 1

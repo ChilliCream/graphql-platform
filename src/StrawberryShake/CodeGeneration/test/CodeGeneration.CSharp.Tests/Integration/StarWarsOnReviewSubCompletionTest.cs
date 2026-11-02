@@ -18,8 +18,8 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
     public async Task Watch_StarWarsOnReviewSubCompletion_Test()
     {
         // arrange
-        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
-        var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
+        await using var app = TestServerHelper.StartApp(_ => { }, out var port);
+        var topicEventSender = app.Services.GetRequiredService<ITopicEventSender>();
 
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddStarWarsOnReviewSubCompletionClient(
@@ -49,8 +49,9 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",
-                new Review(stars: 1, commentary: "Commentary"));
-            await Task.Delay(1_000);
+                new Review(stars: 1, commentary: "Commentary"),
+                TestContext.Current.CancellationToken);
+            await Task.Delay(1_000, TestContext.Current.CancellationToken);
         }
 
         // complete the topic of subscription from server
@@ -59,7 +60,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
         // waiting for completion message sent
         for (var times = 0; !completionTriggered && times < 10; times++)
         {
-            await Task.Delay(1_000);
+            await Task.Delay(1_000, TestContext.Current.CancellationToken);
         }
 
         // assert
@@ -73,10 +74,10 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
     public async Task Watch_StarWarsOnReviewSubCompletionPassively_Test()
     {
         // arrange
-        using var host = TestServerHelper.CreateServer(
+        await using var app = TestServerHelper.StartApp(
             _ => { },
             out var port);
-        var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
+        var topicEventSender = app.Services.GetRequiredService<ITopicEventSender>();
 
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddStarWarsOnReviewSubCompletionClient(
@@ -108,20 +109,21 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",
-                new Review(stars: 1, commentary: "Commentary"));
-            await Task.Delay(1_000);
+                new Review(stars: 1, commentary: "Commentary"),
+                TestContext.Current.CancellationToken);
+            await Task.Delay(1_000, TestContext.Current.CancellationToken);
         }
 
         // simulate network error
         var monitor = services.GetRequiredService<SubscriptionSocketStateMonitor>();
         monitor.AbortSocket();
 
-        //await host.StopAsync();
+        //await app.StopAsync();
 
         // waiting for completion message sent
         for (var times = 0; !completionTriggered && times < 10; times++)
         {
-            await Task.Delay(1_000);
+            await Task.Delay(1_000, TestContext.Current.CancellationToken);
         }
 
         // assert

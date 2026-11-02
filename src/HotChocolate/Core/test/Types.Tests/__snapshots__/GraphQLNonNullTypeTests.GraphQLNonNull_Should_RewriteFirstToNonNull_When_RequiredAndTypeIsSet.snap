@@ -1,9 +1,5 @@
-﻿schema {
+schema {
   query: QueryRequiredWithType
-}
-
-type CustomType {
-  bar: Int!
 }
 
 type QueryRequiredWithType {
@@ -13,4 +9,8 @@ type QueryRequiredWithType {
   object: CustomType
   objectArray: [CustomType]
   objectNestedArray: [[CustomType]]
+}
+
+type CustomType {
+  bar: Int!
 }

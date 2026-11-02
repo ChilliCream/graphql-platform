@@ -1,0 +1,221 @@
+title: Node_Should_ResolveConditionalLookupField_When_UnionFragmentHasInclude
+request:
+  document: |
+    query($include: Boolean!) {
+      node(id: "Qm90OjE=") {
+        id
+        ... on CommunityContributor @include(if: $include) {
+          ... on User {
+            email
+          }
+          ... on Bot {
+            owner
+          }
+          ... on FormerUser {
+            name
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "include": false
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "id": "Qm90OjE="
+        }
+      }
+    }
+sourceSchemas:
+  - name: CONTRIBUTORS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        contributors: [CommunityContributor!]!
+      }
+
+      type Bot implements Node @key(fields: "id") {
+        id: ID!
+        name: String
+      }
+
+      type FormerUser {
+        name: String
+      }
+
+      type User implements Node @key(fields: "id") {
+        id: ID!
+        name: String
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      union CommunityContributor = User | FormerUser | Bot
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_bee05c5d_5 {
+              node(id: "Qm90OjE=") {
+                __typename
+                ... on Bot {
+                  __typename
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Bot",
+                    "id": "Qm90OjE="
+                  }
+                }
+              }
+  - name: ACCOUNTS
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID! @is(field: "id")): User @lookup @internal
+        botById(id: ID! @is(field: "id")): Bot @lookup @internal
+      }
+
+      type Bot @key(fields: "id") {
+        id: ID!
+        owner: String
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        email: String
+      }
+operationPlan:
+  operation:
+    - document: |
+        query($include: Boolean!) {
+          node(id: "Qm90OjE=") {
+            __typename @fusion__requirement
+            id
+            ... on CommunityContributor @include(if: $include) {
+              id @fusion__requirement
+              ... on User {
+                email
+              }
+              ... on Bot {
+                owner
+              }
+              ... on FormerUser {
+                name
+              }
+            }
+          }
+        }
+      hash: e9b006467a2d7a438ff1a92196542dc9
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "Qm90OjE="
+      responseName: node
+      branches:
+        - Bot: 5
+        - User: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_bee05c5d_2 {
+          node(id: "Qm90OjE=") {
+            __typename
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: CONTRIBUTORS
+      operation: |
+        query Op_bee05c5d_3 {
+          node(id: "Qm90OjE=") {
+            __typename
+            ... on User {
+              __typename
+              id
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: ACCOUNTS
+      operation: |
+        query Op_bee05c5d_4($__fusion_1_id: ID!) {
+          userById(id: $__fusion_1_id) {
+            email
+          }
+        }
+      source: $.userById
+      target: $.node<User>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $include
+          passingValue: true
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: CONTRIBUTORS
+      operation: |
+        query Op_bee05c5d_5 {
+          node(id: "Qm90OjE=") {
+            __typename
+            ... on Bot {
+              __typename
+              id
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 6
+      type: Operation
+      schema: ACCOUNTS
+      operation: |
+        query Op_bee05c5d_6($__fusion_2_id: ID!) {
+          botById(id: $__fusion_2_id) {
+            owner
+          }
+        }
+      source: $.botById
+      target: $.node<Bot>
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $include
+          passingValue: true
+      dependencies:
+        - id: 5

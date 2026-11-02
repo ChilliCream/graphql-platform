@@ -32,6 +32,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         DateSerializer,
         DateTimeSerializer,
         DecimalSerializer,
+        DurationSerializer,
         FloatSerializer,
         IdSerializer,
         IntSerializer,
@@ -41,7 +42,6 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         LongSerializer,
         ShortSerializer,
         StringSerializer,
-        TimeSpanSerializer,
         UnsignedByteSerializer,
         UnsignedIntSerializer,
         UnsignedLongSerializer,
@@ -56,6 +56,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Guid"] = UUIDSerializer,
         ["Json"] = AnySerializer,
         ["JSON"] = AnySerializer,
+        ["TimeSpan"] = DurationSerializer,
         ["Uri"] = UriSerializer,
         ["Url"] = UrlSerializer,
         ["Uuid"] = UUIDSerializer
@@ -477,8 +478,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 .AddArgument(Services);
         }
 
-        foreach (var scalarTypes in
-                 descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+        foreach (var scalarTypes in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
             if (s_alternativeTypeNames.TryGetValue(scalarTypes.Name, out var serializer))
             {
@@ -495,8 +495,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         }
 
         var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
-        foreach (var scalar in
-                 descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+        foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
             if (scalar.RuntimeType.Equals(stringTypeInfo)
                 && scalar.SerializationType.Equals(stringTypeInfo)
@@ -514,8 +513,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             }
         }
 
-        foreach (var inputTypeDescriptor in
-                 descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
+        foreach (var inputTypeDescriptor in descriptor.TypeDescriptors.Where(x => x.Kind is TypeKind.Input))
         {
             var formatter =
                 CreateInputValueFormatter(

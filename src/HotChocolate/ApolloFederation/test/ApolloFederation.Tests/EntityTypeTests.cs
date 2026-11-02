@@ -14,7 +14,7 @@ public class EntityTypeTests
                 .AddGraphQL()
                 .AddApolloFederation()
                 .AddQueryType<Query<Address>>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act/assert
         Assert.False(schema.Types.TryGetType<_EntityType>("_Entity", out _));
@@ -28,7 +28,7 @@ public class EntityTypeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<Review>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var entityType = schema.Types.GetType<_EntityType>("_Entity");
@@ -45,7 +45,7 @@ public class EntityTypeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<UserWithClassAttribute>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var entityType = schema.Types.GetType<_EntityType>("_Entity");
@@ -65,7 +65,7 @@ public class EntityTypeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<UserWithPropertyAttributes>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var entityType = schema.Types.GetType<_EntityType>("_Entity");
@@ -84,7 +84,7 @@ public class EntityTypeTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<UserWithNestedKeyClassAttribute>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var entityType = schema.Types.GetType<_EntityType>("_Entity");

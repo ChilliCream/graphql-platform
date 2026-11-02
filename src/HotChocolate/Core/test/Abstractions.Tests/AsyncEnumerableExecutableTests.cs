@@ -12,7 +12,7 @@ public static class AsyncEnumerableExecutableTests
         IAsyncEnumerable<string> query = new EmptyAsyncEnumerable();
 
         // act
-        var result = await Executable.From(query).FirstOrDefaultAsync();
+        var result = await Executable.From(query).FirstOrDefaultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(result);
@@ -25,7 +25,7 @@ public static class AsyncEnumerableExecutableTests
         IAsyncEnumerable<string> query = new ListAsyncEnumerable(["a", "b"]);
 
         // act
-        var result = await Executable.From(query).FirstOrDefaultAsync();
+        var result = await Executable.From(query).FirstOrDefaultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("a", result);
@@ -38,7 +38,7 @@ public static class AsyncEnumerableExecutableTests
         IAsyncEnumerable<string> query = new EmptyAsyncEnumerable();
 
         // act
-        var result = await Executable.From(query).FirstOrDefaultAsync();
+        var result = await Executable.From(query).FirstOrDefaultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(result);
@@ -51,7 +51,7 @@ public static class AsyncEnumerableExecutableTests
         IAsyncEnumerable<string> query = new ListAsyncEnumerable(["a"]);
 
         // act
-        var result = await Executable.From(query).FirstOrDefaultAsync();
+        var result = await Executable.From(query).FirstOrDefaultAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("a", result);
@@ -77,7 +77,7 @@ public static class AsyncEnumerableExecutableTests
         IAsyncEnumerable<string> query = new ListAsyncEnumerable(["a", "b"]);
 
         // act
-        var result = await Executable.From(query).ToListAsync();
+        var result = await Executable.From(query).ToListAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(
@@ -93,7 +93,7 @@ public static class AsyncEnumerableExecutableTests
         IAsyncEnumerable<string> query = new ListAsyncEnumerable(["a", "b"]);
 
         // act
-        var result = Executable.From(query).ToAsyncEnumerable();
+        var result = Executable.From(query).ToAsyncEnumerable(TestContext.Current.CancellationToken);
 
         // assert
         await foreach (var item in result)

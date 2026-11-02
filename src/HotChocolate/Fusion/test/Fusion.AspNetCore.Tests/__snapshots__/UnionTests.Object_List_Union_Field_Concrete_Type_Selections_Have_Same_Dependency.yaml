@@ -1,0 +1,262 @@
+title: Object_List_Union_Field_Concrete_Type_Selections_Have_Same_Dependency
+request:
+  document: |
+    query testQuery {
+      postEdges {
+        node {
+          ... on Photo {
+            product {
+              subgraph2
+            }
+          }
+          ... on Discussion {
+            product {
+              subgraph2
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "postEdges": [
+          {
+            "node": {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDoxNDA3NjE3OTA1"
+              }
+            }
+          },
+          {
+            "node": {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDozNDM1NDA3NjIy"
+              }
+            }
+          },
+          {
+            "node": {
+              "product": {
+                "subgraph2": "Product: UHJvZHVjdDoxNTAzNDY2NjE1"
+              }
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        postEdges: [PostEdge]
+      }
+
+      type Discussion {
+        id: ID!
+        product: Product
+      }
+
+      type Photo {
+        id: ID!
+        product: Product
+      }
+
+      type PostEdge {
+        node: Post
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_ec963286_1 {
+              postEdges {
+                node {
+                  __typename
+                  ... on Photo {
+                    product {
+                      id
+                    }
+                  }
+                  ... on Discussion {
+                    product {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "postEdges": [
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDoxNDA3NjE3OTA1"
+                        }
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDozNDM1NDA3NjIy"
+                        }
+                      }
+                    },
+                    {
+                      "node": {
+                        "__typename": "Photo",
+                        "product": {
+                          "id": "UHJvZHVjdDoxNTAzNDY2NjE1"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product {
+        id: ID!
+        subgraph2: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_ec963286_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxNDA3NjE3OTA1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDozNDM1NDA3NjIy"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxNTAzNDY2NjE1"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxNDA3NjE3OTA1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDozNDM1NDA3NjIy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxNTAzNDY2NjE1"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          postEdges {
+            node {
+              __typename @fusion__requirement
+              ... on Photo {
+                product {
+                  subgraph2
+                  id @fusion__requirement
+                }
+              }
+              ... on Discussion {
+                product {
+                  subgraph2
+                  id @fusion__requirement
+                }
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 0377e15a5f909c279b99652db6e015a9
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_ec963286_1 {
+          postEdges {
+            node {
+              __typename
+              ... on Photo {
+                product {
+                  id
+                }
+              }
+              ... on Discussion {
+                product {
+                  id
+                }
+              }
+            }
+          }
+        }
+    - id: 2
+      type: OperationBatch
+      schema: B
+      operation: |
+        query testQuery_ec963286_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.productById
+      targets:
+        - $.postEdges.node<Discussion>.product
+        - $.postEdges.node<Photo>.product
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -1,0 +1,49 @@
+operation:
+  - document: |
+      {
+        animals {
+          __typename @fusion__requirement
+          id
+          ... on Cat {
+            name
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        animals {
+          __typename
+          id
+          ... on Cat {
+            id
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        animalById(id: $__fusion_1_id) {
+          __typename
+          ... on Cat {
+            name
+          }
+        }
+      }
+    source: $.animalById<Cat>
+    target: $.animals<Cat>
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          <Cat>.id
+    dependencies:
+      - id: 1

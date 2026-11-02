@@ -13,10 +13,10 @@ true Result:
 
 true SQL:
 ---------------
--- @__p_0='POLYGON ((150 150, 270 150, 330 150, 250 70, 190 70, 70 70, 150 150))' (DbType = Object)
+-- @p='POLYGON ((150 150, 270 150, 330 150, 250 70, 190 70, 70 70, 150 150))' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE ST_Overlaps(d."Bar", @__p_0)
+WHERE ST_Overlaps(d."Bar", @p)
 ---------------
 
 false Result:
@@ -34,8 +34,8 @@ false Result:
 
 false SQL:
 ---------------
--- @__p_0='POLYGON ((150 150, 270 150, 330 150, 250 70, 190 70, 70 70, 150 150))' (DbType = Object)
+-- @p='POLYGON ((150 150, 270 150, 330 150, 250 70, 190 70, 70 70, 150 150))' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE NOT (ST_Overlaps(d."Bar", @__p_0))
+WHERE NOT (ST_Overlaps(d."Bar", @p))
 ---------------

@@ -2,8 +2,8 @@ schema {
   query: QueryInterfaces
 }
 
-interface IFoo {
-  foo: String!
+type QueryInterfaces {
+  foo: IFoo!
 }
 
 type Foo implements IFoo {
@@ -11,6 +11,6 @@ type Foo implements IFoo {
   foo: String!
 }
 
-type QueryInterfaces {
-  foo: IFoo!
+interface IFoo {
+  foo: String!
 }

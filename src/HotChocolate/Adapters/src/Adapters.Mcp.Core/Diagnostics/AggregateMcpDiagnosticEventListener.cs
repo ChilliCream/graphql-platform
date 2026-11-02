@@ -45,10 +45,18 @@ internal sealed class AggregateMcpDiagnosticEvents(IMcpDiagnosticEventListener[]
 
         for (var i = 0; i < listeners.Length; i++)
         {
-            scopes[i] = listeners[i].InitializeTools();
+            scopes[i] = listeners[i].UpdateTools();
         }
 
         return new AggregateActivityScope(scopes);
+    }
+
+    public void ToolCreationFailed(string toolName, Exception exception)
+    {
+        foreach (var listener in listeners)
+        {
+            listener.ToolCreationFailed(toolName, exception);
+        }
     }
 
     public void ValidationErrors(IReadOnlyList<IError> errors)

@@ -29,7 +29,7 @@ public class InterfaceFieldFilterAndSortTests : IDisposable
             .AddObjectType<Dog>()
             .AddObjectType<Cat>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -39,7 +39,8 @@ public class InterfaceFieldFilterAndSortTests : IDisposable
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -62,7 +63,7 @@ public class InterfaceFieldFilterAndSortTests : IDisposable
             .AddObjectType<Dog>()
             .AddObjectType<Cat>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -72,7 +73,8 @@ public class InterfaceFieldFilterAndSortTests : IDisposable
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -95,7 +97,7 @@ public class InterfaceFieldFilterAndSortTests : IDisposable
             .AddObjectType<Dog>()
             .AddObjectType<Cat>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -108,7 +110,8 @@ public class InterfaceFieldFilterAndSortTests : IDisposable
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -152,7 +155,7 @@ public class InterfaceFieldFilterAndSortTests : IDisposable
 
     public class AnimalDbContext(DbContextOptions<AnimalDbContext> options) : DbContext(options)
     {
-        public DbSet<Animal> Animals { get; set; } = null!;
+        public DbSet<Animal> Animals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

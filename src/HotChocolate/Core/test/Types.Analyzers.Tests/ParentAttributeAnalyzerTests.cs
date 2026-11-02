@@ -41,7 +41,7 @@ public class ParentAttributeAnalyzerTests
                 public Task<Brand?> GetBrandByIdAsync(int id) => Task.FromResult<Brand?>(null);
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class ParentAttributeAnalyzerTests
                 public Task<Brand?> GetBrandByIdAsync(int id) => Task.FromResult<Brand?>(null);
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class ParentAttributeAnalyzerTests
                 public int BrandId { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class ParentAttributeAnalyzerTests
                 public int BrandId { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class ParentAttributeAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -225,7 +225,171 @@ public class ParentAttributeAnalyzerTests
                 public Task<Brand?> GetBrandByIdAsync(int id) => Task.FromResult<Brand?>(null);
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ParentAttribute_BatchResolver_ListOfParentType_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductNode
+            {
+                [BatchResolver]
+                public static List<string> GetDisplayName(
+                    [Parent] List<Product> products)
+                    => products.Select(p => p.Name).ToList();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ParentAttribute_BatchResolver_ListOfWrongType_RaisesError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductNode
+            {
+                [BatchResolver]
+                public static List<string> GetDisplayName(
+                    [Parent] List<Brand> brands)
+                    => brands.Select(b => b.Name).ToList();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ParentAttribute_BatchResolver_ImmutableArrayOfParentType_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Linq;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductNode
+            {
+                [BatchResolver]
+                public static List<string> GetDisplayName(
+                    [Parent] ImmutableArray<Product> products)
+                    => products.Select(p => p.Name).ToList();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ParentAttribute_BatchResolver_ImmutableArrayOfWrongType_RaisesError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Linq;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductNode
+            {
+                [BatchResolver]
+                public static List<string> GetDisplayName(
+                    [Parent] ImmutableArray<Brand> brands)
+                    => brands.Select(b => b.Name).ToList();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ParentAttribute_BatchResolver_ArrayOfParentType_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductNode
+            {
+                [BatchResolver]
+                public static List<string> GetDisplayName(
+                    [Parent] Product[] products)
+                    => products.Select(p => p.Name).ToList();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -267,6 +431,6 @@ public class ParentAttributeAnalyzerTests
                 public Task<Brand?> GetBrandByIdAsync(int id) => Task.FromResult<Brand?>(null);
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

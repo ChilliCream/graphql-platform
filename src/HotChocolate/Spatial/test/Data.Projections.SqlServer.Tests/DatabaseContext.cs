@@ -1,17 +1,16 @@
 using Microsoft.EntityFrameworkCore;
-using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
 public class DatabaseContext<T>(
-    PostgreSqlResource<PostgisConfig> resource,
+    PostgisResource resource,
     string databaseName)
     : DbContext
     where T : class
 {
     private bool _disposed;
 
-    public DbSet<T> Data { get; set; } = null!;
+    public DbSet<T> Data { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

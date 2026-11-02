@@ -14,7 +14,7 @@ public class MultiProfileTest : ServerTestBase
     public void Execute_MultiProfile_Test()
     {
         // arrange
-        using var host = TestServerHelper.CreateServer(
+        using var app = TestServerHelper.StartApp(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();

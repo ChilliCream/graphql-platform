@@ -1,7 +1,4 @@
-query Hero(
-  $episode: Episode
-  $withFriends: Boolean!
-) {
+query Hero($episode: Episode, $withFriends: Boolean!) {
   hero(episode: $episode) {
     name
     friends @include(if: $withFriends) {
@@ -14,17 +11,16 @@ query Hero(
 
 ---------------------------------------------------------
 
-query Hero(
-  $episode: Episode
-  $withFriends: Boolean!
-) {
+query Hero($episode: Episode, $withFriends: Boolean!) {
   ... on Query {
     hero(episode: $episode) @__execute(id: 2, kind: PURE, type: COMPOSITE) {
       ... on Human {
         name @__execute(id: 4, kind: PURE, type: LEAF)
         friends @conditional @__execute(id: 5, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            nodes @conditional @__execute(id: 7, kind: PURE, type: COMPOSITE_LIST) {
+            nodes
+              @conditional
+              @__execute(id: 7, kind: PURE, type: COMPOSITE_LIST) {
               ... on Human {
                 id @conditional @__execute(id: 9, kind: PURE, type: LEAF)
               }
@@ -39,7 +35,9 @@ query Hero(
         name @__execute(id: 13, kind: PURE, type: LEAF)
         friends @conditional @__execute(id: 14, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            nodes @conditional @__execute(id: 16, kind: PURE, type: COMPOSITE_LIST) {
+            nodes
+              @conditional
+              @__execute(id: 16, kind: PURE, type: COMPOSITE_LIST) {
               ... on Human {
                 id @conditional @__execute(id: 18, kind: PURE, type: LEAF)
               }

@@ -1,0 +1,32 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  foo: Foo!
+}
+
+type Mutation {
+  addFoo: AddFooPayload!
+}
+
+type AddFooPayload {
+  foo: Foo
+  errors: [AddFooError!]
+}
+
+type CustomError implements Error {
+  errorCode: Int!
+  message: String!
+}
+
+type Foo {
+  bar: String!
+}
+
+interface Error {
+  message: String!
+}
+
+union AddFooError = CustomError

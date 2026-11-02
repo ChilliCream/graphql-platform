@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Tests;
-using Xunit.Abstractions;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.StarWarsCodeFirst;
@@ -820,9 +819,11 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                     stars
                   }
                 }
-                """);
+                """,
+                TestContext.Current.CancellationToken);
 
-        var results = subscriptionResult.ReadResultsAsync();
+        await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator(
+            TestContext.Current.CancellationToken);
 
         await executor.ExecuteAsync(
             """
@@ -832,19 +833,13 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 commentary
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        OperationResult? eventResult = null;
-
-        using (var cts = new CancellationTokenSource(2000))
-        {
-            await foreach (var queryResult in results.WithCancellation(cts.Token)
-                .ConfigureAwait(false))
-            {
-                eventResult = queryResult;
-                break;
-            }
-        }
+        Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken));
+        var eventResult = enumerator.Current;
 
         snapshot.Add(eventResult);
 
@@ -870,7 +865,11 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                     }
                   }
                 }
-                """);
+                """,
+                TestContext.Current.CancellationToken);
+
+        await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator(
+            TestContext.Current.CancellationToken);
 
         await executor.ExecuteAsync(
             """
@@ -880,19 +879,13 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 commentary
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        OperationResult? eventResult = null;
-
-        using (var cts = new CancellationTokenSource(2000))
-        {
-            await foreach (var queryResult in
-                subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
-            {
-                eventResult = queryResult;
-                break;
-            }
-        }
+        Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken));
+        var eventResult = enumerator.Current;
 
         snapshot.Add(eventResult);
 
@@ -920,7 +913,11 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 fragment SomeFrag on Review {
                   stars
                 }
-                """);
+                """,
+                TestContext.Current.CancellationToken);
+
+        await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator(
+            TestContext.Current.CancellationToken);
 
         await executor.ExecuteAsync(
             """
@@ -930,19 +927,13 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 commentary
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        OperationResult? eventResult = null;
-
-        using (var cts = new CancellationTokenSource(2000))
-        {
-            await foreach (var queryResult in
-                subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
-            {
-                eventResult = queryResult;
-                break;
-            }
-        }
+        Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken));
+        var eventResult = enumerator.Current;
 
         snapshot.Add(eventResult);
 
@@ -976,7 +967,11 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                           "ep": "NEW_HOPE"
                         }
                         """)
-                    .Build());
+                    .Build(),
+                TestContext.Current.CancellationToken);
+
+        await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator(
+            TestContext.Current.CancellationToken);
 
         await executor.ExecuteAsync(
             """
@@ -986,19 +981,13 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 commentary
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
-        OperationResult? eventResult = null;
-
-        using (var cts = new CancellationTokenSource(2000))
-        {
-            await foreach (var queryResult in
-                subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
-            {
-                eventResult = queryResult;
-                break;
-            }
-        }
+        Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken));
+        var eventResult = enumerator.Current;
 
         snapshot.Add(eventResult);
 
@@ -1011,7 +1000,6 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
     /// not lead to partial results.
     /// The result should consist of a single error stating the allowed depth.
     /// </summary>
-    /// <returns></returns>
     [Fact]
     public async Task ExecutionDepthShouldNotLeadToEmptyObjects()
     {
@@ -1232,8 +1220,8 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
         var requestB = CreateRequest(configurationB, queryText);
 
         // act
-        var resultA = await executor.ExecuteAsync(requestA);
-        var resultB = await executor.ExecuteAsync(requestB);
+        var resultA = await executor.ExecuteAsync(requestA, TestContext.Current.CancellationToken);
+        var resultB = await executor.ExecuteAsync(requestB, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(resultA).Errors);

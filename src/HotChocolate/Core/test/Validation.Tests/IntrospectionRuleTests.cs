@@ -98,10 +98,50 @@ public class IntrospectionRuleTests
             context => context.Features.Set(new IntrospectionRequestOverrides(IsAllowed: true)));
     }
 
+    [Fact]
+    public void IntrospectionNotAllowed_Search_Field()
+    {
+        ExpectErrors(
+            CreateSchemaWithSemanticIntrospection(),
+            b => b.AddIntrospectionAllowedRule()
+                .ModifyOptions(o => o.DisableIntrospection = true),
+            """
+            {
+                __search(query: "foo") {
+                    coordinate
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void IntrospectionNotAllowed_Definitions_Field()
+    {
+        ExpectErrors(
+            CreateSchemaWithSemanticIntrospection(),
+            b => b.AddIntrospectionAllowedRule()
+                .ModifyOptions(o => o.DisableIntrospection = true),
+            """
+            {
+                __definitions(coordinates: ["Foo"]) {
+                    ... on __Type {
+                        name
+                    }
+                }
+            }
+            """);
+    }
+
     private static Schema CreateSchema()
         => SchemaBuilder.New()
-            .AddDocumentFromString(
-                FileResource.Open("IntrospectionSchema.graphql"))
+            .AddDocumentFromString(FileResource.Open("IntrospectionSchema.graphql"))
+            .ModifyOptions(o => o.EnableSemanticIntrospection = false)
+            .Use(_ => _ => default)
+            .Create();
+
+    private static Schema CreateSchemaWithSemanticIntrospection()
+        => SchemaBuilder.New()
+            .AddDocumentFromString(FileResource.Open("IntrospectionSchema.graphql"))
             .Use(_ => _ => default)
             .Create();
 }

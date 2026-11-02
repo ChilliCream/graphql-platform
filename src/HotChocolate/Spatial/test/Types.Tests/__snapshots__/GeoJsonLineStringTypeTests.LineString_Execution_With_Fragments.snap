@@ -1,20 +1,28 @@
 {
-  "errors": [
-    {
-      "message": "Unknown type `LineString`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 10
-        }
+  "data": {
+    "test": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          30,
+          10
+        ],
+        [
+          10,
+          30
+        ],
+        [
+          40,
+          40
+        ]
       ],
-      "path": [
-        "test"
+      "bbox": [
+        10,
+        10,
+        40,
+        40
       ],
-      "extensions": {
-        "typeCondition": "LineString",
-        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Type-Existence"
-      }
+      "crs": 4326
     }
-  ]
+  }
 }

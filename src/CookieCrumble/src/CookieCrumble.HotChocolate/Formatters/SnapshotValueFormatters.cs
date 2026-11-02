@@ -10,8 +10,14 @@ public static class SnapshotValueFormatters
     public static ISnapshotValueFormatter ExecutionResult { get; } =
         new ExecutionResultSnapshotValueFormatter();
 
+    public static ISnapshotValueFormatter ExecutionResultStable { get; } =
+        new StableExecutionResultSnapshotValueFormatter();
+
     public static ISnapshotValueFormatter GraphQLHttp { get; } =
         new GraphQLHttpResponseFormatter();
+
+    public static ISnapshotValueFormatter GraphQLHttpStable { get; } =
+        new StableGraphQLHttpResponseFormatter();
 
     public static ISnapshotValueFormatter OperationResult { get; } =
         new OperationResultSnapshotValueFormatter();

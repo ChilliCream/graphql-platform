@@ -1,0 +1,20 @@
+mutation unpublishClient($input: UnpublishClientInput!) {
+  unpublishClient(input: $input) {
+    clientVersion {
+      id
+      client {
+        name
+      }
+    }
+    errors {
+      ...ConcurrentOperationError
+      ...StageNotFoundError
+      ...ClientVersionNotFoundError
+      ...UnauthorizedOperation
+      ...ClientNotFoundError
+      ...ClientVersionProtectedError
+      ...ClientRecentTrafficProtectionNotEvaluableError
+      ...Error
+    }
+  }
+}

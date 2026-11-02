@@ -148,6 +148,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         file.WriteResolverConstructor(type, typeLookup);
         file.WriteResolverMethods(type, typeLookup);
         file.WriteEndResolverClass();
+        file.WriteGetDescriptionHelper();
         file.WriteEndClass();
         file.WriteEndNamespace();
         file.Flush();

@@ -12,8 +12,10 @@ internal static class OffsetPaginationResolverContextExtensions
     /// </para>
     /// <para>This method checks if the total count is selected</para>
     /// </summary>
-    /// <param name="context"></param>
-    /// <returns></returns>
+    /// <param name="context">The resolver context to inspect.</param>
+    /// <returns>
+    /// <c>true</c> if the total count field is included in the selection set; otherwise, <c>false</c>.
+    /// </returns>
     public static bool IsTotalCountSelected(this IResolverContext context)
     {
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount

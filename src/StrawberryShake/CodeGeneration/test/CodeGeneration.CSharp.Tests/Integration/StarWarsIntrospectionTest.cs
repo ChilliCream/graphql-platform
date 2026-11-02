@@ -1,6 +1,5 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection;
@@ -16,7 +15,7 @@ public class StarWarsIntrospectionTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(
+        await using var app = TestServerHelper.StartApp(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();

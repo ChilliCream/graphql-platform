@@ -1,11 +1,12 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 
-public sealed class SelectApiPrompt(IApiClient client, string workspaceId)
+internal sealed class SelectApiPrompt(IApisClient client, string workspaceId)
 {
-    private string _title = "Select the api you want to use.";
+    private string _title = "Select the API you want to use.";
 
     public SelectApiPrompt Title(string title)
     {
@@ -13,25 +14,21 @@ public sealed class SelectApiPrompt(IApiClient client, string workspaceId)
         return this;
     }
 
-    public async Task<ISelectApiPrompt_Api?> RenderAsync(
-        IAnsiConsole console,
+    public async Task<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node?> RenderAsync(
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
-        var paginationContainer = PaginationContainer.Create(
+        var paginationContainer = PaginationContainer.CreateConnectionData(
             (after, first, ct)
-                => client.SelectApiPromptQuery.ExecuteAsync(workspaceId, after, first, ct),
-            p => p.WorkspaceById?.Apis?.PageInfo,
-            p => p.WorkspaceById?.Apis?.Edges);
+                => client.SelectApisAsync(workspaceId, after, first, ct));
 
-        var selectedEdge = await PagedSelectionPrompt
+        return await PagedSelectionPrompt
             .New(paginationContainer)
             .Title(_title)
-            .UseConverter(x => x.Node.Name)
+            .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
-
-        return selectedEdge?.Node;
     }
 
-    public static SelectApiPrompt New(IApiClient client, string workspaceId)
+    public static SelectApiPrompt New(IApisClient client, string workspaceId)
         => new(client, workspaceId);
 }

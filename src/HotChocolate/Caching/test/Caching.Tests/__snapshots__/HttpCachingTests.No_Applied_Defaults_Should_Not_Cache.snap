@@ -1,10 +1,23 @@
 {
-  "Headers": [],
+  "Headers": [
+    {
+      "Key": "Vary",
+      "Value": [
+        "Accept"
+      ]
+    }
+  ],
   "ContentHeaders": [
     {
       "Key": "Content-Type",
       "Value": [
         "application/graphql-response+json; charset=utf-8"
+      ]
+    },
+    {
+      "Key": "Content-Length",
+      "Value": [
+        "21"
       ]
     }
   ],

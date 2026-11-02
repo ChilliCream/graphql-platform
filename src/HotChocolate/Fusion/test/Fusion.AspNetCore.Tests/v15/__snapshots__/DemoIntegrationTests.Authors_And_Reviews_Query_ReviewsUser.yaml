@@ -1,0 +1,759 @@
+title: Authors_And_Reviews_Query_ReviewsUser
+request:
+  document: |
+    query GetUser {
+      a: reviews {
+        body
+        author {
+          name
+        }
+      }
+      b: reviews {
+        body
+        author {
+          name
+        }
+      }
+      users {
+        name
+        reviews {
+          body
+          author {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "a": [
+          {
+            "body": "Review: UmV2aWV3OjE0MDc3Mzc5MDQ=",
+            "author": {
+              "name": "User: VXNlcjoyMzQwNjUyNzMy"
+            }
+          },
+          {
+            "body": "Review: UmV2aWV3OjI5MTIwODQwNjI=",
+            "author": {
+              "name": "User: VXNlcjo0MTIxNzk2NDY0"
+            }
+          },
+          {
+            "body": "Review: UmV2aWV3OjEyMzU3ODI4NjM=",
+            "author": {
+              "name": "User: VXNlcjozMzk4MDI5ODg5"
+            }
+          }
+        ],
+        "b": [
+          {
+            "body": "Review: UmV2aWV3Ojk3MzQ0MTM3Mw==",
+            "author": {
+              "name": "User: VXNlcjoxMzgzODE4MTA0"
+            }
+          },
+          {
+            "body": "Review: UmV2aWV3OjM0NTkxMDE3ODQ=",
+            "author": {
+              "name": "User: VXNlcjoyMzI3MzA4OTA5"
+            }
+          },
+          {
+            "body": "Review: UmV2aWV3OjI2NDM3ODI1OTM=",
+            "author": {
+              "name": "User: VXNlcjoyMDI0Nzg5NjYy"
+            }
+          }
+        ],
+        "users": [
+          {
+            "name": "User: VXNlcjoyNjE2NDgyNzU=",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjM2OTA5MTgwNzE=",
+                "author": {
+                  "name": "User: VXNlcjoxMjMyMTA1NzE3"
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjMzMDIwMDUyNTA=",
+                "author": {
+                  "name": "User: VXNlcjoyOTAzNjIzMDA3"
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjE1NzQxMDk3MDc=",
+                "author": {
+                  "name": "User: VXNlcjo0MDg3Mzk3Njkz"
+                }
+              }
+            ]
+          },
+          {
+            "name": "User: VXNlcjoxNTU5MzY4MDMx",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjE3MTQ0MjkzNzk=",
+                "author": {
+                  "name": "User: VXNlcjozMTk3MDYyNDQz"
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjUxNDA3NDYxMw==",
+                "author": {
+                  "name": "User: VXNlcjoyNjQ0NzQ2NTgx"
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjM0OTQyNjQ0NDc=",
+                "author": {
+                  "name": "User: VXNlcjozMjYxMzA0NTU5"
+                }
+              }
+            ]
+          },
+          {
+            "name": "User: VXNlcjozNDQ5MTc0MTI0",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjI3NDAzMzIzMDk=",
+                "author": {
+                  "name": "User: VXNlcjoyNTc3MDMyNDY1"
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3Ojg2NjE5MjI0NQ==",
+                "author": {
+                  "name": "User: VXNlcjoyNzM0NjUwNjg="
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjM4NDM5NzI2NTA=",
+                "author": {
+                  "name": "User: VXNlcjoyOTA5Mjc0ODg0"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_c03cccb0_2 {
+              users {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "name": "User: VXNlcjoyNjE2NDgyNzU=",
+                      "id": "VXNlcjoyNjE2NDgyNzU="
+                    },
+                    {
+                      "name": "User: VXNlcjoxNTU5MzY4MDMx",
+                      "id": "VXNlcjoxNTU5MzY4MDMx"
+                    },
+                    {
+                      "name": "User: VXNlcjozNDQ5MTc0MTI0",
+                      "id": "VXNlcjozNDQ5MTc0MTI0"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on User {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "VXNlcjoxMjMyMTA1NzE3"
+              },
+              {
+                "__fusion_2_id": "VXNlcjoyOTAzNjIzMDA3"
+              },
+              {
+                "__fusion_2_id": "VXNlcjo0MDg3Mzk3Njkz"
+              },
+              {
+                "__fusion_2_id": "VXNlcjozMTk3MDYyNDQz"
+              },
+              {
+                "__fusion_2_id": "VXNlcjoyNjQ0NzQ2NTgx"
+              },
+              {
+                "__fusion_2_id": "VXNlcjozMjYxMzA0NTU5"
+              },
+              {
+                "__fusion_2_id": "VXNlcjoyNTc3MDMyNDY1"
+              },
+              {
+                "__fusion_2_id": "VXNlcjoyNzM0NjUwNjg="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoyOTA5Mjc0ODg0"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMjMyMTA1NzE3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyOTAzNjIzMDA3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjo0MDg3Mzk3Njkz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjozMTk3MDYyNDQz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyNjQ0NzQ2NTgx"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjozMjYxMzA0NTU5"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyNTc3MDMyNDY1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyNzM0NjUwNjg="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyOTA5Mjc0ODg0"
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetUser_c03cccb0_5($__fusion_3_id: ID!) {
+              node(id: $__fusion_3_id) {
+                __typename
+                ... on User {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "VXNlcjoxMzgzODE4MTA0"
+              },
+              {
+                "__fusion_3_id": "VXNlcjoyMzI3MzA4OTA5"
+              },
+              {
+                "__fusion_3_id": "VXNlcjoyMDI0Nzg5NjYy"
+              },
+              {
+                "__fusion_3_id": "VXNlcjoyMzQwNjUyNzMy"
+              },
+              {
+                "__fusion_3_id": "VXNlcjo0MTIxNzk2NDY0"
+              },
+              {
+                "__fusion_3_id": "VXNlcjozMzk4MDI5ODg5"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMzgzODE4MTA0"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyMzI3MzA4OTA5"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyMDI0Nzg5NjYy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoyMzQwNjUyNzMy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjo0MTIxNzk2NDY0"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjozMzk4MDI5ODg5"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_c03cccb0_1 {
+              a: reviews {
+                body
+                author {
+                  id
+                }
+              }
+              b: reviews {
+                body
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "a": [
+                    {
+                      "body": "Review: UmV2aWV3OjE0MDc3Mzc5MDQ=",
+                      "author": {
+                        "id": "VXNlcjoyMzQwNjUyNzMy"
+                      }
+                    },
+                    {
+                      "body": "Review: UmV2aWV3OjI5MTIwODQwNjI=",
+                      "author": {
+                        "id": "VXNlcjo0MTIxNzk2NDY0"
+                      }
+                    },
+                    {
+                      "body": "Review: UmV2aWV3OjEyMzU3ODI4NjM=",
+                      "author": {
+                        "id": "VXNlcjozMzk4MDI5ODg5"
+                      }
+                    }
+                  ],
+                  "b": [
+                    {
+                      "body": "Review: UmV2aWV3Ojk3MzQ0MTM3Mw==",
+                      "author": {
+                        "id": "VXNlcjoxMzgzODE4MTA0"
+                      }
+                    },
+                    {
+                      "body": "Review: UmV2aWV3OjM0NTkxMDE3ODQ=",
+                      "author": {
+                        "id": "VXNlcjoyMzI3MzA4OTA5"
+                      }
+                    },
+                    {
+                      "body": "Review: UmV2aWV3OjI2NDM3ODI1OTM=",
+                      "author": {
+                        "id": "VXNlcjoyMDI0Nzg5NjYy"
+                      }
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on User {
+                  reviews {
+                    body
+                    author {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "VXNlcjoyNjE2NDgyNzU="
+              },
+              {
+                "__fusion_1_id": "VXNlcjoxNTU5MzY4MDMx"
+              },
+              {
+                "__fusion_1_id": "VXNlcjozNDQ5MTc0MTI0"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjM2OTA5MTgwNzE=",
+                        "author": {
+                          "id": "VXNlcjoxMjMyMTA1NzE3"
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjMzMDIwMDUyNTA=",
+                        "author": {
+                          "id": "VXNlcjoyOTAzNjIzMDA3"
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjE1NzQxMDk3MDc=",
+                        "author": {
+                          "id": "VXNlcjo0MDg3Mzk3Njkz"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjE3MTQ0MjkzNzk=",
+                        "author": {
+                          "id": "VXNlcjozMTk3MDYyNDQz"
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjUxNDA3NDYxMw==",
+                        "author": {
+                          "id": "VXNlcjoyNjQ0NzQ2NTgx"
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjM0OTQyNjQ0NDc=",
+                        "author": {
+                          "id": "VXNlcjozMjYxMzA0NTU5"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjI3NDAzMzIzMDk=",
+                        "author": {
+                          "id": "VXNlcjoyNTc3MDMyNDY1"
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojg2NjE5MjI0NQ==",
+                        "author": {
+                          "id": "VXNlcjoyNzM0NjUwNjg="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjM4NDM5NzI2NTA=",
+                        "author": {
+                          "id": "VXNlcjoyOTA5Mjc0ODg0"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetUser {
+          a: reviews {
+            body
+            author {
+              name
+              id @fusion__requirement
+            }
+          }
+          b: reviews {
+            body
+            author {
+              name
+              id @fusion__requirement
+            }
+          }
+          users {
+            name
+            reviews {
+              body
+              author {
+                name
+                id @fusion__requirement
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      name: GetUser
+      hash: d6811ed99310002151cc572283192263
+      searchSpace: 2
+      expandedNodes: 5
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query GetUser_c03cccb0_1 {
+          a: reviews {
+            body
+            author {
+              id
+            }
+          }
+          b: reviews {
+            body
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query GetUser_c03cccb0_2 {
+          users {
+            name
+            id
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on User {
+              reviews {
+                body
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.users
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on User {
+              name
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.users.reviews.author
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+        - id: 7
+    - id: 5
+      type: OperationBatch
+      schema: A
+      operation: |
+        query GetUser_c03cccb0_5($__fusion_3_id: ID!) {
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on User {
+              name
+            }
+          }
+        }
+      source: $.node<User>
+      targets:
+        - $.b.author
+        - $.a.author
+      batchingGroupId: 7
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

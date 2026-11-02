@@ -704,8 +704,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
     /// </exception>
     public static IRequestExecutorBuilder AddUnionType(
-       this IRequestExecutorBuilder builder,
-       Action<IUnionTypeDescriptor> configure)
+        this IRequestExecutorBuilder builder,
+        Action<IUnionTypeDescriptor> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
@@ -783,8 +783,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
     /// </exception>
     public static IRequestExecutorBuilder AddEnumType(
-       this IRequestExecutorBuilder builder,
-       Action<IEnumTypeDescriptor> configure)
+        this IRequestExecutorBuilder builder,
+        Action<IEnumTypeDescriptor> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
@@ -860,8 +860,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
     /// </exception>
     public static IRequestExecutorBuilder AddInterfaceType(
-       this IRequestExecutorBuilder builder,
-       Action<IInterfaceTypeDescriptor> configure)
+        this IRequestExecutorBuilder builder,
+        Action<IInterfaceTypeDescriptor> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
@@ -937,8 +937,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
     /// </exception>
     public static IRequestExecutorBuilder AddInputObjectType(
-       this IRequestExecutorBuilder builder,
-       Action<IInputObjectTypeDescriptor> configure)
+        this IRequestExecutorBuilder builder,
+        Action<IInputObjectTypeDescriptor> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
@@ -1157,6 +1157,31 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(directiveType);
         return builder.ConfigureSchema(b => b.AddDirectiveType(directiveType));
+    }
+
+    /// <summary>
+    /// This helper adds a new GraphQL directive type and applies the
+    /// <paramref name="configure"/> delegate.
+    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL configuration builder.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to configure the type.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL configuration builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+    /// </exception>
+    public static IRequestExecutorBuilder AddDirectiveType(
+        this IRequestExecutorBuilder builder,
+        Action<IDirectiveTypeDescriptor> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+        return builder.ConfigureSchema(b => b.AddDirectiveType(configure));
     }
 
     public static IRequestExecutorBuilder SetSchema<TSchema>(

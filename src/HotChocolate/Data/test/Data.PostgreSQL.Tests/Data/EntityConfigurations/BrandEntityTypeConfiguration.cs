@@ -14,5 +14,10 @@ internal sealed class BrandEntityTypeConfiguration : IEntityTypeConfiguration<Br
         builder
             .Property(cb => cb.Name)
             .HasMaxLength(100);
+
+        builder
+            .HasOne(cb => cb.Supplier)
+            .WithMany(s => s.Brands)
+            .HasForeignKey(cb => cb.SupplierId);
     }
 }

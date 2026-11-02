@@ -53,14 +53,15 @@ public struct NodeIdSerializerOptions
                 throw new ArgumentOutOfRangeException(
                     nameof(value),
                     value,
-                     "MaxIdLength must be at least 128.");
+                    "MaxIdLength must be at least 128.");
             }
 
             _maxIdLength = value;
         }
     }
     /// <summary>
-    /// Gets or sets a value indicating whether to use the new Hot Chocolate Global ID format.
+    /// Gets or sets a value indicating whether to use the new Hot Chocolate Global ID format
+    /// when formatting IDs. IDs in either format are accepted when parsing.
     /// </summary>
     /// <value>
     /// <c>true</c> to use the new format; <c>false</c> to use the legacy format.
