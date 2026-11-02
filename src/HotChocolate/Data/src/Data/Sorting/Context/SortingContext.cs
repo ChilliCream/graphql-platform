@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using GreenDonut.Data;
+using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
@@ -169,7 +170,7 @@ public class SortingContext : ISortingContext
 
             if (inputField is SortField field)
             {
-                context.Parents.Push(CreateSelector(context.Parents.Peek(), field.Member));
+                context.Parents.Push(CreateSelector(context.Parents.Peek(), field));
             }
             else
             {
@@ -209,17 +210,32 @@ public class SortingContext : ISortingContext
             return base.Leave(node, context);
         }
 
-        private static Expression? CreateSelector(Expression? parent, MemberInfo? member)
+        private static Expression? CreateSelector(Expression? parent, SortField field)
         {
-            if (parent is null || member is null)
+            if (parent is null)
             {
                 return null;
             }
 
-            return member switch
+            if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression })
+            {
+                if (expression.Parameters.Count != 1
+                    || expression.Parameters[0].Type != parent.Type)
+                {
+                    throw ThrowHelper.QueryableSorting_ExpressionParameterInvalid(parent.Type, field);
+                }
+
+                return QueryableDefaultSortFieldHandler.ReplaceVariableExpressionVisitor.ReplaceParameter(
+                    expression.Body,
+                    expression.Parameters[0],
+                    parent);
+            }
+
+            return field.Member switch
             {
                 PropertyInfo property => Expression.Property(parent, property),
-                FieldInfo field => Expression.Field(parent, field),
+                FieldInfo member => Expression.Field(parent, member),
+                MethodInfo method => Expression.Call(parent, method),
                 _ => null
             };
         }
