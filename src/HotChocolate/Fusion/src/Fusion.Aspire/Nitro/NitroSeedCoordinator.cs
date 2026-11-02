@@ -656,6 +656,7 @@ internal sealed class NitroSeedCoordinator
         await archive.SetArchiveMetadataAsync(
             new ArchiveMetadata
             {
+                ExecutionSchemaVersion = WellKnownVersions.ProducedExecutionSchemaVersion,
                 SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
                 SourceSchemas = []
             },

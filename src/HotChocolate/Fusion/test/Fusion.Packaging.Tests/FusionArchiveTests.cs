@@ -40,6 +40,7 @@ public class FusionArchiveTests : IDisposable
         var metadata = new ArchiveMetadata
         {
             FormatVersion = new Version("1.0.0"),
+            ExecutionSchemaVersion = new Version("1.0.1"),
             SupportedGatewayFormats = [new Version("2.0.0"), new Version("2.1.0")],
             SourceSchemas = ["user-service", "product-service"]
         };
@@ -52,8 +53,84 @@ public class FusionArchiveTests : IDisposable
         var retrieved = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(retrieved);
         Assert.Equal(metadata.FormatVersion, retrieved.FormatVersion);
+        Assert.Equal(metadata.ExecutionSchemaVersion, retrieved.ExecutionSchemaVersion);
         Assert.Equal(metadata.SupportedGatewayFormats, retrieved.SupportedGatewayFormats);
         Assert.Equal(metadata.SourceSchemas, retrieved.SourceSchemas);
+    }
+
+    [Fact]
+    public async Task ArchiveMetadata_Should_RoundTripExecutionSchemaVersion()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            ExecutionSchemaVersion = new Version("1.2.3"),
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["Products"]
+        };
+
+        // act
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        stream.Position = 0;
+        ArchiveMetadata readMetadata;
+        using (var archive = FusionArchive.Open(stream, leaveOpen: true))
+        {
+            readMetadata = Assert.IsType<ArchiveMetadata>(
+                await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken));
+        }
+
+        stream.Position = 0;
+#if NET10_0_OR_GREATER
+        await using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+#else
+        using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+#endif
+        var entry = Assert.IsType<ZipArchiveEntry>(zip.GetEntry("archive-metadata.json"));
+        await using var entryStream = entry.Open();
+        using var reader = new StreamReader(entryStream);
+        var serializedMetadata = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(metadata.ExecutionSchemaVersion, readMetadata.ExecutionSchemaVersion);
+        serializedMetadata.MatchInlineSnapshot(
+            """
+            {"formatVersion":"1.0.0","executionSchemaVersion":"1.2.3","supportedGatewayFormats":["2.0.0"],"sourceSchemas":["Products"]}
+            """);
+    }
+
+    [Fact]
+    public async Task GetArchiveMetadata_WhenExecutionSchemaVersionIsMissing_UsesLegacyVersion()
+    {
+        // arrange
+        await using var stream = CreateStream();
+#if NET10_0_OR_GREATER
+        await using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+#else
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+#endif
+        {
+            var entry = zip.CreateEntry("archive-metadata.json");
+            await using var entryStream = entry.Open();
+            await using var writer = new StreamWriter(entryStream);
+            await writer.WriteAsync(
+                """
+                {"formatVersion":"1.0.0","supportedGatewayFormats":["2.0.0"],"sourceSchemas":["Products"]}
+                """);
+        }
+
+        // act
+        stream.Position = 0;
+        using var archive = FusionArchive.Open(stream, leaveOpen: true);
+        var metadata = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(new Version("1.0.0"), metadata?.ExecutionSchemaVersion);
     }
 
     [Fact]
@@ -563,6 +640,7 @@ public class FusionArchiveTests : IDisposable
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
+            ExecutionSchemaVersion = new Version("1.2.3"),
             SupportedGatewayFormats = [new Version("2.0.0")],
             SourceSchemas = ["schema-a", "schema-b"]
         };
@@ -601,9 +679,11 @@ public class FusionArchiveTests : IDisposable
         var found = await readArchive.TryGetSourceSchemaConfigurationAsync(
             "schema-b",
             TestContext.Current.CancellationToken);
+        var updatedMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.True(removed);
         Assert.Equal(["schema-a"], names);
         Assert.Null(found);
+        Assert.Equal(metadata.ExecutionSchemaVersion, updatedMetadata?.ExecutionSchemaVersion);
     }
 
     [Fact]

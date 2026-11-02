@@ -157,7 +157,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     }
 
                     using var archive = FusionArchive.Open(_fileName);
-                    using var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion, ct);
+                    using var config = await LoadGatewayConfigurationAsync(archive, ct);
 
                     if (config is null)
                     {
@@ -201,6 +201,31 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
             {
                 // ignore and wait for next update
             }
+        }
+    }
+
+    internal static async Task<GatewayConfiguration?> LoadGatewayConfigurationAsync(
+        FusionArchive archive,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(archive);
+
+        var metadata = await archive.GetArchiveMetadataAsync(cancellationToken);
+        ValidateExecutionSchemaVersion(metadata);
+
+        return await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion,
+            cancellationToken);
+    }
+
+    internal static void ValidateExecutionSchemaVersion(ArchiveMetadata? metadata)
+    {
+        if (metadata is not null
+            && metadata.ExecutionSchemaVersion > WellKnownVersions.MaxSupportedExecutionSchemaVersion)
+        {
+            throw ThrowHelper.UnsupportedExecutionSchemaVersion(
+                metadata.ExecutionSchemaVersion,
+                WellKnownVersions.MaxSupportedExecutionSchemaVersion);
         }
     }
 

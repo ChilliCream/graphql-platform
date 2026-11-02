@@ -13,6 +13,7 @@ internal static class ArchiveMetadataSerializer
         jsonWriter.WriteStartObject();
 
         jsonWriter.WriteString("formatVersion", archiveMetadata.FormatVersion.ToString());
+        jsonWriter.WriteString("executionSchemaVersion", archiveMetadata.ExecutionSchemaVersion.ToString());
 
         jsonWriter.WriteStartArray("supportedGatewayFormats");
         foreach (var format in archiveMetadata.SupportedGatewayFormats)
@@ -48,6 +49,17 @@ internal static class ArchiveMetadataSerializer
         if (formatVersionProp.ValueKind is not JsonValueKind.String)
         {
             throw new JsonException("The archive metadata must contain a formatVersion property.");
+        }
+
+        var executionSchemaVersion = new Version(1, 0, 0);
+        if (root.TryGetProperty("executionSchemaVersion", out var executionSchemaVersionProp))
+        {
+            if (executionSchemaVersionProp.ValueKind is not JsonValueKind.String)
+            {
+                throw new JsonException("The archive metadata executionSchemaVersion property must be a string.");
+            }
+
+            executionSchemaVersion = new Version(executionSchemaVersionProp.GetString()!);
         }
 
         var supportedGatewayFormatsProp = root.GetProperty("supportedGatewayFormats");
@@ -87,6 +99,7 @@ internal static class ArchiveMetadataSerializer
         return new ArchiveMetadata
         {
             FormatVersion = new Version(formatVersionProp.GetString()!),
+            ExecutionSchemaVersion = executionSchemaVersion,
             SupportedGatewayFormats = supportedGatewayFormats.ToImmutable(),
             SourceSchemas = sourceSchemas.ToImmutable()
         };
