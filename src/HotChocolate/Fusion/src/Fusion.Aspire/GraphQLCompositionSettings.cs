@@ -24,14 +24,14 @@ public struct GraphQLCompositionSettings
     public int? DefaultListSize { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum cost allowed for a single field. A value of <see langword="null"/>
-    /// leaves this setting unspecified.
+    /// Gets or sets the maximum allowed field cost. A value of <see langword="null"/> leaves
+    /// this setting unspecified.
     /// </summary>
     public double? MaxFieldCost { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum cost allowed for a single type. A value of <see langword="null"/>
-    /// leaves this setting unspecified.
+    /// Gets or sets the maximum allowed type cost. A value of <see langword="null"/> leaves
+    /// this setting unspecified.
     /// </summary>
     public double? MaxTypeCost { get; set; }
 
