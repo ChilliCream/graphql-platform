@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Text.Json;
 
@@ -28,14 +29,9 @@ public sealed partial class ResultDocument
         if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
         {
             var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
-            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            if (selectionSet.TryGetSelection(propertyName, out var selection)
+                && TryGetSelectionPropertyValue(startCursor, numberOfRows, selectionSet, selection, out value))
             {
-                var propertyIndex = selection.Id - selectionSet.Id - 1;
-                var propertyRowIndex = (propertyIndex * 2) + 1;
-                var propertyCursor = startCursor + propertyRowIndex;
-                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
-                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
-                value = new ResultElement(this, propertyCursor + 1);
                 return true;
             }
         }
@@ -136,14 +132,9 @@ public sealed partial class ResultDocument
         if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
         {
             var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
-            if (selectionSet.TryGetSelection(propertyName, out var selection))
+            if (selectionSet.TryGetSelection(propertyName, out var selection)
+                && TryGetSelectionPropertyValue(startCursor, numberOfRows, selectionSet, selection, out value))
             {
-                var propertyIndex = selection.Id - selectionSet.Id - 1;
-                var propertyRowIndex = (propertyIndex * 2) + 1;
-                var propertyCursor = startCursor + propertyRowIndex;
-                Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
-                Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
-                value = new ResultElement(this, propertyCursor + 1);
                 return true;
             }
         }
@@ -155,6 +146,33 @@ public sealed partial class ResultDocument
             endCursor,
             propertyName,
             out value);
+    }
+
+    private bool TryGetSelectionPropertyValue(
+        Cursor startCursor,
+        int numberOfRows,
+        SelectionSet selectionSet,
+        Selection selection,
+        out ResultElement value)
+    {
+        var propertyRowIndex = ((selection.Id - selectionSet.Id - 1) * 2) + 1;
+
+        if ((uint)propertyRowIndex < (uint)(numberOfRows - 1))
+        {
+            var propertyCursor = startCursor + propertyRowIndex;
+            var propertyRow = _metaDb.Get(propertyCursor);
+
+            if (propertyRow.TokenType is ElementTokenType.PropertyName
+                && propertyRow.OperationReferenceType is OperationReferenceType.Selection
+                && propertyRow.OperationReferenceId == selection.Id)
+            {
+                value = new ResultElement(this, propertyCursor + 1);
+                return true;
+            }
+        }
+
+        value = default;
+        return false;
     }
 
     private bool TryGetNamedPropertyValue(
