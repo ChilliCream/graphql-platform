@@ -448,6 +448,14 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
+    public void ExecutorUpdateFailed(string schemaName, Exception exception)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].ExecutorUpdateFailed(schemaName, exception);
+        }
+    }
+
     private sealed class AggregateActivityScope(IDisposable[] scopes) : IDisposable
     {
         private bool _disposed;

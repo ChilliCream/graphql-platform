@@ -2,6 +2,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.ObjectPool;
 
@@ -50,7 +51,7 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
             (FusionSchemaDefinition)plan.Operation.Schema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
-        var parser = new JsonOperationPlanParser(compiler);
+        var parser = new JsonOperationPlanParser(compiler, TestPolicyResolver.Create());
 
         // act
         var parsed = parser.Parse(buffer.WrittenMemory);
@@ -100,6 +101,7 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
             original.AllNodes,
             [group],
             [invalidIncrementalPlan],
+            null,
             original.SearchSpace,
             original.ExpandedNodes));
 

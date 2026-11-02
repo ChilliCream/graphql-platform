@@ -1,8 +1,10 @@
+using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -54,6 +56,28 @@ public static class FusionRequestContextExtensions
 
         // Release waiting requests as soon as the plan is available, before the leader finishes execution.
         context.Features.Get<OperationPlanInFlightRelease>()?.TryRelease(context, plan);
+    }
+
+    internal static PolicyDecisions? GetPolicyDecisions(
+        this RequestContext context,
+        int variableSetIndex)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var decisions = context.Features.Get<PolicyDecisionsInfo>()?.Decisions ?? default;
+
+        return !decisions.IsDefault && (uint)variableSetIndex < (uint)decisions.Length
+            ? decisions[variableSetIndex]
+            : null;
+    }
+
+    internal static void SetPolicyDecisions(
+        this RequestContext context,
+        ImmutableArray<PolicyDecisions?> decisions)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        context.Features.GetOrSet<PolicyDecisionsInfo>().Decisions = decisions;
     }
 
     internal static bool CollectOperationPlanTelemetry(

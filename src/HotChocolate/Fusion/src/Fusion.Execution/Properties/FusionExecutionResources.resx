@@ -150,4 +150,76 @@
   <data name="ErrorHelper_OperationKindNotAllowed" xml:space="preserve">
     <value>The specified operation kind is not allowed.</value>
   </data>
+  <data name="PolicyEvaluationContext_EntryNotPartOfContext" xml:space="preserve">
+    <value>The policy entry is not part of this evaluation context.</value>
+  </data>
+  <data name="PolicyResolver_PolicyNotResolved" xml:space="preserve">
+    <value>No policy provider knows the policy '{0}' of the directive '@{1}'.</value>
+  </data>
+  <data name="FusionAuthorizationOptions_ReadOnly" xml:space="preserve">
+    <value>The authorization options are read-only.</value>
+  </data>
+  <data name="FusionAuthorizationOptions_SchemeChallengeEmpty" xml:space="preserve">
+    <value>The WWW-Authenticate challenge of the authentication scheme '{0}' must not be null, empty or whitespace.</value>
+  </data>
+  <data name="AuthorizationValidation_SchemeNotRegistered" xml:space="preserve">
+    <value>The authentication scheme '{0}' of the authorization options is not registered. Register it, remove it from the schemes, or disable the authorization validation.</value>
+  </data>
+  <data name="AuthorizationValidation_NoSchemeRegistered" xml:space="preserve">
+    <value>The schema uses authorization directives but no authentication scheme is registered. Register an authentication scheme, or disable the authorization validation.</value>
+  </data>
+  <data name="AuthorizationValidation_NoSchemeLookup" xml:space="preserve">
+    <value>The schema uses authorization directives but the host exposes no authentication schemes. Add the gateway through HotChocolate.Fusion.AspNetCore, or set DisableAuthorizationValidation.</value>
+  </data>
+  <data name="AuthorizationValidation_SchemesEmpty" xml:space="preserve">
+    <value>The Schemes list is empty; omit it to use every registered scheme or list at least one.</value>
+  </data>
+  <data name="AuthorizationValidation_SchemesWithoutLookup" xml:space="preserve">
+    <value>The Schemes option lists authentication schemes but the host exposes no authentication schemes. Register the authentication scheme lookup through HotChocolate.Fusion.AspNetCore, or do not set Schemes.</value>
+  </data>
+  <data name="PolicyEvaluationContext_EntryAlreadyAnswered" xml:space="preserve">
+    <value>The policy '{1}' already answered the entry of the field '{0}'. An entry takes exactly one verdict.</value>
+  </data>
+  <data name="OperationPolicy_OperationPlanMissing" xml:space="preserve">
+    <value>The operation policy middleware requires an operation plan.</value>
+  </data>
+  <data name="ErrorHelper_NotAuthenticated" xml:space="preserve">
+    <value>The current user is not authenticated.</value>
+  </data>
+  <data name="ErrorHelper_NotAuthorized" xml:space="preserve">
+    <value>The current user is not authorized to access this resource.</value>
+  </data>
+  <data name="ErrorHelper_NonNullViolation" xml:space="preserve">
+    <value>Cannot return null for non-nullable field.</value>
+  </data>
+  <data name="ErrorHelper_AuthorizationFailed" xml:space="preserve">
+    <value>The authorization of the request could not be evaluated.</value>
+  </data>
+  <data name="OperationPolicy_BooleanTypeMissing" xml:space="preserve">
+    <value>The schema does not define the Boolean type that the policy variables require.</value>
+  </data>
+  <data name="VariableValueCollection_VariableAlreadyExists" xml:space="preserve">
+    <value>The variable {0} already exists in the variable value collection.</value>
+  </data>
+  <data name="DeliveryGroup_InvalidIfVariable" xml:space="preserve">
+    <value>The variable {0} has an invalid value.</value>
+  </data>
+  <data name="PolicyPlan_SelectionNotInPlan" xml:space="preserve">
+    <value>The policy plan refers to a selection that belongs neither to the operation of the plan nor to one of its incremental plans.</value>
+  </data>
+  <data name="PolicyPlan_IncrementalPlanNotFound" xml:space="preserve">
+    <value>The policy plan refers to the incremental plan {0}, which the operation plan does not contain.</value>
+  </data>
+  <data name="PolicyPlan_SelectionNotFound" xml:space="preserve">
+    <value>The policy plan refers to the selection '{0}', which the operation does not contain.</value>
+  </data>
+  <data name="PolicyPlan_OperandNotFound" xml:space="preserve">
+    <value>The policy variable '{0}' combines the variable '{1}', which is not defined before it.</value>
+  </data>
+  <data name="AuditScope_AlreadyCommitted" xml:space="preserve">
+    <value>The audit scope is already committed and cannot be changed or committed again.</value>
+  </data>
+  <data name="OperationPolicy_EvaluationFaulted" xml:space="preserve">
+    <value>The policy evaluation of the request faulted without the request being canceled.</value>
+  </data>
 </root>

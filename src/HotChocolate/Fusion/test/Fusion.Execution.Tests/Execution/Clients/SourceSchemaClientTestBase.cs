@@ -83,6 +83,7 @@ public abstract class SourceSchemaClientTestBase : FusionTestBase
                 requestContext,
                 VariableValueCollection.Empty,
                 variableIndex: -1,
+                null,
                 _operationPlan,
                 cts,
                 new MemoryArena());

@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution;
@@ -14,6 +15,8 @@ namespace HotChocolate.Fusion.Execution;
 public sealed partial class OperationPlanContext
 {
     private CancellationTokenSource _engineCancellationSource = new();
+    private ConditionFlags _activeDeliveryGroups;
+    private ConditionFlags _runningIncrementalPlans;
 
     internal OperationPlanContext(
         INodeIdParser nodeIdParser,
@@ -31,6 +34,7 @@ public sealed partial class OperationPlanContext
         RequestContext requestContext,
         IVariableValueCollection variables,
         int variableIndex,
+        PolicyDecisions? policyDecisions,
         IOperationPlan operationPlan,
         CancellationTokenSource cancellationTokenSource,
         MemoryArena? memory = null)
@@ -56,6 +60,8 @@ public sealed partial class OperationPlanContext
         Variables = variables;
         _variableIndex = variableIndex;
         OperationPlan = operationPlan;
+
+        PolicyDecisions = policyDecisions;
 
         switch (operationPlan)
         {
@@ -100,6 +106,28 @@ public sealed partial class OperationPlanContext
         var maxNodeId = operationPlan.MaxNodeId;
         EnsureNodeArrayCapacity(maxNodeId);
         _activeNodeSlotCount = maxNodeId + 1;
+    }
+
+    /// <summary>
+    /// Gets the delivery groups that are active for the request, indexed by
+    /// <see cref="DeliveryGroup.Id"/>.
+    /// </summary>
+    internal ConditionFlags ActiveDeliveryGroups => _activeDeliveryGroups;
+
+    /// <summary>
+    /// Gets the incremental plans that run for the request, indexed like
+    /// <see cref="OperationPlan.IncrementalPlans"/>.
+    /// </summary>
+    internal ConditionFlags RunningIncrementalPlans => _runningIncrementalPlans;
+
+    /// <summary>
+    /// Computes the active delivery groups and the running incremental plans of
+    /// <paramref name="plan"/> for <paramref name="variables"/>.
+    /// </summary>
+    internal void ActivateIncrementalPlans(OperationPlan plan, IVariableValueCollection variables)
+    {
+        _activeDeliveryGroups = DeliveryGroup.GetActive(plan.DeliveryGroups, variables);
+        _runningIncrementalPlans = IncrementalPlan.GetRunningPlans(plan.IncrementalPlans, _activeDeliveryGroups);
     }
 
     /// <summary>
@@ -178,9 +206,12 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
+        PolicyDecisions = null;
         _entityReuseCandidateMap = null;
         IncludeConditionFlags = default;
         DeferConditionFlags = default;
+        _activeDeliveryGroups = default;
+        _runningIncrementalPlans = default;
         // if a custom scope is used we cannot reuse it and have to null it.
         if (_clientScope is not DefaultSourceSchemaClientScope)
         {

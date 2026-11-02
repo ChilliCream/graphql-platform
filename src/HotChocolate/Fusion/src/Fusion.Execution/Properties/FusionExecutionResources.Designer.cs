@@ -308,5 +308,149 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ErrorHelper_OperationKindNotAllowed", resourceCulture);
             }
         }
+
+        internal static string PolicyEvaluationContext_EntryNotPartOfContext {
+            get {
+                return ResourceManager.GetString("PolicyEvaluationContext_EntryNotPartOfContext", resourceCulture);
+            }
+        }
+
+        internal static string PolicyResolver_PolicyNotResolved {
+            get {
+                return ResourceManager.GetString("PolicyResolver_PolicyNotResolved", resourceCulture);
+            }
+        }
+
+        internal static string FusionAuthorizationOptions_ReadOnly {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationOptions_ReadOnly", resourceCulture);
+            }
+        }
+
+        internal static string FusionAuthorizationOptions_SchemeChallengeEmpty {
+            get {
+                return ResourceManager.GetString("FusionAuthorizationOptions_SchemeChallengeEmpty", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_SchemeNotRegistered {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_SchemeNotRegistered", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_NoSchemeRegistered {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_NoSchemeRegistered", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_NoSchemeLookup {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_NoSchemeLookup", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_SchemesEmpty {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_SchemesEmpty", resourceCulture);
+            }
+        }
+
+        internal static string AuthorizationValidation_SchemesWithoutLookup {
+            get {
+                return ResourceManager.GetString("AuthorizationValidation_SchemesWithoutLookup", resourceCulture);
+            }
+        }
+
+        internal static string PolicyEvaluationContext_EntryAlreadyAnswered {
+            get {
+                return ResourceManager.GetString("PolicyEvaluationContext_EntryAlreadyAnswered", resourceCulture);
+            }
+        }
+
+        internal static string OperationPolicy_OperationPlanMissing {
+            get {
+                return ResourceManager.GetString("OperationPolicy_OperationPlanMissing", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_NotAuthenticated {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NotAuthenticated", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_NotAuthorized {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NotAuthorized", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_NonNullViolation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NonNullViolation", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_AuthorizationFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_AuthorizationFailed", resourceCulture);
+            }
+        }
+
+        internal static string OperationPolicy_BooleanTypeMissing {
+            get {
+                return ResourceManager.GetString("OperationPolicy_BooleanTypeMissing", resourceCulture);
+            }
+        }
+
+        internal static string VariableValueCollection_VariableAlreadyExists {
+            get {
+                return ResourceManager.GetString("VariableValueCollection_VariableAlreadyExists", resourceCulture);
+            }
+        }
+
+        internal static string DeliveryGroup_InvalidIfVariable {
+            get {
+                return ResourceManager.GetString("DeliveryGroup_InvalidIfVariable", resourceCulture);
+            }
+        }
+
+        internal static string PolicyPlan_SelectionNotInPlan {
+            get {
+                return ResourceManager.GetString("PolicyPlan_SelectionNotInPlan", resourceCulture);
+            }
+        }
+
+        internal static string PolicyPlan_IncrementalPlanNotFound {
+            get {
+                return ResourceManager.GetString("PolicyPlan_IncrementalPlanNotFound", resourceCulture);
+            }
+        }
+
+        internal static string PolicyPlan_SelectionNotFound {
+            get {
+                return ResourceManager.GetString("PolicyPlan_SelectionNotFound", resourceCulture);
+            }
+        }
+
+        internal static string PolicyPlan_OperandNotFound {
+            get {
+                return ResourceManager.GetString("PolicyPlan_OperandNotFound", resourceCulture);
+            }
+        }
+
+        internal static string AuditScope_AlreadyCommitted {
+            get {
+                return ResourceManager.GetString("AuditScope_AlreadyCommitted", resourceCulture);
+            }
+        }
+
+        internal static string OperationPolicy_EvaluationFaulted {
+            get {
+                return ResourceManager.GetString("OperationPolicy_EvaluationFaulted", resourceCulture);
+            }
+        }
     }
 }

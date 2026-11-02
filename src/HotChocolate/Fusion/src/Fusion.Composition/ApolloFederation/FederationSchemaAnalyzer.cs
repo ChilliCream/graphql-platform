@@ -16,10 +16,7 @@ internal static class FederationSchemaAnalyzer
 
     private static readonly HashSet<string> s_unsupportedDirectives =
     [
-        FederationDirectiveNames.ComposeDirective,
-        FederationDirectiveNames.Authenticated,
-        FederationDirectiveNames.RequiresScopes,
-        FederationDirectiveNames.Policy
+        FederationDirectiveNames.ComposeDirective
     ];
 
     /// <summary>

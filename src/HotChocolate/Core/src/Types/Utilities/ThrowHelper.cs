@@ -742,4 +742,31 @@ internal static class ThrowHelper
                 .Build(),
             type);
     }
+
+    public static ArgumentException AuthorizationDirective_GroupIsEmpty(
+        string directiveName,
+        string paramName)
+        => new(
+            $"The @{directiveName} directive requires at least one value per group.",
+            paramName);
+
+    public static ArgumentException AuthorizationDirective_ValueIsEmpty(
+        string directiveName,
+        string paramName)
+        => new(
+            $"The @{directiveName} directive does not allow null or empty values.",
+            paramName);
+
+    public static SchemaException AuthorizationDirective_UnsupportedDescriptor(
+        string directiveName,
+        ICustomAttributeProvider? attributeProvider,
+        IDescriptor descriptor)
+        => new(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    $"The @{directiveName} directive is only supported on object types, "
+                    + "object fields, interface types, interface fields, enum types and scalar types.")
+                .SetExtension("member", attributeProvider)
+                .SetExtension("descriptor", descriptor)
+                .Build());
 }

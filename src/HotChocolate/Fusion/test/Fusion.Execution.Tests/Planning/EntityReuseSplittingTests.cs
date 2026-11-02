@@ -3,6 +3,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.ObjectPool;
 
@@ -39,7 +40,8 @@ public class EntityReuseSplittingTests : FusionTestBase
             new OperationCompiler(
                 schema,
                 new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                    new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>())));
+                    new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>())),
+            TestPolicyResolver.Create());
 
         // act
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
