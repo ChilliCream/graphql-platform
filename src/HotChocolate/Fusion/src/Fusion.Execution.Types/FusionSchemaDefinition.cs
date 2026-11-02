@@ -42,15 +42,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         FusionDirectiveDefinitionCollection directiveDefinitions,
         NodeResolution nodeResolution,
         ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
-        int? defaultListSize,
-        double? maxFieldCost,
-        double? maxTypeCost,
-        bool? enforceCostLimits,
-        bool? skipAnalyzer,
-        double? maxResponseSize,
-        int? costPlanCacheSize,
-        int? caseBudget,
-        string? caseBudgetExceededBehavior,
         IFeatureCollection features,
         ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup)
     {
@@ -65,15 +56,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         DirectiveDefinitions = directiveDefinitions;
         NodeResolution = nodeResolution;
         ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting;
-        DefaultListSize = defaultListSize;
-        MaxFieldCost = maxFieldCost;
-        MaxTypeCost = maxTypeCost;
-        EnforceCostLimits = enforceCostLimits;
-        SkipAnalyzer = skipAnalyzer;
-        MaxResponseSize = maxResponseSize;
-        CostPlanCacheSize = costPlanCacheSize;
-        CaseBudget = caseBudget;
-        CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
         _features = features;
         _sourceSchemaLookup = sourceSchemaLookup;
     }
@@ -168,29 +150,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     public ShareableFieldRuntimeTypeRouting ShareableFieldRuntimeTypeRouting { get; }
 
     /// <summary>
-    /// Gets the assumed size of a list field that has no applicable <c>@listSize</c>
-    /// information, as configured at composition time via
-    /// <c>@fusion__cost_options(defaultListSize:)</c>. <see langword="null"/> when the
-    /// directive is absent, meaning the assumed size is unbounded.
+    /// Gets the assumed size of a list field with no applicable <c>@listSize</c> information.
+    /// <see langword="null"/> indicates an unbounded assumed size.
     /// </summary>
-    public int? DefaultListSize { get; }
-
-    internal double? MaxFieldCost { get; }
-
-    internal double? MaxTypeCost { get; }
-
-    internal bool? EnforceCostLimits { get; }
-
-    internal bool? SkipAnalyzer { get; }
-
-    internal double? MaxResponseSize { get; }
-
-    internal int? CostPlanCacheSize { get; }
-
-    internal int? CaseBudget { get; }
-
-    internal string? CaseBudgetExceededBehavior { get; }
-
+    public int? DefaultListSize => this.CostOptions.DefaultListSize;
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 

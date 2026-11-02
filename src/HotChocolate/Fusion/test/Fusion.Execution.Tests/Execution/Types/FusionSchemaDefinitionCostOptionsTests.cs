@@ -6,11 +6,28 @@ namespace HotChocolate.Fusion.Execution.Types;
 public sealed class FusionSchemaDefinitionCostOptionsTests
 {
     [Fact]
-    public void Create_Should_LeaveDefaultListSizeUnbounded_When_CostOptionsDirectiveIsAbsent()
+    public void Create_Should_ReturnEmptyCostOptions_When_CostOptionsDirectiveIsAbsent()
     {
+        // arrange
+
+        // act
         var schema = CreateSchema();
 
-        Assert.Null(schema.DefaultListSize);
+        // assert
+        schema.CostOptions.MatchInlineSnapshot(
+            """
+            {
+              "DefaultListSize": null,
+              "MaxFieldCost": null,
+              "MaxTypeCost": null,
+              "EnforceCostLimits": null,
+              "SkipAnalyzer": null,
+              "MaxResponseSize": null,
+              "CostPlanCacheSize": null,
+              "CaseBudget": null,
+              "CaseBudgetExceededBehavior": null
+            }
+            """);
     }
 
     [Fact]
@@ -18,7 +35,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
     {
         var schema = CreateSchema("@fusion__cost_options");
 
-        Assert.Null(schema.DefaultListSize);
+        Assert.Null(schema.CostOptions.DefaultListSize);
     }
 
     [Fact]
@@ -26,7 +43,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
     {
         var schema = CreateSchema("@fusion__cost_options(defaultListSize: null)");
 
-        Assert.Null(schema.DefaultListSize);
+        Assert.Null(schema.CostOptions.DefaultListSize);
     }
 
     [Fact]
@@ -39,14 +56,14 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
         // assert
         new
         {
-            schema.MaxFieldCost,
-            schema.MaxTypeCost,
-            schema.EnforceCostLimits,
-            schema.SkipAnalyzer,
-            schema.MaxResponseSize,
-            schema.CostPlanCacheSize,
-            schema.CaseBudget,
-            schema.CaseBudgetExceededBehavior
+            schema.CostOptions.MaxFieldCost,
+            schema.CostOptions.MaxTypeCost,
+            schema.CostOptions.EnforceCostLimits,
+            schema.CostOptions.SkipAnalyzer,
+            schema.CostOptions.MaxResponseSize,
+            schema.CostOptions.CostPlanCacheSize,
+            schema.CostOptions.CaseBudget,
+            schema.CostOptions.CaseBudgetExceededBehavior
         }.MatchInlineSnapshot(
             """
             {
@@ -70,6 +87,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
     {
         var schema = CreateSchema($"@fusion__cost_options(defaultListSize: {value})");
 
+        Assert.Equal(value, schema.CostOptions.DefaultListSize);
         Assert.Equal(value, schema.DefaultListSize);
     }
 
@@ -96,15 +114,15 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
         // assert
         new
         {
-            schema.DefaultListSize,
-            schema.MaxFieldCost,
-            schema.MaxTypeCost,
-            schema.EnforceCostLimits,
-            schema.SkipAnalyzer,
-            schema.MaxResponseSize,
-            schema.CostPlanCacheSize,
-            schema.CaseBudget,
-            schema.CaseBudgetExceededBehavior
+            schema.CostOptions.DefaultListSize,
+            schema.CostOptions.MaxFieldCost,
+            schema.CostOptions.MaxTypeCost,
+            schema.CostOptions.EnforceCostLimits,
+            schema.CostOptions.SkipAnalyzer,
+            schema.CostOptions.MaxResponseSize,
+            schema.CostOptions.CostPlanCacheSize,
+            schema.CostOptions.CaseBudget,
+            CaseBudgetExceededBehavior = schema.CostOptions.CaseBudgetExceededBehavior?.ToString()
         }.MatchInlineSnapshot(
             """
             {
@@ -116,16 +134,17 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
               "MaxResponseSize": 30.5,
               "CostPlanCacheSize": 40,
               "CaseBudget": -50,
-              "CaseBudgetExceededBehavior": "OVERESTIMATE"
+              "CaseBudgetExceededBehavior": "Overestimate"
             }
             """);
     }
 
     [Theory]
-    [InlineData("EVALUATE_PER_REQUEST")]
-    [InlineData("OVERESTIMATE")]
+    [InlineData("EVALUATE_PER_REQUEST", "EvaluatePerRequest")]
+    [InlineData("OVERESTIMATE", "Overestimate")]
     public void Create_Should_ParseCaseBudgetExceededBehavior_When_ArgumentIsAValidEnumValue(
-        string value)
+        string value,
+        string expected)
     {
         // arrange
 
@@ -133,7 +152,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
         var schema = CreateSchema($"@fusion__cost_options(caseBudgetExceededBehavior: {value})");
 
         // assert
-        Assert.Equal(value, schema.CaseBudgetExceededBehavior);
+        Assert.Equal(expected, schema.CostOptions.CaseBudgetExceededBehavior?.ToString());
     }
 
     [Fact]
@@ -158,6 +177,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
 
         var schema = FusionSchemaDefinition.Create(document);
 
+        Assert.Equal(7, schema.CostOptions.DefaultListSize);
         Assert.Equal(7, schema.DefaultListSize);
     }
 

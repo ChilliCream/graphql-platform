@@ -299,52 +299,47 @@ internal sealed class FusionRequestExecutorManager
         FusionGatewaySetup setup,
         FusionSchemaDefinition schema)
     {
+        var schemaCostOptions = schema.CostOptions;
         var costOptions = new FusionCostOptions();
 
-        if (schema.MaxFieldCost is { } maxFieldCost)
+        if (schemaCostOptions.MaxFieldCost is { } maxFieldCost)
         {
             costOptions.MaxFieldCost = maxFieldCost;
         }
 
-        if (schema.MaxTypeCost is { } maxTypeCost)
+        if (schemaCostOptions.MaxTypeCost is { } maxTypeCost)
         {
             costOptions.MaxTypeCost = maxTypeCost;
         }
 
-        if (schema.EnforceCostLimits is { } enforceCostLimits)
+        if (schemaCostOptions.EnforceCostLimits is { } enforceCostLimits)
         {
             costOptions.EnforceCostLimits = enforceCostLimits;
         }
 
-        if (schema.SkipAnalyzer is { } skipAnalyzer)
+        if (schemaCostOptions.SkipAnalyzer is { } skipAnalyzer)
         {
             costOptions.SkipAnalyzer = skipAnalyzer;
         }
 
-        if (schema.MaxResponseSize is { } maxResponseSize)
+        if (schemaCostOptions.MaxResponseSize is { } maxResponseSize)
         {
             costOptions.MaxResponseSize = maxResponseSize;
         }
 
-        if (schema.CostPlanCacheSize is { } costPlanCacheSize)
+        if (schemaCostOptions.CostPlanCacheSize is { } costPlanCacheSize)
         {
             costOptions.CostPlanCacheSize = costPlanCacheSize;
         }
 
-        if (schema.CaseBudget is { } caseBudget)
+        if (schemaCostOptions.CaseBudget is { } caseBudget)
         {
             costOptions.CaseBudget = caseBudget;
         }
 
-        switch (schema.CaseBudgetExceededBehavior)
+        if (schemaCostOptions.CaseBudgetExceededBehavior is { } caseBudgetExceededBehavior)
         {
-            case "EVALUATE_PER_REQUEST":
-                costOptions.CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.EvaluatePerRequest;
-                break;
-
-            case "OVERESTIMATE":
-                costOptions.CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate;
-                break;
+            costOptions.CaseBudgetExceededBehavior = (CaseBudgetExceededBehavior)caseBudgetExceededBehavior;
         }
 
         foreach (var configure in setup.CostOptionsModifiers)
@@ -505,7 +500,7 @@ internal sealed class FusionRequestExecutorManager
                 var schema = sp.GetRequiredService<FusionSchemaDefinition>();
                 var schemaIndexOptions = new CostSchemaIndexOptions
                 {
-                    DefaultListSize = schema.DefaultListSize is { } defaultListSize
+                    DefaultListSize = schema.CostOptions.DefaultListSize is { } defaultListSize
                         ? defaultListSize
                         : double.PositiveInfinity
                 };
