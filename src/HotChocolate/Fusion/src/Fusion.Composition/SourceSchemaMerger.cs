@@ -2181,6 +2181,10 @@ internal sealed partial class SourceSchemaMerger
             },
             // Enum type definitions.
             {
+                TypeNames.FusionCaseBudgetExceededBehavior,
+                new FusionCaseBudgetExceededBehaviorMutableEnumTypeDefinition()
+            },
+            {
                 TypeNames.FusionNodeResolution,
                 new FusionNodeResolutionMutableEnumTypeDefinition()
             },
@@ -2197,6 +2201,8 @@ internal sealed partial class SourceSchemaMerger
 
     private FrozenDictionary<string, MutableDirectiveDefinition> CreateFusionDirectiveDefinitions()
     {
+        var caseBudgetExceededBehaviorType =
+            (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionCaseBudgetExceededBehavior];
         var schemaEnumType =
             (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionSchema];
         var nodeResolutionType =
@@ -2225,7 +2231,11 @@ internal sealed partial class SourceSchemaMerger
             },
             {
                 DirectiveNames.FusionCostOptions,
-                new FusionCostOptionsMutableDirectiveDefinition(intType, floatType, booleanType, stringType)
+                new FusionCostOptionsMutableDirectiveDefinition(
+                    intType,
+                    floatType,
+                    booleanType,
+                    caseBudgetExceededBehaviorType)
             },
             {
                 DirectiveNames.FusionEnumValue,
@@ -2406,7 +2416,7 @@ internal sealed partial class SourceSchemaMerger
             costOptionsArguments.Add(
                 new ArgumentAssignment(
                     ArgumentNames.CaseBudgetExceededBehavior,
-                    new StringValueNode(
+                    new EnumValueNode(
                         caseBudgetExceededBehavior switch
                         {
                             CaseBudgetExceededBehavior.EvaluatePerRequest => "EVALUATE_PER_REQUEST",

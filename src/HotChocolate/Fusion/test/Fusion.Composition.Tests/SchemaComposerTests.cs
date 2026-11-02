@@ -204,7 +204,7 @@ public sealed class SchemaComposerTests
               maxResponseSize: 300.5
               costPlanCacheSize: 400
               caseBudget: 500
-              caseBudgetExceededBehavior: "OVERESTIMATE"
+              caseBudgetExceededBehavior: OVERESTIMATE
             )
             """);
     }

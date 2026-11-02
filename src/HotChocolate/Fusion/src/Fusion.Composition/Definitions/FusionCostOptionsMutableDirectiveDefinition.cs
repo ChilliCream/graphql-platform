@@ -9,7 +9,7 @@ internal sealed class FusionCostOptionsMutableDirectiveDefinition : MutableDirec
         MutableScalarTypeDefinition intType,
         MutableScalarTypeDefinition floatType,
         MutableScalarTypeDefinition booleanType,
-        MutableScalarTypeDefinition stringType)
+        MutableEnumTypeDefinition caseBudgetExceededBehaviorType)
         : base(WellKnownDirectiveNames.FusionCostOptions)
     {
         Arguments.Add(new MutableInputFieldDefinition(WellKnownArgumentNames.DefaultListSize, intType));
@@ -23,7 +23,7 @@ internal sealed class FusionCostOptionsMutableDirectiveDefinition : MutableDirec
         Arguments.Add(
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.CaseBudgetExceededBehavior,
-                stringType));
+                caseBudgetExceededBehaviorType));
 
         Locations = DirectiveLocation.Schema;
     }
