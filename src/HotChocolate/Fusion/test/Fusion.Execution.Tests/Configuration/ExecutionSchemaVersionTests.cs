@@ -2,6 +2,7 @@ using System.Text.Json;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
+using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion;
 
@@ -35,7 +36,7 @@ public sealed class ExecutionSchemaVersionTests
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.NotNull(configuration);
+        Assert.Equal(WellKnownVersions.LatestGatewayFormatVersion, configuration?.Version);
     }
 
     [Theory]
@@ -54,7 +55,7 @@ public sealed class ExecutionSchemaVersionTests
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.NotNull(configuration);
+        Assert.Equal(WellKnownVersions.LatestGatewayFormatVersion, configuration?.Version);
     }
 
     [Theory]
@@ -96,6 +97,45 @@ public sealed class ExecutionSchemaVersionTests
             """
             The Fusion archive requires execution schema version 1.0.1, but this gateway supports up to 1.0.0. Upgrade the gateway to load this archive.
             """);
+    }
+
+    [Fact]
+    public async Task FileSystemProvider_Should_ExposeError_When_ExecutionSchemaVersionIsHigher()
+    {
+        // arrange
+        var fileName = IOPath.Combine(IOPath.GetTempPath(), $"{Guid.NewGuid()}.far");
+
+        try
+        {
+            await using var stream = await CreateGatewayArchiveAsync(new Version("1.0.1"));
+            await File.WriteAllBytesAsync(
+                fileName,
+                stream.ToArray(),
+                TestContext.Current.CancellationToken);
+
+            await using (var provider = new FileSystemFusionConfigurationProvider(fileName))
+            {
+                var initialObserver = new ErrorObserver();
+                var observer = new ErrorObserver();
+
+                // act
+                using var initialSubscription = provider.Subscribe(initialObserver);
+                await initialObserver.Error.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+                using var subscription = provider.Subscribe(observer);
+                var exception = await observer.Error.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+                // assert
+                exception.Message.MatchInlineSnapshot(
+                    """
+                    The Fusion archive requires execution schema version 1.0.1, but this gateway supports up to 1.0.0. Upgrade the gateway to load this archive.
+                    """);
+            }
+        }
+        finally
+        {
+            File.Delete(fileName);
+        }
     }
 
     private static async Task<MemoryStream> ComposeGatewayArchiveAsync()
@@ -154,5 +194,20 @@ public sealed class ExecutionSchemaVersionTests
 
         stream.Position = 0;
         return stream;
+    }
+
+    private sealed class ErrorObserver : IObserver<FusionConfiguration>
+    {
+        public TaskCompletionSource<Exception> Error { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void OnCompleted()
+            => Error.TrySetCanceled();
+
+        public void OnError(Exception error)
+            => Error.TrySetResult(error);
+
+        public void OnNext(FusionConfiguration value)
+            => Error.TrySetException(new InvalidOperationException("The archive should not load."));
     }
 }

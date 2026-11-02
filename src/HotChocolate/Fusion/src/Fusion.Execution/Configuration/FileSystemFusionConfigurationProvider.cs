@@ -39,6 +39,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
     private ulong _settingsHash;
     private ulong _packageHash;
     private string? _planningFingerprint;
+    private Exception? _loadError;
     private bool _disposed;
 
     public FileSystemFusionConfigurationProvider(string fileName)
@@ -101,17 +102,27 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         var session = new ObserverSession(this, observer);
+        FusionConfiguration? configuration;
+        Exception? loadError;
 
         lock (_syncRoot)
         {
-            _sessions = _sessions.Add(session);
+            configuration = Configuration;
+            loadError = _loadError;
+
+            if (loadError is null)
+            {
+                _sessions = _sessions.Add(session);
+            }
         }
 
-        var configuration = Configuration;
-
-        if (configuration is not null)
+        if (loadError is not null)
         {
-            observer.OnNext(configuration);
+            session.Error(loadError);
+        }
+        else if (configuration is not null)
+        {
+            session.Notify(configuration);
         }
 
         return session;
@@ -157,7 +168,21 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     }
 
                     using var archive = FusionArchive.Open(_fileName);
-                    using var config = await LoadGatewayConfigurationAsync(archive, ct);
+                    var metadata = await archive.GetArchiveMetadataAsync(ct);
+
+                    try
+                    {
+                        ValidateExecutionSchemaVersion(metadata);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        NotifyError(ex);
+                        continue;
+                    }
+
+                    using var config = await archive.TryGetGatewayConfigurationAsync(
+                        WellKnownVersions.LatestGatewayFormatVersion,
+                        ct);
 
                     if (config is null)
                     {
@@ -269,6 +294,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         {
             sessions = _sessions;
             Configuration = configuration;
+            _loadError = null;
         }
 
         if (sessions.IsEmpty)
@@ -279,6 +305,23 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         foreach (var session in sessions)
         {
             session.Notify(configuration);
+        }
+    }
+
+    private void NotifyError(Exception exception)
+    {
+        ImmutableArray<ObserverSession> sessions;
+
+        lock (_syncRoot)
+        {
+            sessions = _sessions;
+            _sessions = [];
+            _loadError = exception;
+        }
+
+        foreach (var session in sessions)
+        {
+            session.Error(exception);
         }
     }
 
@@ -326,6 +369,9 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                 observer.OnError(ex);
             }
         }
+
+        public void Error(Exception exception)
+            => observer.OnError(exception);
 
         public void Complete()
         {
