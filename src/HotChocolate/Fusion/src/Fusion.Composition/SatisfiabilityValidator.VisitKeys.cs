@@ -10,16 +10,54 @@ namespace HotChocolate.Fusion;
 
 internal sealed partial class SatisfiabilityValidator
 {
-    private readonly SchemaSetTable _schemaSets = new();
-    private readonly Dictionary<MutableOutputFieldDefinition, SchemaSet> _fieldSchemas = [];
+    private readonly SchemaSetInterner _schemaSets;
+    private readonly Dictionary<MutableOutputFieldDefinition, SchemaSetRef> _fieldSchemas = [];
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSelectionSets?> _fieldProvides = [];
     private readonly Dictionary<MutableObjectTypeDefinition, VisitTypeInfo> _visitTypeInfos = [];
-    private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSet> _transitionFacts = [];
-    private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSet> _nodeReaches = [];
+    private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSetRef> _transitionFacts = [];
+    private readonly Dictionary<(MutableObjectTypeDefinition, string), SchemaSetRef> _nodeReaches = [];
     private readonly Dictionary<(MutableObjectTypeDefinition, string, SatisfiabilityPathItem), bool>
         _lookupEntries = [];
     private readonly List<int> _schemaIndexes = [];
     private readonly List<int> _compositeFieldSchemaIndexes = [];
+    private readonly HashSet<string> _lookupSchemaNames = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Gets the names of the source schemas that the fusion directives on the types of
+    /// <paramref name="schema"/> and on their fields refer to, in ordinal order.
+    /// </summary>
+    private static SortedSet<string> GetSourceSchemaNames(MutableSchemaDefinition schema)
+    {
+        var schemaNames = new SortedSet<string>(StringComparer.Ordinal);
+
+        foreach (var type in schema.Types)
+        {
+            AddSchemaNames(type.Directives.AsEnumerable(), schemaNames);
+
+            if (type is MutableComplexTypeDefinition complexType)
+            {
+                foreach (var field in complexType.Fields)
+                {
+                    AddSchemaNames(field.Directives.AsEnumerable(), schemaNames);
+                }
+            }
+        }
+
+        return schemaNames;
+
+        static void AddSchemaNames(IEnumerable<IDirective> directives, SortedSet<string> schemaNames)
+        {
+            foreach (var directive in directives)
+            {
+                if (directive.Name.StartsWith("fusion__", StringComparison.Ordinal)
+                    && directive.Arguments.TryGetValue(WellKnownArgumentNames.Schema, out var schemaName)
+                    && schemaName.Value is string name)
+                {
+                    schemaNames.Add(name);
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// Creates the key of the visit of <paramref name="type"/> held through <paramref name="item"/>,
@@ -35,7 +73,7 @@ internal sealed partial class SatisfiabilityValidator
         var fieldProvides = GetFieldProvides(item.Field);
         var transitionFacts = item.ProvidedSelectionSet is null
             ? GetTransitionFacts(type, info, item.SchemaName)
-            : SchemaSet.Empty;
+            : SchemaSetRef.Empty;
         var holder = _schemaSets.GetIndex(item.SchemaName);
         var parentProvides = parent.Path is not null ? parent.Key.ReachProvides : null;
         var isViewerFallback =
@@ -72,7 +110,7 @@ internal sealed partial class SatisfiabilityValidator
                     fieldProvides?.Find(index),
                     out var providedSelectionSet))
                 {
-                    SchemaSetTable.Add(buffer, index);
+                    SchemaSetInterner.Add(buffer, index);
                     AddProvides(ref provides, index, providedSelectionSet);
                 }
             }
@@ -84,7 +122,7 @@ internal sealed partial class SatisfiabilityValidator
             {
                 var index = fieldProvides.GetSchemaIndex(i);
 
-                if (SchemaSetTable.Contains(buffer, index) && parentProvides?.Find(index) is null)
+                if (SchemaSetInterner.Contains(buffer, index) && parentProvides?.Find(index) is null)
                 {
                     AddProvides(ref provides, index, fieldProvides.GetSelectionSet(i));
                 }
@@ -99,7 +137,7 @@ internal sealed partial class SatisfiabilityValidator
             {
                 if (!_schemaSets.Contains(fieldSchemas, index))
                 {
-                    SchemaSetTable.Add(buffer, index);
+                    SchemaSetInterner.Add(buffer, index);
                     AddProvides(ref provides, index, viewerProvides?.Find(index));
                 }
             }
@@ -164,7 +202,7 @@ internal sealed partial class SatisfiabilityValidator
     /// </summary>
     private SchemaSelectionSets? CreateReachProvides(
         List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides,
-        SchemaSet reach)
+        SchemaSetRef reach)
     {
         if (provides is null)
         {
@@ -192,7 +230,7 @@ internal sealed partial class SatisfiabilityValidator
         {
             var transitionFacts = GetTransitionFacts(type, info, lookupItem.SchemaName);
             var holder = _schemaSets.GetIndex(lookupItem.SchemaName);
-            var buffer = _schemaSets.GetBuffer(SchemaSet.Empty);
+            var buffer = _schemaSets.GetBuffer(SchemaSetRef.Empty);
             reach = CompleteReach(type, info, lookupItem, holder, transitionFacts, buffer);
             _nodeReaches.Add((type, lookupItem.SchemaName), reach);
         }
@@ -217,7 +255,7 @@ internal sealed partial class SatisfiabilityValidator
         => new(
             rootType,
             null,
-            SchemaSet.Empty,
+            SchemaSetRef.Empty,
             null,
             null,
             !ReferenceEquals(rootType, _schema.QueryType) && _viewerFallbackTypes.Contains(rootType));
@@ -228,12 +266,12 @@ internal sealed partial class SatisfiabilityValidator
     /// <paramref name="transitionFacts"/> and the other schemas the type can be entered in through a
     /// lookup from <paramref name="item"/>, and returns the resulting set.
     /// </summary>
-    private SchemaSet CompleteReach(
+    private SchemaSetRef CompleteReach(
         MutableObjectTypeDefinition type,
         VisitTypeInfo info,
         SatisfiabilityPathItem item,
         int holder,
-        SchemaSet transitionFacts,
+        SchemaSetRef transitionFacts,
         ulong[] buffer)
     {
         _schemaSets.IntersectWith(buffer, info.Schemas);
@@ -243,7 +281,7 @@ internal sealed partial class SatisfiabilityValidator
 
         if (!readsHolder)
         {
-            SchemaSetTable.Remove(buffer, holder);
+            SchemaSetInterner.Remove(buffer, holder);
         }
 
         _schemaSets.UnionWith(buffer, transitionFacts);
@@ -251,10 +289,10 @@ internal sealed partial class SatisfiabilityValidator
         foreach (var index in info.LookupSchemas)
         {
             if ((readsHolder || index != holder)
-                && !SchemaSetTable.Contains(buffer, index)
+                && !SchemaSetInterner.Contains(buffer, index)
                 && CanEnterWithLookup(type, _schemaSets.GetSchemaName(index), item))
             {
-                SchemaSetTable.Add(buffer, index);
+                SchemaSetInterner.Add(buffer, index);
             }
         }
 
@@ -305,13 +343,23 @@ internal sealed partial class SatisfiabilityValidator
         var members = _schemaSets.GetMembers(schemas);
         _schemaIndexes.Clear();
 
-        for (var word = 0; word < members.Length; word++)
+        // Only the schemas named by the type's lookups can have a lookup for the type.
+        _lookupSchemaNames.Clear();
+
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type))
+        {
+            _lookupSchemaNames.Add((string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!);
+        }
+
+        for (var word = 0; word < members.Length && _lookupSchemaNames.Count > 0; word++)
         {
             for (var bits = members[word]; bits != 0; bits &= bits - 1)
             {
                 var index = (word << 6) + BitOperations.TrailingZeroCount(bits);
+                var schemaName = _schemaSets.GetSchemaName(index);
 
-                if (_lookupCache.GetPossibleFusionLookupDirectives(type, _schemaSets.GetSchemaName(index)).Count > 0)
+                if (_lookupSchemaNames.Contains(schemaName)
+                    && _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName).Count > 0)
                 {
                     _schemaIndexes.Add(index);
                 }
@@ -327,7 +375,7 @@ internal sealed partial class SatisfiabilityValidator
     /// Gets the schemas, other than <paramref name="schemaName"/>, that the facts confirm
     /// <paramref name="type"/> held in <paramref name="schemaName"/> can transition to.
     /// </summary>
-    private SchemaSet GetTransitionFacts(
+    private SchemaSetRef GetTransitionFacts(
         MutableObjectTypeDefinition type,
         VisitTypeInfo info,
         string schemaName)
@@ -360,7 +408,7 @@ internal sealed partial class SatisfiabilityValidator
         => !_facts.IsFieldResolvableOn(type, field, schemaName)
             && field.GetFusionRequiresRequirements(schemaName) is not null;
 
-    private SchemaSet GetFieldSchemas(MutableOutputFieldDefinition field)
+    private SchemaSetRef GetFieldSchemas(MutableOutputFieldDefinition field)
     {
         if (!_fieldSchemas.TryGetValue(field, out var schemas))
         {
@@ -525,8 +573,8 @@ internal sealed partial class SatisfiabilityValidator
     /// from the holding path item.
     /// </summary>
     private sealed record VisitTypeInfo(
-        SchemaSet Schemas,
-        SchemaSet CompositeFieldSchemas,
+        SchemaSetRef Schemas,
+        SchemaSetRef CompositeFieldSchemas,
         int[] LookupSchemas,
         bool ReadsLeaf);
 }
