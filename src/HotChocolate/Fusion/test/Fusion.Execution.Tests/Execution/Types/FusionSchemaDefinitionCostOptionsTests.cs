@@ -89,7 +89,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
               maxResponseSize: 30.5
               costPlanCacheSize: 40
               caseBudget: -50
-              caseBudgetExceededBehavior: "OVERESTIMATE"
+              caseBudgetExceededBehavior: OVERESTIMATE
             )
             """);
 
@@ -119,6 +119,21 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
               "CaseBudgetExceededBehavior": "OVERESTIMATE"
             }
             """);
+    }
+
+    [Theory]
+    [InlineData("EVALUATE_PER_REQUEST")]
+    [InlineData("OVERESTIMATE")]
+    public void Create_Should_ParseCaseBudgetExceededBehavior_When_ArgumentIsAValidEnumValue(
+        string value)
+    {
+        // arrange
+
+        // act
+        var schema = CreateSchema($"@fusion__cost_options(caseBudgetExceededBehavior: {value})");
+
+        // assert
+        Assert.Equal(value, schema.CaseBudgetExceededBehavior);
     }
 
     [Fact]
@@ -197,7 +212,6 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
     [InlineData("costPlanCacheSize", "0", "a positive integer")]
     [InlineData("enforceCostLimits", "1", "a Boolean")]
     [InlineData("caseBudget", "1.5", "an integer")]
-    [InlineData("caseBudgetExceededBehavior", "\"INVALID\"", "EVALUATE_PER_REQUEST or OVERESTIMATE")]
     public void Create_Should_RejectInvalidCostSetting(
         string argumentName,
         string value,
@@ -211,6 +225,26 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
         // assert
         Assert.Equal(
             $"The fusion__cost_options {argumentName} argument must be {requirement}.",
+            exception.Message);
+    }
+
+    [Theory]
+    [InlineData("INVALID")]
+    [InlineData("\"EVALUATE_PER_REQUEST\"")]
+    [InlineData("\"OVERESTIMATE\"")]
+    public void Create_Should_RejectCaseBudgetExceededBehavior_When_ArgumentIsNotAValidEnumValue(
+        string value)
+    {
+        // arrange
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => CreateSchema($"@fusion__cost_options(caseBudgetExceededBehavior: {value})"));
+
+        // assert
+        Assert.Equal(
+            "The fusion__cost_options caseBudgetExceededBehavior argument must be "
+            + "EVALUATE_PER_REQUEST or OVERESTIMATE.",
             exception.Message);
     }
 

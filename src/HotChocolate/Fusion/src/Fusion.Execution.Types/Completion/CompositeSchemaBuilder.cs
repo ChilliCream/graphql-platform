@@ -933,12 +933,12 @@ internal static class CompositeSchemaBuilder
             return null;
         }
 
-        if (argument.Value is StringValueNode
+        if (argument.Value is EnumValueNode
             {
                 Value: "EVALUATE_PER_REQUEST" or "OVERESTIMATE"
-            } stringValue)
+            } enumValue)
         {
-            return stringValue.Value;
+            return enumValue.Value;
         }
 
         throw ThrowHelper.InvalidCostOptionsArgument(
