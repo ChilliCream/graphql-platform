@@ -73,7 +73,12 @@ export const SECTIONS: readonly CopySection[] = [
       "Precompute operation plans at build time so there is no planning overhead at runtime.",
     ],
     links: [],
-    inPractice: [],
+    inPractice: [
+      {
+        label: "GraphQL Federation benchmarks",
+        href: "/benchmarks/graphql-federation",
+      },
+    ],
   },
   {
     id: "security",
