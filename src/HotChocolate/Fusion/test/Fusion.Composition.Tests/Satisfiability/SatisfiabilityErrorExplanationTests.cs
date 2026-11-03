@@ -84,6 +84,30 @@ public sealed class SatisfiabilityErrorExplanationTests
     }
 
     [Fact]
+    public void CreateError_Should_StopSearchAndKeepHoldingEntries_When_PruningBudgetExceedsFailures()
+    {
+        // arrange
+        var budget = SatisfiabilityExplanationBudget.Pruning(maxEntries: 1, maxFailures: 2);
+        var created = budget.CreateError("created");
+        var cut = budget.CreateError("cut");
+        var exhaustedAtLimit = budget.IsExhausted;
+
+        // act
+        var holder = budget.CreateError("holder", [created, cut]);
+
+        // assert
+        Assert.False(exhaustedAtLimit);
+        Assert.True(budget.IsExhausted);
+        Assert.Same(SatisfiabilityError.Unexplained, cut);
+        holder.ToString().MatchInlineSnapshot(
+            """
+            holder
+              created
+              ... and 1 more
+            """);
+    }
+
+    [Fact]
     public void ToString_Should_EndEachCutLevelWithAndMore_When_ExplanationExceedsCaps()
     {
         // arrange
