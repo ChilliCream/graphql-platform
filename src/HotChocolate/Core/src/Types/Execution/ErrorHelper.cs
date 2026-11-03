@@ -76,6 +76,25 @@ internal static class ErrorHelper
             .Build();
     }
 
+    public static IError StreamInitialCountNegative(
+        Path path)
+    {
+        return ErrorBuilder.New()
+            .SetMessage(ErrorHelper_StreamInitialCountNegative_Message)
+            .SetPath(path)
+            .SetCode(ErrorCodes.Execution.InvalidStreamInitialCount)
+            .Build();
+    }
+
+    public static IError StreamEnumerationFailed(
+        Exception exception,
+        Path path)
+    {
+        return ErrorBuilder.FromException(exception)
+            .SetPath(path)
+            .Build();
+    }
+
     public static IError UnexpectedValueCompletionError(
         Path path)
     {

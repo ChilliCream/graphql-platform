@@ -63,6 +63,7 @@ public class OperationPlanStepTests : FusionTestBase
     [Theory]
     [InlineData(70)]
     [InlineData(2100)]
+    [InlineData(100000)]
     public void DependsOn_Should_ReturnTrue_When_DependencyChainIsLong(int length)
     {
         // arrange

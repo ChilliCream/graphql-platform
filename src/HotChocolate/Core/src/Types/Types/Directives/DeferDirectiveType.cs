@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// delivered in the initial response and data deferred is delivered in a subsequent
 /// response. `@include` and `@skip` take precedence over `@defer`.
 ///
-/// directive @defer(label: String, if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+/// directive @defer(if: Boolean! = true, label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 /// </summary>
 public sealed class DeferDirectiveType : DirectiveType<DeferDirective>
 {
@@ -24,15 +24,16 @@ public sealed class DeferDirectiveType : DirectiveType<DeferDirective>
             .Location(DirectiveLocation.InlineFragment);
 
         descriptor
+            .Argument(t => t.If)
+            .Name(DirectiveNames.Defer.Arguments.If)
+            .Description(TypeResources.DeferDirectiveType_If_Description)
+            .Type<NonNullType<BooleanType>>()
+            .DefaultValue(true);
+
+        descriptor
             .Argument(t => t.Label)
             .Name(DirectiveNames.Defer.Arguments.Label)
             .Description(TypeResources.DeferDirectiveType_Label_Description)
             .Type<StringType>();
-
-        descriptor
-            .Argument(t => t.If)
-            .Name(DirectiveNames.Defer.Arguments.If)
-            .Description(TypeResources.DeferDirectiveType_If_Description)
-            .Type<BooleanType>();
     }
 }

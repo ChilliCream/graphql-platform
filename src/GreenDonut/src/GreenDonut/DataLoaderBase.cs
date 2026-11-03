@@ -128,6 +128,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentNullException(nameof(key));
         }
 
+        ct.ThrowIfCancellationRequested();
+
         var cached = true;
         PromiseCacheKey cacheKey = new(cacheKeyType, key);
 

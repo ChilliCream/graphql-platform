@@ -93,6 +93,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_StreamInitialCountNegative_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_StreamInitialCountNegative_Message", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_UnexpectedValueCompletionError_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_UnexpectedValueCompletionError_Message", resourceCulture);
@@ -150,6 +156,36 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_VariableNotFound_Message {
             get {
                 return ResourceManager.GetString("ThrowHelper_VariableNotFound_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_DirectiveIfValueMissing_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DirectiveIfValueMissing_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_DirectiveIfValueInvalid_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DirectiveIfValueInvalid_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_DirectiveIfVariableNotProvided_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DirectiveIfVariableNotProvided_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_DirectiveIfVariableInvalidValue_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DirectiveIfVariableInvalidValue_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_DirectiveIfVariableIsNull_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DirectiveIfVariableIsNull_Message", resourceCulture);
             }
         }
         
@@ -426,6 +462,24 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
             get {
                 return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field `{0}` uses a batch resolver and cannot take part in an execution group..
+        /// </summary>
+        internal static string ThrowHelper_ExecutionGroup_BatchSelectionNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ExecutionGroup_BatchSelectionNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field `{0}` is not parallel executable and cannot take part in an execution group..
+        /// </summary>
+        internal static string ThrowHelper_ExecutionGroup_SerialSelectionNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ExecutionGroup_SerialSelectionNotSupported", resourceCulture);
             }
         }
     }

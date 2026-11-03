@@ -70,6 +70,7 @@ public static class ErrorCodes
         public const string CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE";
         public const string CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE";
         public const string ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED";
+        public const string InvalidStreamInitialCount = "EXEC_INVALID_STREAM_INITIAL_COUNT";
         public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
 
         /// <summary>

@@ -109,6 +109,14 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ref OperationResultFormatterContext? context)
         => FormatInternal(result, writer, useIncrementalRfc1, ref context);
 
+    internal void FormatCarried(IBufferWriter<byte> bufferWriter, OperationResultFormatterContext context)
+    {
+        var jsonWriter = new JsonWriter(bufferWriter, _options, _nullIgnoreCondition);
+        jsonWriter.WriteStartObject();
+        IncrementalRfc1ResultFormatAdapter.WriteCarried(jsonWriter, context);
+        jsonWriter.WriteEndObject();
+    }
+
     public ValueTask FormatAsync(
         OperationResult result,
         PipeWriter writer,

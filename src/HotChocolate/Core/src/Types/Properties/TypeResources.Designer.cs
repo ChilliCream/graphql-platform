@@ -3493,5 +3493,104 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_KeyValuePairType_InvalidRuntimeType", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: it must declare at least one entry..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_NoEntries {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_NoEntries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` is declared more than once..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_DuplicateEntry {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_DuplicateEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` is nested below the entry `{2}`..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_NestedEntry {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_NestedEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` contains the invalid field name `{2}`..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_InvalidFieldName {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_InvalidFieldName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` cannot be resolved because the type of the group root must be an object type or interface type..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_RootTypeNotComposite {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_RootTypeNotComposite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` references the field `{3}` that does not exist on type `{2}`..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_FieldNotFound {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_FieldNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` references the field `{2}.{3}` that uses a batch resolver..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_BatchResolverField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_BatchResolverField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` references the field `{2}.{3}` that is not parallel executable..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_NotParallelExecutableField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_NotParallelExecutableField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` passes through the list field `{2}.{3}`..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_ListField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_ListField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` passes through the field `{2}.{3}` that is an execution group root..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_GroupRootField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_GroupRootField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execution group of field `{0}` is invalid: the entry `{1}` passes through the field `{2}.{3}` that is not of an object type..
+        /// </summary>
+        internal static string ErrorHelper_ExecutionGroup_NonObjectField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ExecutionGroup_NonObjectField", resourceCulture);
+            }
+        }
     }
 }

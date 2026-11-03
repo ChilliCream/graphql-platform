@@ -357,7 +357,7 @@ internal sealed class BatchResolverTask : IResolverTask
                             _operationContext,
                             context,
                             _taskBuffer,
-                            context.BranchId);
+                            groupScope: null);
 
                     Complete(completionContext, context.Selection, resultValue, result);
                 }
@@ -477,8 +477,10 @@ internal sealed class BatchResolverTask : IResolverTask
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;
         IsRegistered = false;
+#pragma warning disable CS0618
         Next = null;
         Previous = null;
+#pragma warning restore CS0618
         State = null;
         return true;
     }

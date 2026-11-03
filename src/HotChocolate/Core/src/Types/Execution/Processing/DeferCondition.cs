@@ -4,36 +4,28 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
-internal readonly struct DeferCondition(string? ifVariableName) : IEquatable<DeferCondition>
+internal readonly struct DeferCondition(VariableNode? ifVariable) : IEquatable<DeferCondition>
 {
-    public string? IfVariableName => ifVariableName;
+    public VariableNode? IfVariable => ifVariable;
 
     public bool IsDeferred(IVariableValueCollection variableValues)
     {
-        if (ifVariableName is not null)
-        {
-            if (!variableValues.TryGetValue<BooleanValueNode>(ifVariableName, out var value))
-            {
-                throw new InvalidOperationException($"The variable {ifVariableName} has an invalid value.");
-            }
-
-            if (!value.Value)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return ifVariable is null
+            || DirectiveIfCondition.IsEnabled(
+                DirectiveNames.Defer.Name,
+                ifVariable,
+                variableValues,
+                defaultValue: true);
     }
 
     public bool Equals(DeferCondition other)
-        => string.Equals(ifVariableName, other.IfVariableName, StringComparison.Ordinal);
+        => string.Equals(ifVariable?.Name.Value, other.IfVariable?.Name.Value, StringComparison.Ordinal);
 
     public override bool Equals([NotNullWhen(true)] object? obj)
         => obj is DeferCondition other && Equals(other);
 
     public override int GetHashCode()
-        => HashCode.Combine(ifVariableName);
+        => HashCode.Combine(ifVariable?.Name.Value);
 
     public static bool TryCreate(InlineFragmentNode inlineFragment, out DeferCondition deferCondition)
         => TryCreate(inlineFragment.Directives, out deferCondition);
@@ -78,7 +70,7 @@ internal readonly struct DeferCondition(string? ifVariableName) : IEquatable<Def
                 {
                     // @defer(if: $variable) - conditionally deferred at runtime.
                     case VariableNode variable:
-                        deferCondition = new DeferCondition(variable.Name.Value);
+                        deferCondition = new DeferCondition(variable);
                         return true;
 
                     // @defer(if: true) - unconditionally deferred.

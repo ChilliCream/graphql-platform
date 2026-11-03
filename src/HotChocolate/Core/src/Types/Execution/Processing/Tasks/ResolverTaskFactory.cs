@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.ValueCompletion;
@@ -101,6 +102,7 @@ internal static class ResolverTaskFactory
                                     Path.Root,
                                     parent,
                                     scopedContext,
+                                    groupScope: null,
                                     branchId,
                                     deferUsage));
                         }
@@ -167,7 +169,9 @@ internal static class ResolverTaskFactory
         Debug.Assert(resultValue.Type?.NamedType()?.IsAssignableFrom(selectionSetType) ?? false);
 
         var operationContext = context.OperationContext;
-        var parentDeferUsage = context.ResolverContext.DeferUsage;
+        var resolverContext = context.ResolverContext;
+        var groupScope = context.GroupScope;
+        var parentDeferUsage = resolverContext.DeferUsage;
 
         resultValue.SetObjectValue(selectionSet);
 
@@ -178,7 +182,7 @@ internal static class ResolverTaskFactory
             var branches = ImmutableDictionary<DeferUsage, int>.Empty;
             Path? currentPath = null;
 
-            var parentBranchId = context.ParentBranchId;
+            var parentBranchId = resolverContext.BranchId;
 
             foreach (var field in resultValue.EnumerateObject())
             {
@@ -211,13 +215,14 @@ internal static class ResolverTaskFactory
                                     selectionSet,
                                     currentPath,
                                     parent,
-                                    context.ResolverContext.ScopedContextData,
+                                    resolverContext.ScopedContextData,
+                                    groupScope,
                                     branchId,
                                     deferUsage));
                         }
                     }
                 }
-                else if (selection.Strategy is SelectionExecutionStrategy.Pure)
+                else if (IsInline(selection, groupScope))
                 {
                     ResolveAndCompleteInline(
                         context,
@@ -232,20 +237,27 @@ internal static class ResolverTaskFactory
                         selection,
                         parent,
                         field.Value,
-                        context.ResolverContext.ScopedContextData,
-                        context.ParentBranchId,
+                        resolverContext.ScopedContextData,
+                        parentBranchId,
                         parentDeferUsage);
                 }
                 else
                 {
-                    context.Tasks.Add(
+                    var task =
                         operationContext.CreateResolverTask(
                             parent,
                             selection,
                             field.Value,
-                            context.ResolverContext.ScopedContextData,
-                            context.ParentBranchId,
-                            parentDeferUsage));
+                            resolverContext.ScopedContextData,
+                            parentBranchId,
+                            parentDeferUsage);
+
+                    if (groupScope is not null)
+                    {
+                        task.JoinExecutionGroup(groupScope);
+                    }
+
+                    context.Tasks.Add(task);
                 }
             }
         }
@@ -255,7 +267,7 @@ internal static class ResolverTaskFactory
             {
                 var selection = field.AssertSelection();
 
-                if (selection.Strategy is SelectionExecutionStrategy.Pure)
+                if (IsInline(selection, groupScope))
                 {
                     ResolveAndCompleteInline(
                         context,
@@ -270,22 +282,34 @@ internal static class ResolverTaskFactory
                         selection,
                         parent,
                         field.Value,
-                        context.ResolverContext.ScopedContextData,
-                        context.ParentBranchId);
+                        resolverContext.ScopedContextData,
+                        resolverContext.BranchId);
                 }
                 else
                 {
-                    context.Tasks.Add(
+                    var task =
                         operationContext.CreateResolverTask(
                             parent,
                             selection,
                             field.Value,
-                            context.ResolverContext.ScopedContextData,
-                            context.ParentBranchId));
+                            resolverContext.ScopedContextData,
+                            resolverContext.BranchId);
+
+                    if (groupScope is not null)
+                    {
+                        task.JoinExecutionGroup(groupScope);
+                    }
+
+                    context.Tasks.Add(task);
                 }
             }
         }
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsInline(Selection selection, ExecutionGroupScope? groupScope)
+        => selection.Strategy is SelectionExecutionStrategy.Pure
+            && (groupScope is null || !groupScope.IsMember(selection));
 
     private static void ResolveAndCompleteInline(
         ValueCompletionContext context,
@@ -296,6 +320,8 @@ internal static class ResolverTaskFactory
     {
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
+        var groupScope = context.GroupScope;
+        var taskCount = groupScope is null ? 0 : context.Tasks.Count;
         var executedSuccessfully = false;
         object? resolverResult = null;
 
@@ -320,6 +346,11 @@ internal static class ResolverTaskFactory
         {
             // If we run into this exception the request was aborted.
             // In this case we do nothing and just return.
+            if (groupScope is not null)
+            {
+                ReleaseWhenNoChildTasks(context.Tasks, groupScope, selection, taskCount);
+            }
+
             return;
         }
         catch (Exception ex)
@@ -340,11 +371,21 @@ internal static class ResolverTaskFactory
         {
             // If we run into this exception the request was aborted.
             // In this case we do nothing and just return.
+            if (groupScope is not null)
+            {
+                ReleaseWhenNoChildTasks(context.Tasks, groupScope, selection, taskCount);
+            }
+
             return;
         }
         catch (Exception ex)
         {
             operationContext.ReportError(ex, resolverContext, fieldValue.Path);
+        }
+
+        if (groupScope is not null)
+        {
+            ReleaseWhenNoChildTasks(context.Tasks, groupScope, selection, taskCount);
         }
 
         if (fieldValue is { IsNullable: false, IsNullOrInvalidated: true })
@@ -359,6 +400,19 @@ internal static class ResolverTaskFactory
             }
 
             operationContext.Result.AddNonNullViolation(fieldValue.Path);
+        }
+    }
+
+    private static void ReleaseWhenNoChildTasks(
+        List<IExecutionTask> tasks,
+        ExecutionGroupScope groupScope,
+        Selection selection,
+        int taskCount)
+    {
+        if (tasks.Count == taskCount)
+        {
+            // without child tasks nothing below this selection can ever start, so its members are skipped.
+            groupScope.ReleaseSlotsBelow(selection);
         }
     }
 

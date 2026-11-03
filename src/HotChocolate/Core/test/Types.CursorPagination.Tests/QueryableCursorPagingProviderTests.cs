@@ -54,11 +54,11 @@ public class QueryableCursorPagingProviderTests
             });
 
         Assert.False(
-            connection.Info.HasPreviousPage,
+            await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken),
             "HasPreviousPage");
 
         Assert.True(
-            connection.Info.HasNextPage,
+            await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken),
             "HasNextPage");
     }
 
@@ -90,11 +90,11 @@ public class QueryableCursorPagingProviderTests
             });
 
         Assert.True(
-            connection.Info.HasPreviousPage,
+            await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken),
             "HasPreviousPage");
 
         Assert.False(
-            connection.Info.HasNextPage,
+            await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken),
             "HasNextPage");
     }
 
@@ -140,11 +140,11 @@ public class QueryableCursorPagingProviderTests
             });
 
         Assert.True(
-            connection.Info.HasPreviousPage,
+            await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken),
             "HasPreviousPage");
 
         Assert.False(
-            connection.Info.HasNextPage,
+            await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken),
             "HasNextPage");
     }
 
@@ -174,7 +174,8 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(first: 2, after: connection.Info.StartCursor);
+        var afterCursor = await connection.Info.GetStartCursorAsync(TestContext.Current.CancellationToken);
+        pagingDetails = new CursorPagingArguments(first: 2, after: afterCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
@@ -195,11 +196,11 @@ public class QueryableCursorPagingProviderTests
             });
 
         Assert.True(
-            connection.Info.HasPreviousPage,
+            await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken),
             "HasPreviousPage");
 
         Assert.True(
-            connection.Info.HasNextPage,
+            await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken),
             "HasNextPage");
     }
 
@@ -229,7 +230,8 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(last: 2, before: connection.Info.EndCursor);
+        var beforeCursor = await connection.Info.GetEndCursorAsync(TestContext.Current.CancellationToken);
+        pagingDetails = new CursorPagingArguments(last: 2, before: beforeCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
@@ -250,11 +252,11 @@ public class QueryableCursorPagingProviderTests
             });
 
         Assert.True(
-            connection.Info.HasPreviousPage,
+            await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken),
             "HasPreviousPage");
 
         Assert.True(
-            connection.Info.HasNextPage,
+            await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken),
             "HasNextPage");
     }
 
@@ -287,7 +289,7 @@ public class QueryableCursorPagingProviderTests
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
-        Assert.True(connection.Info.HasNextPage);
+        Assert.True(await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -319,7 +321,7 @@ public class QueryableCursorPagingProviderTests
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
-        Assert.False(connection.Info.HasNextPage);
+        Assert.False(await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -349,7 +351,8 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(first: 2, after: connection.Info.EndCursor);
+        var afterCursor = await connection.Info.GetEndCursorAsync(TestContext.Current.CancellationToken);
+        pagingDetails = new CursorPagingArguments(first: 2, after: afterCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
@@ -357,7 +360,7 @@ public class QueryableCursorPagingProviderTests
         connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
-        Assert.True(connection.Info.HasPreviousPage);
+        Assert.True(await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -389,7 +392,7 @@ public class QueryableCursorPagingProviderTests
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
-        Assert.False(connection.Info.HasPreviousPage);
+        Assert.False(await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -426,11 +429,11 @@ public class QueryableCursorPagingProviderTests
             });
 
         Assert.False(
-            connection.Info.HasPreviousPage,
+            await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken),
             "HasPreviousPage");
 
         Assert.True(
-            connection.Info.HasNextPage,
+            await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken),
             "HasNextPage");
     }
 
@@ -468,11 +471,11 @@ public class QueryableCursorPagingProviderTests
             });
 
         Assert.False(
-            connection.Info.HasPreviousPage,
+            await connection.Info.HasPreviousPageAsync(TestContext.Current.CancellationToken),
             "HasPreviousPage");
 
         Assert.True(
-            connection.Info.HasNextPage,
+            await connection.Info.HasNextPageAsync(TestContext.Current.CancellationToken),
             "HasNextPage");
     }
 

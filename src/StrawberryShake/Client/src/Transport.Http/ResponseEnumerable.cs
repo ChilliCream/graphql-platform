@@ -66,8 +66,15 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             // transport error as we will continue to read the stream until the end.
             if (hasNext)
             {
-                var parsedResult = ParseResult(enumerator.Current);
-                var responseContext = new HttpResponseContext(result, parsedResult, transportError);
+                var current = enumerator.Current;
+                var parsedResult = ParseResult(current);
+                var responseContext = new HttpResponseContext(
+                    result,
+                    parsedResult,
+                    transportError,
+                    isPatch: current.Incremental.ValueKind is JsonValueKind.Array
+                        || (current.HasNext is not null && current.Data.ValueKind is JsonValueKind.Undefined),
+                    hasNext: current.HasNext ?? false);
                 yield return _createResponse(responseContext);
                 transportError = null;
             }
@@ -112,6 +119,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         }
 
         WriteProperty(writer, "extensions", result.Extensions);
+        WriteProperty(writer, "incremental", result.Incremental);
         writer.WriteEndObject();
 
         writer.Flush();

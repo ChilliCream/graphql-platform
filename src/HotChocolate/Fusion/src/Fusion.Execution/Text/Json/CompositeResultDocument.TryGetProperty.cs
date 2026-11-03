@@ -434,15 +434,30 @@ public sealed partial class CompositeResultDocument
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref startCursor);
-        Debug.Assert(row.TokenType is ElementTokenType.StartObject);
-        Debug.Assert(row.OperationReferenceType is OperationReferenceType.SelectionSet);
 
-        var selectionSetId = row.OperationReferenceId;
-        var propertyIndex = selectionId - selectionSetId - 1;
+        if (row.TokenType is not ElementTokenType.StartObject
+            || row.OperationReferenceType is not OperationReferenceType.SelectionSet)
+        {
+            throw ThrowHelper.SelectionIdNotInResultObject(selectionId);
+        }
+
+        var propertyIndex = selectionId - row.OperationReferenceId - 1;
         var propertyRowIndex = (propertyIndex * 2) + 1;
+
+        if (propertyIndex < 0 || propertyRowIndex >= row.NumberOfRows - 1)
+        {
+            throw ThrowHelper.SelectionIdNotInResultObject(selectionId);
+        }
+
         var propertyCursor = startCursor + propertyRowIndex;
-        Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
-        Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selectionId);
+        var propertyRow = _metaDb.Get(propertyCursor);
+
+        if (propertyRow.TokenType is not ElementTokenType.PropertyName
+            || propertyRow.OperationReferenceType is not OperationReferenceType.Selection
+            || propertyRow.OperationReferenceId != selectionId)
+        {
+            throw ThrowHelper.SelectionIdNotInResultObject(selectionId);
+        }
 
         return new CompositeResultElement(this, propertyCursor + 1);
     }

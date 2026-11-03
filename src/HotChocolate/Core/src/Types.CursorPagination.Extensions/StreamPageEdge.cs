@@ -1,0 +1,33 @@
+using GreenDonut.Data;
+
+namespace HotChocolate.Types.Pagination;
+
+/// <summary>
+/// An edge in a streaming connection.
+/// </summary>
+/// <param name="page">
+/// The page that contains the node.
+/// </param>
+/// <param name="entry">
+/// The entry within the page.
+/// </param>
+/// <typeparam name="TNode">
+/// The type of the node.
+/// </typeparam>
+[GraphQLName("{0}Edge")]
+public class StreamPageEdge<TNode>(StreamPage<TNode> page, PageEntry<TNode> entry) : IEdge<TNode>
+{
+    /// <summary>
+    /// The item at the end of the edge.
+    /// </summary>
+    [GraphQLDescription("The item at the end of the edge.")]
+    public TNode Node => entry.Item;
+
+    /// <summary>
+    /// A cursor for use in pagination.
+    /// </summary>
+    [GraphQLDescription("A cursor for use in pagination.")]
+    public string Cursor => page.CreateCursor(entry);
+
+    object? IEdge.Node => Node;
+}

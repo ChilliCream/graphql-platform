@@ -2,6 +2,7 @@ using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Caching.Tests;
@@ -131,6 +132,41 @@ public class CacheControlTypeInterceptorTests
             .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
             .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task PageInfo_Should_HaveNoCacheControl_When_AllPagingFlavorsAreExposed()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .ModifyPagingOptions(o => o.EnableRelativeCursors = true)
+            .AddQueryType<PagingQueryType>()
+            .AddType<OrderPageConnectionType>()
+            .AddCacheControl();
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.Types.GetType<ObjectType>("PageInfo").ToString().MatchInlineSnapshot(
+            """
+            "Information about pagination in a connection."
+            type PageInfo {
+              "Indicates whether more edges exist following the set defined by the clients arguments."
+              hasNextPage: Boolean!
+              "Indicates whether more edges exist prior the set defined by the clients arguments."
+              hasPreviousPage: Boolean!
+              "When paginating backwards, the cursor to continue."
+              startCursor: String
+              "When paginating forwards, the cursor to continue."
+              endCursor: String
+              "A list of cursors to continue paginating forwards."
+              forwardCursors: [PageCursor!]!
+              "A list of cursors to continue paginating backwards."
+              backwardCursors: [PageCursor!]!
+            }
+            """);
     }
 
     [Fact]
@@ -385,5 +421,42 @@ public class CacheControlTypeInterceptorTests
     {
         [CacheControl(InheritMaxAge = true)]
         public Task<string> TaskFieldWithInheritMaxAge() => null!;
+    }
+
+    public class PagingQuery
+    {
+        [UsePaging]
+        public IQueryable<Product> GetProducts() => null!;
+
+        public PageConnection<Order> GetOrders() => null!;
+
+        public StreamPageConnection<Item> GetItems() => null!;
+    }
+
+    public sealed class PagingQueryType : ObjectType<PagingQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<PagingQuery> descriptor)
+            => descriptor.Field(t => t.GetOrders()).Type<NonNullType<OrderPageConnectionType>>();
+    }
+
+    public sealed class OrderPageConnectionType : ObjectType<PageConnection<Order>>
+    {
+        protected override void Configure(IObjectTypeDescriptor<PageConnection<Order>> descriptor)
+            => descriptor.Name("OrderConnection");
+    }
+
+    public sealed class Product
+    {
+        public int Id { get; set; }
+    }
+
+    public sealed class Order
+    {
+        public int Id { get; set; }
+    }
+
+    public sealed class Item
+    {
+        public int Id { get; set; }
     }
 }

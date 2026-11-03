@@ -710,20 +710,23 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <summary>
     /// Sets parent-scope requirement values for this context. Values are copied
     /// into this context and can be resolved without accessing the enclosing
-    /// plan scope.
+    /// plan scope. The result paths of <paramref name="parentValues"/> belong to
+    /// <paramref name="parentOperation"/>.
     /// </summary>
     internal void SetRequirements(
         ImmutableArray<VariableValues> parentValues,
-        HashSet<string> keys)
+        HashSet<string> keys,
+        Operation parentOperation)
     {
         ArgumentNullException.ThrowIfNull(keys);
+        ArgumentNullException.ThrowIfNull(parentOperation);
 
         if (parentValues.IsDefaultOrEmpty || keys.Count == 0)
         {
             return;
         }
 
-        _requirementValues = _resultStore.ImportVariableValues(parentValues);
+        _requirementValues = _resultStore.ImportVariableValues(parentValues, parentOperation);
         _requirementKeys = keys;
     }
 

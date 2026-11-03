@@ -130,10 +130,9 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     }
 
     private static bool IsPagingType(TypeSystemObject type)
-        => type is PageInfoType
-            || (type is IRuntimeTypeProvider { RuntimeType: { } runtimeType }
-                && (typeof(IPageInfo).IsAssignableFrom(runtimeType)
-                    || runtimeType == typeof(PageCursor)));
+        => type is IRuntimeTypeProvider { RuntimeType: { } runtimeType }
+            && (typeof(IPageInfo).IsAssignableFrom(runtimeType)
+                || runtimeType == typeof(PageCursor));
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
@@ -491,7 +490,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         // so they are marked @shareable at the type level.
         if (_context.GetFederationVersion() == FederationVersion.Federation10
             || configuration is not ObjectTypeConfiguration typeCfg
-            || typeCfg.Name is not (PageInfoType.Names.PageInfo or PageCursorTypeName)
+            || typeCfg.Name is not (PageInfo.Names.PageInfo or PageCursorTypeName)
             || typeCfg.Directives.Any(t => t.Value is ShareableDirective))
         {
             return;

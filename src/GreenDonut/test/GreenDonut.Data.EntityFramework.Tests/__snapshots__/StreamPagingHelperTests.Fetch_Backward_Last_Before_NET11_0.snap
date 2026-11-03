@@ -1,0 +1,31 @@
+---------------
+{
+  "HasNext": true,
+  "HasPrevious": true,
+  "Items": [
+    "Item0006",
+    "Item0007"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @value='Item0008'
+-- @value2='8'
+-- @p='2'
+SELECT b0."Id", b0."Name", EXISTS (
+    SELECT 1
+    FROM "Brands" AS b1
+    WHERE b1."Name" < @value OR (b1."Name" = @value AND b1."Id" < @value2)
+    ORDER BY b1."Name" DESC, b1."Id" DESC
+    OFFSET 2) AS "HasMore"
+FROM (
+    SELECT b."Id", b."Name"
+    FROM "Brands" AS b
+    WHERE b."Name" < @value OR (b."Name" = @value AND b."Id" < @value2)
+    ORDER BY b."Name" DESC, b."Id" DESC
+    LIMIT @p
+) AS b0
+ORDER BY b0."Name", b0."Id"
+---------------

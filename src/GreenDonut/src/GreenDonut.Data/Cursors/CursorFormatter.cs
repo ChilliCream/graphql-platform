@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
+using GreenDonut.Data.Internal;
 
 namespace GreenDonut.Data.Cursors;
 
@@ -138,6 +139,56 @@ public static class CursorFormatter
 
             totalWritten += written;
         }
+    }
+
+    /// <summary>
+    /// Formats an end cursor for relative paging.
+    /// </summary>
+    /// <param name="offset">
+    /// The number of pages behind the last page. Zero represents the last page itself, negative
+    /// values represent earlier pages.
+    /// </param>
+    /// <param name="totalCount">
+    /// The total number of items in the dataset.
+    /// </param>
+    /// <returns>
+    /// Returns an end cursor encoding the offset and the total count, with no key values.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// If <paramref name="offset"/> is greater than zero, or <paramref name="totalCount"/> is negative.
+    /// </exception>
+    public static string FormatEndCursor(int offset, int totalCount)
+    {
+        if (offset > 0)
+        {
+            throw ThrowHelper.EndCursor_OffsetMustNotBeGreaterThanZero(offset);
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(totalCount);
+
+        Span<byte> buffer = stackalloc byte[64];
+        var totalWritten = 0;
+
+        "{end|"u8.CopyTo(buffer);
+        totalWritten += "{end|"u8.Length;
+
+        if (!Utf8Formatter.TryFormat(offset, buffer[totalWritten..], out var written))
+        {
+            throw ThrowHelper.EndCursor_BufferTooSmall();
+        }
+        totalWritten += written;
+
+        buffer[totalWritten++] = (byte)'|';
+
+        if (!Utf8Formatter.TryFormat(totalCount, buffer[totalWritten..], out written))
+        {
+            throw ThrowHelper.EndCursor_BufferTooSmall();
+        }
+        totalWritten += written;
+
+        buffer[totalWritten++] = (byte)'}';
+
+        return Convert.ToBase64String(buffer[..totalWritten]);
     }
 
     private static void ExpandBuffer(
