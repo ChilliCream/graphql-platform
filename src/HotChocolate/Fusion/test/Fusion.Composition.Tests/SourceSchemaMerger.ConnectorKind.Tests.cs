@@ -138,6 +138,6 @@ public sealed class SourceSchemaMergerConnectorKindTests
         var schemaEnum = Assert.IsAssignableFrom<MutableEnumTypeDefinition>(
             mergedSchema.Types["fusion__Schema"]);
         Assert.True(schemaEnum.Values.TryGetValue(valueName, out var enumValue));
-        return enumValue.Directives.FirstOrDefault("fusion__schema_metadata");
+        return enumValue.Directives.FirstOrDefault("fusion__schemaMetadata");
     }
 }

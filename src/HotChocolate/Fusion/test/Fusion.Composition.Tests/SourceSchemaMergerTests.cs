@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Serialization;
@@ -88,6 +89,101 @@ public sealed class SourceSchemaMergerTests
         Assert.Null(mergedSchema.MutationType);
         Assert.False(mergedSchema.Types.ContainsName(Subscription));
         Assert.Null(mergedSchema.SubscriptionType);
+    }
+
+    [Theory]
+    [InlineData("fusion__gatewayField")]
+    [InlineData("fusion__gateway_field")]
+    public void HasFusionGatewayFieldDirective_Should_RecognizeApplication_When_NameIsSupported(string name)
+    {
+        // arrange
+        var schemas = CreateSchemaDefinitions(
+        [
+            $$"""
+            # Schema A
+            directive @{{name}} on FIELD_DEFINITION
+            type Query { ping: String @{{name}} }
+            """
+        ]);
+        var field = schemas.Single().QueryType!.Fields["ping"];
+
+        // act
+        var isGatewayField = field.HasFusionGatewayFieldDirective();
+
+        // assert
+        Assert.True(isGatewayField);
+    }
+
+    [Theory]
+    [InlineData("fusion__costOptions")]
+    [InlineData("fusion__cost_options")]
+    [InlineData("fusion__gatewayField")]
+    [InlineData("fusion__gateway_field")]
+    [InlineData("fusion__schemaMetadata")]
+    [InlineData("fusion__schema_metadata")]
+    public void Merge_Should_EmitCanonicalDefinitions_When_SourceDefinesFusionDirective(string name)
+    {
+        // arrange
+        var schemas = CreateSchemaDefinitions(
+        [
+            $$"""
+            # Schema A
+            directive @{{name}} on FIELD | SCHEMA
+            type Query { ping: String }
+            """
+        ]);
+        var merger = new SourceSchemaMerger(schemas);
+
+        // act
+        var result = merger.Merge();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        result.Value.DirectiveDefinitions.AsEnumerable()
+            .Where(d => d.Name is "fusion__costOptions" or "fusion__cost_options"
+                or "fusion__gatewayField" or "fusion__gateway_field"
+                or "fusion__schemaMetadata" or "fusion__schema_metadata")
+            .Select(d => d.Name)
+            .OrderBy(n => n, StringComparer.Ordinal)
+            .ToArray()
+            .MatchInlineSnapshot(
+                """
+                [
+                  "fusion__costOptions",
+                  "fusion__gatewayField",
+                  "fusion__schemaMetadata"
+                ]
+                """);
+    }
+
+    [Fact]
+    public void Merge_Should_IgnoreCostOptions_When_SourceAppliesLegacyDirective()
+    {
+        // arrange
+        var schemas = CreateSchemaDefinitions(
+        [
+            """
+            # Schema A
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__gateway_field on FIELD_DEFINITION
+            directive @fusion__schema_metadata(name: String!) on ENUM_VALUE
+            schema @fusion__cost_options(defaultListSize: 7) { query: Query }
+            type Query { ping: String @fusion__gateway_field }
+            enum Example { VALUE @fusion__schema_metadata(name: "A") }
+            """
+        ]);
+        var merger = new SourceSchemaMerger(schemas);
+
+        // act
+        var result = merger.Merge();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        result.Value.Directives.AsEnumerable()
+            .Where(d => d.Name is "fusion__costOptions" or "fusion__cost_options")
+            .Select(d => d.ToString())
+            .ToArray()
+            .MatchInlineSnapshots([]);
     }
 
     [Fact]

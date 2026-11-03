@@ -39,6 +39,7 @@ public sealed class ExecutionSchemaVersionTests
     }
 
     [Theory]
+    [InlineData("2.0.0")]
     [InlineData("1.0.0")]
     [InlineData("0.9.0")]
     public async Task GatewayConfiguration_Should_Load_When_ExecutionSchemaVersionIsSupported(string version)
@@ -54,9 +55,9 @@ public sealed class ExecutionSchemaVersionTests
     }
 
     [Theory]
-    [InlineData("2.0.0")]
-    [InlineData("1.1.0")]
-    [InlineData("1.0.1")]
+    [InlineData("3.0.0")]
+    [InlineData("2.1.0")]
+    [InlineData("2.0.1")]
     public async Task GatewayConfiguration_Should_Reject_When_ExecutionSchemaVersionIsHigher(string version)
     {
         // arrange
@@ -73,7 +74,7 @@ public sealed class ExecutionSchemaVersionTests
     public async Task GatewayConfiguration_Should_DescribeSupportedVersion_When_ExecutionSchemaVersionIsHigher()
     {
         // arrange
-        await using var stream = await CreateGatewayArchiveAsync(new Version("1.0.1"));
+        await using var stream = await CreateGatewayArchiveAsync(new Version("2.0.1"));
 
         // act
         var exception = await LoadGatewayErrorThroughProviderAsync(stream);
@@ -81,7 +82,7 @@ public sealed class ExecutionSchemaVersionTests
         // assert
         exception.Message.MatchInlineSnapshot(
             """
-            The Fusion archive requires execution schema version 1.0.1, but this gateway supports up to 1.0.0. Upgrade the gateway to load this archive.
+            The Fusion archive requires execution schema version 2.0.1, but this gateway supports up to 2.0.0. Upgrade the gateway to load this archive.
             """);
     }
 
@@ -94,7 +95,7 @@ public sealed class ExecutionSchemaVersionTests
             WellKnownVersions.MaxSupportedExecutionSchemaVersion,
             "type Query { product: String }");
         await using var unsupportedArchive = await CreateGatewayArchiveAsync(
-            new Version("1.0.1"),
+            new Version("2.0.1"),
             "type Query { product: String }");
         await using var updatedArchive = await CreateGatewayArchiveAsync(
             WellKnownVersions.MaxSupportedExecutionSchemaVersion,
@@ -133,7 +134,7 @@ public sealed class ExecutionSchemaVersionTests
         var fileName = CreateFileName();
         await using var supportedArchive = await CreateGatewayArchiveAsync(
             WellKnownVersions.MaxSupportedExecutionSchemaVersion);
-        await using var unsupportedArchive = await CreateGatewayArchiveAsync(new Version("1.0.1"));
+        await using var unsupportedArchive = await CreateGatewayArchiveAsync(new Version("2.0.1"));
 
         try
         {

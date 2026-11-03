@@ -10,11 +10,13 @@ internal static class WellKnownDirectiveNames
     public const string EventCursor = DirectiveNames.EventCursor.Name;
     public const string External = DirectiveNames.External.Name;
     public const string FusionCost = "fusion__cost";
-    public const string FusionCostOptions = "fusion__cost_options";
+    public const string FusionCostOptions = "fusion__costOptions";
+    public const string LegacyFusionCostOptions = "fusion__cost_options";
     public const string FusionEnumValue = "fusion__enumValue";
     public const string FusionExecution = "fusion__execution";
     public const string FusionField = "fusion__field";
-    public const string FusionGatewayField = "fusion__gateway_field";
+    public const string FusionGatewayField = "fusion__gatewayField";
+    public const string LegacyFusionGatewayField = "fusion__gateway_field";
     public const string FusionImplements = "fusion__implements";
     public const string FusionInaccessible = "fusion__inaccessible";
     public const string FusionInputField = "fusion__inputField";
@@ -22,7 +24,8 @@ internal static class WellKnownDirectiveNames
     public const string FusionListSize = "fusion__listSize";
     public const string FusionLookup = "fusion__lookup";
     public const string FusionRequires = "fusion__requires";
-    public const string FusionSchemaMetadata = "fusion__schema_metadata";
+    public const string FusionSchemaMetadata = "fusion__schemaMetadata";
+    public const string LegacyFusionSchemaMetadata = "fusion__schema_metadata";
     public const string FusionEventStream = "fusion__eventStream";
     public const string FusionType = "fusion__type";
     public const string FusionUnionMember = "fusion__unionMember";

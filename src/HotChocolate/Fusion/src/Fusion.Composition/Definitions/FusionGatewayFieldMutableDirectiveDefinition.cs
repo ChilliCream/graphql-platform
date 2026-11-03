@@ -6,7 +6,7 @@ using static HotChocolate.Fusion.WellKnownDirectiveNames;
 namespace HotChocolate.Fusion.Definitions;
 
 /// <summary>
-/// The <c>@fusion__gateway_field</c> directive marks a field that is implemented by the gateway
+/// The <c>@fusion__gatewayField</c> directive marks a field that is implemented by the gateway
 /// itself rather than resolved from an underlying source schema, such as the global object
 /// identification <c>node</c> field.
 /// </summary>

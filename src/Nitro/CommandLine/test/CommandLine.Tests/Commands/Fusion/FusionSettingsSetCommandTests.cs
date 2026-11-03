@@ -354,6 +354,48 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     }
 
     [Fact]
+    public async Task Execute_Should_RecomposeLegacyArchive_When_SettingDefaultListSize()
+    {
+        // arrange
+        var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"),
+            archiveFile);
+        SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+
+        try
+        {
+            using (var original = FusionArchive.Open(archiveFile))
+            {
+                var originalSchema = await GetFusionSchemaAsync(original);
+                Assert.Contains("@fusion__schema_metadata(name: \"reviews\")", originalSchema);
+            }
+
+            // act
+            var result = await ExecuteCommandAsync(
+                "fusion", "settings", "set", "default-list-size", "5", "--archive", archiveFile);
+
+            // assert
+            Assert.Equal(0, result.ExitCode);
+            using var archive = FusionArchive.Open(archiveFile);
+            var metadata = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(new Version(2, 0, 0), metadata!.ExecutionSchemaVersion);
+            var schema = await GetFusionSchemaAsync(archive);
+            schema.Split('\n')
+                .Where(line => line.Contains("@fusion__cost", StringComparison.Ordinal)
+                    || line.Contains("@fusion__gateway", StringComparison.Ordinal)
+                    || line.Contains("@fusion__schema", StringComparison.Ordinal))
+                .Select(line => line.Trim())
+                .ToArray()
+                .MatchSnapshot();
+        }
+        finally
+        {
+            File.Delete(archiveFile);
+        }
+    }
+
+    [Fact]
     public async Task Execute_Should_SetAndUnset_DefaultListSize()
     {
         var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());

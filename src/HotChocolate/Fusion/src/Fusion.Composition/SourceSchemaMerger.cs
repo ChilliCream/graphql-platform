@@ -221,6 +221,17 @@ internal sealed partial class SourceSchemaMerger
 
         foreach (var grouping in directiveDefinitionGroupByName)
         {
+            if (_options.AddFusionDefinitions
+                && grouping.Key is DirectiveNames.FusionCostOptions
+                    or DirectiveNames.LegacyFusionCostOptions
+                    or DirectiveNames.FusionGatewayField
+                    or DirectiveNames.LegacyFusionGatewayField
+                    or DirectiveNames.FusionSchemaMetadata
+                    or DirectiveNames.LegacyFusionSchemaMetadata)
+            {
+                continue;
+            }
+
             if (!_directiveMergers.TryGetValue(grouping.Key, out var directiveMerger))
             {
                 MergeExecutableDirectiveDefinition([.. grouping], mergedSchema);
@@ -2456,7 +2467,8 @@ internal sealed partial class SourceSchemaMerger
             if (schemaEnum.Values.TryGetValue(_schemaConstantNames[schema.Name], out var enumValue))
             {
                 var currentMetadata =
-                    enumValue.Directives.FirstOrDefault(DirectiveNames.FusionSchemaMetadata);
+                    enumValue.Directives.FirstOrDefault(DirectiveNames.FusionSchemaMetadata)
+                    ?? enumValue.Directives.FirstOrDefault(DirectiveNames.LegacyFusionSchemaMetadata);
                 var arguments = currentMetadata is null
                     ? [new ArgumentAssignment(ArgumentNames.Name, schema.Name)]
                     : currentMetadata.Arguments

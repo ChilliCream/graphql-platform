@@ -1322,7 +1322,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
-              REVIEWS @fusion__schema_metadata(name: "reviews")
+              REVIEWS @fusion__schemaMetadata(name: "reviews")
             }
 
             enum fusion__ShareableFieldRuntimeTypeRouting {
@@ -1356,7 +1356,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(
+            directive @fusion__costOptions(
               caseBudget: Int
               caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
               costPlanCacheSize: Int
@@ -1402,8 +1402,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               sourceType: String
             ) repeatable on FIELD_DEFINITION
 
-            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
-            directive @fusion__gateway_field on FIELD_DEFINITION
+            "The @fusion__gatewayField directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gatewayField on FIELD_DEFINITION
 
             "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
             directive @fusion__implements(
@@ -1484,8 +1484,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
             ) repeatable on FIELD_DEFINITION
 
-            "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
-            directive @fusion__schema_metadata(
+            "The @fusion__schemaMetadata directive is used to provide additional metadata for a source schema."
+            directive @fusion__schemaMetadata(
               allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."
@@ -1562,8 +1562,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
-              PRODUCTS @fusion__schema_metadata(name: "products")
-              REVIEWS @fusion__schema_metadata(name: "reviews")
+              PRODUCTS @fusion__schemaMetadata(name: "products")
+              REVIEWS @fusion__schemaMetadata(name: "reviews")
             }
 
             enum fusion__ShareableFieldRuntimeTypeRouting {
@@ -1605,7 +1605,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(
+            directive @fusion__costOptions(
               caseBudget: Int
               caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
               costPlanCacheSize: Int
@@ -1651,8 +1651,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               sourceType: String
             ) repeatable on FIELD_DEFINITION
 
-            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
-            directive @fusion__gateway_field on FIELD_DEFINITION
+            "The @fusion__gatewayField directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gatewayField on FIELD_DEFINITION
 
             "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
             directive @fusion__implements(
@@ -1733,8 +1733,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
             ) repeatable on FIELD_DEFINITION
 
-            "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
-            directive @fusion__schema_metadata(
+            "The @fusion__schemaMetadata directive is used to provide additional metadata for a source schema."
+            directive @fusion__schemaMetadata(
               allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."
@@ -1820,8 +1820,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
-              PRODUCTS @fusion__schema_metadata(name: "products")
-              REVIEWS @fusion__schema_metadata(name: "reviews")
+              PRODUCTS @fusion__schemaMetadata(name: "products")
+              REVIEWS @fusion__schemaMetadata(name: "reviews")
             }
 
             enum fusion__ShareableFieldRuntimeTypeRouting {
@@ -1863,7 +1863,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(
+            directive @fusion__costOptions(
               caseBudget: Int
               caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
               costPlanCacheSize: Int
@@ -1909,8 +1909,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               sourceType: String
             ) repeatable on FIELD_DEFINITION
 
-            "The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
-            directive @fusion__gateway_field on FIELD_DEFINITION
+            "The @fusion__gatewayField directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+            directive @fusion__gatewayField on FIELD_DEFINITION
 
             "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
             directive @fusion__implements(
@@ -1991,8 +1991,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
             ) repeatable on FIELD_DEFINITION
 
-            "The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
-            directive @fusion__schema_metadata(
+            "The @fusion__schemaMetadata directive is used to provide additional metadata for a source schema."
+            directive @fusion__schemaMetadata(
               allowNonResolvableInterfaceObjects: Boolean
               kind: String
               "The name of the source schema."

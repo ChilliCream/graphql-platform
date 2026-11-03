@@ -145,7 +145,7 @@
     <value>The name of the source schema on which the annotated type implements the specified interface.</value>
   </data>
   <data name="FusionGatewayFieldMutableDirectiveDefinition_Description" xml:space="preserve">
-    <value>The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field.</value>
+    <value>The @fusion__gatewayField directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field.</value>
   </data>
   <data name="FusionImplementsMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type.</value>
@@ -229,7 +229,7 @@
     <value>The name of the source schema.</value>
   </data>
   <data name="FusionSchemaMetadataMutableDirectiveDefinition_Description" xml:space="preserve">
-    <value>The @fusion__schema_metadata directive is used to provide additional metadata for a source schema.</value>
+    <value>The @fusion__schemaMetadata directive is used to provide additional metadata for a source schema.</value>
   </data>
   <data name="FusionSchemaMutableEnumTypeDefinition_Description" xml:space="preserve">
     <value>The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner.</value>

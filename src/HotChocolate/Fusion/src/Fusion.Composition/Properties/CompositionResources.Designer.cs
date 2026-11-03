@@ -384,7 +384,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field..
+        ///   Looks up a localized string similar to The @fusion__gatewayField directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field..
         /// </summary>
         internal static string FusionGatewayFieldMutableDirectiveDefinition_Description {
             get {
@@ -638,7 +638,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The @fusion__schema_metadata directive is used to provide additional metadata for a source schema..
+        ///   Looks up a localized string similar to The @fusion__schemaMetadata directive is used to provide additional metadata for a source schema..
         /// </summary>
         internal static string FusionSchemaMetadataMutableDirectiveDefinition_Description {
             get {

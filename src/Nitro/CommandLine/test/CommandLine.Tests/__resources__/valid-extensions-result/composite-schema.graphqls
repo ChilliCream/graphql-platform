@@ -36,7 +36,7 @@ enum fusion__NodeResolution {
 
 "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
 enum fusion__Schema {
-  SCHEMA1 @fusion__schema_metadata(name: "Schema1")
+  SCHEMA1 @fusion__schemaMetadata(name: "Schema1")
 }
 
 enum fusion__ShareableFieldRuntimeTypeRouting {
@@ -70,7 +70,7 @@ directive @fusion__cost(
   | ENUM
   | INPUT_FIELD_DEFINITION
 
-directive @fusion__cost_options(
+directive @fusion__costOptions(
   caseBudget: Int
   caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
   costPlanCacheSize: Int
@@ -116,8 +116,8 @@ directive @fusion__field(
   sourceType: String
 ) repeatable on FIELD_DEFINITION
 
-"The @fusion__gateway_field directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
-directive @fusion__gateway_field on FIELD_DEFINITION
+"The @fusion__gatewayField directive marks a field that is implemented by the gateway itself rather than resolved from an underlying source schema, such as the global object identification node field."
+directive @fusion__gatewayField on FIELD_DEFINITION
 
 "The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type."
 directive @fusion__implements(
@@ -198,8 +198,8 @@ directive @fusion__requires(
   schema: fusion__Schema!
 ) repeatable on FIELD_DEFINITION
 
-"The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
-directive @fusion__schema_metadata(
+"The @fusion__schemaMetadata directive is used to provide additional metadata for a source schema."
+directive @fusion__schemaMetadata(
   allowNonResolvableInterfaceObjects: Boolean
   kind: String
   "The name of the source schema."

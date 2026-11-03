@@ -134,7 +134,7 @@ internal sealed partial class SatisfiabilityValidator
                 continue;
             }
 
-            // Fields implemented by the gateway are marked with @fusion__gateway_field and are
+            // Fields implemented by the gateway are marked with @fusion__gatewayField and are
             // not resolved from a single source schema, so ordinary source-schema satisfiability
             // does not apply. When such a field returns the Node interface, its resolvability is
             // validated against the per-type node lookups instead.

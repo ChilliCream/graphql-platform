@@ -118,7 +118,7 @@ public sealed class SchemaComposerTests
             .Single();
 
         schemaDefinition.Directives
-            .Where(directive => directive.Name.Value == "fusion__cost_options")
+            .Where(directive => directive.Name.Value == "fusion__costOptions")
             .Select(directive => directive.ToString())
             .ToArray()
             .MatchInlineSnapshots([]);
@@ -147,13 +147,13 @@ public sealed class SchemaComposerTests
             .OfType<SchemaDefinitionNode>()
             .Single();
         var costOptionsApplications = schemaDefinition.Directives
-            .Where(directive => directive.Name.Value == "fusion__cost_options")
+            .Where(directive => directive.Name.Value == "fusion__costOptions")
             .ToArray();
 
         var costOptionsApplication = Assert.Single(costOptionsApplications);
         costOptionsApplication.ToString().MatchInlineSnapshot(
             """
-            @fusion__cost_options(defaultListSize: 7)
+            @fusion__costOptions(defaultListSize: 7)
             """);
     }
 
@@ -191,11 +191,11 @@ public sealed class SchemaComposerTests
             .OfType<SchemaDefinitionNode>()
             .Single();
         var costOptionsApplication = schemaDefinition.Directives.Single(
-            directive => directive.Name.Value == "fusion__cost_options");
+            directive => directive.Name.Value == "fusion__costOptions");
 
         costOptionsApplication.ToString().MatchInlineSnapshot(
             """
-            @fusion__cost_options(
+            @fusion__costOptions(
               defaultListSize: 7
               maxFieldCost: 100.5
               maxTypeCost: 200.5
