@@ -120,7 +120,7 @@ public sealed class ValidationOptions
     /// count as one selection, and the selections of a fragment count every time
     /// the fragment is spread.
     /// </para>
-    /// <para>Default: <c>10,000</c></para>
+    /// <para>Default: <c>100,000</c></para>
     /// </summary>
     public int MaxAllowedSelections
     {
@@ -129,12 +129,12 @@ public sealed class ValidationOptions
         {
             if (value < 1)
             {
-                value = 10_000;
+                value = 100_000;
             }
 
             field = value;
         }
-    } = 10_000;
+    } = 100_000;
 
     /// <summary>
     /// <para>
