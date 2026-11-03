@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
+using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
@@ -178,42 +179,83 @@ public class RequestReplyTests
     }
 
     [Fact]
-    public async Task RequestAsync_Should_ReturnTypedResponse_When_ReplyQueueWasDeletedWithConsumerConnection()
+    public async Task RequestAsync_Should_ReturnResponse_When_ConsumerConnectionIsLost()
     {
         // arrange
+        const string queueName = "order-status";
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
             .AddMessageBus()
             .AddRequestHandler<GetOrderStatusHandler>()
-            .AddRabbitMQ()
+            .AddRabbitMQ(t => t.Endpoint(queueName).Handler<GetOrderStatusHandler>())
             .BuildTestBusAsync();
-
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-1" }, CancellationToken.None);
-        // the reply queue is auto-delete, so closing its consumer connection deletes it
-        await vhost.CloseConsumerConnectionAsync(GetReplyQueueName(bus));
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(s_timeout);
+        var before = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-before" }, cts.Token);
+        var replyQueue = await vhost.GetAutoDeleteQueueNameAsync();
 
         // act
-        using var cts = new CancellationTokenSource(s_timeout);
-        var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-2" }, cts.Token);
+        await vhost.CloseConsumerConnectionAsync(queueName);
+        await vhost.WaitForQueueDeletionAsync(replyQueue, s_timeout);
+        var after = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-after" }, cts.Token);
 
         // assert
-        Assert.Equal("ORD-2", response.OrderId);
-        Assert.Equal("Shipped", response.Status);
+        Assert.Equal(("ORD-before", "Shipped"), (before.OrderId, before.Status));
+        Assert.Equal(("ORD-after", "Shipped"), (after.OrderId, after.Status));
     }
 
-    private static string GetReplyQueueName(TestBus bus)
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RequestAsync_Should_ReturnAllResponses_When_RequestsWereQueuedDuringDisconnection(
+        bool automaticRecovery)
     {
-        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        // arrange
+        const string queueName = "order-status";
+        var timeout = TimeSpan.FromSeconds(60);
+        await using var vhost = await _fixture.CreateVhostAsync();
+        var connectionFactory = (ConnectionFactory)vhost.ConnectionFactory;
+        connectionFactory.AutomaticRecoveryEnabled = automaticRecovery;
+        connectionFactory.NetworkRecoveryInterval = TimeSpan.FromSeconds(2);
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddRabbitMQ(t => t.Endpoint(queueName).Handler<GetOrderStatusHandler>())
+            .BuildTestBusAsync();
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(timeout);
+        await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-before" }, cts.Token);
+        var replyQueue = await vhost.GetAutoDeleteQueueNameAsync();
+        await vhost.SetConfigurePermissionAsync("^$");
+        Task<OrderStatusResponse>[] pendingRequests;
 
-        return runtime.Transports
-            .OfType<RabbitMQMessagingTransport>()
-            .Single()
-            .ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>()
-            .Single(e => e.Kind == ReceiveEndpointKind.Reply)
-            .Queue.Name;
+        // act
+        try
+        {
+            await vhost.CloseConsumerConnectionAsync(queueName);
+            await vhost.WaitForQueueDeletionAsync(replyQueue, s_timeout);
+            pendingRequests = Enumerable.Range(1, 3)
+                .Select(i => messageBus.RequestAsync(new GetOrderStatus { OrderId = $"ORD-{i}" }, cts.Token).AsTask())
+                .ToArray();
+            await vhost.WaitForMessagesAsync(queueName, pendingRequests.Length, s_timeout);
+        }
+        finally
+        {
+            await vhost.SetConfigurePermissionAsync(".*");
+        }
+
+        var responses = await Task.WhenAll(pendingRequests).WaitAsync(cts.Token);
+
+        // assert
+        Assert.Equal(
+            [("ORD-1", "Shipped"), ("ORD-2", "Shipped"), ("ORD-3", "Shipped")],
+            responses.Select(r => (r.OrderId, r.Status)));
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>

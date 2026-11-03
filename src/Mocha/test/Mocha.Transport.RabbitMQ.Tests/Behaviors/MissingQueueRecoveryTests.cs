@@ -1,92 +1,115 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 [Collection("RabbitMQ")]
 public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
 {
+    private const string QueueName = "temporary-orders";
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
     [Fact]
-    public async Task Handler_Should_ReceiveEvent_When_TemporaryQueueWasDeletedWithConsumerConnection()
+    public async Task PublishAsync_Should_DeliverEvents_When_ConsumerConnectionIsLost()
     {
         // arrange
-        const string queueName = "temporary-orders";
         var recorder = new MessageRecorder();
         await using var vhost = await fixture.CreateVhostAsync();
-        await using var bus = await new ServiceCollection()
+        await using var bus = await CreateEventBusAsync(vhost, recorder);
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-before" }, TestContext.Current.CancellationToken);
+        Assert.True(await recorder.WaitAsync(s_timeout));
+
+        // act
+        await vhost.CloseConsumerConnectionAsync(QueueName);
+        await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
+        await vhost.WaitForConsumerAsync(QueueName, s_timeout);
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-after" }, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout));
+        Assert.Equal(
+            ["ORD-after", "ORD-before"],
+            recorder.Messages.Cast<OrderCreated>().Select(m => m.OrderId).Order());
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_DeliverEvent_When_QueueDeclarationPermissionIsRestored()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await CreateEventBusAsync(vhost, recorder);
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await vhost.SetConfigurePermissionAsync("^$");
+
+        // act
+        try
+        {
+            await vhost.CloseConsumerConnectionAsync(QueueName);
+            await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
+            // Keep declarations denied across several recovery attempts.
+            await Task.Delay(TimeSpan.FromSeconds(7), TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            await vhost.SetConfigurePermissionAsync(".*");
+        }
+
+        await vhost.WaitForConsumerAsync(QueueName, s_timeout);
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-recovered" }, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout));
+        Assert.Equal("ORD-recovered", Assert.Single(recorder.Messages.Cast<OrderCreated>()).OrderId);
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_DeliverEvent_When_BindingPermissionIsRestored()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await CreateEventBusAsync(vhost, recorder);
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await vhost.AllowReadingQueuesOnlyAsync();
+
+        // act
+        try
+        {
+            await vhost.CloseConsumerConnectionAsync(QueueName);
+            await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
+            await vhost.WaitForQueueAsync(QueueName, s_timeout);
+            // Queue consumption is permitted, but exchange-to-queue binding is denied.
+            await vhost.WaitForNoBindingsAsync(QueueName, s_timeout);
+        }
+        finally
+        {
+            await vhost.SetReadPermissionAsync(".*");
+        }
+
+        await vhost.WaitForConsumerAsync(QueueName, s_timeout);
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-bound" }, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout));
+        Assert.Equal("ORD-bound", Assert.Single(recorder.Messages.Cast<OrderCreated>()).OrderId);
+    }
+
+    private static Task<TestBus> CreateEventBusAsync(VhostContext vhost, MessageRecorder recorder)
+    {
+        ((ConnectionFactory)vhost.ConnectionFactory).NetworkRecoveryInterval = TimeSpan.FromSeconds(2);
+
+        return new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
-            .AddRabbitMQ(t => t.Endpoint(queueName).Handler<OrderCreatedHandler>().Temporary())
+            .AddRabbitMQ(t => t.Endpoint(QueueName).Handler<OrderCreatedHandler>().Temporary())
             .BuildTestBusAsync();
-
-        using var scope = bus.Provider.CreateScope();
-        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        // the temporary queue is auto-delete, so closing its consumer connection deletes it and its binding
-        await vhost.CloseConsumerConnectionAsync(queueName);
-        await vhost.WaitForConsumerAsync(queueName, s_timeout);
-
-        // act
-        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
-
-        // assert
-        Assert.True(await recorder.WaitAsync(s_timeout));
-    }
-
-    [Fact]
-    public async Task RegisterConsumerAsync_Should_DeclareQueue_When_QueueDoesNotExist()
-    {
-        // arrange
-        const string queueName = "missing-queue";
-        await using var vhost = await fixture.CreateVhostAsync();
-        await using var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance,
-            ct => new ValueTask<IConnection>(vhost.ConnectionFactory.CreateConnectionAsync(ct)));
-        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
-
-        // act
-        await using var consumer = await manager.RegisterConsumerAsync(
-            queueName,
-            (_, _, _) => default,
-            async (channel, ct) => await channel.QueueDeclareAsync(
-                queueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                cancellationToken: ct),
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
-            TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.Equal(1, await vhost.GetConsumerCountAsync(queueName));
-    }
-
-    [Fact]
-    public async Task RegisterConsumerAsync_Should_Throw_When_QueueDoesNotExistAndNoProvisioning()
-    {
-        // arrange
-        await using var vhost = await fixture.CreateVhostAsync();
-        await using var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance,
-            ct => new ValueTask<IConnection>(vhost.ConnectionFactory.CreateConnectionAsync(ct)));
-        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
-
-        // act
-        var exception = await Assert.ThrowsAsync<OperationInterruptedException>(() => manager.RegisterConsumerAsync(
-            "missing-queue",
-            (_, _, _) => default,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
-            TestContext.Current.CancellationToken));
-
-        // assert
-        Assert.Equal(Constants.NotFound, (int?)exception.ShutdownReason?.ReplyCode);
     }
 }
