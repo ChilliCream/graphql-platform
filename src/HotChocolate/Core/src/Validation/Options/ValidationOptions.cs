@@ -12,6 +12,7 @@ public class ValidationOptions
     private int? _maxAllowedExecutionDepth;
     private int _maxErrors = 5;
     private int _maxAllowedSelectionSetDepth = 200;
+    private int _maxAllowedSelections = 100000;
 
     /// <summary>
     /// Gets the document rules of the validation.
@@ -72,5 +73,20 @@ public class ValidationOptions
     {
         get => _maxAllowedSelectionSetDepth;
         set => _maxAllowedSelectionSetDepth = value < 1 ? 200 : value;
+    }
+
+    /// <summary>
+    /// <para>
+    /// The maximum number of selections an operation can have once its fragment
+    /// spreads are followed. Fields, inline fragments and fragment spreads each
+    /// count as one selection, and the selections of a fragment count every time
+    /// the fragment is spread.
+    /// </para>
+    /// <para>Default: <c>100,000</c></para>
+    /// </summary>
+    public int MaxAllowedSelections
+    {
+        get => _maxAllowedSelections;
+        set => _maxAllowedSelections = value < 1 ? 100000 : value;
     }
 }

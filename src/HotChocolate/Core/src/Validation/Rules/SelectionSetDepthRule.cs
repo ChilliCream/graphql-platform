@@ -7,8 +7,10 @@ using HotChocolate.Validation.Options;
 namespace HotChocolate.Validation.Rules;
 
 /// <summary>
-/// Rejects an operation whose selection sets, with its fragment spreads followed,
-/// are nested deeper than the allowed depth or whose fragment spreads form a cycle.
+/// Rejects an operation whose selection sets, with its fragment spreads followed, are nested
+/// deeper than the allowed depth or contain more than the allowed number of selections, or
+/// whose fragment spreads form a cycle. Depth and selection count are measured in a single walk
+/// that visits every fragment only once.
 /// </summary>
 internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocumentValidatorRule
 {
@@ -29,7 +31,8 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
         }
 
         var maxAllowedSelectionSetDepth = options.MaxAllowedSelectionSetDepth;
-        var fragmentDepths = new Dictionary<string, int>(StringComparer.Ordinal);
+        var maxAllowedSelections = options.MaxAllowedSelections;
+        var fragmentSizes = new Dictionary<string, (int Depth, long Count)>(StringComparer.Ordinal);
 
         var definitions = document.Definitions;
 
@@ -38,10 +41,12 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
             if (definitions[i] is OperationDefinitionNode operation
                 && !TryMeasure(
                     context,
-                    fragmentDepths,
+                    fragmentSizes,
                     maxAllowedSelectionSetDepth,
+                    maxAllowedSelections,
                     operation.SelectionSet,
                     0,
+                    out _,
                     out _))
             {
                 return;
@@ -50,22 +55,32 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
     }
 
     /// <summary>
-    /// Measures how many levels of selection sets <paramref name="selectionSet"/> spans,
-    /// where <paramref name="parentDepth"/> is the number of levels that enclose it.
+    /// Measures how many levels of selection sets <paramref name="selectionSet"/> spans and how
+    /// many selections it has, where <paramref name="parentDepth"/> is the number of levels that
+    /// enclose it.
     /// </summary>
     private static bool TryMeasure(
         IDocumentValidatorContext context,
-        Dictionary<string, int> fragmentDepths,
+        Dictionary<string, (int Depth, long Count)> fragmentSizes,
         int maxAllowedSelectionSetDepth,
+        int maxAllowedSelections,
         SelectionSetNode selectionSet,
         int parentDepth,
-        out int depth)
+        out int depth,
+        out long count)
     {
         depth = 1;
+        count = selectionSet.Selections.Count;
 
         if (parentDepth + depth > maxAllowedSelectionSetDepth)
         {
             context.ReportMaxSelectionSetDepthOverflow(selectionSet, maxAllowedSelectionSetDepth);
+            return false;
+        }
+
+        if (count > maxAllowedSelections)
+        {
+            context.ReportMaxSelectionCountOverflow(selectionSet, maxAllowedSelections);
             return false;
         }
 
@@ -76,6 +91,7 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
         for (var i = 0; i < selections.Count; i++)
         {
             int childDepth;
+            long childCount;
 
             switch (selections[i])
             {
@@ -84,11 +100,13 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
 
                     if (!TryMeasure(
                         context,
-                        fragmentDepths,
+                        fragmentSizes,
                         maxAllowedSelectionSetDepth,
+                        maxAllowedSelections,
                         childSelectionSet,
                         parentDepth,
-                        out childDepth))
+                        out childDepth,
+                        out childCount))
                     {
                         return false;
                     }
@@ -99,11 +117,13 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
                 case InlineFragmentNode { SelectionSet: var childSelectionSet }:
                     if (!TryMeasure(
                         context,
-                        fragmentDepths,
+                        fragmentSizes,
                         maxAllowedSelectionSetDepth,
+                        maxAllowedSelections,
                         childSelectionSet,
                         parentDepth,
-                        out childDepth))
+                        out childDepth,
+                        out childCount))
                     {
                         return false;
                     }
@@ -112,11 +132,13 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
                 case FragmentSpreadNode spread:
                     if (!TryMeasure(
                         context,
-                        fragmentDepths,
+                        fragmentSizes,
                         maxAllowedSelectionSetDepth,
+                        maxAllowedSelections,
                         spread,
                         parentDepth,
-                        out childDepth))
+                        out childDepth,
+                        out childCount))
                     {
                         return false;
                     }
@@ -124,6 +146,14 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
 
                 default:
                     continue;
+            }
+
+            count += childCount;
+
+            if (count > maxAllowedSelections)
+            {
+                context.ReportMaxSelectionCountOverflow(selectionSet, maxAllowedSelections);
+                return false;
             }
 
             if (depth <= childDepth)
@@ -137,16 +167,21 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
 
     private static bool TryMeasure(
         IDocumentValidatorContext context,
-        Dictionary<string, int> fragmentDepths,
+        Dictionary<string, (int Depth, long Count)> fragmentSizes,
         int maxAllowedSelectionSetDepth,
+        int maxAllowedSelections,
         FragmentSpreadNode spread,
         int parentDepth,
-        out int depth)
+        out int depth,
+        out long count)
     {
-        // A fragment spans the same number of levels wherever it is spread,
-        // so we measure every fragment only once.
-        if (fragmentDepths.TryGetValue(spread.Name.Value, out depth))
+        // A fragment spans the same number of levels and has the same number of selections
+        // wherever it is spread, so we measure every fragment only once.
+        if (fragmentSizes.TryGetValue(spread.Name.Value, out var size))
         {
+            depth = size.Depth;
+            count = size.Count;
+
             if (depth is Measuring)
             {
                 context.FatalErrorDetected = true;
@@ -165,23 +200,27 @@ internal sealed class SelectionSetDepthRule(ValidationOptions options) : IDocume
 
         if (!context.Fragments.TryGetValue(spread.Name.Value, out var fragment))
         {
+            depth = 0;
+            count = 0;
             return true;
         }
 
-        fragmentDepths[spread.Name.Value] = Measuring;
+        fragmentSizes[spread.Name.Value] = (Measuring, 0);
 
         if (!TryMeasure(
             context,
-            fragmentDepths,
+            fragmentSizes,
             maxAllowedSelectionSetDepth,
+            maxAllowedSelections,
             fragment.SelectionSet,
             parentDepth,
-            out depth))
+            out depth,
+            out count))
         {
             return false;
         }
 
-        fragmentDepths[spread.Name.Value] = depth;
+        fragmentSizes[spread.Name.Value] = (depth, count);
 
         return true;
     }
