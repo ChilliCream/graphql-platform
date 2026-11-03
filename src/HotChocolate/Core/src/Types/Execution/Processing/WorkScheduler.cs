@@ -47,6 +47,11 @@ internal sealed partial class WorkScheduler
             {
                 IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
             }
+            else if (task is Tasks.DeferTask dt)
+            {
+                dt.IsResolverRegistrationPending = true;
+                IncrementPathCountUnsafe(dt.SelectionSetPath);
+            }
         }
 
         _signal.Set();
@@ -82,6 +87,11 @@ internal sealed partial class WorkScheduler
                 {
                     IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
                 }
+                else if (task is Tasks.DeferTask dt)
+                {
+                    dt.IsResolverRegistrationPending = true;
+                    IncrementPathCountUnsafe(dt.SelectionSetPath);
+                }
             }
         }
 
@@ -112,8 +122,9 @@ internal sealed partial class WorkScheduler
                     if (CompleteWorkUnsafe(work))
                     {
                         _completed.Add(resolverTask.Id);
-                        DecrementPathCountUnsafe(resolverTask.FieldSelectionPath);
                     }
+
+                    DecrementPathCountUnsafe(resolverTask.FieldSelectionPath);
                 }
                 break;
 
@@ -128,14 +139,20 @@ internal sealed partial class WorkScheduler
                     if (CompleteWorkUnsafe(work))
                     {
                         _completed.Add(task.Id);
-                        DecrementPathCountUnsafe(batchResolverTask.FieldSelectionPath);
                     }
+
+                    DecrementPathCountUnsafe(batchResolverTask.FieldSelectionPath);
                 }
                 break;
 
             default:
                 lock (_sync)
                 {
+                    if (task is Tasks.DeferTask deferTask)
+                    {
+                        CompleteDeferRegistrationUnsafe(deferTask);
+                    }
+
                     CompleteBranchTaskUnsafe(task.BranchId);
 
                     if (CompleteWorkUnsafe(work))

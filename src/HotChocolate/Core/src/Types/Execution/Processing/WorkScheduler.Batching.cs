@@ -9,12 +9,14 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class WorkScheduler
 {
     private readonly Dictionary<SelectionPath, int> _activePaths = [];
-    private readonly Dictionary<(SelectionPath Path, DeferUsage? Defer), BatchResolverTask> _pendingBatches = [];
+    private readonly Dictionary<(SelectionPath Path, DeferUsage? Defer, OperationContext Root), BatchResolverTask> _pendingBatches = [];
 
     /// <summary>
-    /// Registers work to be executed as part of a batch resolver task.
+    /// Registers work of the specified operation context to be executed as part of a batch
+    /// resolver task, which is shared by all contexts with the same root context.
     /// </summary>
     public void RegisterBatchEntry(
+        OperationContext context,
         Selection selection,
         object? parent,
         ResultElement resultValue,
@@ -24,14 +26,14 @@ internal sealed partial class WorkScheduler
     {
         AssertNotPooled();
 
-        var key = (selection.FieldSelectionPath, deferUsage);
+        var key = (selection.FieldSelectionPath, deferUsage, context.RootContext);
 
         lock (_sync)
         {
             if (!_pendingBatches.TryGetValue(key, out var batchTask))
             {
                 batchTask =
-                    operationContext.CreateBatchResolverTask(
+                    context.CreateBatchResolverTask(
                         selection.Field,
                         selection.FieldSelectionPath,
                         branchId,
@@ -40,10 +42,34 @@ internal sealed partial class WorkScheduler
                 IncrementPathCountUnsafe(selection.FieldSelectionPath);
             }
 
-            if (batchTask.AddEntry(parent, selection, resultValue, scopedContextData, branchId))
+            if (batchTask.AddEntry(context, parent, selection, resultValue, scopedContextData, branchId))
             {
                 RegisterBranchTaskUnsafe(branchId);
             }
+        }
+    }
+
+    /// <summary>
+    /// Marks a deferred task's resolver registration as complete.
+    /// </summary>
+    public void CompleteDeferRegistration(DeferTask task)
+    {
+        AssertNotPooled();
+
+        lock (_sync)
+        {
+            CompleteDeferRegistrationUnsafe(task);
+        }
+    }
+
+    private void CompleteDeferRegistrationUnsafe(DeferTask task)
+    {
+        AssertLockHeld();
+
+        if (task.IsResolverRegistrationPending)
+        {
+            task.IsResolverRegistrationPending = false;
+            DecrementPathCountUnsafe(task.SelectionSetPath);
         }
     }
 
@@ -69,15 +95,15 @@ internal sealed partial class WorkScheduler
         if (!Unsafe.IsNullRef(ref count) && --count <= 0)
         {
             _activePaths.Remove(path);
-            TryDispatchPendingBatchesUnsafe();
+            TryDispatchPendingBatchesUnsafe(isIdle: false);
         }
     }
 
     /// <summary>
     /// Checks all pending batch tasks and dispatches any whose ancestor paths
-    /// all have zero active tasks.
+    /// all have zero active tasks, or all of them if <paramref name="isIdle"/> is <c>true</c>.
     /// </summary>
-    private void TryDispatchPendingBatchesUnsafe()
+    private void TryDispatchPendingBatchesUnsafe(bool isIdle)
     {
         AssertLockHeld();
 
@@ -86,11 +112,11 @@ internal sealed partial class WorkScheduler
             return;
         }
 
-        List<(SelectionPath Path, DeferUsage? Defer)>? toRemove = null;
+        List<(SelectionPath Path, DeferUsage? Defer, OperationContext Root)>? toRemove = null;
 
         foreach (var (key, batchTask) in _pendingBatches)
         {
-            if (!CanDispatchBatchUnsafe(key.Path))
+            if (!isIdle && !CanDispatchBatchUnsafe(key.Path))
             {
                 continue;
             }

@@ -234,11 +234,15 @@ RESTART:
                 _batchDispatcher.BeginDispatch(_ct);
             }
         }
-        else
+        else if (!hasWork)
         {
-            if (!hasWork && _pendingBatches.Count == 0)
+            if (_pendingBatches.Count == 0)
             {
                 _isCompleted = true;
+            }
+            else
+            {
+                TryDispatchPendingBatchesUnsafe(isIdle: true);
             }
         }
     }

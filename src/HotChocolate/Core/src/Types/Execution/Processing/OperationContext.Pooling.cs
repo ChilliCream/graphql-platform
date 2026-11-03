@@ -70,6 +70,12 @@ internal sealed partial class OperationContext
     public bool IsSharedScheduler => !ReferenceEquals(_workScheduler, _currentWorkScheduler);
 
     /// <summary>
+    /// Gets the context that executes the operation for this context's variable set.
+    /// A defer context returns the context it was derived from, any other context returns itself.
+    /// </summary>
+    public OperationContext RootContext => _taskRoot ?? this;
+
+    /// <summary>
     /// Gets whether tasks created from this context, or from a defer context derived from it,
     /// have not yet been returned to their pool.
     /// </summary>

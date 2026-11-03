@@ -18,6 +18,10 @@ internal sealed class DeferTask : ExecutionTask
 
     public override bool IsDeferred => true;
 
+    internal SelectionPath SelectionSetPath { get; private set; } = null!;
+
+    internal bool IsResolverRegistrationPending { get; set; }
+
     protected override IExecutionTaskContext Context => _deferContextOwner.OperationContext;
 
     protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
@@ -52,6 +56,7 @@ internal sealed class DeferTask : ExecutionTask
             }
 
             s_pool.Return(bufferedTasks);
+            deferContext.Scheduler.CompleteDeferRegistration(this);
         }
 
         // ... and then wait for the scheduler to complete the deferred tasks.
@@ -94,6 +99,7 @@ internal sealed class DeferTask : ExecutionTask
         _scopedContext = scopedContext;
         _executionBranchId = executionBranchId;
         _deferUsage = deferUsage;
+        SelectionSetPath = selectionSet.Path;
     }
 
     public new void Reset()
@@ -104,6 +110,8 @@ internal sealed class DeferTask : ExecutionTask
         _scopedContext = null!;
         _executionBranchId = 0;
         _deferUsage = null!;
+        SelectionSetPath = null!;
+        IsResolverRegistrationPending = false;
 
         base.Reset();
     }
