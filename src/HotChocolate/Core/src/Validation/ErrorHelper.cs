@@ -767,4 +767,22 @@ internal static class ErrorHelper
                 .SetPath(context.CreateErrorPath())
                 .Build());
     }
+
+    public static void ReportMaxSelectionCountOverflow(
+        this IDocumentValidatorContext context,
+        ISyntaxNode node,
+        int maxAllowedSelections)
+    {
+        context.FatalErrorDetected = true;
+
+        context.ReportError(
+            ErrorBuilder.New()
+                .SetMessage(
+                    "The document exceeds the maximum allowed number of selections of {0}.",
+                    maxAllowedSelections)
+                .SetCode(ErrorCodes.Validation.MaxSelectionCountOverflow)
+                .SetLocations([node])
+                .SetPath(context.CreateErrorPath())
+                .Build());
+    }
 }

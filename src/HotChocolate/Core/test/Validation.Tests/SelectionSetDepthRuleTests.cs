@@ -104,23 +104,109 @@ public class SelectionSetDepthRuleTests
         // arrange
         var sourceText = new StringBuilder("{ ...F0 }");
 
-        for (var i = 0; i < 64; i++)
+        for (var i = 0; i < 29; i++)
         {
             sourceText.Append($" fragment F{i} on Query {{ ...F{i + 1} ...F{i + 1} }}");
         }
 
-        sourceText.Append(" fragment F64 on Query { __typename }");
+        sourceText.Append(" fragment F29 on Query { __typename }");
 
         var document = Utf8GraphQLParser.Parse(sourceText.ToString());
         var context = ValidationUtils.CreateContext();
         context.Prepare(document);
-        var rule = new SelectionSetDepthRule(200);
+        // the selection count is left unbounded so this test isolates the depth limit.
+        var rule = new SelectionSetDepthRule(200, int.MaxValue);
 
         // act
         rule.Validate(context, document);
 
         // assert
         Assert.Empty(context.Errors);
+    }
+
+    [Fact]
+    public async Task Validate_Should_RejectOperation_When_SelectionCountExceedsMaxIntLimit()
+    {
+        // arrange
+        var sourceText = new StringBuilder("{ ...F0 }");
+
+        for (var i = 0; i < 30; i++)
+        {
+            sourceText.Append($" fragment F{i} on Query {{ ...F{i + 1} ...F{i + 1} }}");
+        }
+
+        sourceText.Append(" fragment F30 on Query { __typename }");
+
+        var document = Utf8GraphQLParser.Parse(sourceText.ToString());
+
+        // act
+        var result = await ValidateAsync(document, maxAllowedSelections: int.MaxValue);
+
+        // assert
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("The document exceeds the maximum allowed number of selections of 2147483647.", error.Message);
+        Assert.Equal(ErrorCodes.Validation.MaxSelectionCountOverflow, error.Code);
+    }
+
+    [Fact]
+    public async Task Validate_Should_RejectOperation_When_SelectionCountExceedsLimit()
+    {
+        // arrange
+        var sourceText = new StringBuilder("{ ...F0 }");
+
+        for (var i = 0; i < 10; i++)
+        {
+            sourceText.Append($" fragment F{i} on Query {{ ...F{i + 1} ...F{i + 1} }}");
+        }
+
+        sourceText.Append(" fragment F10 on Query { __typename }");
+
+        var document = Utf8GraphQLParser.Parse(sourceText.ToString());
+
+        // act
+        var result = await ValidateAsync(document, maxAllowedSelections: 100);
+
+        // assert
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("The document exceeds the maximum allowed number of selections of 100.", error.Message);
+        Assert.Equal(ErrorCodes.Validation.MaxSelectionCountOverflow, error.Code);
+    }
+
+    [Fact]
+    public async Task Validate_Should_AcceptOperation_When_SelectionCountWithinLimit()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            "{ ...F } fragment F on Query { a: __typename b: __typename }");
+
+        // act
+        var withinLimit = await ValidateAsync(document, maxAllowedSelections: 3);
+        var belowLimit = await ValidateAsync(document, maxAllowedSelections: 2);
+
+        // assert
+        Assert.False(withinLimit.HasErrors);
+        Assert.Equal(
+            ErrorCodes.Validation.MaxSelectionCountOverflow,
+            Assert.Single(belowLimit.Errors).Code);
+    }
+
+    [Fact]
+    public async Task Validate_Should_CountFragmentSelections_ForEachSpread()
+    {
+        // arrange
+        // F has 2 selections; spreading it three times is 3 spreads plus 3 x 2 selections.
+        var document = Utf8GraphQLParser.Parse(
+            "{ ...F ...F ...F } fragment F on Query { a: __typename b: __typename }");
+
+        // act
+        var withinLimit = await ValidateAsync(document, maxAllowedSelections: 9);
+        var belowLimit = await ValidateAsync(document, maxAllowedSelections: 8);
+
+        // assert
+        Assert.False(withinLimit.HasErrors);
+        Assert.Equal(
+            ErrorCodes.Validation.MaxSelectionCountOverflow,
+            Assert.Single(belowLimit.Errors).Code);
     }
 
     [Fact]
@@ -171,7 +257,8 @@ public class SelectionSetDepthRuleTests
 
     private static async Task<DocumentValidatorResult> ValidateAsync(
         DocumentNode document,
-        int? maxAllowedSelectionSetDepth = null)
+        int? maxAllowedSelectionSetDepth = null,
+        int? maxAllowedSelections = null)
     {
         var builder = new ServiceCollection().AddValidation();
 
@@ -179,6 +266,12 @@ public class SelectionSetDepthRuleTests
         {
             builder.ModifyValidationOptions(
                 o => o.MaxAllowedSelectionSetDepth = maxAllowedSelectionSetDepth.Value);
+        }
+
+        if (maxAllowedSelections.HasValue)
+        {
+            builder.ModifyValidationOptions(
+                o => o.MaxAllowedSelections = maxAllowedSelections.Value);
         }
 
         var validator = builder.Services

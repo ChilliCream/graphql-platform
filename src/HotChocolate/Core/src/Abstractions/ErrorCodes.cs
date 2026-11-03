@@ -327,6 +327,11 @@ public static class ErrorCodes
         /// The maximum allowed selection set depth was exceeded.
         /// </summary>
         public const string MaxSelectionSetDepthOverflow = "HC0138";
+
+        /// <summary>
+        /// The maximum allowed number of selections was exceeded.
+        /// </summary>
+        public const string MaxSelectionCountOverflow = "HC0139";
     }
 
     /// <summary>

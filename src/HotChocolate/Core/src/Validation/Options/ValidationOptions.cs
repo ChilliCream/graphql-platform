@@ -13,6 +13,7 @@ public sealed class ValidationOptions
     private ushort _maxAllowedOfTypeDepth = 16;
     private ushort _maxAllowedListRecursiveDepth = 1;
     private int _maxAllowedSelectionSetDepth = 200;
+    private int _maxAllowedSelections = 100_000;
 
     /// <summary>
     /// Gets the maximum allowed depth of a query. The default value is
@@ -78,5 +79,20 @@ public sealed class ValidationOptions
     {
         get => _maxAllowedSelectionSetDepth;
         set => _maxAllowedSelectionSetDepth = value < 1 ? 200 : value;
+    }
+
+    /// <summary>
+    /// <para>
+    /// The maximum number of selections an operation can have once its fragment
+    /// spreads are followed. Fields, inline fragments and fragment spreads each
+    /// count as one selection, and the selections of a fragment count every time
+    /// the fragment is spread.
+    /// </para>
+    /// <para>Default: <c>100000</c></para>
+    /// </summary>
+    public int MaxAllowedSelections
+    {
+        get => _maxAllowedSelections;
+        set => _maxAllowedSelections = value < 1 ? 100_000 : value;
     }
 }
