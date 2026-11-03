@@ -123,7 +123,7 @@ public sealed class FusionBuiltInDirectiveCompatibilityTests
     }
 
     [Fact]
-    public void Create_Should_RejectMixedCostOptionsDirectiveNames()
+    public void Create_Should_RejectDuplicateCostOptionsDirectives_When_NamesAreMixed()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
