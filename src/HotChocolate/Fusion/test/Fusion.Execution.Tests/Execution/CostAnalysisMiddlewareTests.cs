@@ -5,6 +5,8 @@ using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -68,6 +70,46 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         // assert
         Assert.Equal(new CostSchemaIndexOptions().CaseBudget, schemaIndex.Options.CaseBudget);
         Assert.Equal(1, schemaIndex.Options.DefaultListSize);
+    }
+
+    [Fact]
+    public async Task Gateway_Should_Execute_When_ConfigurationUsesLegacyDirectiveNames()
+    {
+        // arrange
+        var legacySchema = ComposeSchemaDocument(defaultListSize: 7, Schema).ToString()
+            .Replace("fusion__costOptions", "fusion__cost_options", StringComparison.Ordinal)
+            .Replace("fusion__gatewayField", "fusion__gateway_field", StringComparison.Ordinal)
+            .Replace("fusion__schemaMetadata", "fusion__schema_metadata", StringComparison.Ordinal)
+            .Replace("costlyLeaf: String", "costlyLeaf: String @fusion__gateway_field", StringComparison.Ordinal)
+            .Replace(
+                "@fusion__schema_metadata(name: \"a\")",
+                "@fusion__schema_metadata(name: \"a\", kind: \"ApolloFederation\")",
+                StringComparison.Ordinal);
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+        services.AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddInMemoryConfiguration(Utf8GraphQLParser.Parse(legacySchema));
+        await using var provider = services.BuildServiceProvider();
+        var executor = await provider.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await executor.ExecuteAsync("{ __typename }", TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(7, executor.Schema.Services.GetRequiredService<CostSchemaIndex>().Options.DefaultListSize);
+        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
+        Assert.True(schema.Types.GetType<FusionObjectTypeDefinition>("Query").Fields["costlyLeaf"].IsGatewayField);
+        Assert.Equal("ApolloFederation", schema.GetSourceSchemaConnectorKind("a"));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__typename": "Query"
+              }
+            }
+            """);
     }
 
     [Fact]

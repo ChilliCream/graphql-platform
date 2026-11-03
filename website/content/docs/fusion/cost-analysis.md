@@ -284,7 +284,7 @@ builder.Services
 
 An operation whose exact compile would exceed `CaseBudget` is, by default (`CaseBudgetExceededBehavior.EvaluatePerRequest`), evaluated exactly per request instead of from a compiled plan: slower for that operation, but never over-estimated. `CaseBudgetExceededBehavior.Overestimate` restores the compiled, sound over-estimate for the unaffordable remainder instead.
 
-> **Note:** The default list size from [List Size](#list-size) step 5 is not a gateway runtime option. It is a composition setting (`SourceSchemaMergerOptions.DefaultListSize`) carried into the execution schema by the `@fusion__cost_options(defaultListSize:)` directive, and the gateway reads it from there. See [Composition](./composition.md) for details.
+> **Note:** The default list size from [List Size](#list-size) step 5 is not a gateway runtime option. It is a composition setting (`SourceSchemaMergerOptions.DefaultListSize`) carried into the execution schema by the `@fusion__costOptions(defaultListSize:)` directive, and the gateway reads it from there. See [Composition](./composition.md) for details.
 
 # Per-Request Cost Options
 

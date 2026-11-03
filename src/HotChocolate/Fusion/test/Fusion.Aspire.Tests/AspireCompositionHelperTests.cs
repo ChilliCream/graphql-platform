@@ -92,11 +92,11 @@ public sealed class AspireCompositionHelperTests
                 .Single();
             var costOptionsApplication = Assert.Single(
                 schemaDefinition.Directives,
-                directive => directive.Name.Value == "fusion__cost_options");
+                directive => directive.Name.Value == "fusion__costOptions");
 
             costOptionsApplication.ToString().MatchInlineSnapshot(
                 """
-                @fusion__cost_options(defaultListSize: 7)
+                @fusion__costOptions(defaultListSize: 7)
                 """);
         }
         finally

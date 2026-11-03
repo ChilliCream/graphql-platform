@@ -451,7 +451,7 @@ public abstract class FusionTestBase : IAsyncDisposable
         => ComposeSchemaDocument(defaultListSize: null, schemas);
 
     /// <summary>
-    /// Composes a schema document, setting <c>@fusion__cost_options(defaultListSize:)</c> to
+    /// Composes a schema document, setting <c>@fusion__costOptions(defaultListSize:)</c> to
     /// <paramref name="defaultListSize"/>, or omitting the directive when it is
     /// <see langword="null"/>.
     /// </summary>

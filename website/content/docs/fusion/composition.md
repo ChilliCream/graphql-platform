@@ -187,7 +187,9 @@ var options = new SchemaComposerOptions
 };
 ```
 
-When set, composition writes the value onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and folds it into the effective `assumedSize` of a field for which at least one serving source declares a `@listSize`, so the public `@listSize` reflects the higher, sound bound. For a field no source annotates, composition emits no `@listSize` and the gateway applies the value directly from `@fusion__cost_options`. When absent (the default), no `@fusion__cost_options` usage is emitted and the gateway treats an unannotated list as unbounded.
+When set, composition writes the value onto the execution schema with a schema-level `@fusion__costOptions(defaultListSize:)` directive, and folds it into the effective `assumedSize` of a field for which at least one serving source declares a `@listSize`, so the public `@listSize` reflects the higher, sound bound. For a field no source annotates, composition emits no `@listSize` and the gateway applies the value directly from `@fusion__costOptions`. When absent (the default), no `@fusion__costOptions` usage is emitted and the gateway treats an unannotated list as unbounded.
+
+Composition emits `@fusion__costOptions`, `@fusion__gatewayField`, and `@fusion__schemaMetadata`; the gateway also reads their legacy snake_case names. Upgrade the gateway before or with composition because released gateways ignore the renamed directives.
 
 See [Cost Analysis](./cost-analysis.md) for gateway enforcement, reporting, and options.
 

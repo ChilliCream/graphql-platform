@@ -60,7 +60,7 @@ public sealed class ApolloFederationV1SourceSettingsTests
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
             enum fusion__Schema {
-              PRODUCTS @fusion__schema_metadata(name: "Products", kind: "ApolloFederation")
+              PRODUCTS @fusion__schemaMetadata(name: "Products", kind: "ApolloFederation")
             }
             """);
     }
@@ -300,7 +300,7 @@ public sealed class ApolloFederationV1SourceSettingsTests
             mergedSchema.Types["fusion__Schema"]);
         Assert.True(schemaEnum.Values.TryGetValue(valueName, out var enumValue));
         var directive = Assert.IsType<Directive>(
-            enumValue.Directives.FirstOrDefault("fusion__schema_metadata"));
+            enumValue.Directives.FirstOrDefault("fusion__schemaMetadata"));
         Assert.True(directive.Arguments.TryGetValue("kind", out var kindValue));
         return Assert.IsType<StringValueNode>(kindValue).Value;
     }
