@@ -10,6 +10,56 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
     private const string QueueName = "temporary-orders";
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PublishAsync_Should_DeliverEvents_When_UpstreamExchangeBindingsAreDeletedDuringDisconnection(
+        bool automaticRecovery)
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var vhost = await fixture.CreateVhostAsync();
+        var connectionFactory = (ConnectionFactory)vhost.ConnectionFactory;
+        connectionFactory.AutomaticRecoveryEnabled = automaticRecovery;
+        connectionFactory.NetworkRecoveryInterval = TimeSpan.FromSeconds(2);
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddMessage<OrderCreated>(d => d.Publish(r => r.ToRabbitMQExchange("upstream")))
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareExchange("upstream");
+                t.DeclareExchange("intermediate").AutoDelete();
+                t.DeclareExchange("downstream").AutoDelete();
+                t.DeclareBinding("upstream", "intermediate").ToExchange("intermediate");
+                t.DeclareBinding("intermediate", "downstream").ToExchange("downstream");
+                t.Queue(QueueName)
+                    .Handler<OrderCreatedHandler>()
+                    .Temporary()
+                    .BindExplicitly()
+                    .BindFrom(new Uri("exchange:downstream"));
+            })
+            .BuildTestBusAsync();
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-before" }, TestContext.Current.CancellationToken);
+        Assert.True(await recorder.WaitAsync(s_timeout));
+
+        // act
+        await vhost.CloseConsumerConnectionAsync(QueueName);
+        await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
+        await vhost.WaitForConsumerAsync(QueueName, TimeSpan.FromSeconds(60));
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-after" }, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout));
+        Assert.Equal(
+            ["ORD-after", "ORD-before"],
+            recorder.Messages.Cast<OrderCreated>().Select(m => m.OrderId).Order());
+    }
+
     [Fact]
     public async Task PublishAsync_Should_DeliverEvents_When_ConsumerConnectionIsLost()
     {

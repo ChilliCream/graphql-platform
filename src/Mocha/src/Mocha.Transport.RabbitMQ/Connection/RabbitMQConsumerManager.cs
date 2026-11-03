@@ -72,14 +72,13 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         ushort consumerDispatchConcurrency,
         CancellationToken cancellationToken)
     {
-        var registration = new RegisteredConsumer
+        var registration = new RegisteredConsumer(consumerDispatchConcurrency)
         {
             Manager = this,
             QueueName = queueName,
             MessageHandler = messageHandler,
             ReceiveTopology = receiveTopology,
-            PrefetchCount = prefetchCount,
-            ConsumerDispatchConcurrency = consumerDispatchConcurrency
+            PrefetchCount = prefetchCount
         };
 
         AddConsumer(registration);
@@ -317,7 +316,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     /// Represents a consumer registration that maintains a dedicated channel to a specific queue,
     /// supporting reconnection and graceful disposal.
     /// </summary>
-    internal sealed class RegisteredConsumer : IAsyncDisposable
+    internal sealed class RegisteredConsumer(ushort consumerDispatchConcurrency) : IAsyncDisposable
     {
         /// <summary>
         /// Gets the owning consumer manager responsible for connection lifecycle.
@@ -353,7 +352,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         /// <summary>
         /// Gets the maximum number of messages dispatched concurrently to the consumer callback.
         /// </summary>
-        public required ushort ConsumerDispatchConcurrency { get; init; }
+        public ushort ConsumerDispatchConcurrency { get; } = consumerDispatchConcurrency;
 
         /// <summary>
         /// Gets or sets the server-assigned consumer tag identifying this consumer on the channel.
@@ -366,6 +365,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         public IChannel? Channel { get; set; }
 
         private readonly CancellationTokenSource _consumerCts = new();
+        private readonly SemaphoreSlim _dispatchSemaphore = new(consumerDispatchConcurrency, consumerDispatchConcurrency);
 
         /// <summary>
         /// Provisions the enabled receive topology and starts consuming on a new channel.
@@ -431,7 +431,17 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                 channel = await connection.CreateChannelAsync(channelOptions, cancellationToken);
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.ReceivedAsync += async (_, eventArgs) =>
-                    await MessageHandler(channel, eventArgs, _consumerCts.Token);
+                {
+                    await _dispatchSemaphore.WaitAsync(_consumerCts.Token);
+                    try
+                    {
+                        await MessageHandler(channel, eventArgs, _consumerCts.Token);
+                    }
+                    finally
+                    {
+                        _dispatchSemaphore.Release();
+                    }
+                };
 
                 await channel.BasicQosAsync(
                     prefetchSize: 0,
@@ -510,6 +520,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             Channel = null;
             await DisconnectAsync(channel, consumerTag, CancellationToken.None);
 
+            _dispatchSemaphore.Dispose();
             _consumerCts.Dispose();
         }
     }

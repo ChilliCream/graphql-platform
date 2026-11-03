@@ -40,17 +40,43 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
 
         await queue.ProvisionAsync(channel, cancellationToken);
 
+        var bindings = new List<RabbitMQBinding>();
         foreach (var binding in queue.Bindings)
         {
             if (binding.AutoProvision ?? topology.AutoProvision)
             {
-                if (binding.Source.AutoProvision ?? topology.AutoProvision)
-                {
-                    await binding.Source.ProvisionAsync(channel, cancellationToken);
-                }
-
-                await ProvisionBindingAsync(binding, channel, cancellationToken);
+                bindings.Add(binding);
             }
+        }
+
+        var exchanges = new HashSet<RabbitMQExchange>();
+        for (var i = 0; i < bindings.Count; i++)
+        {
+            var exchange = bindings[i].Source;
+            if (!exchanges.Add(exchange))
+            {
+                continue;
+            }
+
+            if (exchange.AutoProvision ?? topology.AutoProvision)
+            {
+                await exchange.ProvisionAsync(channel, cancellationToken);
+            }
+
+            foreach (var binding in exchange.Bindings)
+            {
+                if (binding is RabbitMQExchangeBinding exchangeBinding
+                    && exchangeBinding.Destination == exchange
+                    && (binding.AutoProvision ?? topology.AutoProvision))
+                {
+                    bindings.Add(binding);
+                }
+            }
+        }
+
+        foreach (var binding in bindings)
+        {
+            await ProvisionBindingAsync(binding, channel, cancellationToken);
         }
     }
 
