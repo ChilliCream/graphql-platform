@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -453,6 +454,74 @@ public sealed class CompositionHelperTests
     }
 
     [Fact]
+    public async Task ComposeAsync_Should_UpgradeExecutionSchema_When_RecomposingOlderArchive()
+    {
+        // arrange
+        await using var stream = new MemoryStream();
+        using var sourceSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        using var gatewaySettings = JsonDocument.Parse("{}");
+        using var compositionSettings = JsonDocument.Parse("""{ "merger": { "defaultListSize": 7 } }""");
+        var token = TestContext.Current.CancellationToken;
+        var gatewayVersion = WellKnownVersions.LatestGatewayFormatVersion;
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(new ArchiveMetadata
+            {
+                ExecutionSchemaVersion = new Version(1, 0, 0),
+                SupportedGatewayFormats = [gatewayVersion],
+                SourceSchemas = ["Products"]
+            }, token);
+            await archive.SetSourceSchemaConfigurationAsync(
+                "Products",
+                Encoding.UTF8.GetBytes("type Query { product: String }"),
+                sourceSettings,
+                cancellationToken: token);
+            await archive.SetGatewayConfigurationAsync(
+                """
+                directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+                directive @fusion__gateway_field on FIELD_DEFINITION
+                directive @fusion__schema_metadata(name: String!) on ENUM_VALUE
+                schema @fusion__cost_options(defaultListSize: 3) { query: Query }
+                type Query { product: String @fusion__gateway_field }
+                enum fusion__Schema { PRODUCTS @fusion__schema_metadata(name: "Products") }
+                """,
+                gatewaySettings,
+                gatewayVersion,
+                token);
+            await archive.SetCompositionSettingsAsync(compositionSettings, token);
+            await archive.CommitAsync(token);
+        }
+
+        stream.Position = 0;
+        var log = new CompositionLog();
+
+        // act
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            var result = await CompositionHelper.ComposeAsync(
+                log, [], updateArchive, "Development", preferDevUrls: false,
+                compositionSettings: null, legacyArchive: null, token);
+            Assert.True(result.IsSuccess, string.Join(Environment.NewLine, log.Select(entry => entry.Message)));
+        }
+
+        // assert
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        using var gateway = (await readArchive.TryGetGatewayConfigurationAsync(gatewayVersion, token))!;
+        await using var schemaStream = await gateway.OpenReadSchemaAsync(token);
+        using var reader = new StreamReader(schemaStream);
+        var schema = await reader.ReadToEndAsync(token);
+        Assert.Contains("@fusion__costOptions(defaultListSize: 7)", schema);
+        Assert.Equal(
+            [false, false, false],
+            new[] { "fusion__cost_options", "fusion__gateway_field", "fusion__schema_metadata" }
+                .Select(schema.Contains).ToArray());
+        var metadata = await readArchive.GetArchiveMetadataAsync(token);
+        Assert.Equal(new Version(2, 0, 0), metadata!.ExecutionSchemaVersion);
+        Assert.Equal(new Version(2, 0, 0), WellKnownVersions.MaxSupportedExecutionSchemaVersion);
+    }
+
+    [Fact]
     public async Task ComposeAsync_Should_EmitCostOptions_When_DefaultListSizeSettingIsSet()
     {
         // arrange
@@ -491,11 +560,11 @@ public sealed class CompositionHelperTests
         var schemaDefinition = document.Definitions.OfType<SchemaDefinitionNode>().Single();
         var costOptionsApplication = Assert.Single(
             schemaDefinition.Directives,
-            directive => directive.Name.Value == "fusion__cost_options");
+            directive => directive.Name.Value == "fusion__costOptions");
 
         costOptionsApplication.ToString().MatchInlineSnapshot(
             """
-            @fusion__cost_options(defaultListSize: 7)
+            @fusion__costOptions(defaultListSize: 7)
             """);
     }
 
@@ -580,11 +649,11 @@ public sealed class CompositionHelperTests
         var schemaDefinition = document.Definitions.OfType<SchemaDefinitionNode>().Single();
         var costOptionsApplication = Assert.Single(
             schemaDefinition.Directives,
-            directive => directive.Name.Value == "fusion__cost_options");
+            directive => directive.Name.Value == "fusion__costOptions");
 
         costOptionsApplication.ToString().MatchInlineSnapshot(
             """
-            @fusion__cost_options(defaultListSize: 7)
+            @fusion__costOptions(defaultListSize: 7)
             """);
     }
 

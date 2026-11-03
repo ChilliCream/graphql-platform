@@ -30,7 +30,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             }
 
             type Query @fusion__type(schema: A) {
-              node(id: ID!): Node @fusion__gateway_field
+              node(id: ID!): Node @fusion__gatewayField
             }
 
             type Product implements Node
@@ -86,7 +86,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             }
 
             type Query @fusion__type(schema: A) {
-              node(id: ID!): Node @fusion__gateway_field
+              node(id: ID!): Node @fusion__gatewayField
             }
 
             type Product implements Node
@@ -209,7 +209,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             }
 
             type Query @fusion__type(schema: A) {
-              node(id: ID!): Node @fusion__gateway_field
+              node(id: ID!): Node @fusion__gatewayField
               nodes: [Node] @fusion__field(schema: A)
             }
 
@@ -264,7 +264,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             }
 
             type Query @fusion__type(schema: A) {
-              node(id: ID!): Node @fusion__gateway_field
+              node(id: ID!): Node @fusion__gatewayField
             }
 
             type Product implements Node
@@ -331,7 +331,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             }
 
             type Query @fusion__type(schema: A) @fusion__type(schema: B) {
-              node(id: ID!): Node @fusion__gateway_field
+              node(id: ID!): Node @fusion__gatewayField
             }
 
             type Product implements Node

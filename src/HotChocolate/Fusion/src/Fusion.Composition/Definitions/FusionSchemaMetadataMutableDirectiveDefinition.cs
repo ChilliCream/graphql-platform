@@ -7,7 +7,7 @@ using argNames = HotChocolate.Fusion.WellKnownArgumentNames;
 namespace HotChocolate.Fusion.Definitions;
 
 /// <summary>
-/// The <c>@fusion__schema_metadata</c> directive is used to provide additional metadata for a
+/// The <c>@fusion__schemaMetadata</c> directive is used to provide additional metadata for a
 /// source schema.
 /// </summary>
 internal sealed class FusionSchemaMetadataMutableDirectiveDefinition : MutableDirectiveDefinition
