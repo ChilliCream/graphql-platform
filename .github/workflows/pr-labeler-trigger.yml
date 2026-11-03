@@ -1,0 +1,16 @@
+name: Pull Request Labeler Trigger
+
+# Runs without write access so fork pull requests can trigger it. The Pull Request Labeler
+# workflow applies the labels when this run completes.
+on:
+  pull_request
+
+permissions: {}
+
+jobs:
+  pr-labeler-trigger:
+    name: Request Labels
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Request labels
+        run: echo "The Pull Request Labeler workflow applies the labels once this run completes."

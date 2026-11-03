@@ -1,7 +1,11 @@
 name: Pull Request Labeler
 
+# Runs from the default branch with write access. It never checks out pull request code: the
+# labeler reads the changed files and .github/labeler.yml through the API.
 on:
-  pull_request_target
+  workflow_run:
+    workflows: [Pull Request Labeler Trigger]
+    types: [completed]
 
 permissions:
   contents: read
@@ -10,6 +14,27 @@ permissions:
 jobs:
   pr-labeler:
     name: Apply Labels
+    if: github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-26.04
     steps:
+      - name: Find pull requests
+        id: pull-requests
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          # workflow_run.pull_requests is empty for fork pull requests, so look them up by head.
+          script: |
+            const run = context.payload.workflow_run;
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              ...context.repo,
+              state: 'open',
+              head: `${run.head_repository.owner.login}:${run.head_branch}`,
+              per_page: 100,
+            });
+            const numbers = pulls.filter(p => p.head.sha === run.head_sha).map(p => p.number);
+            core.info(`Pull requests at ${run.head_sha}: ${numbers.join(', ') || 'none'}`);
+            core.setOutput('numbers', numbers.join('\n'));
+
       - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7.0.0
+        if: steps.pull-requests.outputs.numbers != ''
+        with:
+          pr-number: ${{ steps.pull-requests.outputs.numbers }}
