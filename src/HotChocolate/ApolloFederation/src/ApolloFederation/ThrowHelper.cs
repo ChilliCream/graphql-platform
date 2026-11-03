@@ -222,4 +222,13 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage("The @contact directive is not repeatable and can.")
                 .Build());
+
+    /// <summary>
+    /// The <c>_Service.sdl</c> field was resolved more than once in the same request.
+    /// </summary>
+    public static GraphQLException Service_SdlResolvedMoreThanOnce() =>
+        new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_Service_SdlResolvedMoreThanOnce)
+                .Build());
 }
