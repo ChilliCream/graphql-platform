@@ -67,7 +67,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task CostOptions_Should_ApplyCallbacks_AfterSchemaValues()
+    public async Task CostOptions_Should_ApplyCallbacksAfterSchemaValues_When_CallbacksAreConfigured()
     {
         // arrange
         var services = new ServiceCollection();
