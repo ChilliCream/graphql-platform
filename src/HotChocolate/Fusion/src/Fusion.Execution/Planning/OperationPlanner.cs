@@ -21,6 +21,7 @@ namespace HotChocolate.Fusion.Planning;
 public sealed partial class OperationPlanner
 {
     private readonly FusionSchemaDefinition _schema;
+    private readonly PlannerOptions _plannerOptions;
     private readonly OperationCompiler _operationCompiler;
     private readonly MergeSelectionSetRewriter _mergeRewriter;
     private readonly SelectionSetPartitioner _partitioner;
@@ -47,6 +48,7 @@ public sealed partial class OperationPlanner
         ArgumentNullException.ThrowIfNull(options);
 
         _schema = schema;
+        _plannerOptions = schema.PlannerOptions;
         _operationCompiler = operationCompiler;
         _mergeRewriter = new MergeSelectionSetRewriter(schema);
         _partitioner = new SelectionSetPartitioner(schema);
@@ -2369,7 +2371,7 @@ public sealed partial class OperationPlanner
         var nodeField = workItem.NodeField.Field;
         var responseName = nodeField.Alias?.Value ?? nodeField.Name.Value;
         var selectionPath = SelectionPath.Root.AppendField(responseName);
-        var sourceSchemaResolution = _schema.NodeResolution == NodeResolution.SourceSchema;
+        var sourceSchemaResolution = _plannerOptions.NodeResolution == NodeResolution.SourceSchema;
 
         var idArgumentValue = nodeField.Arguments.First(a => a.Name.Value == "id").Value;
 

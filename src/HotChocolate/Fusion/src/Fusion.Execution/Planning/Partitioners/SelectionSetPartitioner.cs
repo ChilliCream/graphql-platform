@@ -11,6 +11,8 @@ namespace HotChocolate.Fusion.Planning.Partitioners;
 
 internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 {
+    private readonly PlannerOptions _plannerOptions = schema.PlannerOptions;
+
     // An active entry-key scope whose coverage node carries no sub-selection: nothing
     // underneath is covered, but the scope itself stays active.
     private static readonly SelectionSetNode s_emptyEntryKeyCoverage = new([]);
@@ -40,7 +42,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 input.ProvidedSelectionSet is not null
                     ? ProvidedCoverage.Complete
                     : ProvidedCoverage.Partial,
-                providerSchemas: schema.ShareableFieldRuntimeTypeRouting
+                providerSchemas: _plannerOptions.ShareableFieldRuntimeTypeRouting
                     is ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
                         ? ImmutableHashSet.Create(StringComparer.Ordinal, input.SchemaName)
                         : null,

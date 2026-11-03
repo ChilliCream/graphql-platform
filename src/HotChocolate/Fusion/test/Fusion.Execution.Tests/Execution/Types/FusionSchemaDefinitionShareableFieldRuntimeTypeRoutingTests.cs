@@ -12,7 +12,7 @@ public sealed class FusionSchemaDefinitionShareableFieldRuntimeTypeRoutingTests
 
         Assert.Equal(
             ShareableFieldRuntimeTypeRouting.SourceLocal,
-            schema.ShareableFieldRuntimeTypeRouting);
+            schema.PlannerOptions.ShareableFieldRuntimeTypeRouting);
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public sealed class FusionSchemaDefinitionShareableFieldRuntimeTypeRoutingTests
 
         Assert.Equal(
             ShareableFieldRuntimeTypeRouting.SourceLocal,
-            schema.ShareableFieldRuntimeTypeRouting);
+            schema.PlannerOptions.ShareableFieldRuntimeTypeRouting);
     }
 
     [Theory]
@@ -35,7 +35,7 @@ public sealed class FusionSchemaDefinitionShareableFieldRuntimeTypeRoutingTests
         var schema = CreateSchema(
             $"@fusion__execution(shareableFieldRuntimeTypeRouting: {value})");
 
-        Assert.Equal(expected, schema.ShareableFieldRuntimeTypeRouting);
+        Assert.Equal(expected, schema.PlannerOptions.ShareableFieldRuntimeTypeRouting);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public sealed class FusionSchemaDefinitionShareableFieldRuntimeTypeRoutingTests
 
         Assert.Equal(
             ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
-            schema.ShareableFieldRuntimeTypeRouting);
+            schema.PlannerOptions.ShareableFieldRuntimeTypeRouting);
     }
 
     [Theory]
