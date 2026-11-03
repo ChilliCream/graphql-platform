@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
 /// Records the Apollo Federation connector kind on the source schema so the composer can
-/// surface it in <c>@fusion__schema_metadata(kind:)</c> in the merged execution schema.
+/// surface it in <c>@fusion__schemaMetadata(kind:)</c> in the merged execution schema.
 /// </summary>
 internal static class StampConnectorKind
 {
