@@ -187,7 +187,7 @@ export function BenchmarkHistoryChartFrame({
           `${scope} [data-point]:not([data-series=${quote(pinned)}]){pointer-events:none}`,
           `${scope} [data-point][data-series=${quote(pinned)}]{top:calc(var(--fit-top)*-1cqh);width:var(--column-width);height:100cqh;translate:-50% 0;--center:calc((var(--fit-top) + var(--y)*var(--fit-height)/100)*1cqh)}`,
           `${scope} [data-point][data-series=${quote(pinned)}]:focus-visible{outline:none}`,
-          `${scope} [data-point][data-series=${quote(pinned)}]:focus-visible::before{outline:2px solid var(--color-cc-accent);outline-offset:2px}`,
+          `${scope} [data-point][data-series=${quote(pinned)}]:focus-visible::before,${scope} [data-point][data-series=${quote(pinned)}]:focus-visible>svg{outline:2px solid var(--color-cc-accent);outline-offset:2px}`,
           `${scope} [data-point]:not([data-series=${quote(pinned)}])>span{display:none}`,
         ]
       : []),

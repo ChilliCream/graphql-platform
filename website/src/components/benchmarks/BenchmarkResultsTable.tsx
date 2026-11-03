@@ -6,7 +6,10 @@ import { WarningIcon } from "@/src/icons/Warning";
 import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
 import { BenchmarkHintButton } from "@/src/components/benchmarks/BenchmarkHintButton";
-import { BenchmarkHintTooltip } from "@/src/components/benchmarks/BenchmarkHintTooltip";
+import {
+  BenchmarkHintTooltip,
+  HOVERED_HINT_BUTTON,
+} from "@/src/components/benchmarks/BenchmarkHintTooltip";
 import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import { SUBSECTION_HEADING } from "@/src/components/benchmarks/benchmarkHeadings";
 import {
@@ -153,7 +156,7 @@ const RESULTS_STYLES =
   Array.from(
     { length: COLUMNS.length },
     (_, index) =>
-      `[data-hints]:has([data-hint-button][data-hint-key="${index}"]:is(:hover,:focus-visible)) [data-hint][data-hint-key="${index}"]{display:block}`,
+      `[data-hints]:has(${HOVERED_HINT_BUTTON}[data-hint-key="${index}"]) [data-hint][data-hint-key="${index}"],:root:not(:has([data-hint-button]:hover)) [data-hints]:has([data-hint-button][data-hint-key="${index}"]:focus-visible:not([data-hint-dismissed])) [data-hint][data-hint-key="${index}"]{display:block}`,
   ).join("") +
   `[data-metrics-toggle]::before{content:"";width:.625rem;height:.625rem;background:currentColor;mask:${CHEVRON_DOWN} center/contain no-repeat}` +
   "details[open]>[data-metrics-toggle]::before{rotate:180deg}";
