@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, memo, useContext, type CSSProperties } from "react";
+import {
+  createContext,
+  memo,
+  useContext,
+  type CSSProperties,
+  type MouseEvent,
+} from "react";
 import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import { SUBSECTION_HEADING } from "@/src/components/benchmarks/benchmarkHeadings";
 import {
@@ -88,19 +94,29 @@ const quote = (value: string) => JSON.stringify(value);
 
 const round = (position: number) => Math.round(position * 100) / 100;
 
+/** Returns whether a pointer event happened within the border box of `element`, as opposed to one of its pseudo-elements outside it. */
+const isOnElement = (event: MouseEvent, element: Element) => {
+  const bounds = element.getBoundingClientRect();
+  return (
+    event.clientX >= bounds.left &&
+    event.clientX <= bounds.right &&
+    event.clientY >= bounds.top &&
+    event.clientY <= bounds.bottom
+  );
+};
+
 // The chart sets `--highlight` and `--highlight-<index>` for its highlighted series, which sets `--active` on that series and `--dim` on the others.
-// `--center` is the position of a point within its button, which spans the plot height in a pinned series.
 const CHART_STYLES = `
 [data-history-chart] svg[data-series]{z-index:var(--active,0);opacity:calc(1 - var(--dim,0)*.85);transition:opacity .1s}
 [data-history-chart] svg[data-series] path{stroke-width:calc(1.5 + var(--active,0)*.5)}
 [data-history-chart] [data-point]{z-index:calc(var(--active,0)*2)}
 [data-history-chart] [data-point]:is(:hover,:focus-visible){z-index:3}
-[data-history-chart] [data-point]::before{content:"";position:absolute;top:var(--center,50%);left:50%;translate:-50% -50%;width:var(--point-size);height:var(--point-size);border:1px solid var(--point-color);border-radius:9999px;background:var(--point-fill);box-shadow:0 0 0 calc(2px - var(--dim,0)*2px) var(--color-cc-bg);opacity:calc(1 - var(--dim,0)*.8);transition:opacity .1s}
+[data-history-chart] [data-point]::before{content:"";position:absolute;top:50%;left:50%;translate:-50% -50%;width:var(--point-size);height:var(--point-size);border:1px solid var(--point-color);border-radius:9999px;background:var(--point-fill);box-shadow:0 0 0 calc(2px - var(--dim,0)*2px) var(--color-cc-bg);opacity:calc(1 - var(--dim,0)*.8);transition:opacity .1s}
 [data-history-chart] [data-point][data-failed]::before{display:none}
-[data-history-chart] [data-point]>svg{position:absolute;top:var(--center,50%);left:50%;translate:-50% -50%;opacity:calc(1 - var(--dim,0)*.8)}
-[data-history-chart] [data-point]:is(:hover,:focus-visible)::after{content:"";position:absolute;z-index:-1;left:50%;top:calc(var(--center,50%) - (var(--fit-top) + var(--y)*var(--fit-height)/100)*1cqh);height:100cqh;border-left:1px dashed var(--color-cc-ink-dim);pointer-events:none}
+[data-history-chart] [data-point]>svg{position:absolute;top:50%;left:50%;translate:-50% -50%;opacity:calc(1 - var(--dim,0)*.8)}
+[data-history-chart] [data-point]:is(:hover,:focus-visible)::after{content:"";position:absolute;z-index:-1;top:calc(50% - (var(--fit-top) + var(--y)*var(--fit-height)/100)*1cqh);left:50%;width:1px;height:100cqh;translate:-50% 0;background:repeating-linear-gradient(var(--color-cc-ink-dim) 0 3px,transparent 0 6px) 50% 0/1px 100% no-repeat;pointer-events:none}
 [data-history-chart] [data-point]>span{display:none}
-[data-history-chart] [data-point]:is(:hover,:focus-visible)>span{--below:clamp(0,(25 - var(--fit-top) - var(--y)*var(--fit-height)/100)*1000,1);--start:clamp(0,(15 - var(--x))*1000,1);--end:clamp(0,(var(--x) - 85)*1000,1);position:absolute;top:var(--center,50%);left:50%;z-index:10;display:flex;flex-direction:column;width:max-content;translate:calc(-50% + var(--start)*50% - var(--end)*50%) calc(var(--below)*16px + (1 - var(--below))*(-100% - 16px));padding:.5rem .75rem;border:1px solid var(--color-cc-card-border);border-radius:.25rem;background:var(--color-cc-bg);box-shadow:0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1);color:var(--color-cc-heading);font-size:.75rem;line-height:1rem;text-align:left;white-space:nowrap;pointer-events:none}
+[data-history-chart] [data-point]:is(:hover,:focus-visible)>span{--below:clamp(0,(25 - var(--fit-top) - var(--y)*var(--fit-height)/100)*1000,1);--start:clamp(0,(15 - var(--x))*1000,1);--end:clamp(0,(var(--x) - 85)*1000,1);position:absolute;top:50%;left:50%;z-index:10;display:flex;flex-direction:column;width:max-content;translate:calc(-50% + var(--start)*50% - var(--end)*50%) calc(var(--below)*16px + (1 - var(--below))*(-100% - 16px));padding:.5rem .75rem;border:1px solid var(--color-cc-card-border);border-radius:.25rem;background:var(--color-cc-bg);box-shadow:0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1);color:var(--color-cc-heading);font-size:.75rem;line-height:1rem;text-align:left;white-space:nowrap;pointer-events:none}
 [data-history-chart] [data-point]>span::before{content:var(--title);font-weight:600}
 [data-history-chart] [data-point]>span>:first-child::after{content:" requests/s"}
 [data-history-chart] [data-point]>span>:nth-child(2){margin-top:.25rem;color:var(--color-cc-ink-dim)}
@@ -112,7 +128,7 @@ const CHART_STYLES = `
 [data-history-chart] li[data-series]>button:not([aria-pressed=true]):hover{background-color:var(--color-cc-hover)}
 `;
 
-/** A history chart that shows the series that match the filters on a fitted scale. Hovering or focusing a point or legend entry highlights its series and shows the point's tooltip. Clicking a point pins its series, and clicking a legend entry toggles the pin. While a series is pinned, hovering anywhere above or below one of its points shows that point. */
+/** A history chart that shows the series that match the filters on a fitted scale. Hovering or focusing a point or legend entry highlights its series and shows the point's tooltip. Clicking a point pins its series, clicking a legend entry toggles the pin, and clicking anywhere else in the chart removes it. While a series is pinned, hovering anywhere above or below one of its points shows that point. */
 export function BenchmarkHistoryChartFrame({
   id,
   series,
@@ -126,7 +142,7 @@ export function BenchmarkHistoryChartFrame({
       (filters.technologies.length === 0 ||
         filters.technologies.includes(item.technology)),
   );
-  const { pinned, pin, togglePinned } = useSeriesHighlight(
+  const { pinned, pin, unpin, togglePinned } = useSeriesHighlight(
     visible.map((item) => item.id),
   );
   if (visible.length === 0) {
@@ -185,9 +201,7 @@ export function BenchmarkHistoryChartFrame({
       ? [
           `${scope}{--highlight:1;--highlight-${series.findIndex((item) => item.id === pinned)}:1}`,
           `${scope} [data-point]:not([data-series=${quote(pinned)}]){pointer-events:none}`,
-          `${scope} [data-point][data-series=${quote(pinned)}]{top:calc(var(--fit-top)*-1cqh);width:var(--column-width);height:100cqh;translate:-50% 0;--center:calc((var(--fit-top) + var(--y)*var(--fit-height)/100)*1cqh)}`,
-          `${scope} [data-point][data-series=${quote(pinned)}]:focus-visible{outline:none}`,
-          `${scope} [data-point][data-series=${quote(pinned)}]:focus-visible::before,${scope} [data-point][data-series=${quote(pinned)}]:focus-visible>svg{outline:2px solid var(--color-cc-accent);outline-offset:2px}`,
+          `${scope} [data-point][data-series=${quote(pinned)}]::after{content:"";position:absolute;z-index:-1;top:calc(50% - (var(--fit-top) + var(--y)*var(--fit-height)/100)*1cqh);left:50%;width:var(--column-width);height:100cqh;translate:-50% 0;cursor:default;pointer-events:auto}`,
           `${scope} [data-point]:not([data-series=${quote(pinned)}])>span{display:none}`,
         ]
       : []),
@@ -201,6 +215,15 @@ export function BenchmarkHistoryChartFrame({
         data-benchmark-scroll-anchor={`chart-${id}`}
         className="border-cc-card-border relative rounded-lg border"
         aria-labelledby={`${id}-history`}
+        onClick={(event) => {
+          const target = event.target instanceof Element ? event.target : null;
+          const button = target?.closest<HTMLElement>("button[data-point]");
+          if (button && (event.detail === 0 || isOnElement(event, button))) {
+            pin(button.dataset.series!);
+          } else if (pinned && !target?.closest("li[data-series] > button")) {
+            unpin();
+          }
+        }}
       >
         <style href="benchmark-history-chart" precedence="default">
           {CHART_STYLES}
@@ -231,18 +254,7 @@ export function BenchmarkHistoryChartFrame({
                 </span>
               ))}
             </div>
-            <div
-              className="[container-type:size] relative h-60 sm:h-72"
-              onClick={(event) => {
-                const button =
-                  event.target instanceof Element
-                    ? event.target.closest<HTMLElement>("button[data-point]")
-                    : null;
-                if (button) {
-                  pin(button.dataset.series!);
-                }
-              }}
-            >
+            <div className="[container-type:size] relative h-60 sm:h-72">
               {ticks.map((tick) => (
                 <div
                   key={tick}
@@ -359,7 +371,7 @@ const HistoryChartPlot = memo(function HistoryChartPlot({
           {
             "--point-width": `clamp(3px, ${round(100 / maxPoints)}%, 20px)`,
             "--point-size": maxPoints > 60 ? "0.1875rem" : "0.3125rem",
-            "--column-width": `${round(100 / Math.max(dates.length - 1, 1))}%`,
+            "--column-width": `${round(100 / Math.max(dates.length - 1, 1))}cqw`,
           } as CSSProperties
         }
       >
