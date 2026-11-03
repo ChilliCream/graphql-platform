@@ -9,12 +9,19 @@ namespace HotChocolate.Fusion.Satisfiability;
 internal sealed class SatisfiabilityExplanationBudget
 {
     private readonly long _maxEntries;
+    private readonly long _maxFailures;
     private readonly bool _createsEntries;
     private readonly bool _stopsSearch;
+    private long _failureCount;
 
-    private SatisfiabilityExplanationBudget(long maxEntries, bool createsEntries, bool stopsSearch)
+    private SatisfiabilityExplanationBudget(
+        long maxEntries,
+        bool createsEntries,
+        bool stopsSearch,
+        long maxFailures)
     {
         _maxEntries = maxEntries;
+        _maxFailures = maxFailures;
         _createsEntries = createsEntries;
         _stopsSearch = stopsSearch;
     }
@@ -33,21 +40,29 @@ internal sealed class SatisfiabilityExplanationBudget
     /// Creates a budget that creates every entry and is never exhausted.
     /// </summary>
     public static SatisfiabilityExplanationBudget Unlimited()
-        => new(long.MaxValue, createsEntries: true, stopsSearch: true);
+        => new(long.MaxValue, createsEntries: true, stopsSearch: true, maxFailures: long.MaxValue);
 
     /// <summary>
-    /// Creates a budget that creates at most <paramref name="maxEntries"/> entries. Once they are used up, it
-    /// either stops the search or lets it finish and only creates the entries that hold created entries.
+    /// Creates a budget that creates at most <paramref name="maxEntries"/> entries and stops the search once
+    /// they are used up.
     /// </summary>
-    public static SatisfiabilityExplanationBudget Limited(int maxEntries, bool stopsSearch)
-        => new(maxEntries, createsEntries: true, stopsSearch);
+    public static SatisfiabilityExplanationBudget Limited(int maxEntries)
+        => new(maxEntries, createsEntries: true, stopsSearch: true, maxFailures: long.MaxValue);
+
+    /// <summary>
+    /// Creates a budget that creates at most <paramref name="maxEntries"/> entries and afterwards only the
+    /// entries that hold created entries, and that stops the search after <paramref name="maxFailures"/>
+    /// failures.
+    /// </summary>
+    public static SatisfiabilityExplanationBudget Pruning(int maxEntries, int maxFailures)
+        => new(maxEntries, createsEntries: true, stopsSearch: false, maxFailures);
 
     /// <summary>
     /// Creates a budget for a search that only decides whether it fails, which creates no entries and
     /// is exhausted after <paramref name="maxEntries"/> failures, or never when it is <c>null</c>.
     /// </summary>
     public static SatisfiabilityExplanationBudget DecisionOnly(int? maxEntries)
-        => new(maxEntries ?? long.MaxValue, createsEntries: false, stopsSearch: true);
+        => new(maxEntries ?? long.MaxValue, createsEntries: false, stopsSearch: true, maxFailures: long.MaxValue);
 
     /// <summary>
     /// Creates an entry with <paramref name="message"/> and <paramref name="errors"/>, or returns
@@ -56,6 +71,11 @@ internal sealed class SatisfiabilityExplanationBudget
     /// </summary>
     public SatisfiabilityError CreateError(string message, ImmutableArray<SatisfiabilityError>? errors = null)
     {
+        if (++_failureCount > _maxFailures)
+        {
+            IsExhausted = true;
+        }
+
         if (EntryCount >= _maxEntries)
         {
             if (_stopsSearch)
