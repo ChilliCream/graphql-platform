@@ -115,6 +115,29 @@ public sealed class ValidationOptions
 
     /// <summary>
     /// <para>
+    /// The maximum number of selections an operation can have once its fragment
+    /// spreads are followed. Fields, inline fragments and fragment spreads each
+    /// count as one selection, and the selections of a fragment count every time
+    /// the fragment is spread.
+    /// </para>
+    /// <para>Default: <c>10,000</c></para>
+    /// </summary>
+    public int MaxAllowedSelections
+    {
+        get;
+        set
+        {
+            if (value < 1)
+            {
+                value = 10_000;
+            }
+
+            field = value;
+        }
+    } = 10_000;
+
+    /// <summary>
+    /// <para>
     /// The maximum number of field-merge comparisons allowed during
     /// overlapping-fields-can-be-merged validation. This prevents
     /// adversarial queries with deeply nested inline fragments from
