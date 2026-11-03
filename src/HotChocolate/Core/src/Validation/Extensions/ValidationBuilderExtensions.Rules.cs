@@ -394,5 +394,5 @@ public static partial class HotChocolateValidationBuilderExtensions
     public static IValidationBuilder AddSelectionSetDepthRule(
         this IValidationBuilder builder)
         => builder.TryAddValidationRule(
-            (_, o) => new SelectionSetDepthRule(o.MaxAllowedSelectionSetDepth));
+            (_, o) => new SelectionSetDepthRule(o.MaxAllowedSelectionSetDepth, o.MaxAllowedSelections));
 }
