@@ -194,6 +194,16 @@ builder
     .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 25);
 ```
 
+## Entity Representations
+
+The Apollo Federation `#!sdl _entities(representations: [_Any!]!)` field resolves one entity per representation. A request resolves at most **10,000** representations, counted across all of its `_entities` selections and variable sets. A selection that would exceed the limit is rejected with the error code `HC0139`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddApolloFederation(o => o.MaxAllowedRepresentations = 20_000);
+```
+
 # Next Steps
 
 - **Need cost analysis?** See [Cost Analysis](./cost-analysis.md).

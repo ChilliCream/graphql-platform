@@ -2,6 +2,7 @@ using System.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using static HotChocolate.ApolloFederation.FederationContextData;
+using static HotChocolate.ApolloFederation.WellKnownArgumentNames;
 
 namespace HotChocolate.ApolloFederation.Resolvers;
 
@@ -10,6 +11,31 @@ namespace HotChocolate.ApolloFederation.Resolvers;
 /// </summary>
 internal static class EntitiesResolver
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock s_representationCounterLock = new();
+#else
+    private static readonly object s_representationCounterLock = new();
+#endif
+
+    public static Task<IReadOnlyList<object?>> ResolveAsync(
+        IResolverContext context,
+        int maxAllowedRepresentations)
+    {
+        var count = context.ArgumentKind(Representations) is ValueKind.List
+            ? context.ArgumentLiteral<ListValueNode>(Representations).Items.Count
+            : 1;
+
+        if (!GetRepresentationCounter(context).TryAdd(count, maxAllowedRepresentations))
+        {
+            throw ThrowHelper.EntityResolver_TooManyRepresentations(maxAllowedRepresentations);
+        }
+
+        return ResolveAsync(
+            context.Schema,
+            context.ArgumentValue<IReadOnlyList<Representation>>(Representations),
+            context);
+    }
+
     public static async Task<IReadOnlyList<object?>> ResolveAsync(
         Schema schema,
         IReadOnlyList<Representation> representations,
@@ -129,9 +155,54 @@ internal static class EntitiesResolver
         return entity;
     }
 
+    private static RepresentationCounter GetRepresentationCounter(IResolverContext context)
+    {
+        var contextData = context.ContextData;
+
+        if (contextData.TryGetValue(RepresentationCount, out var value))
+        {
+            return (RepresentationCounter)value!;
+        }
+
+        lock (s_representationCounterLock)
+        {
+            if (!contextData.TryGetValue(RepresentationCount, out value))
+            {
+                value = new RepresentationCounter();
+                contextData[RepresentationCount] = value;
+            }
+
+            return (RepresentationCounter)value!;
+        }
+    }
+
     private static void ReportError(IResolverContext context, int item, Exception ex)
     {
         var itemPath = context.Path.Append(item);
         context.ReportError(ex, error => error.SetPath(itemPath));
+    }
+
+    private sealed class RepresentationCounter
+    {
+        private int _value;
+
+        public bool TryAdd(int count, int maxAllowedRepresentations)
+        {
+            var current = Volatile.Read(ref _value);
+
+            while (count <= maxAllowedRepresentations - current)
+            {
+                var previous = Interlocked.CompareExchange(ref _value, current + count, current);
+
+                if (previous == current)
+                {
+                    return true;
+                }
+
+                current = previous;
+            }
+
+            return false;
+        }
     }
 }
