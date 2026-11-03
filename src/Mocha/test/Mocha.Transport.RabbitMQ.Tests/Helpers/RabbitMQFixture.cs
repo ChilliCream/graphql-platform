@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using CookieCrumble.Resources;
 using RabbitMQ.Client;
 
@@ -114,6 +115,78 @@ public sealed class VhostContext : IAsyncDisposable
         }
     }
 
+    public Task SetConfigurePermissionAsync(string pattern)
+        => _fixture.InvokeCommandAsync([
+            "rabbitmqctl", "set_permissions", "-p", VhostName, "guest", pattern, ".*", ".*"
+        ]);
+
+    public async Task WaitForQueueAsync(string queueName, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        while (await GetConsumerCountAsync(queueName) is null)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
+    public Task SetReadPermissionAsync(string pattern)
+        => _fixture.InvokeCommandAsync([
+            "rabbitmqctl", "set_permissions", "-p", VhostName, "guest", ".*", ".*", pattern
+        ]);
+
+    public async Task AllowReadingQueuesOnlyAsync()
+    {
+        var queues = await ListAsync("list_queues", "-p", VhostName, "name");
+        var pattern = $"^({string.Join("|", queues.Select(row => Regex.Escape(row[0])))})$";
+        await SetReadPermissionAsync(pattern);
+    }
+
+    public async Task<string> GetAutoDeleteQueueNameAsync()
+    {
+        var queues = await ListAsync("list_queues", "-p", VhostName, "name", "auto_delete");
+        return queues.Single(row => row[1] == "true")[0];
+    }
+
+    public async Task WaitForQueueDeletionAsync(string queueName, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        while (await GetConsumerCountAsync(queueName) is not null)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
+    public async Task WaitForNoBindingsAsync(string queueName, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        while (true)
+        {
+            var bindings = await ListAsync("list_bindings", "-p", VhostName, "source_name", "destination_name");
+            if (bindings.All(row => row[0].Length == 0 || row[1] != queueName))
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
+    public async Task WaitForMessagesAsync(string queueName, int count, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        while (true)
+        {
+            var queues = await ListAsync("list_queues", "-p", VhostName, "name", "messages_ready");
+            var queue = queues.Single(row => row[0] == queueName);
+            if (int.Parse(queue[1], CultureInfo.InvariantCulture) == count)
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
     public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);
 
     private async Task<string[][]> ListAsync(params string[] command)
@@ -121,8 +194,8 @@ public sealed class VhostContext : IAsyncDisposable
         var output = await _fixture.InvokeCommandAsync(["rabbitmqctl", .. command, "--quiet", "--no-table-headers"]);
 
         return output
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(line => line.Split('\t'))
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.TrimEnd('\r').Split('\t'))
             .ToArray();
     }
 }

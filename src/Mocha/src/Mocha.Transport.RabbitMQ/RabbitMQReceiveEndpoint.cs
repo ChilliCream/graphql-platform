@@ -45,7 +45,7 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             throw new InvalidOperationException("Queue name is required");
         }
 
-        var topology = (RabbitMQMessagingTopology)Transport.Topology;
+        var topology = transport.Topology;
 
         Queue =
             topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName)
@@ -60,44 +60,18 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        if (Transport is not RabbitMQMessagingTransport rabbitMQMessagingTransport)
-        {
-            throw new InvalidOperationException("Transport is not a RabbitMQMessagingTransport");
-        }
+        var topology = transport.Topology;
+        var receiveTopology = Queue.AutoProvision ?? topology.AutoProvision
+            ? new RabbitMQReceiveTopology(topology, Queue)
+            : null;
 
-        var topology = (RabbitMQMessagingTopology)rabbitMQMessagingTransport.Topology;
-        Func<IChannel, CancellationToken, ValueTask>? provisionReceiveTopology =
-            Queue.AutoProvision ?? topology.AutoProvision ? ProvisionReceiveTopologyAsync : null;
-
-        _consumer = await rabbitMQMessagingTransport.ConsumerManager.RegisterConsumerAsync(
+        _consumer = await transport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
             ProcessMessageAsync,
-            provisionReceiveTopology,
+            receiveTopology,
             _maxPrefetch,
             _consumerDispatchConcurrency,
             cancellationToken);
-    }
-
-    private async ValueTask ProvisionReceiveTopologyAsync(IChannel channel, CancellationToken cancellationToken)
-    {
-        var autoProvision = ((RabbitMQMessagingTopology)Transport.Topology).AutoProvision;
-
-        await Queue.ProvisionAsync(channel, cancellationToken);
-
-        foreach (var binding in Queue.Bindings)
-        {
-            if (!(binding.AutoProvision ?? autoProvision))
-            {
-                continue;
-            }
-
-            if (binding.Source.AutoProvision ?? autoProvision)
-            {
-                await binding.Source.ProvisionAsync(channel, cancellationToken);
-            }
-
-            await binding.ProvisionAsync(channel, cancellationToken);
-        }
     }
 
     private async ValueTask ProcessMessageAsync(

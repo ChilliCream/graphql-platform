@@ -468,7 +468,7 @@ public class RabbitMQTopologyDescriptorTests
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         return (runtime, transport, topology);
     }
 }

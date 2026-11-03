@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ;
 
@@ -16,7 +15,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     private CancellationTokenSource? _monitoringCts;
     private Task? _monitoringTask;
     private IConnection? _observedConnection;
-    private bool _missingQueuesProvisioned;
+    private volatile bool _receiveTopologyProvisioned;
 
     /// <summary>
     /// Creates a new consumer manager that will use the specified connection factory to establish RabbitMQ connections.
@@ -50,7 +49,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         => RegisterConsumerAsync(
             queueName,
             messageHandler,
-            provisionReceiveTopology: null,
+            receiveTopology: null,
             prefetchCount,
             consumerDispatchConcurrency,
             cancellationToken);
@@ -58,9 +57,9 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     /// <inheritdoc cref="RegisterConsumerAsync(string, Func{IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask}, ushort, ushort, CancellationToken)"/>
     /// <param name="queueName">The name of the RabbitMQ queue to consume from.</param>
     /// <param name="messageHandler">The callback invoked for each delivered message, receiving the channel, delivery event args, and a cancellation token.</param>
-    /// <param name="provisionReceiveTopology">
-    /// Declares the receive topology before consumption resumes and may be invoked repeatedly on a
-    /// caller-owned channel. When <see langword="null"/>, a missing queue fails the attach.
+    /// <param name="receiveTopology">
+    /// The receive topology to provision before consumption starts, or <see langword="null"/> when
+    /// automatic provisioning is disabled.
     /// </param>
     /// <param name="prefetchCount">The maximum number of unacknowledged messages the broker will deliver to this consumer.</param>
     /// <param name="consumerDispatchConcurrency">The maximum number of messages dispatched concurrently to the consumer callback. When greater than 1, multiple messages are processed in parallel.</param>
@@ -68,7 +67,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     internal async Task<IAsyncDisposable> RegisterConsumerAsync(
         string queueName,
         Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
-        Func<IChannel, CancellationToken, ValueTask>? provisionReceiveTopology,
+        RabbitMQReceiveTopology? receiveTopology,
         ushort prefetchCount,
         ushort consumerDispatchConcurrency,
         CancellationToken cancellationToken)
@@ -78,7 +77,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             Manager = this,
             QueueName = queueName,
             MessageHandler = messageHandler,
-            ProvisionReceiveTopology = provisionReceiveTopology,
+            ReceiveTopology = receiveTopology,
             PrefetchCount = prefetchCount,
             ConsumerDispatchConcurrency = consumerDispatchConcurrency
         };
@@ -114,9 +113,10 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         IConnection connection,
         CancellationToken cancellationToken)
     {
-        ObserveConsumerRecovery(connection);
+        SubscribeToConsumerRecovery(connection);
 
-        // Reconnect existing consumers
+        _receiveTopologyProvisioned = false;
+        await ProvisionReceiveTopologiesAsync(connection, cancellationToken);
         await ReconnectConsumersAsync(connection, cancellationToken);
 
         // Start health monitoring if not already running
@@ -136,10 +136,11 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     /// <returns>A task that completes when all consumers have been re-attached to the recovered connection.</returns>
     protected override async Task OnConnectionRecoveredAsync(CancellationToken cancellationToken)
     {
-        _missingQueuesProvisioned = false;
+        _receiveTopologyProvisioned = false;
 
         if (CurrentConnection is not null)
         {
+            await ProvisionReceiveTopologiesAsync(CurrentConnection, cancellationToken);
             await ReconnectConsumersAsync(CurrentConnection, cancellationToken);
         }
     }
@@ -159,7 +160,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         {
             try
             {
-                await consumer.ConnectAsync(connection, cancellationToken);
+                await consumer.AttachAsync(connection, cancellationToken);
                 Logger.ReconnectConsumerForQueue(consumer.QueueName);
             }
             catch (Exception ex)
@@ -169,36 +170,48 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         }
     }
 
-    private void ObserveConsumerRecovery(IConnection connection)
+    private void SubscribeToConsumerRecovery(IConnection connection)
     {
         _observedConnection?.RecoveringConsumerAsync -= OnRecoveringConsumerAsync;
         _observedConnection = connection;
         connection.RecoveringConsumerAsync += OnRecoveringConsumerAsync;
     }
 
+    protected override Task OnConnectionLostAsync()
+    {
+        _receiveTopologyProvisioned = false;
+        return Task.CompletedTask;
+    }
+
     private async Task OnRecoveringConsumerAsync(object? sender, RecoveringConsumerEventArgs e)
     {
-        // The client resubscribes its recorded consumers one at a time, and a missing queue fails the whole
-        // recovery attempt. Every missing queue is declared before the first consumer resumes, so a resumed
-        // consumer cannot send to a queue that does not exist yet, such as the reply queue.
-        if (_missingQueuesProvisioned || sender is not IConnection connection)
+        if (_receiveTopologyProvisioned || sender is not IConnection connection)
         {
             return;
         }
 
-        foreach (var consumer in _registeredConsumers)
+        // Provision every receive topology before any consumer resumes.
+        while (true)
         {
             try
             {
-                await consumer.ProvisionReceiveTopologyIfMissingAsync(connection, e.CancellationToken);
+                await ProvisionReceiveTopologiesAsync(connection, e.CancellationToken);
+                _receiveTopologyProvisioned = true;
+                return;
             }
-            catch (Exception ex)
+            catch (Exception) when (connection.IsOpen && !e.CancellationToken.IsCancellationRequested)
             {
-                Logger.FailedToDeclareMissingQueue(ex, consumer.QueueName);
+                await Task.Delay(TimeSpan.FromSeconds(1), e.CancellationToken);
             }
         }
+    }
 
-        _missingQueuesProvisioned = true;
+    private async Task ProvisionReceiveTopologiesAsync(IConnection connection, CancellationToken cancellationToken)
+    {
+        foreach (var consumer in _registeredConsumers)
+        {
+            await consumer.ProvisionReceiveTopologyAsync(connection, cancellationToken);
+        }
     }
 
     private void StartHealthMonitoring()
@@ -328,10 +341,9 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         { get; init; }
 
         /// <summary>
-        /// Gets the callback that declares the receive topology when the queue does not exist, or
-        /// <see langword="null"/> when a missing queue is not declared.
+        /// Gets the receive topology, or <see langword="null"/> when automatic provisioning is disabled.
         /// </summary>
-        public Func<IChannel, CancellationToken, ValueTask>? ProvisionReceiveTopology { get; init; }
+        public RabbitMQReceiveTopology? ReceiveTopology { get; init; }
 
         /// <summary>
         /// Gets the maximum number of unacknowledged messages the broker delivers to this consumer.
@@ -356,35 +368,26 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         private readonly CancellationTokenSource _consumerCts = new();
 
         /// <summary>
-        /// Establishes a new channel on the given connection, configures QoS prefetch, and starts consuming messages from the queue.
+        /// Provisions the enabled receive topology and starts consuming on a new channel.
         /// </summary>
-        /// <remarks>
-        /// Any previously active channel is disconnected after the new consumer attaches, or after the
-        /// attach fails. When the queue does not exist and <see cref="ProvisionReceiveTopology"/> is set, the
-        /// queue is declared and consuming is attempted once more. On failure, the partially created
-        /// channel is disposed and the consumer state is reset.
-        /// </remarks>
-        /// <param name="connection">The RabbitMQ connection to create a channel on.</param>
-        /// <param name="cancellationToken">A token to cancel the connect operation.</param>
         public async Task ConnectAsync(IConnection connection, CancellationToken cancellationToken)
         {
-            // The previous consumer is cancelled last, so an auto-delete queue never loses its last
-            // consumer while the consumer re-attaches.
+            await ProvisionReceiveTopologyAsync(connection, cancellationToken);
+            await AttachAsync(connection, cancellationToken);
+        }
+
+        /// <summary>
+        /// Starts consuming from an existing queue and disconnects the previous consumer after attachment is attempted.
+        /// </summary>
+        public async Task AttachAsync(IConnection connection, CancellationToken cancellationToken)
+        {
+            // Keep the previous consumer attached until the replacement attaches.
             var previousChannel = Channel;
             var previousConsumerTag = ConsumerTag;
 
             try
             {
-                try
-                {
-                    await ConsumeAsync(connection, cancellationToken);
-                }
-                catch (OperationInterruptedException ex)
-                    when (ex.ShutdownReason?.ReplyCode == Constants.NotFound && ProvisionReceiveTopology is not null)
-                {
-                    await ProvisionReceiveTopologyAsync(connection, cancellationToken);
-                    await ConsumeAsync(connection, cancellationToken);
-                }
+                await ConsumeAsync(connection, cancellationToken);
             }
             finally
             {
@@ -393,41 +396,27 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         }
 
         /// <summary>
-        /// Declares the queue through <see cref="ProvisionReceiveTopology"/> when it does not exist on the broker.
+        /// Provisions the queue, exchanges, and bindings enabled for this consumer.
         /// </summary>
-        /// <param name="connection">The RabbitMQ connection to check and declare the queue on.</param>
-        /// <param name="cancellationToken">A token to cancel the operation.</param>
-        public async Task ProvisionReceiveTopologyIfMissingAsync(IConnection connection, CancellationToken cancellationToken)
+        public async Task ProvisionReceiveTopologyAsync(IConnection connection, CancellationToken cancellationToken)
         {
-            if (ProvisionReceiveTopology is null || await QueueExistsAsync(connection, cancellationToken))
+            if (ReceiveTopology is not { AutoProvision: true } topology)
             {
                 return;
             }
 
-            await ProvisionReceiveTopologyAsync(connection, cancellationToken);
-        }
-
-        private async Task<bool> QueueExistsAsync(IConnection connection, CancellationToken cancellationToken)
-        {
-            await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+            Manager.Logger.ProvisioningReceiveTopology(QueueName);
 
             try
             {
-                await channel.QueueDeclarePassiveAsync(QueueName, cancellationToken);
-                return true;
+                await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+                await topology.ProvisionAsync(channel, cancellationToken);
             }
-            catch (OperationInterruptedException ex) when (ex.ShutdownReason?.ReplyCode == Constants.NotFound)
+            catch (Exception ex)
             {
-                return false;
+                Manager.Logger.FailedToProvisionReceiveTopology(ex, QueueName);
+                throw;
             }
-        }
-
-        private async Task ProvisionReceiveTopologyAsync(IConnection connection, CancellationToken cancellationToken)
-        {
-            Manager.Logger.DeclaringMissingQueue(QueueName);
-
-            await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
-            await ProvisionReceiveTopology!(channel, cancellationToken);
         }
 
         private async Task ConsumeAsync(IConnection connection, CancellationToken cancellationToken)
@@ -667,9 +656,9 @@ internal static partial class Logs
     [LoggerMessage(LogLevel.Error, "Error disposing consumer {ConsumerTag}")]
     public static partial void ErrorDisposingConsumer(this ILogger logger, Exception ex, string consumerTag);
 
-    [LoggerMessage(LogLevel.Warning, "Queue {Queue} does not exist, declaring it for its consumer")]
-    public static partial void DeclaringMissingQueue(this ILogger logger, string queue);
+    [LoggerMessage(LogLevel.Debug, "Provisioning receive topology for queue {Queue}")]
+    public static partial void ProvisioningReceiveTopology(this ILogger logger, string queue);
 
-    [LoggerMessage(LogLevel.Error, "Failed to declare missing queue {Queue}")]
-    public static partial void FailedToDeclareMissingQueue(this ILogger logger, Exception ex, string queue);
+    [LoggerMessage(LogLevel.Error, "Failed to provision receive topology for queue {Queue}")]
+    public static partial void FailedToProvisionReceiveTopology(this ILogger logger, Exception ex, string queue);
 }
