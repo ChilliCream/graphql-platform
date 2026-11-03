@@ -258,24 +258,29 @@ export const formatHistoryDate = (timestamp: number, includeYear = false) =>
     timeZone: "UTC",
   }).format(timestamp);
 
-/** Returns run dates at a consistent run interval whose labels fit the available width. */
-export function historyDateTicks(values: readonly number[], width: number) {
+/** The narrowest history chart plot in pixels, on the narrowest supported screen. */
+const MIN_PLOT_WIDTH = 200;
+
+/** Returns the sorted run dates and, for each interval in runs between date labels, the whole plot widths in pixels at which it is the smallest interval whose labels fit, from `minWidth` up to but excluding `maxWidth`. Plots narrower than the narrowest supported plot use the interval that fits it. */
+export function historyDateIntervals(values: readonly number[]) {
   const dates = [...new Set(values)].toSorted((a, b) => a - b);
   if (dates.length < 2) {
-    return dates;
+    return { dates, intervals: [] };
   }
-  const first = dates[0];
-  const last = dates.at(-1)!;
   const includeYear =
-    new Date(first).getUTCFullYear() !== new Date(last).getUTCFullYear();
+    new Date(dates[0]).getUTCFullYear() !==
+    new Date(dates.at(-1)!).getUTCFullYear();
   const labelWidth = includeYear ? 90 : 52;
-  const stride = Math.max(
-    1,
-    Math.ceil(
-      ((labelWidth * 1.5 + 16) * (dates.length - 1)) / Math.max(width, 1),
-    ),
-  );
-  return dates.filter((_, index) => index % stride === 0);
+  const space = (labelWidth * 1.5 + 16) * (dates.length - 1);
+  const count = Math.min(dates.length - 1, Math.ceil(space / MIN_PLOT_WIDTH));
+  return {
+    dates,
+    intervals: Array.from({ length: count }, (_, index) => ({
+      runs: index + 1,
+      minWidth: index === count - 1 ? 0 : Math.round(space / (index + 1)),
+      maxWidth: index === 0 ? Infinity : Math.round(space / index),
+    })),
+  };
 }
 
 const niceStep = (range: number) => {
