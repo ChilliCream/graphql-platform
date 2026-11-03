@@ -88,7 +88,6 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
         var schema = CreateSchema($"@fusion__cost_options(defaultListSize: {value})");
 
         Assert.Equal(value, schema.CostOptions.DefaultListSize);
-        Assert.Equal(value, schema.DefaultListSize);
     }
 
     [Fact]
@@ -178,7 +177,6 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
         var schema = FusionSchemaDefinition.Create(document);
 
         Assert.Equal(7, schema.CostOptions.DefaultListSize);
-        Assert.Equal(7, schema.DefaultListSize);
     }
 
     [Fact]

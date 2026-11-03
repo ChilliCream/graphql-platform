@@ -149,11 +149,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// </summary>
     public ShareableFieldRuntimeTypeRouting ShareableFieldRuntimeTypeRouting { get; }
 
-    /// <summary>
-    /// Gets the assumed size of a list field with no applicable <c>@listSize</c> information.
-    /// <see langword="null"/> indicates an unbounded assumed size.
-    /// </summary>
-    public int? DefaultListSize => this.CostOptions.DefaultListSize;
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 
