@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import type { MouseEvent, ReactNode } from "react";
-import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { WarningIcon } from "@/src/icons/Warning";
 import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
+import { BenchmarkHintButton } from "@/src/components/benchmarks/BenchmarkHintButton";
+import {
+  BenchmarkHintTooltip,
+  HOVERED_HINT_BUTTON,
+} from "@/src/components/benchmarks/BenchmarkHintTooltip";
 import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import { SUBSECTION_HEADING } from "@/src/components/benchmarks/benchmarkHeadings";
 import {
@@ -75,6 +79,10 @@ function useRowSelection() {
   };
 }
 
+/** Returns the id of a column hint tooltip, which the desktop table and the mobile list of a table share. */
+const columnHintId = (headingId: string, column: number) =>
+  `${headingId}-hint-${column}`;
+
 /** Returns the row style: the winner and failure styles without a selection, otherwise an accent bar on the selected row while the others fade. */
 const rowClass = (
   selected: string | undefined,
@@ -140,6 +148,19 @@ const columnHints = (
   "How much throughput varied across the measured runs, as the coefficient of variation.",
 ];
 
+/** A chevron pointing down, as a mask. */
+const CHEVRON_DOWN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath d='M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z'/%3E%3C/svg%3E")`;
+
+/** Shows the column hint that a hovered or keyboard focused hint button of the same table references, and draws the chevron of the metrics toggle. */
+const RESULTS_STYLES =
+  Array.from(
+    { length: COLUMNS.length },
+    (_, index) =>
+      `[data-hints]:has(${HOVERED_HINT_BUTTON}[data-hint-key="${index}"]) [data-hint][data-hint-key="${index}"],:root:not(:has([data-hint-button]:hover)) [data-hints]:has([data-hint-button][data-hint-key="${index}"]:focus-visible:not([data-hint-dismissed])) [data-hint][data-hint-key="${index}"]{display:block}`,
+  ).join("") +
+  `[data-metrics-toggle]::before{content:"";width:.625rem;height:.625rem;background:currentColor;mask:${CHEVRON_DOWN} center/contain no-repeat}` +
+  "details[open]>[data-metrics-toggle]::before{rotate:180deg}";
+
 /** One composition table of a scenario: every row, its throughput bar, latency, resources, reliability and variance. */
 export function BenchmarkResultsTable({
   id,
@@ -176,7 +197,22 @@ export function BenchmarkResultsTable({
   );
 
   return (
-    <div data-benchmark-scroll-anchor={`table-${id}`}>
+    <div data-benchmark-scroll-anchor={`table-${id}`} data-hints>
+      <style href="benchmark-results" precedence="default">
+        {RESULTS_STYLES}
+      </style>
+      {hints.map(
+        (hint, index) =>
+          hint !== undefined && (
+            <BenchmarkHintTooltip
+              key={index}
+              id={columnHintId(headingId, index)}
+              hintKey={String(index)}
+            >
+              {hint}
+            </BenchmarkHintTooltip>
+          ),
+      )}
       <div className="flex items-start justify-between gap-4 pb-4">
         <div>
           <h3 id={headingId} className={theme.heading}>
@@ -229,9 +265,11 @@ export function BenchmarkResultsTable({
                   <span className="whitespace-nowrap">
                     {column.label}
                     {hints[index] !== undefined && (
-                      <BenchmarkColumnHint label={column.label}>
-                        {hints[index]}
-                      </BenchmarkColumnHint>
+                      <BenchmarkHintButton
+                        label={column.label}
+                        tooltipId={columnHintId(headingId, index)}
+                        hintKey={String(index)}
+                      />
                     )}
                   </span>
                 </th>
@@ -507,9 +545,13 @@ function BenchmarkMobileResults({
         <span>Router</span>
         <span className="whitespace-nowrap">
           Median requests/s
-          <BenchmarkColumnHint label="Median requests/s">
-            {hints[1]}
-          </BenchmarkColumnHint>
+          {hints[1] !== undefined && (
+            <BenchmarkHintButton
+              label="Median requests/s"
+              tooltipId={columnHintId(headingId, 1)}
+              hintKey="1"
+            />
+          )}
         </span>
       </div>
       <ul aria-labelledby={headingId}>
@@ -593,12 +635,11 @@ function BenchmarkMobileResults({
                     <BenchmarkFailure />
                   </div>
                 ) : (
-                  <details className="group mt-3">
-                    <summary className="text-cc-ink-dim hover:text-cc-prose focus-visible:outline-cc-accent flex w-fit cursor-pointer list-none items-center gap-1.5 rounded text-xs focus-visible:outline-2 [&::-webkit-details-marker]:hidden">
-                      <ChevronDownIcon
-                        aria-hidden="true"
-                        className="size-2.5 fill-current group-open:rotate-180"
-                      />
+                  <details className="mt-3">
+                    <summary
+                      data-metrics-toggle
+                      className="text-cc-ink-dim hover:text-cc-prose focus-visible:outline-cc-accent flex w-fit cursor-pointer list-none items-center gap-1.5 rounded text-xs focus-visible:outline-2 [&::-webkit-details-marker]:hidden"
+                    >
                       All metrics
                       <span className="sr-only"> for {variantName(entry)}</span>
                     </summary>
@@ -607,11 +648,13 @@ function BenchmarkMobileResults({
                         <div key={COLUMNS[index + 2].label}>
                           <dt className="text-cc-ink-dim">
                             {COLUMNS[index + 2].label}
-                            <BenchmarkColumnHint
-                              label={COLUMNS[index + 2].label}
-                            >
-                              {hints[index + 2]}
-                            </BenchmarkColumnHint>
+                            {hints[index + 2] !== undefined && (
+                              <BenchmarkHintButton
+                                label={COLUMNS[index + 2].label}
+                                tooltipId={columnHintId(headingId, index + 2)}
+                                hintKey={String(index + 2)}
+                              />
+                            )}
                           </dt>
                           <dd
                             className={`mt-1 font-mono ${index === 5 && !isReliable(row) ? theme.danger : "text-cc-heading"}`}

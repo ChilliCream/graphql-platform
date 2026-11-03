@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
 import type { BenchmarkFilters as Filters } from "@/src/components/benchmarks/benchmarkFilters";
 
-/** The height of the sticky site header in pixels, which the popover must not open behind. */
-const HEADER_HEIGHT = 72;
-
-/** The space between the trigger and the popover in pixels. */
-const POPOVER_GAP = 8;
+const FILTER_STYLES =
+  "html:has(dialog[data-benchmark-filter]:modal){overflow:hidden}";
 
 const PREVIEWS = {
   label: "Include previews",
@@ -35,42 +38,10 @@ export function BenchmarkFilterBar({
   children,
 }: BenchmarkFilterBarProps) {
   const titleId = useId();
+  const popoverId = useId();
+  const anchor = `--benchmark-filter${popoverId.replace(/[^\w-]/g, "")}`;
   const dialog = useRef<HTMLDialogElement>(null);
-  const menu = useRef<HTMLDetailsElement>(null);
-  const popover = useRef<HTMLDivElement>(null);
-  const [above, setAbove] = useState(false);
-  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(filters);
-
-  useEffect(() => {
-    const closeOutside = (event: PointerEvent) => {
-      if (menu.current && !menu.current.contains(event.target as Node)) {
-        menu.current.open = false;
-      }
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && menu.current?.open) {
-        menu.current.open = false;
-        menu.current.querySelector("summary")?.focus();
-      }
-    };
-    document.addEventListener("pointerdown", closeOutside);
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeOutside);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, []);
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
 
   const toggle = (current: Filters, technology: string): Filters => ({
     ...current,
@@ -106,30 +77,23 @@ export function BenchmarkFilterBar({
 
   return (
     <div data-benchmark-controls className={`relative ${className}`}>
-      <details
-        ref={menu}
-        className="hidden h-full md:block"
-        onToggle={(event) => {
-          const details = event.currentTarget;
-          if (!details.open || !popover.current) {
-            return;
-          }
-          const trigger = details.getBoundingClientRect();
-          const height = popover.current.offsetHeight + POPOVER_GAP;
-          setAbove(
-            trigger.bottom + height > window.innerHeight &&
-              trigger.top - height >= HEADER_HEIGHT,
-          );
-        }}
-      >
-        <summary
-          className={`cursor-pointer list-none [&::-webkit-details-marker]:hidden ${triggerClassName}`}
+      <style href="benchmark-filter" precedence="default">
+        {FILTER_STYLES}
+      </style>
+      <div className="hidden h-full md:block">
+        <button
+          type="button"
+          popoverTarget={popoverId}
+          className={`cursor-pointer ${triggerClassName}`}
+          style={{ anchorName: anchor } as CSSProperties}
         >
           {children}
-        </summary>
+        </button>
         <div
-          ref={popover}
-          className={`border-cc-card-border bg-cc-bg absolute right-0 z-10 w-72 rounded-lg border p-5 shadow-xl ${above ? "bottom-full mb-2" : "top-full mt-2"}`}
+          id={popoverId}
+          popover="auto"
+          className="border-cc-card-border bg-cc-bg text-cc-heading inset-auto m-0 mt-2 w-72 rounded-lg border p-5 shadow-xl [position-area:bottom_span-left] [position-try-fallbacks:flip-block]"
+          style={{ positionAnchor: anchor } as CSSProperties}
         >
           {choices(filters, onChange)}
           <div className="border-cc-card-border mt-4 border-t pt-3">
@@ -143,7 +107,7 @@ export function BenchmarkFilterBar({
             />
           </div>
         </div>
-      </details>
+      </div>
       <button
         type="button"
         className={`cursor-pointer md:hidden ${triggerClassName}`}
@@ -151,16 +115,15 @@ export function BenchmarkFilterBar({
         onClick={() => {
           setDraft(filters);
           dialog.current?.showModal();
-          setOpen(true);
         }}
       >
         {children}
       </button>
       <dialog
         ref={dialog}
+        data-benchmark-filter
         aria-labelledby={titleId}
         className="border-cc-card-border bg-cc-bg text-cc-heading backdrop:bg-cc-bg/80 fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none overflow-y-auto rounded-t-2xl border p-0"
-        onClose={() => setOpen(false)}
         onClick={(event) => {
           if (event.target === event.currentTarget) {
             const bounds = event.currentTarget.getBoundingClientRect();
