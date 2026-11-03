@@ -238,6 +238,43 @@ public class TypeModuleSyntaxGeneratorTests
     }
 
     [Fact]
+    public async Task GenerateSource_NonGeneric_InterfaceObject_On_RuntimeClass_RegistersType()
+    {
+        // The non-generic [InterfaceObject] on a bare runtime class registers the class itself
+        // through the generated module, exactly like a bare [ObjectType] attribute would. See
+        // InterfaceObjectTests.NonGeneric_Attribute_On_Runtime_Class_MatchesSnapshot for the full
+        // Initialize-method snapshot; this test focuses on the module registration alongside
+        // other type kinds.
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [InterfaceObject]
+            [EntityKey("id")]
+            public sealed class Programme
+            {
+                public string Id { get; set; }
+            }
+            """,
+            """
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                public static string Hello() => "world";
+            }
+            """
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task GenerateSource_Interface_Inheritance_Registers_Derived_Implementations()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

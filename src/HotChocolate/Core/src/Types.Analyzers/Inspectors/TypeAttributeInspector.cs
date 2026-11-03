@@ -58,6 +58,16 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                         && TypeAttributes.Contains(fullName)
                         && context.SemanticModel.GetDeclaredSymbol(possibleType) is { } type)
                     {
+                        // The non-generic [InterfaceObject] on a static resolver class that also
+                        // carries [ObjectType<T>] is a plain descriptor attribute carried over by
+                        // ObjectTypeInspector; it must not additionally register the resolver class
+                        // itself as a runtime type.
+                        if (fullName.Equals(InterfaceObjectAttribute, Ordinal)
+                            && HasGenericObjectTypeAttribute(context, possibleType))
+                        {
+                            continue;
+                        }
+
                         if (fullName.Equals(QueryTypeAttribute))
                         {
                             if (possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
@@ -111,6 +121,34 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
         }
 
         syntaxInfo = null;
+        return false;
+    }
+
+    private static bool HasGenericObjectTypeAttribute(
+        GeneratorSyntaxContext context,
+        BaseTypeDeclarationSyntax possibleType)
+    {
+        foreach (var attributeListSyntax in possibleType.AttributeLists)
+        {
+            foreach (var attributeSyntax in attributeListSyntax.Attributes)
+            {
+                var symbol = context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol;
+
+                if (symbol is not IMethodSymbol attributeSymbol)
+                {
+                    continue;
+                }
+
+                var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+
+                if (attributeContainingTypeSymbol.TypeArguments.Length == 1
+                    && attributeContainingTypeSymbol.ToDisplayString().StartsWith(ObjectTypeAttribute, Ordinal))
+                {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 }

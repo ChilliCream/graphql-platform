@@ -1,6 +1,10 @@
 using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
+using HotChocolate.Types.Composite;
+using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
@@ -283,5 +287,277 @@ public class InterfaceObjectTests : FusionTestBase
                     media => Assert.Equal(123, media.GetProperty("views").GetInt32()),
                     media => Assert.Equal(123, media.GetProperty("views").GetInt32()));
             });
+    }
+
+    [Fact]
+    public async Task CodeFirst_StandIn_Declared_With_InterfaceObjectAttribute_Resolves()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema("A", SchemaA);
+        using var serverB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddQueryType<CodeFirstMediaStandIn.Query>()
+                .AddType<CodeFirstMediaStandIn.Media>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        // Schema B declares its Media stand-in solely through [InterfaceObject]; no [ObjectType]
+        // is applied to the class, exercising the attribute's self-sufficiency.
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              trendingMedia {
+                id
+                views
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task CodeFirst_StandIn_With_Attribute_Resolves_Lookup_Through_Covering_Schema()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema("A", SchemaA);
+        using var serverB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddQueryType<CodeFirstMediaStandIn.Query>()
+                .AddType<CodeFirstMediaStandIn.Media>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        // The lookup is served through schema A's covering lookup and reaches into schema B's
+        // [InterfaceObject]-declared stand-in for the "views" field it owns.
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              mediaById(id: "1") {
+                id
+                views
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task CodeFirst_StandIn_With_Attribute_Recovers_TypeName_Through_Covering_Lookup()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema("A", SchemaA);
+        using var serverB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddQueryType<CodeFirstMediaStandIn.Query>()
+                .AddType<CodeFirstMediaStandIn.Media>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        // Selecting __typename observes identity, so the opaque element produced by the
+        // [InterfaceObject]-declared stand-in is upgraded to its concrete type through A's
+        // covering lookup; __typename resolves to Book/Movie, never Media.
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              trendingMedia {
+                __typename
+                id
+                views
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task CodeFirst_StandIn_With_Fluent_Descriptor_Resolves_Lookup_Through_Covering_Schema()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema("A", SchemaA);
+        using var serverB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddQueryType<CodeFirstMediaStandInFluent.Query>()
+                .AddType<CodeFirstMediaStandInFluent.MediaType>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        // The lookup is served through schema A's covering lookup and reaches into schema B's
+        // fluently-declared descriptor.InterfaceObject() stand-in for the "views" field it owns.
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              mediaById(id: "1") {
+                id
+                views
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task CodeFirst_StandIn_With_Fluent_Descriptor_Recovers_TypeName_Through_Covering_Lookup()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema("A", SchemaA);
+        using var serverB = CreateSourceSchema(
+            "B",
+            b => b
+                .AddQueryType<CodeFirstMediaStandInFluent.Query>()
+                .AddType<CodeFirstMediaStandInFluent.MediaType>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        // Selecting __typename observes identity, so the opaque element produced by the fluently
+        // declared descriptor.InterfaceObject() stand-in is upgraded to its concrete type through
+        // A's covering lookup; __typename resolves to Book/Movie, never Media.
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              trendingMedia {
+                __typename
+                id
+                views
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    public static class CodeFirstMediaStandIn
+    {
+        public class Query
+        {
+            public IEnumerable<Media> GetTrendingMedia()
+                =>
+                [
+                    new("1", 123),
+                    new("2", 123)
+                ];
+
+            [Lookup]
+            [Internal]
+            public Media? GetMediaByKey([ID] string id) => new(id, 123);
+        }
+
+        [InterfaceObject]
+        [EntityKey("id")]
+        public class Media(string id, int views)
+        {
+            [GraphQLType<NonNullType<IdType>>]
+            public string Id { get; } = id;
+
+            public int Views { get; } = views;
+        }
+    }
+
+    public static class CodeFirstMediaStandInFluent
+    {
+        public class Query
+        {
+            public IEnumerable<Media> GetTrendingMedia()
+                =>
+                [
+                    new("1", 123),
+                    new("2", 123)
+                ];
+
+            [Lookup]
+            [Internal]
+            public Media? GetMediaByKey([ID] string id) => new(id, 123);
+        }
+
+        // No [InterfaceObject]/[EntityKey] here; the stand-in is declared entirely through
+        // MediaType's fluent descriptor.InterfaceObject() below.
+        public class Media(string id, int views)
+        {
+            public string Id { get; } = id;
+
+            public int Views { get; } = views;
+        }
+
+        public sealed class MediaType : ObjectType<Media>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Media> descriptor)
+            {
+                descriptor.InterfaceObject();
+                descriptor.EntityKey("id");
+                descriptor.Field(f => f.Id).Type<NonNullType<IdType>>();
+            }
+        }
     }
 }

@@ -383,4 +383,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor ObjectTypeInterfaceObjectConflict =
+        new(
+            id: ErrorCodes.Analyzers.ObjectTypeInterfaceObjectConflict,
+            title: "Conflicting Object Type Attributes",
+            messageFormat: "Use either [ObjectType<T>] or [InterfaceObject<T>] on this class, not both",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

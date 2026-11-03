@@ -100,6 +100,7 @@ public static class WellKnownTypes
     public const string ConnectionFlagsHelper = "HotChocolate.Types.Pagination.ConnectionFlagsHelper";
     public const string Shareable = "HotChocolate.Types.Composite.Shareable";
     public const string Inaccessible = "HotChocolate.Types.Composite.Inaccessible";
+    public const string InterfaceObject = "HotChocolate.Types.Composite.InterfaceObject";
     public const string ArgumentConfiguration = "HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration";
     public const string ArgumentDescriptor = "HotChocolate.Types.Descriptors.ArgumentDescriptor";
     public const string ParameterDescriptor = "HotChocolate.Internal.ParameterDescriptor";

@@ -322,6 +322,48 @@ public static class InaccessibleDescriptorExtensions
 
     /// <summary>
     /// <para>
+    /// Applies the @inaccessible directive to the object type to prevent it
+    /// from being accessible through the client-facing composite schema,
+    /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// type User @inaccessible {
+    ///   id: ID!
+    ///   name: String!
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object type descriptor to apply the directive to.
+    /// </param>
+    /// <param name="scoped">
+    /// if <c>true</c> and this directive is applied to an object type extension,
+    /// it will only be applied to the fields that this object type extension exposes.
+    /// if scoped is <c>false</c> the directive will be applied to the type and will thus make all
+    /// fields of the type sharable.
+    /// </param>
+    /// <returns>
+    /// The object type descriptor with the directive applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectTypeDescriptor<T> Inaccessible<T>(
+        this IObjectTypeDescriptor<T> descriptor,
+        bool scoped = false)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ((IObjectTypeDescriptor)descriptor).Inaccessible(scoped);
+        return descriptor;
+    }
+
+    /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the object field to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
