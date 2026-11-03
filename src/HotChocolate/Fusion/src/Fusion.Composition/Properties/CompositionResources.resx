@@ -369,6 +369,9 @@
   <data name="LogEntryHelper_FieldArgumentTypesNotMergeable" xml:space="preserve">
     <value>The argument '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_FieldArgumentNotShared" xml:space="preserve">
+    <value>The argument '{0}' is not defined in schema '{1}' and is removed from the composite schema.</value>
+  </data>
   <data name="LogEntryHelper_FieldWithMissingRequiredArgument" xml:space="preserve">
     <value>The argument '{0}' must be defined as required in schema '{1}'. Arguments marked with @require are treated as non-required.</value>
   </data>
@@ -377,6 +380,9 @@
   </data>
   <data name="LogEntryHelper_InputFieldDefaultMismatch" xml:space="preserve">
     <value>The default value '{0}' of input field '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
+  </data>
+  <data name="LogEntryHelper_InputFieldNotShared" xml:space="preserve">
+    <value>The input field '{0}' is not defined in schema '{1}' and is removed from the composite schema.</value>
   </data>
   <data name="LogEntryHelper_InputFieldTypesNotMergeable" xml:space="preserve">
     <value>The input field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
@@ -407,6 +413,18 @@
   </data>
   <data name="LogEntryHelper_InvalidProjectedFieldSharing" xml:space="preserve">
     <value>The default field '{0}' on type '{1}' is contributed by unrelated interfaces {2}; every contributing @interfaceObject declaration must be marked @shareable.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidCostPlanCacheSizeSetting" xml:space="preserve">
+    <value>The 'costPlanCacheSize' composition setting must be a positive integer ({0}).</value>
+  </data>
+  <data name="LogEntryHelper_InvalidMaxFieldCostSetting" xml:space="preserve">
+    <value>The 'maxFieldCost' composition setting must be a non-negative finite number ({0}).</value>
+  </data>
+  <data name="LogEntryHelper_InvalidMaxResponseSizeSetting" xml:space="preserve">
+    <value>The 'maxResponseSize' composition setting must be a non-negative finite number ({0}).</value>
+  </data>
+  <data name="LogEntryHelper_InvalidMaxTypeCostSetting" xml:space="preserve">
+    <value>The 'maxTypeCost' composition setting must be a non-negative finite number ({0}).</value>
   </data>
   <data name="LogEntryHelper_InvalidDefaultListSizeSettingRange" xml:space="preserve">
     <value>The 'defaultListSize' composition setting must be a non-negative integer no larger than 2147483647 ({0}).</value>
@@ -636,6 +654,9 @@
   <data name="RequiresOptInDirective_FeatureArgument_Invalid" xml:space="preserve">
     <value>The @requiresOptIn directive must have a 'feature' argument of type String.</value>
   </data>
+  <data name="SatisfiabilityError_AndMore" xml:space="preserve">
+    <value>... and {0} more</value>
+  </data>
   <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected: {0} -&gt; {1}.</value>
   </data>
@@ -650,6 +671,9 @@
   </data>
   <data name="SatisfiabilityValidator_NoLookupForRequiringField" xml:space="preserve">
     <value>The field '{0}.{1}' in schema '{2}' requires data from another schema, but schema '{2}' has no lookup for type '{0}' that could resolve the field once the required data has been fetched.</value>
+  </data>
+  <data name="SatisfiabilityValidator_ProvidedSelectionSetOmitsLookupKey" xml:space="preserve">
+    <value>The lookup '{0}' in schema '{1}' reads its key '{2}' from the selection set that schema '{3}' provides for type '{4}', which omits it.</value>
   </data>
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>

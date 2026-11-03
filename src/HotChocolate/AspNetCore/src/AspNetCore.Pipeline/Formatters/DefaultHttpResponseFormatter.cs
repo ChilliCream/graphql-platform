@@ -375,16 +375,30 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 response.ContentType = GetContentType(format, statusCode);
                 response.StatusCode = statusCode;
 
-                // RFC 9110, section 15.5.6 requires a 405 to list the methods the target resource
-                // supports, and section 10.2.1 defines that set per request. A GET or HEAD
-                // carrying an operation kind this server only serves over POST leaves POST as the
-                // one method that can satisfy it. A status code an overriding formatter chose is
-                // left alone, along with whatever Allow header it means to write for it.
+                // A 405 lists the methods that can satisfy the request, per RFC 9110, sections
+                // 15.5.6 and 10.2.1: the ones a refused result names, otherwise POST for a GET or
+                // HEAD. A status code an overriding formatter chose is left alone, along with its
+                // Allow header.
                 if (statusCode is (int)HttpStatusCode.MethodNotAllowed
-                    && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed)
-                    && response.HttpContext.Request.IsGetOrHeadMethod())
+                    && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
                 {
-                    response.Headers.Allow = HttpMethods.Post;
+                    if (result.ContextData.TryGetValue(
+                            HttpResultContextData.AllowedMethods,
+                            out var allowed)
+                        && allowed is string allowedMethods)
+                    {
+                        response.Headers.Allow = allowedMethods;
+
+                        if (result.ContextData.ContainsKey(HttpResultContextData.AcceptQuery))
+                        {
+                            response.Headers[HttpHeaderKeys.AcceptQuery] =
+                                HttpHeaderValues.AcceptQueryMediaTypes;
+                        }
+                    }
+                    else if (response.HttpContext.Request.IsGetOrHeadMethod())
+                    {
+                        response.Headers.Allow = HttpMethods.Post;
+                    }
                 }
 
                 if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)

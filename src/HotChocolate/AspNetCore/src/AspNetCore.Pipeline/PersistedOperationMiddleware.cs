@@ -36,8 +36,9 @@ internal static class PersistedOperationMiddleware
         ((IEndpointConventionBuilder)groupBuilder).Add(
             endpoint => endpoint.RequestDelegate = negotiation(endpoint.RequestDelegate!));
 
-        groupBuilder.MapGet(
+        groupBuilder.MapMethods(
             "/{operationId}",
+            [HttpMethods.Get, HttpMethods.Head],
             async context =>
             {
                 var operationId = context.Request.RouteValues["operationId"] as string;
@@ -59,8 +60,9 @@ internal static class PersistedOperationMiddleware
             });
 
         groupBuilder
-            .MapGet(
+            .MapMethods(
                 "/{operationId}/{operationName}",
+                [HttpMethods.Get, HttpMethods.Head],
                 async context =>
                 {
                     var operationId = context.Request.RouteValues["operationId"] as string;
@@ -211,8 +213,8 @@ internal static class PersistedOperationMiddleware
         }
 
         var allow = serverOptions.EnableQueryRequests
-            ? "GET, OPTIONS, POST, QUERY"
-            : "GET, OPTIONS, POST";
+            ? "GET, HEAD, OPTIONS, POST, QUERY"
+            : "GET, HEAD, OPTIONS, POST";
 
         // every other method on these patterns is answered as on the GraphQL endpoint.
         groupBuilder.Map(
@@ -290,6 +292,11 @@ internal static class PersistedOperationMiddleware
                     executorSession);
             statusCode = executionResult.StatusCode;
             result = executionResult.Result;
+
+            if (!options.EnableQueriesOverPost)
+            {
+                MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: true);
+            }
 
 HANDLE_RESULT:
             await MiddlewareHelper.WriteResultAsync(
@@ -375,6 +382,11 @@ HANDLE_RESULT:
             {
                 requestFlags = MiddlewareHelper.DetermineHttpQueryRequestFlags(requestFlags);
             }
+            else
+            {
+                requestFlags =
+                    MiddlewareHelper.DetermineHttpPostRequestFlags(requestFlags, options);
+            }
 
             // after successfully parsing the request, we now will attempt to execute the request.
             var executionResult =
@@ -388,6 +400,11 @@ HANDLE_RESULT:
                 ? MiddlewareHelper.DetermineHttpQueryStatusCode(executionResult)
                 : executionResult.StatusCode;
             result = executionResult.Result;
+
+            if (kind is HttpRequestKind.HttpPost && !options.EnableQueriesOverPost)
+            {
+                MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: true);
+            }
 
 HANDLE_RESULT:
             await MiddlewareHelper.WriteResultAsync(

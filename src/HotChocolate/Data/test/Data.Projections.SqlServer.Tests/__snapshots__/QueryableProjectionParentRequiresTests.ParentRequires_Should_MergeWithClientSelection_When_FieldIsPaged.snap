@@ -1,0 +1,24 @@
+Result:
+---------------
+{
+  "data": {
+    "booksCursor": {
+      "nodes": [
+        {
+          "author": {
+            "name": "Jane Doe"
+          },
+          "authorProfileUrl": "/authors/42"
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "a"."Name", "a"."Id"
+FROM "Data" AS "d"
+INNER JOIN "Author" AS "a" ON "d"."AuthorId" = "a"."Id"
+---------------

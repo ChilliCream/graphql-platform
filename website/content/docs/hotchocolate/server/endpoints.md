@@ -85,7 +85,10 @@ endpoints.MapGraphQL().WithOptions(o => o.AllowedGetOperations = AllowedGetOpera
 
 If [EnableGetRequests](#enablegetrequests) is `true`, you can control the allowed operations for HTTP GET requests using the `AllowedGetOperations` setting.
 
-By default, only queries are accepted via HTTP GET. You can also allow mutations by setting `AllowedGetOperations` to `AllowedGetOperations.QueryAndMutation`.
+By default, only queries are accepted via HTTP GET. To also accept subscriptions, set `AllowedGetOperations` to `AllowedGetOperations.Query | AllowedGetOperations.Subscription`.
+
+> [!WARNING]
+> `AllowedGetOperations.Mutation`, `AllowedGetOperations.QueryAndMutation`, and `AllowedGetOperations.All` are obsolete and still execute mutations over GET. The [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md) does not allow mutations over GET. A browser sends a cross-site GET request without a CORS preflight, so with cookie authentication, a page on another site can run a mutation as the signed-in user. Send mutations over POST.
 
 ### EnableQueryRequests
 
@@ -94,6 +97,24 @@ endpoints.MapGraphQL().WithOptions(o => o.EnableQueryRequests = true);
 ```
 
 This setting controls whether the GraphQL server handles GraphQL operations sent with the HTTP QUERY method. It is `false` by default. A QUERY request carries a JSON body like a POST request and executes a single query operation.
+
+[Learn more about QUERY requests](./http-transport.md#query-requests)
+
+### EnableQueriesOverPost
+
+```csharp
+endpoints.MapGraphQL().WithOptions(o => o.EnableQueriesOverPost = false);
+```
+
+This setting controls whether the GraphQL server executes query operations sent with HTTP POST. It is `true` by default. Mutations and subscriptions run over POST either way.
+
+A refused query gets the status code that a refused operation kind gets for its `Accept` header and [transport version](./http-transport.md#transport-versions): `405 Method Not Allowed` for `application/graphql-response+json`, and for `application/json` under `Draft20260903`. A `405` response lists in its `Allow` header `GET` and `HEAD` when [GET requests](#enablegetrequests) serve queries, and `QUERY` when [QUERY requests](#enablequeryrequests) are enabled, in which case it also carries `Accept-Query: application/json`. When neither serves queries, the `Allow` header is empty. In a request batch or an operation batch, each query fails with its own error while the other operations run.
+
+While this setting is `false`, a query refused over GET or HEAD because [`AllowedGetOperations`](#allowedgetoperations) leaves out queries has a `405` response whose `Allow` header lists `QUERY` when QUERY requests are enabled and is empty otherwise, instead of listing `POST`.
+
+The persisted operation routes read this setting from the schema's server options, which you set with `ModifyServerOptions`. Their `Allow` header lists `GET` and `HEAD` whenever `AllowedGetOperations` includes queries, whatever `EnableGetRequests` says.
+
+Introspection is a query, so a tool that introspects the schema over POST cannot read it. The schema download through [`EnableSchemaRequests`](#enableschemarequests) keeps working. A source schema behind a Fusion gateway must leave this setting `true`, because the gateway sends every request to a source schema over POST.
 
 [Learn more about QUERY requests](./http-transport.md#query-requests)
 
@@ -336,7 +357,7 @@ The default path is `/graphql/persisted`. The endpoint supports two URL patterns
 | `/{operationId}`                 | `/graphql/persisted/abc123`         | Execute a persisted operation by its ID                        |
 | `/{operationId}/{operationName}` | `/graphql/persisted/abc123/GetUser` | Execute a specific named operation within a persisted document |
 
-GET and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. With POST and QUERY requests, you can pass variables and extensions in a JSON request body, sent with `Content-Type: application/json`. A QUERY request executes query operations only. A request with any other method has a `404` status code. Under the [`Draft20260903` transport version](./http-transport.md#draft20260903), it has a `405` status code, or `204` for `OPTIONS`.
+GET, HEAD, and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. A HEAD request is answered as GET, without the response content. With POST and QUERY requests, you can pass variables and extensions in a JSON request body, sent with `Content-Type: application/json`. A QUERY request executes query operations only. A request with any other method has a `404` status code. Under the [`Draft20260903` transport version](./http-transport.md#draft20260903), it has a `405` status code, or `204` for `OPTIONS`.
 
 ## Custom Path
 
@@ -402,20 +423,21 @@ builder
 
 The full set of properties available on `GraphQLServerOptions` is listed below. You can set these via `ModifyServerOptions` (schema-level) or `WithOptions` (per-endpoint).
 
-| Property                                  | Type                   | Default            | Description                                                                                                                     |
-| ----------------------------------------- | ---------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| `EnableGetRequests`                       | `bool`                 | `true`             | Controls whether HTTP GET requests are accepted.                                                                                |
-| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`. |
-| `EnableQueryRequests`                     | `bool`                 | `false`            | Controls whether HTTP QUERY requests are accepted. A QUERY request executes a single query operation.                           |
-| `EnableMultipartRequests`                 | `bool`                 | `true`             | Controls whether multipart form requests (file uploads) are accepted.                                                           |
-| `EnableSchemaRequests`                    | `bool`                 | `true`             | Controls whether the schema SDL can be downloaded via `?sdl`.                                                                   |
-| `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Controls whether the schema SDL is served as a downloadable file.                                                               |
-| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`            | When `true`, GET requests must include a CSRF preflight header or an `application/json` `Content-Type`.                         |
-| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`             | When `true`, multipart requests must include a CSRF preflight header.                                                           |
-| `Batching`                                | `AllowedBatching`      | `VariableBatching` | Which batching modes are allowed. Request batching must be enabled explicitly.                                                  |
-| `MaxBatchSize`                            | `int`                  | `1024`             | Maximum number of operations in a single batch. `0` means unlimited.                                                            |
-| `Sockets`                                 | `GraphQLSocketOptions` | _(see below)_      | WebSocket-specific options.                                                                                                     |
-| `Tool`                                    | `NitroAppOptions`      | _(see below)_      | Nitro IDE options.                                                                                                              |
+| Property                                  | Type                   | Default            | Description                                                                                             |
+| ----------------------------------------- | ---------------------- | ------------------ | ------------------------------------------------------------------------------------------------------- |
+| `EnableGetRequests`                       | `bool`                 | `true`             | Controls whether HTTP GET requests are accepted.                                                        |
+| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Subscription`.                |
+| `EnableQueryRequests`                     | `bool`                 | `false`            | Controls whether HTTP QUERY requests are accepted. A QUERY request executes a single query operation.   |
+| `EnableQueriesOverPost`                   | `bool`                 | `true`             | Controls whether query operations are executed over HTTP POST.                                          |
+| `EnableMultipartRequests`                 | `bool`                 | `true`             | Controls whether multipart form requests (file uploads) are accepted.                                   |
+| `EnableSchemaRequests`                    | `bool`                 | `true`             | Controls whether the schema SDL can be downloaded via `?sdl`.                                           |
+| `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Controls whether the schema SDL is served as a downloadable file.                                       |
+| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`            | When `true`, GET requests must include a CSRF preflight header or an `application/json` `Content-Type`. |
+| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`             | When `true`, multipart requests must include a CSRF preflight header.                                   |
+| `Batching`                                | `AllowedBatching`      | `VariableBatching` | Which batching modes are allowed. Request batching must be enabled explicitly.                          |
+| `MaxBatchSize`                            | `int`                  | `1024`             | Maximum number of operations in a single batch. `0` means unlimited.                                    |
+| `Sockets`                                 | `GraphQLSocketOptions` | _(see below)_      | WebSocket-specific options.                                                                             |
+| `Tool`                                    | `NitroAppOptions`      | _(see below)_      | Nitro IDE options.                                                                                      |
 
 The `Sockets` property contains a `GraphQLSocketOptions` object with these properties:
 

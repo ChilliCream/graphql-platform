@@ -466,6 +466,27 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry FieldArgumentNotShared(
+        string argumentName,
+        MutableOutputFieldDefinition field,
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name, argumentName);
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_FieldArgumentNotShared,
+                coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.FieldArgumentNotShared)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry FieldWithMissingRequiredArgument(
         string requiredArgumentName,
         MutableOutputFieldDefinition field,
@@ -524,6 +545,26 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
             .SetSchema(schemaA)
+            .Build();
+    }
+
+    public static LogEntry InputFieldNotShared(
+        string fieldName,
+        MutableInputObjectTypeDefinition inputType,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(inputType.Name, fieldName);
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InputFieldNotShared,
+                coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.InputFieldNotShared)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(inputType)
+            .SetSchema(schema)
             .Build();
     }
 
@@ -733,6 +774,54 @@ internal static class LogEntryHelper
         return LogEntryBuilder.New()
             .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingType, rawValue)
             .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for a non-positive cost-plan cache size, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidCostPlanCacheSizeSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidCostPlanCacheSizeSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidCostPlanCacheSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum field cost, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxFieldCostSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxFieldCostSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxFieldCostSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum response size, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxResponseSizeSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxResponseSizeSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxResponseSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum type cost, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxTypeCostSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxTypeCostSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxTypeCostSetting)
             .SetSeverity(LogSeverity.Error)
             .Build();
     }

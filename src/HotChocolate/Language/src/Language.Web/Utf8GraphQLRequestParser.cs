@@ -337,6 +337,7 @@ public ref struct Utf8GraphQLRequestParser
 
         // Handle persisted queries via extensions
         if (documentSpan.IsEmpty
+            && documentSequence.IsEmpty
             && documentId.IsEmpty
             && _useCache
             && extensions is not null

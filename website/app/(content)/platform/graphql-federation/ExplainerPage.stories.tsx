@@ -47,5 +47,10 @@ export const Default: Story = {
     expect(
       closingSection.getByRole("link", { name: "Get started with Fusion" }),
     ).toHaveAttribute("href", "/docs/fusion/getting-started");
+    expect(
+      sections[7].querySelectorAll(
+        'svg[viewBox="0 0 400 400"][aria-hidden="true"]',
+      ),
+    ).toHaveLength(1);
   },
 };

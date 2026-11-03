@@ -20,7 +20,7 @@ const hooks = registerHooks({
 const {
   historySeries,
   historyTimeScale,
-  historyDateTicks,
+  historyDateIntervals,
   latestCompletedPoint,
   seriesChange,
 } = await import("../../src/components/benchmarks/benchmarkView.ts");
@@ -36,8 +36,15 @@ test("fits more run-date labels on wider charts at a consistent run interval", (
   const dates = [
     0, 1, 5, 8, 10, 14, 20, 29, 33, 36, 38, 40, 42, 49, 53, 57, 59, 61, 87,
   ].map((offset) => start + offset * day);
-  const wide = historyDateTicks(dates, 1200);
-  const narrow = historyDateTicks(dates, 260);
+  const { intervals } = historyDateIntervals(dates);
+  const ticks = (width) => {
+    const { runs } = intervals.find(
+      (interval) => interval.minWidth <= width && width < interval.maxWidth,
+    );
+    return dates.filter((_, index) => index % runs === 0);
+  };
+  const wide = ticks(1200);
+  const narrow = ticks(260);
   assert.ok(wide.length >= 9);
   assert.ok(narrow.length < wide.length);
   for (const [ticks, width] of [
@@ -116,6 +123,23 @@ test("allows empty result lists and start-time fallback", () => {
   const series = historySeries(parsed.scenarios[0], benchmarkVariants(parsed));
   assert.equal(series[0].points[0].timestamp, Date.parse(result.run.startedAt));
 });
+test("preserves each history point's planned repetition count", () => {
+  // arrange
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = history.scenarios[0];
+  const results = scenario.variants[0].results;
+  results[0].measuredRuns = 9;
+  results[1].measuredRuns = 5;
+
+  // act
+  const series = historySeries(scenario, benchmarkVariants(history));
+
+  // assert
+  assert.deepEqual(
+    series[0].points.map((point) => point.measuredRuns),
+    [9, 5, undefined],
+  );
+});
 test("rejects malformed dates and missing subgraph metadata", () => {
   for (const mutate of [
     (result) => {
@@ -143,7 +167,8 @@ test("includes years when requested for a cross-year axis", async () => {
   );
 });
 
-test("distributes six-month samples evenly without a short final interval", () => {
+test("distributes 40 six-month samples evenly without a short final interval", () => {
+  // arrange
   const history = parseBenchmarkHistory(fixture);
   const scenario = structuredClone(history.scenarios[0]);
   const variant = scenario.variants[0];
@@ -157,17 +182,20 @@ test("distributes six-month samples evenly without a short final interval", () =
       completedAt: new Date(start + index * day).toISOString(),
     },
   }));
+  // act
   const points = historySeries(scenario, benchmarkVariants(history))[0].points;
   const gaps = points
     .slice(1)
     .map((point, index) => (point.timestamp - points[index].timestamp) / day);
+  // assert
   assert.deepEqual(
     [points[0].runNumber, points.at(-1).runNumber, points.length],
-    [1000, 1183, 20],
+    [1000, 1183, 40],
   );
-  assert.ok(gaps.every((gap) => gap === 9 || gap === 10));
+  assert.ok(gaps.every((gap) => gap === 4 || gap === 5));
 });
 test("keeps failed runs that fall between samples", () => {
+  // arrange
   const history = parseBenchmarkHistory(fixture);
   const scenario = structuredClone(history.scenarios[0]);
   const variant = scenario.variants[0];
@@ -176,19 +204,22 @@ test("keeps failed runs that fall between samples", () => {
   const start = Date.parse("2026-04-17T12:00:00Z");
   variant.results = Array.from({ length: 184 }, (_, index) => ({
     ...base,
-    ...(index === 5 ? { status: "failed" } : {}),
+    ...(index === 2 ? { status: "failed" } : {}),
     run: {
       number: 1000 + index,
       completedAt: new Date(start + index * day).toISOString(),
     },
   }));
+  // act
   const points = historySeries(scenario, benchmarkVariants(history))[0].points;
+
+  // assert
   assert.deepEqual(
     [
       points.filter((point) => point.failed).map((point) => point.runNumber),
       points.length,
     ],
-    [[1005], 21],
+    [[1002], 41],
   );
 });
 test("excludes failed runs from the change and latest completed point", () => {
@@ -302,6 +333,7 @@ test("samples the same run dates for every series", () => {
     ]),
     [
       [39, true],
+      [40, true],
       [41, true],
     ],
   );

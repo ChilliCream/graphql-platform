@@ -2,6 +2,7 @@ using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -51,6 +52,11 @@ public sealed class OperationCompiler
     /// Gets the maximum number of defer conditions an operation may declare.
     /// </summary>
     internal int MaxAllowedDeferConditions => _maxAllowedDeferConditions;
+
+    /// <summary>
+    /// Gets the largest id a selection set or a selection of an operation can have.
+    /// </summary>
+    internal int MaxElementId { get; init; } = CompositeResultDocument.DbRow.OperationReferenceIdMask;
 
     public Operation Compile(
         string id,
@@ -288,7 +294,7 @@ public sealed class OperationCompiler
         var wideIncludeFlags = hasWideIncludeFlags ? new List<ulong[]>() : null;
         var wideIncludeFlagsStride = hasWideIncludeFlags ? (includeConditionCount - 1) >> 6 : 0;
         var deliveryGroups = new List<DeliveryGroup>();
-        var selectionSetId = ++lastId;
+        var selectionSetId = NewElementId(ref lastId);
 
         foreach (var (responseName, nodes) in fieldMap)
         {
@@ -426,7 +432,7 @@ public sealed class OperationCompiler
             }
 
             var selection = new Selection(
-                ++lastId,
+                NewElementId(ref lastId),
                 responseName,
                 field,
                 nodes.ToArray(),
@@ -455,6 +461,22 @@ public sealed class OperationCompiler
             isConditional,
             hasIncrementalParts,
             declaringSelection);
+    }
+
+    /// <summary>
+    /// Gets the next operation unique id for a selection set or a selection.
+    /// </summary>
+    /// <exception cref="GraphQLException">
+    /// The operation needs more ids than a result document can reference.
+    /// </exception>
+    private int NewElementId(ref int lastId)
+    {
+        if (lastId >= MaxElementId)
+        {
+            throw ThrowHelper.OperationCompiler_TooManySelections();
+        }
+
+        return ++lastId;
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)

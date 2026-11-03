@@ -1,0 +1,22 @@
+Result:
+---------------
+{
+  "data": {
+    "books": [
+      {
+        "author": {
+          "name": "Jane Doe"
+        },
+        "authorLabel": "Jane Doe (42)"
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT "a"."Name", "a"."Id", "a"."Biography"
+FROM "Data" AS "d"
+INNER JOIN "Author" AS "a" ON "d"."AuthorId" = "a"."Id"
+---------------

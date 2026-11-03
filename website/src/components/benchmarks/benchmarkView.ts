@@ -134,6 +134,7 @@ export interface HistoryPoint {
   readonly failed: boolean;
   /** The number of measured runs that completed. */
   readonly completedRuns: number;
+  readonly measuredRuns: number | undefined;
 }
 
 /** One variant's line in the history chart. */
@@ -147,7 +148,7 @@ export interface HistorySeries {
   readonly color: string;
   /** Whether the line is dashed because the palette ran out of colors. */
   readonly dashed: boolean;
-  /** Sampled runs, oldest first: the runs on dates sampled across every series, which include each series' first and latest run, and every failed run. */
+  /** Runs on up to 40 shared sample dates, plus each series' endpoints and every failed run, oldest first. */
   readonly points: readonly HistoryPoint[];
 }
 
@@ -168,8 +169,7 @@ export function historySeries(
   const dates = [
     ...new Set(histories.flatMap(({ versions }) => versions.map(runDate))),
   ].toSorted((a, b) => a - b);
-  const stride = Math.max(1, Math.ceil((dates.length - 1) / 20));
-  const count = Math.ceil((dates.length - 1) / stride) + 1;
+  const count = Math.min(dates.length, 40);
   const sampledDates = new Set([
     ...Array.from(
       { length: count },
@@ -216,6 +216,7 @@ export function historySeries(
         rps: version.throughput.medianRps,
         failed: version.status === "failed",
         completedRuns: version.throughput.runsRps!.length,
+        measuredRuns: version.measuredRuns,
       })),
     };
   });
@@ -257,24 +258,29 @@ export const formatHistoryDate = (timestamp: number, includeYear = false) =>
     timeZone: "UTC",
   }).format(timestamp);
 
-/** Returns run dates at a consistent run interval whose labels fit the available width. */
-export function historyDateTicks(values: readonly number[], width: number) {
+/** The narrowest history chart plot in pixels, on the narrowest supported screen. */
+const MIN_PLOT_WIDTH = 200;
+
+/** Returns the sorted run dates and, for each interval in runs between date labels, the whole plot widths in pixels at which it is the smallest interval whose labels fit, from `minWidth` up to but excluding `maxWidth`. Plots narrower than the narrowest supported plot use the interval that fits it. */
+export function historyDateIntervals(values: readonly number[]) {
   const dates = [...new Set(values)].toSorted((a, b) => a - b);
   if (dates.length < 2) {
-    return dates;
+    return { dates, intervals: [] };
   }
-  const first = dates[0];
-  const last = dates.at(-1)!;
   const includeYear =
-    new Date(first).getUTCFullYear() !== new Date(last).getUTCFullYear();
+    new Date(dates[0]).getUTCFullYear() !==
+    new Date(dates.at(-1)!).getUTCFullYear();
   const labelWidth = includeYear ? 90 : 52;
-  const stride = Math.max(
-    1,
-    Math.ceil(
-      ((labelWidth * 1.5 + 16) * (dates.length - 1)) / Math.max(width, 1),
-    ),
-  );
-  return dates.filter((_, index) => index % stride === 0);
+  const space = (labelWidth * 1.5 + 16) * (dates.length - 1);
+  const count = Math.min(dates.length - 1, Math.ceil(space / MIN_PLOT_WIDTH));
+  return {
+    dates,
+    intervals: Array.from({ length: count }, (_, index) => ({
+      runs: index + 1,
+      minWidth: index === count - 1 ? 0 : Math.round(space / (index + 1)),
+      maxWidth: index === 0 ? Infinity : Math.round(space / index),
+    })),
+  };
 }
 
 const niceStep = (range: number) => {
@@ -358,12 +364,12 @@ export const isWinner = (row: BenchmarkVariantResult, group: ResultsGroup) =>
 const scenarioRows = (scenario: Pick<BenchmarkScenario, "results">) =>
   scenario.results.flatMap((result) => result.variants);
 
-/** Returns whether the page shows a variant: Fusion only as its stable Native AOT build on .NET 11, every other gateway with all its variants. */
+/** Includes all previews and other gateways; stable Fusion variants must use Native AOT on .NET 11. */
 export function isShownVariant({ gateway, variant }: BenchmarkCatalogEntry) {
   return (
     gateway.id !== "fusion" ||
-    (!isPreview(variant) &&
-      variant.platform.runtime?.version?.split(".")[0] === "11" &&
+    isPreview(variant) ||
+    (variant.platform.runtime?.version?.split(".")[0] === "11" &&
       (variant.platform.features ?? []).some((feature) => feature.id === "aot"))
   );
 }
@@ -451,7 +457,13 @@ export const tableCaption = (
   group: ResultsGroup,
   report: BenchmarkReport,
 ) =>
-  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
+  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, peak router memory per request in KiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
+
+/** Returns the peak memory in KiB divided by the median requests per second, or undefined without a memory measurement or throughput. */
+export const memoryPerRequest = (row: BenchmarkMeasuredVariantResult) =>
+  row.memory && row.throughput.medianRps > 0
+    ? row.memory.peakRssKiB / row.throughput.medianRps
+    : undefined;
 
 /** Formats a request rate as a whole number. */
 export const formatNumber = (value: number) =>
@@ -462,6 +474,13 @@ export const formatMemory = (kibibytes: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(
     kibibytes / 1024,
   );
+
+/** Formats KiB with one decimal below 100 KiB, without the unit. */
+export const formatKibibytes = (kibibytes: number) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: kibibytes < 100 ? 1 : 0,
+    maximumFractionDigits: kibibytes < 100 ? 1 : 0,
+  }).format(kibibytes);
 
 /** Formats milliseconds with one decimal below 100 ms, without the unit. */
 export const formatLatency = (milliseconds: number) =>

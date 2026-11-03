@@ -84,6 +84,8 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             goto HANDLE_RESULT;
         }
 
+        requestFlags = MiddlewareHelper.DetermineHttpPostRequestFlags(requestFlags, options);
+
         // next we parse the GraphQL request.
         GraphQLRequest[] requests;
 
@@ -191,6 +193,15 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // a single GraphQL query or mutation.
                 case 1:
                     result = await session.ExecuteSingleAsync(context, requests[0], requestFlags, options);
+
+                    if (!options.EnableQueriesOverPost)
+                    {
+                        MiddlewareHelper.MarkRefusedQuery(
+                            result,
+                            options,
+                            isPersistedRoute: false);
+                    }
+
                     break;
 
                 // if the HTTP request body contains more than one GraphQL request than

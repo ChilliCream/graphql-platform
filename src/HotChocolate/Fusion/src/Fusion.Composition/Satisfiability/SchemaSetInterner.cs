@@ -1,32 +1,46 @@
+using System.Numerics;
+using HotChocolate.Fusion.Options;
+
 namespace HotChocolate.Fusion.Satisfiability;
 
 /// <summary>
 /// Assigns dense indexes to source schema names and interns schema sets, so that equal sets
-/// share one <see cref="SchemaSet"/>.
+/// share one <see cref="SchemaSetRef"/>.
 /// </summary>
-internal sealed class SchemaSetTable
+internal sealed class SchemaSetInterner
 {
     private readonly Dictionary<string, int> _indexes = new(StringComparer.Ordinal);
-    private readonly List<string> _names = [];
+    private readonly string[] _names;
     private readonly List<ulong[]> _members = [[]];
-    private readonly Dictionary<ulong[], SchemaSet> _sets = new(MembersComparer.Instance);
-    private ulong[] _buffer = [];
+    private readonly Dictionary<ulong[], SchemaSetRef> _sets = new(MembersComparer.Instance);
+    private readonly ulong[] _buffer;
+    private readonly Stack<ulong[]> _bufferPool = new();
 
-    public SchemaSetTable()
+    /// <summary>
+    /// Creates an interner that assigns each of the distinct <paramref name="schemaNames"/> its
+    /// position as index.
+    /// </summary>
+    public SchemaSetInterner(IEnumerable<string> schemaNames)
     {
-        _sets.Add(_members[0], SchemaSet.Empty);
+        _names = [.. schemaNames];
+
+        for (var i = 0; i < _names.Length; i++)
+        {
+            _indexes.Add(_names[i], i);
+        }
+
+        _buffer = new ulong[(_names.Length + 63) >> 6];
+        _sets.Add(_members[0], SchemaSetRef.Empty);
     }
 
     /// <summary>
-    /// Gets the index of <paramref name="schemaName"/>, assigning the next free index on first use.
+    /// Gets the index of <paramref name="schemaName"/>, which must be one of the schemas of the interner.
     /// </summary>
     public int GetIndex(string schemaName)
     {
         if (!_indexes.TryGetValue(schemaName, out var index))
         {
-            index = _names.Count;
-            _indexes.Add(schemaName, index);
-            _names.Add(schemaName);
+            throw ThrowHelper.UnknownSourceSchema(schemaName);
         }
 
         return index;
@@ -40,9 +54,9 @@ internal sealed class SchemaSetTable
     /// <summary>
     /// Creates the set that contains the schemas with the given <paramref name="indexes"/>.
     /// </summary>
-    public SchemaSet Create(List<int> indexes)
+    public SchemaSetRef Create(List<int> indexes)
     {
-        var buffer = GetBuffer(SchemaSet.Empty);
+        var buffer = GetBuffer(SchemaSetRef.Empty);
 
         foreach (var index in indexes)
         {
@@ -55,33 +69,26 @@ internal sealed class SchemaSetTable
     /// <summary>
     /// Gets the members of <paramref name="set"/> as bits indexed by schema index.
     /// </summary>
-    public ReadOnlySpan<ulong> GetMembers(SchemaSet set) => _members[set.Id];
+    public ReadOnlySpan<ulong> GetMembers(SchemaSetRef set) => _members[set.Id];
 
     /// <summary>
     /// Determines whether <paramref name="set"/> contains <paramref name="schemaName"/>.
     /// </summary>
-    public bool Contains(SchemaSet set, string schemaName)
+    public bool Contains(SchemaSetRef set, string schemaName)
         => _indexes.TryGetValue(schemaName, out var index) && Contains(_members[set.Id], index);
 
     /// <summary>
     /// Determines whether <paramref name="set"/> contains the schema with the given index.
     /// </summary>
-    public bool Contains(SchemaSet set, int index) => Contains(_members[set.Id], index);
+    public bool Contains(SchemaSetRef set, int index) => Contains(_members[set.Id], index);
 
     /// <summary>
-    /// Gets the shared scratch buffer, sized for every known schema and holding the members of
-    /// <paramref name="set"/>. The next call to <see cref="GetBuffer"/> or <see cref="Create"/>
+    /// Gets the shared scratch buffer, sized for every schema of the interner and holding the members
+    /// of <paramref name="set"/>. The next call to <see cref="GetBuffer"/> or <see cref="Create"/>
     /// overwrites the buffer.
     /// </summary>
-    public ulong[] GetBuffer(SchemaSet set)
+    public ulong[] GetBuffer(SchemaSetRef set)
     {
-        var length = (_names.Count + 63) >> 6;
-
-        if (_buffer.Length < length)
-        {
-            _buffer = new ulong[length];
-        }
-
         var members = _members[set.Id];
         members.CopyTo(_buffer, 0);
         Array.Clear(_buffer, members.Length, _buffer.Length - members.Length);
@@ -89,9 +96,46 @@ internal sealed class SchemaSetTable
     }
 
     /// <summary>
+    /// Rents a buffer that is not shared until it is returned with <see cref="ReturnBuffer"/>, sized for
+    /// every schema of the interner and holding the members of <paramref name="set"/>.
+    /// </summary>
+    public ulong[] RentBuffer(SchemaSetRef set)
+    {
+        if (!_bufferPool.TryPop(out var buffer))
+        {
+            buffer = new ulong[_buffer.Length];
+        }
+
+        var members = _members[set.Id];
+        members.CopyTo(buffer, 0);
+        Array.Clear(buffer, members.Length, buffer.Length - members.Length);
+        return buffer;
+    }
+
+    /// <summary>
+    /// Returns a buffer of <see cref="RentBuffer"/>, which the caller must not use afterwards.
+    /// </summary>
+    public void ReturnBuffer(ulong[] buffer) => _bufferPool.Push(buffer);
+
+    /// <summary>
+    /// Gets the number of schemas in <paramref name="set"/>.
+    /// </summary>
+    public int Count(SchemaSetRef set)
+    {
+        var count = 0;
+
+        foreach (var word in _members[set.Id])
+        {
+            count += BitOperations.PopCount(word);
+        }
+
+        return count;
+    }
+
+    /// <summary>
     /// Removes every schema from <paramref name="buffer"/> that <paramref name="set"/> does not contain.
     /// </summary>
-    public void IntersectWith(ulong[] buffer, SchemaSet set)
+    public void IntersectWith(ulong[] buffer, SchemaSetRef set)
     {
         var members = _members[set.Id];
 
@@ -104,7 +148,7 @@ internal sealed class SchemaSetTable
     /// <summary>
     /// Adds every schema of <paramref name="set"/> to <paramref name="buffer"/>.
     /// </summary>
-    public void UnionWith(ulong[] buffer, SchemaSet set)
+    public void UnionWith(ulong[] buffer, SchemaSetRef set)
     {
         var members = _members[set.Id];
 
@@ -117,12 +161,12 @@ internal sealed class SchemaSetTable
     /// <summary>
     /// Gets the set with the members of <paramref name="buffer"/>.
     /// </summary>
-    public SchemaSet Intern(ulong[] buffer)
+    public SchemaSetRef Intern(ulong[] buffer)
     {
         if (!_sets.TryGetValue(buffer, out var set))
         {
             var members = MembersComparer.Trim(buffer).ToArray();
-            set = new SchemaSet(_members.Count);
+            set = new SchemaSetRef(_members.Count);
             _members.Add(members);
             _sets.Add(members, set);
         }

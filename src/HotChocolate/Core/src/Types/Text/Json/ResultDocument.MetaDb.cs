@@ -16,7 +16,7 @@ public sealed partial class ResultDocument
 
         private IMemoryArena _arena;
         private MemorySegment[] _chunks;
-        private MemorySegment[]? _previousChunks;
+        private List<MemorySegment[]>? _previousChunks;
         private Cursor _next;
         private volatile int _nextValue;
         private bool _disposed;
@@ -94,16 +94,9 @@ public sealed partial class ResultDocument
                     newChunks[i] = default;
                 }
 
-                // Concurrent readers may still reference the current chunks array.
-                // Return the previously retained one and keep the current one
-                // alive until the next expansion or Dispose.
-                if (_previousChunks is not null)
-                {
-                    _previousChunks.AsSpan().Clear();
-                    s_arrayPool.Return(_previousChunks);
-                }
-
-                _previousChunks = _chunks;
+                // Concurrent readers may still reference the current chunks array,
+                // so it is kept alive until Dispose.
+                (_previousChunks ??= []).Add(_chunks);
 
                 // assign new chunks buffer
                 _chunks = newChunks;
@@ -393,8 +386,12 @@ public sealed partial class ResultDocument
                 // pooled outer arrays that track the segments are returned.
                 if (_previousChunks is not null)
                 {
-                    _previousChunks.AsSpan().Clear();
-                    s_arrayPool.Return(_previousChunks);
+                    foreach (var previousChunks in _previousChunks)
+                    {
+                        previousChunks.AsSpan().Clear();
+                        s_arrayPool.Return(previousChunks);
+                    }
+
                     _previousChunks = null;
                 }
 

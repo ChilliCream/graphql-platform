@@ -12,10 +12,10 @@ import {
   CONTENT_GAP,
   CX,
   CY,
+  ACCENT,
+  ACCENT_BRIGHT,
   DANGER,
-  ELECTRIC,
-  ELECTRIC_BRIGHT,
-  OPS_NUMERAL_COLOR,
+  NUMERAL_COLOR,
   READOUT_FONT,
   READOUT_LINE_HEIGHT,
   VB,
@@ -64,7 +64,7 @@ function Segment({ index, fraction }: SegmentProps) {
       y1={y1}
       x2={x2}
       y2={y2}
-      stroke={red ? DANGER : major ? ELECTRIC_BRIGHT : ELECTRIC}
+      stroke={red ? DANGER : major ? ACCENT_BRIGHT : ACCENT}
       strokeWidth={SEGMENT_WIDTH}
       strokeLinecap="round"
       style={{ opacity }}
@@ -86,7 +86,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
     v >= OPS_BURST_LABEL ? "BURST" : "NORMAL",
   );
   const phaseColor = useTransform(ops, (v) =>
-    v >= OPS_BURST_LABEL ? ELECTRIC_BRIGHT : token.textSecondary,
+    v >= OPS_BURST_LABEL ? ACCENT_BRIGHT : token.textSecondary,
   );
 
   return (
@@ -113,7 +113,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
             angle={n.angle}
             label={n.label}
             edge={NUMERAL_EDGE}
-            color={OPS_NUMERAL_COLOR}
+            color={NUMERAL_COLOR}
           />
         ))}
 
@@ -172,7 +172,7 @@ export function CenterOpsDial({ telemetry }: CenterOpsDialProps) {
               letterSpacing: "-0.02em",
               color: token.textStrong,
               fontVariantNumeric: "tabular-nums",
-              filter: `drop-shadow(0 0 10px ${ELECTRIC})`,
+              filter: `drop-shadow(0 0 4px color-mix(in srgb, ${ACCENT} 28%, transparent))`,
             }}
           >
             {readout}

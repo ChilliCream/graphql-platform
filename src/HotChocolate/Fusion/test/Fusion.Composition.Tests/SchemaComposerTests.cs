@@ -117,9 +117,11 @@ public sealed class SchemaComposerTests
             .OfType<SchemaDefinitionNode>()
             .Single();
 
-        Assert.DoesNotContain(
-            schemaDefinition.Directives,
-            directive => directive.Name.Value == "fusion__cost_options");
+        schemaDefinition.Directives
+            .Where(directive => directive.Name.Value == "fusion__cost_options")
+            .Select(directive => directive.ToString())
+            .ToArray()
+            .MatchInlineSnapshots([]);
     }
 
     [Fact]
@@ -152,6 +154,58 @@ public sealed class SchemaComposerTests
         costOptionsApplication.ToString().MatchInlineSnapshot(
             """
             @fusion__cost_options(defaultListSize: 7)
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_EmitAllCostOptions_When_AllCostSettingsAreSet()
+    {
+        // arrange
+        var options = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                DefaultListSize = 7,
+                MaxFieldCost = 100.5,
+                MaxTypeCost = 200.5,
+                EnforceCostLimits = false,
+                SkipCostAnalyzer = true,
+                MaxResponseSize = 300.5,
+                CostPlanCacheSize = 400,
+                CaseBudget = 500,
+                CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate
+            }
+        };
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("A", "type Query { ping: String }")],
+            options,
+            new CompositionLog());
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var document = result.Value.ToSyntaxNode();
+        var schemaDefinition = document.Definitions
+            .OfType<SchemaDefinitionNode>()
+            .Single();
+        var costOptionsApplication = schemaDefinition.Directives.Single(
+            directive => directive.Name.Value == "fusion__cost_options");
+
+        costOptionsApplication.ToString().MatchInlineSnapshot(
+            """
+            @fusion__cost_options(
+              defaultListSize: 7
+              maxFieldCost: 100.5
+              maxTypeCost: 200.5
+              enforceCostLimits: false
+              skipAnalyzer: true
+              maxResponseSize: 300.5
+              costPlanCacheSize: 400
+              caseBudget: 500
+              caseBudgetExceededBehavior: OVERESTIMATE
+            )
             """);
     }
 
@@ -1170,9 +1224,11 @@ public sealed class SchemaComposerTests
                 "ExternalArgumentTypeMismatchRule",
                 "ExternalMissingOnBaseRule",
                 "ExternalTypeMismatchRule",
+                "FieldArgumentNotSharedRule",
                 "FieldArgumentTypesMergeableRule",
                 "FieldWithMissingRequiredArgumentRule",
                 "InputFieldDefaultMismatchRule",
+                "InputFieldNotSharedRule",
                 "InputFieldTypesMergeableRule",
                 "InputWithMissingRequiredFieldsRule",
                 "InputWithMissingOneOfRule",

@@ -60,6 +60,19 @@ internal static class SourceSchemaTransitionHelper
     /// <paramref name="transitionToSchemaName"/>, is re-rooted at, or <c>null</c> when the path
     /// cannot be re-rooted.
     /// </param>
+    /// <param name="anchor">
+    /// The anchor that the last item of <paramref name="pathFromLeaf"/> holds its object at, which the
+    /// walk stops at and asks which schemas can hold the object, or <c>null</c> to walk the path up to
+    /// the root.
+    /// </param>
+    /// <param name="unavailableSchemaNames">
+    /// The schemas whose data is unavailable, which <paramref name="anchor"/> takes into account.
+    /// </param>
+    /// <param name="budget">The budget for the explanation entries of the search.</param>
+    /// <param name="transitionFails">
+    /// Whether the transition is known to fail, so that every lookup it tries is listed even when the
+    /// budget is used up. Otherwise, a lookup that the budget cuts stands for one omitted entry.
+    /// </param>
     /// <returns>
     /// An empty array if the transition is satisfiable; otherwise the
     /// accumulated errors describing every direct and parent-call lookup that
@@ -77,9 +90,31 @@ internal static class SourceSchemaTransitionHelper
             ImmutableArray<SatisfiabilityError>> validateLookupRequirements,
         string noLookupsFoundForTypeMessageFormat,
         string unableToSatisfyRequirementForLookupMessageFormat,
-        MutableOutputFieldDefinition? queryViewerField)
+        MutableOutputFieldDefinition? queryViewerField,
+        PathAnchor? anchor,
+        ImmutableHashSet<string> unavailableSchemaNames,
+        SatisfiabilityExplanationBudget budget,
+        bool transitionFails)
     {
         var errors = new List<SatisfiabilityError>();
+
+        // The anchor answers for its item and the path above it, including the direct lookups of its
+        // object.
+        var walkedCount = anchor is null ? pathFromLeaf.Count : pathFromLeaf.Count - 1;
+
+        if (anchor is not null && walkedCount == 0)
+        {
+            return anchor.CanHold(transitionToSchemaName, unavailableSchemaNames)
+                ? []
+                :
+                [
+                    budget.CreateError(
+                        string.Format(
+                            noLookupsFoundForTypeMessageFormat,
+                            type.Name,
+                            transitionToSchemaName))
+                ];
+        }
 
         var lookupDirectives =
             lookupCache.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
@@ -127,23 +162,20 @@ internal static class SourceSchemaTransitionHelper
         var pathIsTraversable = true;
         var hasPartialField = false;
 
-        for (var i = 0; i < pathFromLeaf.Count; i++)
+        for (var i = 0; i < walkedCount; i++)
         {
             var ancestor = pathFromLeaf[i];
             var existsInSchema = ancestor.Field.ExistsInSchema(transitionToSchemaName);
             var isPartial = existsInSchema && ancestor.Field.IsPartial(transitionToSchemaName);
 
-            // The suffix below a viewer field that the target schema does not serve is
+            // The suffix below a viewer field that the target schema does not define is
             // re-traversed from Query.viewer in the target schema.
-            if ((!existsInSchema || isPartial)
+            if (!existsInSchema
                 && queryViewerField is not null
                 && ancestor.Field.IsViewerFieldFor(queryViewerField)
                 && queryViewerField.ExistsInSchema(transitionToSchemaName)
                 && (!hasPartialField
-                    || ServesSuffix(
-                        i - 1,
-                        queryViewerField.Type.AsTypeDefinition(),
-                        GetProvidedSelectionSet(queryViewerField, transitionToSchemaName))))
+                    || ServesSuffix(i - 1, GetProvidedSelectionSet(queryViewerField, transitionToSchemaName))))
             {
                 return [];
             }
@@ -179,7 +211,7 @@ internal static class SourceSchemaTransitionHelper
             // A partial field below the ancestor must be provided on the suffix
             // that the ancestor's lookup starts.
             if (ancestorLookups.Count == 0
-                || (hasPartialField && !ServesSuffix(i, parentFieldType: null, parentProvides: null)))
+                || (hasPartialField && !ServesSuffix(i, parentProvides: null)))
             {
                 continue;
             }
@@ -197,13 +229,26 @@ internal static class SourceSchemaTransitionHelper
             }
         }
 
-        // One-to-one path fallback: every field on the path is served by the
-        // target schema, so the same traversal applies there without any
-        // entity call.
-        if (pathIsTraversable
-            && (!hasPartialField
-                || ServesSuffix(pathFromLeaf.Count - 1, parentFieldType: null, parentProvides: null)))
+        if (anchor is not null)
         {
+            // Anchor fallback: the target schema holds the object of the anchor item and serves
+            // every field on the path below it.
+            if (pathIsTraversable
+                && anchor.CanHold(transitionToSchemaName, unavailableSchemaNames)
+                && (!hasPartialField
+                    || ServesSuffix(
+                        walkedCount - 1,
+                        anchor.GetProvidedSelectionSet(transitionToSchemaName, unavailableSchemaNames))))
+            {
+                return [];
+            }
+        }
+        else if (pathIsTraversable
+            && (!hasPartialField || ServesSuffix(pathFromLeaf.Count - 1, parentProvides: null)))
+        {
+            // One-to-one path fallback: every field on the path is served by the
+            // target schema, so the same traversal applies there without any
+            // entity call.
             return [];
         }
 
@@ -214,7 +259,7 @@ internal static class SourceSchemaTransitionHelper
         if (errors.Count == 0)
         {
             errors.Add(
-                new SatisfiabilityError(
+                budget.CreateError(
                     string.Format(
                         noLookupsFoundForTypeMessageFormat,
                         type.Name,
@@ -224,11 +269,8 @@ internal static class SourceSchemaTransitionHelper
         return [.. errors];
 
         // Determines whether the target schema serves the path items from startIndex down to the
-        // leaf when it re-traverses them below a field of parentFieldType that provides parentProvides.
-        bool ServesSuffix(
-            int startIndex,
-            ITypeDefinition? parentFieldType,
-            SelectionSetNode? parentProvides)
+        // leaf when it re-traverses them below an object for which it provides parentProvides.
+        bool ServesSuffix(int startIndex, SelectionSetNode? parentProvides)
         {
             for (var j = startIndex; j >= 0; j--)
             {
@@ -239,15 +281,12 @@ internal static class SourceSchemaTransitionHelper
                     item.Field,
                     item.Type,
                     transitionToSchemaName,
-                    parentFieldType,
                     parentProvides,
                     GetProvidedSelectionSet(item.Field, transitionToSchemaName),
                     out parentProvides))
                 {
                     return false;
                 }
-
-                parentFieldType = item.FieldType;
             }
 
             return true;
@@ -265,30 +304,44 @@ internal static class SourceSchemaTransitionHelper
 
             var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
             var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
+            ImmutableArray<SatisfiabilityError> requirementErrors = [];
 
-            IReadOnlyList<SatisfiabilityPathItem> pathFromParent =
-                parentIndex < pathFromLeaf.Count ? [.. pathFromLeaf.Skip(parentIndex)] : [];
-
-            var requirementErrors =
-                validateLookupRequirements(contextType, pathFromParent, lookupRequirements);
-
-            if (requirementErrors.IsEmpty)
+            if (!budget.IsExhausted)
             {
-                return true;
+                IReadOnlyList<SatisfiabilityPathItem> pathFromParent =
+                    parentIndex < pathFromLeaf.Count ? [.. pathFromLeaf.Skip(parentIndex)] : [];
+
+                requirementErrors =
+                    validateLookupRequirements(contextType, pathFromParent, lookupRequirements);
+
+                if (requirementErrors.IsEmpty && !budget.IsExhausted)
+                {
+                    return true;
+                }
+            }
+
+            // Once the budget is used up, the search of the lookup key does not decide whether the
+            // lookup works, which is only known when the transition fails.
+            if (budget.IsExhausted && !transitionFails)
+            {
+                sink.Add(SatisfiabilityError.Unexplained);
+                return false;
             }
 
             var lookupName = lookupPathArg is null
                 ? lookupFieldName
                 : $"{lookupPathArg}.{lookupFieldName}";
+            var message =
+                string.Format(
+                    unableToSatisfyRequirementForLookupMessageFormat,
+                    lookupRequirements.ToString(indented: false),
+                    lookupName,
+                    transitionToSchemaName);
 
             sink.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        unableToSatisfyRequirementForLookupMessageFormat,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
+                transitionFails
+                    ? budget.CreateKnownError(message, requirementErrors)
+                    : budget.CreateError(message, requirementErrors));
 
             return false;
         }
@@ -296,19 +349,17 @@ internal static class SourceSchemaTransitionHelper
 
     /// <summary>
     /// Determines whether <paramref name="schemaName"/> serves <paramref name="field"/> of
-    /// <paramref name="declaringType"/> when it re-traverses the path below a field of
-    /// <paramref name="parentFieldType"/> that provides <paramref name="parentProvides"/>.
+    /// <paramref name="declaringType"/> when it re-traverses the path below an object of
+    /// <paramref name="declaringType"/> for which it provides <paramref name="parentProvides"/>.
     /// A partial (@external) field is only served when <paramref name="parentProvides"/> selects it.
     /// </summary>
     /// <param name="schema">The merged schema.</param>
     /// <param name="field">The re-traversed field.</param>
     /// <param name="declaringType">The type declaring <paramref name="field"/>.</param>
     /// <param name="schemaName">The schema re-traversing the path.</param>
-    /// <param name="parentFieldType">
-    /// The type <paramref name="parentProvides"/> is selected on, or <c>null</c> if it is <c>null</c>.
-    /// </param>
     /// <param name="parentProvides">
-    /// The selection set the schema provides above <paramref name="field"/>, or <c>null</c> if it provides none.
+    /// The selection set the schema provides for the object declaring <paramref name="field"/>, or
+    /// <c>null</c> if it provides none.
     /// </param>
     /// <param name="fieldProvides">
     /// The @provides selection set of <paramref name="field"/> in the schema, or <c>null</c> if it has none.
@@ -322,7 +373,6 @@ internal static class SourceSchemaTransitionHelper
         MutableOutputFieldDefinition field,
         MutableComplexTypeDefinition declaringType,
         string schemaName,
-        ITypeDefinition? parentFieldType,
         SelectionSetNode? parentProvides,
         SelectionSetNode? fieldProvides,
         out SelectionSetNode? providedSelectionSet)
@@ -337,11 +387,10 @@ internal static class SourceSchemaTransitionHelper
         SelectionSetNode? selectedByParent = null;
         var isProvided =
             parentProvides is not null
-            && parentFieldType is not null
             && SatisfiabilityPathItemExtensions.TryGetFieldSelectionSet(
                 schema,
                 parentProvides,
-                parentFieldType,
+                declaringType,
                 field,
                 declaringType,
                 out selectedByParent);

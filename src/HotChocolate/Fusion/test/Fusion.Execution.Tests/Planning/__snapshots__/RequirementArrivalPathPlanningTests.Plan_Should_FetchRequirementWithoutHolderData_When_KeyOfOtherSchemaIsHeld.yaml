@@ -1,0 +1,90 @@
+operation:
+  - document: |
+      {
+        x {
+          p {
+            fp {
+              f
+              r @fusion__requirement
+            }
+            tk @fusion__requirement
+            sk @fusion__requirement
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 8
+nodes:
+  - id: 1
+    type: Operation
+    schema: r
+    operation: |
+      query Op_123456789101112_1 {
+        x {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: g1
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        xById(id: $__fusion_1_id) {
+          p {
+            tk
+            sk
+          }
+        }
+      }
+    source: $.xById
+    target: $.x
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: tt
+    operation: |
+      query Op_123456789101112_3($__fusion_2_tk: ID!) {
+        pByTk(tk: $__fusion_2_tk) {
+          fp {
+            r
+          }
+        }
+      }
+    source: $.pByTk
+    target: $.x.p
+    requirements:
+      - name: __fusion_2_tk
+        selectionMap: >-
+          tk
+    dependencies:
+      - id: 2
+  - id: 4
+    type: Operation
+    schema: s
+    operation: |
+      query Op_123456789101112_4($__fusion_3_sk: ID!, $__fusion_4_r: String) {
+        pBySk(sk: $__fusion_3_sk) {
+          fp {
+            f(r: $__fusion_4_r)
+          }
+        }
+      }
+    source: $.pBySk
+    target: $.x.p
+    requirements:
+      - name: __fusion_3_sk
+        selectionMap: >-
+          sk
+      - name: __fusion_4_r
+        selectionMap: >-
+          r
+    dependencies:
+      - id: 2
+      - id: 3

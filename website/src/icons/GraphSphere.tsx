@@ -1,29 +1,29 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 import {
-  SPHERE_EDGES,
-  SPHERE_VERTICES,
   VIEWBOX,
+  graphForVariant,
   lerp,
   projectVertex,
 } from "./graphSphereGeometry";
+import type {
+  GraphGeometry,
+  GraphVariant,
+  ProjectedVertex,
+} from "./graphSphereGeometry";
 import {
-  DOT_PATHS,
   DOT_RADIUS,
   MAX_CONCURRENT_PULSES,
   ROTATION_PERIOD_MS,
-  dotFrame,
-  nodeMotion,
-  pulseCandidates,
+  createGraphMotion,
 } from "./graphSphereMotion";
+import type { GraphMotion } from "./graphSphereMotion";
 import { useGraphSphereClock } from "./useGraphSphereClock";
-
-const PROJECTED = SPHERE_VERTICES.map((_, i) => projectVertex(i, 0));
 
 const NODE_FAR_R = 2.2;
 const NODE_NEAR_R = 5.6;
@@ -33,15 +33,15 @@ const EDGE_FAR_ALPHA = 0.08;
 const EDGE_NEAR_ALPHA = 0.55;
 const EDGE_FAR_WIDTH = 0.5;
 const EDGE_NEAR_WIDTH = 1.5;
-
 const GLOW_FAR_SCALE = 2.4;
 const GLOW_NEAR_SCALE = 3.5;
 const GLOW_FAR_ALPHA = 0.1;
 const GLOW_NEAR_ALPHA = 0.35;
-
 const DOT_FAR_R = DOT_RADIUS * (NODE_FAR_R / NODE_NEAR_R);
 const DOT_MAX_ALPHA = 0.85;
 const DOT_FAR_ALPHA_FACTOR = NODE_FAR_ALPHA / NODE_NEAR_ALPHA;
+const EDGE_BANDS = 6;
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 function isTeal(index: number): boolean {
   return index % 4 === 0;
@@ -57,27 +57,25 @@ interface SphereNode {
   readonly depth: number;
 }
 
-const NODES: readonly SphereNode[] = PROJECTED.map((p, i) => ({
-  vertexIndex: i,
-  x: p.x,
-  y: p.y,
-  r: lerp(NODE_FAR_R, NODE_NEAR_R, p.t),
-  alpha: lerp(NODE_FAR_ALPHA, NODE_NEAR_ALPHA, p.t),
-  teal: isTeal(i),
-  depth: p.t,
-})).sort((a, b) => a.r - b.r);
-
-const VERTEX_TO_NODE_IDX: number[] = new Array(SPHERE_VERTICES.length);
-NODES.forEach((n, idx) => {
-  VERTEX_TO_NODE_IDX[n.vertexIndex] = idx;
-});
-
-const EDGE_BANDS = 6;
-
 interface EdgeGroup {
   readonly alpha: number;
   readonly width: number;
   readonly d: string;
+}
+
+type PaintRef =
+  | { readonly kind: "node"; readonly idx: number }
+  | { readonly kind: "dot"; readonly idx: number }
+  | { readonly kind: "ring"; readonly idx: number };
+
+interface GraphState {
+  readonly graph: GraphGeometry;
+  readonly motion: GraphMotion;
+  readonly projected: readonly ProjectedVertex[];
+  readonly nodes: readonly SphereNode[];
+  readonly vertexToNodeIdx: readonly number[];
+  readonly edgeGroups: readonly EdgeGroup[];
+  readonly staticPaintRefs: readonly PaintRef[];
 }
 
 function segmentPath(
@@ -93,15 +91,15 @@ function segmentPath(
     .join(" ");
 }
 
-// Re-run every frame: band membership follows each edge's current depth, not its depth at theta=0.
 function bucketEdgesByDepth(
+  pairs: readonly (readonly [number, number])[],
   projected: readonly { readonly t: number }[],
 ): (readonly [number, number])[][] {
   const buckets: (readonly [number, number])[][] = Array.from(
     { length: EDGE_BANDS },
     () => [],
   );
-  for (const [i, j] of SPHERE_EDGES) {
+  for (const [i, j] of pairs) {
     const t = (projected[i].t + projected[j].t) / 2;
     const band = Math.min(EDGE_BANDS - 1, Math.floor(t * EDGE_BANDS));
     buckets[band].push([i, j]);
@@ -118,26 +116,59 @@ const EDGE_BAND_WIDTH: readonly number[] = Array.from(
   (_, band) => lerp(EDGE_FAR_WIDTH, EDGE_NEAR_WIDTH, (band + 0.5) / EDGE_BANDS),
 );
 
-const EDGE_GROUPS: readonly EdgeGroup[] = bucketEdgesByDepth(PROJECTED).map(
-  (pairs, band) => ({
-    alpha: EDGE_BAND_ALPHA[band],
-    width: EDGE_BAND_WIDTH[band],
-    d: segmentPath(pairs, PROJECTED),
-  }),
-);
+function createGraphState(variant: GraphVariant): GraphState {
+  const graph = graphForVariant(variant);
+  const projected = graph.vertices.map((_, i) => projectVertex(graph, i, 0));
+  const nodes: readonly SphereNode[] = projected
+    .map((p, i) => ({
+      vertexIndex: i,
+      x: p.x,
+      y: p.y,
+      r: lerp(NODE_FAR_R, NODE_NEAR_R, p.t),
+      alpha: lerp(NODE_FAR_ALPHA, NODE_NEAR_ALPHA, p.t),
+      teal: isTeal(i),
+      depth: p.t,
+    }))
+    .sort((a, b) => a.r - b.r);
+  const vertexToNodeIdx: number[] = new Array(graph.vertices.length);
+  nodes.forEach((node, index) => {
+    vertexToNodeIdx[node.vertexIndex] = index;
+  });
+  const edgeGroups = bucketEdgesByDepth(graph.edges, projected).map(
+    (pairs, band) => ({
+      alpha: EDGE_BAND_ALPHA[band],
+      width: EDGE_BAND_WIDTH[band],
+      d: segmentPath(pairs, projected),
+    }),
+  );
 
-const SVG_NS = "http://www.w3.org/2000/svg";
+  return {
+    graph,
+    motion: createGraphMotion(graph),
+    projected,
+    nodes,
+    vertexToNodeIdx,
+    edgeGroups,
+    staticPaintRefs: nodes.map(
+      (_, index) => ({ kind: "node", idx: index }) as const,
+    ),
+  };
+}
 
-type PaintRef =
-  | { readonly kind: "node"; readonly idx: number }
-  | { readonly kind: "dot"; readonly idx: number }
-  | { readonly kind: "ring"; readonly idx: number };
+const GRAPH_STATES: Readonly<Record<GraphVariant, GraphState>> = {
+  sphere: createGraphState("sphere"),
+  faceted: createGraphState("faceted"),
+};
 
-const STATIC_PAINT_REFS: readonly PaintRef[] = NODES.map(
-  (_, i) => ({ kind: "node", idx: i }) as const,
-);
+interface GraphSphereProps extends ComponentPropsWithoutRef<"svg"> {
+  readonly variant?: GraphVariant;
+}
 
-export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
+export function GraphSphere({
+  variant = "sphere",
+  ...props
+}: GraphSphereProps) {
+  const state = GRAPH_STATES[variant];
   const svgRef = useRef<SVGSVGElement | null>(null);
   const groupRefs = useRef<(SVGGElement | null)[]>([]);
   const nodeRefs = useRef<(SVGCircleElement | null)[]>([]);
@@ -145,10 +176,13 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
   const edgeRefs = useRef<(SVGPathElement | null)[]>([]);
   const dotRefs = useRef<SVGCircleElement[]>([]);
   const ringRefs = useRef<SVGCircleElement[]>([]);
-  const paintRefsRef = useRef<readonly PaintRef[]>(STATIC_PAINT_REFS);
+  const { staticPaintRefs } = state;
+  const paintRefsRef = useRef<readonly PaintRef[]>(staticPaintRefs);
   const paintOrderRef = useRef<readonly number[]>([]);
-
   const reducedMotion = useReducedMotionPreference();
+  const instanceId = useId();
+  const accentGlowId = `graph-sphere-glow-accent-${instanceId}`;
+  const successGlowId = `graph-sphere-glow-success-${instanceId}`;
 
   useEffect(() => {
     if (reducedMotion) {
@@ -158,7 +192,7 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
     if (!svg) {
       return;
     }
-    const circles = DOT_PATHS.map(() => {
+    const circles = state.motion.dotPaths.map(() => {
       const circle = document.createElementNS(SVG_NS, "circle");
       circle.setAttribute("r", DOT_RADIUS.toFixed(2));
       circle.setAttribute("fill", "var(--color-cc-accent)");
@@ -178,9 +212,11 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
     });
     ringRefs.current = rings;
     paintRefsRef.current = [
-      ...STATIC_PAINT_REFS,
-      ...DOT_PATHS.map((_, idx) => ({ kind: "dot", idx }) as const),
-      ...rings.map((_, idx) => ({ kind: "ring", idx }) as const),
+      ...staticPaintRefs,
+      ...state.motion.dotPaths.map(
+        (_, index) => ({ kind: "dot", idx: index }) as const,
+      ),
+      ...rings.map((_, index) => ({ kind: "ring", idx: index }) as const),
     ];
     paintOrderRef.current = [];
     return () => {
@@ -192,89 +228,100 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
       }
       dotRefs.current = [];
       ringRefs.current = [];
-      paintRefsRef.current = STATIC_PAINT_REFS;
+      paintRefsRef.current = staticPaintRefs;
       paintOrderRef.current = [];
     };
-  }, [reducedMotion]);
+  }, [reducedMotion, state, staticPaintRefs]);
 
   useGraphSphereClock(
     svgRef,
     (elapsedMs) => {
       const theta = ((elapsedMs / ROTATION_PERIOD_MS) % 1) * Math.PI * 2;
-      const rawProjected = SPHERE_VERTICES.map((_, i) =>
-        projectVertex(i, theta),
+      const rawProjected = state.graph.vertices.map((_, i) =>
+        projectVertex(state.graph, i, theta),
       );
-      const pulses = pulseCandidates(elapsedMs);
-      const pulseAgeByVertex = new Map(pulses.map((p) => [p.vertex, p.age]));
-
-      const displayed = rawProjected.map((p, i) => {
-        const motion = nodeMotion(
-          i,
+      const pulses = state.motion.pulseCandidates(elapsedMs);
+      const pulseAgeByVertex = new Map(
+        pulses.map((pulse) => [pulse.vertex, pulse.age]),
+      );
+      const displayed = rawProjected.map((point, index) => {
+        const motion = state.motion.nodeMotion(
+          index,
           elapsedMs,
-          p.x,
-          p.y,
-          pulseAgeByVertex.get(i),
+          point.x,
+          point.y,
+          pulseAgeByVertex.get(index),
         );
-        return { x: p.x + motion.dx, y: p.y + motion.dy, t: p.t, motion };
+        return {
+          x: point.x + motion.dx,
+          y: point.y + motion.dy,
+          t: point.t,
+          motion,
+        };
       });
+      const nodeDepth: number[] = new Array(state.nodes.length);
 
-      const nodeDepth: number[] = new Array(NODES.length);
-
-      NODES.forEach((n, idx) => {
-        const p = displayed[n.vertexIndex];
-        nodeDepth[idx] = p.t;
-        const node = nodeRefs.current[idx];
+      state.nodes.forEach((nodeData, index) => {
+        const point = displayed[nodeData.vertexIndex];
+        nodeDepth[index] = point.t;
+        const node = nodeRefs.current[index];
         if (node) {
-          node.setAttribute("cx", p.x.toFixed(1));
-          node.setAttribute("cy", p.y.toFixed(1));
-          node.setAttribute("r", lerp(NODE_FAR_R, NODE_NEAR_R, p.t).toFixed(2));
+          node.setAttribute("cx", point.x.toFixed(1));
+          node.setAttribute("cy", point.y.toFixed(1));
+          node.setAttribute(
+            "r",
+            lerp(NODE_FAR_R, NODE_NEAR_R, point.t).toFixed(2),
+          );
           node.setAttribute(
             "fill-opacity",
             Math.min(
               1,
-              lerp(NODE_FAR_ALPHA, NODE_NEAR_ALPHA, p.t) + p.motion.brightness,
+              lerp(NODE_FAR_ALPHA, NODE_NEAR_ALPHA, point.t) +
+                point.motion.brightness,
             ).toFixed(2),
           );
         }
-        const halo = haloRefs.current[idx];
+        const halo = haloRefs.current[index];
         if (halo) {
-          const glowScale = lerp(GLOW_FAR_SCALE, GLOW_NEAR_SCALE, p.t);
-          halo.setAttribute("cx", p.x.toFixed(1));
-          halo.setAttribute("cy", p.y.toFixed(1));
+          const glowScale = lerp(GLOW_FAR_SCALE, GLOW_NEAR_SCALE, point.t);
+          halo.setAttribute("cx", point.x.toFixed(1));
+          halo.setAttribute("cy", point.y.toFixed(1));
           halo.setAttribute(
             "r",
-            (lerp(NODE_FAR_R, NODE_NEAR_R, p.t) * glowScale).toFixed(1),
+            (lerp(NODE_FAR_R, NODE_NEAR_R, point.t) * glowScale).toFixed(1),
           );
           halo.setAttribute(
             "fill-opacity",
-            lerp(GLOW_FAR_ALPHA, GLOW_NEAR_ALPHA, p.t).toFixed(2),
+            lerp(GLOW_FAR_ALPHA, GLOW_NEAR_ALPHA, point.t).toFixed(2),
           );
         }
       });
 
-      bucketEdgesByDepth(displayed).forEach((pairs, band) => {
-        const path = edgeRefs.current[band];
-        if (!path) {
-          return;
-        }
-        path.setAttribute("d", segmentPath(pairs, displayed));
-        path.setAttribute("stroke-opacity", EDGE_BAND_ALPHA[band].toFixed(2));
-        path.setAttribute("stroke-width", EDGE_BAND_WIDTH[band].toFixed(2));
-      });
+      bucketEdgesByDepth(state.graph.edges, displayed).forEach(
+        (pairs, band) => {
+          const path = edgeRefs.current[band];
+          if (!path) {
+            return;
+          }
+          path.setAttribute("d", segmentPath(pairs, displayed));
+          path.setAttribute("stroke-opacity", EDGE_BAND_ALPHA[band].toFixed(2));
+          path.setAttribute("stroke-width", EDGE_BAND_WIDTH[band].toFixed(2));
+        },
+      );
 
-      const dotDepth: number[] = new Array(DOT_PATHS.length);
-      DOT_PATHS.forEach((dot, idx) => {
-        const frame = dotFrame(dot, elapsedMs);
-        const a = displayed[frame.fromVertex];
-        const b = displayed[frame.toVertex];
-        const depth = lerp(a.t, b.t, frame.frac);
-        dotDepth[idx] = depth;
-        const circle = dotRefs.current[idx];
+      const dotDepth: number[] = new Array(state.motion.dotPaths.length);
+      state.motion.dotPaths.forEach((dot, index) => {
+        const frame = state.motion.dotFrame(dot, elapsedMs);
+        const from = displayed[frame.fromVertex];
+        const to = displayed[frame.toVertex];
+        const depth = lerp(from.t, to.t, frame.frac);
+        dotDepth[index] = depth;
+        const circle = dotRefs.current[index];
         if (!circle) {
           return;
         }
-        circle.setAttribute("cx", lerp(a.x, b.x, frame.frac).toFixed(1));
-        circle.setAttribute("cy", lerp(a.y, b.y, frame.frac).toFixed(1));
+        circle.setAttribute("cx", lerp(from.x, to.x, frame.frac).toFixed(1));
+        circle.setAttribute("cy", lerp(from.y, to.y, frame.frac).toFixed(1));
         circle.setAttribute("r", lerp(DOT_FAR_R, DOT_RADIUS, depth).toFixed(2));
         circle.setAttribute(
           "fill-opacity",
@@ -289,25 +336,27 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
       const ringDepth: number[] = new Array(MAX_CONCURRENT_PULSES).fill(-1);
       pulses.forEach((pulse, slot) => {
         const ring = ringRefs.current[slot];
-        const p = displayed[pulse.vertex];
-        if (!ring || !p) {
+        const point = displayed[pulse.vertex];
+        if (!ring || !point) {
           return;
         }
-        const n = NODES[VERTEX_TO_NODE_IDX[pulse.vertex]];
-        const baseR = lerp(NODE_FAR_R, NODE_NEAR_R, p.t);
-        ring.setAttribute("cx", p.x.toFixed(1));
-        ring.setAttribute("cy", p.y.toFixed(1));
-        ring.setAttribute("r", (baseR * p.motion.ringScale).toFixed(2));
+        const node = state.nodes[state.vertexToNodeIdx[pulse.vertex]];
+        const baseR = lerp(NODE_FAR_R, NODE_NEAR_R, point.t);
+        ring.setAttribute("cx", point.x.toFixed(1));
+        ring.setAttribute("cy", point.y.toFixed(1));
+        ring.setAttribute("r", (baseR * point.motion.ringScale).toFixed(2));
         ring.setAttribute("stroke-width", (baseR * 0.25).toFixed(2));
         ring.setAttribute(
           "stroke",
-          n.teal ? "var(--color-cc-success)" : "var(--color-cc-accent)",
+          node.teal ? "var(--color-cc-success)" : "var(--color-cc-accent)",
         );
         ring.setAttribute(
           "stroke-opacity",
-          (p.motion.ringAlpha * lerp(DOT_FAR_ALPHA_FACTOR, 1, p.t)).toFixed(2),
+          (
+            point.motion.ringAlpha * lerp(DOT_FAR_ALPHA_FACTOR, 1, point.t)
+          ).toFixed(2),
         );
-        ringDepth[slot] = p.t;
+        ringDepth[slot] = point.t;
       });
       for (let slot = pulses.length; slot < MAX_CONCURRENT_PULSES; slot++) {
         ringRefs.current[slot]?.setAttribute("stroke-opacity", "0");
@@ -326,26 +375,26 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
           return nodeDepth[ref.idx];
         };
         const order = refs
-          .map((_, i) => i)
+          .map((_, index) => index)
           .sort((a, b) => depthOf(refs[a]) - depthOf(refs[b]));
-        const prev = paintOrderRef.current;
-        let changed = prev.length !== order.length;
+        const previous = paintOrderRef.current;
+        let changed = previous.length !== order.length;
         for (let i = 0; !changed && i < order.length; i++) {
-          if (prev[i] !== order[i]) {
+          if (previous[i] !== order[i]) {
             changed = true;
           }
         }
         if (changed) {
-          for (const i of order) {
-            const ref = refs[i];
-            const el =
+          for (const index of order) {
+            const ref = refs[index];
+            const element =
               ref.kind === "node"
                 ? groupRefs.current[ref.idx]
                 : ref.kind === "dot"
                   ? dotRefs.current[ref.idx]
                   : ringRefs.current[ref.idx];
-            if (el) {
-              svg.appendChild(el);
+            if (element) {
+              svg.appendChild(element);
             }
           }
           paintOrderRef.current = order;
@@ -363,7 +412,7 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
       {...props}
     >
       <defs>
-        <radialGradient id="graph-sphere-glow-accent">
+        <radialGradient id={accentGlowId}>
           <stop
             offset="0%"
             stopColor="var(--color-cc-accent)"
@@ -375,7 +424,7 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
             stopOpacity={0}
           />
         </radialGradient>
-        <radialGradient id="graph-sphere-glow-success">
+        <radialGradient id={successGlowId}>
           <stop
             offset="0%"
             stopColor="var(--color-cc-success)"
@@ -388,12 +437,11 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
           />
         </radialGradient>
       </defs>
-
-      {EDGE_GROUPS.map((group, i) => (
+      {state.edgeGroups.map((group, index) => (
         <path
-          key={i}
-          ref={(el) => {
-            edgeRefs.current[i] = el;
+          key={index}
+          ref={(element) => {
+            edgeRefs.current[index] = element;
           }}
           d={group.d}
           fill="none"
@@ -403,39 +451,38 @@ export function GraphSphere(props: ComponentPropsWithoutRef<"svg">) {
           strokeLinecap="round"
         />
       ))}
-
-      {NODES.map((n, i) => {
-        const color = n.teal
+      {state.nodes.map((node, index) => {
+        const color = node.teal
           ? "var(--color-cc-success)"
           : "var(--color-cc-accent)";
-        const glowScale = lerp(GLOW_FAR_SCALE, GLOW_NEAR_SCALE, n.depth);
-        const glowAlpha = lerp(GLOW_FAR_ALPHA, GLOW_NEAR_ALPHA, n.depth);
+        const glowScale = lerp(GLOW_FAR_SCALE, GLOW_NEAR_SCALE, node.depth);
+        const glowAlpha = lerp(GLOW_FAR_ALPHA, GLOW_NEAR_ALPHA, node.depth);
         return (
           <g
-            key={i}
-            ref={(el) => {
-              groupRefs.current[i] = el;
+            key={index}
+            ref={(element) => {
+              groupRefs.current[index] = element;
             }}
           >
             <circle
-              ref={(el) => {
-                haloRefs.current[i] = el;
+              ref={(element) => {
+                haloRefs.current[index] = element;
               }}
-              cx={n.x.toFixed(1)}
-              cy={n.y.toFixed(1)}
-              r={(n.r * glowScale).toFixed(1)}
-              fill={`url(#graph-sphere-glow-${n.teal ? "success" : "accent"})`}
+              cx={node.x.toFixed(1)}
+              cy={node.y.toFixed(1)}
+              r={(node.r * glowScale).toFixed(1)}
+              fill={`url(#${node.teal ? successGlowId : accentGlowId})`}
               fillOpacity={glowAlpha.toFixed(2)}
             />
             <circle
-              ref={(el) => {
-                nodeRefs.current[i] = el;
+              ref={(element) => {
+                nodeRefs.current[index] = element;
               }}
-              cx={n.x.toFixed(1)}
-              cy={n.y.toFixed(1)}
-              r={n.r.toFixed(2)}
+              cx={node.x.toFixed(1)}
+              cy={node.y.toFixed(1)}
+              r={node.r.toFixed(2)}
               fill={color}
-              fillOpacity={n.alpha.toFixed(2)}
+              fillOpacity={node.alpha.toFixed(2)}
             />
           </g>
         );

@@ -196,6 +196,175 @@ public class MutationTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Mutation_Should_ResolveRootTypename_When_TypenameFollowsMutationField()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              postById(id: ID!): Post @lookup
+            }
+
+            type Mutation {
+              createPost(input: CreatePostInput!): CreatePostPayload!
+            }
+
+            input CreatePostInput {
+              body: String!
+            }
+
+            type CreatePostPayload {
+              post: Post
+            }
+
+            type Post {
+              id: ID!
+              body: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new HotChocolate.Transport.OperationRequest(
+            """
+            mutation {
+              createPost(input: { body: "abc" }) {
+                post {
+                  body
+                }
+              }
+              __typename
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Mutation_Should_ResolveRootTypename_When_TypenamePrecedesMutationField()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              postById(id: ID!): Post @lookup
+            }
+
+            type Mutation {
+              createPost(input: CreatePostInput!): CreatePostPayload!
+            }
+
+            input CreatePostInput {
+              body: String!
+            }
+
+            type CreatePostPayload {
+              post: Post
+            }
+
+            type Post {
+              id: ID!
+              body: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new HotChocolate.Transport.OperationRequest(
+            """
+            mutation {
+              __typename
+              createPost(input: { body: "abc" }) {
+                post {
+                  body
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Mutation_Should_ResolveRootTypename_When_TypenameIsOnlyRootSelection()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              postById(id: ID!): Post @lookup
+            }
+
+            type Mutation {
+              createPost(input: CreatePostInput!): CreatePostPayload!
+            }
+
+            input CreatePostInput {
+              body: String!
+            }
+
+            type CreatePostPayload {
+              post: Post
+            }
+
+            type Post {
+              id: ID!
+              body: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new HotChocolate.Transport.OperationRequest(
+            """
+            mutation {
+              __typename
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public static class SourceSchema1
     {
         public class Query

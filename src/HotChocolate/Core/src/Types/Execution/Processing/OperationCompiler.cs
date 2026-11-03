@@ -7,6 +7,7 @@ using HotChocolate.Execution.Pipeline;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
@@ -354,7 +355,7 @@ public sealed partial class OperationCompiler
         var wideIncludeFlags = hasWideIncludeFlags ? new List<ulong[]>() : null;
         var wideIncludeFlagsStride = hasWideIncludeFlags ? (includeConditionCount - 1) >> 6 : 0;
         var deferUsages = new List<DeferUsage>();
-        var selectionSetId = ++lastId;
+        var selectionSetId = NewElementId(ref lastId);
         foreach (var (responseName, nodes) in fieldMap)
         {
             includeFlags.Clear();
@@ -522,7 +523,7 @@ public sealed partial class OperationCompiler
             var selectionPath = path.AppendField(field.Name);
 
             var selection = new Selection(
-                ++lastId,
+                NewElementId(ref lastId),
                 responseName,
                 selectionPath,
                 field,
@@ -605,6 +606,22 @@ public sealed partial class OperationCompiler
 
         selections = ImmutableCollectionsMarshal.AsArray(rewritten)!;
         return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional, hasDeferredSelections);
+    }
+
+    /// <summary>
+    /// Gets the next operation unique id for a selection set or a selection.
+    /// </summary>
+    /// <exception cref="GraphQLException">
+    /// The operation needs more ids than a result document can reference.
+    /// </exception>
+    internal static int NewElementId(ref int lastId)
+    {
+        if (lastId >= ResultDocument.DbRow.MaxOperationReferenceId)
+        {
+            throw ThrowHelper.OperationCompiler_TooManySelections();
+        }
+
+        return ++lastId;
     }
 
     private static bool IsOverflowEmpty(ulong[]? overflow)

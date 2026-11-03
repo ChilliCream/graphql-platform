@@ -281,4 +281,10 @@ internal static class ThrowHelper
                 .AddLocation(fieldNode)
                 .Build());
     }
+
+    public static GraphQLException OperationCompiler_TooManySelections()
+        => new(
+            ErrorBuilder.New()
+                .SetMessage("The operation exceeds the maximum allowed number of selections and selection sets.")
+                .Build());
 }

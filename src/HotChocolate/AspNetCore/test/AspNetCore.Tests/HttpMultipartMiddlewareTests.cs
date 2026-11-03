@@ -867,6 +867,50 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
             """);
     }
 
+    [Fact]
+    public async Task Upload_Should_RefuseQuery_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("upload")
+                .ModifyServerOptions(o => o.EnableQueriesOverPost = false));
+
+        const string query =
+            """
+            query ($upload: Upload!) {
+                singleUpload(file: $upload)
+            }
+            """;
+
+        var request = JsonConvert.SerializeObject(
+            new ClientQueryRequest
+            {
+                Query = query,
+                Variables = new Dictionary<string, object?>
+                {
+                    { "upload", null }
+                }
+            });
+
+        // act
+        var form = new MultipartFormDataContent
+        {
+            { new StringContent(request), "operations" },
+            { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+            { new StringContent("abc"), "1", "foo.bar" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        var result = await server.PostMultipartAsync(form, path: "/upload");
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, result.StatusCode);
+        Assert.NotNull(result.Errors);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("The specified operation kind is not allowed.", error["message"]);
+    }
+
     private sealed class FailedAntiforgeryValidationFeature : IAntiforgeryValidationFeature
     {
         public bool IsValid => false;

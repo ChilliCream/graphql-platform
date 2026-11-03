@@ -22,7 +22,7 @@ export function ComparisonsSection() {
           className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover hover:bg-cc-surface focus-visible:outline-cc-accent block scroll-mt-24 rounded-2xl border p-6 no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
         >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            GraphQL Federation vs. a single GraphQL server
+            GraphQL Federation vs. GraphQL Monolith
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             A single GraphQL server is often the simplest choice for smaller
@@ -65,7 +65,7 @@ export function ComparisonsSection() {
           className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover hover:bg-cc-surface focus-visible:outline-cc-accent block scroll-mt-24 rounded-2xl border p-6 no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
         >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            GraphQL Federation vs. individual APIs
+            GraphQL Federation vs. Individual APIs
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             Calling each service&apos;s API directly is often simplest when
