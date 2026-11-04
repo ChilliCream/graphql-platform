@@ -6,11 +6,11 @@ namespace Mocha.Transport.RabbitMQ.Tests.Topology;
 public class RabbitMQReplyQueueTests
 {
     [Fact]
-    public void ReplyQueue_Should_BeDurableAutoDeleteWithExpiry_When_RequestHandlerRegistered()
+    public void ReplyQueue_Should_BeDurableExpiringQueue_When_RequestHandlerRegistered()
     {
         // arrange
         // RabbitMQ 4.3 denies non-durable, non-exclusive queues by default, so the per-instance
-        // reply queue must stay durable and rely on auto-delete plus a queue expiry.
+        // reply queue stays durable and expires instead of being deleted with its last consumer.
         var runtime = CreateRuntime(_ => { });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = transport.Topology;
@@ -21,15 +21,15 @@ public class RabbitMQReplyQueueTests
         // assert
         Assert.True(queue.Durable);
         Assert.False(queue.Exclusive);
-        Assert.True(queue.AutoDelete);
-        Assert.Equal(1800000, queue.Arguments["x-expires"]);
+        Assert.False(queue.AutoDelete);
+        Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 60000 }, queue.Arguments);
     }
 
     [Fact]
     public void ReplyQueue_Should_StayClassic_When_QuorumDefaultsConfigured()
     {
         // arrange
-        // Quorum queues reject auto-delete, so bus defaults must not reach the reply queue.
+        // The reply queue is per instance and short-lived, so bus defaults must not reach it.
         var runtime = CreateRuntime(t => t.ConfigureDefaults(d =>
         {
             d.Queue.QueueType = RabbitMQQueueType.Quorum;
@@ -44,9 +44,8 @@ public class RabbitMQReplyQueueTests
         // assert
         Assert.True(queue.Durable);
         Assert.False(queue.Exclusive);
-        Assert.True(queue.AutoDelete);
-        Assert.Equal(["x-expires"], queue.Arguments.Keys);
-        Assert.Equal(1800000, queue.Arguments["x-expires"]);
+        Assert.False(queue.AutoDelete);
+        Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 60000 }, queue.Arguments);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IRabbitMQMessagingTransportDescriptor> configureTransport)

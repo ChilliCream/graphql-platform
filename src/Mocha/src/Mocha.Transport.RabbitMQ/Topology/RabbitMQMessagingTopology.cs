@@ -149,7 +149,10 @@ public sealed class RabbitMQMessagingTopology(
     {
         configuration.Topology = this;
 
-        defaults.Queue.ApplyTo(configuration);
+        if (configuration.ApplyBusDefaults)
+        {
+            defaults.Queue.ApplyTo(configuration);
+        }
 
         var queue = new RabbitMQQueue();
         queue.Initialize(configuration);

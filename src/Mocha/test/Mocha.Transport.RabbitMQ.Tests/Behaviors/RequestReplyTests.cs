@@ -132,7 +132,7 @@ public class RequestReplyTests
     }
 
     [Fact]
-    public async Task Transport_Should_DeclareDurableAutoDeleteReplyQueue_When_Started()
+    public async Task Transport_Should_DeclareDurableExpiringReplyQueue_When_Started()
     {
         // arrange
         // The broker denies non-durable, non-exclusive queues by default since RabbitMQ 4.3, so a
@@ -174,8 +174,8 @@ public class RequestReplyTests
         // assert
         Assert.True(replyQueue.GetProperty("durable").GetBoolean());
         Assert.False(replyQueue.GetProperty("exclusive").GetBoolean());
-        Assert.True(replyQueue.GetProperty("auto_delete").GetBoolean());
-        Assert.Equal(1800000, expires);
+        Assert.False(replyQueue.GetProperty("auto_delete").GetBoolean());
+        Assert.Equal(60000, expires);
     }
 
     [Fact]
@@ -195,11 +195,12 @@ public class RequestReplyTests
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(s_timeout);
         var before = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-before" }, cts.Token);
-        var replyQueue = await vhost.GetAutoDeleteQueueNameAsync();
+        var replyQueue = await vhost.GetReplyQueueNameAsync();
 
         // act
-        await vhost.CloseConsumerConnectionAsync(queueName);
-        await vhost.WaitForQueueDeletionAsync(replyQueue, s_timeout);
+        // the reply queue expires while its consumer is disconnected
+        await vhost.CloseConnectionOfConsumerAsync(queueName);
+        await vhost.DeleteQueueAsync(replyQueue);
         var after = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-after" }, cts.Token);
 
         // assert
@@ -231,15 +232,16 @@ public class RequestReplyTests
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(timeout);
         await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-before" }, cts.Token);
-        var replyQueue = await vhost.GetAutoDeleteQueueNameAsync();
+        var replyQueue = await vhost.GetReplyQueueNameAsync();
         await vhost.SetConfigurePermissionAsync("^$");
         Task<OrderStatusResponse>[] pendingRequests;
 
         // act
         try
         {
-            await vhost.CloseConsumerConnectionAsync(queueName);
-            await vhost.WaitForQueueDeletionAsync(replyQueue, s_timeout);
+            // the reply queue expires while its consumer is disconnected
+            await vhost.CloseConnectionOfConsumerAsync(queueName);
+            await vhost.DeleteQueueAsync(replyQueue);
             pendingRequests = Enumerable.Range(1, 3)
                 .Select(i => messageBus.RequestAsync(new GetOrderStatus { OrderId = $"ORD-{i}" }, cts.Token).AsTask())
                 .ToArray();

@@ -54,21 +54,21 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         Source = Queue;
     }
 
-    private IAsyncDisposable? _consumer;
+    private const int CompletedDeliveriesCapacity = 1000;
+
+    private readonly RabbitMQCompletedDeliveries _completedDeliveries = new(CompletedDeliveriesCapacity);
+    private RabbitMQConsumerManager.RegisteredConsumer? _consumer;
 
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        var topology = transport.Topology;
-        var receiveTopology = Queue.AutoProvision ?? topology.AutoProvision
-            ? new RabbitMQReceiveTopology(topology, Queue)
-            : null;
+        var receiveTopology = new RabbitMQReceiveTopology(transport.Topology, Queue);
 
         _consumer = await transport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
+            receiveTopology.ProvisionAsync,
             ProcessMessageAsync,
-            receiveTopology,
             _maxPrefetch,
             _consumerDispatchConcurrency,
             cancellationToken);
@@ -87,8 +87,9 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
                     var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
                     feature.Channel = state.channel;
                     feature.EventArgs = state.eventArgs;
+                    feature.CompletedDeliveries = state.completedDeliveries;
                 },
-                (channel, eventArgs),
+                (channel, eventArgs, completedDeliveries: _completedDeliveries),
                 cancellationToken);
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested)
@@ -103,9 +104,15 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
     {
         if (_consumer is not null)
         {
-            await _consumer.DisposeAsync();
+            await _consumer.StopAsync(cancellationToken);
         }
 
         _consumer = null;
+
+        // A reply queue expires instead of being deleted with its last consumer, so a graceful stop deletes it.
+        if (Kind == ReceiveEndpointKind.Reply)
+        {
+            await transport.ConsumerManager.DeleteQueueAsync(Queue.Name, cancellationToken);
+        }
     }
 }

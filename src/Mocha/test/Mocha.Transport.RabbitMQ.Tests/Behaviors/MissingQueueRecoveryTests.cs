@@ -48,8 +48,7 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
         Assert.True(await recorder.WaitAsync(s_timeout));
 
         // act
-        await vhost.CloseConsumerConnectionAsync(QueueName);
-        await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
+        await vhost.CloseConnectionOfConsumerAsync(QueueName);
         await vhost.WaitForConsumerAsync(QueueName, TimeSpan.FromSeconds(60));
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-after" }, TestContext.Current.CancellationToken);
 
@@ -73,8 +72,7 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
         Assert.True(await recorder.WaitAsync(s_timeout));
 
         // act
-        await vhost.CloseConsumerConnectionAsync(QueueName);
-        await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
+        await vhost.CloseConnectionOfConsumerAsync(QueueName);
         await vhost.WaitForConsumerAsync(QueueName, s_timeout);
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-after" }, TestContext.Current.CancellationToken);
 
@@ -99,7 +97,7 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
         // act
         try
         {
-            await vhost.CloseConsumerConnectionAsync(QueueName);
+            await vhost.CloseConnectionOfConsumerAsync(QueueName);
             await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
             // Keep declarations denied across several recovery attempts.
             await Task.Delay(TimeSpan.FromSeconds(7), TestContext.Current.CancellationToken);
@@ -131,8 +129,7 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
         // act
         try
         {
-            await vhost.CloseConsumerConnectionAsync(QueueName);
-            await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
+            await vhost.CloseConnectionOfConsumerAsync(QueueName);
             await vhost.WaitForQueueAsync(QueueName, s_timeout);
             // Queue consumption is permitted, but exchange-to-queue binding is denied.
             await vhost.WaitForNoBindingsAsync(QueueName, s_timeout);

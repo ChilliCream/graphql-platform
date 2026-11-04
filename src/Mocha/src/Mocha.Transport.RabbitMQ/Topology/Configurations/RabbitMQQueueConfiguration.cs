@@ -43,4 +43,9 @@ public sealed class RabbitMQQueueConfiguration : TopologyConfiguration<RabbitMQM
     /// Default is false.
     /// </summary>
     public bool? AutoProvision { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the bus-level queue defaults apply to this queue. Default is true.
+    /// </summary>
+    internal bool ApplyBusDefaults { get; set; } = true;
 }

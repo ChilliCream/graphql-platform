@@ -63,6 +63,12 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     /// Gets or sets the bus-level defaults applied to all auto-provisioned queues and exchanges.
     /// </summary>
     public RabbitMQBusDefaults Defaults { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets how long the transport keeps retrying while the broker cannot be reached before its start fails,
+    /// or <c>null</c> for two minutes.
+    /// </summary>
+    public TimeSpan? ConnectTimeout { get; set; }
 }
 
 /// <summary>
@@ -113,6 +119,17 @@ public sealed class ConnectionFactoryRabbitMQConnectionProvider(IConnectionFacto
     public async ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken)
     {
         var connection = await factory.CreateConnectionAsync(cancellationToken);
+        return connection;
+    }
+
+    /// <summary>
+    /// Creates a new connection, named <paramref name="clientProvidedName"/> unless the factory sets a name.
+    /// </summary>
+    internal async ValueTask<IConnection> CreateAsync(string clientProvidedName, CancellationToken cancellationToken)
+    {
+        var connection = await factory.CreateConnectionAsync(
+            factory.ClientProvidedName ?? clientProvidedName,
+            cancellationToken);
         return connection;
     }
 }
