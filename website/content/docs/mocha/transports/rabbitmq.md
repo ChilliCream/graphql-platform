@@ -140,6 +140,8 @@ The transport recovers lost connections itself, whatever `AutomaticRecoveryEnabl
 
 A consumer whose channel or subscription the broker takes away while the connection stays open, for example after a consumer timeout or when an operator deletes its queue, attaches again on its own, with delays that grow from about 1 to 30 seconds.
 
+Each consumer declares its own queue and bindings with its own attach timeout and retries. A stalled declaration does not prevent unrelated consumers from attaching. Receive endpoints wait for the transport's reply consumer to attach before they start consuming.
+
 When the broker cannot be reached at startup, the start waits and keeps connecting for up to two minutes, then fails. Refused credentials, refused virtual host access, and topology that the broker rejects fail the start at once. Use `ConnectTimeout` to change how long the start waits, for example to stay within the startup probe of your orchestrator:
 
 ```csharp

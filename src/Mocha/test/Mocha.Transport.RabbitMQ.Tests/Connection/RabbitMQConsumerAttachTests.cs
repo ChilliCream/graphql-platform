@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using CookieCrumble;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using Moq;
@@ -28,6 +29,7 @@ public sealed class RabbitMQConsumerAttachTests
         var registration = await manager.RegisterConsumerAsync(
             "orders",
             provisionAsync: null,
+            dependencies: [],
             static (_, _, _) => default,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
@@ -73,6 +75,7 @@ public sealed class RabbitMQConsumerAttachTests
         var registration = await manager.RegisterConsumerAsync(
             "orders",
             provisionAsync: null,
+            dependencies: [],
             static (_, _, _) => default,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
@@ -102,6 +105,7 @@ public sealed class RabbitMQConsumerAttachTests
         var registration = await manager.RegisterConsumerAsync(
             "orders",
             provisionAsync: null,
+            dependencies: [],
             static (_, _, _) => default,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
@@ -129,6 +133,7 @@ public sealed class RabbitMQConsumerAttachTests
         var registration = await manager.RegisterConsumerAsync(
             "orders",
             provisionAsync: null,
+            dependencies: [],
             static (_, _, _) => default,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
@@ -155,6 +160,7 @@ public sealed class RabbitMQConsumerAttachTests
         var stuck = await manager.RegisterConsumerAsync(
             "stuck",
             provisionAsync: null,
+            dependencies: [],
             static (_, _, _) => default,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
@@ -162,6 +168,7 @@ public sealed class RabbitMQConsumerAttachTests
         var orders = await manager.RegisterConsumerAsync(
             "orders",
             provisionAsync: null,
+            dependencies: [],
             static (_, _, _) => default,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
@@ -182,6 +189,283 @@ public sealed class RabbitMQConsumerAttachTests
         Assert.True(attached);
         Assert.Equal(1, broker.ConsumeAttempts("orders"));
         Assert.Equal(2, broker.ConsumeAttempts("stuck"));
+    }
+
+    [Fact]
+    public async Task ReconnectConsumers_Should_AttachHealthyConsumer_When_OtherTopologyTimesOut()
+    {
+        // arrange
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var broker = new StubBroker();
+        await using var manager = broker.CreateManager();
+        manager.AttachTimeout = TimeSpan.FromMilliseconds(500);
+        var stuck = await manager.RegisterConsumerAsync(
+            "stuck",
+            (_, ct) => release.Task.WaitAsync(ct),
+            dependencies: [],
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        var orders = await manager.RegisterConsumerAsync(
+            "orders",
+            static (_, _) => Task.CompletedTask,
+            dependencies: [],
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+
+        // act
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        var healthyAttached = orders.IsAttached;
+        var failedAttached = stuck.IsAttached;
+        release.TrySetResult();
+        var recovered = await Condition.WaitAsync(() => stuck.IsAttached, s_timeout);
+
+        // assert
+        new
+        {
+            HealthyAttached = healthyAttached,
+            FailedAttached = failedAttached,
+            Recovered = recovered,
+            HealthyConsumeAttempts = broker.ConsumeAttempts("orders"),
+            RecoveredConsumeAttempts = broker.ConsumeAttempts("stuck")
+        }.MatchInlineSnapshot(
+            """
+            {
+              "HealthyAttached": true,
+              "FailedAttached": false,
+              "Recovered": true,
+              "HealthyConsumeAttempts": 1,
+              "RecoveredConsumeAttempts": 1
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ReconnectConsumers_Should_ProvisionIndependently_When_MultipleTopologiesAreSlow()
+    {
+        // arrange
+        const int count = 4;
+        var started = new TaskCompletionSource[count];
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var broker = new StubBroker();
+        await using var manager = broker.CreateManager();
+        manager.AttachTimeout = s_timeout;
+        var consumers = new List<RabbitMQConsumerManager.RegisteredConsumer>();
+        for (var i = 0; i < count; i++)
+        {
+            var provisioningStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            started[i] = provisioningStarted;
+            consumers.Add(await manager.RegisterConsumerAsync(
+                $"orders-{i}",
+                async (_, ct) =>
+                {
+                    provisioningStarted.TrySetResult();
+                    await release.Task.WaitAsync(ct);
+                },
+                dependencies: [],
+                static (_, _, _) => default,
+                prefetchCount: 1,
+                consumerDispatchConcurrency: 1,
+                TestContext.Current.CancellationToken));
+        }
+
+        // act
+        var connect = manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        try
+        {
+            await Task.WhenAll(started.Select(s => s.Task))
+                .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            release.TrySetResult();
+            await connect;
+        }
+
+        // assert
+        consumers.Select(c => new
+        {
+            c.QueueName,
+            c.IsAttached,
+            ConsumeAttempts = broker.ConsumeAttempts(c.QueueName)
+        }).MatchInlineSnapshot(
+            """
+            [
+              {
+                "QueueName": "orders-0",
+                "IsAttached": true,
+                "ConsumeAttempts": 1
+              },
+              {
+                "QueueName": "orders-1",
+                "IsAttached": true,
+                "ConsumeAttempts": 1
+              },
+              {
+                "QueueName": "orders-2",
+                "IsAttached": true,
+                "ConsumeAttempts": 1
+              },
+              {
+                "QueueName": "orders-3",
+                "IsAttached": true,
+                "ConsumeAttempts": 1
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task ReconnectConsumers_Should_WaitOnlyForDependencies_When_ReplyTopologyIsSlow()
+    {
+        // arrange
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var broker = new StubBroker();
+        await using var manager = broker.CreateManager();
+        manager.AttachTimeout = TimeSpan.FromSeconds(30);
+        var replies = await manager.RegisterConsumerAsync(
+            "replies",
+            (_, ct) => release.Task.WaitAsync(ct),
+            dependencies: [],
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        var dependents = new List<RabbitMQConsumerManager.RegisteredConsumer>();
+        for (var i = 0; i < 2; i++)
+        {
+            dependents.Add(await manager.RegisterConsumerAsync(
+                $"dependent-{i}",
+                static (_, _) => Task.CompletedTask,
+                dependencies: [replies],
+                static (_, _, _) => default,
+                prefetchCount: 1,
+                consumerDispatchConcurrency: 1,
+                TestContext.Current.CancellationToken));
+        }
+
+        var independent = await manager.RegisterConsumerAsync(
+            "independent",
+            static (_, _) => Task.CompletedTask,
+            dependencies: [],
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        var consumedBeforeReplyAttached = false;
+        broker.OnConsume = (attach, _) =>
+        {
+            if (attach.Queue.StartsWith("dependent-", StringComparison.Ordinal) && !replies.IsAttached)
+            {
+                consumedBeforeReplyAttached = true;
+            }
+
+            return Task.CompletedTask;
+        };
+
+        // act
+        var connect = manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        bool independentAttached;
+        bool[] waiting;
+        try
+        {
+            independentAttached = await Condition.WaitAsync(() => independent.IsAttached, s_timeout);
+            waiting = dependents.Select(c => c.IsAttached).ToArray();
+        }
+        finally
+        {
+            release.TrySetResult();
+            await connect;
+        }
+
+        // assert
+        new
+        {
+            IndependentAttached = independentAttached,
+            AttachedBeforeReplyReady = waiting,
+            AttachedAfterReplyReady = dependents.Select(c => c.IsAttached),
+            ConsumedBeforeReplyAttached = consumedBeforeReplyAttached,
+            ReplyConsumeAttempts = broker.ConsumeAttempts("replies")
+        }.MatchInlineSnapshot(
+            """
+            {
+              "IndependentAttached": true,
+              "AttachedBeforeReplyReady": [
+                false,
+                false
+              ],
+              "AttachedAfterReplyReady": [
+                true,
+                true
+              ],
+              "ConsumedBeforeReplyAttached": false,
+              "ReplyConsumeAttempts": 1
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_CancelDependencyWait_When_ReplyConsumerIsAttaching()
+    {
+        // arrange
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var broker = new StubBroker();
+        await using var manager = broker.CreateManager();
+        var replies = await manager.RegisterConsumerAsync(
+            "replies",
+            (_, ct) => release.Task.WaitAsync(ct),
+            dependencies: [],
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        var orders = await manager.RegisterConsumerAsync(
+            "orders",
+            (_, _) =>
+            {
+                started.TrySetResult();
+                return Task.CompletedTask;
+            },
+            dependencies: [replies],
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        var connect = manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+
+        // act
+        try
+        {
+            await started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await orders.StopAsync(new CancellationToken(canceled: true))
+                .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            release.TrySetResult();
+            await connect;
+        }
+
+        // assert
+        new
+        {
+            OrdersAttached = orders.IsAttached,
+            RepliesAttached = replies.IsAttached,
+            OrdersConsumeAttempts = broker.ConsumeAttempts("orders"),
+            ReplyConsumeAttempts = broker.ConsumeAttempts("replies")
+        }.MatchInlineSnapshot(
+            """
+            {
+              "OrdersAttached": false,
+              "RepliesAttached": true,
+              "OrdersConsumeAttempts": 0,
+              "ReplyConsumeAttempts": 1
+            }
+            """);
     }
 
     /// <summary>
