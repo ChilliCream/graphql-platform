@@ -46,17 +46,17 @@ public sealed record PlannerOptions
     public double? OperationWeight { get; init; }
 
     /// <summary>
-    /// Gets the whether independent operations can be grouped into transport batches, or <c>null</c> when not configured.
+    /// Gets whether independent operations can be grouped into transport batches, or <c>null</c> when not configured.
     /// </summary>
     public bool? EnableRequestGrouping { get; init; }
 
     /// <summary>
-    /// Gets the whether defer support is enabled, or <c>null</c> when not configured.
+    /// Gets whether defer support is enabled, or <c>null</c> when not configured.
     /// </summary>
     public bool? EnableDefer { get; init; }
 
     /// <summary>
-    /// Gets the whether nested unlabeled defer fragments are inlined, or <c>null</c> when not configured.
+    /// Gets whether nested unlabeled defer fragments are inlined, or <c>null</c> when not configured.
     /// </summary>
     public bool? InlineUnlabeledDeferFragments { get; init; }
 
@@ -66,7 +66,7 @@ public sealed record PlannerOptions
     public FusionOperationMergePolicy? MergePolicy { get; init; }
 
     /// <summary>
-    /// Gets the whether lookups are split to enable entity reuse, or <c>null</c> when not configured.
+    /// Gets whether lookups are split to enable entity reuse, or <c>null</c> when not configured.
     /// </summary>
     public bool? EnableEntityReuseSplitting { get; init; }
 

@@ -34,6 +34,7 @@ internal static class CompositeSchemaBuilder
         var options = FusionSchemaOptions.From(features?.Get<IFusionSchemaOptions>());
         var plannerOptions = PlannerOptionsParser.Parse(schemaDocument, settings);
         var costOptions = FusionSchemaCostOptionsParser.Parse(schemaDocument, settings);
+        options.EnableDefer = plannerOptions.EnableDefer ?? options.EnableDefer;
         var context = CreateTypes(name, schemaDocument, services, features, options, typeInterceptor);
         return CompleteTypes(
             context,

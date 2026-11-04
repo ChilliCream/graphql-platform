@@ -2,6 +2,8 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Language;
+using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -97,9 +99,35 @@ public class PlannerOptionsConfigurationTests : FusionTestBase
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         var options = executor.Schema.Services.GetRequiredService<OperationPlannerOptions>();
+        var validator = executor.Schema.Services.GetRequiredService<DocumentValidator>();
+        var document = Utf8GraphQLParser.Parse("{ ... @defer { field } }");
+        var validation = validator.Validate(executor.Schema, document);
 
         // assert
         Assert.Equal((true, true), (options.EnableDefer, options.EnableEntityReuseSplitting));
+        Assert.True(executor.Schema.DirectiveDefinitions.TryGetDirective("defer", out _));
+        Assert.Empty(validation.Errors);
+    }
+
+    [Theory]
+    [InlineData(false, "{}", false)]
+    [InlineData(true, "{}", true)]
+    [InlineData(true, "{ \"planner\": { \"enableDefer\": false } }", false)]
+    public async Task DeferDirective_Should_FollowEffectiveSetting_When_BuildingSchema(
+        bool enableDefer, string settings, bool expected)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQLGateway()
+            .ModifyOptions(options => options.EnableDefer = enableDefer)
+            .AddInMemoryConfiguration(ComposeSchemaDocument(SourceSchema), Settings(settings));
+
+        // act
+        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expected, executor.Schema.DirectiveDefinitions.TryGetDirective("defer", out _));
     }
 
     [Theory]
