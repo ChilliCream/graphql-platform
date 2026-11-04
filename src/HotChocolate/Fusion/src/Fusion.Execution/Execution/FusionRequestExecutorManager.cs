@@ -200,7 +200,7 @@ internal sealed class FusionRequestExecutorManager
             requestOptions,
             plannerOptions);
 
-        var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
+        var schema = CreateSchema(schemaName, configuration.Schema, configuration.Settings.Document, schemaServices, features);
         _ = schemaServices.GetRequiredService<CostSchemaIndex>();
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
@@ -643,10 +643,11 @@ internal sealed class FusionRequestExecutorManager
     private static FusionSchemaDefinition CreateSchema(
         string schemaName,
         DocumentNode schemaDocument,
+        JsonDocument settings,
         IServiceProvider schemaServices,
         IFeatureCollection features)
     {
-        var schema = FusionSchemaDefinition.Create(schemaName, schemaDocument, schemaServices, features);
+        var schema = CompositeSchemaBuilder.Create(schemaName, schemaDocument, settings, schemaServices, features);
         var schemaDefinitionAccessor = schemaServices.GetRequiredService<SchemaDefinitionAccessor>();
         schemaDefinitionAccessor.Schema = schema;
         return schema;
