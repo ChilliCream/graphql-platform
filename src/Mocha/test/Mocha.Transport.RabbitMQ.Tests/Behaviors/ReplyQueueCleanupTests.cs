@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
@@ -30,13 +29,8 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         var afterStop = await vhost.GetConsumerCountAsync(queue.Name);
 
         // assert
-        new { BeforeStop = beforeStop, AfterStop = afterStop }.MatchInlineSnapshot(
-            """
-            {
-              "BeforeStop": 1,
-              "AfterStop": null
-            }
-            """);
+        Assert.Equal(1, beforeStop);
+        Assert.Null(afterStop);
     }
 
     [Theory]
@@ -72,13 +66,8 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         var afterStop = await vhost.GetConsumerCountAsync(queueName);
 
         // assert
-        new { BeforeStop = beforeStop, AfterStop = afterStop }.MatchInlineSnapshot(
-            """
-            {
-              "BeforeStop": 1,
-              "AfterStop": 0
-            }
-            """);
+        Assert.Equal(1, beforeStop);
+        Assert.Equal(0, afterStop);
     }
 
     [Fact]
@@ -113,13 +102,8 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         var afterStop = await vhost.GetConsumerCountAsync(queueName);
 
         // assert
-        new { BeforeStop = beforeStop, AfterStop = afterStop }.MatchInlineSnapshot(
-            """
-            {
-              "BeforeStop": 1,
-              "AfterStop": 0
-            }
-            """);
+        Assert.Equal(1, beforeStop);
+        Assert.Equal(0, afterStop);
     }
 
     [Fact]
@@ -156,12 +140,7 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         var afterStop = await vhost.GetConsumerCountAsync(queueName);
 
         // assert
-        new { BeforeStop = beforeStop, AfterStop = afterStop }.MatchInlineSnapshot(
-            """
-            {
-              "BeforeStop": 2,
-              "AfterStop": 1
-            }
-            """);
+        Assert.Equal(2, beforeStop);
+        Assert.Equal(1, afterStop);
     }
 }

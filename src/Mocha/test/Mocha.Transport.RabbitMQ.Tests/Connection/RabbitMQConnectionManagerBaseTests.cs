@@ -12,6 +12,86 @@ public class RabbitMQConnectionManagerBaseTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task GetConnectionAsync_Should_WaitForSetup_When_ConnectionIsOpen(bool duringAfterConnectionCreated)
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var manager = CreateManager(connection.Object);
+        if (duringAfterConnectionCreated)
+        {
+            manager.AfterSetupAsync = SetupAsync;
+        }
+        else
+        {
+            manager.SetupAsync = SetupAsync;
+        }
+
+        var connecting = manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        // act
+        var waiting = manager.GetConnectionAsync(TestContext.Current.CancellationToken).AsTask();
+        var waitedForSetup = !waiting.IsCompleted;
+        var connectedDuringSetup = manager.IsConnected;
+        release.TrySetResult();
+        await connecting;
+        var current = await waiting;
+
+        // assert
+        Assert.True(waitedForSetup);
+        Assert.False(connectedDuringSetup);
+        Assert.Same(connection.Object, current);
+        Assert.True(manager.IsConnected);
+
+        async Task SetupAsync(CancellationToken ct)
+        {
+            started.TrySetResult();
+            await release.Task.WaitAsync(ct);
+        }
+    }
+
+    [Fact]
+    public async Task GetConnectionAsync_Should_PreserveSetup_When_ConcurrentCallerCancels()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var manager = CreateManager(connection.Object);
+        manager.SetupAsync = async ct =>
+        {
+            started.TrySetResult();
+            await release.Task.WaitAsync(ct);
+        };
+        var connecting = manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+
+        // act
+        Exception? exception;
+        bool setupStillRunning;
+        try
+        {
+            exception = await Record.ExceptionAsync(() => manager.GetConnectionAsync(deadline.Token).AsTask());
+            setupStillRunning = !connecting.IsCompleted;
+        }
+        finally
+        {
+            release.TrySetResult();
+            await connecting;
+        }
+
+        // assert
+        Assert.IsAssignableFrom<OperationCanceledException>(exception);
+        Assert.True(setupStillRunning);
+        Assert.True(manager.IsConnected);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task GetConnectionAsync_Should_TimeOut_When_ConnectionAttemptStalls(bool duringSetup)
     {
         // arrange
@@ -392,6 +472,8 @@ public class RabbitMQConnectionManagerBaseTests
     {
         public Func<CancellationToken, Task> SetupAsync { get; set; } = static _ => Task.CompletedTask;
 
+        public Func<CancellationToken, Task> AfterSetupAsync { get; set; } = static _ => Task.CompletedTask;
+
         public int BeforeConnectionCreatedCount { get; private set; }
         public int AfterConnectionCreatedCount { get; private set; }
         public int ConnectionLostCount { get; private set; }
@@ -413,7 +495,7 @@ public class RabbitMQConnectionManagerBaseTests
             CancellationToken cancellationToken)
         {
             AfterConnectionCreatedCount++;
-            return Task.CompletedTask;
+            return AfterSetupAsync(cancellationToken);
         }
 
         protected override Task OnConnectionLostAsync()

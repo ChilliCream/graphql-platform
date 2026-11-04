@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
@@ -159,13 +158,11 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             // the message is requeued when the connection closes, so a re-attached consumer receives it again
             await fixture.CloseAllConnectionsAsync();
             var blocked = await Condition.WaitAsync(() => logs.Contains("ConsumerRecoveryBlocked"), s_timeout);
-            var whileBlocked = new
-            {
-                RecoveryBlocked = blocked,
-                gate.Invocations,
-                Handled = orders.Messages.Count,
-                GetEndpoint(bus, "orders").IsHealthy
-            };
+            var whileBlocked = (
+                RecoveryBlocked: blocked,
+                Invocations: gate.Invocations,
+                Handled: orders.Messages.Count,
+                IsHealthy: GetEndpoint(bus, "orders").IsHealthy);
             gate.Release.TrySetResult();
             var redelivered = await orders.WaitAsync(s_timeout);
             var settled = await Condition.WaitAsync(
@@ -174,30 +171,11 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             var consumers = await vhost.GetConsumerCountsAsync();
 
             // assert
-            new
-            {
-                WhileBlocked = whileBlocked,
-                Redelivered = redelivered,
-                Settled = settled,
-                Consumers = consumers.GetValueOrDefault("orders"),
-                Handled = orders.Messages.Count,
-                GetEndpoint(bus, "orders").IsHealthy
-            }.MatchInlineSnapshot(
-                """
-                {
-                  "WhileBlocked": {
-                    "RecoveryBlocked": true,
-                    "Invocations": 1,
-                    "Handled": 0,
-                    "IsHealthy": false
-                  },
-                  "Redelivered": true,
-                  "Settled": true,
-                  "Consumers": 1,
-                  "Handled": 1,
-                  "IsHealthy": true
-                }
-                """);
+            Assert.Equal((true, 1, 0, false), whileBlocked);
+            Assert.True(redelivered);
+            Assert.True(settled);
+            Assert.Equal(1, consumers.GetValueOrDefault("orders"));
+            Assert.Equal((1, true), (orders.Messages.Count, GetEndpoint(bus, "orders").IsHealthy));
         }
         finally
         {

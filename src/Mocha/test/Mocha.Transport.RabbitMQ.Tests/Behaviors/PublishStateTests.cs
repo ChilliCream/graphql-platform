@@ -1,8 +1,9 @@
 using System.Diagnostics;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
+using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
@@ -10,6 +11,82 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 public sealed class PublishStateTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PublishAsync_Should_WaitForTopology_When_PublisherConnectionRecovers(bool automaticRecoveryEnabled)
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.RequestedChannelMax = 2;
+        vhost.ConnectionSettings.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
+        var recoveryStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseRecovery = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var setups = 0;
+        await using var dispatcher = new RabbitMQDispatcher(
+            NullLogger<RabbitMQDispatcher>.Instance,
+            async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct),
+            async (connection, ct) =>
+            {
+                await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
+                if (Interlocked.Increment(ref setups) > 1)
+                {
+                    recoveryStarted.TrySetResult();
+                    await releaseRecovery.Task.WaitAsync(ct);
+                }
+
+                await channel.ExchangeDeclareAsync("events", "fanout", durable: true, cancellationToken: ct);
+                await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+                    cancellationToken: ct);
+                await channel.QueueBindAsync("orders", "events", "", cancellationToken: ct);
+            });
+        await dispatcher.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        await vhost.DeleteQueueAsync("orders");
+
+        // act
+        await fixture.CloseAllConnectionsAsync();
+        await recoveryStarted.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var publish = PublishAsync();
+        Exception? rentException;
+        bool publishWaited;
+        try
+        {
+            using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+            var renting = dispatcher.RentChannelAsync(deadline.Token).AsTask();
+            rentException = await Record.ExceptionAsync(() => renting);
+            if (renting.IsCompletedSuccessfully)
+            {
+                await dispatcher.ReturnChannelAsync(await renting);
+            }
+
+            publishWaited = !publish.IsCompleted;
+        }
+        finally
+        {
+            releaseRecovery.TrySetResult();
+            await publish.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        Assert.IsAssignableFrom<OperationCanceledException>(rentException);
+        Assert.True(publishWaited);
+        Assert.Equal(1, await vhost.GetMessageCountAsync("orders"));
+
+        async Task PublishAsync()
+        {
+            var channel = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+            try
+            {
+                await channel.BasicPublishAsync("events", "", false, new BasicProperties(), "order"u8.ToArray(),
+                    TestContext.Current.CancellationToken);
+            }
+            finally
+            {
+                await dispatcher.ReturnChannelAsync(channel);
+            }
+        }
+    }
 
     [Fact]
     public async Task SendAsync_Should_KeepPublisherConnection_When_NegotiatedChannelLimitReached()
@@ -42,23 +119,11 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
         var current = await dispatcher.GetConnectionAsync(TestContext.Current.CancellationToken);
 
         // assert
-        new
-        {
-            WaitCancelled = blocked is OperationCanceledException,
-            ChannelsStayedOpen = channelsStayedOpen,
-            SameConnection = ReferenceEquals(connection, current),
-            Sent = sent,
-            QueuedMessages = await vhost.GetMessageCountAsync("payments")
-        }.MatchInlineSnapshot(
-            """
-            {
-              "WaitCancelled": true,
-              "ChannelsStayedOpen": true,
-              "SameConnection": true,
-              "Sent": "sent",
-              "QueuedMessages": 1
-            }
-            """);
+        Assert.IsAssignableFrom<OperationCanceledException>(blocked);
+        Assert.True(channelsStayedOpen);
+        Assert.Same(connection, current);
+        Assert.Equal("sent", sent);
+        Assert.Equal(1, await vhost.GetMessageCountAsync("payments"));
     }
 
     [Fact]
@@ -101,14 +166,9 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
         var messages = await vhost.GetMessageCountAsync("healthy");
 
         // assert
-        new { Publish = publishOutcome, Send = sendOutcome, Messages = messages }.MatchInlineSnapshot(
-            """
-            {
-              "Publish": "AlreadyClosedException",
-              "Send": "sent",
-              "Messages": 2
-            }
-            """);
+        Assert.Equal("AlreadyClosedException", publishOutcome);
+        Assert.Equal("sent", sendOutcome);
+        Assert.Equal(2, messages);
     }
 
     [Fact]
@@ -384,23 +444,12 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
         var state = await vhost.GetStateAsync();
 
         // assert
-        new
-        {
-            Results = results.GroupBy(Normalize).ToDictionary(g => g.Key, g => g.Count()),
-            AfterUnblock = afterUnblock,
-            state.Connections,
-            state.IdleChannels
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Results": {
-                "cancelled": 500
-              },
-              "AfterUnblock": "sent",
-              "Connections": 2,
-              "IdleChannels": 100
-            }
-            """);
+        Assert.Equal(
+            new Dictionary<string, int> { ["cancelled"] = 500 },
+            results.GroupBy(Normalize).ToDictionary(g => g.Key, g => g.Count()));
+        Assert.Equal("sent", afterUnblock);
+        Assert.Equal(2, state.Connections);
+        Assert.Equal(100, state.IdleChannels);
     }
 
     [Fact]
@@ -437,14 +486,9 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
         var state = await vhost.GetStateAsync();
 
         // assert
-        new { AfterUnfreeze = afterUnfreeze, state.Connections, state.IdleChannels }.MatchInlineSnapshot(
-            """
-            {
-              "AfterUnfreeze": "sent",
-              "Connections": 2,
-              "IdleChannels": 1
-            }
-            """);
+        Assert.Equal("sent", afterUnfreeze);
+        Assert.Equal(2, state.Connections);
+        Assert.Equal(1, state.IdleChannels);
     }
 
     [Fact]

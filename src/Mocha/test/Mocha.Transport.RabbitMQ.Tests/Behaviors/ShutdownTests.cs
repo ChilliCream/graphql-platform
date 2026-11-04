@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
@@ -162,26 +161,11 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         var secondMessages = await vhost.GetMessageCountAsync("nested-second");
 
         // assert
-        new
-        {
-            ReplyWasHealthy = replyWasHealthy,
-            Responses = gate.Responses.Order().ToArray(),
-            FirstMessages = firstMessages,
-            SecondMessages = secondMessages,
-            runtime.IsStarted
-        }.MatchInlineSnapshot(
-            """
-            {
-              "ReplyWasHealthy": true,
-              "Responses": [
-                "nested-first",
-                "nested-second"
-              ],
-              "FirstMessages": 0,
-              "SecondMessages": 0,
-              "IsStarted": false
-            }
-            """);
+        Assert.True(replyWasHealthy);
+        Assert.Equal(["nested-first", "nested-second"], gate.Responses.Order());
+        Assert.Equal(0, firstMessages);
+        Assert.Equal(0, secondMessages);
+        Assert.False(runtime.IsStarted);
     }
 
     [Fact]

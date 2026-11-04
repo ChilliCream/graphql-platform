@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using CookieCrumble;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using Moq;
@@ -151,21 +150,10 @@ public sealed class RabbitMQConsumerAttachTests
             s_timeout);
 
         // assert
-        new
-        {
-            Recovered = recovered,
-            AttachedConsumers = registrations.Count(r => r.IsAttached),
-            TotalConsumeAttempts = registrations.Sum(r => broker.ConsumeAttempts(r.QueueName)),
-            manager.IsHealthy
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Recovered": true,
-              "AttachedConsumers": 64,
-              "TotalConsumeAttempts": 128,
-              "IsHealthy": true
-            }
-            """);
+        Assert.True(recovered);
+        Assert.Equal(64, registrations.Count(r => r.IsAttached));
+        Assert.Equal(128, registrations.Sum(r => broker.ConsumeAttempts(r.QueueName)));
+        Assert.True(manager.IsHealthy);
     }
 
     [Fact]
@@ -274,23 +262,11 @@ public sealed class RabbitMQConsumerAttachTests
         var recovered = await Condition.WaitAsync(() => stuck.IsAttached, s_timeout);
 
         // assert
-        new
-        {
-            HealthyAttached = healthyAttached,
-            FailedAttached = failedAttached,
-            Recovered = recovered,
-            HealthyConsumeAttempts = broker.ConsumeAttempts("orders"),
-            RecoveredConsumeAttempts = broker.ConsumeAttempts("stuck")
-        }.MatchInlineSnapshot(
-            """
-            {
-              "HealthyAttached": true,
-              "FailedAttached": false,
-              "Recovered": true,
-              "HealthyConsumeAttempts": 1,
-              "RecoveredConsumeAttempts": 1
-            }
-            """);
+        Assert.True(healthyAttached);
+        Assert.False(failedAttached);
+        Assert.True(recovered);
+        Assert.Equal(1, broker.ConsumeAttempts("orders"));
+        Assert.Equal(1, broker.ConsumeAttempts("stuck"));
     }
 
     [Fact]
@@ -336,36 +312,12 @@ public sealed class RabbitMQConsumerAttachTests
         }
 
         // assert
-        consumers.Select(c => new
+        Assert.Equal(["orders-0", "orders-1", "orders-2", "orders-3"], consumers.Select(c => c.QueueName));
+        Assert.All(consumers, consumer =>
         {
-            c.QueueName,
-            c.IsAttached,
-            ConsumeAttempts = broker.ConsumeAttempts(c.QueueName)
-        }).MatchInlineSnapshot(
-            """
-            [
-              {
-                "QueueName": "orders-0",
-                "IsAttached": true,
-                "ConsumeAttempts": 1
-              },
-              {
-                "QueueName": "orders-1",
-                "IsAttached": true,
-                "ConsumeAttempts": 1
-              },
-              {
-                "QueueName": "orders-2",
-                "IsAttached": true,
-                "ConsumeAttempts": 1
-              },
-              {
-                "QueueName": "orders-3",
-                "IsAttached": true,
-                "ConsumeAttempts": 1
-              }
-            ]
-            """);
+            Assert.True(consumer.IsAttached);
+            Assert.Equal(1, broker.ConsumeAttempts(consumer.QueueName));
+        });
     }
 
     [Fact]
@@ -432,29 +384,11 @@ public sealed class RabbitMQConsumerAttachTests
         }
 
         // assert
-        new
-        {
-            IndependentAttached = independentAttached,
-            AttachedBeforeReplyReady = waiting,
-            AttachedAfterReplyReady = dependents.Select(c => c.IsAttached),
-            ConsumedBeforeReplyAttached = consumedBeforeReplyAttached,
-            ReplyConsumeAttempts = broker.ConsumeAttempts("replies")
-        }.MatchInlineSnapshot(
-            """
-            {
-              "IndependentAttached": true,
-              "AttachedBeforeReplyReady": [
-                false,
-                false
-              ],
-              "AttachedAfterReplyReady": [
-                true,
-                true
-              ],
-              "ConsumedBeforeReplyAttached": false,
-              "ReplyConsumeAttempts": 1
-            }
-            """);
+        Assert.True(independentAttached);
+        Assert.Equal([false, false], waiting);
+        Assert.Equal([true, true], dependents.Select(c => c.IsAttached));
+        Assert.False(consumedBeforeReplyAttached);
+        Assert.Equal(1, broker.ConsumeAttempts("replies"));
     }
 
     [Fact]
@@ -501,21 +435,10 @@ public sealed class RabbitMQConsumerAttachTests
         }
 
         // assert
-        new
-        {
-            OrdersAttached = orders.IsAttached,
-            RepliesAttached = replies.IsAttached,
-            OrdersConsumeAttempts = broker.ConsumeAttempts("orders"),
-            ReplyConsumeAttempts = broker.ConsumeAttempts("replies")
-        }.MatchInlineSnapshot(
-            """
-            {
-              "OrdersAttached": false,
-              "RepliesAttached": true,
-              "OrdersConsumeAttempts": 0,
-              "ReplyConsumeAttempts": 1
-            }
-            """);
+        Assert.False(orders.IsAttached);
+        Assert.True(replies.IsAttached);
+        Assert.Equal(0, broker.ConsumeAttempts("orders"));
+        Assert.Equal(1, broker.ConsumeAttempts("replies"));
     }
 
     /// <summary>
