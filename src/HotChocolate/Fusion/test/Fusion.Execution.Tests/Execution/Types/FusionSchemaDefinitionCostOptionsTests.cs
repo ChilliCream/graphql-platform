@@ -1,17 +1,21 @@
+using System.Text.Json;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Types;
 
 public sealed class FusionSchemaDefinitionCostOptionsTests
 {
-    [Fact]
-    public void Create_Should_ReturnEmptyCostOptions_When_CostOptionsDirectiveIsAbsent()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("{}")]
+    [InlineData("{\"cost\":{}}")]
+    public void Create_Should_UseDefaults_When_SettingsAreMissing(string? settings)
     {
         // arrange
-
         // act
-        var schema = CreateSchema();
+        var schema = CreateSchema(settings: settings);
 
         // assert
         schema.CostOptions.MatchInlineSnapshot(
@@ -31,84 +35,20 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
     }
 
     [Fact]
-    public void Create_Should_LeaveDefaultListSizeUnbounded_When_ArgumentIsOmitted()
-    {
-        var schema = CreateSchema("@fusion__cost_options");
-
-        Assert.Null(schema.CostOptions.DefaultListSize);
-    }
-
-    [Fact]
-    public void Create_Should_LeaveDefaultListSizeUnbounded_When_ArgumentIsExplicitNull()
-    {
-        var schema = CreateSchema("@fusion__cost_options(defaultListSize: null)");
-
-        Assert.Null(schema.CostOptions.DefaultListSize);
-    }
-
-    [Fact]
-    public void Create_Should_LeaveCostSettingsUnset_When_ArgumentsAreOmitted()
+    public void Create_Should_ReadCostSettings_When_SettingsAndDirectiveArePresent()
     {
         // arrange
+        const string settings = """
+            { "cost": {
+              "maxFieldCost": 10.5, "maxTypeCost": 20.5,
+              "enforceCostLimits": false, "skipAnalyzer": true,
+              "maxResponseSize": 30.5, "costPlanCacheSize": 40,
+              "caseBudget": -50, "caseBudgetExceededBehavior": "Overestimate"
+            }}
+            """;
+
         // act
-        var schema = CreateSchema("@fusion__cost_options");
-
-        // assert
-        new
-        {
-            schema.CostOptions.MaxFieldCost,
-            schema.CostOptions.MaxTypeCost,
-            schema.CostOptions.EnforceCostLimits,
-            schema.CostOptions.SkipAnalyzer,
-            schema.CostOptions.MaxResponseSize,
-            schema.CostOptions.CostPlanCacheSize,
-            schema.CostOptions.CaseBudget,
-            schema.CostOptions.CaseBudgetExceededBehavior
-        }.MatchInlineSnapshot(
-            """
-            {
-              "MaxFieldCost": null,
-              "MaxTypeCost": null,
-              "EnforceCostLimits": null,
-              "SkipAnalyzer": null,
-              "MaxResponseSize": null,
-              "CostPlanCacheSize": null,
-              "CaseBudget": null,
-              "CaseBudgetExceededBehavior": null
-            }
-            """);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(42)]
-    public void Create_Should_ParseDefaultListSize_When_ArgumentIsANonNegativeInt(int value)
-    {
-        var schema = CreateSchema($"@fusion__cost_options(defaultListSize: {value})");
-
-        Assert.Equal(value, schema.CostOptions.DefaultListSize);
-    }
-
-    [Fact]
-    public void Create_Should_ParseCostSettings_When_AllArgumentsAreSpecified()
-    {
-        // arrange
-        // act
-        var schema = CreateSchema(
-            """
-            @fusion__cost_options(
-              defaultListSize: 7
-              maxFieldCost: 10.5
-              maxTypeCost: 20.5
-              enforceCostLimits: false
-              skipAnalyzer: true
-              maxResponseSize: 30.5
-              costPlanCacheSize: 40
-              caseBudget: -50
-              caseBudgetExceededBehavior: OVERESTIMATE
-            )
-            """);
+        var schema = CreateSchema("@fusion__cost_options(defaultListSize: 7 maxFieldCost: -1)", settings);
 
         // assert
         new
@@ -139,72 +79,51 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
     }
 
     [Theory]
-    [InlineData("EVALUATE_PER_REQUEST", "EvaluatePerRequest")]
-    [InlineData("OVERESTIMATE", "Overestimate")]
-    public void Create_Should_ParseCaseBudgetExceededBehavior_When_ArgumentIsAValidEnumValue(
-        string value,
-        string expected)
+    [InlineData("EvaluatePerRequest")]
+    [InlineData("Overestimate")]
+    public void Create_Should_ParseBehavior_When_EnumNameIsValid(string value)
     {
         // arrange
+        var settings = $$"""{ "cost": { "caseBudgetExceededBehavior": "{{value}}" } }""";
 
         // act
-        var schema = CreateSchema($"@fusion__cost_options(caseBudgetExceededBehavior: {value})");
+        var schema = CreateSchema(settings: settings);
 
         // assert
-        Assert.Equal(expected, schema.CostOptions.CaseBudgetExceededBehavior?.ToString());
+        Assert.Equal(value, schema.CostOptions.CaseBudgetExceededBehavior?.ToString());
+    }
+
+    [Theory]
+    [InlineData("@fusion__cost_options", null)]
+    [InlineData("@fusion__cost_options(defaultListSize: null)", null)]
+    [InlineData("@fusion__cost_options(defaultListSize: 0)", 0)]
+    [InlineData("@fusion__cost_options(defaultListSize: 42)", 42)]
+    public void Create_Should_ParseDefaultListSize_When_DirectiveIsPresent(string directive, int? expected)
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(directive);
+
+        // assert
+        Assert.Equal(expected, schema.CostOptions.DefaultListSize);
     }
 
     [Fact]
-    public void Create_Should_ParseCostOptionsDirective_FromSchemaExtension()
+    public void Create_Should_ReadDefaultListSize_When_DirectiveIsOnSchemaExtension()
     {
-        var document = Utf8GraphQLParser.Parse(
-            """
-            schema {
-                query: Query
-            }
-
+        // arrange
+        var document = Utf8GraphQLParser.Parse("""
+            schema { query: Query }
             extend schema @fusion__cost_options(defaultListSize: 7)
-
-            type Query {
-                ping: String
-            }
-
-            enum fusion__Schema {
-                A
-            }
+            type Query { ping: String }
+            enum fusion__Schema { A }
             """);
 
+        // act
         var schema = FusionSchemaDefinition.Create(document);
 
+        // assert
         Assert.Equal(7, schema.CostOptions.DefaultListSize);
-    }
-
-    [Fact]
-    public void Create_Should_RejectDuplicateCostOptionsDirectives()
-    {
-        var document = Utf8GraphQLParser.Parse(
-            """
-            schema @fusion__cost_options(defaultListSize: 1) {
-                query: Query
-            }
-
-            extend schema @fusion__cost_options(defaultListSize: 2)
-
-            type Query {
-                ping: String
-            }
-
-            enum fusion__Schema {
-                A
-            }
-            """);
-
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => FusionSchemaDefinition.Create(document));
-
-        Assert.Equal(
-            "The fusion__cost_options directive may only be applied once per schema.",
-            exception.Message);
     }
 
     [Theory]
@@ -215,74 +134,76 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
     [InlineData("99999999999")]
     public void Create_Should_RejectInvalidDefaultListSize(string value)
     {
+        // arrange
+        // act
         var exception = Assert.Throws<InvalidOperationException>(
             () => CreateSchema($"@fusion__cost_options(defaultListSize: {value})"));
 
-        Assert.Equal(
-            "The fusion__cost_options defaultListSize argument must be a non-negative integer.",
-            exception.Message);
+        // assert
+        Assert.Equal("The fusion__cost_options defaultListSize argument must be a non-negative integer.", exception.Message);
     }
 
     [Theory]
     [InlineData("maxFieldCost", "-1", "a non-negative finite number")]
-    [InlineData("maxTypeCost", "-1", "a non-negative finite number")]
-    [InlineData("maxResponseSize", "-1", "a non-negative finite number")]
+    [InlineData("maxTypeCost", "\"1\"", "a non-negative finite number")]
+    [InlineData("maxResponseSize", "1e999", "a non-negative finite number")]
     [InlineData("costPlanCacheSize", "0", "a positive integer")]
     [InlineData("enforceCostLimits", "1", "a Boolean")]
+    [InlineData("skipAnalyzer", "null", "a Boolean")]
     [InlineData("caseBudget", "1.5", "an integer")]
-    public void Create_Should_RejectInvalidCostSetting(
-        string argumentName,
-        string value,
-        string requirement)
+    [InlineData("caseBudgetExceededBehavior", "\"INVALID\"", "EvaluatePerRequest or Overestimate")]
+    [InlineData("caseBudgetExceededBehavior", "1", "EvaluatePerRequest or Overestimate")]
+    public void Create_Should_RejectInvalidSetting_WithJsonPath(string name, string value, string requirement)
     {
         // arrange
+        var settings = $$"""{ "cost": { "{{name}}": {{value}} } }""";
+
         // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => CreateSchema($"@fusion__cost_options({argumentName}: {value})"));
+        var exception = Assert.Throws<InvalidOperationException>(() => CreateSchema(settings: settings));
 
         // assert
-        Assert.Equal(
-            $"The fusion__cost_options {argumentName} argument must be {requirement}.",
-            exception.Message);
+        Assert.Equal($"The $.cost.{name} setting must be {requirement}.", exception.Message);
     }
 
     [Theory]
-    [InlineData("INVALID")]
-    [InlineData("\"EVALUATE_PER_REQUEST\"")]
-    [InlineData("\"OVERESTIMATE\"")]
-    public void Create_Should_RejectCaseBudgetExceededBehavior_When_ArgumentIsNotAValidEnumValue(
-        string value)
+    [InlineData("[]", "$", "an object")]
+    [InlineData("{\"cost\":null}", "$.cost", "an object")]
+    public void Create_Should_RejectInvalidSettingsContainer(string settings, string path, string requirement)
     {
         // arrange
-
         // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => CreateSchema($"@fusion__cost_options(caseBudgetExceededBehavior: {value})"));
+        var exception = Assert.Throws<InvalidOperationException>(() => CreateSchema(settings: settings));
 
         // assert
-        Assert.Equal(
-            "The fusion__cost_options caseBudgetExceededBehavior argument must be "
-            + "EVALUATE_PER_REQUEST or OVERESTIMATE.",
-            exception.Message);
+        Assert.Equal($"The {path} setting must be {requirement}.", exception.Message);
     }
 
-    private static FusionSchemaDefinition CreateSchema(string? costOptionsDirective = null)
+    [Fact]
+    public void Create_Should_RejectDuplicateCostOptionsDirectives()
     {
-        var document = Utf8GraphQLParser.Parse(
-            $$"""
-            schema {{costOptionsDirective}} {
-                query: Query
-            }
-
-            type Query {
-                ping: String
-            }
-
-            enum fusion__Schema {
-                A
-            }
+        // arrange
+        var document = Utf8GraphQLParser.Parse("""
+            schema @fusion__cost_options(defaultListSize: 1) { query: Query }
+            extend schema @fusion__cost_options(defaultListSize: 2)
+            type Query { ping: String }
+            enum fusion__Schema { A }
             """);
 
-        return FusionSchemaDefinition.Create(document);
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => FusionSchemaDefinition.Create(document));
+
+        // assert
+        Assert.Equal("The fusion__cost_options directive may only be applied once per schema.", exception.Message);
+    }
+
+    private static FusionSchemaDefinition CreateSchema(string? directive = null, string? settings = null)
+    {
+        var document = Utf8GraphQLParser.Parse($$"""
+            schema {{directive}} { query: Query }
+            type Query { ping: String }
+            enum fusion__Schema { A }
+            """);
+        using var settingsDocument = settings is null ? null : JsonDocument.Parse(settings);
+        return CompositeSchemaBuilder.Create("default", document, settingsDocument);
     }
 }
