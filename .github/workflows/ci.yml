@@ -362,6 +362,8 @@ jobs:
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Merge coverage reports
+        env:
+          DOTNET_COVERAGE_TELEMETRY_OPTOUT: 1
         run: >
           dotnet-coverage merge
           --output ./output/merged.cobertura.xml
@@ -376,13 +378,18 @@ jobs:
           "HEAD^1...HEAD^2"
           -- '*.cs' > ./output/pr.diff
 
+      - name: Build patch coverage script
+        # The report step's stdout becomes the PR comment, so build output stays in this step.
+        run: dotnet build .github/scripts/patch-coverage.cs
+
       - name: Generate patch coverage report
         id: report
         env:
           GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          dotnet .github/scripts/patch-coverage.cs -- ./output/merged.cobertura.xml ./output/pr.diff > ./output/report.md
+          dotnet run --no-build --file .github/scripts/patch-coverage.cs \
+            -- ./output/merged.cobertura.xml ./output/pr.diff > ./output/report.md
           if [ -s ./output/report.md ]; then
             echo "has_content=true" >> "$GITHUB_OUTPUT"
           else
