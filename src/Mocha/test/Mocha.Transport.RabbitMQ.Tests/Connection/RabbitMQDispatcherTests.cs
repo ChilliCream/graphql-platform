@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
@@ -120,12 +121,106 @@ public class RabbitMQDispatcherTests
     }
 
     [Fact]
-    public async Task DisposeAsync_Should_CancelWaitingRent_When_AllChannelsAreLeased()
+    public async Task RentChannelAsync_Should_Wait_When_NegotiatedChannelLimitReached()
     {
         // arrange
         var connection = CreateOpenConnection();
+        connection.SetupGet(c => c.ChannelMax).Returns(2);
         await using var dispatcher = CreateDispatcher(connection);
-        var channels = await Task.WhenAll(Enumerable.Range(0, 100)
+        var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        var second = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+
+        // act
+        var blocked = await Record.ExceptionAsync(() => dispatcher.RentChannelAsync(deadline.Token).AsTask());
+        await dispatcher.ReturnChannelAsync(first);
+        var next = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(second);
+        await dispatcher.ReturnChannelAsync(next);
+
+        // assert
+        Assert.IsAssignableFrom<OperationCanceledException>(blocked);
+        Assert.Same(first, next);
+        connection.Verify(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task RentChannelAsync_Should_KeepConnection_When_ChannelAllocationFails()
+    {
+        // arrange
+        var firstChannel = CreateOpenChannel();
+        var nextChannel = CreateOpenChannel();
+        var connection = CreateOpenConnection();
+        connection.SetupSequence(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(firstChannel.Object)
+            .ThrowsAsync(new ChannelAllocationException())
+            .ReturnsAsync(nextChannel.Object);
+        await using var dispatcher = CreateDispatcher(connection);
+        var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+
+        // act
+        var exception = await Record.ExceptionAsync(
+            () => dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask());
+        var next = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(first);
+        await dispatcher.ReturnChannelAsync(next);
+
+        // assert
+        Assert.IsType<ChannelAllocationException>(exception);
+        Assert.Same(nextChannel.Object, next);
+        connection.Verify(c => c.CloseAsync(
+            It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), true, It.IsAny<CancellationToken>()),
+            Times.Never());
+    }
+
+    [Fact]
+    public async Task RentChannelAsync_Should_UseNewCapacity_When_ConnectionReplacedWhileWaiting()
+    {
+        // arrange
+        var original = CreateOpenConnection();
+        original.SetupGet(c => c.ChannelMax).Returns(1);
+        var replacement = CreateOpenConnection();
+        replacement.SetupGet(c => c.ChannelMax).Returns(2);
+        var connections = new Queue<IConnection>([original.Object, replacement.Object]);
+        await using var dispatcher = new RabbitMQDispatcher(
+            NullLogger<RabbitMQDispatcher>.Instance,
+            _ => new ValueTask<IConnection>(connections.Dequeue()),
+            static (_, _) => Task.CompletedTask);
+        var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        var waiting = dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask();
+        var wasWaiting = !waiting.IsCompleted;
+
+        // act
+        original.SetupGet(c => c.IsOpen).Returns(false);
+        await dispatcher.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        var second = await waiting.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        var third = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask()
+            .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(first);
+        await dispatcher.ReturnChannelAsync(second);
+        await dispatcher.ReturnChannelAsync(third);
+
+        // assert
+        Assert.True(wasWaiting);
+        Assert.NotSame(second, third);
+        original.Verify(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()),
+            Times.Once());
+        replacement.Verify(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    public async Task DisposeAsync_Should_CancelWaitingRent_When_AllChannelsAreLeased(ushort channelMax)
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        connection.SetupGet(c => c.ChannelMax).Returns(channelMax);
+        var capacity = channelMax == 0 ? 100 : channelMax;
+        await using var dispatcher = CreateDispatcher(connection);
+        var channels = await Task.WhenAll(Enumerable.Range(0, capacity)
             .Select(_ => dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask()));
         var waiting = dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask();
 
@@ -141,7 +236,7 @@ public class RabbitMQDispatcherTests
         // assert
         Assert.IsAssignableFrom<OperationCanceledException>(exception);
         connection.Verify(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()),
-            Times.Exactly(100));
+            Times.Exactly(capacity));
     }
 
     [Fact]
