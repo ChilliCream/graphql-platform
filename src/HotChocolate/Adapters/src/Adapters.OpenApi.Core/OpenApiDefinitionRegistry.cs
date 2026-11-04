@@ -78,6 +78,11 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
             var events = schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
             var definitions = await _storage.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
 
+            if (_stopped)
+            {
+                return;
+            }
+
             UpdateAllDefinitions(definitions.ToList(), schema, events);
         }
         finally
@@ -158,6 +163,11 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
             var events = _schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
             var definitions = await _storage.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
+
+            if (_disposed || _stopped)
+            {
+                return;
+            }
 
             UpdateAllDefinitions(definitions.ToList(), _schema, events);
         }
