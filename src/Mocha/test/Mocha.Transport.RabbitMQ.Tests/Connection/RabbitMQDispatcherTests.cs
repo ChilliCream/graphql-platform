@@ -7,7 +7,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 public class RabbitMQDispatcherTests
 {
     [Fact]
-    public async Task RentChannelAsync_Should_CreateNewChannel_When_PoolEmpty()
+    public async Task RentChannelAsync_Should_CreateNewChannel_When_NoChannelExists()
     {
         // arrange
         var channelMock = CreateOpenChannel();
@@ -22,7 +22,7 @@ public class RabbitMQDispatcherTests
     }
 
     [Fact]
-    public async Task RentChannelAsync_Should_ReuseChannel_When_PoolHasOpenChannel()
+    public async Task RentChannelAsync_Should_ReuseChannel_When_ChannelIsOpen()
     {
         // arrange
         var channelMock = CreateOpenChannel();
@@ -40,7 +40,7 @@ public class RabbitMQDispatcherTests
     }
 
     [Fact]
-    public async Task RentChannelAsync_Should_SkipClosedChannels_When_PoolHasClosedChannel()
+    public async Task RentChannelAsync_Should_ReplaceChannel_When_ChannelIsClosed()
     {
         // arrange
         var closedChannelMock = CreateOpenChannel();
@@ -51,7 +51,7 @@ public class RabbitMQDispatcherTests
         var rented = await dispatcher.RentChannelAsync(CancellationToken.None);
         Assert.Same(closedChannelMock.Object, rented);
 
-        // Simulate the channel closing while in the pool
+        // Simulate a broker-initiated channel loss.
         closedChannelMock.SetupGet(c => c.IsOpen).Returns(false);
         await dispatcher.ReturnChannelAsync(rented);
 
@@ -77,7 +77,7 @@ public class RabbitMQDispatcherTests
     }
 
     [Fact]
-    public async Task ReturnChannelAsync_Should_AddToPool_When_ChannelOpenAndPoolNotFull()
+    public async Task ReturnChannelAsync_Should_KeepChannel_When_ChannelIsOpen()
     {
         // arrange
         var channelMock = CreateOpenChannel();
@@ -89,55 +89,139 @@ public class RabbitMQDispatcherTests
         // act
         await dispatcher.ReturnChannelAsync(rented);
 
-        // assert - renting again should return the same pooled channel
+        // assert
         var second = await dispatcher.RentChannelAsync(CancellationToken.None);
         Assert.Same(channelMock.Object, second);
     }
 
     [Fact]
-    public async Task ReturnChannelAsync_Should_DisposeChannel_When_PoolFull()
+    public async Task RentChannelAsync_Should_ShareChannel_When_PublishesAreConcurrent()
     {
         // arrange
-        var channelMocks = Enumerable.Range(0, 11).Select(_ => CreateOpenChannel()).ToArray();
-        var connectionMock = CreateOpenConnection(channelMocks);
-        await using var dispatcher = CreateDispatcher(connectionMock);
+        var channel = CreateOpenChannel();
+        var connection = CreateOpenConnection(channel);
+        await using var dispatcher = CreateDispatcher(connection);
 
-        // Rent all 11 channels
-        var rented = new IChannel[11];
-        for (var i = 0; i < 11; i++)
+        // act
+        var rented = await Task.WhenAll(Enumerable.Range(0, 100)
+            .Select(_ => dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask()));
+        foreach (var item in rented)
         {
-            rented[i] = await dispatcher.RentChannelAsync(CancellationToken.None);
+            await dispatcher.ReturnChannelAsync(item);
         }
 
-        // Return first 10 - fills the pool
-        for (var i = 0; i < 10; i++)
-        {
-            await dispatcher.ReturnChannelAsync(rented[i]);
-        }
-
-        // act - return the 11th, which should be disposed (pool full)
-        await dispatcher.ReturnChannelAsync(rented[10]);
-
-        // assert - the 11th channel should have been disposed
-        channelMocks[10].Verify(c => c.DisposeAsync(), Times.AtLeastOnce());
+        // assert
+        Assert.All(rented, item => Assert.Same(channel.Object, item));
+        connection.Verify(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()),
+            Times.Once());
     }
 
     [Fact]
-    public async Task ReturnChannelAsync_Should_DisposeChannel_When_ChannelClosed()
+    public async Task RentChannelAsync_Should_KeepOpeningChannel_When_CallerCancels()
     {
         // arrange
-        var channelMock = CreateOpenChannel();
-        var connectionMock = CreateOpenConnection(channelMock);
-        await using var dispatcher = CreateDispatcher(connectionMock);
-
-        var rented = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
-        channelMock.SetupGet(c => c.IsOpen).Returns(false);
+        var channel = CreateOpenChannel();
+        var connection = CreateOpenConnection();
+        var started = new TaskCompletionSource<CancellationToken>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(async (CreateChannelOptions? _, CancellationToken ct) =>
+            {
+                started.TrySetResult(ct);
+                await release.Task.WaitAsync(ct);
+                return channel.Object;
+            });
+        await using var dispatcher = CreateDispatcher(connection);
+        using var callerCts = new CancellationTokenSource();
 
         // act
+        var first = dispatcher.RentChannelAsync(callerCts.Token).AsTask();
+        var creationToken = await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await callerCts.CancelAsync();
+        Task<IChannel> second;
+        try
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => first.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+            second = dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask();
+        }
+        finally
+        {
+            release.TrySetResult();
+        }
+
+        var rented = await second.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
         await dispatcher.ReturnChannelAsync(rented);
 
         // assert
-        channelMock.Verify(c => c.DisposeAsync(), Times.AtLeastOnce());
+        Assert.False(creationToken.IsCancellationRequested);
+        Assert.Same(channel.Object, rented);
+        connection.Verify(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()),
+            Times.Once());
+    }
+
+    [Fact]
+    public async Task RentChannelAsync_Should_WaitForCleanup_When_FailedChannelIsRetired()
+    {
+        // arrange
+        var firstChannel = CreateOpenChannel();
+        var replacement = CreateOpenChannel();
+        var cleanup = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        firstChannel.Setup(c => c.CloseAsync(
+                It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .Returns(cleanup.Task);
+        var connection = CreateOpenConnection(firstChannel, replacement);
+        await using var dispatcher = CreateDispatcher(connection);
+        var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+
+        // act
+        dispatcher.DiscardChannel(first);
+        try
+        {
+            using var waitTimeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => dispatcher.RentChannelAsync(waitTimeout.Token).AsTask()
+                    .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+            connection.Verify(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()),
+                Times.Once());
+        }
+        finally
+        {
+            cleanup.TrySetResult();
+        }
+
+        var rented = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask()
+            .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(rented);
+
+        // assert
+        Assert.Same(replacement.Object, rented);
+        firstChannel.Verify(c => c.DisposeAsync(), Times.Once());
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Should_CancelChannelCreation_When_ChannelIsOpening()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(async (CreateChannelOptions? _, CancellationToken ct) =>
+            {
+                started.TrySetResult();
+                await Task.Delay(Timeout.Infinite, ct);
+                return CreateOpenChannel().Object;
+            });
+        var dispatcher = CreateDispatcher(connection);
+        var rent = dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask();
+        await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        // act
+        await dispatcher.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        // assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => rent);
+        Assert.False(dispatcher.IsConnected);
     }
 
     [Fact]
@@ -163,33 +247,20 @@ public class RabbitMQDispatcherTests
     }
 
     [Fact]
-    public async Task DisposeAsync_Should_ClearAllChannels_When_Called()
+    public async Task DisposeAsync_Should_CloseSharedChannel_When_Called()
     {
         // arrange
-        var channelMocks = Enumerable.Range(0, 3).Select(_ => CreateOpenChannel()).ToArray();
-        var connectionMock = CreateOpenConnection(channelMocks);
-        var dispatcher = CreateDispatcher(connectionMock);
-
-        // Rent all channels first, then return them to populate pool
-        var rented = new IChannel[3];
-        for (var i = 0; i < 3; i++)
-        {
-            rented[i] = await dispatcher.RentChannelAsync(CancellationToken.None);
-        }
-
-        for (var i = 0; i < 3; i++)
-        {
-            await dispatcher.ReturnChannelAsync(rented[i]);
-        }
+        var channel = CreateOpenChannel();
+        var connection = CreateOpenConnection(channel);
+        var dispatcher = CreateDispatcher(connection);
+        var rented = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(rented);
 
         // act
         await dispatcher.DisposeAsync();
 
-        // assert - all channels should have been disposed
-        foreach (var ch in channelMocks)
-        {
-            ch.Verify(c => c.DisposeAsync(), Times.AtLeastOnce());
-        }
+        // assert
+        channel.Verify(c => c.DisposeAsync(), Times.Once());
     }
 
     [Fact]

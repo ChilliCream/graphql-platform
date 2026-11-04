@@ -308,8 +308,14 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     {
         Logger.CreatingConnectionUsingFactoryDelegate();
 
-        await DisposeConnectionInternalAsync();
-        await OnBeforeConnectionCreatedAsync(cancellationToken);
+        try
+        {
+            await OnBeforeConnectionCreatedAsync(cancellationToken);
+        }
+        finally
+        {
+            await DisposeConnectionInternalAsync();
+        }
 
         var connection = await _connectionFactory(cancellationToken);
 

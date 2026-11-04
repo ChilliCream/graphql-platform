@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
@@ -105,6 +107,84 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
     }
 
     [Fact]
+    public async Task StopAsync_Should_KeepReceivingReplies_When_ApplicationHandlersAreDraining()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var responder = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddRabbitMQ(t => t.Endpoint("nested-responder").Handler<GetOrderStatusHandler>())
+            .BuildTestBusAsync();
+        var gate = new NestedRequestGate();
+        await using var requester = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(gate)
+            .AddMessageBus()
+            .AddEventHandler<NestedRequestHandler>()
+            .AddRabbitMQ(t =>
+            {
+                t.Endpoint("nested-first").Handler<NestedRequestHandler>();
+                t.Endpoint("nested-second").Handler<NestedRequestHandler>();
+            })
+            .BuildTestBusAsync();
+        var runtime = (MessagingRuntime)requester.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        using var scope = requester.Provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        foreach (var queue in new[] { "nested-first", "nested-second" })
+        {
+            await bus.SendAsync(new NestedRequest(queue),
+                new SendOptions { Endpoint = new Uri($"rabbitmq:q/{queue}") },
+                TestContext.Current.CancellationToken);
+        }
+
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // act
+        using var stopTimeout = new CancellationTokenSource(s_timeout);
+        var stop = runtime.StopAsync(stopTimeout.Token).AsTask();
+        bool replyWasHealthy;
+        try
+        {
+            await vhost.WaitForNoConsumerAsync("nested-first", s_timeout);
+            await vhost.WaitForNoConsumerAsync("nested-second", s_timeout);
+            replyWasHealthy = ((RabbitMQReceiveEndpoint)transport.ReplyReceiveEndpoint!).IsHealthy;
+        }
+        finally
+        {
+            gate.Release.TrySetResult();
+        }
+
+        await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var firstMessages = await vhost.GetMessageCountAsync("nested-first");
+        var secondMessages = await vhost.GetMessageCountAsync("nested-second");
+
+        // assert
+        new
+        {
+            ReplyWasHealthy = replyWasHealthy,
+            Responses = gate.Responses.Order().ToArray(),
+            FirstMessages = firstMessages,
+            SecondMessages = secondMessages,
+            runtime.IsStarted
+        }.MatchInlineSnapshot(
+            """
+            {
+              "ReplyWasHealthy": true,
+              "Responses": [
+                "nested-first",
+                "nested-second"
+              ],
+              "FirstMessages": 0,
+              "SecondMessages": 0,
+              "IsStarted": false
+            }
+            """);
+    }
+
+    [Fact]
     public async Task StopAsync_Should_Complete_When_ConnectionClosedDuringStop()
     {
         // arrange
@@ -155,6 +235,41 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
     }
 
     public sealed class TestEvent;
+
+    public sealed record NestedRequest(string OrderId);
+
+    public sealed class NestedRequestGate
+    {
+        private int _started;
+
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public ConcurrentBag<string> Responses { get; } = [];
+
+        public void HandlerStarted()
+        {
+            if (Interlocked.Increment(ref _started) == 2)
+            {
+                Started.TrySetResult();
+            }
+        }
+    }
+
+    public sealed class NestedRequestHandler(IMessageBus bus, NestedRequestGate gate) : IEventHandler<NestedRequest>
+    {
+        public async ValueTask HandleAsync(NestedRequest message, CancellationToken cancellationToken)
+        {
+            gate.HandlerStarted();
+            await gate.Release.Task.WaitAsync(cancellationToken);
+            var response = await bus.RequestAsync(
+                new GetOrderStatus { OrderId = message.OrderId },
+                new SendOptions { Endpoint = new Uri("rabbitmq:q/nested-responder") },
+                cancellationToken);
+            gate.Responses.Add(response.OrderId);
+        }
+    }
 
     public sealed class HandlerGate
     {
