@@ -13,6 +13,83 @@ public sealed class RabbitMQConsumerAttachTests
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(5);
 
     [Fact]
+    public async Task StopAsync_Should_CancelAttach_When_ConnectionIsAttachingConsumer()
+    {
+        // arrange
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var broker = new StubBroker();
+        broker.OnConsume = async (attach, _) =>
+        {
+            started.TrySetResult();
+            await release.Task.WaitAsync(attach.CancellationToken);
+        };
+        await using var manager = broker.CreateManager();
+        var registration = await manager.RegisterConsumerAsync(
+            "orders",
+            provisionAsync: null,
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        var connect = manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        await started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // act
+        var stop = registration.StopAsync(new CancellationToken(canceled: true));
+        try
+        {
+            await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            release.TrySetResult();
+            await Task.WhenAll(connect, stop);
+        }
+
+        // assert
+        Assert.False(registration.IsAttached);
+        Assert.Equal(1, broker.ConsumeAttempts("orders"));
+        Assert.True(manager.IsConnected);
+    }
+
+    [Fact]
+    public async Task Consumer_Should_Reattach_When_ChannelIsLostAsReattachCompletes()
+    {
+        // arrange
+        var broker = new StubBroker();
+        IAsyncBasicConsumer? firstConsumer = null;
+        broker.OnConsume = (attach, consumer) =>
+        {
+            firstConsumer ??= consumer;
+            if (attach.Attempt == 2)
+            {
+                attach.Channel.CloseAfterNextOpenCheck();
+            }
+
+            return Task.CompletedTask;
+        };
+        await using var manager = await broker.ConnectAsync();
+        var registration = await manager.RegisterConsumerAsync(
+            "orders",
+            provisionAsync: null,
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+
+        // act
+        await firstConsumer!.HandleBasicCancelAsync("orders-1", TestContext.Current.CancellationToken);
+        var recovered = await Condition.WaitAsync(
+            () => broker.ConsumeAttempts("orders") == 3 && registration.IsAttached,
+            s_timeout);
+
+        // assert
+        Assert.True(recovered);
+        Assert.Equal("orders-3", registration.ConsumerTag);
+    }
+
+    [Fact]
     public async Task RegisterConsumerAsync_Should_Reattach_When_BrokerCancelsBeforeConsumeReturns()
     {
         // arrange
@@ -152,10 +229,21 @@ public sealed class RabbitMQConsumerAttachTests
             private readonly List<AsyncEventHandler<ShutdownEventArgs>> _shutdownHandlers = [];
             private readonly Mock<IChannel> _channel = new();
             private bool _isOpen = true;
+            private bool _closeAfterNextOpenCheck;
 
             public StubChannel(StubBroker broker)
             {
-                _channel.SetupGet(c => c.IsOpen).Returns(() => _isOpen);
+                _channel.SetupGet(c => c.IsOpen).Returns(() =>
+                {
+                    var isOpen = _isOpen;
+                    if (_closeAfterNextOpenCheck)
+                    {
+                        _isOpen = false;
+                        _closeAfterNextOpenCheck = false;
+                    }
+
+                    return isOpen;
+                });
                 _channel
                     .SetupAdd(c => c.ChannelShutdownAsync += It.IsAny<AsyncEventHandler<ShutdownEventArgs>>())
                     .Callback<AsyncEventHandler<ShutdownEventArgs>>(_shutdownHandlers.Add);
@@ -186,6 +274,8 @@ public sealed class RabbitMQConsumerAttachTests
             }
 
             public IChannel Object => _channel.Object;
+
+            public void CloseAfterNextOpenCheck() => _closeAfterNextOpenCheck = true;
 
             public async Task CloseByBrokerAsync(ushort replyCode, string replyText)
             {

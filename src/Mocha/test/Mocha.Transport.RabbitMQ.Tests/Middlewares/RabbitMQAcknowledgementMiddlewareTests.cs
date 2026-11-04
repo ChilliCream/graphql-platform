@@ -17,7 +17,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         new(ShutdownInitiator.Peer, 320, "CONNECTION_FORCED - test");
 
     [Fact]
-    public async Task InvokeAsync_Should_CompleteAndRememberMessage_When_ChannelClosesDuringAck()
+    public async Task InvokeAsync_Should_Complete_When_ChannelClosesDuringAck()
     {
         // arrange
         // the channel reports open, and closes before the ack reaches it
@@ -26,9 +26,8 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         channel
             .Setup(c => c.BasicAckAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .Returns(() => ValueTask.FromException(new AlreadyClosedException(s_connectionForced)));
-        var completed = new RabbitMQCompletedDeliveries(capacity: 10);
         var logs = new LogRecorder();
-        var context = CreateContext(channel.Object, completed, logs, redelivered: false);
+        var context = CreateContext(channel.Object, logs, redelivered: false);
 
         // act
         var exception = await Record.ExceptionAsync(
@@ -36,18 +35,15 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
 
         // assert
         Assert.Null(exception);
-        Assert.True(completed.TryRemove("message-1"));
         Assert.True(logs.Contains("SettlementSkippedChannelClosed"));
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_AckWithoutRunningHandler_When_RedeliveryOfCompletedMessage()
+    public async Task InvokeAsync_Should_RunHandler_When_MessageIsRedelivered()
     {
         // arrange
         var channel = CreateOpenChannel();
-        var completed = new RabbitMQCompletedDeliveries(capacity: 10);
-        completed.Add("message-1");
-        var context = CreateContext(channel.Object, completed, new LogRecorder(), redelivered: true);
+        var context = CreateContext(channel.Object, new LogRecorder(), redelivered: true);
         var handled = false;
 
         // act
@@ -60,20 +56,16 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
             });
 
         // assert
-        Assert.False(handled);
-        Assert.False(completed.TryRemove("message-1"));
+        Assert.True(handled);
         channel.Verify(c => c.BasicAckAsync(7, false, It.IsAny<CancellationToken>()), Times.Once());
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_RunHandler_When_RememberedMessageIsNotRedelivered()
+    public async Task InvokeAsync_Should_RunHandler_When_MessageIsNotRedelivered()
     {
         // arrange
-        // a message with the same id that the broker did not redeliver is a new message
         var channel = CreateOpenChannel();
-        var completed = new RabbitMQCompletedDeliveries(capacity: 10);
-        completed.Add("message-1");
-        var context = CreateContext(channel.Object, completed, new LogRecorder(), redelivered: false);
+        var context = CreateContext(channel.Object, new LogRecorder(), redelivered: false);
         var handled = false;
 
         // act
@@ -103,8 +95,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
                 It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .Returns(() => ValueTask.FromException(new AlreadyClosedException(s_connectionForced)));
-        var completed = new RabbitMQCompletedDeliveries(capacity: 10);
-        var context = CreateContext(channel.Object, completed, new LogRecorder(), redelivered: false);
+        var context = CreateContext(channel.Object, new LogRecorder(), redelivered: false);
 
         // act
         var exception = await Record.ExceptionAsync(
@@ -114,7 +105,6 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
 
         // assert
         Assert.Equal("handler failed", Assert.IsType<InvalidOperationException>(exception).Message);
-        Assert.False(completed.TryRemove("message-1"));
     }
 
     private static Mock<IChannel> CreateOpenChannel()
@@ -129,7 +119,6 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
 
     private static ReceiveContext CreateContext(
         IChannel channel,
-        RabbitMQCompletedDeliveries completed,
         LogRecorder logs,
         bool redelivered)
     {
@@ -148,7 +137,6 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
             routingKey: "orders",
             properties: new BasicProperties { MessageId = "message-1" },
             body: ReadOnlyMemory<byte>.Empty);
-        feature.CompletedDeliveries = completed;
 
         return context;
     }

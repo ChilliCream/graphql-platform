@@ -24,22 +24,6 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
         var channel = feature.Channel;
         var eventArgs = feature.EventArgs;
-        var completedDeliveries = feature.CompletedDeliveries;
-        var messageId = eventArgs.BasicProperties.MessageId;
-
-        if (eventArgs.Redelivered && messageId is not null && completedDeliveries?.TryRemove(messageId) == true)
-        {
-            // The handler completed this message before, on a channel that closed before the delivery was acked.
-            GetLogger(context).RedeliveryOfCompletedMessageAcked(messageId, eventArgs.RoutingKey);
-
-            if (!await TryAckAsync(context, channel, eventArgs))
-            {
-                completedDeliveries.Add(messageId);
-            }
-
-            return;
-        }
-
         try
         {
             await next(context);
@@ -51,14 +35,10 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         }
 
         // Once next returns the handler's work is committed, so the ack is sent without the shutdown token.
-        if (!await TryAckAsync(context, channel, eventArgs) && messageId is not null)
-        {
-            // The broker redelivers the message, which is then acked without running the handler again.
-            completedDeliveries?.Add(messageId);
-        }
+        await TryAckAsync(context, channel, eventArgs);
     }
 
-    private static async ValueTask<bool> TryAckAsync(
+    private static async ValueTask TryAckAsync(
         IReceiveContext context,
         IChannel channel,
         BasicDeliverEventArgs eventArgs)
@@ -68,7 +48,7 @@ internal sealed class RabbitMQAcknowledgementMiddleware
             try
             {
                 await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
-                return true;
+                return;
             }
             catch (Exception ex) when (ex is AlreadyClosedException or ObjectDisposedException)
             {
@@ -77,7 +57,6 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         }
 
         GetLogger(context).SettlementSkippedChannelClosed("ack", eventArgs.DeliveryTag, eventArgs.RoutingKey);
-        return false;
     }
 
     private static async ValueTask TryNackAsync(
@@ -114,15 +93,4 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         => new(
             static (_, next) => ctx => s_instance.InvokeAsync(ctx, next),
             "RabbitMQAcknowledgement");
-}
-
-internal static partial class RabbitMQAcknowledgementMiddlewareLogs
-{
-    [LoggerMessage(
-        LogLevel.Information,
-        "Acked redelivered message {MessageId} (routing key {RoutingKey}) without handling it again, because its handler already completed")]
-    public static partial void RedeliveryOfCompletedMessageAcked(
-        this ILogger logger,
-        string messageId,
-        string routingKey);
 }

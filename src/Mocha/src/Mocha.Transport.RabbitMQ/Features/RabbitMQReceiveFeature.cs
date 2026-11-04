@@ -20,18 +20,11 @@ public sealed class RabbitMQReceiveFeature : IPooledFeature
     /// </summary>
     public BasicDeliverEventArgs EventArgs { get; set; } = null!;
 
-    /// <summary>
-    /// Gets or sets the ids of messages whose handler completed but whose delivery could not be acknowledged, or
-    /// <c>null</c> when the endpoint does not track them.
-    /// </summary>
-    internal RabbitMQCompletedDeliveries? CompletedDeliveries { get; set; }
-
     /// <inheritdoc />
     public void Initialize(object state)
     {
         Channel = null!;
         EventArgs = null!;
-        CompletedDeliveries = null;
     }
 
     /// <inheritdoc />
@@ -39,6 +32,5 @@ public sealed class RabbitMQReceiveFeature : IPooledFeature
     {
         Channel = null!;
         EventArgs = null!;
-        CompletedDeliveries = null;
     }
 }

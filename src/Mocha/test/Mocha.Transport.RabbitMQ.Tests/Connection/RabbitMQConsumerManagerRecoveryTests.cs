@@ -130,10 +130,8 @@ public class RabbitMQConsumerManagerRecoveryTests
         Assert.Equal("A", await received.NextAsync());
         Assert.Equal("B", await received.NextAsync());
 
-        // the abandoned handler keeps running until the consumer is disposed, which cancels it
-        Assert.False(abandonedHandlerCancelled.Task.IsCompleted);
-        await registration.DisposeAsync();
         await abandonedHandlerCancelled.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        Assert.True(manager.IsHealthy);
     }
 
     [Fact]

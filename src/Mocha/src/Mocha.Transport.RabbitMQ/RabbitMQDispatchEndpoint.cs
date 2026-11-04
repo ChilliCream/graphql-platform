@@ -92,6 +92,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
             // A cancellation the caller did not request comes from a timed out operation on a broken connection.
             OperationCanceledException or ObjectDisposedException => true,
+            TimeoutException => !dispatcher.IsConnected,
             BrokerUnreachableException { InnerException: AuthenticationFailureException } => false,
             BrokerUnreachableException or ConnectFailureException => true,
             OperationInterruptedException { ShutdownReason: var reason } => IsConnectionLoss(reason),

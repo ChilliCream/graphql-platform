@@ -151,9 +151,13 @@ builder.Services
 
 ## Handlers on a lost connection
 
-A handler that is running when its channel or connection is lost keeps running, but its message can no longer be acknowledged, and the broker delivers it again. When the handler completed, the transport remembers the message id and acknowledges the redelivered message without running the handler again. Each receive endpoint remembers the last 1,000 such message ids.
+When a channel or connection is lost, the transport cancels its running handlers and the broker can redeliver their messages. A handler may have committed its work before losing its acknowledgement, so handlers must tolerate duplicate delivery or use the inbox for deduplication.
 
-A handler that fails after its channel was lost is faulted as usual, and the broker still delivers the message again.
+`MaxConcurrency` applies across connection and channel recovery. A handler that ignores cancellation keeps its slot until it exits. If cancelled handlers occupy every slot, processing pauses for that endpoint and its `IsHealthy` property becomes `false`. The transport logs `ConsumerRecoveryBlocked`, and logs `ConsumerRecoveryResumed` when capacity becomes available. Other endpoints continue processing.
+
+For batch handlers, set the broker's consumer timeout above the batch fill window and processing time.
+
+Queued deliveries from a lost channel are discarded locally and left for the broker to redeliver. The current consumer's queued deliveries are limited by its prefetch; a prefetch of zero allows an unlimited backlog.
 
 ## Graceful shutdown
 
