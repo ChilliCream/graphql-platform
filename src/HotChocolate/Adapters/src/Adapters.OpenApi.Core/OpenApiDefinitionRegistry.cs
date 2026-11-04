@@ -70,6 +70,12 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
         }
     }
 
+    public void Stop()
+    {
+        _stopped = true;
+        _subscription.Dispose();
+    }
+
     public async ValueTask StopAsync(CancellationToken cancellationToken)
     {
         if (_stopped || _disposed)
@@ -77,8 +83,7 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
             return;
         }
 
-        _stopped = true;
-        _subscription.Dispose();
+        Stop();
 
         // Acquiring the semaphore waits for an update in progress. Updates that acquire it
         // later return without changing the endpoints.
