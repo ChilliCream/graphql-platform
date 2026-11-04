@@ -23,8 +23,13 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly IDisposable _subscription;
+#if NET9_0_OR_GREATER
+    private readonly Lock _subscriptionLock = new();
+#else
+    private readonly object _subscriptionLock = new();
+#endif
 
+    private IDisposable? _subscription;
     private ISchemaDefinition? _schema;
     private bool _stopped;
     private bool _disposed;
@@ -37,11 +42,22 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
         _storage = storage;
         _transformer = transformer;
         _dynamicEndpointDataSource = dynamicEndpointDataSource;
+    }
 
-        _subscription = _storage
-            .Buffer(TimeSpan.FromMilliseconds(500), 10)
-            .Where(batch => batch.Count > 0)
-            .Subscribe(_ => HandleStorageChangedAsync().FireAndForget());
+    public void Start()
+    {
+        lock (_subscriptionLock)
+        {
+            if (_stopped || _disposed || _subscription is not null)
+            {
+                return;
+            }
+
+            _subscription = _storage
+                .Buffer(TimeSpan.FromMilliseconds(500), 10)
+                .Where(batch => batch.Count > 0)
+                .Subscribe(_ => HandleStorageChangedAsync().FireAndForget());
+        }
     }
 
     public async ValueTask UpdateSchemaAsync(
@@ -72,21 +88,23 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
     public void Stop()
     {
-        _stopped = true;
-        _subscription.Dispose();
+        lock (_subscriptionLock)
+        {
+            _stopped = true;
+            _subscription?.Dispose();
+            _subscription = null;
+        }
     }
 
-    public async ValueTask StopAsync(CancellationToken cancellationToken)
+    public async Task WaitForUpdateAsync(CancellationToken cancellationToken)
     {
-        if (_stopped || _disposed)
+        if (_disposed)
         {
             return;
         }
 
-        Stop();
-
         // Acquiring the semaphore waits for an update in progress. Updates that acquire it
-        // later return without changing the endpoints.
+        // after Stop return without changing the endpoints.
         await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         _updateSemaphore.Release();
     }
@@ -97,7 +115,7 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
         {
             _disposed = true;
 
-            _subscription.Dispose();
+            Stop();
 
             // Cancel before disposing the semaphore so any in-flight WaitAsync(token)
             // observes the cancellation and exits, instead of being orphaned forever

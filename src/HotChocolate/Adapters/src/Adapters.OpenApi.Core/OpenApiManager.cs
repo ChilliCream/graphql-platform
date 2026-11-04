@@ -87,8 +87,13 @@ internal sealed class OpenApiManager : IDisposable
 
         foreach (var registry in runningRegistries)
         {
-            await registry.StopAsync(cancellationToken).ConfigureAwait(false);
+            registry.Stop();
         }
+
+        var updates = runningRegistries.Select(
+            registry => registry.WaitForUpdateAsync(cancellationToken));
+
+        await Task.WhenAll(updates).ConfigureAwait(false);
     }
 
     private OpenApiRegistration CreateRegistration(string name)
@@ -120,6 +125,10 @@ internal sealed class OpenApiManager : IDisposable
         if (stopped)
         {
             registry.Stop();
+        }
+        else
+        {
+            registry.Start();
         }
 
         var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, name);
