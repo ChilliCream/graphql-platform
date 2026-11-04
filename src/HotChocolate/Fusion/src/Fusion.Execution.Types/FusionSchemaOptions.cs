@@ -4,7 +4,7 @@ internal struct FusionSchemaOptions : IFusionSchemaOptions
 {
     public bool ApplySerializeAsToScalars { get; private set; }
 
-    public bool EnableDefer { get; private set; } = true;
+    public bool EnableDefer { get; set; } = true;
 
     public bool EnableObjectDeprecation { get; private set; }
 

@@ -17,6 +17,15 @@ public static class FusionSchemaDefinitionExtensions
             => schema.Features.Get<FusionSchemaCostOptions>() ?? FusionSchemaCostOptions.Empty;
     }
 
+    extension(FusionSchemaDefinition schema)
+    {
+        /// <summary>
+        /// Gets the planning options declared by the schema, or the default options.
+        /// </summary>
+        public PlannerOptions PlannerOptions
+            => schema.Features.Get<PlannerOptions>() ?? PlannerOptions.Default;
+    }
+
     internal static SchemaEnvironment? TryGetEnvironment(this ISchemaDefinition schema)
         => schema.Features.Get<SchemaEnvironment>();
 }

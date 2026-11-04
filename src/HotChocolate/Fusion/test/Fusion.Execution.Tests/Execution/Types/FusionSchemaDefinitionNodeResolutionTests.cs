@@ -10,7 +10,7 @@ public sealed class FusionSchemaDefinitionNodeResolutionTests
     {
         var schema = CreateSchema();
 
-        Assert.Equal(NodeResolution.Gateway, schema.NodeResolution);
+        Assert.Equal(NodeResolution.Gateway, schema.PlannerOptions.NodeResolution);
     }
 
     [Fact]
@@ -18,7 +18,7 @@ public sealed class FusionSchemaDefinitionNodeResolutionTests
     {
         var schema = CreateSchema("@fusion__execution");
 
-        Assert.Equal(NodeResolution.Gateway, schema.NodeResolution);
+        Assert.Equal(NodeResolution.Gateway, schema.PlannerOptions.NodeResolution);
     }
 
     [Theory]
@@ -30,7 +30,25 @@ public sealed class FusionSchemaDefinitionNodeResolutionTests
     {
         var schema = CreateSchema($"@fusion__execution(nodeResolution: {value})");
 
-        Assert.Equal(expected, schema.NodeResolution);
+        Assert.Equal(expected, schema.PlannerOptions.NodeResolution);
+    }
+
+    [Fact]
+    public void Create_Should_StorePlannerOptions_When_ExecutionDirectiveIsPresent()
+    {
+        // arrange
+        const string directive = "@fusion__execution(nodeResolution: SOURCE_SCHEMA, "
+            + "shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES)";
+
+        // act
+        var schema = CreateSchema(directive);
+
+        // assert
+        Assert.Same(schema.PlannerOptions, schema.Features.Get<PlannerOptions>());
+        Assert.Equal(NodeResolution.SourceSchema, schema.PlannerOptions.NodeResolution);
+        Assert.Equal(
+            ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
+            schema.PlannerOptions.ShareableFieldRuntimeTypeRouting);
     }
 
     [Fact]
@@ -55,7 +73,7 @@ public sealed class FusionSchemaDefinitionNodeResolutionTests
 
         var schema = FusionSchemaDefinition.Create(document);
 
-        Assert.Equal(NodeResolution.SourceSchema, schema.NodeResolution);
+        Assert.Equal(NodeResolution.SourceSchema, schema.PlannerOptions.NodeResolution);
     }
 
     [Fact]
