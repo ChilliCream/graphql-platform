@@ -1259,6 +1259,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Gateway settings must be an object without a 'sourceSchemas' property.
+        /// </summary>
+        internal static string LogEntryHelper_InvalidGatewaySettings {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidGatewaySettings", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {

@@ -66,6 +66,7 @@ internal static class AspireCompositionHelper
             environment,
             preferDevUrls: true,
             compositionSettings,
+            gatewaySettings: null,
             legacyArchive: null,
             cancellationToken);
 

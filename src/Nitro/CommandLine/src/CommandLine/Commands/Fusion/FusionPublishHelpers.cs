@@ -635,6 +635,7 @@ internal static class FusionPublishHelpers
             environment,
             preferDevUrls: false,
             compositionSettings,
+            gatewaySettings: null,
             legacyArchive,
             cancellationToken);
 
