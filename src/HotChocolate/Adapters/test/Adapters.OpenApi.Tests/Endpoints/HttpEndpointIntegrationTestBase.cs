@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Adapters.OpenApi;
 
@@ -952,6 +954,62 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var response2 = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_WaitForDefinitionUpdate_When_UpdateIsInProgress()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var storage = new TestOpenApiDefinitionStorage();
+        var server = CreateTestServer(storage);
+        var host = server.Services.GetRequiredService<IHost>();
+        var updateStarted = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseUpdate = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        storage.OnGetDefinitions = async () =>
+        {
+            updateStarted.TrySetResult();
+            await releaseUpdate.Task;
+        };
+        storage.AddOrUpdateDocument(
+            "new",
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        await updateStarted.Task.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+
+        // act
+        var stopTask = host.StopAsync(cancellationToken);
+        await Task.WhenAny(stopTask, Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken));
+        var stoppedDuringUpdate = stopTask.IsCompleted;
+        releaseUpdate.SetResult();
+        await stopTask;
+
+        // assert
+        Assert.False(stoppedDuringUpdate);
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_UnsubscribeFromDefinitionStorage_When_HostStops()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage();
+        var server = CreateTestServer(storage);
+        var host = server.Services.GetRequiredService<IHost>();
+        var subscribersBeforeStop = storage.SubscriberCount;
+
+        // act
+        await host.StopAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, subscribersBeforeStop);
+        Assert.Equal(0, storage.SubscriberCount);
     }
 
     #endregion
