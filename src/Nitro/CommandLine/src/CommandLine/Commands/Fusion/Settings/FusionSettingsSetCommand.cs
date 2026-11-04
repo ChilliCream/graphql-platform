@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -20,7 +21,7 @@ internal sealed class FusionSettingsSetCommand : Command
 {
     public FusionSettingsSetCommand() : base("set")
     {
-        Description = "Set a Fusion composition setting in a Fusion archive.";
+        Description = "Set a Fusion setting in a Fusion archive.";
 
         Arguments.Add(Opt<FusionSettingsNameArgument>.Instance);
         Arguments.Add(Opt<FusionSettingsValueArgument>.Instance);
@@ -55,6 +56,12 @@ internal sealed class FusionSettingsSetCommand : Command
         var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
 
+        if (GetGatewaySetting(settingName) is { } gatewaySetting)
+        {
+            return await SetGatewaySettingAsync(
+                fileSystem, archiveFile, settingName, settingValue, gatewaySetting, cancellationToken);
+        }
+
         var compositionSettings = new CompositionSettings();
         Action<CompositionSettings>? clearSetting = null;
 
@@ -83,66 +90,6 @@ internal sealed class FusionSettingsSetCommand : Command
                 compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
                 break;
 
-            case FusionSettingsNameArgument.CaseBudget:
-                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
-                {
-                    clearSetting = settings => settings.Merger.CaseBudget = null;
-                }
-                else if (!int.TryParse(
-                        settingValue,
-                        NumberStyles.Integer,
-                        CultureInfo.InvariantCulture,
-                        out var caseBudget))
-                {
-                    throw ThrowHelper.Exit(
-                        $"Expected an integer or 'null' for setting '{settingName}'.");
-                }
-                else
-                {
-                    compositionSettings.Merger.CaseBudget = caseBudget;
-                }
-                break;
-
-            case FusionSettingsNameArgument.CaseBudgetExceededBehavior:
-                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
-                {
-                    clearSetting = settings => settings.Merger.CaseBudgetExceededBehavior = null;
-                }
-                else if (!CaseBudgetExceededBehaviorParser.TryParse(
-                        settingValue,
-                        out var caseBudgetExceededBehavior))
-                {
-                    throw ThrowHelper.Exit(
-                        $"Expected one of the following values or 'null' for setting '{settingName}': "
-                        + $"{string.Join(", ", CaseBudgetExceededBehaviorParser.Values)}");
-                }
-                else
-                {
-                    compositionSettings.Merger.CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
-                }
-                break;
-
-            case FusionSettingsNameArgument.CostPlanCacheSize:
-                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
-                {
-                    clearSetting = settings => settings.Merger.CostPlanCacheSize = null;
-                }
-                else if (!int.TryParse(
-                        settingValue,
-                        NumberStyles.Integer,
-                        CultureInfo.InvariantCulture,
-                        out var costPlanCacheSize)
-                    || costPlanCacheSize <= 0)
-                {
-                    throw ThrowHelper.Exit(
-                        $"Expected a positive integer or 'null' for setting '{settingName}'.");
-                }
-                else
-                {
-                    compositionSettings.Merger.CostPlanCacheSize = costPlanCacheSize;
-                }
-                break;
-
             case FusionSettingsNameArgument.DefaultListSize:
                 if (string.Equals(settingValue, "null", StringComparison.Ordinal))
                 {
@@ -161,22 +108,6 @@ internal sealed class FusionSettingsSetCommand : Command
                 else
                 {
                     compositionSettings.Merger.DefaultListSize = defaultListSize;
-                }
-                break;
-
-            case FusionSettingsNameArgument.EnforceCostLimits:
-                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
-                {
-                    clearSetting = settings => settings.Merger.EnforceCostLimits = null;
-                }
-                else if (!bool.TryParse(settingValue, out var enforceCostLimits))
-                {
-                    throw ThrowHelper.Exit(
-                        $"Expected a boolean value or 'null' for setting '{settingName}'.");
-                }
-                else
-                {
-                    compositionSettings.Merger.EnforceCostLimits = enforceCostLimits;
                 }
                 break;
 
@@ -219,72 +150,6 @@ internal sealed class FusionSettingsSetCommand : Command
                     includeSatisfiabilityPaths;
                 break;
 
-            case FusionSettingsNameArgument.MaxFieldCost:
-                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
-                {
-                    clearSetting = settings => settings.Merger.MaxFieldCost = null;
-                }
-                else if (!double.TryParse(
-                        settingValue,
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out var maxFieldCost)
-                    || !double.IsFinite(maxFieldCost)
-                    || maxFieldCost < 0)
-                {
-                    throw ThrowHelper.Exit(
-                        $"Expected a non-negative number or 'null' for setting '{settingName}'.");
-                }
-                else
-                {
-                    compositionSettings.Merger.MaxFieldCost = maxFieldCost;
-                }
-                break;
-
-            case FusionSettingsNameArgument.MaxResponseSize:
-                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
-                {
-                    clearSetting = settings => settings.Merger.MaxResponseSize = null;
-                }
-                else if (!double.TryParse(
-                        settingValue,
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out var maxResponseSize)
-                    || !double.IsFinite(maxResponseSize)
-                    || maxResponseSize < 0)
-                {
-                    throw ThrowHelper.Exit(
-                        $"Expected a non-negative number or 'null' for setting '{settingName}'.");
-                }
-                else
-                {
-                    compositionSettings.Merger.MaxResponseSize = maxResponseSize;
-                }
-                break;
-
-            case FusionSettingsNameArgument.MaxTypeCost:
-                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
-                {
-                    clearSetting = settings => settings.Merger.MaxTypeCost = null;
-                }
-                else if (!double.TryParse(
-                        settingValue,
-                        NumberStyles.Float,
-                        CultureInfo.InvariantCulture,
-                        out var maxTypeCost)
-                    || !double.IsFinite(maxTypeCost)
-                    || maxTypeCost < 0)
-                {
-                    throw ThrowHelper.Exit(
-                        $"Expected a non-negative number or 'null' for setting '{settingName}'.");
-                }
-                else
-                {
-                    compositionSettings.Merger.MaxTypeCost = maxTypeCost;
-                }
-                break;
-
             case FusionSettingsNameArgument.NodeResolution:
                 compositionSettings.Merger.NodeResolution = settingValue switch
                 {
@@ -307,22 +172,6 @@ internal sealed class FusionSettingsSetCommand : Command
                             $"Expected one of the following values for setting '{settingName}': "
                             + "source-local, common-runtime-types")
                     };
-                break;
-
-            case FusionSettingsNameArgument.SkipCostAnalyzer:
-                if (string.Equals(settingValue, "null", StringComparison.Ordinal))
-                {
-                    clearSetting = settings => settings.Merger.SkipCostAnalyzer = null;
-                }
-                else if (!bool.TryParse(settingValue, out var skipCostAnalyzer))
-                {
-                    throw ThrowHelper.Exit(
-                        $"Expected a boolean value or 'null' for setting '{settingName}'.");
-                }
-                else
-                {
-                    compositionSettings.Merger.SkipCostAnalyzer = skipCostAnalyzer;
-                }
                 break;
 
             case FusionSettingsNameArgument.TagMergeBehavior:
@@ -402,6 +251,87 @@ internal sealed class FusionSettingsSetCommand : Command
         }
     }
 
+    private static (string Section, string Property, string Type)? GetGatewaySetting(string name)
+        => name switch
+        {
+            FusionSettingsNameArgument.MaxFieldCost => ("cost", "maxFieldCost", "number"),
+            FusionSettingsNameArgument.MaxTypeCost => ("cost", "maxTypeCost", "number"),
+            FusionSettingsNameArgument.EnforceCostLimits => ("cost", "enforceCostLimits", "boolean"),
+            FusionSettingsNameArgument.SkipCostAnalyzer => ("cost", "skipAnalyzer", "boolean"),
+            FusionSettingsNameArgument.MaxResponseSize => ("cost", "maxResponseSize", "number"),
+            FusionSettingsNameArgument.CostPlanCacheSize => ("cost", "costPlanCacheSize", "integer"),
+            FusionSettingsNameArgument.CaseBudget => ("cost", "caseBudget", "integer"),
+            FusionSettingsNameArgument.CaseBudgetExceededBehavior => ("cost", "caseBudgetExceededBehavior", "case"),
+            FusionSettingsNameArgument.DepthWeight => ("planner", "depthWeight", "number"),
+            FusionSettingsNameArgument.OperationWeight => ("planner", "operationWeight", "number"),
+            FusionSettingsNameArgument.ExcessFanoutWeight => ("planner", "excessFanoutWeight", "number"),
+            FusionSettingsNameArgument.FanoutPenaltyThreshold => ("planner", "fanoutPenaltyThreshold", "integer"),
+            FusionSettingsNameArgument.EnableRequestGrouping => ("planner", "enableRequestGrouping", "boolean"),
+            FusionSettingsNameArgument.EnableDefer => ("planner", "enableDefer", "boolean"),
+            FusionSettingsNameArgument.InlineUnlabeledDeferFragments => ("planner", "inlineUnlabeledDeferFragments", "boolean"),
+            FusionSettingsNameArgument.MergePolicy => ("planner", "mergePolicy", "merge"),
+            FusionSettingsNameArgument.EnableEntityReuseSplitting => ("planner", "enableEntityReuseSplitting", "boolean"),
+            FusionSettingsNameArgument.MaxPlanningTime => ("planner", "maxPlanningTime", "time"),
+            FusionSettingsNameArgument.MaxExpandedNodes => ("planner", "maxExpandedNodes", "integer"),
+            FusionSettingsNameArgument.MaxQueueSize => ("planner", "maxQueueSize", "integer"),
+            FusionSettingsNameArgument.MaxGeneratedOptionsPerWorkItem => ("planner", "maxGeneratedOptionsPerWorkItem", "integer"),
+            _ => null
+        };
+
+    private static async Task<int> SetGatewaySettingAsync(
+        IFileSystem fileSystem,
+        string archiveFile,
+        string name,
+        string value,
+        (string Section, string Property, string Type) setting,
+        CancellationToken cancellationToken)
+    {
+        JsonNode? parsed = value switch
+        {
+            _ when setting.Type == "boolean" && bool.TryParse(value, out var boolean) => JsonValue.Create(boolean),
+            _ when setting.Type == "integer" && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var integer) => JsonValue.Create(integer),
+            _ when setting.Type == "number" && double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonValue.Create(number),
+            _ when setting.Type == "case" && CaseBudgetExceededBehaviorParser.TryParse(value, out var behavior) => JsonValue.Create(behavior.ToString()),
+            _ when setting.Type == "merge" && value is "none" or "conservative" or "balanced" or "aggressive" => JsonValue.Create(char.ToUpperInvariant(value[0]) + value[1..]),
+            _ when setting.Type == "time" && TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out var time) => JsonValue.Create(time.ToString("c", CultureInfo.InvariantCulture)),
+            _ => throw ThrowHelper.Exit($"Invalid {setting.Type} value for setting '{name}'.")
+        };
+
+        if (!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+        }
+
+        if (!fileSystem.FileExists(archiveFile))
+        {
+            throw ThrowHelper.Exit(Messages.ArchiveFileDoesNotExist(archiveFile));
+        }
+
+        using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
+        if (archive.IsSigned)
+        {
+            throw ThrowHelper.Exit("The archive is signed. Changing gateway settings would invalidate its signature.");
+        }
+
+        using var configuration = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion, cancellationToken)
+            ?? throw ThrowHelper.Exit("The archive does not contain a supported gateway configuration.");
+        var settings = JsonNode.Parse(configuration.Settings.RootElement.GetRawText())!.AsObject();
+        if (settings[setting.Section] is null)
+        {
+            settings[setting.Section] = new JsonObject();
+        }
+        settings[setting.Section]![setting.Property] = parsed;
+        using var updatedSettings = JsonDocument.Parse(settings.ToJsonString());
+        await using var buffer = new MemoryStream();
+        await using (var schema = await configuration.OpenReadSchemaAsync(cancellationToken))
+        {
+            await schema.CopyToAsync(buffer, cancellationToken);
+        }
+        await archive.SetGatewayConfigurationAsync(buffer.ToArray(), updatedSettings, configuration.Version, cancellationToken);
+        await archive.CommitAsync(cancellationToken);
+        return ExitCodes.Success;
+    }
     private static async Task ClearSettingAsync(
         FusionArchive archive,
         Action<CompositionSettings> clearSetting,

@@ -22,6 +22,20 @@ internal sealed class FusionSettingsNameArgument : Argument<string>
     public const string SkipCostAnalyzer = "skip-cost-analyzer";
     public const string TagMergeBehavior = "tag-merge-behavior";
 
+    public const string DepthWeight = "depth-weight";
+    public const string OperationWeight = "operation-weight";
+    public const string ExcessFanoutWeight = "excess-fanout-weight";
+    public const string FanoutPenaltyThreshold = "fanout-penalty-threshold";
+    public const string EnableRequestGrouping = "enable-request-grouping";
+    public const string EnableDefer = "enable-defer";
+    public const string InlineUnlabeledDeferFragments = "inline-unlabeled-defer-fragments";
+    public const string MergePolicy = "merge-policy";
+    public const string EnableEntityReuseSplitting = "enable-entity-reuse-splitting";
+    public const string MaxPlanningTime = "max-planning-time";
+    public const string MaxExpandedNodes = "max-expanded-nodes";
+    public const string MaxQueueSize = "max-queue-size";
+    public const string MaxGeneratedOptionsPerWorkItem = "max-generated-options-per-work-item";
+
     public static readonly string[] All =
     [
         AllowNonResolvableInterfaceObjects,
@@ -41,7 +55,20 @@ internal sealed class FusionSettingsNameArgument : Argument<string>
         NodeResolution,
         ShareableFieldRuntimeTypeRouting,
         SkipCostAnalyzer,
-        TagMergeBehavior
+        TagMergeBehavior,
+        DepthWeight,
+        OperationWeight,
+        ExcessFanoutWeight,
+        FanoutPenaltyThreshold,
+        EnableRequestGrouping,
+        EnableDefer,
+        InlineUnlabeledDeferFragments,
+        MergePolicy,
+        EnableEntityReuseSplitting,
+        MaxPlanningTime,
+        MaxExpandedNodes,
+        MaxQueueSize,
+        MaxGeneratedOptionsPerWorkItem
     ];
 
     public FusionSettingsNameArgument() : base(ArgumentName)
