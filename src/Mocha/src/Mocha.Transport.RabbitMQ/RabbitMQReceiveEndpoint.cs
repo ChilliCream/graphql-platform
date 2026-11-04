@@ -74,16 +74,19 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             dependencies = [replyEndpoint._consumer!];
         }
 
-        var receiveTopology = new RabbitMQReceiveTopology(transport.Topology, Queue);
+        var provisioner = new RabbitMQTopologyProvisioner(transport.Topology);
 
         _consumer = await transport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
-            receiveTopology.ProvisionAsync,
+            ProvisionAsync,
             dependencies,
             ProcessMessageAsync,
             _maxPrefetch,
             _consumerDispatchConcurrency,
             cancellationToken);
+
+        Task ProvisionAsync(IChannel channel, CancellationToken ct)
+            => provisioner.ProvisionReceiveAsync(Queue, channel, ct);
     }
 
     private async ValueTask ProcessMessageAsync(

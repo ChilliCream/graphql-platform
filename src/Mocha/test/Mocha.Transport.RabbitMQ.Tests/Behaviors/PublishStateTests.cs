@@ -12,6 +12,56 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
+    public async Task SendAsync_Should_KeepPublisherConnection_When_NegotiatedChannelLimitReached()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.RequestedChannelMax = 2;
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareQueue("payments");
+                t.DispatchEndpoint("payment-send").ToQueue("payments").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+        var dispatcher = bus.Provider.GetRequiredService<IMessagingRuntime>()
+            .Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
+        var connection = await dispatcher.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        var second = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+
+        // act
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+        var blocked = await Record.ExceptionAsync(() => dispatcher.RentChannelAsync(deadline.Token).AsTask());
+        var channelsStayedOpen = first.IsOpen && second.IsOpen;
+        await dispatcher.ReturnChannelAsync(first);
+        await dispatcher.ReturnChannelAsync(second);
+        var sent = await TrySendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
+        var current = await dispatcher.GetConnectionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        new
+        {
+            WaitCancelled = blocked is OperationCanceledException,
+            ChannelsStayedOpen = channelsStayedOpen,
+            SameConnection = ReferenceEquals(connection, current),
+            Sent = sent,
+            QueuedMessages = await vhost.GetMessageCountAsync("payments")
+        }.MatchInlineSnapshot(
+            """
+            {
+              "WaitCancelled": true,
+              "ChannelsStayedOpen": true,
+              "SameConnection": true,
+              "Sent": "sent",
+              "QueuedMessages": 1
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SendAsync_Should_DeliverOnce_When_ConcurrentPublishTargetsMissingExchange()
     {
         // arrange

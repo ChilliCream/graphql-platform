@@ -395,15 +395,11 @@ public sealed partial class RabbitMQConsumerManager
 
         private void OnConsumerLost(ChannelConsumer consumer, ShutdownEventArgs? reason)
         {
-            if (_isDisposed || !ReferenceEquals(_consumer, consumer))
-            {
-                // The consumer is not recorded yet or no longer recorded. A consumer that is about to be recorded
-                // finds the loss when its attach completes.
-                consumer.MarkLostPending(reason);
-                return;
-            }
+            consumer.MarkLostPending(reason);
 
-            if (!consumer.TryHandleLoss(reason))
+            if (_isDisposed
+                || !ReferenceEquals(_consumer, consumer)
+                || !consumer.TryHandlePendingLoss())
             {
                 return;
             }

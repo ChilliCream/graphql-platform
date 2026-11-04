@@ -31,7 +31,7 @@ public interface IRabbitMQMessagingTransportDescriptor
     /// Sets how long the transport keeps retrying while the broker cannot be reached before its start fails.
     /// The default is two minutes, and <see cref="TimeSpan.Zero"/> fails the start after the first failed attempt.
     /// </summary>
-    /// <param name="timeout">How long to keep retrying.</param>
+    /// <param name="timeout">How long to keep retrying, between zero and 4,294,967,294 milliseconds.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IRabbitMQMessagingTransportDescriptor ConnectTimeout(TimeSpan timeout);
 

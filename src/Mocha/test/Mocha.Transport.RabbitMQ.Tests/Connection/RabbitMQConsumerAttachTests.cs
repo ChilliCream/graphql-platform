@@ -119,6 +119,56 @@ public sealed class RabbitMQConsumerAttachTests
     }
 
     [Fact]
+    public async Task RegisterConsumerAsync_Should_ReattachOnce_When_BrokerCancelsConcurrentlyWithAttach()
+    {
+        // arrange
+        const int count = 64;
+        var cancellations = new ConcurrentBag<Task>();
+        var broker = new StubBroker();
+        broker.OnConsume = (attach, consumer) =>
+        {
+            if (attach.Attempt == 1)
+            {
+                cancellations.Add(Task.Run(() => consumer.HandleBasicCancelAsync(attach.ConsumerTag)));
+            }
+
+            return Task.CompletedTask;
+        };
+        await using var manager = await broker.ConnectAsync();
+
+        // act
+        var registrations = await Task.WhenAll(Enumerable.Range(0, count).Select(i => manager.RegisterConsumerAsync(
+            $"orders-{i}",
+            provisionAsync: null,
+            dependencies: [],
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken)));
+        await Task.WhenAll(cancellations).WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var recovered = await Condition.WaitAsync(
+            () => registrations.All(r => r.IsAttached && broker.ConsumeAttempts(r.QueueName) == 2),
+            s_timeout);
+
+        // assert
+        new
+        {
+            Recovered = recovered,
+            AttachedConsumers = registrations.Count(r => r.IsAttached),
+            TotalConsumeAttempts = registrations.Sum(r => broker.ConsumeAttempts(r.QueueName)),
+            manager.IsHealthy
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Recovered": true,
+              "AttachedConsumers": 64,
+              "TotalConsumeAttempts": 128,
+              "IsHealthy": true
+            }
+            """);
+    }
+
+    [Fact]
     public async Task RegisterConsumerAsync_Should_Reattach_When_ChannelClosesBeforeConsumeReturns()
     {
         // arrange

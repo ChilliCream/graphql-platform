@@ -69,7 +69,7 @@ public sealed partial class RabbitMQConsumerManager
             public ShutdownEventArgs? LossReason => Volatile.Read(ref _lossReason);
 
             /// <summary>
-            /// Records a loss that the owner handles once it records this consumer.
+            /// Records a loss for the owner to handle.
             /// </summary>
             public void MarkLostPending(ShutdownEventArgs? reason)
             {
@@ -78,16 +78,7 @@ public sealed partial class RabbitMQConsumerManager
             }
 
             /// <summary>
-            /// Records a loss, and returns whether the caller is the first to handle it.
-            /// </summary>
-            public bool TryHandleLoss(ShutdownEventArgs? reason)
-            {
-                Interlocked.CompareExchange(ref _lossReason, reason, null);
-                return Interlocked.Exchange(ref _lossState, LossHandled) != LossHandled;
-            }
-
-            /// <summary>
-            /// Returns whether a loss was recorded before the owner recorded this consumer, and marks it handled.
+            /// Returns whether a pending loss was recorded, and marks it handled.
             /// </summary>
             public bool TryHandlePendingLoss()
                 => Interlocked.CompareExchange(ref _lossState, LossHandled, LossPending) == LossPending;

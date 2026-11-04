@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ;
 
@@ -22,9 +23,8 @@ public sealed class RabbitMQDispatcher(
     private readonly object _channelSync = new();
     private readonly SemaphoreSlim _publishSlots = new(MaxConcurrentPublishes);
     private readonly CancellationTokenSource _channelCts = new();
-    private readonly Stack<PublisherChannelSlot> _availableSlots = new(MaxConcurrentPublishes);
-    private readonly List<PublisherChannelSlot> _slots = new(MaxConcurrentPublishes);
     private readonly Dictionary<IChannel, PublisherChannelSlot> _rentedChannels = new(MaxConcurrentPublishes);
+    private PublisherChannelPool? _channelPool;
 
     /// <summary>
     /// Gets a value indicating whether the dispatcher was disposed, after which no publish can succeed.
@@ -51,13 +51,12 @@ public sealed class RabbitMQDispatcher(
             await _publishSlots.WaitAsync(waitCts.Token);
         }
 
-        PublisherChannelSlot? slot = null;
         try
         {
             while (true)
             {
                 var connection = await GetConnectionAsync(cancellationToken);
-                PublisherChannel owner;
+                PublisherChannelPool pool;
                 lock (_channelSync)
                 {
                     ObjectDisposedException.ThrowIf(IsDisposed, this);
@@ -66,61 +65,111 @@ public sealed class RabbitMQDispatcher(
                         continue;
                     }
 
-                    if (slot is null)
-                    {
-                        if (!_availableSlots.TryPop(out slot))
-                        {
-                            slot = new PublisherChannelSlot();
-                            _slots.Add(slot);
-                        }
-                    }
-
-                    if (slot.Current is { } previous
-                        && (!ReferenceEquals(previous.Connection, connection)
-                            || previous.Channel.Task.IsFaulted
-                            || (previous.Channel.Task.IsCompletedSuccessfully && !previous.Channel.Task.Result.IsOpen)))
-                    {
-                        RetireChannel(slot);
-                    }
-
-                    if (slot.Current is null)
-                    {
-                        slot.Current = new PublisherChannel(connection);
-                        slot.Current.Creation = CreateChannelAsync(slot.Current, slot.Cleanup, _channelCts.Token);
-                    }
-
-                    owner = slot.Current;
+                    pool = _channelPool ??= new PublisherChannelPool(connection);
                 }
 
-                // Caller cancellation returns the slot; its channel creation remains owned by the dispatcher.
-                var channel = await owner.Channel.Task.WaitAsync(cancellationToken);
-                lock (_channelSync)
+                if (await RentChannelAsync(pool, cancellationToken) is { } channel)
                 {
-                    ObjectDisposedException.ThrowIf(IsDisposed, this);
-                    if (!ReferenceEquals(slot.Current, owner)
-                        || !ReferenceEquals(connection, CurrentConnection)
-                        || !channel.IsOpen)
-                    {
-                        continue;
-                    }
-
-                    _rentedChannels.Add(channel, slot);
                     return channel;
                 }
             }
         }
         catch
         {
-            if (slot is not null)
-            {
-                lock (_channelSync)
-                {
-                    _availableSlots.Push(slot);
-                }
-            }
-
             _publishSlots.Release();
             throw;
+        }
+    }
+
+    private async ValueTask<IChannel?> RentChannelAsync(
+        PublisherChannelPool pool,
+        CancellationToken cancellationToken)
+    {
+        if (!pool.PublishSlots.Wait(0))
+        {
+            using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                _channelCts.Token,
+                pool.RetirementToken);
+            try
+            {
+                await pool.PublishSlots.WaitAsync(waitCts.Token);
+            }
+            catch (OperationCanceledException)
+                when (pool.RetirementToken.IsCancellationRequested
+                    && !cancellationToken.IsCancellationRequested
+                    && !IsDisposed)
+            {
+                return null;
+            }
+        }
+
+        PublisherChannelSlot? slot = null;
+        var isRented = false;
+        try
+        {
+            PublisherChannel owner;
+            lock (_channelSync)
+            {
+                ObjectDisposedException.ThrowIf(IsDisposed, this);
+                if (!ReferenceEquals(pool, _channelPool))
+                {
+                    return null;
+                }
+
+                if (!pool.AvailableSlots.TryPop(out slot))
+                {
+                    slot = new PublisherChannelSlot(pool);
+                    pool.Slots.Add(slot);
+                }
+
+                if (slot.Current is { } previous
+                    && (previous.Channel.Task.IsFaulted
+                        || (previous.Channel.Task.IsCompletedSuccessfully && !previous.Channel.Task.Result.IsOpen)))
+                {
+                    RetireChannel(slot);
+                }
+
+                if (slot.Current is null)
+                {
+                    slot.Current = new PublisherChannel(pool.Connection);
+                    slot.Current.Creation = CreateChannelAsync(slot.Current, slot.Cleanup, _channelCts.Token);
+                }
+
+                owner = slot.Current;
+            }
+
+            // Caller cancellation returns the slot; its channel creation remains owned by the dispatcher.
+            var channel = await owner.Channel.Task.WaitAsync(cancellationToken);
+            lock (_channelSync)
+            {
+                ObjectDisposedException.ThrowIf(IsDisposed, this);
+                if (!ReferenceEquals(slot.Current, owner)
+                    || !ReferenceEquals(pool.Connection, CurrentConnection)
+                    || !channel.IsOpen)
+                {
+                    return null;
+                }
+
+                _rentedChannels.Add(channel, slot);
+                isRented = true;
+                return channel;
+            }
+        }
+        finally
+        {
+            if (!isRented)
+            {
+                if (slot is not null)
+                {
+                    lock (_channelSync)
+                    {
+                        pool.AvailableSlots.Push(slot);
+                    }
+                }
+
+                pool.PublishSlots.Release();
+            }
         }
     }
 
@@ -153,7 +202,8 @@ public sealed class RabbitMQDispatcher(
                 RetireChannel(slot);
             }
 
-            _availableSlots.Push(slot);
+            slot.Pool.AvailableSlots.Push(slot);
+            slot.Pool.PublishSlots.Release();
         }
 
         _publishSlots.Release();
@@ -189,6 +239,11 @@ public sealed class RabbitMQDispatcher(
         {
             owner.Channel.TrySetException(ex);
             _ = owner.Channel.Task.Exception;
+
+            if (ex is ChannelAllocationException)
+            {
+                return;
+            }
 
             // Close the connection when opening a publisher channel fails.
             try
@@ -240,24 +295,29 @@ public sealed class RabbitMQDispatcher(
 
     private async Task ClearChannelsAsync()
     {
+        PublisherChannelPool pool;
         Task[] cleanup;
         lock (_channelSync)
         {
-            cleanup = new Task[_slots.Count];
-            for (var i = 0; i < _slots.Count; i++)
+            if (_channelPool is null
+                || (!IsDisposed && _channelPool.Connection.IsOpen
+                    && ReferenceEquals(_channelPool.Connection, CurrentConnection)))
             {
-                var slot = _slots[i];
-                if (slot.Current is { } current
-                    && (IsDisposed || !current.Connection.IsOpen
-                        || !ReferenceEquals(current.Connection, CurrentConnection)))
-                {
-                    RetireChannel(slot);
-                }
+                return;
+            }
 
+            pool = _channelPool;
+            _channelPool = null;
+            cleanup = new Task[pool.Slots.Count];
+            for (var i = 0; i < pool.Slots.Count; i++)
+            {
+                var slot = pool.Slots[i];
+                RetireChannel(slot);
                 cleanup[i] = slot.Cleanup;
             }
         }
 
+        await pool.RetireAsync();
         await Task.WhenAll(cleanup);
     }
 
@@ -303,8 +363,43 @@ public sealed class RabbitMQDispatcher(
         _channelCts.Dispose();
     }
 
-    private sealed class PublisherChannelSlot
+    private sealed class PublisherChannelPool
     {
+        private readonly CancellationTokenSource _retirementCts = new();
+
+        public PublisherChannelPool(IConnection connection)
+        {
+            Connection = connection;
+            RetirementToken = _retirementCts.Token;
+            var capacity = connection.ChannelMax == 0
+                ? MaxConcurrentPublishes
+                : Math.Min(MaxConcurrentPublishes, (int)connection.ChannelMax);
+            PublishSlots = new SemaphoreSlim(capacity, capacity);
+            AvailableSlots = new Stack<PublisherChannelSlot>(capacity);
+            Slots = new List<PublisherChannelSlot>(capacity);
+        }
+
+        public IConnection Connection { get; }
+
+        public SemaphoreSlim PublishSlots { get; }
+
+        public Stack<PublisherChannelSlot> AvailableSlots { get; }
+
+        public List<PublisherChannelSlot> Slots { get; }
+
+        public CancellationToken RetirementToken { get; }
+
+        public async Task RetireAsync()
+        {
+            await _retirementCts.CancelAsync();
+            _retirementCts.Dispose();
+        }
+    }
+
+    private sealed class PublisherChannelSlot(PublisherChannelPool pool)
+    {
+        public PublisherChannelPool Pool { get; } = pool;
+
         public PublisherChannel? Current { get; set; }
 
         public Task Cleanup { get; set; } = Task.CompletedTask;
