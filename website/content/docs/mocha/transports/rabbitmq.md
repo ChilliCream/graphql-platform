@@ -161,7 +161,7 @@ Queued deliveries from a lost channel are discarded locally and left for the bro
 
 ## Graceful shutdown
 
-Stopping the transport stops consumption and waits for running handlers to finish, until the cancellation token passed to the stop is cancelled. The host passes a token that is cancelled after its shutdown timeout. Handlers that still run then are cancelled, and the broker requeues their messages.
+Stopping the transport stops consumption and waits for running handlers to finish, until the cancellation token passed to the stop is cancelled. The host passes a token that is cancelled after its shutdown timeout. Handlers that still run then are cancelled. Channel cleanup continues after cancellation, and the broker requeues unsettled messages when the channel closes. The stop can complete after the shutdown timeout while it waits for channel cleanup.
 
 # How topology works
 

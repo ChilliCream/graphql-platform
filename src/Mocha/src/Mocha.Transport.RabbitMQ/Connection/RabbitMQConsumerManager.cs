@@ -894,8 +894,9 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         /// cancelled, then cancels the handlers that still run, closes the channel and unregisters the consumer.
         /// </summary>
         /// <param name="cancellationToken">
-        /// A token that ends the wait for running handlers. Handlers still running afterwards are cancelled and
-        /// abandoned, and the broker requeues their deliveries when the channel closes.
+        /// A token that ends the wait for running handlers and cancels handlers still running afterwards.
+        /// Channel cleanup continues independently of this token, and the broker requeues unsettled deliveries
+        /// when the channel closes.
         /// </param>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
@@ -946,6 +947,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 
                 if (channel is not null)
                 {
+                    // The stop token bounds handler draining; channel cleanup continues after cancellation.
                     await CloseChannelAsync(channel, CancellationToken.None);
                 }
             }
