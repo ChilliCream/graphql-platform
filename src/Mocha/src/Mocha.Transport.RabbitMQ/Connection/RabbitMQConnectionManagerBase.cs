@@ -25,6 +25,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     private readonly CancellationTokenSource _disposeCts = new();
 
     private IConnection? _currentConnection;
+    private IConnection? _readyConnection;
     private AsyncEventHandler<ShutdownEventArgs>? _currentShutdownHandler;
     private Task? _reconnectTask;
     private int _isReconnecting;
@@ -51,7 +52,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     /// <summary>
     /// Gets a value indicating whether the current connection is open and usable.
     /// </summary>
-    public bool IsConnected => _currentConnection?.IsOpen ?? false;
+    public bool IsConnected => Volatile.Read(ref _readyConnection)?.IsOpen ?? false;
 
     /// <summary>
     /// Gets the current underlying RabbitMQ connection, or <c>null</c> if no connection has been established.
@@ -69,13 +70,13 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     internal TimeSpan ConnectTimeout { get; set; } = TimeSpan.FromMinutes(2);
 
     /// <summary>
-    /// Gets the current connection, creating one if necessary.
+    /// Gets a connection whose setup has completed, creating one if necessary.
     /// </summary>
     public async ValueTask<IConnection> GetConnectionAsync(CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        var connection = Volatile.Read(ref _currentConnection);
+        var connection = Volatile.Read(ref _readyConnection);
         if (connection is { IsOpen: true })
         {
             return connection;
@@ -85,14 +86,14 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         try
         {
             // Double-check after acquiring lock
-            connection = _currentConnection;
+            connection = _readyConnection;
             if (connection is { IsOpen: true })
             {
                 return connection;
             }
 
             await CreateConnectionWithRetryAsync(cancellationToken);
-            return _currentConnection!;
+            return _readyConnection!;
         }
         finally
         {
@@ -186,7 +187,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 await _connectionLock.WaitAsync(cancellationToken);
                 try
                 {
-                    if (_currentConnection is { IsOpen: true })
+                    if (_readyConnection is { IsOpen: true })
                     {
                         break;
                     }
@@ -230,7 +231,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         }
 
         // A connection lost between the successful attempt and the reset above is not reconnected otherwise.
-        if (!cancellationToken.IsCancellationRequested && _currentConnection is not { IsOpen: true })
+        if (!cancellationToken.IsCancellationRequested && _readyConnection is not { IsOpen: true })
         {
             StartReconnecting();
         }
@@ -306,6 +307,8 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     /// </summary>
     private async Task ConnectAsync(CancellationToken cancellationToken)
     {
+        Volatile.Write(ref _readyConnection, null);
+
         Logger.CreatingConnectionUsingFactoryDelegate();
 
         try
@@ -329,12 +332,15 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
             // Declare exchanges, queues and bindings, then let derived classes attach to the connection.
             await OnConnectionEstablished(connection, cancellationToken);
             await OnAfterConnectionCreatedAsync(connection, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
             // A connection that closed before its shutdown handler was subscribed raises no event.
             if (!connection.IsOpen)
             {
                 throw ThrowHelper.ConnectionClosedDuringSetup(connection.CloseReason);
             }
+
+            Volatile.Write(ref _readyConnection, connection);
         }
         catch
         {
@@ -447,6 +453,8 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private async Task DisposeConnectionInternalAsync()
     {
+        Volatile.Write(ref _readyConnection, null);
+
         if (_currentConnection is null)
         {
             return;

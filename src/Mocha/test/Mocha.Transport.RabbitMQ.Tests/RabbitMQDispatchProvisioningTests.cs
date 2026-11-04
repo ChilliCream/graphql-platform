@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using Moq;
@@ -117,15 +116,9 @@ public class RabbitMQDispatchProvisioningTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "RACE-SETTLED" }, TestContext.Current.CancellationToken);
 
         // assert
-        new { Overlapped = overlapped, DeclarationsAfterRace = declarationsAfterRace, DeclarationsAfterSettling = declareCount }
-            .MatchInlineSnapshot(
-                """
-                {
-                  "Overlapped": true,
-                  "DeclarationsAfterRace": 8,
-                  "DeclarationsAfterSettling": 8
-                }
-                """);
+        Assert.True(overlapped);
+        Assert.Equal(8, declarationsAfterRace);
+        Assert.Equal(8, declareCount);
     }
 
     [Fact]

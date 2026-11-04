@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Text;
-using CookieCrumble;
 using Microsoft.Extensions.Logging;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
@@ -46,28 +45,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
                 s_timeout);
 
             // assert
-            new
-            {
-                Redelivered = redelivered,
-                gate.ActiveHandlers,
-                gate.PeakConcurrency,
-                gate.Invocations,
-                manager.IsHealthy,
-                Delivered = gate.Delivered.Order().ToArray()
-            }.MatchInlineSnapshot(
-                """
-                {
-                  "Redelivered": true,
-                  "ActiveHandlers": 1,
-                  "PeakConcurrency": 2,
-                  "Invocations": 3,
-                  "IsHealthy": true,
-                  "Delivered": [
-                    "order-0",
-                    "order-1"
-                  ]
-                }
-                """);
+            Assert.True(redelivered);
+            Assert.Equal((1, 2, 3), (gate.ActiveHandlers, gate.PeakConcurrency, gate.Invocations));
+            Assert.True(manager.IsHealthy);
+            Assert.Equal(["order-0", "order-1"], gate.Delivered.Order());
         }
         finally
         {
@@ -103,14 +84,14 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         try
         {
             // act
-            var recoveries = new List<object>();
+            var recoveries = new List<(bool Reattached, int Invocations, int ActiveHandlers, bool IsHealthy)>();
             for (var i = 0; i < 6; i++)
             {
                 var lostChannel = registration.Channel!;
                 await lostChannel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
                 var reattached = await Condition.WaitAsync(
                     () => registration.IsAttached && !ReferenceEquals(registration.Channel, lostChannel), s_timeout);
-                recoveries.Add(new { Reattached = reattached, gate.Invocations, gate.ActiveHandlers, manager.IsHealthy });
+                recoveries.Add((reattached, gate.Invocations, gate.ActiveHandlers, manager.IsHealthy));
             }
 
             var cancelled = await Condition.WaitAsync(() => gate.CancelledHandlers == 2, s_timeout);
@@ -118,69 +99,11 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             var delivered = await Condition.WaitAsync(() => gate.Delivered.Count == 4 && manager.IsHealthy, s_timeout);
 
             // assert
-            new
-            {
-                Recoveries = recoveries,
-                CancellationObserved = cancelled,
-                AllMessagesDelivered = delivered,
-                Delivered = gate.Delivered.Order().ToArray(),
-                gate.PeakConcurrency,
-                RecoveryBlockedLogged = logs.Contains("ConsumerRecoveryBlocked"),
-                RecoveryResumedLogged = logs.Contains("ConsumerRecoveryResumed")
-            }.MatchInlineSnapshot(
-                """
-                {
-                  "Recoveries": [
-                    {
-                      "Reattached": true,
-                      "Invocations": 2,
-                      "ActiveHandlers": 2,
-                      "IsHealthy": false
-                    },
-                    {
-                      "Reattached": true,
-                      "Invocations": 2,
-                      "ActiveHandlers": 2,
-                      "IsHealthy": false
-                    },
-                    {
-                      "Reattached": true,
-                      "Invocations": 2,
-                      "ActiveHandlers": 2,
-                      "IsHealthy": false
-                    },
-                    {
-                      "Reattached": true,
-                      "Invocations": 2,
-                      "ActiveHandlers": 2,
-                      "IsHealthy": false
-                    },
-                    {
-                      "Reattached": true,
-                      "Invocations": 2,
-                      "ActiveHandlers": 2,
-                      "IsHealthy": false
-                    },
-                    {
-                      "Reattached": true,
-                      "Invocations": 2,
-                      "ActiveHandlers": 2,
-                      "IsHealthy": false
-                    }
-                  ],
-                  "CancellationObserved": true,
-                  "AllMessagesDelivered": true,
-                  "Delivered": [
-                    "order-0",
-                    "order-1",
-                    "order-2",
-                    "order-3"
-                  ],
-                  "PeakConcurrency": 2,
-                  "RecoveryBlockedLogged": true,
-                  "RecoveryResumedLogged": true
-                }
-                """);
+            Assert.Equal(Enumerable.Repeat((true, 2, 2, false), 6), recoveries);
+            Assert.Equal((true, true, 2), (cancelled, delivered, gate.PeakConcurrency));
+            Assert.Equal(["order-0", "order-1", "order-2", "order-3"], gate.Delivered.Order());
+            Assert.True(logs.Contains("ConsumerRecoveryBlocked"));
+            Assert.True(logs.Contains("ConsumerRecoveryResumed"));
         }
         finally
         {
@@ -222,17 +145,11 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             var finished = await Condition.WaitAsync(() => gate.ActiveHandlers == 0, s_timeout);
 
             // assert
-            new { Reattached = reattached, ActiveAtStop = activeAtStop, Finished = finished, gate.Invocations, registration.IsAttached }
-                .MatchInlineSnapshot(
-                    """
-                    {
-                      "Reattached": true,
-                      "ActiveAtStop": 1,
-                      "Finished": true,
-                      "Invocations": 1,
-                      "IsAttached": false
-                    }
-                    """);
+            Assert.True(reattached);
+            Assert.Equal(1, activeAtStop);
+            Assert.True(finished);
+            Assert.Equal(1, gate.Invocations);
+            Assert.False(registration.IsAttached);
         }
         finally
         {
