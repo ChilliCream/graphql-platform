@@ -75,7 +75,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(document);
 
-        return CompositeSchemaBuilder.Create(name, document, services, features);
+        return CompositeSchemaBuilder.Create(name, document, services: services, features: features);
     }
 
     /// <summary>

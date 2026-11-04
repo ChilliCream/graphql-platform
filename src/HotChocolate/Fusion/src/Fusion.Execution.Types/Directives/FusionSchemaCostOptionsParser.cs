@@ -1,13 +1,14 @@
 using System.Globalization;
+using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types.Directives;
 
 internal static class FusionSchemaCostOptionsParser
 {
-    public static FusionSchemaCostOptions Parse(DocumentNode document)
+    public static FusionSchemaCostOptions Parse(DocumentNode document, JsonDocument? settings)
     {
-        var costOptionsDirectives = document.Definitions
+        var directives = document.Definitions
             .SelectMany(static definition => definition switch
             {
                 SchemaDefinitionNode schemaDefinition => schemaDefinition.Directives,
@@ -20,174 +21,141 @@ internal static class FusionSchemaCostOptionsParser
             .Take(2)
             .ToArray();
 
-        if (costOptionsDirectives.Length == 0)
-        {
-            return FusionSchemaCostOptions.Empty;
-        }
-
-        if (costOptionsDirectives.Length > 1)
+        if (directives.Length > 1)
         {
             throw ThrowHelper.DuplicateCostOptionsDirective();
         }
 
-        var costOptionsDirective = costOptionsDirectives[0];
+        var defaultListSize = directives.Length == 0 ? null : ParseDefaultListSize(directives[0]);
+        var cost = default(JsonElement);
+        if (settings is not null)
+        {
+            var root = settings.RootElement;
+            if (root.ValueKind is not JsonValueKind.Object)
+            {
+                throw ThrowHelper.InvalidCostSetting("$", "an object");
+            }
+
+            if (root.TryGetProperty("cost", out cost) && cost.ValueKind is not JsonValueKind.Object)
+            {
+                throw ThrowHelper.InvalidCostSetting("$.cost", "an object");
+            }
+        }
+
         return new FusionSchemaCostOptions(
-            ParseNonNegativeInt(costOptionsDirective, "defaultListSize"),
-            ParseNonNegativeDouble(costOptionsDirective, "maxFieldCost"),
-            ParseNonNegativeDouble(costOptionsDirective, "maxTypeCost"),
-            ParseBoolean(costOptionsDirective, "enforceCostLimits"),
-            ParseBoolean(costOptionsDirective, "skipAnalyzer"),
-            ParseNonNegativeDouble(costOptionsDirective, "maxResponseSize"),
-            ParsePositiveInt(costOptionsDirective, "costPlanCacheSize"),
-            ParseInt(costOptionsDirective, "caseBudget"),
-            ParseCaseBudgetExceededBehavior(costOptionsDirective));
+            defaultListSize,
+            ParseNumber(cost, "maxFieldCost"),
+            ParseNumber(cost, "maxTypeCost"),
+            ParseBoolean(cost, "enforceCostLimits"),
+            ParseBoolean(cost, "skipAnalyzer"),
+            ParseNumber(cost, "maxResponseSize"),
+            ParseInteger(cost, "costPlanCacheSize", positive: true),
+            ParseInteger(cost, "caseBudget", positive: false),
+            ParseBehavior(cost));
     }
 
-    private static int? ParseNonNegativeInt(DirectiveNode costOptionsDirective, string argumentName)
+    private static int? ParseDefaultListSize(DirectiveNode directive)
     {
-        var argument = GetArgument(costOptionsDirective, argumentName);
-
+        var argument = directive.Arguments.FirstOrDefault(
+            static argument => argument.Name.Value.Equals("defaultListSize", StringComparison.Ordinal));
         if (argument is null || argument.Value is NullValueNode)
         {
             return null;
         }
 
         if (argument.Value is IntValueNode intValue
-            && int.TryParse(
-                intValue.Value,
-                NumberStyles.Integer,
-                CultureInfo.InvariantCulture,
-                out var value)
+            && int.TryParse(intValue.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
             && value >= 0)
         {
             return value;
         }
 
-        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "a non-negative integer");
+        throw ThrowHelper.InvalidCostOptionsArgument("defaultListSize", "a non-negative integer");
     }
 
-    private static double? ParseNonNegativeDouble(DirectiveNode costOptionsDirective, string argumentName)
+    private static bool TryGetProperty(JsonElement cost, string name, out JsonElement value)
     {
-        var argument = GetArgument(costOptionsDirective, argumentName);
+        if (cost.ValueKind is JsonValueKind.Object)
+        {
+            return cost.TryGetProperty(name, out value);
+        }
 
-        if (argument is null || argument.Value is NullValueNode)
+        value = default;
+        return false;
+    }
+
+    private static double? ParseNumber(JsonElement cost, string name)
+    {
+        if (!TryGetProperty(cost, name, out var element))
         {
             return null;
         }
 
-        var value = argument.Value switch
+        if (element.ValueKind is JsonValueKind.Number
+            && element.TryGetDouble(out var value)
+            && double.IsFinite(value)
+            && value >= 0)
         {
-            FloatValueNode floatValue => floatValue.Value,
-            IntValueNode intValue => intValue.Value,
-            _ => null
+            return value;
+        }
+
+        throw ThrowHelper.InvalidCostSetting($"$.cost.{name}", "a non-negative finite number");
+    }
+
+    private static bool? ParseBoolean(JsonElement cost, string name)
+    {
+        if (!TryGetProperty(cost, name, out var element))
+        {
+            return null;
+        }
+
+        return element.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => throw ThrowHelper.InvalidCostSetting($"$.cost.{name}", "a Boolean")
         };
-
-        if (value is not null
-            && double.TryParse(
-                value,
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out var parsedValue)
-            && double.IsFinite(parsedValue)
-            && parsedValue >= 0)
-        {
-            return parsedValue;
-        }
-
-        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "a non-negative finite number");
     }
 
-    private static bool? ParseBoolean(DirectiveNode costOptionsDirective, string argumentName)
+    private static int? ParseInteger(JsonElement cost, string name, bool positive)
     {
-        var argument = GetArgument(costOptionsDirective, argumentName);
-
-        if (argument is null || argument.Value is NullValueNode)
+        if (!TryGetProperty(cost, name, out var element))
         {
             return null;
         }
 
-        if (argument.Value is BooleanValueNode booleanValue)
-        {
-            return booleanValue.Value;
-        }
-
-        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "a Boolean");
-    }
-
-    private static int? ParsePositiveInt(DirectiveNode costOptionsDirective, string argumentName)
-    {
-        var argument = GetArgument(costOptionsDirective, argumentName);
-
-        if (argument is null || argument.Value is NullValueNode)
-        {
-            return null;
-        }
-
-        if (argument.Value is IntValueNode intValue
-            && int.TryParse(
-                intValue.Value,
-                NumberStyles.Integer,
-                CultureInfo.InvariantCulture,
-                out var value)
-            && value > 0)
+        if (element.ValueKind is JsonValueKind.Number
+            && element.TryGetInt32(out var value)
+            && (!positive || value > 0))
         {
             return value;
         }
 
-        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "a positive integer");
+        throw ThrowHelper.InvalidCostSetting($"$.cost.{name}", positive ? "a positive integer" : "an integer");
     }
 
-    private static int? ParseInt(DirectiveNode costOptionsDirective, string argumentName)
+    private static FusionCaseBudgetExceededBehavior? ParseBehavior(JsonElement cost)
     {
-        var argument = GetArgument(costOptionsDirective, argumentName);
-
-        if (argument is null || argument.Value is NullValueNode)
+        const string name = "caseBudgetExceededBehavior";
+        if (!TryGetProperty(cost, name, out var element))
         {
             return null;
         }
 
-        if (argument.Value is IntValueNode intValue
-            && int.TryParse(
-                intValue.Value,
-                NumberStyles.Integer,
-                CultureInfo.InvariantCulture,
-                out var value))
+        if (element.ValueKind is JsonValueKind.String)
         {
-            return value;
-        }
-
-        throw ThrowHelper.InvalidCostOptionsArgument(argumentName, "an integer");
-    }
-
-    private static FusionCaseBudgetExceededBehavior? ParseCaseBudgetExceededBehavior(
-        DirectiveNode costOptionsDirective)
-    {
-        const string argumentName = "caseBudgetExceededBehavior";
-        var argument = GetArgument(costOptionsDirective, argumentName);
-
-        if (argument is null || argument.Value is NullValueNode)
-        {
-            return null;
-        }
-
-        if (argument.Value is EnumValueNode enumValue)
-        {
-            return enumValue.Value switch
+            return element.GetString() switch
             {
-                "EVALUATE_PER_REQUEST" => FusionCaseBudgetExceededBehavior.EvaluatePerRequest,
-                "OVERESTIMATE" => FusionCaseBudgetExceededBehavior.Overestimate,
-                _ => throw ThrowHelper.InvalidCostOptionsArgument(
-                    argumentName,
-                    "EVALUATE_PER_REQUEST or OVERESTIMATE")
+                nameof(FusionCaseBudgetExceededBehavior.EvaluatePerRequest) =>
+                    FusionCaseBudgetExceededBehavior.EvaluatePerRequest,
+                nameof(FusionCaseBudgetExceededBehavior.Overestimate) =>
+                    FusionCaseBudgetExceededBehavior.Overestimate,
+                _ => throw ThrowHelper.InvalidCostSetting(
+                    "$.cost.caseBudgetExceededBehavior", "EvaluatePerRequest or Overestimate")
             };
         }
 
-        throw ThrowHelper.InvalidCostOptionsArgument(
-            argumentName,
-            "EVALUATE_PER_REQUEST or OVERESTIMATE");
+        throw ThrowHelper.InvalidCostSetting(
+            "$.cost.caseBudgetExceededBehavior", "EvaluatePerRequest or Overestimate");
     }
-
-    private static ArgumentNode? GetArgument(DirectiveNode directive, string argumentName)
-        => directive.Arguments.FirstOrDefault(
-            argument => argument.Name.Value.Equals(argumentName, StringComparison.Ordinal));
 }

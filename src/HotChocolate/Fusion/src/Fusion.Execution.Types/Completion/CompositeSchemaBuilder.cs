@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Collections;
@@ -24,6 +25,7 @@ internal static class CompositeSchemaBuilder
     public static FusionSchemaDefinition Create(
         string name,
         DocumentNode schemaDocument,
+        JsonDocument? settings = null,
         IServiceProvider? services = null,
         IFeatureCollection? features = null)
     {
@@ -31,7 +33,7 @@ internal static class CompositeSchemaBuilder
         var typeInterceptor = CreateTypeInterceptor(services);
         var options = FusionSchemaOptions.From(features?.Get<IFusionSchemaOptions>());
         var plannerOptions = PlannerOptionsParser.Parse(schemaDocument);
-        var costOptions = FusionSchemaCostOptionsParser.Parse(schemaDocument);
+        var costOptions = FusionSchemaCostOptionsParser.Parse(schemaDocument, settings);
         var context = CreateTypes(name, schemaDocument, services, features, options, typeInterceptor);
         return CompleteTypes(
             context,

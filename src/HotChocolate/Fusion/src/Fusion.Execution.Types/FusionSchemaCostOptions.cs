@@ -1,8 +1,8 @@
 namespace HotChocolate.Fusion.Types;
 
 /// <summary>
-/// Defines the cost analysis options declared by a composed schema.
-/// All values are <see langword="null"/> when the schema does not declare the corresponding option.
+/// Defines cost analysis options from the composed schema and gateway settings.
+/// Values are <see langword="null"/> when the corresponding option is not specified.
 /// </summary>
 public sealed record FusionSchemaCostOptions
 {
