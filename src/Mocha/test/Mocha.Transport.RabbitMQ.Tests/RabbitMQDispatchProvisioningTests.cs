@@ -14,6 +14,53 @@ namespace Mocha.Transport.RabbitMQ.Tests;
 public class RabbitMQDispatchProvisioningTests
 {
     [Fact]
+    public async Task PublishAsync_Should_Retry_When_ConnectingTimesOut()
+    {
+        // arrange
+        var channel = CreateOpenChannel();
+        var initial = CreateOpenConnection(channel);
+        var replacement = CreateOpenConnection(channel);
+        var current = initial.Object;
+        var failNextAttempt = false;
+        var attempts = 0;
+        await using var bus = await BuildTestBusAsync(
+            () =>
+            {
+                attempts++;
+                if (failNextAttempt)
+                {
+                    failNextAttempt = false;
+                    throw ThrowHelper.ConnectionTimedOut(TimeSpan.FromMilliseconds(100), new OperationCanceledException());
+                }
+
+                return current;
+            },
+            t =>
+            {
+                t.DeclareExchange("orders");
+                t.DispatchEndpoint("orders").ToExchange("orders").Publish<OrderCreated>();
+            });
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = Assert.IsType<RabbitMQMessagingTransport>(Assert.Single(runtime.Transports));
+        transport.Dispatcher.ConnectTimeout = TimeSpan.Zero;
+        initial.SetupGet(c => c.IsOpen).Returns(false);
+        current = replacement.Object;
+        attempts = 0;
+        failNextAttempt = true;
+        using var scope = bus.Provider.CreateScope();
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(5));
+
+        // act
+        await scope.ServiceProvider.GetRequiredService<IMessageBus>()
+            .PublishAsync(new OrderCreated { OrderId = "ORD-1" }, deadline.Token);
+
+        // assert
+        Assert.Equal(2, attempts);
+        Assert.True(transport.Dispatcher.IsConnected);
+    }
+
+    [Fact]
     public async Task PublishAsync_Should_SettleProvisioning_When_ConcurrentFirstDispatchesRace()
     {
         // arrange

@@ -9,6 +9,117 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
 public class RabbitMQConnectionManagerBaseTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetConnectionAsync_Should_TimeOut_When_ConnectionAttemptStalls(bool duringSetup)
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        await using var manager = new TestConnectionManager(
+            NullLogger<TestConnectionManager>.Instance,
+            async ct =>
+            {
+                if (!duringSetup)
+                {
+                    await Task.Delay(Timeout.InfiniteTimeSpan, ct);
+                }
+
+                return connection.Object;
+            });
+        manager.ConnectTimeout = TimeSpan.FromMilliseconds(100);
+        manager.SetupAsync = ct => duringSetup ? Task.Delay(Timeout.InfiniteTimeSpan, ct) : Task.CompletedTask;
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(5));
+
+        // act
+        var exception = await Assert.ThrowsAsync<TimeoutException>(
+            () => manager.GetConnectionAsync(deadline.Token).AsTask());
+
+        // assert
+        Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
+        Assert.False(deadline.IsCancellationRequested);
+        Assert.False(manager.IsConnected);
+        connection.Verify(c => c.DisposeAsync(), duringSetup ? Times.Once() : Times.Never());
+    }
+
+    [Fact]
+    public async Task GetConnectionAsync_Should_PreserveCallerCancellation_When_Connecting()
+    {
+        // arrange
+        await using var manager = new TestConnectionManager(
+            NullLogger<TestConnectionManager>.Instance,
+            async ct =>
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, ct);
+                return CreateOpenConnection().Object;
+            });
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cancellation.CancelAfter(TimeSpan.FromMilliseconds(100));
+
+        // act
+        var exception = await Record.ExceptionAsync(() => manager.GetConnectionAsync(cancellation.Token).AsTask());
+
+        // assert
+        Assert.IsAssignableFrom<OperationCanceledException>(exception);
+        Assert.False(manager.IsConnected);
+    }
+
+    [Fact]
+    public async Task GetConnectionAsync_Should_AllowFirstAttempt_When_ConnectTimeoutIsZero()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        await using var manager = new TestConnectionManager(
+            NullLogger<TestConnectionManager>.Instance,
+            async ct =>
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(100), ct);
+                return connection.Object;
+            });
+        manager.ConnectTimeout = TimeSpan.Zero;
+
+        // act
+        var result = await manager.GetConnectionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Same(connection.Object, result);
+    }
+
+    [Fact]
+    public async Task Reconnect_Should_Retry_When_ConnectionIsLostAsSetupCompletes()
+    {
+        // arrange
+        var lost = CreateOpenConnection();
+        var replacement = CreateOpenConnection();
+        var connections = new Queue<IConnection>([lost.Object, replacement.Object]);
+        await using var manager = new TestConnectionManager(
+            NullLogger<TestConnectionManager>.Instance,
+            _ => new ValueTask<IConnection>(connections.Dequeue()));
+        var wasOpen = true;
+        lost.SetupGet(c => c.IsOpen).Returns(() =>
+        {
+            var result = wasOpen;
+            wasOpen = false;
+            if (result)
+            {
+                manager.Reconnect();
+            }
+
+            return result;
+        });
+
+        // act
+        // The loss requests recovery while the preceding recovery still owns its running flag.
+        manager.Reconnect();
+        var recovered = await Condition.WaitAsync(() => manager.IsConnected, TimeSpan.FromSeconds(5));
+
+        // assert
+        Assert.True(recovered);
+        Assert.Empty(connections);
+        lost.Verify(c => c.DisposeAsync(), Times.Once());
+    }
+
     [Fact]
     public async Task GetConnectionAsync_Should_CreateConnection_When_NotConnected()
     {
@@ -279,6 +390,8 @@ public class RabbitMQConnectionManagerBaseTests
 
     private sealed class TestConnectionManager : RabbitMQConnectionManagerBase
     {
+        public Func<CancellationToken, Task> SetupAsync { get; set; } = static _ => Task.CompletedTask;
+
         public int BeforeConnectionCreatedCount { get; private set; }
         public int AfterConnectionCreatedCount { get; private set; }
         public int ConnectionLostCount { get; private set; }
@@ -286,6 +399,8 @@ public class RabbitMQConnectionManagerBaseTests
 
         public TestConnectionManager(ILogger logger, Func<CancellationToken, ValueTask<IConnection>> factory)
             : base(logger, factory) { }
+
+        public void Reconnect() => StartReconnecting();
 
         protected override Task OnBeforeConnectionCreatedAsync(CancellationToken cancellationToken)
         {
@@ -310,7 +425,7 @@ public class RabbitMQConnectionManagerBaseTests
         protected override Task OnConnectionEstablished(IConnection connection, CancellationToken cancellationToken)
         {
             ConnectionEstablishedCount++;
-            return Task.CompletedTask;
+            return SetupAsync(cancellationToken);
         }
     }
 }

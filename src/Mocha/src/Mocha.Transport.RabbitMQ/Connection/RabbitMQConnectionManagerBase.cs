@@ -188,11 +188,11 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 {
                     if (_currentConnection is { IsOpen: true })
                     {
-                        return;
+                        break;
                     }
 
                     await ConnectAsync(cancellationToken);
-                    return;
+                    break;
                 }
                 catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
@@ -245,41 +245,58 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     {
         // A retry that outlives the manager would create a connection that nothing disposes.
         using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposeCts.Token);
+        var connectTimeout = ConnectTimeout;
+        if (connectTimeout > TimeSpan.Zero)
+        {
+            connectCts.CancelAfter(connectTimeout);
+        }
+
         var connectToken = connectCts.Token;
         var started = Stopwatch.GetTimestamp();
         var attempt = 0;
 
-        while (true)
+        try
         {
-            try
+            while (true)
             {
-                await ConnectAsync(connectToken);
-                return;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex) when (!IsConnectivityFailure(ex))
-            {
-                Logger.FailedToCreateConnectionAfterAttempts(ex, attempt + 1);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                attempt++;
-                var delay = RabbitMQBackoff.GetDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
-
-                if (Stopwatch.GetElapsedTime(started) + delay > ConnectTimeout)
+                try
                 {
-                    Logger.FailedToCreateConnectionAfterAttempts(ex, attempt);
+                    await ConnectAsync(connectToken);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
                     throw;
                 }
+                catch (Exception ex) when (!IsConnectivityFailure(ex))
+                {
+                    Logger.FailedToCreateConnectionAfterAttempts(ex, attempt + 1);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    attempt++;
+                    var delay = RabbitMQBackoff.GetDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
 
-                Logger.FailedToCreateConnectionRetrying(ex, attempt, delay);
+                    if (Stopwatch.GetElapsedTime(started) + delay > connectTimeout)
+                    {
+                        Logger.FailedToCreateConnectionAfterAttempts(ex, attempt);
+                        throw;
+                    }
 
-                await Task.Delay(delay, connectToken);
+                    Logger.FailedToCreateConnectionRetrying(ex, attempt, delay);
+
+                    await Task.Delay(delay, connectToken);
+                }
             }
+        }
+        catch (OperationCanceledException ex)
+            when (connectCts.IsCancellationRequested
+                && !cancellationToken.IsCancellationRequested
+                && !_disposeCts.IsCancellationRequested)
+        {
+            Logger.FailedToCreateConnectionAfterAttempts(ex, attempt + 1);
+            throw ThrowHelper.ConnectionTimedOut(connectTimeout, ex);
         }
     }
 

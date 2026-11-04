@@ -19,6 +19,11 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
     /// </summary>
     public RabbitMQQueue Queue { get; private set; } = null!;
 
+    /// <summary>
+    /// Gets whether the endpoint is attached and has capacity available beyond handlers cancelled by a channel loss.
+    /// </summary>
+    public bool IsHealthy => _consumer is { IsHealthy: true };
+
     protected override void OnInitialize(
         IMessagingConfigurationContext context,
         RabbitMQReceiveEndpointConfiguration configuration)
@@ -54,9 +59,6 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         Source = Queue;
     }
 
-    private const int CompletedDeliveriesCapacity = 1000;
-
-    private readonly RabbitMQCompletedDeliveries _completedDeliveries = new(CompletedDeliveriesCapacity);
     private RabbitMQConsumerManager.RegisteredConsumer? _consumer;
 
     protected override async ValueTask OnStartAsync(
@@ -87,9 +89,8 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
                     var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
                     feature.Channel = state.channel;
                     feature.EventArgs = state.eventArgs;
-                    feature.CompletedDeliveries = state.completedDeliveries;
                 },
-                (channel, eventArgs, completedDeliveries: _completedDeliveries),
+                (channel, eventArgs),
                 cancellationToken);
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested)

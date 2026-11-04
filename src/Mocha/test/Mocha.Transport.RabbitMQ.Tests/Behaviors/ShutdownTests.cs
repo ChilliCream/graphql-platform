@@ -132,7 +132,8 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
 
         // assert
         Assert.True(stopped);
-        Assert.True(gate.Completed);
+        Assert.False(gate.Completed);
+        Assert.True(gate.Cancelled);
         Assert.True(closed);
         Assert.Equal(1, requeued);
     }

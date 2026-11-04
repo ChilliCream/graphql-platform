@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
@@ -42,7 +43,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
     }
 
     [Fact]
-    public async Task Consumers_Should_KeepReceiving_When_ConsumerTimeoutExpiresForStuckHandler()
+    public async Task Consumers_Should_KeepOtherEndpointsReceiving_When_ConsumerTimeoutExpiresForStuckHandler()
     {
         // arrange
         // RabbitMQ 4.3 evaluates consumer timeouts only for quorum queues
@@ -63,7 +64,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             .AddRequestHandler<PaymentHandler>()
             .AddRabbitMQ(t =>
             {
-                t.Queue("orders").Quorum().Handler<StuckOrderHandler>();
+                t.Queue("orders").Quorum().Handler<StuckOrderHandler>().MaxConcurrency(1);
                 t.Endpoint("payments").Handler<PaymentHandler>();
             })
             .BuildTestBusAsync();
@@ -80,14 +81,15 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
                 s_timeout);
             await SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
             var paymentReceived = await payments.WaitAsync(s_timeout);
+            var blocked = await Condition.WaitAsync(() => logs.Contains("ConsumerRecoveryBlocked"), s_timeout);
+            var whileBlocked = (gate.Invocations, orders.Messages.Count, GetEndpoint(bus, "orders").IsHealthy);
+            gate.Release.TrySetResult();
             var orderRedelivered = await orders.WaitAsync(s_timeout);
-            var stillStuck = !gate.Release.Task.IsCompleted;
 
             // assert
-            Assert.True(consumerLost);
-            Assert.True(paymentReceived);
+            Assert.Equal((true, true, true), (consumerLost, paymentReceived, blocked));
+            Assert.Equal((1, 0, false), whileBlocked);
             Assert.True(orderRedelivered);
-            Assert.True(stillStuck);
         }
         finally
         {
@@ -97,7 +99,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
     }
 
     [Fact]
-    public async Task Message_Should_BeHandledAgainWhileFirstHandlerRuns_When_ConsumerTimeoutExpires()
+    public async Task Message_Should_BeHandledAgainAfterFirstHandlerIsCancelled_When_ConsumerTimeoutExpires()
     {
         // arrange
         // RabbitMQ 4.3 evaluates consumer timeouts only for quorum queues
@@ -111,7 +113,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             .AddKeyedSingleton("orders", orders)
             .AddMessageBus()
             .AddEventHandler<CooperativeOrderHandler>()
-            .AddRabbitMQ(t => t.Queue("orders").Quorum().Handler<CooperativeOrderHandler>())
+            .AddRabbitMQ(t => t.Queue("orders").Quorum().Handler<CooperativeOrderHandler>().MaxConcurrency(1))
             .BuildTestBusAsync();
 
         // act
@@ -122,12 +124,11 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             s_timeout);
 
         // assert
-        // the first handler is not cancelled when its consumer is lost, and keeps running until the bus stops
         Assert.True(handled);
         Assert.True(settled);
         Assert.Equal(2, gate.Invocations);
         Assert.Single(orders.Messages);
-        Assert.False(gate.FirstCancelled);
+        Assert.True(gate.FirstCancelled);
     }
 
     [Fact]
@@ -146,7 +147,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             .AddKeyedSingleton("orders", orders)
             .AddMessageBus()
             .AddEventHandler<StuckOrderHandler>()
-            .AddRabbitMQ(t => t.Endpoint("orders").Handler<StuckOrderHandler>())
+            .AddRabbitMQ(t => t.Endpoint("orders").Handler<StuckOrderHandler>().MaxConcurrency(1))
             .BuildTestBusAsync();
 
         try
@@ -157,20 +158,46 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             // act
             // the message is requeued when the connection closes, so a re-attached consumer receives it again
             await fixture.CloseAllConnectionsAsync();
-            var redeliveredWhileStuck = await orders.WaitAsync(s_timeout);
-
-            // the abandoned handler finishes afterwards, and its delivery tag belongs to the lost channel
+            var blocked = await Condition.WaitAsync(() => logs.Contains("ConsumerRecoveryBlocked"), s_timeout);
+            var whileBlocked = new
+            {
+                RecoveryBlocked = blocked,
+                gate.Invocations,
+                Handled = orders.Messages.Count,
+                GetEndpoint(bus, "orders").IsHealthy
+            };
             gate.Release.TrySetResult();
+            var redelivered = await orders.WaitAsync(s_timeout);
             var settled = await Condition.WaitAsync(
                 async () => await vhost.GetMessageCountAsync("orders") == 0,
                 s_timeout);
             var consumers = await vhost.GetConsumerCountsAsync();
 
             // assert
-            Assert.True(redeliveredWhileStuck);
-            Assert.True(settled);
-            Assert.Equal(1, consumers.GetValueOrDefault("orders"));
-            Assert.Single(orders.Messages);
+            new
+            {
+                WhileBlocked = whileBlocked,
+                Redelivered = redelivered,
+                Settled = settled,
+                Consumers = consumers.GetValueOrDefault("orders"),
+                Handled = orders.Messages.Count,
+                GetEndpoint(bus, "orders").IsHealthy
+            }.MatchInlineSnapshot(
+                """
+                {
+                  "WhileBlocked": {
+                    "RecoveryBlocked": true,
+                    "Invocations": 1,
+                    "Handled": 0,
+                    "IsHealthy": false
+                  },
+                  "Redelivered": true,
+                  "Settled": true,
+                  "Consumers": 1,
+                  "Handled": 1,
+                  "IsHealthy": true
+                }
+                """);
         }
         finally
         {
@@ -180,7 +207,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
     }
 
     [Fact]
-    public async Task Message_Should_BeAckedWithoutRunningAgain_When_HandlerCompletedAfterItsChannelClosed()
+    public async Task Message_Should_RunHandlerAgain_When_HandlerCompletedAfterItsChannelClosed()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -220,9 +247,8 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
 
             // assert
             Assert.True(settled);
-            Assert.True(logs.Contains("RedeliveryOfCompletedMessageAcked"));
             Assert.Equal(
-                (1, 1, 0),
+                (2, 2, 0),
                 (gate.Invocations, orders.Messages.Count, await vhost.GetMessageCountAsync("orders_error")));
         }
         finally
@@ -410,14 +436,20 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
                 await PublishAsync(bus, new OrderCreated { OrderId = $"ORD-{i}" });
             }
 
-            var allHandled = await Condition.WaitAsync(() => batches.OrderIds.Count == 6, TimeSpan.FromSeconds(40));
+            var consumerLost = await Condition.WaitAsync(
+                () => logs.Contains("ConsumerChannelLost") || logs.Contains("ConsumerCancelledByBroker"),
+                s_timeout);
+            await using var recoveryTimeout = await fixture.SetConsumerTimeoutAsync(TimeSpan.FromMinutes(30));
+            await fixture.CloseAllConnectionsAsync();
+            var allHandled = await Condition.WaitAsync(() => batches.OrderIds.Count == 6, s_timeout);
             var drained = await Condition.WaitAsync(
                 async () => await vhost.GetMessageCountAsync("batch-orders") == 0,
-                TimeSpan.FromSeconds(40));
+                s_timeout);
             var consumers = await vhost.GetConsumerCountsAsync();
             output.WriteLine($"batches: {batches.Count}");
 
             // assert
+            Assert.True(consumerLost);
             Assert.True(allHandled);
             Assert.True(drained);
             Assert.Equal(1, consumers.GetValueOrDefault("batch-orders"));
@@ -462,6 +494,11 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
     }
+
+    private static RabbitMQReceiveEndpoint GetEndpoint(TestBus bus, string queueName)
+        => ((MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>())
+            .Transports.OfType<RabbitMQMessagingTransport>().Single()
+            .ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(endpoint => endpoint.Queue.Name == queueName);
 
     private static async Task PublishAsync(TestBus bus, OrderCreated message)
     {
@@ -543,7 +580,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             if (gate.IsFirstInvocation())
             {
                 gate.Started.TrySetResult();
-                await gate.Release.Task.WaitAsync(cancellationToken);
+                await gate.Release.Task;
             }
 
             recorder.Record(message);
