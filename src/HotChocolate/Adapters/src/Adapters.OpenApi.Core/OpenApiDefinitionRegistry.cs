@@ -26,6 +26,7 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
     private readonly IDisposable _subscription;
 
     private ISchemaDefinition? _schema;
+    private bool _stopped;
     private bool _disposed;
 
     public OpenApiDefinitionRegistry(
@@ -51,6 +52,11 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
         try
         {
+            if (_stopped)
+            {
+                return;
+            }
+
             _schema = schema;
 
             var events = schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
@@ -62,6 +68,22 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
         {
             _updateSemaphore.Release();
         }
+    }
+
+    public async ValueTask StopAsync(CancellationToken cancellationToken)
+    {
+        if (_stopped || _disposed)
+        {
+            return;
+        }
+
+        _stopped = true;
+        _subscription.Dispose();
+
+        // Acquiring the semaphore waits for an update in progress. Updates that acquire it
+        // later return without changing the endpoints.
+        await _updateSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        _updateSemaphore.Release();
     }
 
     public void Dispose()
@@ -84,7 +106,7 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
     private async Task HandleStorageChangedAsync()
     {
-        if (_disposed || _schema is null)
+        if (_disposed || _stopped || _schema is null)
         {
             return;
         }
@@ -106,7 +128,7 @@ internal sealed class OpenApiDefinitionRegistry : IDisposable
 
         try
         {
-            if (_disposed || _schema is null)
+            if (_disposed || _stopped || _schema is null)
             {
                 return;
             }

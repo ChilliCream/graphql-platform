@@ -62,6 +62,21 @@ internal sealed class OpenApiManager : IDisposable
             .Value;
     }
 
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        foreach (var lazyRegistration in _registrations.Values)
+        {
+            if (!lazyRegistration.IsValueCreated)
+            {
+                continue;
+            }
+
+            var registration = lazyRegistration.Value;
+
+            await registration.Registry.StopAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     private OpenApiRegistration CreateRegistration(string name)
     {
         var setup = _setupMonitor.Get(name);
@@ -90,14 +105,14 @@ internal sealed class OpenApiManager : IDisposable
 
         _disposed = true;
 
-        foreach (var lazy in _registrations.Values)
+        foreach (var lazyRegistration in _registrations.Values)
         {
-            if (!lazy.IsValueCreated)
+            if (!lazyRegistration.IsValueCreated)
             {
                 continue;
             }
 
-            var registration = lazy.Value;
+            var registration = lazyRegistration.Value;
 
             registration.Registry.Dispose();
             registration.ExecutorProxy.Dispose();
