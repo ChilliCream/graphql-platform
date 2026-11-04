@@ -9,7 +9,7 @@ namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
 /// RabbitMQ dispatch endpoint that publishes outbound messages to a target queue or exchange
-/// using the shared publisher channel from the transport's dispatcher.
+/// using an exclusive publisher channel lease from the transport's dispatcher.
 /// </summary>
 /// <param name="transport">The owning RabbitMQ transport instance.</param>
 public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transport)

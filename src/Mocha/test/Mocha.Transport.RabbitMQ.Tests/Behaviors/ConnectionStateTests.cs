@@ -24,14 +24,13 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         var before = await WarmUpAsync(vhost, bus, recorder);
 
         // act
-        // the reply queue is auto-delete, so the broker deletes it once its only consumer is gone
         await vhost.CloseConsumerConnectionsAsync();
         var outcome = await RecoverAsync(vhost, bus, recorder, before);
         var after = await vhost.WaitForStateAsync(before, s_timeout);
         output.WriteLine($"before: {before}, after: {after}");
 
         // assert
-        Assert.True(after.Matches(before));
+        Assert.Equal(before, after);
         Assert.Equal(new RoundTrip("received", "Shipped"), outcome);
     }
 
@@ -55,7 +54,7 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         output.WriteLine($"before: {before}, after: {after}");
 
         // assert
-        Assert.True(after.Matches(before));
+        Assert.Equal(before, after);
         Assert.Equal(new RoundTrip("received", "Shipped"), outcome);
     }
 
@@ -86,7 +85,7 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
 
         // assert
         Assert.True(detected);
-        Assert.True(after.Matches(before));
+        Assert.Equal(before, after);
         Assert.Equal(new RoundTrip("received", "Shipped"), outcome);
     }
 
@@ -346,7 +345,7 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         var after = await vhost.WaitForStateAsync(before, s_timeout);
 
         // assert
-        Assert.True(after.Matches(before));
+        Assert.Equal(before, after);
         Assert.Equal(new RoundTrip("received", "Shipped"), outcome);
     }
 
@@ -375,7 +374,7 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
 
         // assert
         Assert.True(lost);
-        Assert.True(after.Matches(before));
+        Assert.Equal(before, after);
         Assert.Equal(new RoundTrip("received", "Shipped"), outcome);
     }
 
@@ -403,7 +402,7 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         var after = await vhost.WaitForStateAsync(before, s_timeout);
 
         // assert
-        Assert.True(after.Matches(before));
+        Assert.Equal(before, after);
         Assert.Equal(
             [
                 new RoundTrip("received", "Shipped"),
@@ -439,7 +438,7 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
 
         // assert
         Assert.True(closed);
-        Assert.True(after.Matches(before));
+        Assert.Equal(before, after);
         Assert.Equal(new RoundTrip("received", "Shipped"), outcome);
     }
 
@@ -461,11 +460,17 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
             await vhost.CloseConsumerConnectionsAsync();
             var outcome = await RecoverAsync(vhost, bus, recorder, before);
             var state = await vhost.WaitForStateAsync(before, s_timeout);
-            recovered.Add(outcome == new RoundTrip("received", "Shipped") && state.Matches(before));
+            recovered.Add(outcome == new RoundTrip("received", "Shipped") && state == before);
         }
+
+        await bus.DisposeAsync();
+        var disposed = await Condition.WaitAsync(
+            async () => await vhost.GetConnectionCountAsync() == 0,
+            s_timeout);
 
         // assert
         Assert.Equal([true, true, true, true, true], recovered);
+        Assert.True(disposed);
     }
 
     [Fact]
@@ -649,21 +654,47 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         MessageRecorder recorder,
         BrokerState before)
     {
-        // pooled publish channels come back with the next publish, so only the consumers are awaited first
+        // Publisher channels are opened on demand after the consumers recover.
         await Condition.WaitAsync(
             async () => await vhost.GetStateAsync() is var state
                 && state.Consumers == before.Consumers
                 && state.ConsumedQueues == before.ConsumedQueues,
             s_recoveryTimeout);
 
-        return await RoundTripAsync(bus, recorder, "ORD-2");
+        var outcome = await RoundTripAsync(bus, recorder, "ORD-2");
+        if (outcome == new RoundTrip("received", "Shipped"))
+        {
+            await WarmPublisherPoolAsync(vhost, bus);
+        }
+
+        return outcome;
     }
 
     private static async Task<BrokerState> WarmUpAsync(VhostContext vhost, TestBus bus, MessageRecorder recorder)
     {
         var outcome = await RoundTripAsync(bus, recorder, "ORD-1");
         Assert.Equal(new RoundTrip("received", "Shipped"), outcome);
+        await WarmPublisherPoolAsync(vhost, bus);
         return await vhost.GetStateAsync();
+    }
+
+    private static async Task WarmPublisherPoolAsync(VhostContext vhost, TestBus bus)
+    {
+        Assert.True(await Condition.WaitAsync(
+            async () => await vhost.GetMessageCountAsync("orders") == 0
+                && await vhost.GetMessageCountAsync("order-status") == 0,
+            s_timeout));
+        var dispatcher = GetTransport(bus).Dispatcher;
+        var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        try
+        {
+            var second = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+            await dispatcher.ReturnChannelAsync(second);
+        }
+        finally
+        {
+            await dispatcher.ReturnChannelAsync(first);
+        }
     }
 
     private static async Task<RoundTrip> RoundTripAsync(TestBus bus, MessageRecorder recorder, string orderId)

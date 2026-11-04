@@ -12,6 +12,56 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
+    public async Task SendAsync_Should_DeliverOnce_When_ConcurrentPublishTargetsMissingExchange()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareExchange("orders");
+                t.DeclareQueue("healthy");
+                t.DispatchEndpoint("orders-publish").ToExchange("orders").Publish<OrderCreated>();
+                t.DispatchEndpoint("healthy-send").ToQueue("healthy").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+        await TryPublishAsync(bus, new OrderCreated { OrderId = "warmup" });
+        await TrySendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
+        var dispatcher = bus.Provider.GetRequiredService<IMessagingRuntime>()
+            .Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
+        var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        var second = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(first);
+        await dispatcher.ReturnChannelAsync(second);
+        await DeleteExchangeAsync(vhost, "orders");
+
+        // act
+        Task<string> publish;
+        Task<string> send;
+        await using (await vhost.FreezeConnectionsAsync())
+        {
+            publish = TryPublishAsync(bus, new OrderCreated { OrderId = "missing-exchange" });
+            send = TrySendAsync(bus, new ProcessPayment { OrderId = "healthy", Amount = 1 });
+        }
+
+        var publishOutcome = await publish;
+        var sendOutcome = await send;
+        var messages = await vhost.GetMessageCountAsync("healthy");
+
+        // assert
+        new { Publish = publishOutcome, Send = sendOutcome, Messages = messages }.MatchInlineSnapshot(
+            """
+            {
+              "Publish": "AlreadyClosedException",
+              "Send": "sent",
+              "Messages": 2
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SendAsync_Should_Throw_When_BrokerRejectsMessage()
     {
         // arrange
@@ -201,7 +251,7 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
             results.GroupBy(r => r).ToDictionary(g => g.Key, g => g.Count()));
         Assert.True(received);
         Assert.Equal(2, state.Connections);
-        Assert.True(state.IdleChannels <= 10);
+        Assert.InRange(state.IdleChannels, 0, 100);
     }
 
     [Fact]
@@ -221,7 +271,7 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
             .BuildTestBusAsync();
 
         // act
-        // a publish keeps its channel until the broker confirms it, and a connection allows 2047 channels
+        // Each concurrent send holds an exclusive channel until its confirmation arrives.
         var sends = Enumerable.Range(0, count)
             .Select(i => TrySendAsync(bus, new ProcessPayment { OrderId = $"ORD-{i}", Amount = 1 }))
             .ToList();
@@ -248,7 +298,7 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task SendAsync_Should_ReusePublisherChannel_When_PublishesAreCancelledRepeatedly(bool warmup)
+    public async Task SendAsync_Should_ReusePublisherChannels_When_PublishesAreCancelledRepeatedly(bool warmup)
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -298,7 +348,7 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
               },
               "AfterUnblock": "sent",
               "Connections": 2,
-              "IdleChannels": 1
+              "IdleChannels": 100
             }
             """);
     }

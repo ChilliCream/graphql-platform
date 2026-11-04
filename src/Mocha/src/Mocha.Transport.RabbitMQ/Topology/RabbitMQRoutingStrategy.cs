@@ -215,9 +215,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             EnsureNoTemporaryQueueConflict(rabbitConfiguration);
         }
 
-        // The reply queue expires instead of being deleted with its last consumer, so that a reply sent while
-        // the consumer re-attaches is not dropped. Its name is unique per instance, so no other declaration differs.
-        // It is a short-lived queue per instance, so bus defaults such as a quorum queue type do not apply to it.
+        // Generated temporary reply queues expire without consumers and skip bus-level queue defaults.
         var isReplyQueue = rabbitConfiguration.IsTemporary && rabbitEndpoint.Kind == ReceiveEndpointKind.Reply;
 
         var queue = _topology.GetOrAddQueue(

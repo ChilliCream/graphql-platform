@@ -1,3 +1,4 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using Moq;
@@ -7,9 +8,7 @@ using RabbitMQ.Client.Events;
 namespace Mocha.Transport.RabbitMQ.Tests;
 
 /// <summary>
-/// Covers dispatch-endpoint provisioning races, topology reprovisioning on reconnect, and
-/// the mandatory-publish contract as exposed by RabbitMQ.Client, all against a mocked
-/// connection so the outcomes are deterministic and do not depend on a live broker.
+/// Covers dispatch provisioning, topology recovery, and mandatory publishing.
 /// </summary>
 public class RabbitMQDispatchProvisioningTests
 {
@@ -64,79 +63,69 @@ public class RabbitMQDispatchProvisioningTests
     public async Task PublishAsync_Should_SettleProvisioning_When_ConcurrentFirstDispatchesRace()
     {
         // arrange
-        var channelMock = CreateOpenChannel();
-        var connectionMock = CreateOpenConnection(channelMock);
-        await using var bus = await BuildTestBusAsync(connectionMock.Object, t =>
+        var connection = CreateOpenConnection(CreateOpenChannel());
+        await using var bus = await BuildTestBusAsync(connection.Object, t =>
         {
             t.DeclareExchange("concurrent-ex").AutoProvision(true);
             t.DispatchEndpoint("concurrent-ep").ToExchange("concurrent-ex").Publish<OrderCreated>();
         });
-
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        // the runtime eagerly declares the whole topology once on start; only the racy
-        // per-endpoint provisioning that happens on first dispatch is under test here
-        channelMock.Invocations.Clear();
-
-        // gate the exchange declare so every dispatch that reads the endpoint's
-        // unsynchronized _isProvisioned field before the gate opens is genuinely still
-        // in flight when the next one starts, instead of each finishing before the next begins
         var declareGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var declareCount = 0;
-        channelMock
-            .Setup(c => c.ExchangeDeclareAsync(
-                "concurrent-ex",
-                It.IsAny<string>(),
-                It.IsAny<bool>(),
-                It.IsAny<bool>(),
-                It.IsAny<IDictionary<string, object?>>(),
-                It.IsAny<bool>(),
-                It.IsAny<bool>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(async () =>
+        connection
+            .Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
             {
-                Interlocked.Increment(ref declareCount);
-                await declareGate.Task;
+                var channel = CreateOpenChannel();
+                channel
+                    .Setup(c => c.ExchangeDeclareAsync(
+                        "concurrent-ex",
+                        It.IsAny<string>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<IDictionary<string, object?>>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns(async () =>
+                    {
+                        Interlocked.Increment(ref declareCount);
+                        await declareGate.Task;
+                    });
+                return channel.Object;
             });
 
-        // act - start the first dispatches without awaiting them so each one reaches the
-        // gated declare call while _isProvisioned is still false, proving they overlap,
-        // then release them together so they genuinely race on that check
+        // act
         var raceTasks = Enumerable.Range(0, 8)
             .Select(i => messageBus.PublishAsync(
                 new OrderCreated { OrderId = $"RACE-{i}" },
                 TestContext.Current.CancellationToken).AsTask())
             .ToArray();
-
-        Assert.All(raceTasks, task => Assert.False(task.IsCompleted));
-
-        declareGate.SetResult();
+        bool overlapped;
+        try
+        {
+            overlapped = await Condition.WaitAsync(() => Volatile.Read(ref declareCount) == 8, TimeSpan.FromSeconds(5));
+        }
+        finally
+        {
+            declareGate.TrySetResult();
+        }
 
         await Task.WhenAll(raceTasks);
-
-        // assert - the endpoint's unsynchronized _isProvisioned field lets more than one of
-        // the racing dispatches observe it as false, so the exchange may be declared more
-        // than once during the race; the settling below is what has teeth
-        Assert.InRange(declareCount, 1, 8);
-
-        // act - once the race has settled, provisioning must not repeat on later dispatches
-        channelMock.Invocations.Clear();
-
+        var declarationsAfterRace = declareCount;
         await messageBus.PublishAsync(new OrderCreated { OrderId = "RACE-SETTLED" }, TestContext.Current.CancellationToken);
 
         // assert
-        channelMock.Verify(
-            c => c.ExchangeDeclareAsync(
-                "concurrent-ex",
-                It.IsAny<string>(),
-                It.IsAny<bool>(),
-                It.IsAny<bool>(),
-                It.IsAny<IDictionary<string, object?>>(),
-                It.IsAny<bool>(),
-                It.IsAny<bool>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never());
+        new { Overlapped = overlapped, DeclarationsAfterRace = declarationsAfterRace, DeclarationsAfterSettling = declareCount }
+            .MatchInlineSnapshot(
+                """
+                {
+                  "Overlapped": true,
+                  "DeclarationsAfterRace": 8,
+                  "DeclarationsAfterSettling": 8
+                }
+                """);
     }
 
     [Fact]
