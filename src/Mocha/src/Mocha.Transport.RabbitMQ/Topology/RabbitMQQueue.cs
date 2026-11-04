@@ -95,6 +95,17 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
     }
 
     /// <summary>
+    /// Marks this queue as not auto-delete, and makes the broker delete it once it has been unused for
+    /// <paramref name="expiration"/>.
+    /// </summary>
+    /// <param name="expiration">How long the queue may stay without consumers before the broker deletes it.</param>
+    internal void MarkExpiring(TimeSpan expiration)
+    {
+        AutoDelete = false;
+        Arguments = Arguments.SetItem("x-expires", (int)expiration.TotalMilliseconds);
+    }
+
+    /// <summary>
     /// Declares this queue on the broker using the specified channel.
     /// </summary>
     /// <param name="channel">The RabbitMQ channel to use for declaring the queue.</param>

@@ -111,14 +111,13 @@ public class ConcurrencyTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         await messageBus.PublishAsync(new OrderCreated { OrderId = "before" }, TestContext.Current.CancellationToken);
         Assert.True(await recorder.WaitAsync(timeout));
-        var replyQueue = await vhost.GetAutoDeleteQueueNameAsync();
         await vhost.SetConfigurePermissionAsync("^$");
 
         // act
         try
         {
-            await vhost.CloseConsumerConnectionAsync("recovery-orders");
-            await vhost.WaitForQueueDeletionAsync(replyQueue, timeout);
+            await vhost.CloseConnectionOfConsumerAsync("recovery-orders");
+            await vhost.WaitForNoConsumerAsync("recovery-orders", timeout);
             for (var i = 0; i < messageCount; i++)
             {
                 await messageBus.PublishAsync(

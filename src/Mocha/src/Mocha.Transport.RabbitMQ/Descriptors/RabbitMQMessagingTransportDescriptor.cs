@@ -150,6 +150,14 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public IRabbitMQMessagingTransportDescriptor ConnectTimeout(TimeSpan timeout)
+    {
+        Configuration.ConnectTimeout = timeout;
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IRabbitMQMessagingTransportDescriptor ConfigureDefaults(Action<RabbitMQBusDefaults> configure)
     {
         configure(Configuration.Defaults);
