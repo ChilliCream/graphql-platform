@@ -110,8 +110,11 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
 
         _consumer = null;
 
-        // A reply queue expires instead of being deleted with its last consumer, so a graceful stop deletes it.
-        if (Kind == ReceiveEndpointKind.Reply)
+        // A generated temporary reply queue is deleted on graceful stop when auto-provisioning is enabled.
+        if (Kind == ReceiveEndpointKind.Reply
+            && Configuration.IsTemporary
+            && Queue.Origin is not TopologyOrigin.Declared
+            && (Queue.AutoProvision ?? transport.Topology.AutoProvision))
         {
             await transport.ConsumerManager.DeleteQueueAsync(Queue.Name, cancellationToken);
         }
