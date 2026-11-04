@@ -172,7 +172,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
 
                     try
                     {
-                        ValidateExecutionSchemaVersion(metadata);
+                        ValidateGatewayFormats(metadata);
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -231,14 +231,14 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         }
     }
 
-    private static void ValidateExecutionSchemaVersion(ArchiveMetadata? metadata)
+    private static void ValidateGatewayFormats(ArchiveMetadata? metadata)
     {
-        if (metadata is not null
-            && metadata.ExecutionSchemaVersion > WellKnownVersions.MaxSupportedExecutionSchemaVersion)
+        if (metadata?.SupportedGatewayFormats.IsDefaultOrEmpty is false
+            && !metadata.SupportedGatewayFormats.Any(version => version <= WellKnownVersions.LatestGatewayFormatVersion))
         {
-            throw ThrowHelper.UnsupportedExecutionSchemaVersion(
-                metadata.ExecutionSchemaVersion,
-                WellKnownVersions.MaxSupportedExecutionSchemaVersion);
+            throw ThrowHelper.UnsupportedGatewayFormats(
+                metadata.SupportedGatewayFormats,
+                WellKnownVersions.LatestGatewayFormatVersion);
         }
     }
 

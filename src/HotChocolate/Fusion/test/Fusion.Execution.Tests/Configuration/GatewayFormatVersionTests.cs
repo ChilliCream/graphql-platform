@@ -7,27 +7,13 @@ using IOPath = System.IO.Path;
 
 namespace HotChocolate.Fusion;
 
-public sealed class ExecutionSchemaVersionTests
+public sealed class GatewayFormatVersionTests
 {
     [Fact]
-    public async Task GatewayConfiguration_Should_SupportExecutionSchemaVersion_When_ProducedByComposition()
+    public async Task GatewayConfiguration_Should_Load_When_ProducedByComposition()
     {
         // arrange
         await using var stream = await ComposeGatewayArchiveAsync();
-        Version executionSchemaVersion;
-
-        stream.Position = 0;
-        using (var readArchive = FusionArchive.Open(stream, leaveOpen: true))
-        {
-            var metadata = Assert.IsType<ArchiveMetadata>(
-                await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken));
-            executionSchemaVersion = metadata.ExecutionSchemaVersion;
-        }
-
-        Assert.True(
-            executionSchemaVersion <= WellKnownVersions.MaxSupportedExecutionSchemaVersion,
-            "Confirm that the gateway understands the produced execution schema format, then raise "
-            + "MaxSupportedExecutionSchemaVersion in WellKnownVersions.");
 
         // act
         var configuration = await LoadGatewayConfigurationThroughProviderAsync(stream);
@@ -38,13 +24,46 @@ public sealed class ExecutionSchemaVersionTests
             definition => definition is HotChocolate.Language.ObjectTypeDefinitionNode { Name.Value: "Query" });
     }
 
-    [Theory]
-    [InlineData("1.0.0")]
-    [InlineData("0.9.0")]
-    public async Task GatewayConfiguration_Should_Load_When_ExecutionSchemaVersionIsSupported(string version)
+    [Fact]
+    public async Task GatewayConfiguration_Should_Reject_When_OnlyGatewayFormatIs220()
     {
         // arrange
-        await using var stream = await CreateGatewayArchiveAsync(new Version(version));
+        await using var stream = await CreateGatewayArchiveAsync(new Version("2.2.0"));
+
+        // act
+        var exception = await LoadGatewayErrorThroughProviderAsync(stream);
+
+        // assert
+        Assert.IsType<InvalidOperationException>(exception);
+        exception.Message.MatchInlineSnapshot(
+            """
+            The Fusion archive contains gateway formats 2.2.0, but this gateway supports up to 2.0.0. Upgrade the gateway to load this archive.
+            """);
+    }
+
+    [Fact]
+    public async Task GatewayConfiguration_Should_Reject_When_OnlyGatewayFormatIs300()
+    {
+        // arrange
+        await using var stream = await CreateGatewayArchiveAsync(new Version("3.0.0"));
+
+        // act
+        var exception = await LoadGatewayErrorThroughProviderAsync(stream);
+
+        // assert
+        Assert.IsType<InvalidOperationException>(exception);
+        exception.Message.MatchInlineSnapshot(
+            """
+            The Fusion archive contains gateway formats 3.0.0, but this gateway supports up to 2.0.0. Upgrade the gateway to load this archive.
+            """);
+    }
+
+    [Fact]
+    public async Task GatewayConfiguration_Should_LoadSupportedFormat_When_ArchiveContainsNewerFormat()
+    {
+        // arrange
+        await using var stream = await CreateGatewayArchiveAsync(
+            new Version("2.0.0"), additionalVersion: new Version("3.0.0"));
 
         // act
         var configuration = await LoadGatewayConfigurationThroughProviderAsync(stream);
@@ -53,51 +72,56 @@ public sealed class ExecutionSchemaVersionTests
         Assert.Equal("type Query {\n  product: String\n}", configuration.Schema.ToString());
     }
 
-    [Theory]
-    [InlineData("2.0.0")]
-    [InlineData("1.1.0")]
-    [InlineData("1.0.1")]
-    public async Task GatewayConfiguration_Should_Reject_When_ExecutionSchemaVersionIsHigher(string version)
+    [Fact]
+    public async Task FileSystemProvider_Should_Recover_When_UnsupportedInitialArchiveIsReplaced()
     {
         // arrange
-        await using var stream = await CreateGatewayArchiveAsync(new Version(version));
+        var fileName = CreateFileName();
+        await using var unsupportedArchive = await CreateGatewayArchiveAsync(new Version("3.0.0"));
+        await using var supportedArchive = await CreateGatewayArchiveAsync(new Version("2.0.0"));
 
-        // act
-        var exception = await LoadGatewayErrorThroughProviderAsync(stream);
+        try
+        {
+            await WriteArchiveAsync(fileName, unsupportedArchive);
+            await using var provider = new FileSystemFusionConfigurationProvider(fileName);
+            var initialObserver = new ConfigurationObserver();
+            using var initialSubscription = provider.Subscribe(initialObserver);
+            var error = await initialObserver.Error.Task.WaitAsync(TestContext.Current.CancellationToken);
 
-        // assert
-        Assert.IsType<InvalidOperationException>(exception);
+            // act
+            await WriteArchiveAsync(fileName, supportedArchive);
+            while (provider.Configuration is null)
+            {
+                await Task.Delay(25, TestContext.Current.CancellationToken);
+            }
+
+            var restoredObserver = new ConfigurationObserver();
+            using var restoredSubscription = provider.Subscribe(restoredObserver);
+            var configuration = await restoredObserver.ReadConfigurationAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            Assert.IsType<InvalidOperationException>(error);
+            Assert.Equal("type Query {\n  product: String\n}", configuration.Schema.ToString());
+        }
+        finally
+        {
+            File.Delete(fileName);
+        }
     }
 
     [Fact]
-    public async Task GatewayConfiguration_Should_DescribeSupportedVersion_When_ExecutionSchemaVersionIsHigher()
-    {
-        // arrange
-        await using var stream = await CreateGatewayArchiveAsync(new Version("1.0.1"));
-
-        // act
-        var exception = await LoadGatewayErrorThroughProviderAsync(stream);
-
-        // assert
-        exception.Message.MatchInlineSnapshot(
-            """
-            The Fusion archive requires execution schema version 1.0.1, but this gateway supports up to 1.0.0. Upgrade the gateway to load this archive.
-            """);
-    }
-
-    [Fact]
-    public async Task FileSystemProvider_Should_KeepExistingSubscription_When_ExecutionSchemaVersionIsHigher()
+    public async Task FileSystemProvider_Should_KeepExistingSubscription_When_GatewayFormatIsHigher()
     {
         // arrange
         var fileName = CreateFileName();
         await using var initialArchive = await CreateGatewayArchiveAsync(
-            WellKnownVersions.MaxSupportedExecutionSchemaVersion,
+            WellKnownVersions.LatestGatewayFormatVersion,
             "type Query { product: String }");
         await using var unsupportedArchive = await CreateGatewayArchiveAsync(
-            new Version("1.0.1"),
+            new Version("3.0.0"),
             "type Query { product: String }");
         await using var updatedArchive = await CreateGatewayArchiveAsync(
-            WellKnownVersions.MaxSupportedExecutionSchemaVersion,
+            WellKnownVersions.LatestGatewayFormatVersion,
             "type Query { product: String name: String }");
 
         try
@@ -132,8 +156,8 @@ public sealed class ExecutionSchemaVersionTests
         // arrange
         var fileName = CreateFileName();
         await using var supportedArchive = await CreateGatewayArchiveAsync(
-            WellKnownVersions.MaxSupportedExecutionSchemaVersion);
-        await using var unsupportedArchive = await CreateGatewayArchiveAsync(new Version("1.0.1"));
+            WellKnownVersions.LatestGatewayFormatVersion);
+        await using var unsupportedArchive = await CreateGatewayArchiveAsync(new Version("3.0.0"));
 
         try
         {
@@ -232,14 +256,14 @@ public sealed class ExecutionSchemaVersionTests
     }
 
     private static async Task<MemoryStream> CreateGatewayArchiveAsync(
-        Version executionSchemaVersion,
-        string schema = "type Query { product: String }")
+        Version gatewayFormatVersion,
+        string schema = "type Query { product: String }",
+        Version? additionalVersion = null)
     {
         var stream = new MemoryStream();
         var metadata = new ArchiveMetadata
         {
-            ExecutionSchemaVersion = executionSchemaVersion,
-            SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+            SupportedGatewayFormats = additionalVersion is null ? [gatewayFormatVersion] : [gatewayFormatVersion, additionalVersion],
             SourceSchemas = []
         };
         using var settings = JsonDocument.Parse("{}");
@@ -250,8 +274,16 @@ public sealed class ExecutionSchemaVersionTests
             await archive.SetGatewayConfigurationAsync(
                 schema,
                 settings,
-                WellKnownVersions.LatestGatewayFormatVersion,
+                gatewayFormatVersion,
                 TestContext.Current.CancellationToken);
+            if (additionalVersion is not null)
+            {
+                await archive.SetGatewayConfigurationAsync(
+                    "type Query { newer: String }",
+                    settings,
+                    additionalVersion,
+                    TestContext.Current.CancellationToken);
+            }
             await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 

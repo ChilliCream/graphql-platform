@@ -202,7 +202,6 @@ internal static class CompositionHelper
 
         var metadata = new ArchiveMetadata
         {
-            ExecutionSchemaVersion = WellKnownVersions.ProducedExecutionSchemaVersion,
             SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
             SourceSchemas = [.. allSourceSchemas.Keys]
         };

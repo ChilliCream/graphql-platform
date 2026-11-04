@@ -15,12 +15,6 @@ public record ArchiveMetadata
     public Version FormatVersion { get; init; } = new("1.0.0");
 
     /// <summary>
-    /// Gets or sets the execution schema format version for the gateway schema in this archive.
-    /// Archives without this value use version 1.0.0.
-    /// </summary>
-    public Version ExecutionSchemaVersion { get; init; } = new(1, 0, 0);
-
-    /// <summary>
     /// Gets or sets the list of gateway format versions contained in this archive.
     /// Multiple versions allow gradual migration and compatibility testing.
     /// The gateway will select the highest compatible version at runtime.
