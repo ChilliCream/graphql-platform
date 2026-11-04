@@ -286,17 +286,6 @@ internal sealed class FusionSettingsSetCommand : Command
         (string Section, string Property, string Type) setting,
         CancellationToken cancellationToken)
     {
-        JsonNode? parsed = value switch
-        {
-            _ when setting.Type == "boolean" && bool.TryParse(value, out var boolean) => JsonValue.Create(boolean),
-            _ when setting.Type == "integer" && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var integer) => JsonValue.Create(integer),
-            _ when setting.Type == "number" && double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonValue.Create(number),
-            _ when setting.Type == "case" && CaseBudgetExceededBehaviorParser.TryParse(value, out var behavior) => JsonValue.Create(behavior.ToString()),
-            _ when setting.Type == "merge" && value is "none" or "conservative" or "balanced" or "aggressive" => JsonValue.Create(char.ToUpperInvariant(value[0]) + value[1..]),
-            _ when setting.Type == "time" && TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out var time) => JsonValue.Create(time.ToString("c", CultureInfo.InvariantCulture)),
-            _ => throw ThrowHelper.Exit($"Invalid {setting.Type} value for setting '{name}'.")
-        };
-
         if (!Path.IsPathRooted(archiveFile))
         {
             archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
@@ -312,6 +301,17 @@ internal sealed class FusionSettingsSetCommand : Command
         {
             throw ThrowHelper.Exit("The archive is signed. Changing gateway settings would invalidate its signature.");
         }
+
+        JsonNode? parsed = value switch
+        {
+            _ when setting.Type == "boolean" && bool.TryParse(value, out var boolean) => JsonValue.Create(boolean),
+            _ when setting.Type == "integer" && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var integer) => JsonValue.Create(integer),
+            _ when setting.Type == "number" && double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonValue.Create(number),
+            _ when setting.Type == "case" && CaseBudgetExceededBehaviorParser.TryParse(value, out var behavior) => JsonValue.Create(behavior.ToString()),
+            _ when setting.Type == "merge" && value is "none" or "conservative" or "balanced" or "aggressive" => JsonValue.Create(char.ToUpperInvariant(value[0]) + value[1..]),
+            _ when setting.Type == "time" && TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out var time) => JsonValue.Create(time.ToString("c", CultureInfo.InvariantCulture)),
+            _ => throw ThrowHelper.Exit($"Invalid {setting.Type} value for setting '{name}'.")
+        };
 
         using var configuration = await archive.TryGetGatewayConfigurationAsync(
             WellKnownVersions.LatestGatewayFormatVersion, cancellationToken)

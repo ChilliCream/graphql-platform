@@ -427,11 +427,22 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     [InlineData("merge-policy")]
     public async Task Execute_Should_RejectInvalidEnum(string name)
     {
-        // arrange & act
-        var result = await ExecuteCommandAsync("fusion", "settings", "set", name, "invalid", "--archive", ArchiveFile);
+        // arrange
+        var file = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"), file);
+        SetupFile(file, new MemoryStream(File.ReadAllBytes(file)));
+        try
+        {
+            // act
+            var result = await ExecuteCommandAsync("fusion", "settings", "set", name, "invalid", "--archive", file);
 
-        // assert
-        result.AssertError($"Invalid {(name == "merge-policy" ? "merge" : "case")} value for setting '{name}'.");
+            // assert
+            result.AssertError($"Invalid {(name == "merge-policy" ? "merge" : "case")} value for setting '{name}'.");
+        }
+        finally
+        {
+            File.Delete(file);
+        }
     }
 
     [Fact]
@@ -487,27 +498,42 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     [InlineData("merge-policy", "merge")]
     public async Task Execute_Should_RejectNullRuntimeValue(string name, string type)
     {
-        // arrange & act
-        var result = await ExecuteCommandAsync("fusion", "settings", "set", name, "null", "--archive", ArchiveFile);
+        // arrange
+        var file = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"), file);
+        SetupFile(file, new MemoryStream(File.ReadAllBytes(file)));
+        try
+        {
+            // act
+            var result = await ExecuteCommandAsync("fusion", "settings", "set", name, "null", "--archive", file);
 
-        // assert
-        result.AssertError($"Invalid {type} value for setting '{name}'.");
+            // assert
+            result.AssertError($"Invalid {type} value for setting '{name}'.");
+        }
+        finally
+        {
+            File.Delete(file);
+        }
     }
-    [Fact]
-    public async Task Execute_Should_RefuseSignedArchive()
+    [Theory]
+    [InlineData("max-field-cost", "2000")]
+    [InlineData("merge-policy", "invalid")]
+    public async Task Execute_Should_RefuseSignedArchive(string name, string value)
     {
         // arrange
         var file = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         File.Copy(Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"), file);
         AddSignatureManifest(file);
-        SetupFile(file, new MemoryStream(File.ReadAllBytes(file)));
+        var original = File.ReadAllBytes(file);
+        SetupFile(file, new MemoryStream(original));
         try
         {
             // act
-            var result = await ExecuteCommandAsync("fusion", "settings", "set", "max-field-cost", "2000", "--archive", file);
+            var result = await ExecuteCommandAsync("fusion", "settings", "set", name, value, "--archive", file);
 
             // assert
             result.AssertError("The archive is signed. Changing gateway settings would invalidate its signature.");
+            Assert.Equal(original, File.ReadAllBytes(file));
         }
         finally
         {
