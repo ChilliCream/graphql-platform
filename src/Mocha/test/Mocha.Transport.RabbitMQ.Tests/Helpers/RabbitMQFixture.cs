@@ -298,7 +298,7 @@ public sealed partial class VhostContext : IAsyncDisposable
         var state = await GetStateAsync();
         var deadline = DateTimeOffset.UtcNow.Add(timeout);
 
-        while (!state.Matches(expected) && DateTimeOffset.UtcNow < deadline)
+        while (state != expected && DateTimeOffset.UtcNow < deadline)
         {
             await Task.Delay(100, TestContext.Current.CancellationToken);
             state = await GetStateAsync();
@@ -604,21 +604,7 @@ public sealed record BrokerState(
     int ConsumerChannels,
     int IdleChannels,
     int Consumers,
-    int ConsumedQueues)
-{
-    /// <summary>
-    /// The most publish channels a request round trip keeps open: the request and its reply can be awaiting their
-    /// confirms at the same time.
-    /// </summary>
-    public const int MaxIdleChannels = 2;
-
-    /// <summary>
-    /// Gets whether this state has the same connections, consumers and consumer channels as <paramref name="expected"/>,
-    /// and no more idle channels than concurrent publishes open.
-    /// </summary>
-    public bool Matches(BrokerState expected)
-        => this with { IdleChannels = expected.IdleChannels } == expected && IdleChannels <= MaxIdleChannels;
-}
+    int ConsumedQueues);
 
 internal static class Condition
 {
