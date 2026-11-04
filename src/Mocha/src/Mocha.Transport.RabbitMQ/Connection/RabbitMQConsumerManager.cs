@@ -13,9 +13,6 @@ namespace Mocha.Transport.RabbitMQ;
 public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 {
     private ImmutableArray<RegisteredConsumer> _registeredConsumers = [];
-    private readonly SemaphoreSlim _receiveTopologyLock = new(1, 1);
-    private IConnection? _receiveTopologyConnection;
-
     private CancellationTokenSource? _monitoringCts;
     private Task? _monitoringTask;
 
@@ -61,6 +58,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         => await RegisterConsumerAsync(
             queueName,
             provisionAsync: null,
+            dependencies: [],
             messageHandler,
             prefetchCount,
             consumerDispatchConcurrency,
@@ -75,6 +73,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     /// Declares the queue and its bindings on the consumer's channel before every attach, or <c>null</c>
     /// to consume without declaring anything.
     /// </param>
+    /// <param name="dependencies">Consumers that must be attached before this consumer starts consuming.</param>
     /// <param name="messageHandler">The callback invoked for each delivered message.</param>
     /// <param name="prefetchCount">The maximum number of unacknowledged messages the broker delivers to this consumer.</param>
     /// <param name="consumerDispatchConcurrency">The maximum number of messages processed concurrently.</param>
@@ -82,6 +81,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     internal async Task<RegisteredConsumer> RegisterConsumerAsync(
         string queueName,
         Func<IChannel, CancellationToken, Task>? provisionAsync,
+        ImmutableArray<RegisteredConsumer> dependencies,
         Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
         ushort prefetchCount,
         ushort consumerDispatchConcurrency,
@@ -92,6 +92,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             Manager = this,
             QueueName = queueName,
             ProvisionAsync = provisionAsync,
+            Dependencies = dependencies,
             MessageHandler = messageHandler,
             PrefetchCount = prefetchCount
         };
@@ -124,85 +125,6 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         Logger.RegisteredConsumerForQueue(queueName);
 
         return registration;
-    }
-
-    /// <summary>
-    /// Declares the queues and bindings of every registered consumer once per connection. Declarations that fail are
-    /// skipped, and the connection is then declared again on the next attach.
-    /// </summary>
-    private async Task ProvisionReceiveTopologiesAsync(IConnection connection, CancellationToken cancellationToken)
-    {
-        if (ReferenceEquals(Volatile.Read(ref _receiveTopologyConnection), connection))
-        {
-            return;
-        }
-
-        await _receiveTopologyLock.WaitAsync(cancellationToken);
-        try
-        {
-            if (ReferenceEquals(_receiveTopologyConnection, connection))
-            {
-                return;
-            }
-
-            var complete = true;
-            IChannel? channel = null;
-
-            try
-            {
-                foreach (var consumer in _registeredConsumers)
-                {
-                    if (consumer.ProvisionAsync is not { } provisionAsync)
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        channel ??= await connection.CreateChannelAsync(cancellationToken: cancellationToken);
-                        await provisionAsync(channel, cancellationToken);
-                    }
-                    catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
-                    {
-                        // A failed declaration closes the channel, and the consumer reports it when it attaches.
-                        complete = false;
-                        Logger.FailedToProvisionReceiveTopology(ex, consumer.QueueName);
-                        await DisposeChannelAsync(channel);
-                        channel = null;
-                    }
-                }
-            }
-            finally
-            {
-                await DisposeChannelAsync(channel);
-            }
-
-            if (complete)
-            {
-                Volatile.Write(ref _receiveTopologyConnection, connection);
-            }
-        }
-        finally
-        {
-            _receiveTopologyLock.Release();
-        }
-
-        static async Task DisposeChannelAsync(IChannel? channel)
-        {
-            if (channel is null)
-            {
-                return;
-            }
-
-            try
-            {
-                await channel.DisposeAsync();
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
     }
 
     /// <summary>
@@ -419,6 +341,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         private int _cancelledHandlers;
         private int _isRecoveryBlocked;
         private ChannelConsumer? _consumer;
+        private IConnection? _connection;
         private int _isReattaching;
         private bool _isDisposed;
 
@@ -450,6 +373,12 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         /// or <c>null</c> if the consumer declares nothing.
         /// </summary>
         public Func<IChannel, CancellationToken, Task>? ProvisionAsync { get; init; }
+
+        /// <summary>
+        /// Gets the consumers that must be attached before this consumer starts consuming.
+        /// Dependencies must not form cycles.
+        /// </summary>
+        public required ImmutableArray<RegisteredConsumer> Dependencies { get; init; }
 
         /// <summary>
         /// Gets the callback invoked for each message delivered from the queue.
@@ -501,11 +430,10 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         public bool IsHealthy => IsAttached && Volatile.Read(ref _cancelledHandlers) < ConsumerDispatchConcurrency;
 
         /// <summary>
-        /// Establishes a new channel on the given connection, configures QoS prefetch, and starts consuming messages from the queue.
+        /// Attaches this consumer to the given connection, or does nothing when already attached to it.
         /// </summary>
         /// <remarks>
-        /// Any previously active channel is disconnected before a new one is created.
-        /// On failure, the partially created channel is disposed and the consumer state is reset.
+        /// Consumption starts after the consumer's topology is declared and its dependencies are attached.
         /// </remarks>
         /// <param name="connection">The RabbitMQ connection to create a channel on.</param>
         /// <param name="cancellationToken">A token to cancel the connect operation.</param>
@@ -516,7 +444,10 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             try
             {
                 ObjectDisposedException.ThrowIf(_isDisposed, this);
-                await ConnectCoreAsync(connection, connectCts.Token);
+                if (!ReferenceEquals(_connection, connection) || !IsAttached)
+                {
+                    await ConnectCoreAsync(connection, connectCts.Token);
+                }
             }
             finally
             {
@@ -551,9 +482,6 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             ChannelConsumer? consumer = null;
             try
             {
-                // A handler must not reply to a queue of another consumer that is still missing.
-                await Manager.ProvisionReceiveTopologiesAsync(connection, attachToken);
-
                 var channelOptions = new CreateChannelOptions(
                     publisherConfirmationsEnabled: false,
                     publisherConfirmationTrackingEnabled: false,
@@ -574,6 +502,23 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                     global: false,
                     cancellationToken: attachToken);
 
+                foreach (var dependency in Dependencies)
+                {
+                    var attempt = 0;
+                    while (true)
+                    {
+                        await dependency.ConnectAsync(connection, attachToken);
+                        if (dependency.IsAttached)
+                        {
+                            break;
+                        }
+
+                        attempt++;
+                        var delay = RabbitMQBackoff.GetDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
+                        await Task.Delay(delay, attachToken);
+                    }
+                }
+
                 var tag = await channel.BasicConsumeAsync(
                     queue: QueueName,
                     autoAck: false,
@@ -583,6 +528,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                 ConsumerTag = tag;
                 Channel = channel;
                 _consumer = consumer;
+                _connection = connection;
                 SetDispatchConsumer(consumer);
             }
             catch (OperationCanceledException)
@@ -632,6 +578,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             Channel = null;
             ConsumerTag = null;
             _consumer = null;
+            _connection = null;
 
             if (consumer is not null)
             {
@@ -913,6 +860,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                 Channel = null;
                 ConsumerTag = null;
                 _consumer = null;
+                _connection = null;
 
                 if (consumer is not null)
                 {
@@ -1403,9 +1351,6 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Error disposing consumer {ConsumerTag}")]
     public static partial void ErrorDisposingConsumer(this ILogger logger, Exception ex, string consumerTag);
-
-    [LoggerMessage(LogLevel.Debug, "Failed to declare queue {Queue} and its bindings before consumers attach")]
-    public static partial void FailedToProvisionReceiveTopology(this ILogger logger, Exception ex, string queue);
 
     [LoggerMessage(LogLevel.Warning, "Failed to delete queue {Queue}")]
     public static partial void FailedToDeleteQueue(this ILogger logger, Exception ex, string queue);

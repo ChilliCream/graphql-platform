@@ -285,7 +285,7 @@ public class RabbitMQConsumerManagerRecoveryTests
     }
 
     [Fact]
-    public async Task Consumers_Should_DeclareEveryQueueBeforeConsuming_When_ConnectionReplaced()
+    public async Task Consumer_Should_WaitForReplyConsumer_When_ConnectionReplaced()
     {
         // arrange
         await using var vhost = await _fixture.CreateVhostAsync();
@@ -295,9 +295,10 @@ public class RabbitMQConsumerManagerRecoveryTests
         var firstDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var connectionLost = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var replyQueueDeclaredFirst = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        await manager.RegisterConsumerAsync(
+        var replyConsumer = await manager.RegisterConsumerAsync(
             "replies",
             replies.ProvisionAsync,
+            dependencies: [],
             static (_, _, _) => default,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
@@ -310,6 +311,7 @@ public class RabbitMQConsumerManagerRecoveryTests
                 exclusive: false,
                 autoDelete: false,
                 cancellationToken: ct),
+            dependencies: [replyConsumer],
             async (channel, eventArgs, _) =>
             {
                 if (!eventArgs.Redelivered)
@@ -320,7 +322,7 @@ public class RabbitMQConsumerManagerRecoveryTests
                     return;
                 }
 
-                replyQueueDeclaredFirst.TrySetResult(replies.DeclaredAfterLoss > 0);
+                replyQueueDeclaredFirst.TrySetResult(replies.DeclaredAfterLoss > 0 && replyConsumer.IsAttached);
                 await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
             },
             prefetchCount: 1,
@@ -338,7 +340,7 @@ public class RabbitMQConsumerManagerRecoveryTests
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.True(declaredFirst, "The request was handled before the reply queue was declared again.");
+        Assert.True(declaredFirst, "The request was handled before the reply consumer was attached again.");
     }
 
     private static async Task<RabbitMQConsumerManager> CreateManagerAsync(VhostContext vhost)

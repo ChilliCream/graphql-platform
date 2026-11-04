@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Mocha.Transport.RabbitMQ.Features;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -65,11 +66,20 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
+        var dependencies = ImmutableArray<RabbitMQConsumerManager.RegisteredConsumer>.Empty;
+        if (Kind is not ReceiveEndpointKind.Reply
+            && transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint)
+        {
+            await replyEndpoint.StartAsync(context, cancellationToken);
+            dependencies = [replyEndpoint._consumer!];
+        }
+
         var receiveTopology = new RabbitMQReceiveTopology(transport.Topology, Queue);
 
         _consumer = await transport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
             receiveTopology.ProvisionAsync,
+            dependencies,
             ProcessMessageAsync,
             _maxPrefetch,
             _consumerDispatchConcurrency,
