@@ -9,7 +9,7 @@ namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
 /// RabbitMQ dispatch endpoint that publishes outbound messages to a target queue or exchange
-/// using pooled channels from the transport's dispatcher.
+/// using the shared publisher channel from the transport's dispatcher.
 /// </summary>
 /// <param name="transport">The owning RabbitMQ transport instance.</param>
 public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transport)
@@ -43,20 +43,55 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         while (true)
         {
             IChannel? channel = null;
+            var canReuseChannel = false;
             try
             {
                 channel = await dispatcher.RentChannelAsync(cancellationToken);
                 await EnsureProvisionedAsync(channel, cancellationToken);
-                await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
+                canReuseChannel = true;
+
+                try
+                {
+                    await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
+                }
+                catch (PublishException ex) when (ex.IsReturn && Queue is not null)
+                {
+                    if (Queue.Exclusive || !(Queue.AutoProvision ?? transport.Topology.AutoProvision))
+                    {
+                        throw ThrowHelper.MessageReturned(Queue.Name, ex);
+                    }
+
+                    canReuseChannel = false;
+                    await Queue.ProvisionAsync(channel, cancellationToken);
+                    canReuseChannel = true;
+                    dispatcher.LogReturnedQueueRedeclared(Queue.Name);
+
+                    try
+                    {
+                        await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
+                    }
+                    catch (PublishException again) when (again.IsReturn)
+                    {
+                        throw ThrowHelper.MessageReturned(Queue.Name, again);
+                    }
+                }
             }
             catch (Exception ex)
             {
+                var isConnectionLoss = IsConnectionLoss(ex, dispatcher, cancellationToken);
                 if (channel is not null)
                 {
-                    dispatcher.DiscardChannel(channel);
+                    if (canReuseChannel && channel.IsOpen && !isConnectionLoss)
+                    {
+                        await dispatcher.ReturnChannelAsync(channel);
+                    }
+                    else
+                    {
+                        dispatcher.DiscardChannel(channel);
+                    }
                 }
 
-                if (!IsConnectionLoss(ex, dispatcher, cancellationToken))
+                if (!isConnectionLoss)
                 {
                     throw;
                 }
@@ -200,33 +235,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         // A reply whose requester is gone has no queue, and is dropped.
         var mandatory = Queue is not null && Kind != DispatchEndpointKind.Reply;
 
-        try
-        {
-            await channel.BasicPublishAsync(exchangeName, routingKey, mandatory, properties, envelope.Body, cancellationToken);
-        }
-        catch (PublishException ex) when (ex.IsReturn && Queue is not null)
-        {
-            var autoProvision = transport.Topology.AutoProvision;
-
-            // An exclusive queue belongs to the consumer connection, which declares it again when it re-attaches.
-            if (Queue.Exclusive || !(Queue.AutoProvision ?? autoProvision))
-            {
-                throw ThrowHelper.MessageReturned(Queue.Name, ex);
-            }
-
-            // The queue was deleted after it was declared, for example by an operator or because it expired.
-            await Queue.ProvisionAsync(channel, cancellationToken);
-            transport.Dispatcher.LogReturnedQueueRedeclared(Queue.Name);
-
-            try
-            {
-                await channel.BasicPublishAsync(exchangeName, routingKey, mandatory, properties, envelope.Body, cancellationToken);
-            }
-            catch (PublishException again) when (again.IsReturn)
-            {
-                throw ThrowHelper.MessageReturned(Queue.Name, again);
-            }
-        }
+        await channel.BasicPublishAsync(exchangeName, routingKey, mandatory, properties, envelope.Body, cancellationToken);
     }
 
     private bool _isProvisioned;

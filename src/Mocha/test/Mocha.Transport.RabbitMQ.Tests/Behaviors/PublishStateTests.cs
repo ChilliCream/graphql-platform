@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
@@ -244,6 +245,144 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
         Assert.True(peakChannels <= 110);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task SendAsync_Should_ReusePublisherChannel_When_PublishesAreCancelledRepeatedly(bool warmup)
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.RequestedChannelMax = 128;
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareQueue("cancelled-sends");
+                t.DispatchEndpoint("cancelled-send").ToQueue("cancelled-sends").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+        if (warmup)
+        {
+            await TrySendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
+        }
+        var results = new List<string>();
+
+        // act
+        await using (await fixture.BlockPublishersAsync())
+        {
+            for (var wave = 0; wave < 5; wave++)
+            {
+                results.AddRange(await Task.WhenAll(Enumerable.Range(0, 100).Select(i => TrySendAsync(
+                    bus,
+                    new ProcessPayment { OrderId = $"{wave}-{i}", Amount = 1 },
+                    TimeSpan.FromMilliseconds(300)))));
+            }
+        }
+
+        var afterUnblock = await TrySendAsync(bus, new ProcessPayment { OrderId = "resumed", Amount = 1 });
+        var state = await vhost.GetStateAsync();
+
+        // assert
+        new
+        {
+            Results = results.GroupBy(Normalize).ToDictionary(g => g.Key, g => g.Count()),
+            AfterUnblock = afterUnblock,
+            state.Connections,
+            state.IdleChannels
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Results": {
+                "cancelled": 500
+              },
+              "AfterUnblock": "sent",
+              "Connections": 2,
+              "IdleChannels": 1
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_ReusePendingChannel_When_ChannelRentIsCancelledRepeatedly()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.RequestedChannelMax = 128;
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareQueue("pending-channel");
+                t.DispatchEndpoint("pending-send").ToQueue("pending-channel").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var dispatcher = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
+
+        // act
+        await using (await vhost.FreezeConnectionsAsync())
+        {
+            for (var i = 0; i < 5; i++)
+            {
+                using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                    () => dispatcher.RentChannelAsync(timeout.Token).AsTask()
+                        .WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken));
+            }
+        }
+
+        var afterUnfreeze = await TrySendAsync(bus, new ProcessPayment { OrderId = "resumed", Amount = 1 });
+        var state = await vhost.GetStateAsync();
+
+        // assert
+        new { AfterUnfreeze = afterUnfreeze, state.Connections, state.IdleChannels }.MatchInlineSnapshot(
+            """
+            {
+              "AfterUnfreeze": "sent",
+              "Connections": 2,
+              "IdleChannels": 1
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_Reconnect_When_PublisherChannelCreationTimesOut()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.ContinuationTimeout = TimeSpan.FromSeconds(30);
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareQueue("channel-timeout");
+                t.DispatchEndpoint("timeout-send").ToQueue("channel-timeout").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var dispatcher = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
+        dispatcher.ChannelCreationTimeout = TimeSpan.FromMilliseconds(250);
+
+        // act
+        await using (await vhost.FreezeConnectionsAsync())
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask()
+                    .WaitAsync(s_timeout, TestContext.Current.CancellationToken));
+        }
+
+        dispatcher.ChannelCreationTimeout = s_timeout;
+        var afterTimeout = await TrySendAsync(bus, new ProcessPayment { OrderId = "resumed", Amount = 1 });
+        var recovered = await Condition.WaitAsync(async () => await vhost.GetConnectionCountAsync() == 2, s_timeout);
+
+        // assert
+        Assert.Equal("sent", afterTimeout);
+        Assert.True(recovered, $"Connections: {await vhost.GetConnectionCountAsync()}");
+    }
+
     [Fact]
     public async Task PublishAsync_Should_Succeed_When_PreviousPublishTimedOut()
     {
@@ -450,11 +589,11 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
         await channel.ExchangeDeleteAsync(exchange, cancellationToken: TestContext.Current.CancellationToken);
     }
 
-    private static async Task<string> TrySendAsync(TestBus bus, ProcessPayment message)
+    private static async Task<string> TrySendAsync(TestBus bus, ProcessPayment message, TimeSpan? timeout = null)
     {
         using var scope = bus.Provider.CreateScope();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(s_timeout);
+        cts.CancelAfter(timeout ?? s_timeout);
 
         try
         {
