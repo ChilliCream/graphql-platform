@@ -8,7 +8,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.ConnectionRecovery)]
 public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHelper output)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
@@ -96,6 +96,7 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
         var recorder = new MessageRecorder();
+        var logs = new LogRecorder();
         var broker = await fixture.StopBrokerAsync();
         Task<TestBus> start;
         bool completedWhileBrokerStopped;
@@ -103,8 +104,8 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         // act
         try
         {
-            start = CreateBusAsync(vhost, recorder);
-            await Task.Delay(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
+            start = CreateBusAsync(vhost, recorder, logs);
+            Assert.True(await Condition.WaitAsync(() => logs.Contains("FailedToCreateConnectionRetrying"), s_timeout));
             completedWhileBrokerStopped = start.IsCompleted;
         }
         finally
@@ -367,7 +368,7 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         // user exists again
         await vhost.DeleteUserAsync(credentials.UserName);
         var lost = await Condition.WaitAsync(() => logs.Contains("ConnectionShutdownDetected"), s_timeout);
-        await Task.Delay(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
+        Assert.True(await Condition.WaitAsync(() => logs.Contains("ReconnectionAttemptFailed"), s_timeout));
         await using var recreated = await vhost.AddUserAsync(credentials.UserName, credentials.Password);
         var outcome = await RecoverAsync(vhost, bus, recorder, before);
         var after = await vhost.WaitForStateAsync(before, s_timeout);
@@ -547,9 +548,9 @@ public sealed class ConnectionStateTests(RabbitMQFixture fixture, ITestOutputHel
         // reply queue has no consumer
         await vhost.SetPermissionsAsync(credentials.UserName, configure: "^$", write: "^$", read: "^$");
         await vhost.CloseConnectionOfConsumerAsync(replyQueue);
-        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        await vhost.WaitForNoConsumerAsync(replyQueue, s_timeout);
         gate.Release.TrySetResult();
-        await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+        await vhost.WaitForMessagesAsync(replyQueue, 1, s_timeout);
         await vhost.SetPermissionsAsync(credentials.UserName, configure: ".*", write: ".*", read: ".*");
 
         string reply;

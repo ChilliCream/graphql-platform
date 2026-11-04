@@ -5,7 +5,7 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
 {
     [Fact]

@@ -7,7 +7,7 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.ConsumerRecovery)]
 public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelper output)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
@@ -238,7 +238,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
                 Assert.True(await Condition.WaitAsync(() => logs.Contains("ConsumerChannelLost"), s_timeout));
                 gate.Release.TrySetResult();
                 Assert.True(await orders.WaitAsync(s_timeout));
-                await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+                Assert.True(await Condition.WaitAsync(() => logs.Contains("SettlementSkippedChannelClosed"), s_timeout));
             }
 
             var settled = await Condition.WaitAsync(
@@ -310,7 +310,7 @@ public sealed class ConsumerStateTests(RabbitMQFixture fixture, ITestOutputHelpe
             // act
             // every re-attach attempt fails with 404, which closes only the channel of the attempt
             await vhost.DeleteQueueAsync("orders");
-            await Task.Delay(TimeSpan.FromSeconds(4), TestContext.Current.CancellationToken);
+            Assert.True(await Condition.WaitAsync(() => logs.Contains("FailedToReattachConsumerForQueueAgain"), s_timeout));
             var whileMissing = await vhost.GetStateAsync();
             await SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
             var paymentsReceived = await Condition.WaitAsync(

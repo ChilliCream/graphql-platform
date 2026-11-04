@@ -4,7 +4,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class CustomHeaderTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);

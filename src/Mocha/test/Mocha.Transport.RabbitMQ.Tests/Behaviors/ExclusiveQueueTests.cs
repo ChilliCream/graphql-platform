@@ -5,7 +5,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public sealed class ExclusiveQueueTests(RabbitMQFixture fixture)
 {
     private const string QueueName = "exclusive-orders";
