@@ -185,7 +185,6 @@ internal sealed class FusionRequestExecutorManager
 
         var options = CreateOptions(setup);
         var requestOptions = CreateRequestOptions(setup);
-        var plannerOptions = CreatePlannerOptions(setup, options);
         var parserOptions = CreateParserOptions(setup);
         var features = CreateSchemaFeatures(
             setup,
@@ -197,8 +196,7 @@ internal sealed class FusionRequestExecutorManager
             configuration,
             setup,
             options,
-            requestOptions,
-            plannerOptions);
+            requestOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, configuration.Settings.Document, schemaServices, features);
         _ = schemaServices.GetRequiredService<CostSchemaIndex>();
@@ -277,13 +275,81 @@ internal sealed class FusionRequestExecutorManager
         return options;
     }
 
-    private static OperationPlannerOptions CreatePlannerOptions(FusionGatewaySetup setup, FusionOptions options)
+    private static OperationPlannerOptions CreatePlannerOptions(
+        FusionGatewaySetup setup, FusionOptions options, FusionSchemaDefinition schema)
     {
         var plannerOptions = new OperationPlannerOptions
         {
             EnableDefer = options.EnableDefer,
             EnableEntityReuseSplitting = options.EnableEntityReuse
         };
+
+        var schemaOptions = schema.PlannerOptions;
+
+        if (schemaOptions.DepthWeight is { } depthWeight)
+        {
+            plannerOptions.DepthWeight = depthWeight;
+        }
+
+        if (schemaOptions.OperationWeight is { } operationWeight)
+        {
+            plannerOptions.OperationWeight = operationWeight;
+        }
+
+        if (schemaOptions.EnableRequestGrouping is { } enableRequestGrouping)
+        {
+            plannerOptions.EnableRequestGrouping = enableRequestGrouping;
+        }
+
+        if (schemaOptions.EnableDefer is { } enableDefer)
+        {
+            plannerOptions.EnableDefer = enableDefer;
+        }
+
+        if (schemaOptions.InlineUnlabeledDeferFragments is { } inlineUnlabeledDeferFragments)
+        {
+            plannerOptions.InlineUnlabeledDeferFragments = inlineUnlabeledDeferFragments;
+        }
+
+        if (schemaOptions.MergePolicy is { } mergePolicy)
+        {
+            plannerOptions.MergePolicy = (OperationMergePolicy)mergePolicy;
+        }
+
+        if (schemaOptions.EnableEntityReuseSplitting is { } enableEntityReuseSplitting)
+        {
+            plannerOptions.EnableEntityReuseSplitting = enableEntityReuseSplitting;
+        }
+
+        if (schemaOptions.ExcessFanoutWeight is { } excessFanoutWeight)
+        {
+            plannerOptions.ExcessFanoutWeight = excessFanoutWeight;
+        }
+
+        if (schemaOptions.FanoutPenaltyThreshold is { } fanoutPenaltyThreshold)
+        {
+            plannerOptions.FanoutPenaltyThreshold = fanoutPenaltyThreshold;
+        }
+
+        if (schemaOptions.MaxPlanningTime is { } maxPlanningTime)
+        {
+            plannerOptions.MaxPlanningTime = maxPlanningTime;
+        }
+
+        if (schemaOptions.MaxExpandedNodes is { } maxExpandedNodes)
+        {
+            plannerOptions.MaxExpandedNodes = maxExpandedNodes;
+        }
+
+        if (schemaOptions.MaxQueueSize is { } maxQueueSize)
+        {
+            plannerOptions.MaxQueueSize = maxQueueSize;
+        }
+
+        if (schemaOptions.MaxGeneratedOptionsPerWorkItem is { } maxGeneratedOptionsPerWorkItem)
+        {
+            plannerOptions.MaxGeneratedOptionsPerWorkItem = maxGeneratedOptionsPerWorkItem;
+        }
 
         foreach (var configure in setup.PlannerOptionsModifiers)
         {
@@ -434,8 +500,7 @@ internal sealed class FusionRequestExecutorManager
         FusionConfiguration configuration,
         FusionGatewaySetup setup,
         FusionOptions options,
-        FusionRequestOptions requestOptions,
-        OperationPlannerOptions plannerOptions)
+        FusionRequestOptions requestOptions)
     {
         var schemaServices = new ServiceCollection();
 
@@ -445,7 +510,7 @@ internal sealed class FusionRequestExecutorManager
             schemaServices,
             options,
             requestOptions);
-        AddOperationPlanner(schemaServices, plannerOptions);
+        AddOperationPlanner(schemaServices, setup, options);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices, options);
         AddDiagnosticEvents(schemaServices);
@@ -549,7 +614,8 @@ internal sealed class FusionRequestExecutorManager
 
     private static void AddOperationPlanner(
         IServiceCollection services,
-        OperationPlannerOptions plannerOptions)
+        FusionGatewaySetup setup,
+        FusionOptions options)
     {
         services.AddSingleton(
             static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateFieldMapPool());
@@ -586,7 +652,7 @@ internal sealed class FusionRequestExecutorManager
                     requestOptions.MaxAllowedDeferConditions);
             });
 
-        services.AddSingleton(plannerOptions);
+        services.AddSingleton(sp => CreatePlannerOptions(setup, options, sp.GetRequiredService<FusionSchemaDefinition>()));
 
         services.AddSingleton(
             static sp => new OperationPlanner(

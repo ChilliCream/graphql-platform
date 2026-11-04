@@ -26,6 +26,9 @@ internal static class ThrowHelper
     public static InvalidOperationException InvalidCostSetting(string path, string requirement)
         => new($"The {path} setting must be {requirement}.");
 
+    public static InvalidOperationException InvalidPlannerSetting(string path, string requirement)
+        => new($"The {path} setting must be {requirement}.");
+
     public static InvalidOperationException DuplicateCostOptionsDirective()
         => new("The fusion__cost_options directive may only be applied once per schema.");
 

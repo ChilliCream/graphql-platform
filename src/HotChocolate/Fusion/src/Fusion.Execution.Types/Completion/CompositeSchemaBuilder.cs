@@ -32,7 +32,7 @@ internal static class CompositeSchemaBuilder
         services ??= EmptyServiceProvider.Instance;
         var typeInterceptor = CreateTypeInterceptor(services);
         var options = FusionSchemaOptions.From(features?.Get<IFusionSchemaOptions>());
-        var plannerOptions = PlannerOptionsParser.Parse(schemaDocument);
+        var plannerOptions = PlannerOptionsParser.Parse(schemaDocument, settings);
         var costOptions = FusionSchemaCostOptionsParser.Parse(schemaDocument, settings);
         var context = CreateTypes(name, schemaDocument, services, features, options, typeInterceptor);
         return CompleteTypes(
