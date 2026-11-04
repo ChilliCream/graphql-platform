@@ -5,7 +5,7 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Messaging)]
 public class RequestReplyTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
@@ -199,8 +199,12 @@ public class RequestReplyTests
 
         // act
         // the reply queue expires while its consumer is disconnected
-        await vhost.CloseConnectionOfConsumerAsync(queueName);
-        await vhost.DeleteQueueAsync(replyQueue);
+        await using (await vhost.RevokeAccessAsync())
+        {
+            await vhost.CloseConnectionOfConsumerAsync(queueName);
+            await vhost.DeleteQueueAsync(replyQueue);
+        }
+
         var after = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-after" }, cts.Token);
 
         // assert

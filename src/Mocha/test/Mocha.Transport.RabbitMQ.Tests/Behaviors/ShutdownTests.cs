@@ -3,7 +3,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.ConsumerRecovery)]
 public sealed class ShutdownTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
@@ -21,7 +21,7 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
 
         // act
         var stop = runtime.StopAsync(CancellationToken.None).AsTask();
-        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        await vhost.WaitForNoConsumerAsync("shutdown", s_timeout);
         var stoppedBeforeHandlerFinished = stop.IsCompleted;
         gate.Release.TrySetResult();
         await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
@@ -119,7 +119,7 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         using var stopTimeout = new CancellationTokenSource(s_timeout);
         var stop = runtime.StopAsync(stopTimeout.Token).AsTask();
         await fixture.CloseAllConnectionsAsync();
-        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        await gate.CancellationObserved.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         gate.Release.TrySetResult();
         var stopped = await Task.WhenAny(stop, Task.Delay(s_timeout, TestContext.Current.CancellationToken)) == stop;
         await bus.DisposeAsync();
@@ -162,6 +162,8 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
 
         public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        public TaskCompletionSource CancellationObserved { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
         public bool Completed { get; set; }
 
         public bool Cancelled { get; set; }
@@ -182,6 +184,7 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
             catch (OperationCanceledException)
             {
                 gate.Cancelled = true;
+                gate.CancellationObserved.TrySetResult();
                 throw;
             }
 
@@ -202,6 +205,7 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
             catch (OperationCanceledException)
             {
                 gate.Cancelled = true;
+                gate.CancellationObserved.TrySetResult();
                 throw;
             }
         }

@@ -1,10 +1,11 @@
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.ConnectionRecovery)]
 public sealed class PublishStateTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
@@ -114,7 +115,15 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
         var orders = new MessageRecorder();
-        await using var bus = await CreateOrdersBusAsync(vhost, orders);
+        var logs = new LogRecorder();
+        await using var bus = await new ServiceCollection()
+            .AddLogging(builder => builder.AddProvider(logs))
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(orders)
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderCreatedHandler>())
+            .BuildTestBusAsync();
         await TryPublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
         Assert.True(await orders.WaitAsync(s_timeout));
 
@@ -125,9 +134,9 @@ public sealed class PublishStateTests(RabbitMQFixture fixture)
         await using (await fixture.BlockPublishersAsync())
         {
             publish = TryPublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }, TimeSpan.FromSeconds(30));
-            await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+            Assert.True(await Condition.WaitAsync(() => logs.Contains("ConnectionBlocked"), s_timeout));
             await fixture.CloseAllConnectionsAsync();
-            await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+            Assert.True(await Condition.WaitAsync(() => logs.Contains("PublishFailedRetrying"), s_timeout));
         }
 
         var outcome = await publish.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);

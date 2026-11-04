@@ -8,7 +8,7 @@ using RabbitMQ.Client.Events;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Messaging)]
 public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);

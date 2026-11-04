@@ -1,24 +1,42 @@
 using System.Globalization;
+using System.Net;
+using System.Net.Http.Headers;
+#if !NET11_0_OR_GREATER
+using System.Net.Http.Json;
+#endif
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using CookieCrumble.Resources;
+using DotNet.Testcontainers.Builders;
 using RabbitMQ.Client;
+using Testcontainers.RabbitMq;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 public sealed class RabbitMQFixture : IAsyncLifetime
 {
+    private const string ManagementUser = "mocha-tests";
+    private const string ManagementPassword = "mocha-tests";
+
 #if RABBITMQ_3
-    private readonly RabbitMQResource _resource = new() { Image = "rabbitmq:3.13" };
+    private readonly ManagementRabbitMQResource _resource = new() { Image = "rabbitmq:3.13" };
 #else
-    private readonly RabbitMQResource _resource = new();
+    private readonly ManagementRabbitMQResource _resource = new();
 #endif
+    private readonly HttpClient _management = new();
 
     public async ValueTask InitializeAsync()
     {
         await _resource.InitializeAsync();
+        _management.BaseAddress = new UriBuilder("http", _resource.Hostname, _resource.ManagementPort, "api/").Uri;
+        _management.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Basic", Convert.ToBase64String("guest:guest"u8));
+        await PutAsync($"users/{ManagementUser}", new { password = ManagementPassword, tags = "administrator" });
+        _management.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{ManagementUser}:{ManagementPassword}")));
 
         // Quorum queues refresh the consumer and message counts that list_queues reports on each tick, so tests
         // that read those counts need a short tick.
@@ -27,6 +45,7 @@ public sealed class RabbitMQFixture : IAsyncLifetime
 
     public async ValueTask DisposeAsync()
     {
+        _management.Dispose();
         await _resource.DisposeAsync();
     }
 
@@ -37,10 +56,13 @@ public sealed class RabbitMQFixture : IAsyncLifetime
         [CallerFilePath] string filePath = "")
     {
         var vhostName = GenerateVhostName(testName, filePath);
-        await _resource.InvokeCommandAsync(["rabbitmqctl", "add_vhost", vhostName]);
-        await _resource.InvokeCommandAsync([
-            "rabbitmqctl", "set_permissions", "-p", vhostName, "guest", ".*", ".*", ".*"
-        ]);
+        await PutAsync($"vhosts/{Uri.EscapeDataString(vhostName)}", new { });
+        await PutAsync(
+            $"permissions/{Uri.EscapeDataString(vhostName)}/guest",
+            new { configure = ".*", write = ".*", read = ".*" });
+        await PutAsync(
+            $"permissions/{Uri.EscapeDataString(vhostName)}/{ManagementUser}",
+            new { configure = ".*", write = ".*", read = ".*" });
         return new VhostContext(this, vhostName);
     }
 
@@ -57,7 +79,19 @@ public sealed class RabbitMQFixture : IAsyncLifetime
 
     internal async Task DeleteVhostAsync(string vhostName)
     {
-        await _resource.InvokeCommandAsync(["rabbitmqctl", "delete_vhost", vhostName]);
+        await DeleteAsync($"vhosts/{Uri.EscapeDataString(vhostName)}");
+    }
+
+    internal async Task PutAsync(string path, object value)
+    {
+        using var response = await _management.PutAsJsonAsync(path, value, TestContext.Current.CancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    internal async Task DeleteAsync(string path)
+    {
+        using var response = await _management.DeleteAsync(path, TestContext.Current.CancellationToken);
+        response.EnsureSuccessStatusCode();
     }
 
     /// <summary>
@@ -213,7 +247,7 @@ public sealed partial class VhostContext : IAsyncDisposable
     /// </summary>
     public async Task DeleteQueueAsync(string queueName)
     {
-        await _fixture.InvokeCommandAsync(["rabbitmqctl", "delete_queue", "-p", VhostName, queueName]);
+        await _fixture.DeleteAsync($"queues/{Uri.EscapeDataString(VhostName)}/{Uri.EscapeDataString(queueName)}");
     }
 
     /// <summary>
@@ -232,20 +266,27 @@ public sealed partial class VhostContext : IAsyncDisposable
     /// </summary>
     public async Task<BrokerState> GetStateAsync()
     {
-        var consumers = await GetConsumerCountsAsync();
-        var channels = await _fixture.InvokeCommandAsync(
-            ["rabbitmqctl", "list_channels", "vhost", "consumer_count", "--quiet", "--no-table-headers"]);
-        var channelConsumers = ParseRows(channels)
-            .Where(row => row[0] == VhostName)
-            .Select(row => int.Parse(row[1]))
-            .ToList();
+        var output = await _fixture.EvalAsync(
+            $$"""
+            VHost = <<"{{VhostName}}">>,
+            QueueCounts = [proplists:get_value(consumers, Info, 0)
+                           || Q <- rabbit_amqqueue:list(VHost),
+                              Info <- [catch rabbit_amqqueue:info(Q, [consumers])], is_list(Info)],
+            Connections = [C || C <- rabbit_networking:connections(),
+                                (catch rabbit_reader:info(C, [vhost])) =:= [{vhost, VHost}]],
+            ChannelCounts = [proplists:get_value(consumer_count, Info, 0)
+                             || C <- rabbit_channel:list(),
+                                Info <- [catch rabbit_channel:info(C, [vhost, consumer_count])],
+                                is_list(Info), proplists:get_value(vhost, Info) =:= VHost],
+            [length(Connections),
+             length([N || N <- ChannelCounts, N > 0]),
+             length([N || N <- ChannelCounts, N =:= 0]),
+             lists:sum(QueueCounts),
+             length([N || N <- QueueCounts, N > 0])].
+            """);
+        var counts = JsonSerializer.Deserialize<int[]>(output)!;
 
-        return new BrokerState(
-            await GetConnectionCountAsync(),
-            channelConsumers.Count(count => count > 0),
-            channelConsumers.Count(count => count == 0),
-            consumers.Where(queue => queue.Value > 0).Sum(queue => queue.Value),
-            consumers.Count(queue => queue.Value > 0));
+        return new BrokerState(counts[0], counts[1], counts[2], counts[3], counts[4]);
     }
 
     /// <summary>
@@ -329,10 +370,9 @@ public sealed partial class VhostContext : IAsyncDisposable
     /// </summary>
     public async Task<IAsyncDisposable> RevokeAccessAsync()
     {
-        await _fixture.InvokeCommandAsync(["rabbitmqctl", "clear_permissions", "-p", VhostName, "guest"]);
+        await _fixture.DeleteAsync($"permissions/{Uri.EscapeDataString(VhostName)}/guest");
 
-        return new AsyncDisposable(() => _fixture.InvokeCommandAsync(
-            ["rabbitmqctl", "set_permissions", "-p", VhostName, "guest", ".*", ".*", ".*"]));
+        return new AsyncDisposable(() => SetPermissionsAsync("guest", ".*", ".*", ".*"));
     }
 
     /// <summary>
@@ -340,7 +380,7 @@ public sealed partial class VhostContext : IAsyncDisposable
     /// </summary>
     public async Task<IAsyncDisposable> AddUserAsync(string userName, string password)
     {
-        await _fixture.InvokeCommandAsync(["rabbitmqctl", "add_user", userName, password]);
+        await _fixture.PutAsync($"users/{Uri.EscapeDataString(userName)}", new { password, tags = "" });
         await SetPermissionsAsync(userName, ".*", ".*", ".*");
 
         return new AsyncDisposable(async () =>
@@ -349,7 +389,7 @@ public sealed partial class VhostContext : IAsyncDisposable
             {
                 await DeleteUserAsync(userName);
             }
-            catch (InvalidOperationException)
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
                 // The test deleted the user already.
             }
@@ -360,21 +400,22 @@ public sealed partial class VhostContext : IAsyncDisposable
     /// Deletes a user the way an operator would, which closes every connection of the user.
     /// </summary>
     public Task DeleteUserAsync(string userName)
-        => _fixture.InvokeCommandAsync(["rabbitmqctl", "delete_user", userName]);
+        => _fixture.DeleteAsync($"users/{Uri.EscapeDataString(userName)}");
 
     /// <summary>
     /// Changes the password of a user. Open connections of the user stay open.
     /// </summary>
     public Task ChangePasswordAsync(string userName, string password)
-        => _fixture.InvokeCommandAsync(["rabbitmqctl", "change_password", userName, password]);
+        => _fixture.PutAsync($"users/{Uri.EscapeDataString(userName)}", new { password, tags = "" });
 
     /// <summary>
     /// Sets the configure, write and read permissions of a user on the vhost, each a regular expression of
     /// resource names.
     /// </summary>
     public Task SetPermissionsAsync(string userName, string configure, string write, string read)
-        => _fixture.InvokeCommandAsync(
-            ["rabbitmqctl", "set_permissions", "-p", VhostName, userName, configure, write, read]);
+        => _fixture.PutAsync(
+            $"permissions/{Uri.EscapeDataString(VhostName)}/{Uri.EscapeDataString(userName)}",
+            new { configure, write, read });
 
     /// <summary>
     /// Gets the prefetch count of the consumer on each queue of the vhost.
@@ -459,9 +500,7 @@ public sealed partial class VhostContext : IAsyncDisposable
     }
 
     public Task SetConfigurePermissionAsync(string pattern)
-        => _fixture.InvokeCommandAsync([
-            "rabbitmqctl", "set_permissions", "-p", VhostName, "guest", pattern, ".*", ".*"
-        ]);
+        => SetPermissionsAsync("guest", pattern, ".*", ".*");
 
     public async Task WaitForQueueAsync(string queueName, TimeSpan timeout)
     {
@@ -473,9 +512,7 @@ public sealed partial class VhostContext : IAsyncDisposable
     }
 
     public Task SetReadPermissionAsync(string pattern)
-        => _fixture.InvokeCommandAsync([
-            "rabbitmqctl", "set_permissions", "-p", VhostName, "guest", ".*", ".*", pattern
-        ]);
+        => SetPermissionsAsync("guest", ".*", ".*", pattern);
 
     public async Task AllowReadingQueuesOnlyAsync()
     {
@@ -633,5 +670,36 @@ internal sealed class AsyncDisposable(Func<Task> dispose) : IAsyncDisposable
     public async ValueTask DisposeAsync() => await dispose();
 }
 
-[CollectionDefinition("RabbitMQ")]
-public class RabbitMQCollection : ICollectionFixture<RabbitMQFixture>;
+public static class RabbitMQCollections
+{
+    public const string ConnectionRecovery = "RabbitMQ Connection Recovery";
+    public const string ConsumerRecovery = "RabbitMQ Consumer Recovery";
+    public const string Messaging = "RabbitMQ Messaging";
+    public const string Topology = "RabbitMQ Topology";
+}
+
+[CollectionDefinition(RabbitMQCollections.ConnectionRecovery)]
+public sealed class RabbitMQConnectionRecoveryCollection : ICollectionFixture<RabbitMQFixture>;
+
+[CollectionDefinition(RabbitMQCollections.ConsumerRecovery)]
+public sealed class RabbitMQConsumerRecoveryCollection : ICollectionFixture<RabbitMQFixture>;
+
+[CollectionDefinition(RabbitMQCollections.Messaging)]
+public sealed class RabbitMQMessagingCollection : ICollectionFixture<RabbitMQFixture>;
+
+[CollectionDefinition(RabbitMQCollections.Topology)]
+public sealed class RabbitMQTopologyCollection : ICollectionFixture<RabbitMQFixture>;
+
+internal sealed class ManagementRabbitMQResource : RabbitMQResource
+{
+    public ushort ManagementPort => Container.GetMappedPublicPort(15672);
+
+    protected override RabbitMqBuilder Configure(RabbitMqBuilder builder)
+        => builder
+            .WithResourceMapping("[rabbitmq_management]."u8.ToArray(), "/etc/rabbitmq/enabled_plugins")
+            .WithPortBinding(15672, true)
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(request => request
+                .ForPort(15672)
+                .ForPath("/api/overview")
+                .WithBasicAuthentication("guest", "guest")));
+}

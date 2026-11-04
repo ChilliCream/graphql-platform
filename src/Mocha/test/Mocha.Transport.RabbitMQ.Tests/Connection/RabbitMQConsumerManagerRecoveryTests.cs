@@ -7,7 +7,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.ConsumerRecovery)]
 public class RabbitMQConsumerManagerRecoveryTests
 {
     private const string QueueName = "recovery-queue";
