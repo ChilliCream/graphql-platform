@@ -1,6 +1,8 @@
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CompositionCaseBudgetExceededBehavior = HotChocolate.Fusion.Options.CaseBudgetExceededBehavior;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -14,26 +16,20 @@ public class CostOptionsConfigurationTests : FusionTestBase
         """;
 
     [Fact]
-    public async Task CostOptions_Should_UseSchemaValues_When_ComposedSchemaConfiguresThem()
+    public async Task CostOptions_Should_UseSettingsValues_When_GatewayConfiguresThem()
     {
         // arrange
         var services = new ServiceCollection();
         services
             .AddGraphQLGateway()
             .AddInMemoryConfiguration(
-                ComposeSchemaDocument(
-                    options =>
-                    {
-                        options.Merger.MaxFieldCost = 10.5;
-                        options.Merger.MaxTypeCost = 20.5;
-                        options.Merger.EnforceCostLimits = false;
-                        options.Merger.SkipCostAnalyzer = true;
-                        options.Merger.MaxResponseSize = 30.5;
-                        options.Merger.CostPlanCacheSize = 40;
-                        options.Merger.CaseBudget = 50;
-                        options.Merger.CaseBudgetExceededBehavior = CompositionCaseBudgetExceededBehavior.Overestimate;
-                    },
-                    SourceSchema));
+                ComposeSchemaDocument(SourceSchema),
+                Settings("""
+                    { "cost": { "maxFieldCost": 10.5, "maxTypeCost": 20.5,
+                      "enforceCostLimits": false, "skipAnalyzer": true,
+                      "maxResponseSize": 30.5, "costPlanCacheSize": 40,
+                      "caseBudget": 50, "caseBudgetExceededBehavior": "Overestimate" } }
+                    """));
 
         // act
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
@@ -67,7 +63,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task CostOptions_Should_ApplyCallbacksAfterSchemaValues_When_CallbacksAreConfigured()
+    public async Task CostOptions_Should_ApplyCallbacksAfterSettings_When_CallbacksAreConfigured()
     {
         // arrange
         var services = new ServiceCollection();
@@ -80,13 +76,8 @@ public class CostOptionsConfigurationTests : FusionTestBase
                     options.EnforceCostLimits = true;
                 })
             .AddInMemoryConfiguration(
-                ComposeSchemaDocument(
-                    options =>
-                    {
-                        options.Merger.MaxFieldCost = 10;
-                        options.Merger.EnforceCostLimits = false;
-                    },
-                    SourceSchema));
+                ComposeSchemaDocument(SourceSchema),
+                Settings("""{ "cost": { "maxFieldCost": 10, "enforceCostLimits": false } }"""));
 
         // act
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
@@ -140,9 +131,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var executorEvictedResetEvent = new ManualResetEventSlim();
         var configurationProvider = new TestFusionConfigurationProvider(
-            CreateFusionConfiguration(
-                options => options.Merger.MaxFieldCost = 10,
-                SourceSchema));
+            Configuration(10));
         var services = new ServiceCollection();
         services
             .AddGraphQLGateway()
@@ -159,9 +148,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
 
         // act
         configurationProvider.UpdateConfiguration(
-            CreateFusionConfiguration(
-                options => options.Merger.MaxFieldCost = 20,
-                SourceSchema));
+            Configuration(20));
         executorEvictedResetEvent.Wait(cts.Token);
         var secondExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
 
@@ -184,7 +171,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_RejectOperation_When_ComposedMaxFieldCostIsExceeded()
+    public async Task ExecuteAsync_Should_RejectOperation_When_ConfiguredMaxFieldCostIsExceeded()
     {
         // arrange
         var services = new ServiceCollection();
@@ -193,12 +180,12 @@ public class CostOptionsConfigurationTests : FusionTestBase
             .UseDefaultPipeline()
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
-                    options => options.Merger.MaxFieldCost = 10,
                     """
                     type Query {
                       expensive: String! @cost(weight: "11")
                     }
-                    """));
+                    """),
+                Settings("""{ "cost": { "maxFieldCost": 10 } }"""));
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -224,4 +211,9 @@ public class CostOptionsConfigurationTests : FusionTestBase
             }
             """);
     }
+
+    private static JsonDocumentOwner Settings(string json) => new(JsonDocument.Parse(json));
+
+    private static FusionConfiguration Configuration(int maxFieldCost)
+        => new(ComposeSchemaDocument(SourceSchema), Settings($$"""{ "cost": { "maxFieldCost": {{maxFieldCost}} } }"""));
 }
