@@ -11,7 +11,7 @@ internal sealed class RecordingAuditProvider(AuthorizationTestClient client) : I
 
     public int TrailCount => _trailCount;
 
-    public Exception? CommitFailure { get; init; }
+    public Exception? CommitFailure { get; set; }
 
     public (int Call, Exception Failure)? RecordFailure { get; init; }
 

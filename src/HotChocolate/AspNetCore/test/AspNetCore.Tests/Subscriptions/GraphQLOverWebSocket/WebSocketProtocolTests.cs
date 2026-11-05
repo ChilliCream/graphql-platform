@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -8,6 +9,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
@@ -193,6 +195,30 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
                 Assert.Equal(CloseReasons.Forbidden, (int)webSocket.CloseStatus.Value);
                 Assert.Equal("You shall not pass.", webSocket.CloseStatusDescription);
+            });
+
+    [Fact]
+    public Task SendConnectionInitAsync_Should_CloseWith4401_When_InterceptorReturnsUnauthorized()
+        => RunTest(
+            async ct =>
+            {
+                // arrange
+                var interceptor = new UnauthorizedWithMessageInterceptor("Sign in first.");
+                using var testServer = CreateStarWarsServer(
+                    configureServices: s => s
+                        .AddGraphQLServer()
+                        .AddSocketSessionInterceptor(_ => interceptor));
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
+
+                // act
+                await webSocket.SendConnectionInitAsync(ct);
+
+                // assert
+                await webSocket.ReceiveServerMessageAsync(ct);
+                Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+                Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus.Value);
+                Assert.Equal("Sign in first.", webSocket.CloseStatusDescription);
             });
 
     [Fact]
@@ -751,6 +777,88 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                     "No complete message may be sent after an error.");
             });
 
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(401)]
+    public Task SendSubscribeAsync_Should_CloseWith4401_When_ResponseStreamEndsRequestingUnauthorized(
+        object requestedStatusCode)
+        => RunTest(
+            async ct =>
+            {
+                // arrange
+                using var testServer = CreateStarWarsServer(
+                    configureServices: s => s
+                        .AddGraphQL()
+                        .UseRequest(_ => context =>
+                        {
+                            ResponseStream? stream = null;
+                            stream = new ResponseStream(
+                                () => ReadUnauthorizedEndingEventsAsync(stream!, requestedStatusCode));
+                            context.Result = stream;
+                            return ValueTask.CompletedTask;
+                        }));
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                var payload = new SubscribePayload("subscription { onReview(episode: NEW_HOPE) { stars } }");
+                const string subscriptionId = "abc";
+
+                // act
+                await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
+
+                // assert
+                var message = await WaitForMessage(webSocket, Messages.Next, ct);
+                Assert.NotNull(message);
+                Assert.Equal(
+                    """{"id":"abc","type":"next","payload":{"extensions":{"event":1}}}""",
+                    message.RootElement.GetRawText());
+                await webSocket.ReceiveServerMessageAsync(ct);
+                Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+                Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus.Value);
+                Assert.Equal("Unauthorized", webSocket.CloseStatusDescription);
+            });
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public Task SendSubscribeAsync_Should_SendErrorAndStop_When_ResponseStreamYieldsAnErrorResultWithAStatusCode(
+        HttpStatusCode requestedStatusCode)
+        => RunTest(
+            async ct =>
+            {
+                // arrange
+                using var testServer = CreateStarWarsServer(
+                    configureServices: s => s
+                        .AddGraphQL()
+                        .UseRequest(_ => context =>
+                        {
+                            context.Result = new ResponseStream(() => ReadFaultEndingEventsAsync(requestedStatusCode));
+                            return ValueTask.CompletedTask;
+                        }));
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                var payload = new SubscribePayload("subscription { onReview(episode: NEW_HOPE) { stars } }");
+                const string subscriptionId = "abc";
+
+                // act
+                await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
+
+                // assert
+                var next = await WaitForMessage(webSocket, Messages.Next, ct);
+                var error = await WaitForMessage(webSocket, Messages.Error, ct);
+                await webSocket.SendPingAsync(ct);
+                var afterError = await WaitForMessage(webSocket, _ => true, TimeSpan.FromSeconds(1), ct);
+                Assert.Equal(
+                    """{"id":"abc","type":"next","payload":{"extensions":{"event":1}}}""",
+                    next?.RootElement.GetRawText());
+                Assert.Equal(
+                    """{"id":"abc","type":"error","payload":[{"message":"Unexpected Execution Error"}]}""",
+                    error?.RootElement.GetRawText());
+                Assert.Equal(Messages.Pong, afterError?.RootElement.GetProperty(MessageProperties.Type).GetString());
+                Assert.False(webSocket.CloseStatus.HasValue, "Connection is open.");
+            });
+
     [Fact]
     public Task Connection_Init_Received_In_Time_Should_Not_Timeout_When_OnConnect_Is_Slow()
         => RunTest(
@@ -1167,6 +1275,50 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
             => new(ConnectionStatus.Reject(message));
+    }
+
+    private static async IAsyncEnumerable<OperationResult> ReadUnauthorizedEndingEventsAsync(
+        ResponseStream stream,
+        object statusCode)
+    {
+        yield return new OperationResult(
+            ImmutableOrderedDictionary<string, object?>.Empty.Add("event", 1));
+
+        stream.ContextData = stream.ContextData.SetItem(
+            ExecutionContextData.HttpStatusCode,
+            statusCode);
+
+        await Task.CompletedTask;
+    }
+
+    private static async IAsyncEnumerable<OperationResult> ReadFaultEndingEventsAsync(
+        HttpStatusCode requestedStatusCode)
+    {
+        yield return new OperationResult(
+            ImmutableOrderedDictionary<string, object?>.Empty.Add("event", 1));
+
+        var fault = OperationResult.FromError(
+            ErrorBuilder.New().SetMessage("Unexpected Execution Error").Build());
+        fault.ContextData = fault.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            requestedStatusCode);
+
+        await Task.CompletedTask;
+
+        yield return fault;
+
+        yield return new OperationResult(
+            ImmutableOrderedDictionary<string, object?>.Empty.Add("event", 2));
+    }
+
+    private sealed class UnauthorizedWithMessageInterceptor(string message)
+        : DefaultSocketSessionInterceptor
+    {
+        public override ValueTask<ConnectionStatus> OnConnectAsync(
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage,
+            CancellationToken cancellationToken = default)
+            => new(ConnectionStatus.Unauthorized(message));
     }
 
     private sealed class SlowConnectInterceptor(TimeSpan delay)

@@ -579,11 +579,13 @@ internal sealed class ValueCompletion
         var path = field.Path;
         var error = decisions.CreateError(selection, path);
 
-        // A propagated null invalidates the field and its parents instead of nulling the field.
-        if (_errorHandlingMode is not ErrorHandlingMode.Propagate || !selection.IsNonNull)
+        // A propagated null invalidates the parents of the field instead of nulling the field.
+        if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
         {
-            field.SetNullValue();
+            return error is null || ApplyFieldError(field.Parent, selection, error, path);
         }
+
+        field.SetNullValue();
 
         return error is null || ApplyFieldError(field, selection, error, path);
     }

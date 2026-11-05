@@ -8,4 +8,5 @@ internal static class CloseReasons
     public const int SubscriberNotUnique = 4409;
     public const int Unauthorized = 4401;
     public const int Forbidden = 4403;
+    public const string UnauthorizedMessage = "Unauthorized";
 }

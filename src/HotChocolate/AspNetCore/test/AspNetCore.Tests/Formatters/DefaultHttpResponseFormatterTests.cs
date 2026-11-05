@@ -1,11 +1,15 @@
 using System.Buffers;
+using System.Net;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore.Formatters;
 
@@ -209,6 +213,116 @@ public sealed class DefaultHttpResponseFormatterTests
         Assert.False(acceptHeader.HasError);
 
         return acceptHeader.AcceptMediaTypes;
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task FormatAsync_Should_WriteRequestedStatus_When_EventStreamResultIsRequestErrorWithoutData(
+        HttpStatusCode requested)
+    {
+        // arrange
+        var formatter = new DefaultHttpResponseFormatter(new HttpResponseFormatterOptions());
+        var context = new DefaultHttpContext();
+        var result = OperationResult.FromError(ErrorBuilder.New().SetMessage("Denied.").Build());
+        result.ContextData = result.ContextData.Add(ExecutionContextData.HttpStatusCode, requested);
+
+        // act
+        await formatter.FormatAsync(
+            context.Response,
+            result,
+            [CreateEventStreamAcceptMediaType()],
+            null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal((int)requested, context.Response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(401)]
+    [InlineData(403)]
+    public async Task FormatAsync_Should_WriteRequestedStatus_When_EventStreamResultRequestsAnIntegerStatus(
+        int requested)
+    {
+        // arrange
+        var formatter = new DefaultHttpResponseFormatter(new HttpResponseFormatterOptions());
+        var context = new DefaultHttpContext();
+        var result = OperationResult.FromError(ErrorBuilder.New().SetMessage("Denied.").Build());
+        result.ContextData = result.ContextData.Add(ExecutionContextData.HttpStatusCode, requested);
+
+        // act
+        await formatter.FormatAsync(
+            context.Response,
+            result,
+            [CreateEventStreamAcceptMediaType()],
+            null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(requested, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FormatAsync_Should_WriteOk_When_MultipartResultIsRequestErrorRequestingUnauthorized()
+    {
+        // arrange
+        var formatter = new DefaultHttpResponseFormatter(new HttpResponseFormatterOptions());
+        var context = new DefaultHttpContext();
+        var result = OperationResult.FromError(ErrorBuilder.New().SetMessage("Denied.").Build());
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.Unauthorized);
+
+        // act
+        await formatter.FormatAsync(
+            context.Response,
+            result,
+            [CreateMultipartMixedAcceptMediaType()],
+            null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal((int)HttpStatusCode.OK, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task FormatAsync_Should_WriteOk_When_EventStreamResultHasDataAndRequestsAStatus()
+    {
+        // arrange
+        var formatter = new DefaultHttpResponseFormatter(new HttpResponseFormatterOptions());
+        var context = new DefaultHttpContext();
+        var data = new Dictionary<string, object?> { ["probe"] = true };
+        var result = new OperationResult(
+            new OperationResultData(data, isValueNull: false, new DictionaryJsonFormatter(data), memoryHolder: null));
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.Unauthorized);
+
+        // act
+        await formatter.FormatAsync(
+            context.Response,
+            result,
+            [CreateEventStreamAcceptMediaType()],
+            null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal((int)HttpStatusCode.OK, context.Response.StatusCode);
+    }
+
+    private static AcceptMediaType CreateEventStreamAcceptMediaType()
+        => new(new StringSegment("text"), new StringSegment("event-stream"), null, default);
+
+    private static AcceptMediaType CreateMultipartMixedAcceptMediaType()
+        => new(new StringSegment("multipart"), new StringSegment("mixed"), null, default);
+
+    private sealed class DictionaryJsonFormatter(object value) : IRawJsonFormatter
+    {
+        private static readonly JsonSerializerOptions s_options = new(JsonSerializerDefaults.Web);
+
+        public void WriteDataTo(JsonWriter jsonWriter)
+            => JsonValueFormatter.WriteValue(jsonWriter, value, s_options);
     }
 
     private sealed class RecordingRequestLifetimeFeature : IHttpRequestLifetimeFeature

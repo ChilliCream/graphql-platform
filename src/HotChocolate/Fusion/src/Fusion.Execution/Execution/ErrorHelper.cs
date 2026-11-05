@@ -185,16 +185,7 @@ internal static class ErrorHelper
 
         if (denial.Kind is AuthorizationDenialKind.Unauthenticated)
         {
-            result.ContextData = result.ContextData.Add(
-                ExecutionContextData.HttpStatusCode,
-                HttpStatusCode.Unauthorized);
-
-            if (challenge is not null)
-            {
-                result.ContextData = result.ContextData.Add(
-                    ExecutionContextData.WwwAuthenticateHeaderValue,
-                    challenge);
-            }
+            SetUnauthorized(result, challenge);
         }
         else
         {
@@ -204,6 +195,42 @@ internal static class ErrorHelper
         }
 
         return result;
+    }
+
+    public static OperationResult TokenExpired(string? challenge)
+    {
+        var result = OperationResult.FromError(
+            CreateDenialBuilder(AuthorizationDenialKind.Unauthenticated).Build());
+
+        SetUnauthorized(result, challenge);
+
+        return result;
+    }
+
+    public static OperationResult SubscriptionFaulted(Exception fault, IErrorHandler errorHandler)
+    {
+        var result = OperationResult.FromError(
+            [.. errorHandler.Handle([ErrorBuilder.FromException(fault).Build()])]);
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.InternalServerError);
+
+        return result;
+    }
+
+    private static void SetUnauthorized(OperationResult result, string? challenge)
+    {
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.Unauthorized);
+
+        if (challenge is not null)
+        {
+            result.ContextData = result.ContextData.Add(
+                ExecutionContextData.WwwAuthenticateHeaderValue,
+                challenge);
+        }
     }
 
     public static OperationResult AuthorizationFailed()

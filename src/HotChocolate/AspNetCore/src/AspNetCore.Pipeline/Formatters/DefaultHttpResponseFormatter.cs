@@ -711,6 +711,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 : HttpStatusCode.OK;
         }
 
+        // a text/event-stream response of a request error without data that requests
+        // 401 or 403 keeps that status.
+        if (format.Kind is ResponseContentType.EventStream
+            && !result.Data.HasValue
+            && RequestedStatusCode.TryGet(result.ContextData, out var requested)
+            && requested is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            return requested;
+        }
+
         // if we are sending a single result with the multipart/mixed header or
         // with a text/event-stream response content-type, we as well will just
         // respond with an OK status code.
@@ -756,17 +766,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             if (result.ContextData is { Count: > 0 } contextData)
             {
                 // First, we check if there is an explicit HTTP status code override by the user.
-                if (contextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value))
+                if (RequestedStatusCode.TryGet(contextData, out var statusCode))
                 {
-                    if (value is HttpStatusCode statusCode)
-                    {
-                        return statusCode;
-                    }
-
-                    if (value is int statusCodeInt)
-                    {
-                        return (HttpStatusCode)statusCodeInt;
-                    }
+                    return statusCode;
                 }
 
                 // Next, we check if the validation of the request failed. Such a request is

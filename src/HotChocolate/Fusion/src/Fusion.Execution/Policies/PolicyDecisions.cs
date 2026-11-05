@@ -92,6 +92,32 @@ internal sealed class PolicyDecisions
     }
 
     /// <summary>
+    /// Gets the first denial of a selection that is part of the selection set.
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The selection set that declares the denied selection.
+    /// </param>
+    /// <param name="denial">
+    /// The first denial of a selection of the selection set.
+    /// </param>
+    public bool TryGetDenial(SelectionSet selectionSet, out SelectionDenial denial)
+    {
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        foreach (var current in Denials)
+        {
+            if (ReferenceEquals(current.Selection.DeclaringSelectionSet, selectionSet))
+            {
+                denial = current;
+                return true;
+            }
+        }
+
+        denial = default;
+        return false;
+    }
+
+    /// <summary>
     /// Gets the first denial that rejects the whole request for the given level.
     /// </summary>
     /// <param name="rejectRequestOn">

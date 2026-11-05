@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading.Channels;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Text.Json;
@@ -14,15 +15,23 @@ namespace HotChocolate.Fusion.Policies;
 
 /// <summary>
 /// Answers every request with the data of an unrestricted source schema, reduced to the fields
-/// the request selects and does not skip, and records the requests it received.
+/// the request selects and does not skip, and records the requests it received. A subscription
+/// delivers the events published to the client in the same reduced form.
 /// </summary>
 internal sealed class AuthorizationTestClient(string data) : ISourceSchemaClient
 {
     private readonly ConcurrentQueue<string> _requests = [];
+    private readonly Channel<string> _events = Channel.CreateUnbounded<string>();
+    private int _subscribeCalls;
 
     public ImmutableArray<string> Requests => [.. _requests];
 
     public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
+
+    public int SubscribeCalls => Volatile.Read(ref _subscribeCalls);
+
+    public void Publish(string eventData)
+        => _events.Writer.TryWrite(eventData);
 
     public async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
         OperationPlanContext context,
@@ -31,6 +40,35 @@ internal sealed class AuthorizationTestClient(string data) : ISourceSchemaClient
     {
         await Task.Yield();
 
+        yield return CreateResult(context, request, data);
+    }
+
+    public IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public async IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _subscribeCalls);
+
+        await foreach (var eventData in _events.Reader.ReadAllAsync(cancellationToken))
+        {
+            yield return CreateResult(context, request, eventData);
+        }
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    private SourceSchemaResult CreateResult(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
+        string resultData)
+    {
         var sourceText = Encoding.UTF8.GetString(request.OperationSourceText.Value.Span);
         _requests.Enqueue(sourceText);
 
@@ -40,7 +78,7 @@ internal sealed class AuthorizationTestClient(string data) : ISourceSchemaClient
             .OfType<OperationDefinitionNode>()
             .Single();
 
-        var root = JsonNode.Parse(data)!.AsObject();
+        var root = JsonNode.Parse(resultData)!.AsObject();
         Reduce(root, operation.SelectionSet, variables);
 
         var response = Encoding.UTF8.GetBytes(new JsonObject { ["data"] = root }.ToJsonString());
@@ -49,22 +87,8 @@ internal sealed class AuthorizationTestClient(string data) : ISourceSchemaClient
             response,
             response.Length);
 
-        yield return new SourceSchemaResult(CompactPath.Root, document);
+        return new SourceSchemaResult(CompactPath.Root, document);
     }
-
-    public IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
-        OperationPlanContext context,
-        ImmutableArray<SourceSchemaClientRequest> requests,
-        CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
-        OperationPlanContext context,
-        SourceSchemaClientRequest request,
-        CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     private static Dictionary<string, bool> ReadVariables(SourceSchemaClientRequest request)
     {

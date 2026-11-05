@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Security.Claims;
 using HotChocolate.Execution;
@@ -16,7 +17,7 @@ namespace HotChocolate.Fusion.Policies;
 /// </summary>
 internal sealed class PolicyEvaluator
 {
-    private const string UnauthenticatedReason = "unauthenticated";
+    internal const string UnauthenticatedReason = "unauthenticated";
 
     private static readonly ImmutableDictionary<string, object?> s_noArguments =
 #if NET10_0_OR_GREATER
@@ -199,14 +200,99 @@ internal sealed class PolicyEvaluator
                 CollectDenied(policyContext, deniedDescriptors);
             }
 
-            return new PolicyEvaluation(
-                CreateDecisions(occurrences, deniedDescriptors, isAuthenticated),
-                null);
+            var denied = Freeze(deniedDescriptors);
+
+            return new PolicyEvaluation(CreateDecisions(occurrences, denied, isAuthenticated), null);
         }
         catch (Exception ex) when (answered is not null && IsFault(ex, cancellationToken))
         {
             RecordFault(context, scope, evaluating, isAuthenticated, occurrences, groups, answered, variables);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Records the fault in the scope and commits it. A failure of the scope itself is reported to
+    /// the diagnostic events.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="scope">
+    /// The audit scope of the faulted evaluation.
+    /// </param>
+    /// <param name="fault">
+    /// The fault that ended the evaluation.
+    /// </param>
+    public async ValueTask CommitFaultedScopeAsync(RequestContext context, IAuditScope scope, Exception fault)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(scope);
+        ArgumentNullException.ThrowIfNull(fault);
+
+        try
+        {
+            scope.Fail(fault);
+        }
+        catch (Exception failFailure)
+        {
+            _diagnosticEvents.RequestError(context, failFailure);
+        }
+
+        try
+        {
+            await scope.CommitAsync(context.RequestAborted);
+        }
+        catch (Exception commitFailure)
+        {
+            _diagnosticEvents.RequestError(context, commitFailure);
+        }
+    }
+
+    /// <summary>
+    /// Records a denied entry with the given reason for every occurrence of the variable set,
+    /// without asking any policy.
+    /// </summary>
+    /// <param name="scope">
+    /// The audit scope that receives the entries.
+    /// </param>
+    /// <param name="plan">
+    /// The plan of the operation.
+    /// </param>
+    /// <param name="policies">
+    /// The policy requirements of the operation.
+    /// </param>
+    /// <param name="variables">
+    /// The coerced variable values of the variable set.
+    /// </param>
+    /// <param name="reason">
+    /// The reason of the denial.
+    /// </param>
+    public void RecordDenied(
+        IAuditScope scope,
+        OperationPlan plan,
+        PolicyPlan policies,
+        IVariableValueCollection variables,
+        string reason)
+    {
+        ArgumentNullException.ThrowIfNull(scope);
+        ArgumentNullException.ThrowIfNull(plan);
+        ArgumentNullException.ThrowIfNull(policies);
+        ArgumentNullException.ThrowIfNull(variables);
+        ArgumentException.ThrowIfNullOrEmpty(reason);
+
+        if (!scope.IsRecording)
+        {
+            return;
+        }
+
+        foreach (var descriptor in GetOccurrences(plan, policies.Descriptors, variables))
+        {
+            var entry = new PolicyEvaluationEntry(
+                descriptor,
+                CoerceArguments((Selection)descriptor.Selection, variables));
+
+            scope.Record(CreateAuditEntry(entry, new PolicyVerdict(PolicyOutcome.Denied, reason, null)));
         }
     }
 
@@ -225,7 +311,7 @@ internal sealed class PolicyEvaluator
 
     private PolicyDecisions? CreateDecisions(
         ImmutableArray<PolicyDescriptor> occurrences,
-        HashSet<PolicyDescriptor> deniedDescriptors,
+        FrozenSet<PolicyDescriptor> deniedDescriptors,
         bool isAuthenticated)
     {
         if (deniedDescriptors.Count == 0)
@@ -237,21 +323,7 @@ internal sealed class PolicyEvaluator
             ? AuthorizationDenialKind.Unauthorized
             : AuthorizationDenialKind.Unauthenticated;
         var selections = new List<Selection>();
-        var descriptorsBySelection = new Dictionary<Selection, List<PolicyDescriptor>>();
-
-        foreach (var descriptor in occurrences)
-        {
-            var selection = (Selection)descriptor.Selection;
-
-            if (!descriptorsBySelection.TryGetValue(selection, out var descriptors))
-            {
-                descriptors = [];
-                descriptorsBySelection.Add(selection, descriptors);
-                selections.Add(selection);
-            }
-
-            descriptors.Add(descriptor);
-        }
+        var descriptorsBySelection = GroupBySelection(occurrences, selections);
 
         var denials = ImmutableArray.CreateBuilder<SelectionDenial>();
 
@@ -276,10 +348,33 @@ internal sealed class PolicyEvaluator
                 _options.EnableAttribution);
     }
 
+    private static Dictionary<Selection, List<PolicyDescriptor>> GroupBySelection(
+        ImmutableArray<PolicyDescriptor> occurrences,
+        List<Selection> selections)
+    {
+        var descriptorsBySelection = new Dictionary<Selection, List<PolicyDescriptor>>();
+
+        foreach (var descriptor in occurrences)
+        {
+            var selection = (Selection)descriptor.Selection;
+
+            if (!descriptorsBySelection.TryGetValue(selection, out var descriptors))
+            {
+                descriptors = [];
+                descriptorsBySelection.Add(selection, descriptors);
+                selections.Add(selection);
+            }
+
+            descriptors.Add(descriptor);
+        }
+
+        return descriptorsBySelection;
+    }
+
     private static PolicyDescriptor? FindDenyingDescriptor(
         Selection selection,
         List<PolicyDescriptor> descriptors,
-        HashSet<PolicyDescriptor> deniedDescriptors)
+        FrozenSet<PolicyDescriptor> deniedDescriptors)
     {
         foreach (var descriptor in descriptors)
         {
@@ -456,6 +551,15 @@ internal sealed class PolicyEvaluator
 
         return values.ToImmutable();
     }
+
+    private static FrozenSet<PolicyDescriptor> Freeze(HashSet<PolicyDescriptor> deniedDescriptors)
+        => deniedDescriptors.Count == 0
+#if NET9_0_OR_GREATER
+            ? []
+#else
+            ? FrozenSet<PolicyDescriptor>.Empty
+#endif
+            : deniedDescriptors.ToFrozenSet();
 
     private static void CollectDenied(
         PolicyEvaluationContext policyContext,

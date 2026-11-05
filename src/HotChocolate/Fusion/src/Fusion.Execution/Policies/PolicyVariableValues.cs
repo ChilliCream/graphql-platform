@@ -50,6 +50,49 @@ internal static class PolicyVariableValues
         }
     }
 
+    /// <summary>
+    /// Creates the variable values of a variable set with a value for every synthetic variable.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values of the variable set.
+    /// </param>
+    /// <param name="variables">
+    /// The synthetic variables of the operation and its incremental plans.
+    /// </param>
+    /// <param name="decisions">
+    /// The denied selections of the variable set, or <c>null</c> if every selection is allowed.
+    /// </param>
+    /// <param name="booleanType">
+    /// The schema's Boolean type.
+    /// </param>
+    public static VariableValueCollection Create(
+        IVariableValueCollection variableValues,
+        ImmutableArray<PolicyVariable> variables,
+        PolicyDecisions? decisions,
+        IInputType booleanType)
+    {
+        ArgumentNullException.ThrowIfNull(variableValues);
+        ArgumentNullException.ThrowIfNull(booleanType);
+
+        var count = 0;
+
+        foreach (var _ in variableValues)
+        {
+            count++;
+        }
+
+        var values = new Dictionary<string, VariableValue>(count + variables.Length);
+
+        foreach (var value in variableValues)
+        {
+            values[value.Name] = value;
+        }
+
+        var collection = new VariableValueCollection(values);
+        AddTo(collection, variables, decisions, booleanType);
+        return collection;
+    }
+
     private static bool Evaluate(
         PolicyVariable variable,
         PolicyDecisions? decisions,

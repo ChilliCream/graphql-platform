@@ -153,6 +153,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
     internal ExecutionState ExecutionState => _executionState;
 
+    /// <summary>
+    /// Gets the error handler of the schema this context executes against.
+    /// </summary>
+    internal IErrorHandler ErrorHandler => _errorHandler;
+
     internal bool IsNodeSkipped(int nodeId)
         => _executionState.IsNodeSkipped(nodeId);
 
