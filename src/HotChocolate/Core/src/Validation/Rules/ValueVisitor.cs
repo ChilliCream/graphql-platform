@@ -343,8 +343,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        context.UnexpectedErrorsDetected = true;
-        return Break;
+        return Enter((IValueNode)node, context);
     }
 
     protected override ISyntaxVisitorAction Leave(
