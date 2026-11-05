@@ -6,7 +6,8 @@ namespace HotChocolate.Fusion.Policies;
 internal sealed class FaultingAuditScope(
     IAuditScope inner,
     (int Call, Exception Failure)? recordFailure,
-    Exception? failFailure) : IAuditScope
+    Exception? failFailure)
+    : IAuditScope
 {
     private int _recordCalls;
 

@@ -7,7 +7,8 @@ namespace HotChocolate.Fusion.Policies;
 internal sealed class RecordingAuditTrail(
     int index,
     RecordingAuditProvider provider,
-    Func<int> countSourceSchemaRequests) : IAuditTrail
+    Func<int> countSourceSchemaRequests)
+    : IAuditTrail
 {
     public string InvocationId { get; } = "invocation-" + index;
 
