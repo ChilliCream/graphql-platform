@@ -7,7 +7,7 @@ import {
 
 export const dynamic = "force-static";
 
-export const alt = "Fusion GraphQL Federation router";
+export const alt = "Fusion GraphQL Federation router (gateway)";
 export const size = shareCardSize;
 export const contentType = shareCardContentType;
 
