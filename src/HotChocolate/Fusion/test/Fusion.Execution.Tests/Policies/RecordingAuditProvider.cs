@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 
 namespace HotChocolate.Fusion.Policies;
 

@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
 /// Creates the audit trail of an executor invocation.

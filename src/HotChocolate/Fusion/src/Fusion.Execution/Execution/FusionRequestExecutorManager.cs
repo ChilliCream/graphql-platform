@@ -23,7 +23,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Policies;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Fusion.Types.Metadata;

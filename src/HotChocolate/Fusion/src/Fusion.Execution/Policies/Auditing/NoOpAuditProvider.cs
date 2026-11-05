@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
 /// The default provider, which keeps no entries.

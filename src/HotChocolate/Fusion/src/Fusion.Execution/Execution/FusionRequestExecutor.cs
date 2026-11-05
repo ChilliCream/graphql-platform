@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;

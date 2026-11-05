@@ -6,7 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Policies;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;

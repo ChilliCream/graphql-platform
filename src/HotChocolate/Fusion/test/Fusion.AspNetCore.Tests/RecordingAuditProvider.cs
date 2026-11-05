@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Security.Claims;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 
 namespace HotChocolate.Fusion;
 
@@ -30,7 +30,7 @@ public sealed class RecordingAuditProvider : IAuditProvider
     }
 
     private sealed class Scope(IAuditTrail trail, AuditScopeInfo info, ClaimsPrincipal user)
-        : AuditScope(trail, info, user, ImmutableDictionary.Create<string, string>())
+        : AuditScope(trail, info, user)
     {
         private ImmutableArray<AuditLogEntry> _entries = [];
         private int _commits;

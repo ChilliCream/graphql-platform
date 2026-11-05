@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Claims;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 using HotChocolate.Fusion.Policies.InMemory;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -253,7 +253,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Format(audit).MatchInlineSnapshot(
             """
             trails=1
-            scope trail=1 | request=-1 | set=0 | commits=0 | failure=-
+            scope trail=invocation-1 | request=-1 | set=0 | commits=0 | failure=-
             """);
         result.MatchInlineSnapshot(
             """
@@ -291,7 +291,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Format(audit).MatchInlineSnapshot(
             """
             trails=1
-            scope trail=1 | request=-1 | set=0 | commits=1 | failure=System.OperationCanceledException: not canceled
+            scope trail=invocation-1 | request=-1 | set=0 | commits=1 | failure=System.OperationCanceledException: not canceled
               Query.owned | @policy(owner) | scopes=[] | args={id:"1"} | Unanswered | reason=- | data=-
             """);
         result.MatchInlineSnapshot(
@@ -326,7 +326,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Format(audit).MatchInlineSnapshot(
             """
             trails=1
-            scope trail=1 | request=-1 | set=0 | commits=1 | failure=System.InvalidOperationException: record
+            scope trail=invocation-1 | request=-1 | set=0 | commits=1 | failure=System.InvalidOperationException: record
               Query.secret | @authenticated | scopes=[] | args={} | Allowed | reason=- | data=-
               Query.owned | @policy(owner) | scopes=[] | args={id:"1"} | Allowed | reason=- | data=-
               Query.guarded | @policy(finance) | scopes=[] | args={id:"7"} | Unanswered | reason=- | data=-
@@ -366,7 +366,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Format(audit).MatchInlineSnapshot(
             """
             trails=1
-            scope trail=1 | request=-1 | set=0 | commits=1 | failure=System.InvalidOperationException: boom
+            scope trail=invocation-1 | request=-1 | set=0 | commits=1 | failure=System.InvalidOperationException: boom
               Query.owned | @policy(owner) | scopes=[] | args={id:"1"} | Unanswered | reason=- | data=-
             """);
         listener.RequestErrors.Select(e => $"{e.GetType().FullName}: {e.Message}").MatchInlineSnapshots(
@@ -412,7 +412,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Format(audit).MatchInlineSnapshot(
             """
             trails=1
-            scope trail=1 | request=-1 | set=0 | commits=1 | failure=-
+            scope trail=invocation-1 | request=-1 | set=0 | commits=1 | failure=-
               Query.owned | @policy(owner) | scopes=[] | args={id:"1"} | Unanswered | reason=- | data=-
             """);
         listener.RequestErrors.Select(e => $"{e.GetType().FullName}: {e.Message}").MatchInlineSnapshots(
@@ -458,7 +458,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Format(audit).MatchInlineSnapshot(
             """
             trails=1
-            scope trail=1 | request=-1 | set=0 | commits=1 | failure=System.InvalidOperationException: boom
+            scope trail=invocation-1 | request=-1 | set=0 | commits=1 | failure=System.InvalidOperationException: boom
             """);
         listener.RequestErrors.Select(e => $"{e.GetType().FullName}: {e.Message}").MatchInlineSnapshots(
             [
@@ -494,7 +494,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Format(audit).MatchInlineSnapshot(
             """
             trails=1
-            scope trail=1 | request=-1 | set=0 | commits=1 | failure=-
+            scope trail=invocation-1 | request=-1 | set=0 | commits=1 | failure=-
               Query.secret | @authenticated | scopes=[] | args={} | Allowed | reason=- | data=-
             """);
         result.MatchInlineSnapshot(
@@ -511,7 +511,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     }
 
     [Fact]
-    public async Task BeginRequest_Should_CaptureSubjectAndProviderContext_When_ScopeIsOpened()
+    public async Task BeginRequest_Should_CaptureSubject_When_ScopeIsOpened()
     {
         // arrange
         var client = new AuthorizationTestClient(Data);
@@ -530,7 +530,6 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         var scope = Assert.Single(audit.Scopes);
         Format(scope.Subject).MatchInlineSnapshot(
             "authenticated=True | name=- | type=test | claims=[sub=u1,scope=read]");
-        Assert.Equal("1", Assert.Single(scope.Context).Value);
     }
 
     [Fact]
@@ -589,8 +588,8 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Assert.Equal(1, audit.TrailCount);
         audit.Scopes.Select(Format).MatchInlineSnapshots(
             [
-                "trail=1 | request=-1 | set=0 | Query.owned @policy(owner) args={id:\"1\"} Allowed",
-                "trail=1 | request=-1 | set=1 | Query.owned @policy(owner) args={id:\"2\"} Denied"
+                "trail=invocation-1 | request=-1 | set=0 | Query.owned @policy(owner) args={id:\"1\"} Allowed",
+                "trail=invocation-1 | request=-1 | set=1 | Query.owned @policy(owner) args={id:\"2\"} Denied"
             ]);
     }
 
@@ -649,8 +648,8 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
         Assert.Equal(1, audit.TrailCount);
         audit.Scopes.OrderBy(s => s.Info.RequestIndex).Select(Format).MatchInlineSnapshots(
             [
-                "trail=1 | request=0 | set=0 | Query.secret @authenticated args={} Allowed",
-                "trail=1 | request=2 | set=0 | Query.secret @authenticated args={} Allowed"
+                "trail=invocation-1 | request=0 | set=0 | Query.secret @authenticated args={} Allowed",
+                "trail=invocation-1 | request=2 | set=0 | Query.secret @authenticated args={} Allowed"
             ]);
     }
 
@@ -906,7 +905,6 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
             NoOpAuditTrail.Instance,
             new AuditScopeInfo("operation", "plan", -1, 0),
             Authenticated(),
-            ImmutableDictionary.Create<string, string>(),
             static () => 0,
             null);
 
@@ -951,7 +949,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
             var info = scope.Info;
 
             lines.Add(
-                $"scope trail={scope.Context["trail"]} | request={info.RequestIndex} | set={info.VariableSetIndex} "
+                $"scope trail={scope.Trail.InvocationId} | request={info.RequestIndex} | set={info.VariableSetIndex} "
                 + $"| commits={scope.CommitCount} | failure={scope.FailureReason ?? "-"}");
             lines.AddRange(scope.Entries.Select(e => "  " + Format(e)));
         }
@@ -968,6 +966,6 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
                 e => $"{e.Coordinate} @{e.DirectiveName}{(e.PolicyName is null ? string.Empty : $"({e.PolicyName})")} "
                     + $"args={{{string.Join(",", e.Arguments.Select(a => $"{a.Key}:{a.Value}"))}}} {e.Outcome}"));
 
-        return $"trail={scope.Context["trail"]} | request={info.RequestIndex} | set={info.VariableSetIndex} | {entries}";
+        return $"trail={scope.Trail.InvocationId} | request={info.RequestIndex} | set={info.VariableSetIndex} | {entries}";
     }
 }

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 internal sealed class NoOpAuditTrail : IAuditTrail
 {

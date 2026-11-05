@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Security.Claims;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Policies;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;

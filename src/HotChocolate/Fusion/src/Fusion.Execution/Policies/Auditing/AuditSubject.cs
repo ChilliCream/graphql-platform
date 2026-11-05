@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Security.Claims;
 
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
 /// The principal of a request captured as values.

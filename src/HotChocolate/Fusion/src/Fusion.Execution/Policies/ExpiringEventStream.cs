@@ -4,7 +4,7 @@ using System.Security.Claims;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 
 namespace HotChocolate.Fusion.Policies;
 

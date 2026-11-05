@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
-
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
 /// The policy decisions of one variable set, which the gateway commits exactly once before it
@@ -23,12 +21,6 @@ public interface IAuditScope
     /// Gets the principal of the request as values captured once for the scope.
     /// </summary>
     AuditSubject Subject { get; }
-
-    /// <summary>
-    /// Gets the provider data attached when the scope was opened, which is empty when the
-    /// provider attaches none.
-    /// </summary>
-    ImmutableDictionary<string, string> Context { get; }
 
     /// <summary>
     /// Gets a value that indicates whether the scope keeps entries. The gateway only builds

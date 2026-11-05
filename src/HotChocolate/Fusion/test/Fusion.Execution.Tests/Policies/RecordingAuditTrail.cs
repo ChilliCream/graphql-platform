@@ -1,6 +1,5 @@
-using System.Collections.Immutable;
 using System.Security.Claims;
-using HotChocolate.Fusion.Policies.Audit;
+using HotChocolate.Fusion.Policies.Auditing;
 
 namespace HotChocolate.Fusion.Policies;
 
@@ -18,7 +17,6 @@ internal sealed class RecordingAuditTrail(
             this,
             info,
             user,
-            ImmutableDictionary<string, string>.Empty.Add("trail", index.ToString()),
             countSourceSchemaRequests,
             provider.CommitFailure);
 

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
 /// The audit trail of one executor invocation, which opens one scope per variable set.

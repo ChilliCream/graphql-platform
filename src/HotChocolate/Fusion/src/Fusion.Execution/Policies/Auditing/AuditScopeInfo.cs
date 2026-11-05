@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
 /// The identity of the variable set an <see cref="IAuditScope"/> records.

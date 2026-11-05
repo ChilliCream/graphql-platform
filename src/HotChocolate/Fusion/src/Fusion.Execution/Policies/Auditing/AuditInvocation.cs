@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
 /// Holds the audit trail that the protected items of one request batch share.

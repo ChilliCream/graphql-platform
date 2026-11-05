@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace HotChocolate.Fusion.Policies.Audit;
+namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
 /// The input and the outcome of one policy evaluation for one directive occurrence.
