@@ -32,6 +32,7 @@ type EmployeeConnection @shareable {
   totalCount: Int!
 }
 
+"An edge in a connection."
 type EmployeeEdge @shareable {
   "The item at the end of the edge."
   node: Employee!

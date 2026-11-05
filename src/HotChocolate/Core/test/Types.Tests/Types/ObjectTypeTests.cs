@@ -1366,6 +1366,45 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
+    public void Create_Should_ApplyXmlDocumentation_When_RuntimeTypeIsConstructedGeneric()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithEnvelope>()
+            .Create();
+
+        // assert
+        schema.MatchInlineSnapshot(
+            """"
+            schema {
+              query: QueryWithEnvelope
+            }
+
+            "A query that returns an envelope."
+            type QueryWithEnvelope {
+              "Gets the envelope."
+              envelope: EnvelopeOfString!
+            }
+
+            "An envelope that carries a payload."
+            type EnvelopeOfString {
+              """
+              Gets an attachment.
+
+              **Returns:**
+              The attachment.
+              """
+              attachment("The attachment position." position: Int!): String!
+              "Seals the envelope."
+              seal("The attachments to seal." attachments: [String!]!): Boolean!
+              "The carried payload."
+              payload: String!
+            }
+            """");
+    }
+
+    [Fact]
     public void CreateObjectTypeWithXmlDocumentation_IgnoreXmlDocs()
     {
         // arrange
