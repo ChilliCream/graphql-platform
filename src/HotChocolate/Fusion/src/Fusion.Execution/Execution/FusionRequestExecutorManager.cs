@@ -48,18 +48,22 @@ internal sealed class FusionRequestExecutorManager
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly EventObservable _events = new();
     private readonly IServiceProvider _applicationServices;
+    private readonly TimeProvider _timeProvider;
 
     private bool _disposed;
     private ulong _version;
 
     public FusionRequestExecutorManager(
         IOptionsMonitor<FusionGatewaySetup> optionsMonitor,
+        TimeProvider timeProvider,
         IServiceProvider applicationServices)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
+        ArgumentNullException.ThrowIfNull(timeProvider);
         ArgumentNullException.ThrowIfNull(applicationServices);
 
         _optionsMonitor = optionsMonitor;
+        _timeProvider = timeProvider;
         _applicationServices = applicationServices;
 
         var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
@@ -138,13 +142,13 @@ internal sealed class FusionRequestExecutorManager
         }
     }
 
-    private static async Task EvictRequestExecutorAsync(FusionRequestExecutor previousExecutor)
+    private async Task EvictRequestExecutorAsync(FusionRequestExecutor previousExecutor)
     {
         var evictionTimeout = previousExecutor.Schema.GetOptions().EvictionTimeout;
 
         // we will give the request executor some grace period to finish all requests
         // in the pipeline.
-        await Task.Delay(evictionTimeout).ConfigureAwait(false);
+        await Task.Delay(evictionTimeout, _timeProvider).ConfigureAwait(false);
 
         await previousExecutor.DisposeAsync().ConfigureAwait(false);
     }

@@ -1,7 +1,9 @@
+using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -142,6 +144,42 @@ public class FusionRequestExecutorManagerUpdateTests : FusionTestBase
         Assert.Throws<ObjectDisposedException>(() => rejectedConfiguration.Settings.Document.RootElement.ValueKind);
     }
 
+    [Fact]
+    public async Task Update_Should_DisposePreviousExecutor_When_EvictionWindowElapsesOnTheTimeProvider()
+    {
+        // arrange
+        var timeProvider = new TimerTrackingFakeTimeProvider();
+        var configProvider = new TestFusionConfigurationProvider(CreateConfiguration("field"));
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .ConfigureSchemaServices((_, s) => s.AddSingleton<DisposalProbe>())
+                .ModifyOptions(o => o.EvictionTimeout = TimeSpan.FromMinutes(5))
+                .Services
+                .AddSingleton<TimeProvider>(timeProvider)
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+        var initialExecutor = await manager.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var previousProbe = initialExecutor.Schema.Services.GetRequiredService<DisposalProbe>();
+        var swapped = ObserveCreatedExecutors(manager);
+
+        // act
+        configProvider.UpdateConfiguration(CreateConfiguration("swapped"));
+        await swapped.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await timeProvider.TimerCreations
+            .ReadAsync(TestContext.Current.CancellationToken)
+            .AsTask()
+            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        timeProvider.Advance(TimeSpan.FromMinutes(5));
+
+        // assert
+        await previousProbe.Disposed.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+    }
+
     private static Task<IRequestExecutor> ObserveCreatedExecutors(FusionRequestExecutorManager manager)
     {
         var created = new TaskCompletionSource<IRequestExecutor>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -183,5 +221,23 @@ public class FusionRequestExecutorManagerUpdateTests : FusionTestBase
         public Task Disposed => _disposed.Task;
 
         public void Dispose() => _disposed.TrySetResult();
+    }
+
+    private sealed class TimerTrackingFakeTimeProvider : FakeTimeProvider
+    {
+        private readonly Channel<TimeSpan> _timerCreations = Channel.CreateUnbounded<TimeSpan>();
+
+        public ChannelReader<TimeSpan> TimerCreations => _timerCreations.Reader;
+
+        public override ITimer CreateTimer(
+            TimerCallback callback,
+            object? state,
+            TimeSpan dueTime,
+            TimeSpan period)
+        {
+            var timer = base.CreateTimer(callback, state, dueTime, period);
+            _timerCreations.Writer.TryWrite(dueTime);
+            return timer;
+        }
     }
 }
