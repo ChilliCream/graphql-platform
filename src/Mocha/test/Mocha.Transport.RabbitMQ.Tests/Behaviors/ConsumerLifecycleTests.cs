@@ -8,6 +8,48 @@ public sealed class ConsumerLifecycleTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Consumer_Should_Recover_When_ReplyEndpointRestarted(bool restartDuringRecovery)
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        var orders = new MessageRecorder();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(orders)
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderCreatedHandler>())
+            .BuildTestBusAsync();
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var reply = transport.ReplyReceiveEndpoint!;
+        await reply.StopAsync(runtime, TestContext.Current.CancellationToken);
+        if (!restartDuringRecovery)
+        {
+            await reply.StartAsync(runtime, TestContext.Current.CancellationToken);
+        }
+
+        // act
+        await vhost.CloseConnectionOfConsumerAsync("orders");
+        if (restartDuringRecovery)
+        {
+            await vhost.WaitForNoConsumerAsync("orders", s_timeout);
+            await reply.StartAsync(runtime, TestContext.Current.CancellationToken);
+        }
+
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
+        var received = await orders.WaitAsync(s_timeout);
+
+        // assert
+        Assert.True(received);
+        Assert.Equal(["ORD-1"], orders.Messages.Cast<OrderCreated>().Select(order => order.OrderId));
+        Assert.True(transport.ConsumerManager.IsHealthy);
+        Assert.Equal(1, await vhost.GetConsumerCountAsync("orders"));
+    }
+
     [Fact]
     public async Task StopAsync_Should_Complete_When_HandlerIgnoresCancellation()
     {

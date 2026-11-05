@@ -9,6 +9,34 @@ public sealed class MessagingTransportLifecycleTests
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(5);
 
     [Fact]
+    public async Task DisposeAsync_Should_DisposeTransport_When_EndpointStopObservesCancellation()
+    {
+        // arrange
+        var transport = new TestTransport();
+        await using var provider = CreateProvider(transport);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestContext.Current.CancellationToken);
+        var cancelledStops = new ConcurrentQueue<bool>();
+        foreach (var endpoint in transport.ReceiveEndpoints.Cast<TestReceiveEndpoint>())
+        {
+            endpoint.StopCallback = ct =>
+            {
+                cancelledStops.Enqueue(ct.IsCancellationRequested);
+                ct.ThrowIfCancellationRequested();
+                return ValueTask.CompletedTask;
+            };
+        }
+
+        // act
+        await runtime.DisposeAsync();
+
+        // assert
+        Assert.Equal([true, true, true], cancelledStops);
+        Assert.True(transport.IsDisposed);
+        Assert.False(runtime.IsStarted);
+    }
+
+    [Fact]
     public async Task StopAsync_Should_DrainApplicationEndpointsConcurrentlyBeforeReplies_When_EndpointsAreRunning()
     {
         // arrange
@@ -126,6 +154,8 @@ public sealed class MessagingTransportLifecycleTests
     {
         public ConcurrentQueue<string> Stops { get; } = new();
 
+        public bool IsDisposed { get; private set; }
+
         public Exception? BeforeStopFailure { get; set; }
 
         public Exception? AfterStopFailure { get; set; }
@@ -139,6 +169,12 @@ public sealed class MessagingTransportLifecycleTests
 
         public TestReceiveEndpoint GetEndpoint(string name)
             => ReceiveEndpoints.Cast<TestReceiveEndpoint>().Single(endpoint => endpoint.Name == name);
+
+        public override ValueTask DisposeAsync()
+        {
+            IsDisposed = true;
+            return ValueTask.CompletedTask;
+        }
 
         public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
         {

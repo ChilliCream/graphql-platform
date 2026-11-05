@@ -178,7 +178,7 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
                 requestStarted.TrySetResult();
                 return Task.CompletedTask;
             },
-            dependencies: [replies],
+            dependencies: [() => replies],
             async (consumerChannel, delivery, ct) =>
             {
                 await consumerChannel.BasicPublishAsync("", "replies", delivery.Body, ct);

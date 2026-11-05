@@ -62,10 +62,10 @@ public sealed partial class RabbitMQConsumerManager
         public Func<IChannel, CancellationToken, Task>? ProvisionAsync { get; init; }
 
         /// <summary>
-        /// Gets the consumers that must be attached before this consumer starts consuming.
-        /// Dependencies must not form cycles.
+        /// Gets resolvers for the current consumers that must be attached before this consumer starts consuming.
+        /// A resolver returns <c>null</c> while its consumer is stopped; dependencies must not form cycles.
         /// </summary>
-        public required ImmutableArray<RegisteredConsumer> Dependencies { get; init; }
+        public required ImmutableArray<Func<RegisteredConsumer?>> Dependencies { get; init; }
 
         /// <summary>
         /// Gets the callback invoked for each message delivered from the queue.
@@ -185,15 +185,28 @@ public sealed partial class RabbitMQConsumerManager
                     global: false,
                     cancellationToken: attachToken);
 
-                foreach (var dependency in Dependencies)
+                foreach (var resolveDependency in Dependencies)
                 {
                     var attempt = 0;
                     while (true)
                     {
-                        await dependency.ConnectAsync(connection, attachToken);
-                        if (dependency.IsAttached)
+                        if (resolveDependency() is { IsDisposed: false } dependency)
                         {
-                            break;
+                            try
+                            {
+                                await dependency.ConnectAsync(connection, attachToken);
+                                if (dependency.IsAttached && ReferenceEquals(dependency, resolveDependency()))
+                                {
+                                    break;
+                                }
+                            }
+                            catch (Exception ex)
+                                when (dependency.IsDisposed
+                                    && !attachToken.IsCancellationRequested
+                                    && ex is ObjectDisposedException or OperationCanceledException)
+                            {
+                                // A dependency can stop while its attachment is in progress.
+                            }
                         }
 
                         attempt++;

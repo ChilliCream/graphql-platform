@@ -9,6 +9,40 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DisposeAsync_Should_CancelHandlerAndRequeueMessage_When_StoppedWithoutGracePeriod(
+        bool disposeProvider)
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        var gate = new HandlerGate();
+        await using var bus = await CreateBusAsync(vhost, gate);
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        await PublishAsync(bus);
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // act
+        var dispose = disposeProvider ? bus.Provider.DisposeAsync().AsTask() : runtime.DisposeAsync().AsTask();
+        try
+        {
+            await dispose.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await gate.CancellationObserved.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+            // assert
+            Assert.True(gate.Cancelled);
+            Assert.False(gate.Completed);
+            Assert.False(runtime.IsStarted);
+            Assert.Equal(1, await vhost.GetMessageCountAsync("shutdown"));
+        }
+        finally
+        {
+            gate.Release.TrySetResult();
+            await dispose.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        }
+    }
+
     [Fact]
     public async Task StopAsync_Should_LetHandlerFinishAndAck_When_StopTokenNotCancelled()
     {

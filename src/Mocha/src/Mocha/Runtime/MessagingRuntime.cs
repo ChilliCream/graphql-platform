@@ -180,9 +180,9 @@ public sealed class MessagingRuntime(
     }
 
     /// <summary>
-    /// Stops the runtime if it is still running, then disposes the consumers and transports. A failing
-    /// step does not prevent the remaining steps from running; the first failure is rethrown, except
-    /// for a stop failure after the runtime was already stopped, which that stop has reported.
+    /// Stops the runtime with cancellation requested, then disposes the consumers and transports.
+    /// All cleanup is attempted, and the first failure other than stop cancellation or a previously reported
+    /// stop failure is rethrown.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
@@ -197,7 +197,11 @@ public sealed class MessagingRuntime(
 
         try
         {
-            await StopAsync(CancellationToken.None);
+            await StopAsync(new CancellationToken(canceled: true));
+        }
+        catch (OperationCanceledException)
+        {
+            // Disposal cancels any remaining graceful shutdown work.
         }
         catch (Exception ex)
         {
