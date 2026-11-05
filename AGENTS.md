@@ -64,12 +64,14 @@ When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK
 
 ### Testing
 
-- Prefer snapshot tests over manual `Assert` calls, use **CookieCrumble** for snapshots.
+- Use regular `Assert` APIs for simple checks, with at most 5 `Assert.*` calls per test method.
+- Use **CookieCrumble** snapshots for structured or formatted output, such as JSON responses, GraphQL results, generated code, and Markdown documents.
+- Do not create an anonymous object with scalar properties just to snapshot it. Assert those values directly.
 - CookieCrumble has native snapshot support for `IExecutionResult`, `GraphQLHttpResponse`, and other core types.
 - For smaller snapshots, prefer **inline snapshots** (`MatchInlineSnapshot`) over snapshot files.
 - For a collection of results (for example a stream of subscription events), snapshot the list with `MatchInlineSnapshots` (a parallel list of per-element inline snapshots). Do NOT concatenate with `string.Join("---", values).MatchInlineSnapshot(...)`: a manual separator hides element boundaries and reinvents what the collection overload does natively.
-- For tests with multiple assertions, use **Markdown snapshots** (`MatchMarkdownSnapshot`).
-- Hard limit: a single test method must contain at most 5 `Assert.*` calls. Anything beyond that is too hard to reason about in review, switch to a snapshot (Markdown for multi-shape state, inline or file for a single output).
+- Use **Markdown snapshots** (`MatchMarkdownSnapshot`) when a snapshot combines multiple structured or formatted outputs.
+- If a test needs more than 5 `Assert.*` calls, split it into focused tests or use a snapshot when the output meets the criteria above.
 - Use the AAA section marker style. Each section starts with a single-line comment, the test name documents intent, no paragraph-style block comments above sections:
 
   ```csharp
