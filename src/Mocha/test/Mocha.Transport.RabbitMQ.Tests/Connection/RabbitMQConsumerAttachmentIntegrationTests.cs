@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
@@ -10,6 +11,82 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Consumer_Should_Recover_When_ChannelOpenTimesOut(bool automaticRecoveryEnabled)
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.RequestedChannelMax = 1;
+        vhost.ConnectionSettings.ContinuationTimeout = TimeSpan.FromSeconds(1);
+        vhost.ConnectionSettings.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(
+            new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
+            TestContext.Current.CancellationToken);
+        await DeclareQueueAsync(channel, "orders");
+        await channel.BasicPublishAsync("", "orders", "retained"u8.ToArray(), TestContext.Current.CancellationToken);
+        var received = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var manager = CreateManager(vhost);
+        var original = await manager.GetConnectionAsync(TestContext.Current.CancellationToken);
+
+        // act
+        await using (await vhost.FreezeConnectionsAsync())
+        {
+            await manager.RegisterConsumerAsync(
+                "orders",
+                (consumerChannel, delivery, ct) => RecordDeliveryAsync(received, consumerChannel, delivery, ct),
+                prefetchCount: 1,
+                consumerDispatchConcurrency: 1,
+                TestContext.Current.CancellationToken);
+        }
+
+        var delivered = await received.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var current = await manager.GetConnectionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("retained", delivered);
+        Assert.NotSame(original, current);
+    }
+
+    [Fact]
+    public async Task RegisterConsumerAsync_Should_PreserveOtherConsumers_When_ChannelLimitReached()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.RequestedChannelMax = 1;
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(
+            new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
+            TestContext.Current.CancellationToken);
+        await DeclareQueueAsync(channel, "orders");
+        var received = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var manager = CreateManager(vhost);
+        var original = await manager.GetConnectionAsync(TestContext.Current.CancellationToken);
+        await manager.RegisterConsumerAsync(
+            "orders",
+            (consumerChannel, delivery, ct) => RecordDeliveryAsync(received, consumerChannel, delivery, ct),
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+
+        // act
+        await Assert.ThrowsAsync<ChannelAllocationException>(() => manager.RegisterConsumerAsync(
+            "another-queue",
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken));
+        await channel.BasicPublishAsync("", "orders", "available"u8.ToArray(), TestContext.Current.CancellationToken);
+        var delivered = await received.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var current = await manager.GetConnectionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("available", delivered);
+        Assert.Same(original, current);
+    }
 
     [Fact]
     public async Task Consumer_Should_DeliverFromOtherQueue_When_OneTopologyTimesOut()
