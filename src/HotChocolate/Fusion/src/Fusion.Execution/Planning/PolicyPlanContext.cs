@@ -90,14 +90,14 @@ internal sealed class PolicyPlanContext
     }
 
     /// <summary>
-    /// Creates the policy plan from the registered markers, root first, or returns <c>null</c>
-    /// if no marker was registered.
+    /// Creates the policy plan from the registered markers, root first, or returns
+    /// <see cref="PolicyPlan.Empty"/> if no marker was registered.
     /// </summary>
-    public PolicyPlan? CreatePlan()
+    public PolicyPlan CreatePlan()
     {
         if (_rootMarker is null && _incrementalMarkers.Count == 0)
         {
-            return null;
+            return PolicyPlan.Empty;
         }
 
         var descriptors = ImmutableArray.CreateBuilder<PolicyDescriptor>();

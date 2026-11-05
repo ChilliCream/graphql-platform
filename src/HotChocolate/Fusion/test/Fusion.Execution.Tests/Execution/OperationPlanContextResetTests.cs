@@ -3,6 +3,7 @@ using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -202,7 +203,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
             nodes,
             deliveryGroups: [],
             incrementalPlans: [],
-            policies: null,
+            policies: PolicyPlan.Empty,
             searchSpace: 0,
             expandedNodes: 0);
         var incrementalPlan = new IncrementalPlan(
@@ -312,7 +313,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
                 allNodes,
                 deliveryGroups: [],
                 incrementalPlans: [],
-                policies: null,
+                policies: PolicyPlan.Empty,
                 searchSpace: 0,
                 expandedNodes: 0);
             var contextPool = executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();

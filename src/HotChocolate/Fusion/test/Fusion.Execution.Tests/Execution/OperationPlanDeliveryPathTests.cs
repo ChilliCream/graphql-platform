@@ -101,7 +101,7 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
             original.AllNodes,
             [group],
             [invalidIncrementalPlan],
-            null,
+            PolicyPlan.Empty,
             original.SearchSpace,
             original.ExpandedNodes));
 

@@ -5,6 +5,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
@@ -51,7 +52,7 @@ public sealed partial class OperationPlanner
                 nodes,
                 deliveryGroups,
                 incrementalPlans,
-                null,
+                PolicyPlan.Empty,
                 searchSpace,
                 expandedNodes);
 
@@ -126,7 +127,7 @@ public sealed partial class OperationPlanner
             allNodes,
             deliveryGroups,
             incrementalPlans,
-            policyContext?.CreatePlan(),
+            policyContext?.CreatePlan() ?? PolicyPlan.Empty,
             searchSpace,
             expandedNodes);
 

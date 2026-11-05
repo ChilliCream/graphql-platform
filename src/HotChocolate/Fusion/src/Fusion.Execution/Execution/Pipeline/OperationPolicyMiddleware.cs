@@ -52,17 +52,17 @@ internal sealed class OperationPolicyMiddleware
     {
         var plan = context.GetOperationPlan() ?? throw ThrowHelper.OperationPolicyRequiresPlan();
 
-        return plan.Policies is { } policies
-            ? InvokeProtectedAsync(context, plan, policies, next)
-            : next(context);
+        return plan.Policies.IsEmpty
+            ? next(context)
+            : InvokeProtectedAsync(context, plan, next);
     }
 
     private async ValueTask InvokeProtectedAsync(
         RequestContext context,
         OperationPlan plan,
-        PolicyPlan policies,
         RequestDelegate next)
     {
+        var policies = plan.Policies;
         var variableSets = context.VariableValues;
 
         if (variableSets.IsDefaultOrEmpty)
@@ -84,7 +84,7 @@ internal sealed class OperationPolicyMiddleware
 
         if (expiry <= _timeProvider.GetUtcNow())
         {
-            await RefuseExpiredAsync(context, trail, user, plan, policies, variableSets);
+            await RefuseExpiredAsync(context, trail, user, plan, variableSets);
             return;
         }
 
@@ -102,7 +102,6 @@ internal sealed class OperationPolicyMiddleware
                     context,
                     user,
                     plan,
-                    policies,
                     variableSets[i],
                     scope,
                     i,
@@ -205,7 +204,6 @@ internal sealed class OperationPolicyMiddleware
                 context,
                 user,
                 plan,
-                policies,
                 subscriptionScope,
                 subscriptionVariables!,
                 end,
@@ -218,7 +216,6 @@ internal sealed class OperationPolicyMiddleware
         IAuditTrail trail,
         ClaimsPrincipal user,
         OperationPlan plan,
-        PolicyPlan policies,
         ImmutableArray<IVariableValueCollection> variableSets)
     {
         for (var i = 0; i < variableSets.Length; i++)
@@ -230,7 +227,6 @@ internal sealed class OperationPolicyMiddleware
             _evaluator.RecordDenied(
                 scope,
                 plan,
-                policies,
                 variableSets[i],
                 PolicyEvaluator.UnauthenticatedReason);
             await scope.CommitAsync(context.RequestAborted);
@@ -247,7 +243,6 @@ internal sealed class OperationPolicyMiddleware
         RequestContext context,
         ClaimsPrincipal user,
         OperationPlan plan,
-        PolicyPlan policies,
         IAuditScope scope,
         IVariableValueCollection variables,
         DateTimeOffset expiry,
@@ -262,7 +257,6 @@ internal sealed class OperationPolicyMiddleware
                 _evaluator,
                 scope,
                 plan,
-                policies,
                 variables,
                 expiry,
                 _timeProvider,

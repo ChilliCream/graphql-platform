@@ -343,7 +343,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             TestPolicyResolver.Create());
         var (_, parsedPlan) = RoundTrip(compositeSchema, originalPlan);
         var originalSelection = Assert.IsType<Selection>(
-            Assert.Single(originalPlan.Policies!.Descriptors).Selection);
+            Assert.Single(originalPlan.Policies.Descriptors).Selection);
 
         // an operation that compiles the selection sets in document order assigns other ids
         var documentOrderOperation = new OperationCompiler(
@@ -352,7 +352,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             .Compile("id", "hash", "short", originalPlan.Operation.Definition);
 
         // act
-        var selection = Assert.IsType<Selection>(Assert.Single(parsedPlan.Policies!.Descriptors).Selection);
+        var selection = Assert.IsType<Selection>(Assert.Single(parsedPlan.Policies.Descriptors).Selection);
 
         // assert
         Assert.Same(parsedPlan.Operation, selection.DeclaringSelectionSet.DeclaringOperation);
@@ -419,7 +419,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
         // assert
         Assert.Equal(originalJson, parsedJson);
-        var variables = parsedPlan.Policies!.Variables;
+        var variables = parsedPlan.Policies.Variables;
         Assert.Equal(variables.Take(2), variables[2].Operands);
         var variablesJson = JsonNode.Parse(parsedJson)!["policies"]!["variables"]!
             .ToJsonString(new JsonSerializerOptions { WriteIndented = true });
@@ -709,13 +709,13 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             .Parse(Encoding.UTF8.GetBytes(json));
 
         // assert
-        Assert.IsType<InMemoryPolicy>(Assert.Single(knownPlan.Policies!.Descriptors).Policy);
-        Assert.IsType<UnresolvedPolicy>(Assert.Single(unknownPlan.Policies!.Descriptors).Policy);
-        Assert.True(unknownPlan.Policies!.HasUnresolvedPolicies);
+        Assert.IsType<InMemoryPolicy>(Assert.Single(knownPlan.Policies.Descriptors).Policy);
+        Assert.IsType<UnresolvedPolicy>(Assert.Single(unknownPlan.Policies.Descriptors).Policy);
+        Assert.True(unknownPlan.Policies.HasUnresolvedPolicies);
     }
 
     [Fact]
-    public void Parse_Should_ReturnNoPolicyPlan_When_PlanJsonHasNoPolicies()
+    public void Parse_Should_ReturnEmptyPolicyPlan_When_PlanJsonHasNoPolicies()
     {
         // arrange
         var compositeSchema = ComposeSchema(
@@ -743,8 +743,8 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             .Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
 
         // assert
-        Assert.NotNull(originalPlan.Policies);
-        Assert.Null(parsedPlan.Policies);
+        Assert.False(originalPlan.Policies.IsEmpty);
+        Assert.Same(PolicyPlan.Empty, parsedPlan.Policies);
     }
 
     // Source schema A owns the union and the nested lookups, source schema B the Asset entity

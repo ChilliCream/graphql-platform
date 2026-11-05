@@ -26,7 +26,7 @@ public sealed partial record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
-        PolicyPlan? policies,
+        PolicyPlan policies,
         int searchSpace,
         int expandedNodes)
     {
@@ -124,9 +124,9 @@ public sealed partial record OperationPlan : IOperationPlan
 
     /// <summary>
     /// Gets the policy requirements of the operation and its incremental plans,
-    /// or <c>null</c> if nothing is protected.
+    /// or <see cref="PolicyPlan.Empty"/> if nothing is protected.
     /// </summary>
-    public PolicyPlan? Policies { get; }
+    public PolicyPlan Policies { get; }
 
     /// <summary>
     /// Determines whether the operation belongs to an incremental plan of this plan that is not set in
@@ -197,7 +197,7 @@ public sealed partial record OperationPlan : IOperationPlan
     /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </param>
     /// <param name="policies">
-    /// The policy requirements of the operation and its incremental plans, or <c>null</c> if nothing is protected.
+    /// The policy requirements of the operation and its incremental plans, or <see cref="PolicyPlan.Empty"/> if nothing is protected.
     /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
@@ -213,7 +213,7 @@ public sealed partial record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
-        PolicyPlan? policies,
+        PolicyPlan policies,
         int searchSpace,
         int expandedNodes)
     {
@@ -243,7 +243,7 @@ public sealed partial record OperationPlan : IOperationPlan
     /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </param>
     /// <param name="policies">
-    /// The policy requirements of the operation and its incremental plans, or <c>null</c> if nothing is protected.
+    /// The policy requirements of the operation and its incremental plans, or <see cref="PolicyPlan.Empty"/> if nothing is protected.
     /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
@@ -257,7 +257,7 @@ public sealed partial record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
-        PolicyPlan? policies,
+        PolicyPlan policies,
         int searchSpace,
         int expandedNodes)
     {

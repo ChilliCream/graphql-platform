@@ -79,7 +79,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             incrementalPlans = ParseIncrementalPlans(incrementalPlansElement, deliveryGroupMap);
         }
 
-        PolicyPlan? policies = null;
+        var policies = PolicyPlan.Empty;
 
         if (rootElement.TryGetProperty("policies", out var policiesElement))
         {

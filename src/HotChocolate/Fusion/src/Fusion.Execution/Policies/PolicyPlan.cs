@@ -8,12 +8,18 @@ namespace HotChocolate.Fusion.Policies;
 /// </summary>
 public sealed class PolicyPlan
 {
+    /// <summary>
+    /// Gets the policy plan of an operation without protected selections.
+    /// </summary>
+    public static PolicyPlan Empty { get; } = new([], []);
+
     internal PolicyPlan(
         ImmutableArray<PolicyDescriptor> descriptors,
         ImmutableArray<PolicyVariable> variables)
     {
         Descriptors = descriptors;
         Variables = variables;
+        IsEmpty = descriptors.IsDefaultOrEmpty;
         HasUnresolvedPolicies = ContainsUnresolvedPolicy(descriptors);
     }
 
@@ -26,6 +32,11 @@ public sealed class PolicyPlan
     /// Gets the synthetic variables in the order they were allocated.
     /// </summary>
     public ImmutableArray<PolicyVariable> Variables { get; }
+
+    /// <summary>
+    /// Gets a value that indicates whether the plan has no descriptors.
+    /// </summary>
+    public bool IsEmpty { get; }
 
     /// <summary>
     /// Gets a value that indicates whether any descriptor refers to a policy name that no

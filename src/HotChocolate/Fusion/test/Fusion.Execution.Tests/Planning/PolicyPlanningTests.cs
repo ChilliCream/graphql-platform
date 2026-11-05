@@ -855,7 +855,7 @@ public class PolicyPlanningTests : FusionTestBase
         var plan = PlanOperation(schema, "{ report }");
 
         // assert
-        plan.Policies!.Descriptors
+        plan.Policies.Descriptors
             .Select(static d => new
             {
                 d.DirectiveName,
@@ -927,7 +927,8 @@ public class PolicyPlanningTests : FusionTestBase
         var plan = PlanOperation(schema, "{ first second }", resolver);
 
         // assert
-        var descriptors = plan.Policies!.Descriptors;
+        var descriptors = plan.Policies.Descriptors;
+        Assert.False(plan.Policies.IsEmpty);
         Assert.Equal(2, descriptors.Length);
         Assert.Same(descriptors[0].Policy, descriptors[1].Policy);
         Assert.IsType<InMemoryPolicy>(descriptors[0].Policy);
@@ -946,7 +947,7 @@ public class PolicyPlanningTests : FusionTestBase
             {{Directives}}
             """);
         var plan = PlanOperation(schema, "{ field }");
-        var descriptor = Assert.Single(plan.Policies!.Descriptors);
+        var descriptor = Assert.Single(plan.Policies.Descriptors);
         var context = CreateContext(
             Authenticated(),
             new PolicyEvaluationEntry(descriptor, new Dictionary<string, object?>()));
@@ -997,7 +998,8 @@ public class PolicyPlanningTests : FusionTestBase
         var plan = PlanOperation(schema, "{ product { id } }");
 
         // assert
-        Assert.Null(plan.Policies);
+        Assert.Same(PolicyPlan.Empty, plan.Policies);
+        Assert.True(plan.Policies.IsEmpty);
         MatchNodes(
             plan,
             """
@@ -1012,6 +1014,25 @@ public class PolicyPlanningTests : FusionTestBase
                     }
                   }
             """);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_UseEmptyPolicyPlan_When_SchemaHasNoProtectedFields()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field: String
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "{ field }");
+
+        // assert
+        Assert.Same(PolicyPlan.Empty, plan.Policies);
+        Assert.True(plan.Policies.IsEmpty);
     }
 
     [Fact]
@@ -1096,7 +1117,7 @@ public class PolicyPlanningTests : FusionTestBase
         var plan = planner.CreatePlan("1", "1", "1", operation, TestContext.Current.CancellationToken);
 
         // assert
-        var descriptor = Assert.Single(plan.Policies!.Descriptors);
+        var descriptor = Assert.Single(plan.Policies.Descriptors);
         Assert.IsType<InMemoryPolicy>(descriptor.Policy);
     }
 
@@ -1112,7 +1133,7 @@ public class PolicyPlanningTests : FusionTestBase
 
     private static object Describe(OperationPlan plan)
     {
-        var policies = plan.Policies!;
+        var policies = plan.Policies;
 
         return new
         {

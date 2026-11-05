@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -166,7 +167,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [nodeField, fallback, batch],
             deliveryGroups: [],
             incrementalPlans: [],
-            policies: null,
+            policies: PolicyPlan.Empty,
             searchSpace: 0,
             expandedNodes: 0);
 
@@ -185,7 +186,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [node, dependent],
             deliveryGroups: [],
             incrementalPlans: [],
-            policies: null,
+            policies: PolicyPlan.Empty,
             searchSpace: 0,
             expandedNodes: 0);
 
@@ -202,7 +203,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [node],
             deliveryGroups: [],
             incrementalPlans: [],
-            policies: null,
+            policies: PolicyPlan.Empty,
             searchSpace: 0,
             expandedNodes: 0);
     }

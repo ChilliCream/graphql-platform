@@ -23,7 +23,6 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
     private readonly AuditScopeInfo _info;
     private readonly bool _recordsAudit;
     private readonly OperationPlan _plan;
-    private readonly PolicyPlan _policies;
     private readonly IVariableValueCollection _variables;
     private readonly DateTimeOffset _expiry;
     private readonly TimeProvider _timeProvider;
@@ -51,9 +50,6 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
     /// <param name="plan">
     /// The plan of the subscription.
     /// </param>
-    /// <param name="policies">
-    /// The policy requirements of the subscription.
-    /// </param>
     /// <param name="variables">
     /// The coerced variable values of the subscription without the synthetic variables.
     /// </param>
@@ -76,7 +72,6 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
         PolicyEvaluator evaluator,
         IAuditScope scope,
         OperationPlan plan,
-        PolicyPlan policies,
         IVariableValueCollection variables,
         DateTimeOffset expiry,
         TimeProvider timeProvider,
@@ -91,7 +86,6 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
         _info = scope.Info;
         _recordsAudit = scope.IsRecording;
         _plan = plan;
-        _policies = policies;
         _variables = variables;
         _expiry = expiry;
         _timeProvider = timeProvider;
@@ -113,7 +107,7 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
         {
             var scope = _trail.BeginRequest(_info, _user);
 
-            _evaluator.RecordDenied(scope, _plan, _policies, _variables, ExpiredReason);
+            _evaluator.RecordDenied(scope, _plan, _variables, ExpiredReason);
             await scope.CommitAsync(cancellationToken);
             return null;
         }

@@ -256,10 +256,12 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         JsonWriter jsonWriter,
         OperationPlan plan)
     {
-        if (plan.Policies is not { } policies)
+        if (plan.Policies.IsEmpty)
         {
             return;
         }
+
+        var policies = plan.Policies;
 
         jsonWriter.WritePropertyName("policies");
         jsonWriter.WriteStartObject();
