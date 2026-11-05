@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ;
 
@@ -168,11 +169,7 @@ public sealed partial class RabbitMQConsumerManager
             ChannelConsumer? consumer = null;
             try
             {
-                var channelOptions = new CreateChannelOptions(
-                    publisherConfirmationsEnabled: false,
-                    publisherConfirmationTrackingEnabled: false,
-                    consumerDispatchConcurrency: 1);
-                channel = await connection.CreateChannelAsync(channelOptions, attachToken);
+                channel = await CreateChannelAsync(connection, attachToken);
                 consumer = new ChannelConsumer(this, channel);
                 channel.ChannelShutdownAsync += consumer.OnChannelShutdownAsync;
 
@@ -233,6 +230,33 @@ public sealed partial class RabbitMQConsumerManager
             if (consumer.TryHandlePendingLoss())
             {
                 HandleLoss(consumer);
+            }
+        }
+
+        private async Task<IChannel> CreateChannelAsync(IConnection connection, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var channelOptions = new CreateChannelOptions(
+                    publisherConfirmationsEnabled: false,
+                    publisherConfirmationTrackingEnabled: false,
+                    consumerDispatchConcurrency: 1);
+                return await connection.CreateChannelAsync(channelOptions, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not ChannelAllocationException)
+            {
+                // Closing the connection releases channels from incomplete open attempts.
+                try
+                {
+                    await connection.AbortAsync();
+                }
+                catch
+                {
+                    // The connection is already closing.
+                }
+
+                Manager.StartReconnecting();
+                throw;
             }
         }
 
