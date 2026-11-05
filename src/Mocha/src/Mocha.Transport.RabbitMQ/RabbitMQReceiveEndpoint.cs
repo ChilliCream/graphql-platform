@@ -66,12 +66,12 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        var dependencies = ImmutableArray<RabbitMQConsumerManager.RegisteredConsumer>.Empty;
+        var dependencies = ImmutableArray<Func<RabbitMQConsumerManager.RegisteredConsumer?>>.Empty;
         if (Kind is not ReceiveEndpointKind.Reply
             && transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint)
         {
             await replyEndpoint.StartAsync(context, cancellationToken);
-            dependencies = [replyEndpoint._consumer!];
+            dependencies = [() => replyEndpoint._consumer];
         }
 
         var provisioner = new RabbitMQTopologyProvisioner(transport.Topology);

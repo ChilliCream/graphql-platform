@@ -71,7 +71,10 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
     /// Declares the queue and its bindings on the consumer's channel before every attach, or <c>null</c>
     /// to consume without declaring anything.
     /// </param>
-    /// <param name="dependencies">Consumers that must be attached before this consumer starts consuming.</param>
+    /// <param name="dependencies">
+    /// Resolves the current consumers that must be attached before this consumer starts consuming.
+    /// A resolver returns <c>null</c> while its consumer is stopped.
+    /// </param>
     /// <param name="messageHandler">The callback invoked for each delivered message.</param>
     /// <param name="prefetchCount">The maximum number of unacknowledged messages the broker delivers to this consumer.</param>
     /// <param name="consumerDispatchConcurrency">The maximum number of messages processed concurrently.</param>
@@ -79,7 +82,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
     internal async Task<RegisteredConsumer> RegisterConsumerAsync(
         string queueName,
         Func<IChannel, CancellationToken, Task>? provisionAsync,
-        ImmutableArray<RegisteredConsumer> dependencies,
+        ImmutableArray<Func<RegisteredConsumer?>> dependencies,
         Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
         ushort prefetchCount,
         ushort consumerDispatchConcurrency,

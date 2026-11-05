@@ -317,7 +317,7 @@ public class RabbitMQConsumerManagerRecoveryTests
             QueueName,
             static (channel, ct) => channel.QueueDeclareAsync(
                 QueueName, durable: true, exclusive: false, autoDelete: false, cancellationToken: ct),
-            dependencies: [replyConsumer],
+            dependencies: [() => replyConsumer],
             async (channel, delivery, ct) =>
             {
                 if (!delivery.Redelivered)
