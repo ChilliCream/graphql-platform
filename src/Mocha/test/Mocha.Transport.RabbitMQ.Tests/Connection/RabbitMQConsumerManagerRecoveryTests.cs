@@ -152,7 +152,6 @@ public class RabbitMQConsumerManagerRecoveryTests
 
         // act
         await registration.DisposeAsync();
-        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
 
         // assert
         var queue = await admin.Channel.QueueDeclarePassiveAsync(
@@ -212,7 +211,7 @@ public class RabbitMQConsumerManagerRecoveryTests
             CancellationToken.None);
 
         // act
-        var exception = await Record.ExceptionAsync(() => manager.RegisterConsumerAsync(
+        var exception = await Assert.ThrowsAsync<OperationInterruptedException>(() => manager.RegisterConsumerAsync(
             "missing-queue",
             received.HandleAsync,
             prefetchCount: 1,
@@ -235,7 +234,7 @@ public class RabbitMQConsumerManagerRecoveryTests
             TimeSpan.FromSeconds(3));
 
         // assert
-        Assert.IsType<OperationInterruptedException>(exception);
+        Assert.Equal<ushort?>(Constants.NotFound, exception.ShutdownReason?.ReplyCode);
         Assert.True(reattached);
         Assert.False(zombie);
     }
@@ -285,62 +284,75 @@ public class RabbitMQConsumerManagerRecoveryTests
     }
 
     [Fact]
-    public async Task Consumer_Should_WaitForReplyConsumer_When_ConnectionReplaced()
+    public async Task Consumer_Should_DeliverReply_When_ReplyQueueIsRecreatedAfterConnectionLoss()
     {
         // arrange
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var admin = await AdminChannel.CreateAsync(vhost);
         await using var manager = await CreateManagerAsync(vhost);
-        var replies = new SlowReplyTopology();
-        var firstDelivered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var connectionLost = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var replyQueueDeclaredFirst = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var replies = new DeliveryRecorder();
+        var firstDelivery = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var provisioning = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var attempts = 0;
         var replyConsumer = await manager.RegisterConsumerAsync(
             "replies",
-            replies.ProvisionAsync,
+            async (channel, ct) =>
+            {
+                if (Interlocked.Increment(ref attempts) > 1)
+                {
+                    provisioning.TrySetResult();
+                    await release.Task.WaitAsync(ct);
+                }
+
+                await channel.QueueDeclareAsync(
+                    "replies", durable: false, exclusive: true, autoDelete: true, cancellationToken: ct);
+            },
             dependencies: [],
-            static (_, _, _) => default,
+            replies.HandleAsync,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
-            CancellationToken.None);
+            TestContext.Current.CancellationToken);
         await manager.RegisterConsumerAsync(
             QueueName,
             static (channel, ct) => channel.QueueDeclareAsync(
-                QueueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                cancellationToken: ct),
+                QueueName, durable: true, exclusive: false, autoDelete: false, cancellationToken: ct),
             dependencies: [replyConsumer],
-            async (channel, eventArgs, _) =>
+            async (channel, delivery, ct) =>
             {
-                if (!eventArgs.Redelivered)
+                if (!delivery.Redelivered)
                 {
-                    // the first delivery stays unacknowledged, so the broker delivers it again after the reconnect
-                    firstDelivered.TrySetResult();
-                    await connectionLost.Task;
+                    firstDelivery.TrySetResult();
+                    await Task.Delay(Timeout.InfiniteTimeSpan, ct);
                     return;
                 }
 
-                replyQueueDeclaredFirst.TrySetResult(replies.DeclaredAfterLoss > 0 && replyConsumer.IsAttached);
-                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
+                await channel.BasicPublishAsync("", "replies", delivery.Body, ct);
+                await channel.BasicAckAsync(delivery.DeliveryTag, false, ct);
             },
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
-            CancellationToken.None);
-        await admin.PublishAsync("request");
-        await firstDelivered.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            TestContext.Current.CancellationToken);
+        await admin.PublishAsync("ORD-1");
+        await firstDelivery.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // act
-        replies.ConnectionLost = true;
-        await vhost.CloseConnectionOfConsumerAsync(QueueName);
-        connectionLost.TrySetResult();
-        var declaredFirst = await replyQueueDeclaredFirst.Task.WaitAsync(
-            TimeSpan.FromSeconds(20),
-            TestContext.Current.CancellationToken);
+        QueueDeclareOk pending;
+        try
+        {
+            await vhost.CloseConnectionOfConsumerAsync(QueueName);
+            await provisioning.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            pending = await admin.Channel.QueueDeclarePassiveAsync(QueueName, TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            release.TrySetResult();
+        }
 
         // assert
-        Assert.True(declaredFirst, "The request was handled before the reply consumer was attached again.");
+        Assert.Equal(0u, pending.ConsumerCount);
+        Assert.Equal(1u, pending.MessageCount);
+        Assert.Equal("ORD-1", await replies.NextAsync());
     }
 
     private static async Task<RabbitMQConsumerManager> CreateManagerAsync(VhostContext vhost)
@@ -366,39 +378,6 @@ public class RabbitMQConsumerManagerRecoveryTests
         Assert.False(channel.IsOpen, "The broker did not close the consumer channel.");
     }
 
-    /// <summary>
-    /// Declares the reply queue, slowly once the connection was lost.
-    /// </summary>
-    private sealed class SlowReplyTopology
-    {
-        private int _declaredAfterLoss;
-
-        public volatile bool ConnectionLost;
-
-        public int DeclaredAfterLoss => Volatile.Read(ref _declaredAfterLoss);
-
-        public async Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken)
-        {
-            var afterLoss = ConnectionLost;
-            if (afterLoss)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            }
-
-            await channel.QueueDeclareAsync(
-                "replies",
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                cancellationToken: cancellationToken);
-
-            if (afterLoss)
-            {
-                Interlocked.Increment(ref _declaredAfterLoss);
-            }
-        }
-    }
-
     private sealed class DeliveryRecorder
     {
         private readonly System.Threading.Channels.Channel<string> _bodies =
@@ -418,14 +397,7 @@ public class RabbitMQConsumerManagerRecoveryTests
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
             cts.CancelAfter(s_timeout);
 
-            try
-            {
-                return await _bodies.Reader.ReadAsync(cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                return "<no message received>";
-            }
+            return await _bodies.Reader.ReadAsync(cts.Token);
         }
     }
 
@@ -437,7 +409,9 @@ public class RabbitMQConsumerManagerRecoveryTests
         {
             var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
                 TestContext.Current.CancellationToken);
-            var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var channel = await connection.CreateChannelAsync(
+                new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
+                TestContext.Current.CancellationToken);
             var admin = new AdminChannel(connection, channel);
             await admin.DeclareQueueAsync();
             return admin;

@@ -242,6 +242,12 @@ public sealed partial class VhostContext : IAsyncDisposable
         return ParseRows(output).Where(row => row[0] == queueName).Sum(row => int.Parse(row[1]));
     }
 
+    public async Task<int> GetUnacknowledgedMessageCountAsync(string queueName)
+    {
+        var queues = await ListAsync("list_queues", "-p", VhostName, "name", "messages_unacknowledged");
+        return queues.Where(row => row[0] == queueName).Sum(row => int.Parse(row[1]));
+    }
+
     /// <summary>
     /// Deletes a queue the way an operator would, together with its bindings and messages.
     /// </summary>
@@ -259,6 +265,18 @@ public sealed partial class VhostContext : IAsyncDisposable
             ["rabbitmqctl", "list_connections", "vhost", "--quiet", "--no-table-headers"]);
 
         return ParseRows(output).Count(row => row[0] == VhostName);
+    }
+
+    public async Task WaitForBlockedPublisherAsync(TimeSpan timeout)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        deadline.CancelAfter(timeout);
+
+        while (!(await ListAsync("list_connections", "vhost", "state"))
+            .Any(row => row[0] == VhostName && row[1] == "blocked"))
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(50), deadline.Token);
+        }
     }
 
     /// <summary>

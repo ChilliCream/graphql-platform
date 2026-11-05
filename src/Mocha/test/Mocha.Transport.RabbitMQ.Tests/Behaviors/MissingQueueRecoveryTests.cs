@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
 
@@ -90,9 +89,7 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
         // arrange
         var recorder = new MessageRecorder();
         await using var vhost = await fixture.CreateVhostAsync();
-        var logs = new LogRecorder();
         await using var bus = await new ServiceCollection()
-            .AddLogging(builder => builder.AddProvider(logs))
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
@@ -108,7 +105,7 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
         {
             await vhost.CloseConnectionOfConsumerAsync(QueueName);
             await vhost.WaitForQueueDeletionAsync(QueueName, s_timeout);
-            Assert.True(await Condition.WaitAsync(() => logs.Contains("FailedToReattachConsumerForQueueAgain"), s_timeout));
+            await vhost.WaitForNoConsumerAsync(QueueName, s_timeout);
         }
         finally
         {

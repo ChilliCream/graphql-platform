@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
@@ -62,35 +62,18 @@ public sealed class ExclusiveQueueTests(RabbitMQFixture fixture)
         await using var bus = await CreateBusAsync(vhost, recorder);
 
         // act
-        var stopwatch = Stopwatch.StartNew();
-        var services = CreateServices(vhost, new MessageRecorder()).Services.BuildServiceProvider();
+        await using var services = CreateServices(vhost, new MessageRecorder()).Services.BuildServiceProvider();
         var runtime = (MessagingRuntime)services.GetRequiredService<IMessagingRuntime>();
-        var exception = await Record.ExceptionAsync(
+        var exception = await Assert.ThrowsAnyAsync<OperationInterruptedException>(
             () => runtime.StartAsync(TestContext.Current.CancellationToken).AsTask()
                 .WaitAsync(s_timeout, TestContext.Current.CancellationToken));
-        var elapsed = stopwatch.Elapsed;
-        await services.DisposeAsync();
 
         await PublishAsync(bus, "ORD-1");
         var firstStillReceives = await recorder.WaitAsync(s_timeout);
 
         // assert
-        Assert.Equal<ushort?>(405, FindInterruption(exception)?.ShutdownReason?.ReplyCode);
-        Assert.True(elapsed < s_timeout);
+        Assert.Equal<ushort?>(Constants.ResourceLocked, exception.ShutdownReason?.ReplyCode);
         Assert.True(firstStillReceives);
-    }
-
-    private static OperationInterruptedException? FindInterruption(Exception? exception)
-    {
-        for (var current = exception; current is not null; current = current.InnerException)
-        {
-            if (current is OperationInterruptedException interrupted)
-            {
-                return interrupted;
-            }
-        }
-
-        return null;
     }
 
     private static IMessageBusHostBuilder CreateServices(VhostContext vhost, MessageRecorder recorder)

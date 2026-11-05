@@ -31,15 +31,13 @@ public sealed class ConsumerLifecycleTests(RabbitMQFixture fixture)
             // act
             using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             var stop = ((MessagingRuntime)runtime).StopAsync(stopTimeout.Token).AsTask();
-            var stopped = await Task.WhenAny(stop, Task.Delay(s_timeout, TestContext.Current.CancellationToken))
-                == stop;
+            await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
             var requeued = await Condition.WaitAsync(
                 async () => await vhost.GetMessageCountAsync("orders") == 1
                     && (await vhost.GetConsumerCountsAsync()).GetValueOrDefault("orders") == 0,
                 s_timeout);
 
             // assert
-            Assert.True(stopped);
             Assert.True(requeued);
         }
         finally
