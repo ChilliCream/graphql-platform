@@ -10,7 +10,7 @@ export interface CopyLink {
   readonly href: string;
 }
 
-/** A link with an accessible name that holds up out of context. */
+/** An arrow link with a separate accessible name. */
 export interface CopyCta extends CopyLink {
   readonly ariaLabel: string;
 }
@@ -84,7 +84,7 @@ export const SECTIONS: readonly CopySection[] = [
     cta: {
       label: "See the benchmarks",
       href: "/benchmarks/graphql-federation",
-      ariaLabel: "See the GraphQL Federation benchmarks",
+      ariaLabel: "See the benchmarks for GraphQL Federation",
     },
   },
   {
