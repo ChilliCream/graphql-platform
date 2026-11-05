@@ -132,8 +132,8 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
             GhostSchema,
             client,
             audit,
-            configure: builder => builder.ModifyAuthorizationOptions(
-                options => options.DisableAuthorizationValidation = true));
+            configure: builder => builder.ModifyPolicyOptions(
+                options => options.DisablePolicyValidation = true));
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -163,8 +163,8 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
             GhostSchema,
             client,
             audit,
-            configure: builder => builder.ModifyAuthorizationOptions(
-                options => options.DisableAuthorizationValidation = true));
+            configure: builder => builder.ModifyPolicyOptions(
+                options => options.DisablePolicyValidation = true));
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -768,7 +768,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
             Schema,
             client,
             audit,
-            configure: builder => builder.ModifyAuthorizationOptions(
+            configure: builder => builder.ModifyPolicyOptions(
                 options => options.RejectRequestOn = RejectRequestOn.OnUnauthenticated));
 
         // act

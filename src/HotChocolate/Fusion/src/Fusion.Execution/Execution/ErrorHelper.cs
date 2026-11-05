@@ -147,7 +147,7 @@ internal static class ErrorHelper
     }
 
     public static IError DeniedField(
-        AuthorizationDenialKind kind,
+        PolicyDenialKind kind,
         Path path,
         PolicyDescriptor? attribution)
     {
@@ -183,7 +183,7 @@ internal static class ErrorHelper
 
         var result = OperationResult.FromError(builder.Build());
 
-        if (denial.Kind is AuthorizationDenialKind.Unauthenticated)
+        if (denial.Kind is PolicyDenialKind.Unauthenticated)
         {
             SetUnauthorized(result, challenge);
         }
@@ -200,7 +200,7 @@ internal static class ErrorHelper
     public static OperationResult TokenExpired(string? challenge)
     {
         var result = OperationResult.FromError(
-            CreateDenialBuilder(AuthorizationDenialKind.Unauthenticated).Build());
+            CreateDenialBuilder(PolicyDenialKind.Unauthenticated).Build());
 
         SetUnauthorized(result, challenge);
 
@@ -247,8 +247,8 @@ internal static class ErrorHelper
         return result;
     }
 
-    private static ErrorBuilder CreateDenialBuilder(AuthorizationDenialKind kind)
-        => kind is AuthorizationDenialKind.Unauthenticated
+    private static ErrorBuilder CreateDenialBuilder(PolicyDenialKind kind)
+        => kind is PolicyDenialKind.Unauthenticated
             ? ErrorBuilder.New()
                 .SetMessage(FusionExecutionResources.ErrorHelper_NotAuthenticated)
                 .SetCode(ErrorCodes.Authentication.NotAuthenticated)

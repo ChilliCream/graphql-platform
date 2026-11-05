@@ -26,7 +26,7 @@ public class AuthorizationWebSocketTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
             configureServices: AddCookieScheme,
-            configureGatewayBuilder: b => b.ModifyAuthorizationOptions(
+            configureGatewayBuilder: b => b.ModifyPolicyOptions(
                 o => o.RejectRequestOn = RejectRequestOn.OnUnauthenticated));
         using var webSocket = await ConnectAsync(gateway);
 

@@ -369,7 +369,7 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
             policies => policies.Deny("finance"),
             builder =>
             {
-                builder.ModifyAuthorizationOptions(options => options.DenyHandling = DenyHandling.Error);
+                builder.ModifyPolicyOptions(options => options.DenyHandling = DenyHandling.Error);
                 builder.ModifyRequestOptions(options => options.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
             });
         var user = Authenticated();
@@ -434,7 +434,7 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
             policies => policies.Deny("finance"),
             builder =>
             {
-                builder.ModifyAuthorizationOptions(options => options.DenyHandling = DenyHandling.Null);
+                builder.ModifyPolicyOptions(options => options.DenyHandling = DenyHandling.Null);
                 builder.ModifyRequestOptions(options => options.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
             });
         var user = Authenticated();
@@ -479,7 +479,7 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
             new AuthorizationTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies => policies.Deny("finance"),
-            builder => builder.ModifyAuthorizationOptions(
+            builder => builder.ModifyPolicyOptions(
                 options =>
                 {
                     options.DenyHandling = DenyHandling.Error;
@@ -945,6 +945,6 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
             new AuthorizationTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies,
-            builder => builder.ModifyAuthorizationOptions(
+            builder => builder.ModifyPolicyOptions(
                 options => options.DenyHandling = DenyHandling.Error));
 }

@@ -87,21 +87,21 @@ public static partial class CoreFusionGatewayBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a callback to modify the <see cref="FusionAuthorizationOptions"/>
+    /// Registers a callback to modify the <see cref="FusionPolicyOptions"/>
     /// (deny handling, request rejection, authentication schemes, scope claim, etc.).
     /// </summary>
     /// <param name="builder">The gateway builder.</param>
-    /// <param name="configure">A delegate that configures the authorization options.</param>
+    /// <param name="configure">A delegate that configures the policy options.</param>
     /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
-    public static IFusionGatewayBuilder ModifyAuthorizationOptions(
+    public static IFusionGatewayBuilder ModifyPolicyOptions(
         this IFusionGatewayBuilder builder,
-        Action<FusionAuthorizationOptions> configure)
+        Action<FusionPolicyOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(configure);
 
         return FusionSetupUtilities.Configure(
             builder,
-            options => options.AuthorizationOptionsModifiers.Add(configure));
+            options => options.PolicyOptionsModifiers.Add(configure));
     }
 }

@@ -210,7 +210,7 @@ public class AuthorizationStartupValidationTests : FusionTestBase
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
         Assert.Equal(
             "The schema uses authorization directives but the host exposes no authentication schemes. "
-            + "Add the gateway through HotChocolate.Fusion.AspNetCore, or set DisableAuthorizationValidation.",
+            + "Add the gateway through HotChocolate.Fusion.AspNetCore, or set DisablePolicyValidation.",
             exception.Message);
     }
 
@@ -264,7 +264,7 @@ public class AuthorizationStartupValidationTests : FusionTestBase
             configure: o =>
             {
                 o.Schemes = ImmutableArray.Create("Bearer");
-                o.DisableAuthorizationValidation = true;
+                o.DisablePolicyValidation = true;
             });
 
         // act
@@ -285,7 +285,7 @@ public class AuthorizationStartupValidationTests : FusionTestBase
             configure: o =>
             {
                 o.Schemes = ImmutableArray<string>.Empty;
-                o.DisableAuthorizationValidation = true;
+                o.DisablePolicyValidation = true;
             });
 
         // act
@@ -306,7 +306,7 @@ public class AuthorizationStartupValidationTests : FusionTestBase
             configure: o =>
             {
                 o.Schemes = ImmutableArray.Create("Bearer", "Cookie");
-                o.DisableAuthorizationValidation = true;
+                o.DisablePolicyValidation = true;
             });
 
         // act
@@ -327,7 +327,7 @@ public class AuthorizationStartupValidationTests : FusionTestBase
             configure: o =>
             {
                 o.Schemes = ImmutableArray.Create("Bearer");
-                o.DisableAuthorizationValidation = true;
+                o.DisablePolicyValidation = true;
             });
 
         // act
@@ -341,7 +341,7 @@ public class AuthorizationStartupValidationTests : FusionTestBase
     private static IServiceProvider CreateProvider(
         string fields,
         IAuthenticationSchemeLookup? lookup,
-        Action<FusionAuthorizationOptions>? configure = null,
+        Action<FusionPolicyOptions>? configure = null,
         Action<InMemory.InMemoryPolicyBuilder>? policies = null)
     {
         var services = new ServiceCollection();
@@ -364,7 +364,7 @@ public class AuthorizationStartupValidationTests : FusionTestBase
 
         if (configure is not null)
         {
-            builder.ModifyAuthorizationOptions(configure);
+            builder.ModifyPolicyOptions(configure);
         }
 
         if (policies is not null)

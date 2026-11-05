@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Policies;
 /// <summary>
 /// Fails the startup of a gateway whose authorization requirements cannot be enforced.
 /// </summary>
-internal static class AuthorizationStartupValidator
+internal static class PolicyStartupValidator
 {
     /// <summary>
     /// Validates the Schemes option, and for a schema that uses authorization also that a
@@ -18,7 +18,7 @@ internal static class AuthorizationStartupValidator
     /// The authorization requirements the schema uses.
     /// </param>
     /// <param name="options">
-    /// The authorization options.
+    /// The policy options.
     /// </param>
     /// <param name="schemeResolver">
     /// The authentication schemes of the host.
@@ -31,7 +31,7 @@ internal static class AuthorizationStartupValidator
     /// </param>
     public static async ValueTask ValidateAsync(
         FusionAuthorizationUsage? usage,
-        FusionAuthorizationOptions options,
+        FusionPolicyOptions options,
         AuthenticationSchemeResolver schemeResolver,
         IPolicyResolver policyResolver,
         CancellationToken cancellationToken)
@@ -40,7 +40,7 @@ internal static class AuthorizationStartupValidator
         ArgumentNullException.ThrowIfNull(schemeResolver);
         ArgumentNullException.ThrowIfNull(policyResolver);
 
-        if (options.DisableAuthorizationValidation)
+        if (options.DisablePolicyValidation)
         {
             return;
         }
@@ -70,7 +70,7 @@ internal static class AuthorizationStartupValidator
     }
 
     private static async ValueTask<ImmutableArray<string>> ValidateConfigurationAsync(
-        FusionAuthorizationOptions options,
+        FusionPolicyOptions options,
         AuthenticationSchemeResolver schemeResolver,
         CancellationToken cancellationToken)
     {
@@ -103,7 +103,7 @@ internal static class AuthorizationStartupValidator
     }
 
     private static void ValidateUsage(
-        FusionAuthorizationOptions options,
+        FusionPolicyOptions options,
         AuthenticationSchemeResolver schemeResolver,
         ImmutableArray<string> registered)
     {

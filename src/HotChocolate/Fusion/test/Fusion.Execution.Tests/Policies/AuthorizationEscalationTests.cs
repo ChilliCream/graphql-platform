@@ -102,7 +102,7 @@ public class AuthorizationEscalationTests : AuthorizationExecutionTestBase
             RejectRequestOn.OnUnauthorized,
             configure: builder =>
             {
-                builder.ModifyAuthorizationOptions(options => options.DisableAuthorizationValidation = true);
+                builder.ModifyPolicyOptions(options => options.DisablePolicyValidation = true);
                 builder.ConfigureSchemaServices(
                     (_, sc) => sc.AddSingleton<IAuthenticationSchemeLookup>(
                         new TestAuthenticationSchemeLookup()));
@@ -127,7 +127,7 @@ public class AuthorizationEscalationTests : AuthorizationExecutionTestBase
         var executor = await CreateEscalatingExecutorAsync(
             client,
             RejectRequestOn.OnUnauthorized,
-            configure: builder => builder.ModifyAuthorizationOptions(
+            configure: builder => builder.ModifyPolicyOptions(
                 options => options.EnableAttribution = true));
         var user = Authenticated();
 
@@ -217,7 +217,7 @@ public class AuthorizationEscalationTests : AuthorizationExecutionTestBase
             policies,
             builder =>
             {
-                builder.ModifyAuthorizationOptions(options => options.RejectRequestOn = rejectRequestOn);
+                builder.ModifyPolicyOptions(options => options.RejectRequestOn = rejectRequestOn);
                 configure?.Invoke(builder);
             });
 }

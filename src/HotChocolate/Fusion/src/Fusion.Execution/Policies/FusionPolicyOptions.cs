@@ -4,14 +4,14 @@ using HotChocolate.Fusion.Execution;
 namespace HotChocolate.Fusion.Policies;
 
 /// <summary>
-/// Represents the authorization options of the Fusion gateway.
+/// Represents the policy options of the Fusion gateway.
 /// </summary>
 /// <remarks>
 /// A subscription evaluates its policies once when it starts, and every event applies that outcome. A host refuses
 /// a WebSocket connection without identity at <c>connection_init</c> with an <c>ISocketSessionInterceptor</c> that
 /// returns <c>ConnectionStatus.Unauthorized</c>.
 /// </remarks>
-public sealed class FusionAuthorizationOptions
+public sealed class FusionPolicyOptions
 {
     private bool _isReadOnly;
 
@@ -140,7 +140,7 @@ public sealed class FusionAuthorizationOptions
     /// Gets or sets whether the startup validation of the authentication schemes and policy names
     /// is skipped. <c>false</c> by default.
     /// </summary>
-    public bool DisableAuthorizationValidation
+    public bool DisablePolicyValidation
     {
         get;
         set
@@ -158,7 +158,7 @@ public sealed class FusionAuthorizationOptions
     {
         if (_isReadOnly)
         {
-            throw ThrowHelper.AuthorizationOptionsAreReadOnly();
+            throw ThrowHelper.PolicyOptionsAreReadOnly();
         }
     }
 }

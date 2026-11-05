@@ -37,32 +37,32 @@ internal static class ThrowHelper
             FusionExecutionResources.VariableValueCollection_VariableAlreadyExists,
             variableName));
 
-    public static InvalidOperationException AuthorizationOptionsAreReadOnly()
-        => new(FusionExecutionResources.FusionAuthorizationOptions_ReadOnly);
+    public static InvalidOperationException PolicyOptionsAreReadOnly()
+        => new(FusionExecutionResources.FusionPolicyOptions_ReadOnly);
 
     public static ArgumentException SchemeChallengeEmpty(string schemeName, string paramName)
         => new(
             string.Format(
-                FusionExecutionResources.FusionAuthorizationOptions_SchemeChallengeEmpty,
+                FusionExecutionResources.FusionPolicyOptions_SchemeChallengeEmpty,
                 schemeName),
             paramName);
 
     public static InvalidOperationException AuthenticationSchemeNotRegistered(string schemeName)
         => new(string.Format(
-            FusionExecutionResources.AuthorizationValidation_SchemeNotRegistered,
+            FusionExecutionResources.PolicyValidation_SchemeNotRegistered,
             schemeName));
 
     public static InvalidOperationException NoAuthenticationSchemeRegistered()
-        => new(FusionExecutionResources.AuthorizationValidation_NoSchemeRegistered);
+        => new(FusionExecutionResources.PolicyValidation_NoSchemeRegistered);
 
     public static InvalidOperationException NoAuthenticationSchemeLookup()
-        => new(FusionExecutionResources.AuthorizationValidation_NoSchemeLookup);
+        => new(FusionExecutionResources.PolicyValidation_NoSchemeLookup);
 
     public static InvalidOperationException EmptyAuthenticationSchemes()
-        => new(FusionExecutionResources.AuthorizationValidation_SchemesEmpty);
+        => new(FusionExecutionResources.PolicyValidation_SchemesEmpty);
 
     public static InvalidOperationException AuthenticationSchemesWithoutLookup()
-        => new(FusionExecutionResources.AuthorizationValidation_SchemesWithoutLookup);
+        => new(FusionExecutionResources.PolicyValidation_SchemesWithoutLookup);
 
     public static InvalidOperationException InvalidDeferIfVariable(string variableName)
         => new(string.Format(

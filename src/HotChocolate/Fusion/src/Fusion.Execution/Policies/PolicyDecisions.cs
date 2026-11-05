@@ -130,7 +130,7 @@ internal sealed class PolicyDecisions
     {
         foreach (var current in Denials)
         {
-            var rejects = current.Kind is AuthorizationDenialKind.Unauthenticated
+            var rejects = current.Kind is PolicyDenialKind.Unauthenticated
                 ? rejectRequestOn >= RejectRequestOn.OnUnauthenticated
                 : rejectRequestOn >= RejectRequestOn.OnUnauthorized;
 

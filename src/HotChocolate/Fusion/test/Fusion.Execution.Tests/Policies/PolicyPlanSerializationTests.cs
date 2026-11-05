@@ -108,8 +108,8 @@ public class PolicyPlanSerializationTests : AuthorizationExecutionTestBase
         var (planned, parsed) = await ExecutePlannedAndParsedAsync(
             GhostSchema,
             request,
-            configure: builder => builder.ModifyAuthorizationOptions(
-                options => options.DisableAuthorizationValidation = true));
+            configure: builder => builder.ModifyPolicyOptions(
+                options => options.DisablePolicyValidation = true));
 
         // assert
         Assert.Equal(planned, parsed);

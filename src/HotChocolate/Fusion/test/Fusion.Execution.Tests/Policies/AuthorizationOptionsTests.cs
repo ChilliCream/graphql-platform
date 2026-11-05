@@ -11,13 +11,13 @@ namespace HotChocolate.Fusion.Policies;
 public class AuthorizationOptionsTests : FusionTestBase
 {
     [Fact]
-    public async Task ModifyAuthorizationOptions_Should_ExposeDefaults_When_NoModifierIsRegistered()
+    public async Task ModifyPolicyOptions_Should_ExposeDefaults_When_NoModifierIsRegistered()
     {
         // arrange
         var executor = await CreateExecutorAsync(builder => builder);
 
         // act
-        var options = executor.Schema.Services.GetRequiredService<FusionAuthorizationOptions>();
+        var options = executor.Schema.Services.GetRequiredService<FusionPolicyOptions>();
 
         // assert
         Describe(options).MatchInlineSnapshot(
@@ -29,17 +29,17 @@ public class AuthorizationOptionsTests : FusionTestBase
             ScopeClaimName: scope
             ScopeClaimFormat: SpaceSeparated
             EnableAttribution: False
-            DisableAuthorizationValidation: False
+            DisablePolicyValidation: False
             """);
     }
 
     [Fact]
-    public async Task ModifyAuthorizationOptions_Should_ApplyEveryModifier_When_ExecutorIsCreated()
+    public async Task ModifyPolicyOptions_Should_ApplyEveryModifier_When_ExecutorIsCreated()
     {
         // arrange
         var executor = await CreateExecutorAsync(
             builder => builder
-                .ModifyAuthorizationOptions(
+                .ModifyPolicyOptions(
                     o =>
                     {
                         o.DenyHandling = DenyHandling.Error;
@@ -47,18 +47,18 @@ public class AuthorizationOptionsTests : FusionTestBase
                         o.Schemes = ImmutableArray.Create("Bearer", "Cookie");
                         o.SchemeChallenges = ImmutableDictionary<string, string>.Empty.Add("Cookie", "Cookie");
                     })
-                .ModifyAuthorizationOptions(
+                .ModifyPolicyOptions(
                     o =>
                     {
                         o.RejectRequestOn = RejectRequestOn.OnUnauthorized;
                         o.ScopeClaimName = "scp";
                         o.ScopeClaimFormat = ScopeClaimFormat.Array;
                         o.EnableAttribution = true;
-                        o.DisableAuthorizationValidation = true;
+                        o.DisablePolicyValidation = true;
                     }));
 
         // act
-        var options = executor.Schema.Services.GetRequiredService<FusionAuthorizationOptions>();
+        var options = executor.Schema.Services.GetRequiredService<FusionPolicyOptions>();
 
         // assert
         Describe(options).MatchInlineSnapshot(
@@ -70,7 +70,7 @@ public class AuthorizationOptionsTests : FusionTestBase
             ScopeClaimName: scp
             ScopeClaimFormat: Array
             EnableAttribution: True
-            DisableAuthorizationValidation: True
+            DisablePolicyValidation: True
             """);
     }
 
@@ -79,7 +79,7 @@ public class AuthorizationOptionsTests : FusionTestBase
     {
         // arrange
         var executor = await CreateExecutorAsync(builder => builder);
-        var options = executor.Schema.Services.GetRequiredService<FusionAuthorizationOptions>();
+        var options = executor.Schema.Services.GetRequiredService<FusionPolicyOptions>();
 
         // act
         Action act = () => options.DenyHandling = DenyHandling.Error;
@@ -93,7 +93,7 @@ public class AuthorizationOptionsTests : FusionTestBase
     public void Schemes_Should_BeUnset_When_DefaultArrayIsAssigned()
     {
         // arrange
-        var options = new FusionAuthorizationOptions { Schemes = ImmutableArray.Create("Bearer") };
+        var options = new FusionPolicyOptions { Schemes = ImmutableArray.Create("Bearer") };
 
         // act
         options.Schemes = default(ImmutableArray<string>);
@@ -106,7 +106,7 @@ public class AuthorizationOptionsTests : FusionTestBase
     public void SchemeChallenges_Should_Throw_When_ValueIsNull()
     {
         // arrange
-        var options = new FusionAuthorizationOptions();
+        var options = new FusionPolicyOptions();
 
         // act
         var act = () => options.SchemeChallenges = null!;
@@ -123,7 +123,7 @@ public class AuthorizationOptionsTests : FusionTestBase
     public void SchemeChallenges_Should_Throw_When_ChallengeIsEmpty(string? challenge)
     {
         // arrange
-        var options = new FusionAuthorizationOptions();
+        var options = new FusionPolicyOptions();
         var challenges = ImmutableDictionary<string, string>.Empty.Add("MyJwt", challenge!);
 
         // act
@@ -141,7 +141,7 @@ public class AuthorizationOptionsTests : FusionTestBase
     public void ScopeClaimName_Should_Throw_When_ValueIsEmpty()
     {
         // arrange
-        var options = new FusionAuthorizationOptions();
+        var options = new FusionPolicyOptions();
 
         // act
         var act = () => options.ScopeClaimName = string.Empty;
@@ -156,7 +156,7 @@ public class AuthorizationOptionsTests : FusionTestBase
     {
         // arrange
         var executor = await CreateExecutorAsync(
-            builder => builder.ModifyAuthorizationOptions(
+            builder => builder.ModifyPolicyOptions(
                 o =>
                 {
                     o.ScopeClaimName = "scp";
@@ -210,7 +210,7 @@ public class AuthorizationOptionsTests : FusionTestBase
             .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
     }
 
-    private static string Describe(FusionAuthorizationOptions options)
+    private static string Describe(FusionPolicyOptions options)
         => string.Join(
             '\n',
             $"DenyHandling: {options.DenyHandling}",
@@ -220,7 +220,7 @@ public class AuthorizationOptionsTests : FusionTestBase
             $"ScopeClaimName: {options.ScopeClaimName}",
             $"ScopeClaimFormat: {options.ScopeClaimFormat}",
             $"EnableAttribution: {options.EnableAttribution}",
-            $"DisableAuthorizationValidation: {options.DisableAuthorizationValidation}");
+            $"DisablePolicyValidation: {options.DisablePolicyValidation}");
 
     private static string DescribeChallenges(ImmutableDictionary<string, string> challenges)
         => challenges.IsEmpty

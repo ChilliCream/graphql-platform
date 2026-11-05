@@ -216,13 +216,13 @@ public class AuthorizationErrorSemanticsMatrixTests : FusionTestBase
         snapshot.MatchMarkdownSnapshot();
     }
 
-    private Task<Gateway> CreateGatewayAsync(TestServer server, Action<FusionAuthorizationOptions> configure)
+    private Task<Gateway> CreateGatewayAsync(TestServer server, Action<FusionPolicyOptions> configure)
         => CreateCompositeSchemaAsync(
             [("A", server)],
             configureServices: AddJwtScheme,
             configureApplication: UseTestUser,
             configureGatewayBuilder: b => b
-                .ModifyAuthorizationOptions(configure)
+                .ModifyPolicyOptions(configure)
                 .AddInMemoryPolicies(p => p.Deny("finance")),
             includeOperationPlan: false);
 

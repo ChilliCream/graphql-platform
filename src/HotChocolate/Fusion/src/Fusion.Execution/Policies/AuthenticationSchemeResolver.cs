@@ -4,24 +4,24 @@ namespace HotChocolate.Fusion.Policies;
 
 /// <summary>
 /// Resolves the authentication schemes the gateway authenticates against from the
-/// <see cref="FusionAuthorizationOptions"/> and the schemes the host has registered.
+/// <see cref="FusionPolicyOptions"/> and the schemes the host has registered.
 /// </summary>
 internal sealed class AuthenticationSchemeResolver
 {
-    private readonly FusionAuthorizationOptions _options;
+    private readonly FusionPolicyOptions _options;
     private readonly IAuthenticationSchemeLookup? _lookup;
 
     /// <summary>
     /// Initializes a new instance of <see cref="AuthenticationSchemeResolver"/>.
     /// </summary>
     /// <param name="options">
-    /// The authorization options.
+    /// The policy options.
     /// </param>
     /// <param name="lookup">
     /// The registered schemes, or <c>null</c> if the host exposes none, which resolves to no registered schemes.
     /// </param>
     public AuthenticationSchemeResolver(
-        FusionAuthorizationOptions options,
+        FusionPolicyOptions options,
         IAuthenticationSchemeLookup? lookup)
     {
         ArgumentNullException.ThrowIfNull(options);

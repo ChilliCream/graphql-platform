@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Policies;
 /// <summary>
 /// The reason a selection is denied.
 /// </summary>
-internal enum AuthorizationDenialKind
+internal enum PolicyDenialKind
 {
     /// <summary>
     /// The principal of the request is not authenticated.

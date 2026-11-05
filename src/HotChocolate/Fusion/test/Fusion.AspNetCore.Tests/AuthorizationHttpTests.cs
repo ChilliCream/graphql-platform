@@ -39,7 +39,7 @@ public class AuthorizationHttpTests : FusionTestBase
             [("A", server)],
             configureServices: AddCookieSchemes,
             configureGatewayBuilder: b => UseEscalation(
-                b.ModifyAuthorizationOptions(o => o.SchemeChallenges = s_cookieChallenges),
+                b.ModifyPolicyOptions(o => o.SchemeChallenges = s_cookieChallenges),
                 HttpStatusCode.Unauthorized));
 
         // act
@@ -59,7 +59,7 @@ public class AuthorizationHttpTests : FusionTestBase
             [("A", server)],
             configureServices: AddCookieSchemes,
             configureGatewayBuilder: b => UseEscalation(
-                b.ModifyAuthorizationOptions(
+                b.ModifyPolicyOptions(
                     o =>
                     {
                         o.Schemes = ImmutableArray.Create("Session");
@@ -228,7 +228,7 @@ public class AuthorizationHttpTests : FusionTestBase
         var act = async () => await CreateCompositeSchemaAsync(
             [("A", server)],
             configureServices: AddCookieSchemes,
-            configureGatewayBuilder: b => b.ModifyAuthorizationOptions(
+            configureGatewayBuilder: b => b.ModifyPolicyOptions(
                 o => o.Schemes = ImmutableArray.Create("Session", "Bearer")));
 
         // assert
@@ -247,8 +247,8 @@ public class AuthorizationHttpTests : FusionTestBase
 
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            configureGatewayBuilder: b => b.ModifyAuthorizationOptions(
-                o => o.DisableAuthorizationValidation = true));
+            configureGatewayBuilder: b => b.ModifyPolicyOptions(
+                o => o.DisablePolicyValidation = true));
 
         // act
         using var response = await PostAsync(gateway);

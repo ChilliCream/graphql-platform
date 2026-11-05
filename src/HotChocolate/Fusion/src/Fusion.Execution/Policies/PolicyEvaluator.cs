@@ -33,20 +33,20 @@ internal sealed class PolicyEvaluator
         ImmutableDictionary<string, string>.Empty;
 #endif
 
-    private readonly FusionAuthorizationOptions _options;
+    private readonly FusionPolicyOptions _options;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
     /// <summary>
     /// Initializes a new instance of <see cref="PolicyEvaluator"/>.
     /// </summary>
     /// <param name="options">
-    /// The authorization options.
+    /// The policy options.
     /// </param>
     /// <param name="diagnosticEvents">
     /// The diagnostic events that receive the failures that must not replace an original fault.
     /// </param>
     public PolicyEvaluator(
-        FusionAuthorizationOptions options,
+        FusionPolicyOptions options,
         IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -320,8 +320,8 @@ internal sealed class PolicyEvaluator
         }
 
         var kind = isAuthenticated
-            ? AuthorizationDenialKind.Unauthorized
-            : AuthorizationDenialKind.Unauthenticated;
+            ? PolicyDenialKind.Unauthorized
+            : PolicyDenialKind.Unauthenticated;
         var selections = new List<Selection>();
         var descriptorsBySelection = GroupBySelection(occurrences, selections);
 

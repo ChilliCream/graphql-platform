@@ -321,45 +321,45 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
-        internal static string FusionAuthorizationOptions_ReadOnly {
+        internal static string FusionPolicyOptions_ReadOnly {
             get {
-                return ResourceManager.GetString("FusionAuthorizationOptions_ReadOnly", resourceCulture);
+                return ResourceManager.GetString("FusionPolicyOptions_ReadOnly", resourceCulture);
             }
         }
 
-        internal static string FusionAuthorizationOptions_SchemeChallengeEmpty {
+        internal static string FusionPolicyOptions_SchemeChallengeEmpty {
             get {
-                return ResourceManager.GetString("FusionAuthorizationOptions_SchemeChallengeEmpty", resourceCulture);
+                return ResourceManager.GetString("FusionPolicyOptions_SchemeChallengeEmpty", resourceCulture);
             }
         }
 
-        internal static string AuthorizationValidation_SchemeNotRegistered {
+        internal static string PolicyValidation_SchemeNotRegistered {
             get {
-                return ResourceManager.GetString("AuthorizationValidation_SchemeNotRegistered", resourceCulture);
+                return ResourceManager.GetString("PolicyValidation_SchemeNotRegistered", resourceCulture);
             }
         }
 
-        internal static string AuthorizationValidation_NoSchemeRegistered {
+        internal static string PolicyValidation_NoSchemeRegistered {
             get {
-                return ResourceManager.GetString("AuthorizationValidation_NoSchemeRegistered", resourceCulture);
+                return ResourceManager.GetString("PolicyValidation_NoSchemeRegistered", resourceCulture);
             }
         }
 
-        internal static string AuthorizationValidation_NoSchemeLookup {
+        internal static string PolicyValidation_NoSchemeLookup {
             get {
-                return ResourceManager.GetString("AuthorizationValidation_NoSchemeLookup", resourceCulture);
+                return ResourceManager.GetString("PolicyValidation_NoSchemeLookup", resourceCulture);
             }
         }
 
-        internal static string AuthorizationValidation_SchemesEmpty {
+        internal static string PolicyValidation_SchemesEmpty {
             get {
-                return ResourceManager.GetString("AuthorizationValidation_SchemesEmpty", resourceCulture);
+                return ResourceManager.GetString("PolicyValidation_SchemesEmpty", resourceCulture);
             }
         }
 
-        internal static string AuthorizationValidation_SchemesWithoutLookup {
+        internal static string PolicyValidation_SchemesWithoutLookup {
             get {
-                return ResourceManager.GetString("AuthorizationValidation_SchemesWithoutLookup", resourceCulture);
+                return ResourceManager.GetString("PolicyValidation_SchemesWithoutLookup", resourceCulture);
             }
         }
 

@@ -121,7 +121,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
             client,
             recorder,
             policies => policies.Deny("live"),
-            builder => builder.ModifyAuthorizationOptions(options => options.DenyHandling = DenyHandling.Error));
+            builder => builder.ModifyPolicyOptions(options => options.DenyHandling = DenyHandling.Error));
         await using var result = await executor.ExecuteAsync(
             CreateRequest(Subscription, Authenticated()).Build(),
             TestContext.Current.CancellationToken);

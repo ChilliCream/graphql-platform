@@ -16,5 +16,5 @@ namespace HotChocolate.Fusion.Policies;
 /// </param>
 internal readonly record struct SelectionDenial(
     Selection Selection,
-    AuthorizationDenialKind Kind,
+    PolicyDenialKind Kind,
     PolicyDescriptor Descriptor);

@@ -9,7 +9,7 @@ public class AuthenticationSchemeResolverTests
     {
         // arrange
         var schemeResolver = new AuthenticationSchemeResolver(
-            new FusionAuthorizationOptions(),
+            new FusionPolicyOptions(),
             new TestAuthenticationSchemeLookup("MyJwt")
             {
                 Challenges = ImmutableDictionary<string, string>.Empty.Add("MyJwt", "Bearer")
@@ -27,7 +27,7 @@ public class AuthenticationSchemeResolverTests
     {
         // arrange
         var schemeResolver = new AuthenticationSchemeResolver(
-            new FusionAuthorizationOptions(),
+            new FusionPolicyOptions(),
             new TestAuthenticationSchemeLookup("JwtA", "JwtB")
             {
                 Challenges = ImmutableDictionary<string, string>.Empty.Add("JwtA", "Bearer").Add("JwtB", "Bearer")
@@ -45,7 +45,7 @@ public class AuthenticationSchemeResolverTests
     {
         // arrange
         var schemeResolver = new AuthenticationSchemeResolver(
-            new FusionAuthorizationOptions(),
+            new FusionPolicyOptions(),
             new TestAuthenticationSchemeLookup("Windows", "MyJwt")
             {
                 Challenges = ImmutableDictionary<string, string>.Empty
@@ -64,7 +64,7 @@ public class AuthenticationSchemeResolverTests
     public async Task GetChallengeAsync_Should_AdvertiseMappedChallenge_When_HandlerFixesNone()
     {
         // arrange
-        var options = new FusionAuthorizationOptions
+        var options = new FusionPolicyOptions
         {
             SchemeChallenges = ImmutableDictionary<string, string>.Empty.Add("Cookies", "Cookie")
         };
@@ -82,7 +82,7 @@ public class AuthenticationSchemeResolverTests
     {
         // arrange
         var schemeResolver = new AuthenticationSchemeResolver(
-            new FusionAuthorizationOptions(),
+            new FusionPolicyOptions(),
             new TestAuthenticationSchemeLookup("Cookies"));
 
         // act
@@ -96,7 +96,7 @@ public class AuthenticationSchemeResolverTests
     public async Task GetChallengeAsync_Should_AdvertiseOnlyListedSchemes_When_SchemesAreSet()
     {
         // arrange
-        var options = new FusionAuthorizationOptions
+        var options = new FusionPolicyOptions
         {
             Schemes = ImmutableArray.Create("Windows"),
             SchemeChallenges = ImmutableDictionary<string, string>.Empty.Add("Windows", "Negotiate")
@@ -119,7 +119,7 @@ public class AuthenticationSchemeResolverTests
     public async Task GetChallengeAsync_Should_SkipUnregisteredSchemes_When_ListedSchemeIsNotRegistered()
     {
         // arrange
-        var options = new FusionAuthorizationOptions
+        var options = new FusionPolicyOptions
         {
             Schemes = ImmutableArray.Create("Windows", "MyJwt"),
             SchemeChallenges = ImmutableDictionary<string, string>.Empty.Add("Windows", "Negotiate")
@@ -143,7 +143,7 @@ public class AuthenticationSchemeResolverTests
     {
         // arrange
         var schemeResolver = new AuthenticationSchemeResolver(
-            new FusionAuthorizationOptions { Schemes = ImmutableArray.Create("Bearer") },
+            new FusionPolicyOptions { Schemes = ImmutableArray.Create("Bearer") },
             new TestAuthenticationSchemeLookup());
 
         // act
@@ -157,7 +157,7 @@ public class AuthenticationSchemeResolverTests
     public async Task GetChallengeAsync_Should_ReturnNull_When_HostHasNoLookup()
     {
         // arrange
-        var schemeResolver = new AuthenticationSchemeResolver(new FusionAuthorizationOptions(), lookup: null);
+        var schemeResolver = new AuthenticationSchemeResolver(new FusionPolicyOptions(), lookup: null);
 
         // act
         var challenge = await schemeResolver.GetChallengeAsync(CancellationToken.None);

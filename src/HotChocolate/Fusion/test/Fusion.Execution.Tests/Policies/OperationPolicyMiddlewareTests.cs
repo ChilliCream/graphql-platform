@@ -363,7 +363,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
             new InMemoryPolicyRecorder(),
             configure: builder =>
             {
-                builder.ModifyAuthorizationOptions(options => options.DisableAuthorizationValidation = true);
+                builder.ModifyPolicyOptions(options => options.DisablePolicyValidation = true);
                 builder.AddDiagnosticEventListener(_ => listener);
             });
         var user = Authenticated();
@@ -405,7 +405,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
             new InMemoryPolicyRecorder(),
             configure: builder =>
             {
-                builder.ModifyAuthorizationOptions(options => options.DisableAuthorizationValidation = true);
+                builder.ModifyPolicyOptions(options => options.DisablePolicyValidation = true);
                 builder.AddDiagnosticEventListener(_ => listener);
             });
 

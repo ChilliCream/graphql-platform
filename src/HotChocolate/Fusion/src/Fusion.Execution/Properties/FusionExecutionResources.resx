@@ -156,25 +156,25 @@
   <data name="PolicyResolver_PolicyNotResolved" xml:space="preserve">
     <value>No policy provider knows the policy '{0}' of the directive '@{1}'.</value>
   </data>
-  <data name="FusionAuthorizationOptions_ReadOnly" xml:space="preserve">
+  <data name="FusionPolicyOptions_ReadOnly" xml:space="preserve">
     <value>The authorization options are read-only.</value>
   </data>
-  <data name="FusionAuthorizationOptions_SchemeChallengeEmpty" xml:space="preserve">
+  <data name="FusionPolicyOptions_SchemeChallengeEmpty" xml:space="preserve">
     <value>The WWW-Authenticate challenge of the authentication scheme '{0}' must not be null, empty or whitespace.</value>
   </data>
-  <data name="AuthorizationValidation_SchemeNotRegistered" xml:space="preserve">
+  <data name="PolicyValidation_SchemeNotRegistered" xml:space="preserve">
     <value>The authentication scheme '{0}' of the authorization options is not registered. Register it, remove it from the schemes, or disable the authorization validation.</value>
   </data>
-  <data name="AuthorizationValidation_NoSchemeRegistered" xml:space="preserve">
+  <data name="PolicyValidation_NoSchemeRegistered" xml:space="preserve">
     <value>The schema uses authorization directives but no authentication scheme is registered. Register an authentication scheme, or disable the authorization validation.</value>
   </data>
-  <data name="AuthorizationValidation_NoSchemeLookup" xml:space="preserve">
-    <value>The schema uses authorization directives but the host exposes no authentication schemes. Add the gateway through HotChocolate.Fusion.AspNetCore, or set DisableAuthorizationValidation.</value>
+  <data name="PolicyValidation_NoSchemeLookup" xml:space="preserve">
+    <value>The schema uses authorization directives but the host exposes no authentication schemes. Add the gateway through HotChocolate.Fusion.AspNetCore, or set DisablePolicyValidation.</value>
   </data>
-  <data name="AuthorizationValidation_SchemesEmpty" xml:space="preserve">
+  <data name="PolicyValidation_SchemesEmpty" xml:space="preserve">
     <value>The Schemes list is empty; omit it to use every registered scheme or list at least one.</value>
   </data>
-  <data name="AuthorizationValidation_SchemesWithoutLookup" xml:space="preserve">
+  <data name="PolicyValidation_SchemesWithoutLookup" xml:space="preserve">
     <value>The Schemes option lists authentication schemes but the host exposes no authentication schemes. Register the authentication scheme lookup through HotChocolate.Fusion.AspNetCore, or do not set Schemes.</value>
   </data>
   <data name="PolicyEvaluationContext_EntryAlreadyAnswered" xml:space="preserve">

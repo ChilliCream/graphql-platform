@@ -56,7 +56,7 @@ public abstract class SubscriptionPoliciesTransportTestBase : FusionTestBase
                         services.AddSingleton<TimeProvider>(time);
                         services.AddSingleton<IAuditProvider>(audit);
                     });
-                builder.ModifyAuthorizationOptions(o => o.DenyHandling = denyHandling);
+                builder.ModifyPolicyOptions(o => o.DenyHandling = denyHandling);
 
                 // The policies the test configures take precedence over the allowing defaults below.
                 configure(builder);

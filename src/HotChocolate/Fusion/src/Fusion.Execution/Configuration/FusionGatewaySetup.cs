@@ -23,7 +23,7 @@ public sealed class FusionGatewaySetup
 
     public List<Action<FusionParserOptions>> ParserOptionsModifiers { get; } = [];
 
-    public List<Action<FusionAuthorizationOptions>> AuthorizationOptionsModifiers { get; } = [];
+    public List<Action<FusionPolicyOptions>> PolicyOptionsModifiers { get; } = [];
 
     public List<Action<IServiceProvider, IServiceCollection>> SchemaServiceModifiers { get; } = [];
 
