@@ -1376,7 +1376,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // assert
         schema.MatchInlineSnapshot(
-            """
+            """"
             schema {
               query: QueryWithEnvelope
             }
@@ -1387,12 +1387,21 @@ public class ObjectTypeTests : TypeTestBase
               envelope: EnvelopeOfString!
             }
 
+            "An envelope that carries a payload."
             type EnvelopeOfString {
-              attachment(position: Int!): String!
-              seal(attachments: [String!]!): Boolean!
+              """
+              Gets an attachment.
+
+              **Returns:**
+              The attachment.
+              """
+              attachment("The attachment position." position: Int!): String!
+              "Seals the envelope."
+              seal("The attachments to seal." attachments: [String!]!): Boolean!
+              "The carried payload."
               payload: String!
             }
-            """);
+            """");
     }
 
     [Fact]

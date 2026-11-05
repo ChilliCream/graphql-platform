@@ -595,7 +595,7 @@ public class XmlDocumentationProviderTests
         var description = documentationProvider.GetDescription(typeof(Envelope<string>));
 
         // assert
-        Assert.Null(description);
+        Assert.Equal("An envelope that carries a payload.", description);
     }
 
     [Fact]
@@ -611,7 +611,7 @@ public class XmlDocumentationProviderTests
             typeof(Envelope<string>).GetProperty(nameof(Envelope<string>.Payload))!);
 
         // assert
-        Assert.Null(description);
+        Assert.Equal("The carried payload.", description);
     }
 
     [Fact]
@@ -629,9 +629,9 @@ public class XmlDocumentationProviderTests
         var returnDescription = documentationProvider.GetDescription(method.ReturnParameter);
 
         // assert
-        Assert.Null(methodDescription);
-        Assert.Null(parameterDescription);
-        Assert.Null(returnDescription);
+        Assert.Equal("Gets an attachment.\n\n**Returns:**\nThe attachment.", methodDescription);
+        Assert.Equal("The attachment position.", parameterDescription);
+        Assert.Equal("The attachment.", returnDescription);
     }
 
     [Theory]
@@ -651,8 +651,8 @@ public class XmlDocumentationProviderTests
         var parameterDescription = documentationProvider.GetDescription(method.GetParameters()[0]);
 
         // assert
-        Assert.Null(methodDescription);
-        Assert.Null(parameterDescription);
+        Assert.Equal("Seals the envelope.", methodDescription);
+        Assert.Equal("The attachments to seal.", parameterDescription);
     }
 
     [Theory]
@@ -672,8 +672,8 @@ public class XmlDocumentationProviderTests
         var parameterDescription = documentationProvider.GetDescription(method.GetParameters()[0]);
 
         // assert
-        Assert.Null(methodDescription);
-        Assert.Null(parameterDescription);
+        Assert.Equal("Unwraps the attachments.", methodDescription);
+        Assert.Equal("The attachments to unwrap.", parameterDescription);
     }
 
     private static XDocument CreatePointDocumentation(string description) =>
