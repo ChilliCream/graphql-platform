@@ -356,16 +356,21 @@ public sealed class ConsumerRecoveryTests(RabbitMQFixture fixture)
         Assert.True(nextHandled);
     }
 
-    [Fact]
-    public async Task BatchHandler_Should_HandleEveryMessage_When_ConnectionClosesWhileBatchFills()
+    [Theory]
+    [InlineData(4)]
+    [InlineData(8)]
+    [InlineData(32)]
+    public async Task BatchHandler_Should_HandleEveryMessage_When_ConnectionClosesWhileBatchFills(int busConcurrency)
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
         var batches = new BatchRecorder();
+        using var buffered = new SemaphoreSlim(0);
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(batches)
             .AddMessageBus()
+            .AddConcurrencyLimiter(options => options.MaxConcurrency = busConcurrency)
             .AddBatchHandler<OrderBatchHandler>(options =>
             {
                 options.MaxBatchSize = 10;
@@ -373,15 +378,25 @@ public sealed class ConsumerRecoveryTests(RabbitMQFixture fixture)
             })
             .AddRabbitMQ(t => t.Queue("batch-orders")
                 .Handler<OrderBatchHandler>()
-                .MaxConcurrency(10))
+                .MaxConcurrency(10)
+                .AddConcurrencyLimiter(options => options.MaxConcurrency = 10)
+                .UseReceive(new ReceiveMiddlewareConfiguration(
+                    (_, next) => context =>
+                    {
+                        // A partial batch is buffered before the consumer returns its pending task.
+                        var pending = next(context);
+                        buffered.Release();
+                        return pending;
+                    },
+                    "BatchBuffered")))
             .BuildTestBusAsync();
         for (var i = 1; i <= 6; i++)
         {
             await PublishAsync(bus, new OrderCreated { OrderId = $"ORD-{i}" });
         }
 
-        Assert.True(await Condition.WaitAsync(
-            async () => await vhost.GetUnacknowledgedMessageCountAsync("batch-orders") == 6, s_timeout));
+        await Task.WhenAll(Enumerable.Range(0, 6).Select(_ => buffered.WaitAsync(TestContext.Current.CancellationToken)))
+            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // act
         await vhost.CloseConsumerConnectionsAsync();
