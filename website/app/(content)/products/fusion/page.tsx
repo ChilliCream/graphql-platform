@@ -10,14 +10,18 @@ import {
 import { FusionPage } from "./FusionPage";
 
 const PAGE = {
-  title: "Fusion: GraphQL Federation Router",
+  title: "Fusion: GraphQL Federation Router (Gateway)",
   description:
-    "Fusion is a high-performance router for connecting GraphQL, REST, and gRPC APIs at scale, with native support for GraphQL Federation and Apollo Federation.",
+    "Fusion is a high-performance GraphQL Federation router (gateway) for connecting GraphQL, REST, and gRPC APIs at scale, with native support for GraphQL Federation and Apollo Federation.",
   path: "/products/fusion",
   keywords: [
     "GraphQL Federation router",
+    "GraphQL Federation gateway",
     "GraphQL router",
+    "GraphQL gateway",
     "Apollo Federation compatible router",
+    "Apollo Federation router",
+    "Apollo Federation gateway",
     "coherent graph",
     "Fusion GraphQL",
   ],
@@ -30,7 +34,16 @@ const SOFTWARE = {
   "@type": "SoftwareSourceCode",
   "@id": SOFTWARE_ID,
   name: "Fusion",
+  alternateName: "Fusion GraphQL Federation Gateway",
   description: PAGE.description,
+  keywords: [
+    "GraphQL Federation router",
+    "GraphQL Federation gateway",
+    "GraphQL router",
+    "GraphQL gateway",
+    "Apollo Federation router",
+    "Apollo Federation gateway",
+  ],
   url: toAbsoluteUrl(PAGE.path),
   codeRepository: "https://github.com/ChilliCream/graphql-platform",
   programmingLanguage: {
