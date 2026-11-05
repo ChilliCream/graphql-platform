@@ -185,7 +185,7 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         await fixture.CloseAllConnectionsAsync();
         await gate.CancellationObserved.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         gate.Release.TrySetResult();
-        var stopped = await Task.WhenAny(stop, Task.Delay(s_timeout, TestContext.Current.CancellationToken)) == stop;
+        await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         await bus.DisposeAsync();
         var closed = await Condition.WaitAsync(
             async () => await vhost.GetConnectionCountAsync() == 0,
@@ -195,7 +195,6 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         var requeued = await vhost.GetMessageCountAsync("shutdown");
 
         // assert
-        Assert.True(stopped);
         Assert.False(gate.Completed);
         Assert.True(gate.Cancelled);
         Assert.True(closed);

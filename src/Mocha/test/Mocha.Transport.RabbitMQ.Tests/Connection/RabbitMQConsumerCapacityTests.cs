@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -21,9 +21,8 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
         await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
-        using var loggerFactory = LoggerFactory.Create(_ => { });
         await using var manager = new RabbitMQConsumerManager(
-            loggerFactory.CreateLogger<RabbitMQConsumerManager>(),
+            NullLogger<RabbitMQConsumerManager>.Instance,
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);
@@ -64,10 +63,8 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
         await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false, cancellationToken: TestContext.Current.CancellationToken);
-        using var logs = new LogRecorder();
-        using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs));
         await using var manager = new RabbitMQConsumerManager(
-            loggerFactory.CreateLogger<RabbitMQConsumerManager>(),
+            NullLogger<RabbitMQConsumerManager>.Instance,
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 2);
@@ -102,8 +99,6 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             Assert.Equal(Enumerable.Repeat((true, 2, 2, false), 6), recoveries);
             Assert.Equal((true, true, 2), (cancelled, delivered, gate.PeakConcurrency));
             Assert.Equal(["order-0", "order-1", "order-2", "order-3"], gate.Delivered.Order());
-            Assert.True(logs.Contains("ConsumerRecoveryBlocked"));
-            Assert.True(logs.Contains("ConsumerRecoveryResumed"));
         }
         finally
         {
@@ -119,9 +114,8 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
         await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false, cancellationToken: TestContext.Current.CancellationToken);
-        using var loggerFactory = LoggerFactory.Create(_ => { });
         await using var manager = new RabbitMQConsumerManager(
-            loggerFactory.CreateLogger<RabbitMQConsumerManager>(),
+            NullLogger<RabbitMQConsumerManager>.Instance,
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);

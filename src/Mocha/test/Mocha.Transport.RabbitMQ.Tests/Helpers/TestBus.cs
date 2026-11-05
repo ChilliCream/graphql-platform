@@ -29,8 +29,16 @@ internal static class MessageBusHostBuilderTestExtensions
     {
         var provider = builder.Services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(CancellationToken.None);
-        return new TestBus(provider, runtime);
+        try
+        {
+            await runtime.StartAsync(TestContext.Current.CancellationToken);
+            return new TestBus(provider, runtime);
+        }
+        catch
+        {
+            await provider.DisposeAsync();
+            throw;
+        }
     }
 
     public static MessagingRuntime BuildRuntime(this IMessageBusHostBuilder builder)
