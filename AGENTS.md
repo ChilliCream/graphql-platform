@@ -87,6 +87,7 @@ When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK
   ```
 
 - Avoid `Assert.DoesNotContain` as it is a weak assertion that easily goes out of date, it only proves something is absent without verifying what *is* present. Prefer `Assert.Equal` to check the entire string value, or `Assert.Collection` to verify the complete contents of a collection.
+- Do not assert on a substring of a message with `Assert.Contains`. Assert the whole message with `Assert.Equal`, so a wording change is caught and the expected text is documented in the test.
 - Snapshot tests: update from `__mismatch__/` directory, understand ordering issues before updating.
 - Filter tests during iteration, never run the full suite unnecessarily.
 - Use real databases in integration tests, not mocks (unless explicitly instructed otherwise).
