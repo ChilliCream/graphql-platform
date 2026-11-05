@@ -24,7 +24,7 @@ const STRUCTURED_DATA: JsonLdGraph = {
       name: SITE_NAME,
       legalName: "ChilliCream, Inc.",
       description:
-        "ChilliCream builds open-source GraphQL and messaging tools for .NET, plus the Nitro API operations platform.",
+        "ChilliCream builds the GraphQL platform for teams on any stack. It includes the Fusion GraphQL Federation router, Nitro for API operations, and open-source GraphQL and messaging frameworks for .NET.",
       url: SITE_URL,
       logo: { "@id": LOGO_ID },
       email: "contact@chillicream.com",
