@@ -1,4 +1,3 @@
-import * as page from "./page";
 import {
   createPageShareCardImage,
   shareCardContentType,
@@ -11,4 +10,6 @@ export const alt = "Fusion GraphQL Federation router (gateway)";
 export const size = shareCardSize;
 export const contentType = shareCardContentType;
 
-export default createPageShareCardImage(page);
+export default createPageShareCardImage({
+  metadata: { title: "Fusion: GraphQL Federation Router" },
+});
