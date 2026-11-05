@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -199,7 +200,7 @@ public sealed partial class RabbitMQConsumerManager
                         }
 
                         attempt++;
-                        var delay = RabbitMQBackoff.GetDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
+                        var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
                         await Task.Delay(delay, attachToken);
                     }
                 }
@@ -384,12 +385,21 @@ public sealed partial class RabbitMQConsumerManager
                 {
                     await channel.CloseAsync(cancellationToken: cancellationToken);
                 }
-
-                await channel.DisposeAsync();
             }
             catch
             {
-                // Ignore
+                // Ignore close errors.
+            }
+            finally
+            {
+                try
+                {
+                    await channel.DisposeAsync();
+                }
+                catch
+                {
+                    // Ignore disposal errors.
+                }
             }
         }
 
@@ -473,12 +483,12 @@ public sealed partial class RabbitMQConsumerManager
                         }
 
                         attempt++;
-                        delay = RabbitMQBackoff.GetDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
+                        delay = ExponentialBackoff.CalculateDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
                     }
                     catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                     {
                         attempt++;
-                        delay = RabbitMQBackoff.GetDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
+                        delay = ExponentialBackoff.CalculateDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
 
                         if (attempt == 1)
                         {

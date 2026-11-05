@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using Mocha.Middlewares;
+using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -99,7 +100,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                 // The message may have reached the broker before the connection was lost, so a retry can deliver
                 // it twice.
                 attempt++;
-                var delay = RabbitMQBackoff.GetDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
+                var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
                 dispatcher.LogPublishRetry(ex, attempt, delay);
                 await Task.Delay(delay, cancellationToken);
                 continue;

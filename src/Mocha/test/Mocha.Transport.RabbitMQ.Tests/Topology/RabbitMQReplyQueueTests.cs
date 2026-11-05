@@ -5,6 +5,24 @@ namespace Mocha.Transport.RabbitMQ.Tests.Topology;
 
 public class RabbitMQReplyQueueTests
 {
+    [Theory]
+    [InlineData(1_000)]
+    [InlineData(600_000)]
+    public void ReplyQueue_Should_PreserveExplicitExpiry_When_TemporaryExpiryConfigured(int milliseconds)
+    {
+        // arrange
+        var runtime = CreateRuntime(t => t.Endpoint("custom-replies")
+            .Kind(ReceiveEndpointKind.Reply)
+            .Temporary(TimeSpan.FromMilliseconds(milliseconds)));
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // act
+        var queue = transport.Topology.Queues.Single(q => q.Name == "custom-replies");
+
+        // assert
+        Assert.Equal(milliseconds, queue.Arguments["x-expires"]);
+    }
+
     [Fact]
     public void ReplyQueue_Should_BeDurableExpiringQueue_When_RequestHandlerRegistered()
     {

@@ -230,7 +230,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
 
         if (isReplyQueue && queue.Origin is not TopologyOrigin.Declared)
         {
-            queue.MarkExpiring(s_replyQueueExpiration);
+            queue.MarkExpiring(rabbitConfiguration.TemporaryExpiry ?? s_replyQueueExpiration);
         }
         else if (rabbitConfiguration.IsTemporary && queue.Origin is not TopologyOrigin.Declared)
         {
