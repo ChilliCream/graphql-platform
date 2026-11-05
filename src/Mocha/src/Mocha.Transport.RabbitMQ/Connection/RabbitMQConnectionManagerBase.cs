@@ -9,13 +9,9 @@ using RabbitMQ.Client.Exceptions;
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
-/// Base class for RabbitMQ connection management with reconnection, exponential backoff, and connection event
-/// handling.
+/// Manages RabbitMQ connections with retries and reconnection.
+/// Recovery is managed independently of the connection factory's automatic recovery setting.
 /// </summary>
-/// <remarks>
-/// The manager owns recovery: it disposes a connection that the broker or the network took away, which stops the
-/// client's automatic recovery for that connection, and creates a new connection instead.
-/// </remarks>
 public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 {
     private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromSeconds(1);
@@ -30,6 +26,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     private AsyncEventHandler<ShutdownEventArgs>? _currentShutdownHandler;
     private Task? _reconnectTask;
     private int _isReconnecting;
+    private bool _hasEstablishedConnection;
     private bool _isDisposed;
 
     /// <summary>
@@ -135,8 +132,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Called before a new connection is created.
-    /// Override to perform cleanup (e.g., clearing channel pools).
+    /// Called before an existing connection is replaced or a new connection is created.
     /// </summary>
     protected virtual Task OnBeforeConnectionCreatedAsync(CancellationToken cancellationToken)
     {
@@ -144,8 +140,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Called after a new connection is successfully created and setup actions have run.
-    /// Override to perform post-connection setup (e.g., reconnecting consumers).
+    /// Called after a new connection is created and its initial setup completes.
     /// </summary>
     protected virtual Task OnAfterConnectionCreatedAsync(IConnection connection, CancellationToken cancellationToken)
     {
@@ -153,10 +148,17 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Called when the connection is shut down (not by application).
-    /// Override to perform cleanup.
+    /// Called when a connection is lost without an application-requested shutdown.
     /// </summary>
     protected virtual Task OnConnectionLostAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Called after a previously established connection has been replaced and the replacement is ready for use.
+    /// </summary>
+    protected virtual Task OnConnectionRecoveredAsync(CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
@@ -341,7 +343,14 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 throw ThrowHelper.ConnectionClosedDuringSetup(connection.CloseReason);
             }
 
+            var isRecovery = _hasEstablishedConnection;
+            _hasEstablishedConnection = true;
             Volatile.Write(ref _readyConnection, connection);
+
+            if (isRecovery)
+            {
+                await OnConnectionRecoveredAsync(cancellationToken);
+            }
         }
         catch
         {

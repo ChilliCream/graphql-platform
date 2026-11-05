@@ -64,6 +64,48 @@ public class RabbitMQDispatcherTests
     }
 
     [Fact]
+    public async Task RentChannelAsync_Should_UseReplacementConnection_When_OldConnectionRecoversBeforeCleanup()
+    {
+        // arrange
+        var oldChannel = CreateOpenChannel();
+        var newChannel = CreateOpenChannel();
+        var oldConnection = CreateOpenConnection(oldChannel);
+        var newConnection = CreateOpenConnection(newChannel);
+        oldConnection.Setup(c => c.DisposeAsync()).Callback(() =>
+        {
+            oldConnection.SetupGet(c => c.IsOpen).Returns(false);
+            oldChannel.SetupGet(c => c.IsOpen).Returns(false);
+            oldConnection
+                .Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new ObjectDisposedException("old connection"));
+        }).Returns(ValueTask.CompletedTask);
+        var connections = new Queue<IConnection>([oldConnection.Object, newConnection.Object]);
+        await using var dispatcher = new RabbitMQDispatcher(
+            NullLogger<RabbitMQDispatcher>.Instance,
+            _ => new ValueTask<IConnection>(connections.Dequeue()),
+            static (_, _) => Task.CompletedTask);
+        var initial = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(initial);
+
+        // The old connection is closed for both readiness checks and open again during cleanup.
+        var reads = 0;
+        oldConnection.SetupGet(c => c.IsOpen).Returns(() => Interlocked.Increment(ref reads) >= 3);
+
+        // act
+        await dispatcher.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        var rented = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask()
+            .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(rented);
+
+        // assert
+        Assert.Same(newChannel.Object, rented);
+        oldChannel.Verify(c => c.DisposeAsync(), Times.Once());
+        newConnection.Verify(
+            c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()),
+            Times.Once());
+    }
+
+    [Fact]
     public async Task RentChannelAsync_Should_ThrowObjectDisposed_When_Disposed()
     {
         // arrange

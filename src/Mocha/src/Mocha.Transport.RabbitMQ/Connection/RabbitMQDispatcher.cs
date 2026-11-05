@@ -68,6 +68,12 @@ public sealed class RabbitMQDispatcher(
                     pool = _channelPool ??= new PublisherChannelPool(connection);
                 }
 
+                if (!ReferenceEquals(pool.Connection, connection))
+                {
+                    await ClearChannelsAsync(preserveCurrentConnection: true);
+                    continue;
+                }
+
                 if (await RentChannelAsync(pool, cancellationToken) is { } channel)
                 {
                     return channel;
@@ -284,23 +290,23 @@ public sealed class RabbitMQDispatcher(
 
     protected override async Task OnBeforeConnectionCreatedAsync(CancellationToken cancellationToken)
     {
-        await ClearChannelsAsync();
+        await ClearChannelsAsync(preserveCurrentConnection: false);
     }
 
     protected override async Task OnConnectionLostAsync()
     {
-        await ClearChannelsAsync();
+        await ClearChannelsAsync(preserveCurrentConnection: true);
         StartReconnecting();
     }
 
-    private async Task ClearChannelsAsync()
+    private async Task ClearChannelsAsync(bool preserveCurrentConnection)
     {
         PublisherChannelPool pool;
         Task[] cleanup;
         lock (_channelSync)
         {
             if (_channelPool is null
-                || (!IsDisposed && _channelPool.Connection.IsOpen
+                || (preserveCurrentConnection && !IsDisposed && _channelPool.Connection.IsOpen
                     && ReferenceEquals(_channelPool.Connection, CurrentConnection)))
             {
                 return;
@@ -359,7 +365,7 @@ public sealed class RabbitMQDispatcher(
     protected override async ValueTask DisposeAsyncCore()
     {
         await _channelCts.CancelAsync();
-        await ClearChannelsAsync();
+        await ClearChannelsAsync(preserveCurrentConnection: false);
         _channelCts.Dispose();
     }
 

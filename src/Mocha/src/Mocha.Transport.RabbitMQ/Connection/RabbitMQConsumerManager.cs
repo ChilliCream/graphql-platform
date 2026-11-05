@@ -149,20 +149,11 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
     }
 
     /// <summary>
-    /// Called after a new RabbitMQ connection is established, either on first connect or after a
-    /// connection loss that required creating an entirely new connection.
+    /// Restores registered consumers on a new connection and starts monitoring connection health.
     /// </summary>
-    /// <remarks>
-    /// This method re-attaches every previously registered consumer to the new connection by
-    /// creating fresh channels and restarting consumption. It also starts a background health
-    /// monitor that polls every 30 seconds and triggers reconnection when the connection drops.
-    /// Because consumers are automatically re-attached, callers of
-    /// <see cref="RegisterConsumerAsync(string, Func{IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask}, ushort, ushort, CancellationToken)"/>
-    /// do not need to handle reconnection themselves.
-    /// </remarks>
     /// <param name="connection">The newly created <see cref="IConnection"/>.</param>
     /// <param name="cancellationToken">A token to cancel the reconnection of consumers.</param>
-    /// <returns>A task that completes when all consumers have been re-attached and health monitoring has started.</returns>
+    /// <returns>A task that completes after consumer attachment attempts finish and health monitoring starts.</returns>
     protected override async Task OnAfterConnectionCreatedAsync(
         IConnection connection,
         CancellationToken cancellationToken)
