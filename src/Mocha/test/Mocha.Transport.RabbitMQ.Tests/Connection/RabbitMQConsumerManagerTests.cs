@@ -6,6 +6,36 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
 public class RabbitMQConsumerManagerTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StopAsync_Should_DisposeChannel_When_ChannelCloseFails(bool cancelled)
+    {
+        // arrange
+        await using var manager = CreateManager();
+        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
+            "test-queue",
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        var channel = new Mock<IChannel>();
+        channel.SetupGet(c => c.IsOpen).Returns(true);
+        channel.Setup(c => c.CloseAsync(
+                It.IsAny<ushort>(),
+                It.IsAny<string>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(cancelled ? new OperationCanceledException() : new TimeoutException());
+        registration.Channel = channel.Object;
+
+        // act
+        await registration.StopAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        channel.Verify(c => c.DisposeAsync(), Times.Once());
+    }
+
     [Fact]
     public async Task RegisterConsumerAsync_Should_TrackConsumer_When_Called()
     {

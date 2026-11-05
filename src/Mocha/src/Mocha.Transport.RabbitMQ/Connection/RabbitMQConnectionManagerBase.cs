@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -198,7 +199,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
                     attempt++;
-                    delay = RabbitMQBackoff.GetDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
+                    delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
 
                     if (attempt == 1)
                     {
@@ -277,7 +278,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 catch (Exception ex)
                 {
                     attempt++;
-                    var delay = RabbitMQBackoff.GetDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
+                    var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
 
                     if (Stopwatch.GetElapsedTime(started) + delay > connectTimeout)
                     {

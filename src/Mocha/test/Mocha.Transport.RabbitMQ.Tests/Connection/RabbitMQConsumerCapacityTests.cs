@@ -45,7 +45,9 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
 
             // assert
             Assert.True(redelivered);
-            Assert.Equal((1, 2, 3), (gate.ActiveHandlers, gate.PeakConcurrency, gate.Invocations));
+            Assert.Equal(
+                new HandlerState(ActiveHandlers: 1, PeakConcurrency: 2, Invocations: 3),
+                gate.State);
             Assert.True(manager.IsHealthy);
             Assert.Equal(["order-0", "order-1"], gate.Delivered.Order());
         }
@@ -81,14 +83,14 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         try
         {
             // act
-            var recoveries = new List<(bool Reattached, int Invocations, int ActiveHandlers, bool IsHealthy)>();
+            var recoveries = new List<RecoveryState>();
             for (var i = 0; i < 6; i++)
             {
                 var lostChannel = registration.Channel!;
                 await lostChannel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
                 var reattached = await Condition.WaitAsync(
                     () => registration.IsAttached && !ReferenceEquals(registration.Channel, lostChannel), s_timeout);
-                recoveries.Add((reattached, gate.Invocations, gate.ActiveHandlers, manager.IsHealthy));
+                recoveries.Add(new RecoveryState(reattached, gate.Invocations, gate.ActiveHandlers, manager.IsHealthy));
             }
 
             var cancelled = await Condition.WaitAsync(() => gate.CancelledHandlers == 2, s_timeout);
@@ -96,8 +98,14 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             var delivered = await Condition.WaitAsync(() => gate.Delivered.Count == 4 && manager.IsHealthy, s_timeout);
 
             // assert
-            Assert.Equal(Enumerable.Repeat((true, 2, 2, false), 6), recoveries);
-            Assert.Equal((true, true, 2), (cancelled, delivered, gate.PeakConcurrency));
+            Assert.Equal(
+                Enumerable.Repeat(
+                    new RecoveryState(Reattached: true, Invocations: 2, ActiveHandlers: 2, IsHealthy: false),
+                    6),
+                recoveries);
+            Assert.True(cancelled);
+            Assert.True(delivered);
+            Assert.Equal(2, gate.PeakConcurrency);
             Assert.Equal(["order-0", "order-1", "order-2", "order-3"], gate.Delivered.Order());
         }
         finally
@@ -151,6 +159,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         }
     }
 
+    private sealed record HandlerState(int ActiveHandlers, int PeakConcurrency, int Invocations);
+
+    private sealed record RecoveryState(bool Reattached, int Invocations, int ActiveHandlers, bool IsHealthy);
+
     private sealed class HandlerGate(int blockedHandlers)
     {
         private int _invocations;
@@ -165,6 +177,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         public int ActiveHandlers => Volatile.Read(ref _activeHandlers);
         public int PeakConcurrency => Volatile.Read(ref _peakConcurrency);
         public int CancelledHandlers => Volatile.Read(ref _cancelledHandlers);
+        public HandlerState State => new(ActiveHandlers, PeakConcurrency, Invocations);
 
         public async ValueTask HandleAsync(IChannel channel, BasicDeliverEventArgs delivery, CancellationToken cancellationToken)
         {
