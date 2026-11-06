@@ -1,7 +1,32 @@
+import { fileURLToPath } from "node:url";
 import { parse } from "node-html-parser";
+import {
+  findUncoveredRoutes,
+  isNotFoundRoute,
+  listBuiltRoutes,
+} from "./built-pages.mjs";
 import { parseSitemapUrls } from "./parse-sitemap.mjs";
+import {
+  headingSkips,
+  imagesWithoutAlt,
+  isAbsoluteHttpUrl,
+  lengthWarnings,
+  openGraphErrors,
+} from "./seo-rules.mjs";
+import { createReport, printReport } from "./validation-report.mjs";
 
-const baseUrl = new URL(process.argv[2] ?? "http://localhost:3002");
+const args = process.argv.slice(2);
+const baseUrl = new URL(
+  args.find((arg) => !arg.startsWith("--")) ?? "http://localhost:3002",
+);
+const warningLimit = args.includes("--all-warnings")
+  ? Number.POSITIVE_INFINITY
+  : undefined;
+const OUTPUT_ROOT = fileURLToPath(new URL("../out", import.meta.url));
+const LLMS_CATALOGS = [
+  ["/docs", "/docs/llms.txt"],
+  ["/blog", "/blog/llms.txt"],
+];
 const SITE_NODE_TYPES = new Set([
   "Organization",
   "ImageObject",
@@ -48,7 +73,8 @@ const queued = new Set(queue);
 const noindexArchiveQueue = [];
 const queuedNoindexArchives = new Set();
 const checked = [];
-const errors = [];
+const report = createReport();
+const breadcrumbTargets = new Map();
 const crawlGraph = new Map();
 const internalLinkTargets = new Map();
 const pageMetadata = new Map();
@@ -76,6 +102,9 @@ validateHomepageReachability();
 validateMetadataUniqueness();
 await validateNotFoundResponses();
 await validateMachineReadableRepresentations();
+await validateBreadcrumbTargets();
+await validateLlmsCatalogCoverage();
+await validateBuiltPageCoverage();
 
 await validateExcludedRoute("/services/support/thank-you");
 await validateRedirect(
@@ -102,16 +131,12 @@ for (const pathname of [
   );
 }
 
-if (errors.length > 0) {
-  console.error(`Structured-data validation failed (${errors.length} errors):`);
-  for (const error of errors) {
-    console.error(`- ${error}`);
-  }
+console.log(
+  `Checked ${checked.length} indexable pages, ${noindexArchiveQueue.length} noindex tag archives, robots.txt, sitemap.xml, the web manifest, the noindex flow page, and seven permanent redirects.`,
+);
+printReport(report, { warningLimit });
+if (report.hasErrors()) {
   process.exitCode = 1;
-} else {
-  console.log(
-    `Validated ${checked.length} indexable pages, ${noindexArchiveQueue.length} noindex tag archives, robots.txt, sitemap.xml, the web manifest, the noindex flow page, and seven permanent redirects.`,
-  );
 }
 
 function validateSitemap(xml, urls) {
@@ -196,22 +221,37 @@ function validateSitemap(xml, urls) {
 async function validateRobots(sitemapOrigins) {
   const response = await fetch(new URL("/robots.txt", baseUrl));
   if (!response.ok) {
-    errors.push(`robots.txt: returned HTTP ${response.status}`);
+    report.error(
+      "robots-status",
+      `robots.txt: returned HTTP ${response.status}`,
+    );
     return;
   }
   if (!response.headers.get("content-type")?.includes("text/plain")) {
-    errors.push("robots.txt: response is not text/plain");
+    report.error(
+      "robots-content-type",
+      "robots.txt: response is not text/plain",
+    );
   }
 
   const content = await response.text();
   if (!/^User-Agent:\s*\*\s*$/im.test(content)) {
-    errors.push("robots.txt: missing wildcard user-agent policy");
+    report.error(
+      "robots-policy",
+      "robots.txt: missing wildcard user-agent policy",
+    );
   }
   if (!/^Allow:\s*\/\s*$/im.test(content)) {
-    errors.push("robots.txt: production policy must allow the public site");
+    report.error(
+      "robots-policy",
+      "robots.txt: production policy must allow the public site",
+    );
   }
   if (/^Disallow:\s*\/\s*$/im.test(content)) {
-    errors.push("robots.txt: production policy blocks the public site");
+    report.error(
+      "robots-policy",
+      "robots.txt: production policy blocks the public site",
+    );
   }
   const expectedSitemap = `${sitemapOrigins[0]}/sitemap.xml`;
   if (
@@ -219,10 +259,13 @@ async function validateRobots(sitemapOrigins) {
       .split("\n")
       .some((line) => line.trim() === `Sitemap: ${expectedSitemap}`)
   ) {
-    errors.push(`robots.txt: missing ${expectedSitemap}`);
+    report.error("robots-sitemap", `robots.txt: missing ${expectedSitemap}`);
   }
   if (/^Host:/im.test(content)) {
-    errors.push("robots.txt: contains a nonstandard Host directive");
+    report.error(
+      "robots-policy",
+      "robots.txt: contains a nonstandard Host directive",
+    );
   }
 }
 
@@ -231,7 +274,8 @@ function validatePageMetadata(html, pathname) {
   const expectedCanonical = canonicalByPath.get(pathname);
   const canonicalLinks = document.querySelectorAll('link[rel="canonical"]');
   if (canonicalLinks.length !== 1) {
-    errors.push(
+    report.error(
+      "canonical-count",
       `${pathname}: expected exactly one canonical link, found ${canonicalLinks.length}`,
     );
   } else {
@@ -241,14 +285,20 @@ function validatePageMetadata(html, pathname) {
       normalizeUrl(new URL(href, expectedCanonical).href) !==
         normalizeUrl(expectedCanonical)
     ) {
-      errors.push(`${pathname}: canonical link does not match the sitemap`);
+      report.error(
+        "canonical-mismatch",
+        `${pathname}: canonical link does not match the sitemap`,
+      );
     }
   }
 
   const titles = document.querySelectorAll("title");
   const title = titles[0]?.textContent.trim() ?? "";
   if (titles.length !== 1 || !titles[0].textContent.trim()) {
-    errors.push(`${pathname}: expected exactly one nonempty document title`);
+    report.error(
+      "title-missing",
+      `${pathname}: expected exactly one nonempty document title`,
+    );
   }
   const descriptions = document.querySelectorAll('meta[name="description"]');
   const description = descriptions[0]?.getAttribute("content")?.trim() ?? "";
@@ -256,22 +306,28 @@ function validatePageMetadata(html, pathname) {
     descriptions.length !== 1 ||
     !descriptions[0].getAttribute("content")?.trim()
   ) {
-    errors.push(`${pathname}: expected exactly one nonempty meta description`);
+    report.error(
+      "description-missing",
+      `${pathname}: expected exactly one nonempty meta description`,
+    );
   }
   const h1s = document.querySelectorAll("h1");
   if (h1s.length !== 1 || !h1s[0].textContent.trim()) {
-    errors.push(`${pathname}: expected exactly one nonempty H1`);
+    report.error("h1-count", `${pathname}: expected exactly one nonempty H1`);
   }
   const language = document.querySelector("html")?.getAttribute("lang");
   if (!language?.toLowerCase().startsWith("en")) {
-    errors.push(`${pathname}: HTML language is not English`);
+    report.error("html-lang", `${pathname}: HTML language is not English`);
   }
 
   for (const robots of document.querySelectorAll(
     'meta[name="robots"], meta[name="googlebot"]',
   )) {
     if (/\bnoindex\b/i.test(robots.getAttribute("content") ?? "")) {
-      errors.push(`${pathname}: sitemap URL is marked noindex`);
+      report.error(
+        "sitemap-noindex",
+        `${pathname}: sitemap URL is marked noindex`,
+      );
     }
   }
 
@@ -281,7 +337,27 @@ function validatePageMetadata(html, pathname) {
     normalizeUrl(openGraphUrls[0].getAttribute("content")) !==
       normalizeUrl(expectedCanonical)
   ) {
-    errors.push(`${pathname}: og:url does not match the canonical URL`);
+    report.error(
+      "og-url",
+      `${pathname}: og:url does not match the canonical URL`,
+    );
+  }
+
+  for (const [rule, message] of openGraphErrors(pathname, document)) {
+    report.error(rule, message);
+  }
+  for (const [rule, message] of lengthWarnings(pathname, title, description)) {
+    report.warn(rule, message);
+  }
+  for (const skip of new Set(headingSkips(document))) {
+    report.warn("seo-heading-skip", `${pathname}: ${skip}`);
+  }
+  const missingAlt = imagesWithoutAlt(document);
+  if (missingAlt > 0) {
+    report.warn(
+      "seo-img-alt",
+      `${pathname}: ${missingAlt} <img> elements without an alt attribute`,
+    );
   }
 
   if (title && description) {
@@ -293,7 +369,10 @@ function validatePageMetadata(html, pathname) {
     'link[rel="alternate"][type="text/markdown"]',
   );
   if (markdownLinks.length > 1) {
-    errors.push(`${pathname}: has multiple Markdown alternate links`);
+    report.error(
+      "markdown-alternate",
+      `${pathname}: has multiple Markdown alternate links`,
+    );
   } else if (markdownLinks.length === 1) {
     try {
       markdownAlternates.set(
@@ -302,7 +381,10 @@ function validatePageMetadata(html, pathname) {
           .href,
       );
     } catch {
-      errors.push(`${pathname}: Markdown alternate link is invalid`);
+      report.error(
+        "markdown-alternate",
+        `${pathname}: Markdown alternate link is invalid`,
+      );
     }
   }
 }
@@ -313,11 +395,14 @@ async function validatePage(pathname) {
       redirect: "manual",
     });
     if (!response.ok) {
-      errors.push(`${pathname}: returned HTTP ${response.status}`);
+      report.error(
+        "page-status",
+        `${pathname}: returned HTTP ${response.status}`,
+      );
       return;
     }
     if (!response.headers.get("content-type")?.includes("text/html")) {
-      errors.push(`${pathname}: response is not HTML`);
+      report.error("page-content-type", `${pathname}: response is not HTML`);
     }
 
     const html = await response.text();
@@ -338,13 +423,19 @@ async function validatePage(pathname) {
     );
     for (const required of ["Organization", "ImageObject", "WebSite"]) {
       if (!siteNodeTypes.has(required)) {
-        errors.push(`${pathname}: missing site-wide ${required} node`);
+        report.error(
+          "jsonld-site-node",
+          `${pathname}: missing site-wide ${required} node`,
+        );
       }
     }
 
     const pageUrl = canonicalByPath.get(pathname);
     if (!pageUrl) {
-      errors.push(`${pathname}: indexable page is missing from the sitemap`);
+      report.error(
+        "page-not-in-sitemap",
+        `${pathname}: indexable page is missing from the sitemap`,
+      );
       return;
     }
     const pageNode = nodes.find(
@@ -352,15 +443,21 @@ async function validatePage(pathname) {
         typeof node?.["@id"] === "string" && node["@id"].endsWith("#webpage"),
     );
     if (!pageNode) {
-      errors.push(`${pathname}: missing page node`);
+      report.error("jsonld-page-node", `${pathname}: missing page node`);
     } else if (normalizeUrl(pageNode.url) !== normalizeUrl(pageUrl)) {
-      errors.push(
+      report.error(
+        "jsonld-page-node",
         `${pathname}: page node URL does not match the requested URL`,
       );
     }
 
+    validateWebPageNodes(nodes, pathname);
+
     if (!nodes.some((node) => node?.["@type"] === "BreadcrumbList")) {
-      errors.push(`${pathname}: missing BreadcrumbList`);
+      report.error(
+        "jsonld-breadcrumb-missing",
+        `${pathname}: missing BreadcrumbList`,
+      );
     }
 
     const ids = nodes
@@ -370,7 +467,8 @@ async function validatePage(pathname) {
       ...new Set(ids.filter((id, i) => ids.indexOf(id) !== i)),
     ];
     if (duplicateIds.length > 0) {
-      errors.push(
+      report.error(
+        "jsonld-duplicate-id",
         `${pathname}: duplicate @id values: ${duplicateIds.join(", ")}`,
       );
     }
@@ -385,9 +483,27 @@ async function validatePage(pathname) {
 
     checked.push(pathname);
   } catch (error) {
-    errors.push(
+    report.error(
+      "page-exception",
       `${pathname}: ${error instanceof Error ? error.message : error}`,
     );
+  }
+}
+
+function validateWebPageNodes(nodes, pathname) {
+  for (const page of nodes.filter(
+    (node) =>
+      typesOf(node).includes("WebPage") ||
+      (typeof node?.["@id"] === "string" && node["@id"].endsWith("#webpage")),
+  )) {
+    for (const property of ["name", "description"]) {
+      if (typeof page[property] !== "string" || !page[property].trim()) {
+        report.error(
+          "jsonld-webpage-fields",
+          `${pathname}: WebPage node is missing its ${property}`,
+        );
+      }
+    }
   }
 }
 
@@ -403,7 +519,8 @@ function validateProducts(nodes, pathname) {
       !product.brand ||
       !["Brand", "Organization"].includes(product.brand["@type"])
     ) {
-      errors.push(
+      report.error(
+        "product-brand",
         `${pathname}: Product.brand must be an object with @type "Brand" or "Organization"`,
       );
     }
@@ -415,7 +532,8 @@ function validateProducts(nodes, pathname) {
         : [];
 
     if (offers.length === 0 && !product.aggregateRating && !product.review) {
-      errors.push(
+      report.error(
+        "product-offer",
         `${pathname}: Product requires an offer, aggregate rating, or review`,
       );
     }
@@ -426,7 +544,10 @@ function validateProducts(nodes, pathname) {
           ? nodesById.get(offerReference["@id"])
           : offerReference;
       if (!offer) {
-        errors.push(`${pathname}: Product references an unknown Offer`);
+        report.error(
+          "product-offer",
+          `${pathname}: Product references an unknown Offer`,
+        );
         continue;
       }
 
@@ -434,16 +555,25 @@ function validateProducts(nodes, pathname) {
       const price = offer.price ?? specification?.price;
       const currency = offer.priceCurrency ?? specification?.priceCurrency;
       if (price === undefined) {
-        errors.push(`${pathname}: Product Offer is missing a price`);
+        report.error(
+          "product-offer",
+          `${pathname}: Product Offer is missing a price`,
+        );
       }
       if (!currency) {
-        errors.push(`${pathname}: Product Offer is missing a price currency`);
+        report.error(
+          "product-offer",
+          `${pathname}: Product Offer is missing a price currency`,
+        );
       }
       if (
         specification?.["@type"] === "UnitPriceSpecification" &&
         specification.price === undefined
       ) {
-        errors.push(`${pathname}: UnitPriceSpecification is missing its price`);
+        report.error(
+          "product-offer",
+          `${pathname}: UnitPriceSpecification is missing its price`,
+        );
       }
     }
   }
@@ -457,7 +587,8 @@ function validateProductGroups(nodes, pathname, pageNode) {
     groups.length !== expected.length ||
     expected.some(([name]) => !groupNames.includes(name))
   ) {
-    errors.push(
+    report.error(
+      "product-group",
       `${pathname}: site graph must define exactly the product groups ${expected
         .map(([name]) => name)
         .join(", ")}, found ${groupNames.join(", ") || "none"}`,
@@ -472,7 +603,10 @@ function validateProductGroups(nodes, pathname, pageNode) {
   const softwareId = pageNode?.mainEntity?.["@id"];
   const software = nodes.find((node) => node?.["@id"] === softwareId);
   if (!software) {
-    errors.push(`${pathname}: product page has no software main entity node`);
+    report.error(
+      "product-group",
+      `${pathname}: product page has no software main entity node`,
+    );
     return;
   }
 
@@ -481,7 +615,8 @@ function validateProductGroups(nodes, pathname, pageNode) {
     .flat()
     .filter((value) => groupIds.has(value?.["@id"]));
   if (memberships.length !== 1) {
-    errors.push(
+    report.error(
+      "product-group",
       `${pathname}: ${software["@id"]} must reference exactly one product group, found ${memberships.length}`,
     );
     return;
@@ -489,12 +624,14 @@ function validateProductGroups(nodes, pathname, pageNode) {
 
   const group = groups.find((node) => node["@id"] === memberships[0]["@id"]);
   if (group.name !== groupName) {
-    errors.push(
+    report.error(
+      "product-group",
       `${pathname}: product belongs to "${group.name}", expected "${groupName}"`,
     );
   }
   if (![group.hasPart].flat().some((part) => part?.["@id"] === softwareId)) {
-    errors.push(
+    report.error(
+      "product-group",
       `${pathname}: product group "${group.name}" does not list ${softwareId} in hasPart`,
     );
   }
@@ -507,16 +644,28 @@ function validateArticles(nodes, pathname) {
     ),
   )) {
     if (typeof article.headline !== "string" || !article.headline.trim()) {
-      errors.push(`${pathname}: Article is missing a headline`);
+      report.error(
+        "article-fields",
+        `${pathname}: Article is missing a headline`,
+      );
     }
     if (!article.image) {
-      errors.push(`${pathname}: Article is missing a representative image`);
+      report.error(
+        "article-fields",
+        `${pathname}: Article is missing a representative image`,
+      );
     }
     if (!article.publisher) {
-      errors.push(`${pathname}: Article is missing its publisher`);
+      report.error(
+        "article-fields",
+        `${pathname}: Article is missing its publisher`,
+      );
     }
     if (!article.mainEntityOfPage) {
-      errors.push(`${pathname}: Article is missing mainEntityOfPage`);
+      report.error(
+        "article-fields",
+        `${pathname}: Article is missing mainEntityOfPage`,
+      );
     }
 
     for (const property of ["datePublished", "dateModified"]) {
@@ -524,16 +673,38 @@ function validateArticles(nodes, pathname) {
         article[property] &&
         Number.isNaN(new Date(article[property]).getTime())
       ) {
-        errors.push(`${pathname}: Article has invalid ${property}`);
+        report.error(
+          "article-dates",
+          `${pathname}: Article has invalid ${property}`,
+        );
       }
+    }
+
+    if (!article.dateModified) {
+      report.warn(
+        "geo-article-date-modified",
+        `${pathname}: Article is missing dateModified`,
+      );
+    }
+    if (!article.author) {
+      report.warn(
+        "geo-article-author",
+        `${pathname}: Article is missing its author`,
+      );
     }
 
     if (typesOf(article).includes("BlogPosting")) {
       if (!article.datePublished) {
-        errors.push(`${pathname}: BlogPosting is missing datePublished`);
+        report.error(
+          "article-fields",
+          `${pathname}: BlogPosting is missing datePublished`,
+        );
       }
       if (!article.author) {
-        errors.push(`${pathname}: BlogPosting is missing its visible author`);
+        report.error(
+          "article-fields",
+          `${pathname}: BlogPosting is missing its visible author`,
+        );
       }
     }
   }
@@ -545,31 +716,162 @@ function validateBreadcrumbs(nodes, pathname) {
   )) {
     const items = breadcrumb.itemListElement;
     if (!Array.isArray(items) || items.length < 1) {
-      errors.push(`${pathname}: BreadcrumbList must contain at least one item`);
+      report.error(
+        "breadcrumb-structure",
+        `${pathname}: BreadcrumbList must contain at least one item`,
+      );
       continue;
     }
     for (let index = 0; index < items.length; index++) {
       const item = items[index];
       if (item?.["@type"] !== "ListItem") {
-        errors.push(`${pathname}: breadcrumb item is not a ListItem`);
+        report.error(
+          "breadcrumb-structure",
+          `${pathname}: breadcrumb item is not a ListItem`,
+        );
       }
       if (item?.position !== index + 1) {
-        errors.push(`${pathname}: breadcrumb positions are not contiguous`);
+        report.error(
+          "breadcrumb-structure",
+          `${pathname}: breadcrumb positions are not contiguous`,
+        );
       }
       if (typeof item?.name !== "string" || !item.name.trim()) {
-        errors.push(`${pathname}: breadcrumb item is missing its name`);
+        report.error(
+          "breadcrumb-structure",
+          `${pathname}: breadcrumb item is missing its name`,
+        );
+      }
+      if (index < items.length - 1 && isAbsoluteHttpUrl(item?.item)) {
+        recordBreadcrumbTarget(item.item, pathname);
       }
       if (index < items.length - 1 && !isAbsoluteHttpUrl(item?.item)) {
-        errors.push(`${pathname}: non-final breadcrumb is missing its URL`);
+        report.error(
+          "breadcrumb-structure",
+          `${pathname}: non-final breadcrumb is missing its URL`,
+        );
       }
     }
+  }
+}
+
+function recordBreadcrumbTarget(value, sourcePath) {
+  const url = new URL(value);
+  const key = url.origin === canonicalOrigin ? url.pathname : url.href;
+  const sources = breadcrumbTargets.get(key) ?? new Set();
+  sources.add(sourcePath);
+  breadcrumbTargets.set(key, sources);
+}
+
+async function validateBreadcrumbTargets() {
+  const targets = [...breadcrumbTargets.entries()];
+  for (let index = 0; index < targets.length; index += 12) {
+    await Promise.all(
+      targets.slice(index, index + 12).map(async ([target, sourcePaths]) => {
+        const sources = [...sourcePaths].slice(0, 4).join(", ");
+        if (!target.startsWith("/")) {
+          report.error(
+            "breadcrumb-target-sitemap",
+            `${target}: breadcrumb URL from ${sources} is not on the canonical origin`,
+          );
+          return;
+        }
+        if (!canonicalByPath.has(target)) {
+          report.error(
+            "breadcrumb-target-sitemap",
+            `${target}: breadcrumb URL from ${sources} is not in the sitemap`,
+          );
+        }
+        try {
+          const response = await fetch(new URL(target, baseUrl), {
+            redirect: "manual",
+          });
+          await response.body?.cancel();
+          if (response.status !== 200) {
+            report.error(
+              "breadcrumb-target-render",
+              `${target}: breadcrumb URL from ${sources} returned HTTP ${response.status}`,
+            );
+          }
+        } catch (error) {
+          report.error(
+            "breadcrumb-target-render",
+            `${target}: breadcrumb URL from ${sources} request failed (${error instanceof Error ? error.message : error})`,
+          );
+        }
+      }),
+    );
+  }
+}
+
+async function validateLlmsCatalogCoverage() {
+  for (const [prefix, catalogPath] of LLMS_CATALOGS) {
+    const response = await fetch(new URL(catalogPath, baseUrl));
+    if (!response.ok) {
+      await response.body?.cancel();
+      report.warn(
+        "geo-llms-catalog",
+        `${catalogPath}: catalog returned HTTP ${response.status}, page coverage not checked`,
+      );
+      continue;
+    }
+    const listed = new Set(
+      [...(await response.text()).matchAll(/\((https?:\/\/[^)\s]+)\)/g)].map(
+        (match) => normalizeUrl(match[1]),
+      ),
+    );
+    for (const [pathname, canonical] of canonicalByPath) {
+      if (
+        (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) ||
+        REDUNDANT_ARCHIVE_PATH.test(pathname)
+      ) {
+        continue;
+      }
+      if (!listed.has(normalizeUrl(`${canonical}.md`))) {
+        report.warn(
+          "geo-llms-missing",
+          `${pathname}: page is missing from ${catalogPath}`,
+        );
+      }
+    }
+  }
+}
+
+async function validateBuiltPageCoverage() {
+  let routes;
+  try {
+    routes = await listBuiltRoutes(OUTPUT_ROOT);
+  } catch (error) {
+    if (error?.code !== "ENOENT") {
+      throw error;
+    }
+    report.warn(
+      "coverage-skipped",
+      `built page coverage not checked because ${OUTPUT_ROOT} does not exist`,
+    );
+    return;
+  }
+
+  const crawled = new Set([...queued, ...queuedNoindexArchives]);
+  const uncovered = findUncoveredRoutes(routes, {
+    crawled,
+    isExcluded: (route) =>
+      EXCLUDED_SITEMAP_PATHS.has(route) ||
+      TAG_ARCHIVE_PATH.test(route) ||
+      isNotFoundRoute(route),
+  });
+  for (const route of uncovered) {
+    report.error(
+      "coverage-uncrawled-page",
+      `${route}: built page is neither crawled nor explicitly excluded`,
+    );
   }
 }
 
 function validateFaqs(nodes, pathname) {
   for (const faq of nodes.filter((node) => typesOf(node).includes("FAQPage"))) {
     if (!Array.isArray(faq.mainEntity) || faq.mainEntity.length === 0) {
-      errors.push(`${pathname}: FAQPage has no questions`);
+      report.error("faq-structure", `${pathname}: FAQPage has no questions`);
       continue;
     }
     for (const question of faq.mainEntity) {
@@ -578,14 +880,20 @@ function validateFaqs(nodes, pathname) {
         typeof question.name !== "string" ||
         !question.name.trim()
       ) {
-        errors.push(`${pathname}: FAQPage contains an invalid Question`);
+        report.error(
+          "faq-structure",
+          `${pathname}: FAQPage contains an invalid Question`,
+        );
       }
       if (
         question?.acceptedAnswer?.["@type"] !== "Answer" ||
         typeof question.acceptedAnswer.text !== "string" ||
         !question.acceptedAnswer.text.trim()
       ) {
-        errors.push(`${pathname}: FAQ question has no accepted answer text`);
+        report.error(
+          "faq-structure",
+          `${pathname}: FAQ question has no accepted answer text`,
+        );
       }
     }
   }
@@ -597,15 +905,24 @@ function validateItemLists(nodes, pathname) {
   )) {
     const items = list.itemListElement;
     if (!Array.isArray(items)) {
-      errors.push(`${pathname}: ItemList has no itemListElement array`);
+      report.error(
+        "itemlist-structure",
+        `${pathname}: ItemList has no itemListElement array`,
+      );
       continue;
     }
     if (list.numberOfItems !== items.length) {
-      errors.push(`${pathname}: ItemList numberOfItems is inconsistent`);
+      report.error(
+        "itemlist-structure",
+        `${pathname}: ItemList numberOfItems is inconsistent`,
+      );
     }
     for (let index = 1; index < items.length; index++) {
       if (items[index].position !== items[index - 1].position + 1) {
-        errors.push(`${pathname}: ItemList positions are not contiguous`);
+        report.error(
+          "itemlist-structure",
+          `${pathname}: ItemList positions are not contiguous`,
+        );
         break;
       }
     }
@@ -638,7 +955,10 @@ function validateJsonLdReferences() {
       try {
         url = new URL(reference);
       } catch {
-        errors.push(`${pathname}: invalid JSON-LD reference ${reference}`);
+        report.error(
+          "jsonld-reference",
+          `${pathname}: invalid JSON-LD reference ${reference}`,
+        );
         continue;
       }
 
@@ -646,7 +966,10 @@ function validateJsonLdReferences() {
       // resolve somewhere in the complete graph assembled from every
       // indexable page, including valid cross-page Product references.
       if (url.origin === canonicalOrigin) {
-        errors.push(`${pathname}: unresolved JSON-LD reference ${reference}`);
+        report.error(
+          "jsonld-reference",
+          `${pathname}: unresolved JSON-LD reference ${reference}`,
+        );
       }
     }
   }
@@ -678,17 +1001,6 @@ function typesOf(node) {
       : [];
 }
 
-function isAbsoluteHttpUrl(value) {
-  if (typeof value !== "string") {
-    return false;
-  }
-  try {
-    return /^https?:$/.test(new URL(value).protocol);
-  } catch {
-    return false;
-  }
-}
-
 function normalizeUrl(value) {
   try {
     return new URL(String(value)).href;
@@ -717,7 +1029,10 @@ function recordLinks(document, sourcePath) {
     try {
       url = new URL(href, sourceUrl);
     } catch {
-      errors.push(`${sourcePath}: contains an invalid link target ${href}`);
+      report.error(
+        "link-invalid",
+        `${sourcePath}: contains an invalid link target ${href}`,
+      );
       continue;
     }
     if (
@@ -762,16 +1077,19 @@ async function validateInternalLinks() {
           await response.body?.cancel();
           const sources = [...entry.sources].slice(0, 4).join(", ");
           if (response.status >= 400) {
-            errors.push(
+            report.error(
+              "link-broken",
               `${target}: internal link from ${sources} returned HTTP ${response.status}`,
             );
           } else if (response.status >= 300) {
-            errors.push(
+            report.error(
+              "link-redirect",
               `${target}: internal link from ${sources} hits redirect source (HTTP ${response.status})`,
             );
           }
         } catch (error) {
-          errors.push(
+          report.error(
+            "link-broken",
             `${target}: internal link request failed (${error instanceof Error ? error.message : error})`,
           );
         }
@@ -797,7 +1115,8 @@ function validateHomepageReachability() {
     (pathname) => !reached.has(pathname),
   );
   if (unreachable.length > 0) {
-    errors.push(
+    report.error(
+      "sitemap-unreachable",
       `sitemap pages not reachable from / through crawlable anchors: ${unreachable.join(", ")}`,
     );
   }
@@ -817,7 +1136,8 @@ function validateMetadataUniqueness() {
     }
     for (const paths of pagesByValue.values()) {
       if (paths.length > 1) {
-        errors.push(
+        report.error(
+          "metadata-duplicate",
           `duplicate ${property} across canonical pages: ${paths.join(", ")}`,
         );
       }
@@ -833,7 +1153,8 @@ async function validateNotFoundResponses() {
       });
       await response.body?.cancel();
       if (response.status !== 404) {
-        errors.push(
+        report.error(
+          "not-found-status",
           `${pathname}: representative missing route returned HTTP ${response.status}, expected 404`,
         );
       }
@@ -846,7 +1167,8 @@ async function validateMachineReadableRepresentations() {
     new URL("/manifest.webmanifest", baseUrl),
   );
   if (!manifestResponse.ok) {
-    errors.push(
+    report.error(
+      "manifest",
       `/manifest.webmanifest: returned HTTP ${manifestResponse.status}`,
     );
   }
@@ -855,7 +1177,8 @@ async function validateMachineReadableRepresentations() {
       .get("content-type")
       ?.includes("application/manifest+json")
   ) {
-    errors.push(
+    report.error(
+      "manifest",
       `/manifest.webmanifest: expected application/manifest+json, got ${manifestResponse.headers.get("content-type") ?? "no content type"}`,
     );
   }
@@ -867,12 +1190,16 @@ async function validateMachineReadableRepresentations() {
       !Array.isArray(manifest.icons) ||
       manifest.icons.length === 0
     ) {
-      errors.push(
+      report.error(
+        "manifest",
         "/manifest.webmanifest: missing a nonempty name or icon list",
       );
     }
   } catch {
-    errors.push("/manifest.webmanifest: response is not valid JSON");
+    report.error(
+      "manifest",
+      "/manifest.webmanifest: response is not valid JSON",
+    );
   }
 
   const firstCatalog = await fetch(new URL("/llms.txt", baseUrl));
@@ -881,8 +1208,9 @@ async function validateMachineReadableRepresentations() {
     firstCatalog.headers.has("x-robots-tag");
   if (!servedByNginx) {
     await firstCatalog.body?.cancel();
-    console.warn(
-      "Skipped HTTP header checks for Markdown and LLM files because the target is not served through nginx.",
+    report.warn(
+      "nginx-headers-skipped",
+      "HTTP header checks for Markdown and LLM files skipped because the target is not served through nginx",
     );
     return;
   }
@@ -902,10 +1230,14 @@ async function validateMachineReadableRepresentations() {
       existingResponse ?? (await fetch(new URL(pathname, baseUrl)));
     const robots = response.headers.get("x-robots-tag") ?? "";
     if (!response.ok) {
-      errors.push(`${pathname}: LLM catalog returned HTTP ${response.status}`);
+      report.error(
+        "llm-catalog",
+        `${pathname}: LLM catalog returned HTTP ${response.status}`,
+      );
     }
     if (!/^googlebot:\s*noindex,\s*follow$/i.test(robots.trim())) {
-      errors.push(
+      report.error(
+        "llm-catalog",
         `${pathname}: expected X-Robots-Tag "googlebot: noindex, follow", got ${robots || "no header"}`,
       );
     }
@@ -915,7 +1247,10 @@ async function validateMachineReadableRepresentations() {
   for (const [pathname, canonical] of canonicalByPath) {
     if (REDUNDANT_ARCHIVE_PATH.test(pathname)) {
       if (markdownAlternates.has(pathname)) {
-        errors.push(`${pathname}: redundant archive advertises Markdown`);
+        report.error(
+          "markdown-alternate",
+          `${pathname}: redundant archive advertises Markdown`,
+        );
       }
       continue;
     }
@@ -925,7 +1260,10 @@ async function validateMachineReadableRepresentations() {
         ? new URL("/index.md", canonical).href
         : new URL(`${pathname}.md`, canonical).href;
     if (markdownAlternates.get(pathname) !== expectedMarkdown) {
-      errors.push(`${pathname}: missing its generated Markdown alternate link`);
+      report.error(
+        "markdown-alternate",
+        `${pathname}: missing its generated Markdown alternate link`,
+      );
       continue;
     }
 
@@ -935,24 +1273,32 @@ async function validateMachineReadableRepresentations() {
     const link = response.headers.get("link") ?? "";
     const robots = response.headers.get("x-robots-tag") ?? "";
     if (!response.ok) {
-      errors.push(
+      report.error(
+        "markdown-response",
         `${pathname}: Markdown alternate returned HTTP ${response.status}`,
       );
     }
     if (!response.headers.get("content-type")?.includes("text/markdown")) {
-      errors.push(`${pathname}: Markdown alternate is not text/markdown`);
+      report.error(
+        "markdown-response",
+        `${pathname}: Markdown alternate is not text/markdown`,
+      );
     }
     if (
       !link
         .split(",")
         .some((value) => value.trim() === `<${canonical}>; rel="canonical"`)
     ) {
-      errors.push(
+      report.error(
+        "markdown-response",
         `${pathname}: Markdown response has an invalid HTTP canonical`,
       );
     }
     if (/\bnoindex\b/i.test(robots)) {
-      errors.push(`${pathname}: page-level Markdown is incorrectly noindex`);
+      report.error(
+        "markdown-response",
+        `${pathname}: page-level Markdown is incorrectly noindex`,
+      );
     }
     await response.body?.cancel();
   }
@@ -961,7 +1307,10 @@ async function validateMachineReadableRepresentations() {
 async function validateExcludedRoute(pathname) {
   const response = await fetch(new URL(pathname, baseUrl));
   if (!response.ok) {
-    errors.push(`${pathname}: excluded route returned HTTP ${response.status}`);
+    report.error(
+      "excluded-route",
+      `${pathname}: excluded route returned HTTP ${response.status}`,
+    );
     return;
   }
   const html = await response.text();
@@ -970,7 +1319,10 @@ async function validateExcludedRoute(pathname) {
     .querySelector('meta[name="robots"]')
     ?.getAttribute("content");
   if (!/\bnoindex\b/i.test(robots ?? "")) {
-    errors.push(`${pathname}: excluded flow page is not marked noindex`);
+    report.error(
+      "excluded-route",
+      `${pathname}: excluded flow page is not marked noindex`,
+    );
   }
   const documents = parseJsonLd(html, pathname);
   if (documents === null) {
@@ -980,7 +1332,8 @@ async function validateExcludedRoute(pathname) {
     .flatMap((document) => document["@graph"] ?? [document])
     .filter((node) => !FLOW_PAGE_NODE_TYPES.has(node?.["@type"]));
   if (unexpectedNodes.length > 0) {
-    errors.push(
+    report.error(
+      "excluded-route",
       `${pathname}: noindex page contains page-specific structured data`,
     );
   }
@@ -989,11 +1342,17 @@ async function validateExcludedRoute(pathname) {
 async function validateNoindexArchive(pathname) {
   try {
     if (canonicalByPath.has(pathname)) {
-      errors.push(`${pathname}: noindex tag archive is present in the sitemap`);
+      report.error(
+        "archive-noindex",
+        `${pathname}: noindex tag archive is present in the sitemap`,
+      );
     }
     const response = await fetch(new URL(pathname, baseUrl));
     if (!response.ok) {
-      errors.push(`${pathname}: tag archive returned HTTP ${response.status}`);
+      report.error(
+        "archive-noindex",
+        `${pathname}: tag archive returned HTTP ${response.status}`,
+      );
       return;
     }
     const html = await response.text();
@@ -1004,10 +1363,16 @@ async function validateNoindexArchive(pathname) {
       .querySelector('meta[name="robots"]')
       ?.getAttribute("content");
     if (!/\bnoindex\b/i.test(robots ?? "")) {
-      errors.push(`${pathname}: thin tag archive is not marked noindex`);
+      report.error(
+        "archive-noindex",
+        `${pathname}: thin tag archive is not marked noindex`,
+      );
     }
     if (/\bnofollow\b/i.test(robots ?? "")) {
-      errors.push(`${pathname}: tag archive must allow link following`);
+      report.error(
+        "archive-noindex",
+        `${pathname}: tag archive must allow link following`,
+      );
     }
 
     const canonicalLinks = document.querySelectorAll('link[rel="canonical"]');
@@ -1018,10 +1383,14 @@ async function validateNoindexArchive(pathname) {
         new URL(canonicalLinks[0].getAttribute("href") ?? "", baseUrl).href,
       ) !== normalizeUrl(expected)
     ) {
-      errors.push(`${pathname}: tag archive has an invalid self-canonical`);
+      report.error(
+        "archive-noindex",
+        `${pathname}: tag archive has an invalid self-canonical`,
+      );
     }
   } catch (error) {
-    errors.push(
+    report.error(
+      "archive-exception",
       `${pathname}: ${error instanceof Error ? error.message : error}`,
     );
   }
@@ -1037,7 +1406,8 @@ async function validateRedirect(pathname, expectedLocation) {
     ![301, 308].includes(response.status) ||
     locationPath !== expectedLocation
   ) {
-    errors.push(
+    report.error(
+      "redirect",
       `${pathname}: expected a permanent redirect to ${expectedLocation}, got ${response.status} ${location}`,
     );
   }
@@ -1050,7 +1420,7 @@ function parseJsonLd(html, pathname) {
     ),
   ];
   if (matches.length === 0) {
-    errors.push(`${pathname}: contains no JSON-LD`);
+    report.error("jsonld-parse", `${pathname}: contains no JSON-LD`);
     return null;
   }
 
@@ -1062,7 +1432,8 @@ function parseJsonLd(html, pathname) {
       return JSON.parse(match[1]);
     });
   } catch (error) {
-    errors.push(
+    report.error(
+      "jsonld-parse",
       `${pathname}: invalid JSON-LD (${error instanceof Error ? error.message : error})`,
     );
     return null;
@@ -1074,7 +1445,8 @@ function discoverBlogArchives(html) {
     const pathname = new URL(match[1], baseUrl).pathname;
     if (BLOG_PAGINATION_PATH.test(pathname) && !queued.has(pathname)) {
       if (!canonicalByPath.has(pathname)) {
-        errors.push(
+        report.error(
+          "archive-sitemap",
           `${pathname}: discoverable canonical archive is absent from the sitemap`,
         );
       }

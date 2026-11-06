@@ -12,6 +12,7 @@
     "generate:llms": "node scripts/generate-llms-files.mjs",
     "validate:llms": "node scripts/validate-llms-files.mjs",
     "validate:structured-data": "node scripts/validate-structured-data.mjs",
+    "test:validator": "node --test scripts/seo-validator.test.mjs",
     "validate:benchmarks": "node scripts/validate-benchmark-report.mjs",
     "test:benchmarks": "node --test tests/benchmarks/*.test.mjs",
     "ci-local": "bash start-optimized.sh",
