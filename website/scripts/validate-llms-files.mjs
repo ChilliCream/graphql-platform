@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   COMPARISON_ARTICLE_PATH,
+  PRODUCT_GROUPS,
   generateLlmsFiles,
   isLlmsEligibleUrl,
 } from "./generate-llms-files.mjs";
@@ -87,6 +88,73 @@ function validateCatalog(relativePath, content) {
   }
 
   return links;
+}
+
+function catalogSections(content) {
+  const sections = new Map();
+  let current = null;
+  for (const line of content.split("\n")) {
+    const heading = line.match(/^##\s+(.+)$/);
+    if (heading) {
+      current = [];
+      sections.set(heading[1].trim(), current);
+      continue;
+    }
+    const link = line.match(/^- \[[^\]]+\]\((https?:\/\/[^)]+)\)/);
+    if (current && link) {
+      current.push(link[1]);
+    }
+  }
+  return sections;
+}
+
+async function validateProductGroups(origin, urls, productsCatalog) {
+  const productUrls = urls.filter((url) =>
+    /^\/products\/[^/]+$/.test(new URL(url).pathname),
+  );
+  const sections = catalogSections(productsCatalog);
+
+  for (const group of PRODUCT_GROUPS) {
+    const expected = group.products.map(
+      (product) => `${origin}/products/${product}.md`,
+    );
+    const actual = sections.get(group.name);
+    if (!actual || actual.join("\n") !== expected.join("\n")) {
+      throw new Error(
+        `products/llms.txt section "${group.name}" must list exactly ${expected.join(", ")}, found ${actual?.join(", ") ?? "no section"}.`,
+      );
+    }
+  }
+
+  for (const url of productUrls) {
+    const markdown = markdownUrl(url);
+    const owners = [...sections].filter(([, links]) =>
+      links.includes(markdown),
+    );
+    if (owners.length !== 1) {
+      throw new Error(
+        `products/llms.txt must list ${markdown} in exactly one section, found ${owners.length}.`,
+      );
+    }
+
+    const slug = new URL(url).pathname.split("/").at(-1);
+    const group = PRODUCT_GROUPS.find((candidate) =>
+      candidate.products.includes(slug),
+    );
+    if (group) {
+      const page = await fs.readFile(
+        path.join(OUTPUT_ROOT, markdownRelativePath(url)),
+        "utf8",
+      );
+      if (
+        countExactLine(page, `Part of the ChilliCream ${group.name}.`) !== 1
+      ) {
+        throw new Error(
+          `${markdownRelativePath(url)} must carry its product group line exactly once.`,
+        );
+      }
+    }
+  }
 }
 
 async function listFiles(directory, predicate) {
@@ -224,6 +292,12 @@ const catalogFiles = await listFiles(
   (name) => name === "llms.txt",
 );
 const discoveredMarkdownUrls = new Set();
+
+await validateProductGroups(
+  new URL(urls[0]).origin,
+  urls,
+  await fs.readFile(path.join(OUTPUT_ROOT, "products", "llms.txt"), "utf8"),
+);
 
 for (const file of catalogFiles) {
   const relative = path.relative(OUTPUT_ROOT, file);
