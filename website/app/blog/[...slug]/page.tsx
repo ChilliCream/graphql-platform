@@ -45,6 +45,7 @@ import { estimateReadingTime } from "@/src/helpers/readingTime";
 import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { shareCardSize } from "@/src/og/pageShareCardImage";
 import {
   ORGANIZATION_ID,
   schemaId,
@@ -108,11 +109,23 @@ export async function generateMetadata({
   }
   if (isPaginationSlug(slug)) {
     const pageNum = Number(slug[0]);
-    return pageMetadata({
+    const metadata = pageMetadata({
       title: `Blog, Page ${pageNum}`,
       description: `${BLOG_DESCRIPTION} Page ${pageNum}.`,
       path: `/blog/${pageNum}`,
     });
+    const images = [
+      {
+        url: toAbsoluteUrl("/blog/opengraph-image"),
+        ...shareCardSize,
+        alt: "ChilliCream blog",
+      },
+    ];
+    return {
+      ...metadata,
+      openGraph: { ...metadata.openGraph, images },
+      twitter: { ...metadata.twitter, images },
+    };
   }
   const rel = resolveBlogFile(slug);
   if (rel === null) {
