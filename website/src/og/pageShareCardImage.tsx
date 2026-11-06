@@ -52,6 +52,25 @@ async function resolvePageTitle(page: PageModule): Promise<string | undefined> {
 }
 
 /**
+ * Builds the `opengraph-image` default export for a section: the landing hero
+ * artwork with a fixed title rendered under the headline. Used by routes whose
+ * `page` metadata title differs from the section name, or that are shared by
+ * several nested routes.
+ */
+export function createSectionShareCardImage(title: string) {
+  return async function Image() {
+    enableSatoriHooks();
+
+    const fonts = await loadShareCardFonts();
+
+    return new ImageResponse(<ShareCard pageTitle={title} />, {
+      ...shareCardSize,
+      fonts,
+    });
+  };
+}
+
+/**
  * Builds the `opengraph-image` default export for a marketing page: the landing
  * hero artwork with the page's own title rendered under the headline. The title
  * is read from the sibling `page` module, so each route's `opengraph-image.tsx`
