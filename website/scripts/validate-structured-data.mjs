@@ -354,10 +354,7 @@ async function validatePage(pathname) {
       );
     }
 
-    if (
-      pathname !== "/" &&
-      !nodes.some((node) => node?.["@type"] === "BreadcrumbList")
-    ) {
+    if (!nodes.some((node) => node?.["@type"] === "BreadcrumbList")) {
       errors.push(`${pathname}: missing BreadcrumbList`);
     }
 
@@ -542,10 +539,8 @@ function validateBreadcrumbs(nodes, pathname) {
     typesOf(node).includes("BreadcrumbList"),
   )) {
     const items = breadcrumb.itemListElement;
-    if (!Array.isArray(items) || items.length < 2) {
-      errors.push(
-        `${pathname}: BreadcrumbList must contain at least two items`,
-      );
+    if (!Array.isArray(items) || items.length < 1) {
+      errors.push(`${pathname}: BreadcrumbList must contain at least one item`);
       continue;
     }
     for (let index = 0; index < items.length; index++) {

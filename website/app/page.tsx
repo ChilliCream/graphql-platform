@@ -35,6 +35,7 @@ export default function Home() {
         title={PAGE.title}
         description={PAGE.description}
         path={PAGE.path}
+        breadcrumbs={[{ name: "Home" }]}
         about={schemaRef(ORGANIZATION_ID)}
       />
       <HomeHero />

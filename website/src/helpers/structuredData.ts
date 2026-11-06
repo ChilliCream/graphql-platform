@@ -128,7 +128,7 @@ export function createPageGraph({
   const url = toAbsoluteUrl(path);
   const pageId = schemaId(path, "webpage");
   const breadcrumb =
-    breadcrumbs && breadcrumbs.length >= 2
+    breadcrumbs && breadcrumbs.length >= 1
       ? createBreadcrumbNode(path, breadcrumbs)
       : null;
 
