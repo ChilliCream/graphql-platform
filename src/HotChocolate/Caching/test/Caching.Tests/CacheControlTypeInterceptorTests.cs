@@ -2,6 +2,7 @@ using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Caching.Tests;
@@ -155,6 +156,24 @@ public class CacheControlTypeInterceptorTests
             .ModifyCacheControlOptions(o => o.Enable = false)
             .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task NodeFields_Should_HaveDefaultCacheControl_When_ApplyDefaultsIsEnabled()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<ProductQuery>()
+            .AddGlobalObjectIdentification()
+            .AddCacheControl();
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -385,5 +404,21 @@ public class CacheControlTypeInterceptorTests
     {
         [CacheControl(InheritMaxAge = true)]
         public Task<string> TaskFieldWithInheritMaxAge() => null!;
+    }
+
+    [Node]
+    public class Product
+    {
+        public int Id { get; init; }
+
+        public string Name { get; init; } = null!;
+
+        [NodeResolver]
+        public static Product Get(int id) => new() { Id = id, Name = $"Product {id}" };
+    }
+
+    public class ProductQuery
+    {
+        public Product GetProduct(int id) => Product.Get(id);
     }
 }
