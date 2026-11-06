@@ -26,6 +26,7 @@ export default function ThankYouPage() {
         path={PAGE.path}
         breadcrumbs={[
           { name: "Home", path: "/" },
+          { name: "Services", path: "/services" },
           { name: "Support", path: "/services/support" },
           { name: "Thank You" },
         ]}
