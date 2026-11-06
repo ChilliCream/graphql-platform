@@ -26,8 +26,14 @@ const PRODUCT_NAMES = new Map([
   ["skills", "Skills"],
 ]);
 const PRODUCT_SUMMARIES = new Map([
-  ["fusion", "Fusion, a language-agnostic GraphQL federation router (gateway)"],
-  ["nitro", "Nitro, a language-agnostic API operations platform"],
+  [
+    "fusion",
+    "Fusion, an open-source, high-performance, language-agnostic GraphQL federation router (gateway) that ships as a single binary",
+  ],
+  [
+    "nitro",
+    "Nitro, a language-agnostic API operations platform with telemetry",
+  ],
   ["hotchocolate", "Hot Chocolate, an open-source GraphQL server for .NET"],
   [
     "strawberryshake",
