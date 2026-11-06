@@ -1,22 +1,35 @@
 import type { Metadata } from "next";
 
 import { PageHero } from "@/src/components/PageHero";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
+const PAGE = {
+  title: "Message Received",
+  description:
+    "Your message has been sent to ChilliCream. Explore the Hot Chocolate documentation or join the community Slack while you wait for a reply.",
+  path: "/services/support/thank-you",
+} as const;
+
 export const metadata: Metadata = {
-  ...pageMetadata({
-    title: "Message Received",
-    description:
-      "Your message has been sent to ChilliCream. Explore the Hot Chocolate documentation or join the community Slack while you wait for a reply.",
-    path: "/services/support/thank-you",
-  }),
+  ...pageMetadata(PAGE),
   robots: { index: false, follow: true },
 };
 
 export default function ThankYouPage() {
   return (
     <>
+      <PageStructuredData
+        title={PAGE.title}
+        description={PAGE.description}
+        path={PAGE.path}
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "Support", path: "/services/support" },
+          { name: "Thank You" },
+        ]}
+      />
       <PageHero
         eyebrow="Request sent"
         title="Thank you!"

@@ -8,6 +8,11 @@ const SITE_NODE_TYPES = new Set([
   "WebSite",
   "Collection",
 ]);
+const FLOW_PAGE_NODE_TYPES = new Set([
+  ...SITE_NODE_TYPES,
+  "WebPage",
+  "BreadcrumbList",
+]);
 const BLOG_PAGINATION_PATH = /^\/blog\/\d+$/;
 const TAG_ARCHIVE_PATH = /^\/blog\/tags\/[^/?#]+(?:\/\d+)?$/;
 const EXCLUDED_SITEMAP_PATHS = new Set([
@@ -971,10 +976,10 @@ async function validateExcludedRoute(pathname) {
   if (documents === null) {
     return;
   }
-  const nonSiteNodes = documents
+  const unexpectedNodes = documents
     .flatMap((document) => document["@graph"] ?? [document])
-    .filter((node) => !SITE_NODE_TYPES.has(node?.["@type"]));
-  if (nonSiteNodes.length > 0) {
+    .filter((node) => !FLOW_PAGE_NODE_TYPES.has(node?.["@type"]));
+  if (unexpectedNodes.length > 0) {
     errors.push(
       `${pathname}: noindex page contains page-specific structured data`,
     );
