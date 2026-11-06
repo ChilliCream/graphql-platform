@@ -2,7 +2,12 @@ import { parse } from "node-html-parser";
 import { parseSitemapUrls } from "./parse-sitemap.mjs";
 
 const baseUrl = new URL(process.argv[2] ?? "http://localhost:3002");
-const SITE_NODE_TYPES = new Set(["Organization", "ImageObject", "WebSite"]);
+const SITE_NODE_TYPES = new Set([
+  "Organization",
+  "ImageObject",
+  "WebSite",
+  "Collection",
+]);
 const BLOG_PAGINATION_PATH = /^\/blog\/\d+$/;
 const TAG_ARCHIVE_PATH = /^\/blog\/tags\/[^/?#]+(?:\/\d+)?$/;
 const EXCLUDED_SITEMAP_PATHS = new Set([
@@ -11,6 +16,11 @@ const EXCLUDED_SITEMAP_PATHS = new Set([
 ]);
 const LEGACY_DOCS_PATH = /^\/docs\/skillz(?:\/|$)/;
 const REDUNDANT_ARCHIVE_PATH = /^\/blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)$/;
+const PRODUCT_GROUPS = {
+  "GraphQL Federation Platform": ["/products/fusion", "/products/nitro"],
+  "GraphQL Frameworks": ["/products/hotchocolate", "/products/strawberryshake"],
+  "Messaging Framework": ["/products/mocha"],
+};
 const MISSING_TEST_PATHS = [
   "/__seo-validator-missing-page__",
   "/docs/__seo-validator-missing-page__",
@@ -364,6 +374,7 @@ async function validatePage(pathname) {
     }
 
     validateProducts(nodes, pathname);
+    validateProductGroups(nodes, pathname, pageNode);
     validateArticles(nodes, pathname);
     validateBreadcrumbs(nodes, pathname);
     validateFaqs(nodes, pathname);
@@ -433,6 +444,57 @@ function validateProducts(nodes, pathname) {
         errors.push(`${pathname}: UnitPriceSpecification is missing its price`);
       }
     }
+  }
+}
+
+function validateProductGroups(nodes, pathname, pageNode) {
+  const groups = nodes.filter((node) => node?.["@type"] === "Collection");
+  const expected = Object.entries(PRODUCT_GROUPS);
+  const groupNames = groups.map((group) => group.name);
+  if (
+    groups.length !== expected.length ||
+    expected.some(([name]) => !groupNames.includes(name))
+  ) {
+    errors.push(
+      `${pathname}: site graph must define exactly the product groups ${expected
+        .map(([name]) => name)
+        .join(", ")}, found ${groupNames.join(", ") || "none"}`,
+    );
+  }
+
+  const groupName = expected.find(([, paths]) => paths.includes(pathname))?.[0];
+  if (!groupName) {
+    return;
+  }
+
+  const softwareId = pageNode?.mainEntity?.["@id"];
+  const software = nodes.find((node) => node?.["@id"] === softwareId);
+  if (!software) {
+    errors.push(`${pathname}: product page has no software main entity node`);
+    return;
+  }
+
+  const groupIds = new Set(groups.map((group) => group["@id"]));
+  const memberships = [software.isPartOf, software.category]
+    .flat()
+    .filter((value) => groupIds.has(value?.["@id"]));
+  if (memberships.length !== 1) {
+    errors.push(
+      `${pathname}: ${software["@id"]} must reference exactly one product group, found ${memberships.length}`,
+    );
+    return;
+  }
+
+  const group = groups.find((node) => node["@id"] === memberships[0]["@id"]);
+  if (group.name !== groupName) {
+    errors.push(
+      `${pathname}: product belongs to "${group.name}", expected "${groupName}"`,
+    );
+  }
+  if (![group.hasPart].flat().some((part) => part?.["@id"] === softwareId)) {
+    errors.push(
+      `${pathname}: product group "${group.name}" does not list ${softwareId} in hasPart`,
+    );
   }
 }
 

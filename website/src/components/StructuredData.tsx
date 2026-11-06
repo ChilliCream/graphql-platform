@@ -2,6 +2,7 @@ import { COMPANY_SOCIAL_LINKS } from "@/src/helpers/companyLinks";
 import { SITE_NAME } from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 import {
+  createProductGroupNodes,
   LOGO_ID,
   ORGANIZATION_ID,
   type JsonLdGraph,
@@ -63,6 +64,7 @@ const STRUCTURED_DATA: JsonLdGraph = {
       publisher: { "@id": ORGANIZATION_ID },
       inLanguage: "en",
     },
+    ...createProductGroupNodes(),
   ],
 };
 
