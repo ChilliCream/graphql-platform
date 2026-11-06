@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 
-const EDGE = "rgba(236,232,245,0.55)";
+const EDGE = lightDark("rgba(15,23,42,0.5)", "rgba(236,232,245,0.55)");
+const NODE_FILL = lightDark("#d9cfbc", "#e3dfee");
 
 interface NodeBox {
   readonly x: number;
@@ -19,7 +21,7 @@ function Node({ x, y, w, h }: NodeBox) {
       width={w}
       height={h}
       rx={8}
-      fill="#e3dfee"
+      style={{ fill: NODE_FILL }}
       filter="url(#node-shadow)"
     />
   );
@@ -104,7 +106,7 @@ function Hub({ className }: { readonly className?: string }) {
         </filter>
       </defs>
 
-      <g stroke={EDGE} strokeWidth={1.5}>
+      <g style={{ stroke: EDGE }} strokeWidth={1.5}>
         {legs.map((leg) => (
           <path key={`${leg.x}-${leg.y}`} d={spoke(leg)} />
         ))}

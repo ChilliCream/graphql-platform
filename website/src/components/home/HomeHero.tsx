@@ -8,8 +8,11 @@ import {
   HERO_SWIRLS,
   HERO_SWIRLS_MOBILE,
 } from "@/src/components/home/heroArtwork";
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 import { Swirl } from "@/src/icons/Swirl";
+
+const DRINK_SHADOW = `drop-shadow(0 8px 20px ${lightDark("rgba(60,48,30,0.28)", "rgba(0,0,0,0.45)")})`;
 
 function position(
   left: string,
@@ -38,8 +41,11 @@ export function HomeHero() {
         {HERO_DRINKS_MOBILE.map(({ Drink, left, top, width, rotate }) => (
           <Drink
             key={left + top}
-            className="absolute h-auto drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)]"
-            style={position(left, top, { width, rotate })}
+            className="absolute h-auto"
+            style={{
+              ...position(left, top, { width, rotate }),
+              filter: DRINK_SHADOW,
+            }}
           />
         ))}
         {HERO_SWIRLS_MOBILE.map(({ left, top, heroSize, rotate }) => (
@@ -61,8 +67,11 @@ export function HomeHero() {
         {HERO_DRINKS.map(({ Drink, left, top, heroWidth, rotate }) => (
           <Drink
             key={left + top}
-            className="absolute h-auto drop-shadow-[0_8px_20px_rgba(0,0,0,0.45)]"
-            style={position(left, top, { width: heroWidth, rotate })}
+            className="absolute h-auto"
+            style={{
+              ...position(left, top, { width: heroWidth, rotate }),
+              filter: DRINK_SHADOW,
+            }}
           />
         ))}
         {HERO_SWIRLS.map(({ left, top, heroSize, rotate }) => (

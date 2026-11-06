@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 import { SectionHeading } from "@/src/components/SectionHeading";
 
-export const GRADIENT = "linear-gradient(90deg, #5eead4, #16b9e4)";
+export const GRADIENT = `linear-gradient(90deg, ${lightDark("#0891b2", "#5eead4")}, ${lightDark("#8b5cf6", "#16b9e4")})`;
 
 interface SectionProps {
   readonly id: string;

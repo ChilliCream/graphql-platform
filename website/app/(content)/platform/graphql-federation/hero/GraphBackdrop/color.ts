@@ -7,7 +7,8 @@
 // without becoming its own bright colour. An optional `darken` blends
 // black in afterward -- how the copy-zone contrast fix keeps a node or
 // edge's alpha in its normal visible range while still lowering the actual
-// luminance it contributes under the text.
+// luminance it contributes under the text. `darkenTo` is the colour that
+// blend moves toward: black on Dark, the page surface on Light.
 export function rgba(
   color: string,
   alpha: number,
@@ -15,6 +16,7 @@ export function rgba(
     | { readonly with: string; readonly ratio: number }
     | readonly { readonly with: string; readonly ratio: number }[],
   darken = 0,
+  darkenTo = "black",
 ): string {
   let [r, g, b] = toRgb(color);
   const mixes = mix ? (Array.isArray(mix) ? mix : [mix]) : [];
@@ -29,9 +31,10 @@ export function rgba(
     b = b + (b1 - b) * t;
   }
   if (darken > 0) {
-    r = r * (1 - darken);
-    g = g * (1 - darken);
-    b = b * (1 - darken);
+    const [r1, g1, b1] = toRgb(darkenTo);
+    r = r + (r1 - r) * darken;
+    g = g + (g1 - g) * darken;
+    b = b + (b1 - b) * darken;
   }
   return `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},${alpha})`;
 }
@@ -50,5 +53,3 @@ function toRgb(color: string): readonly [number, number, number] {
     parseInt(hex.slice(4, 6), 16),
   ];
 }
-
-export const WHITE = "white";

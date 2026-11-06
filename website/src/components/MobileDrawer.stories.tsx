@@ -33,7 +33,7 @@ const tocList = (
 );
 
 const fullScreenHeader = (
-  <div className="border-cc-white/10 flex h-18 flex-none items-center justify-between border-b px-4">
+  <div className="border-cc-card-border flex h-18 flex-none items-center justify-between border-b px-4">
     <span className="text-cc-heading text-lg font-semibold">ChilliCream</span>
     <button
       type="button"
@@ -51,7 +51,7 @@ const fullScreenList = (
       <li key={label} className="flex">
         <a
           href="#"
-          className="border-cc-white/10 text-cc-heading flex h-18 w-full items-center border-b px-6 text-lg font-medium no-underline"
+          className="border-cc-card-border text-cc-heading flex h-18 w-full items-center border-b px-6 text-lg font-medium no-underline"
         >
           {label}
         </a>

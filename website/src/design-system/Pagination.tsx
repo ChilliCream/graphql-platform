@@ -99,7 +99,7 @@ function PageButton({
       <span
         aria-current="page"
         aria-label={ariaLabel}
-        className={`${baseClasses} border-cc-accent bg-cc-accent/10 text-cc-accent border font-semibold`}
+        className={`${baseClasses} border-cc-accent bg-cc-accent-vivid/10 text-cc-selected-text border font-semibold`}
       >
         {children}
       </span>
@@ -110,7 +110,7 @@ function PageButton({
       href={href}
       prefetch={false}
       aria-label={ariaLabel}
-      className={`${baseClasses} border-cc-card-border text-cc-ink-dim hover:border-cc-accent-hover hover:bg-cc-accent/10 hover:text-cc-accent-hover border`}
+      className={`${baseClasses} border-cc-card-border text-cc-ink-dim hover:border-cc-accent-hover hover:bg-cc-accent-vivid/10 hover:text-cc-accent-hover border`}
     >
       {children}
     </Link>

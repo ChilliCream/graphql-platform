@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { lightAppearance } from "@/src/components/lightAppearance";
 
 import { AGENTS, AgentLogo } from "./AgentLogo";
 
@@ -39,4 +40,9 @@ export const AllAgents: Story = {
       ))}
     </ul>
   ),
+};
+
+export const LightAllAgents: Story = {
+  ...AllAgents,
+  beforeEach: lightAppearance,
 };

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
+import { lightAppearance } from "@/src/components/lightAppearance";
 import { AppMotionConfig } from "@/src/nitro/lib/motion";
 
 import { LayeredCompositionGraphic } from "./LayeredCompositionGraphic";
@@ -36,3 +37,11 @@ function panelStory(viewport: keyof typeof PANEL_WIDTHS): Story {
 export const Panel375: Story = panelStory(375);
 export const Panel1024: Story = panelStory(1024);
 export const Panel1440: Story = panelStory(1440);
+export const Panel375Light: Story = {
+  ...panelStory(375),
+  beforeEach: lightAppearance,
+};
+export const Panel1440Light: Story = {
+  ...panelStory(1440),
+  beforeEach: lightAppearance,
+};

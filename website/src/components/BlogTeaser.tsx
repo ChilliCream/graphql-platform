@@ -1,4 +1,9 @@
 import Link from "next/link";
+import {
+  CARD_WASH_CLASS,
+  CARD_WASH_STYLE,
+  MEDIA_WASH,
+} from "@/src/components/cardWash";
 import { Picture } from "@/src/design-system/Picture";
 import { formatDate } from "@/src/helpers/formatDate";
 import { ArrowRightIcon } from "@/src/icons/ArrowRight";
@@ -31,10 +36,14 @@ export function BlogTeaser({
     <article className="group/teaser h-full w-full">
       <Link
         href={post.href}
-        className="border-cc-ink-faint bg-cc-white/2.5 hover:border-cc-card-border-hover hover:bg-cc-white/5 flex h-full flex-col overflow-hidden rounded-2xl border no-underline transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5"
+        className={`border-cc-ink-faint ${CARD_WASH_CLASS} hover:border-cc-card-border-hover flex h-full flex-col overflow-hidden rounded-2xl border no-underline transition-[background-color,border-color,transform] duration-150 hover:-translate-y-0.5`}
+        style={CARD_WASH_STYLE}
       >
         {showMedia ? (
-          <div className="border-cc-ink-faint bg-cc-white/4 aspect-video w-full overflow-hidden border-b">
+          <div
+            className="border-cc-ink-faint aspect-video w-full overflow-hidden border-b"
+            style={{ backgroundColor: MEDIA_WASH }}
+          >
             {post.featuredImage ? (
               <Picture
                 src={post.featuredImage}

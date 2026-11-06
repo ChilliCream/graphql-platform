@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 import { expect, fn, userEvent, within } from "storybook/test";
 import { CodeBlock } from "./CodeBlock";
 import { CodeStep } from "./CodeStep";
-import { renderBlock } from "./codeBlockStoryUtils";
+import { lowestContrast, renderBlock, storyTheme } from "./codeBlockStoryUtils";
 
 const meta = {
   title: "Design System/CodeBlock",
@@ -122,4 +122,114 @@ export const WithCodeSteps: Story = {
       </p>
     </div>
   ),
+};
+
+export const LightWithFilename: Story = {
+  beforeEach: storyTheme("light"),
+  loaders: [
+    async () => ({
+      rendered: await renderBlock("tsx", tsxSample, 'filename="Counter.tsx"'),
+    }),
+  ],
+  render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
+  play: async ({ canvasElement }) => {
+    expect(lowestContrast(canvasElement, ".shiki span")).toBeGreaterThanOrEqual(
+      4.5,
+    );
+    expect(
+      lowestContrast(canvasElement, ".code-lang-badge, figcaption span"),
+    ).toBeGreaterThanOrEqual(4.5);
+  },
+};
+
+export const LightWithLineHighlights: Story = {
+  beforeEach: storyTheme("light"),
+  loaders: [
+    async () => ({
+      rendered: await renderBlock(
+        "tsx",
+        tsxSample,
+        'filename="Counter.tsx" {4,6-7}',
+      ),
+    }),
+  ],
+  render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
+  play: async ({ canvasElement }) => {
+    const highlighted = canvasElement.querySelectorAll(".line-highlighted");
+    expect(highlighted).toHaveLength(3);
+    for (const line of highlighted) {
+      expect(
+        lowestContrast(line, ".shiki span"),
+        `${line.textContent} contrast`,
+      ).toBeGreaterThanOrEqual(4.5);
+    }
+  },
+};
+
+export const LightCodeStepActive: Story = {
+  beforeEach: storyTheme("light"),
+  loaders: WithCodeSteps.loaders,
+  render: WithCodeSteps.render,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.hover(
+      canvas.getAllByText("setCount", { selector: "span.code-step" })[0],
+    );
+
+    const figure = canvasElement.querySelector("figure")!;
+    expect(figure).toHaveClass("code-step-dim");
+    expect(
+      [...canvasElement.querySelectorAll(".code-step-active")].map(
+        (el) => el.textContent,
+      ),
+    ).toEqual(["setCount", "setCount"]);
+    expect(
+      lowestContrast(canvasElement, "span.code-step, .shiki [data-step]"),
+    ).toBeGreaterThanOrEqual(4.5);
+  },
+};
+
+export const AutoWithLineHighlights: Story = {
+  beforeEach: storyTheme("auto"),
+  loaders: WithLineHighlights.loaders,
+  render: WithLineHighlights.render,
+};
+
+export const LightUnknownLanguage: Story = {
+  beforeEach: storyTheme("light"),
+  loaders: [
+    async () => ({
+      rendered: await renderBlock("not-a-language", "plain unknown source"),
+    }),
+  ],
+  render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
+  play: async ({ canvasElement }) => {
+    expect(
+      lowestContrast(canvasElement, ".shiki code span"),
+    ).toBeGreaterThanOrEqual(4.5);
+  },
+};
+
+const csharpSample = `builder.Services
+    .AddNitro()
+    .AddOpenTelemetry();`;
+
+export const FixedThemeLight: Story = {
+  beforeEach: storyTheme("light"),
+  loaders: [
+    async () => ({
+      rendered: await renderBlock(
+        "csharp",
+        csharpSample,
+        'filename="Program.cs" {2}',
+        "poimandres",
+      ),
+    }),
+  ],
+  render: (_args, ctx) => ctx.loaded.rendered as ReactElement,
+};
+
+export const FixedThemeDark: Story = {
+  loaders: FixedThemeLight.loaders,
+  render: FixedThemeLight.render,
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { FC, useMemo } from "react";
+import { useTheme } from "@/src/theme/ThemeProvider";
 import {
   ReactFlow,
   Background,
@@ -15,21 +16,70 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 
-// GitHub-dark palette, matching the rest of the docs visualizations.
-const COLORS = {
-  bg: "#0d1117",
-  surface: "#161b22",
-  surfaceAlt: "#1c2230",
-  border: "#30363d",
-  text: "#e6edf3",
-  muted: "#8b949e",
-  client: "#58a6ff", // subscription (client -> gateway)
-  stream: "#3fb950", // event stream (broker -> gateway)
-  publish: "#d29922", // publish (service -> broker)
-  http: "#a371f7", // GraphQL over HTTP (gateway -> service)
-  broker: "#d29922",
-  gateway: "#a371f7",
+interface Palette {
+  readonly bg: string;
+  readonly surface: string;
+  readonly surfaceAlt: string;
+  readonly border: string;
+  readonly dots: string;
+  readonly text: string;
+  readonly muted: string;
+  readonly legendBg: string;
+  readonly shadow: string;
+  readonly shadowEmphatic: string;
+  readonly client: string; // subscription (client -> gateway)
+  readonly stream: string; // event stream (broker -> gateway)
+  readonly publish: string; // publish (service -> broker)
+  readonly http: string; // GraphQL over HTTP (gateway -> service)
+  readonly broker: string;
+  readonly gateway: string;
+}
+
+// Dark mirrors the GitHub-dark palette of the rest of the docs visualizations.
+// Light surfaces and text follow the site tokens; edge hues are literals
+// because React Flow derives marker ids from them.
+const PALETTES: Record<"light" | "dark", Palette> = {
+  dark: {
+    bg: "#0d1117",
+    surface: "#161b22",
+    surfaceAlt: "#1c2230",
+    border: "#30363d",
+    dots: "#30363d",
+    text: "#e6edf3",
+    muted: "#8b949e",
+    legendBg: "rgba(13,17,23,0.82)",
+    shadow: "0 4px 12px rgba(0,0,0,0.25)",
+    shadowEmphatic: "0 8px 24px rgba(0,0,0,0.35)",
+    client: "#58a6ff",
+    stream: "#3fb950",
+    publish: "#d29922",
+    http: "#a371f7",
+    broker: "#d29922",
+    gateway: "#a371f7",
+  },
+  light: {
+    bg: "var(--color-cc-code-bg)",
+    surface: "var(--color-cc-bg)",
+    surfaceAlt: "var(--color-cc-card-bg)",
+    border: "var(--color-cc-card-border)",
+    dots: "var(--color-cc-ink-faint)",
+    text: "var(--color-cc-heading)",
+    muted: "var(--color-cc-ink-dim)",
+    legendBg: "color-mix(in srgb, var(--color-cc-code-bg) 82%, transparent)",
+    shadow: "0 4px 12px rgba(15,23,42,0.1)",
+    shadowEmphatic: "0 8px 24px rgba(15,23,42,0.14)",
+    client: "#075985",
+    stream: "#0f6651",
+    publish: "#854d0e",
+    http: "#5b21b6",
+    broker: "#854d0e",
+    gateway: "#5b21b6",
+  },
 };
+
+function usePalette(): Palette {
+  return PALETTES[useTheme().resolvedTheme];
+}
 
 type NodeKind = "broker" | "gateway" | "client" | "service";
 
@@ -40,19 +90,18 @@ interface DiagramNodeData {
   readonly [key: string]: unknown;
 }
 
-const ACCENT: Record<NodeKind, string> = {
-  broker: COLORS.broker,
-  gateway: COLORS.gateway,
-  client: COLORS.client,
-  service: COLORS.stream,
-};
-
-const handleStyle: React.CSSProperties = {
-  width: 7,
-  height: 7,
-  background: COLORS.border,
-  border: "none",
-};
+function accentOf(kind: NodeKind, palette: Palette): string {
+  switch (kind) {
+    case "broker":
+      return palette.broker;
+    case "gateway":
+      return palette.gateway;
+    case "client":
+      return palette.client;
+    case "service":
+      return palette.stream;
+  }
+}
 
 const BrokerIcon: FC<{ color: string }> = ({ color }) => (
   <svg
@@ -130,7 +179,14 @@ const ICON: Record<NodeKind, FC<{ color: string }>> = {
 
 const DiagramNode: FC<NodeProps> = ({ data }) => {
   const d = data as DiagramNodeData;
-  const accent = ACCENT[d.kind];
+  const palette = usePalette();
+  const accent = accentOf(d.kind, palette);
+  const handleStyle: React.CSSProperties = {
+    width: 7,
+    height: 7,
+    background: palette.border,
+    border: "none",
+  };
   const Icon = ICON[d.kind];
   const emphatic = d.kind === "broker" || d.kind === "gateway";
 
@@ -141,12 +197,12 @@ const DiagramNode: FC<NodeProps> = ({ data }) => {
         width: d.kind === "broker" ? 332 : emphatic ? 300 : 156,
         padding: "12px 14px",
         borderRadius: 10,
-        background: emphatic ? COLORS.surfaceAlt : COLORS.surface,
-        border: `1px solid ${COLORS.border}`,
+        background: emphatic ? palette.surfaceAlt : palette.surface,
+        border: `1px solid ${palette.border}`,
         borderTop: `3px solid ${accent}`,
         boxShadow: emphatic
-          ? `0 0 0 1px ${accent}22, 0 8px 24px rgba(0,0,0,0.35)`
-          : "0 4px 12px rgba(0,0,0,0.25)",
+          ? `0 0 0 1px ${accent}22, ${palette.shadowEmphatic}`
+          : palette.shadow,
         display: "flex",
         alignItems: "center",
         gap: 10,
@@ -169,7 +225,7 @@ const DiagramNode: FC<NodeProps> = ({ data }) => {
       <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
         <span
           style={{
-            color: COLORS.text,
+            color: palette.text,
             fontSize: emphatic ? 15 : 13,
             fontWeight: 600,
             lineHeight: 1.25,
@@ -181,7 +237,7 @@ const DiagramNode: FC<NodeProps> = ({ data }) => {
         {d.subtitle ? (
           <span
             style={{
-              color: COLORS.muted,
+              color: palette.muted,
               fontSize: 11,
               lineHeight: 1.3,
               fontFamily:
@@ -342,6 +398,7 @@ const NODES: Node[] = [
 ];
 
 const edge = (
+  palette: Palette,
   id: string,
   source: string,
   sourceHandle: string,
@@ -360,66 +417,96 @@ const edge = (
   labelShowBg: true,
   labelBgPadding: [6, 3],
   labelBgBorderRadius: 4,
-  labelBgStyle: { fill: COLORS.bg, fillOpacity: 0.85 },
+  labelBgStyle: { fill: palette.bg, fillOpacity: 0.85 },
   labelStyle: { fill: color, fontSize: 11, fontWeight: 600 },
   style: { stroke: color, strokeWidth: 2 },
   markerEnd: { type: MarkerType.ArrowClosed, color, width: 16, height: 16 },
 });
 
-const EDGES: Edge[] = [
+const buildEdges = (palette: Palette): Edge[] => [
   // Clients subscribe to the gateway.
   edge(
+    palette,
     "sub-a",
     "client-a",
     "out",
     "gateway",
     "subs",
-    COLORS.client,
+    palette.client,
     "subscribe",
   ),
-  edge("sub-b", "client-b", "out", "gateway", "subs", COLORS.client),
-  edge("sub-c", "client-c", "out", "gateway", "subs", COLORS.client),
+  edge(palette, "sub-b", "client-b", "out", "gateway", "subs", palette.client),
+  edge(palette, "sub-c", "client-c", "out", "gateway", "subs", palette.client),
   // Gateway reads the event stream from the broker.
   edge(
+    palette,
     "stream",
     "broker",
     "out",
     "gateway",
     "events",
-    COLORS.stream,
+    palette.stream,
     "event stream",
   ),
   // Services publish events to the broker.
   edge(
+    palette,
     "pub-p",
     "svc-products",
     "pub",
     "broker",
     "in",
-    COLORS.publish,
+    palette.publish,
     "publish",
   ),
-  edge("pub-r", "svc-reviews", "pub", "broker", "in", COLORS.publish),
-  edge("pub-a", "svc-accounts", "pub", "broker", "in", COLORS.publish),
+  edge(palette, "pub-r", "svc-reviews", "pub", "broker", "in", palette.publish),
+  edge(
+    palette,
+    "pub-a",
+    "svc-accounts",
+    "pub",
+    "broker",
+    "in",
+    palette.publish,
+  ),
   // Gateway resolves each event with stateless GraphQL-over-HTTP fetches.
   edge(
+    palette,
     "http-p",
     "gateway",
     "http",
     "svc-products",
     "http",
-    COLORS.http,
+    palette.http,
     "GraphQL / HTTP",
   ),
-  edge("http-r", "gateway", "http", "svc-reviews", "http", COLORS.http),
-  edge("http-a", "gateway", "http", "svc-accounts", "http", COLORS.http),
+  edge(
+    palette,
+    "http-r",
+    "gateway",
+    "http",
+    "svc-reviews",
+    "http",
+    palette.http,
+  ),
+  edge(
+    palette,
+    "http-a",
+    "gateway",
+    "http",
+    "svc-accounts",
+    "http",
+    palette.http,
+  ),
 ];
 
-const LEGEND: ReadonlyArray<{ color: string; label: string }> = [
-  { color: COLORS.client, label: "Client subscription" },
-  { color: COLORS.stream, label: "Event stream (read)" },
-  { color: COLORS.publish, label: "Publish event" },
-  { color: COLORS.http, label: "GraphQL over HTTP" },
+const legendOf = (
+  palette: Palette,
+): ReadonlyArray<{ color: string; label: string }> => [
+  { color: palette.client, label: "Client subscription" },
+  { color: palette.stream, label: "Event stream (read)" },
+  { color: palette.publish, label: "Publish event" },
+  { color: palette.http, label: "GraphQL over HTTP" },
 ];
 
 interface FusionSubscriptionsDiagramInnerProps {
@@ -429,8 +516,10 @@ interface FusionSubscriptionsDiagramInnerProps {
 export const FusionSubscriptionsDiagramInner: FC<
   FusionSubscriptionsDiagramInnerProps
 > = ({ expanded }) => {
+  const { resolvedTheme } = useTheme();
+  const palette = PALETTES[resolvedTheme];
   const nodes = useMemo(() => NODES, []);
-  const edges = useMemo(() => EDGES, []);
+  const edges = useMemo(() => buildEdges(palette), [palette]);
 
   return (
     <ReactFlow
@@ -450,13 +539,14 @@ export const FusionSubscriptionsDiagramInner: FC<
       preventScrolling={expanded}
       minZoom={0.4}
       maxZoom={1.6}
-      style={{ background: COLORS.bg }}
+      colorMode={resolvedTheme}
+      style={{ background: palette.bg }}
     >
       <Background
         variant={BackgroundVariant.Dots}
         gap={22}
         size={1}
-        color={COLORS.border}
+        color={palette.dots}
       />
       {expanded ? <Controls showInteractive={false} /> : null}
       <Panel position="bottom-left">
@@ -467,19 +557,19 @@ export const FusionSubscriptionsDiagramInner: FC<
             gap: "8px 16px",
             padding: "10px 12px",
             borderRadius: 8,
-            background: "rgba(13,17,23,0.82)",
-            border: `1px solid ${COLORS.border}`,
+            background: palette.legendBg,
+            border: `1px solid ${palette.border}`,
             backdropFilter: "blur(4px)",
           }}
         >
-          {LEGEND.map((item) => (
+          {legendOf(palette).map((item) => (
             <span
               key={item.label}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 7,
-                color: COLORS.muted,
+                color: palette.muted,
                 fontSize: 11.5,
                 fontWeight: 500,
               }}

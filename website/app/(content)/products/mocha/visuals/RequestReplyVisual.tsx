@@ -15,15 +15,18 @@ import {
 import {
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
   GREEN,
+  GREEN_TEXT,
   MONO_FONT,
-  NAVY,
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fff", "#0b0f1a");
 const T = 10000;
 const REST_T = 9080;
 const REQ_DEP = 500;
@@ -37,15 +40,18 @@ const REP_ARR = 7350;
 const MIN_W = 460;
 const DIAG_H = 150;
 
-const DIM = "#62748e";
-const SURFACE = "#0c1322";
-const HAIR = "rgba(139,160,188,0.22)";
-const PANEL_STROKE = "rgba(158,176,204,0.44)";
-const LANE_STROKE = "rgba(139,160,188,0.4)";
-const VIA_STROKE = "rgba(164,180,208,0.55)";
-const SILK = "rgba(154,172,200,0.75)";
-const SILK_SOFT = "rgba(154,172,200,0.7)";
-const GRID_DOT = "rgba(150,166,194,0.10)";
+const DIM = lightDark("#4a566c", "#62748e");
+const SURFACE = lightDark("#fff", "#0c1322");
+const HAIR = lightDark("rgba(139,92,246,0.35)", "rgba(139,160,188,0.22)");
+const PANEL_STROKE = lightDark(
+  "rgba(139,92,246,0.7)",
+  "rgba(158,176,204,0.44)",
+);
+const LANE_STROKE = lightDark("rgba(6,182,212,0.85)", "rgba(139,160,188,0.4)");
+const VIA_STROKE = lightDark("rgba(6,182,212,0.95)", "rgba(164,180,208,0.55)");
+const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
+const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
+const GRID_DOT = lightDark("rgba(6,182,212,0.28)", "rgba(150,166,194,0.10)");
 const CORR_LIT = "#c7d2f0";
 const REPLY_SOFT = "#c9f7e4";
 
@@ -498,7 +504,7 @@ export function RequestReplyVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.02em"
-            fill={GREEN}
+            fill={GREEN_TEXT}
             opacity={0}
           >
             ProductResponse
@@ -511,7 +517,10 @@ export function RequestReplyVisual() {
               width={REQR_W}
               height={REQR_H}
               rx={3}
-              fill="rgba(139,160,188,0.03)"
+              fill={lightDark(
+                "rgba(139,92,246,0.07)",
+                "rgba(139,160,188,0.03)",
+              )}
               stroke={PANEL_STROKE}
               strokeWidth={1}
             />
@@ -521,14 +530,20 @@ export function RequestReplyVisual() {
               y={REQR_TOP + REQR_H - 17}
               width={8}
               height={3}
-              fill="rgba(154,172,200,0.12)"
+              fill={lightDark(
+                "rgba(139,92,246,0.22)",
+                "rgba(154,172,200,0.12)",
+              )}
             />
             <rect
               x={REQR_X + REQR_W - 30}
               y={REQR_TOP + REQR_H - 11}
               width={8}
               height={3}
-              fill="rgba(154,172,200,0.12)"
+              fill={lightDark(
+                "rgba(139,92,246,0.22)",
+                "rgba(154,172,200,0.12)",
+              )}
             />
             <rect
               ref={set("pw0")}
@@ -609,14 +624,20 @@ export function RequestReplyVisual() {
               width={PANEL_W}
               height={PANEL_H}
               rx={3}
-              fill="rgba(139,160,188,0.03)"
+              fill={lightDark(
+                "rgba(139,92,246,0.07)",
+                "rgba(139,160,188,0.03)",
+              )}
               stroke={PANEL_STROKE}
               strokeWidth={1}
             />
             <circle cx={L.panelX + 6} cy={PANEL_TOP + 6} r={1.2} fill={SILK} />
             <path
               d={`M${L.panelX + PANEL_W - 30} ${PANEL_TOP + PANEL_H - 8} l7 -7 M${L.panelX + PANEL_W - 24} ${PANEL_TOP + PANEL_H - 8} l7 -7 M${L.panelX + PANEL_W - 18} ${PANEL_TOP + PANEL_H - 8} l7 -7`}
-              stroke="rgba(154,172,200,0.11)"
+              stroke={lightDark(
+                "rgba(139,92,246,0.22)",
+                "rgba(154,172,200,0.11)",
+              )}
               strokeWidth={1}
               fill="none"
             />
@@ -725,7 +746,7 @@ export function RequestReplyVisual() {
               fontFamily={MONO_FONT}
               fontSize={10}
               letterSpacing="0.04em"
-              fill={CORAL_SOFT}
+              fill={CORAL_SOFT_TEXT}
             >
               GetProductHandler
             </text>

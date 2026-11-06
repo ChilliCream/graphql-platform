@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { ArrowLink } from "@/src/components/ArrowLink";
+import { lightDark } from "@/src/components/lightDark";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { BlockMark } from "@/src/icons/BlockMark";
 import { LintMark } from "@/src/icons/LintMark";
@@ -67,6 +68,8 @@ const KIND: Record<ChangeKind, string> = {
   deprecated: "bg-cc-warning",
 };
 
+const WINDOW_SHADOW = `0 1px 3px ${lightDark("rgba(60,48,30,0.16)", "rgba(2,6,16,0.6)")}`;
+
 interface FacetWindowProps {
   readonly bar: ReactNode;
   readonly children: ReactNode;
@@ -74,7 +77,10 @@ interface FacetWindowProps {
 
 function FacetWindow({ bar, children }: FacetWindowProps) {
   return (
-    <div className="border-cc-card-border bg-cc-surface mt-4 flex flex-1 flex-col overflow-hidden rounded-xl border shadow-[0_1px_3px_rgba(2,6,16,0.6)]">
+    <div
+      className="border-cc-card-border bg-cc-surface mt-4 flex flex-1 flex-col overflow-hidden rounded-xl border"
+      style={{ boxShadow: WINDOW_SHADOW }}
+    >
       <div className="border-cc-card-border flex shrink-0 items-center gap-2 border-b px-3 py-2">
         {bar}
       </div>

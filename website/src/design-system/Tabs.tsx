@@ -58,7 +58,7 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
     <div className="ring-cc-card-border my-6 overflow-hidden rounded-md ring-1">
       <div
         role="tablist"
-        className="border-cc-card-border bg-cc-ink-faint flex flex-wrap border-b"
+        className="border-cc-card-border bg-cc-tab-strip flex flex-wrap border-b"
       >
         {tabs.map((tab, i) => {
           const selected = i === active;
@@ -72,7 +72,7 @@ export function Tabs({ children, defaultIndex = 0 }: TabsProps) {
               onClick={() => setActive(i)}
               className={`-mb-px cursor-pointer border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
                 selected
-                  ? "border-cc-accent text-cc-accent"
+                  ? "border-cc-accent text-cc-selected-text"
                   : "text-cc-ink-dim hover:text-cc-ink border-transparent"
               }`}
             >
