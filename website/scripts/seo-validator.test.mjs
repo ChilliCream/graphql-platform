@@ -10,6 +10,7 @@ import {
   headingSkips,
   imagesWithoutAlt,
   lengthWarnings,
+  noindexPageErrors,
   openGraphErrors,
 } from "./seo-rules.mjs";
 import {
@@ -91,6 +92,42 @@ test("headingSkips reports increases larger than one level", () => {
 test("imagesWithoutAlt counts images lacking the attribute only", () => {
   const document = parse('<img src="a"><img src="b" alt=""><img alt="c">');
   assert.equal(imagesWithoutAlt(document), 1);
+});
+
+test("noindexPageErrors accepts noindex, follow with the expected canonical", () => {
+  const document = parse(`
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://example.com/parent">`);
+  assert.deepEqual(
+    noindexPageErrors("/x", document, "https://example.com/parent"),
+    [],
+  );
+});
+
+test("noindexPageErrors fails a page that lost noindex", () => {
+  const document = parse(`
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://example.com/parent">`);
+  assert.deepEqual(
+    noindexPageErrors("/x", document, "https://example.com/parent"),
+    [["noindex-page", "/x: noindex page is not marked noindex"]],
+  );
+});
+
+test("noindexPageErrors fails nofollow and a wrong canonical", () => {
+  const document = parse(`
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="https://example.com/x">`);
+  assert.deepEqual(
+    noindexPageErrors("/x", document, "https://example.com/parent"),
+    [
+      ["noindex-page", "/x: noindex page must allow link following"],
+      [
+        "noindex-page",
+        "/x: expected a single canonical https://example.com/parent, got https://example.com/x",
+      ],
+    ],
+  );
 });
 
 test("report groups findings by rule with counts and a summary", () => {

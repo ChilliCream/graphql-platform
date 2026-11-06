@@ -11,6 +11,7 @@ import {
   imagesWithoutAlt,
   isAbsoluteHttpUrl,
   lengthWarnings,
+  noindexPageErrors,
   openGraphErrors,
 } from "./seo-rules.mjs";
 import { createReport, printReport } from "./validation-report.mjs";
@@ -40,7 +41,18 @@ const FLOW_PAGE_NODE_TYPES = new Set([
 ]);
 const BLOG_PAGINATION_PATH = /^\/blog\/\d+$/;
 const TAG_ARCHIVE_PATH = /^\/blog\/tags\/[^/?#]+(?:\/\d+)?$/;
+const NOINDEX_CANONICAL_PAGES = new Map([
+  [
+    "/benchmarks/graphql-federation/burst-traffic",
+    "/benchmarks/graphql-federation",
+  ],
+  [
+    "/benchmarks/graphql-federation/synthetic",
+    "/benchmarks/graphql-federation",
+  ],
+]);
 const EXCLUDED_SITEMAP_PATHS = new Set([
+  ...NOINDEX_CANONICAL_PAGES.keys(),
   "/platform/continuous-integration",
   "/services/support/thank-you",
 ]);
@@ -107,6 +119,9 @@ await validateLlmsCatalogCoverage();
 await validateBuiltPageCoverage();
 
 await validateExcludedRoute("/services/support/thank-you");
+for (const [pathname, canonicalPath] of NOINDEX_CANONICAL_PAGES) {
+  await validateNoindexPage(pathname, canonicalPath);
+}
 await validateRedirect(
   "/platform/continuous-integration",
   "/platform/release-safety",
@@ -1336,6 +1351,31 @@ async function validateExcludedRoute(pathname) {
       "excluded-route",
       `${pathname}: noindex page contains page-specific structured data`,
     );
+  }
+}
+
+async function validateNoindexPage(pathname, canonicalPath) {
+  const response = await fetch(new URL(pathname, baseUrl));
+  if (!response.ok) {
+    report.error(
+      "noindex-page",
+      `${pathname}: noindex page returned HTTP ${response.status}`,
+    );
+    return;
+  }
+  const document = parse(await response.text());
+  if (!canonicalByPath.has(canonicalPath)) {
+    report.error(
+      "noindex-page",
+      `${pathname}: canonical target ${canonicalPath} is not in the sitemap`,
+    );
+  }
+  for (const [rule, message] of noindexPageErrors(
+    pathname,
+    document,
+    new URL(canonicalPath, canonicalOrigin).href,
+  )) {
+    report.error(rule, message);
   }
 }
 

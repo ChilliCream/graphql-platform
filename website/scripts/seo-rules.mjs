@@ -76,3 +76,32 @@ export function isAbsoluteHttpUrl(value) {
     return false;
   }
 }
+
+export function noindexPageErrors(pathname, document, expectedCanonical) {
+  const errors = [];
+  const robots =
+    document.querySelector('meta[name="robots"]')?.getAttribute("content") ??
+    "";
+  if (!/\bnoindex\b/i.test(robots)) {
+    errors.push([
+      "noindex-page",
+      `${pathname}: noindex page is not marked noindex`,
+    ]);
+  }
+  if (!/\bfollow\b/i.test(robots) || /\bnofollow\b/i.test(robots)) {
+    errors.push([
+      "noindex-page",
+      `${pathname}: noindex page must allow link following`,
+    ]);
+  }
+  const canonicals = document
+    .querySelectorAll('link[rel="canonical"]')
+    .map((link) => link.getAttribute("href") ?? "");
+  if (canonicals.length !== 1 || canonicals[0] !== expectedCanonical) {
+    errors.push([
+      "noindex-page",
+      `${pathname}: expected a single canonical ${expectedCanonical}, got ${canonicals.join(", ") || "none"}`,
+    ]);
+  }
+  return errors;
+}
