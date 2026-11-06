@@ -21,6 +21,42 @@ export const ORGANIZATION_ID = toAbsoluteUrl("/#organization");
 export const WEBSITE_ID = toAbsoluteUrl("/#website");
 export const LOGO_ID = toAbsoluteUrl("/#logo");
 
+export interface ProductGroup {
+  readonly id: string;
+  readonly name: string;
+  readonly memberIds: readonly string[];
+}
+
+const FUSION_ID = toAbsoluteUrl("/products/fusion#software");
+const NITRO_ID = toAbsoluteUrl("/products/nitro#product");
+const HOT_CHOCOLATE_ID = toAbsoluteUrl("/products/hotchocolate#software");
+const STRAWBERRY_SHAKE_ID = toAbsoluteUrl("/products/strawberryshake#software");
+const MOCHA_ID = toAbsoluteUrl("/products/mocha#software");
+
+export const FEDERATION_PLATFORM_GROUP: ProductGroup = {
+  id: toAbsoluteUrl("/#product-group-graphql-federation-platform"),
+  name: "GraphQL Federation Platform",
+  memberIds: [FUSION_ID, NITRO_ID],
+};
+
+export const FRAMEWORKS_GROUP: ProductGroup = {
+  id: toAbsoluteUrl("/#product-group-graphql-frameworks"),
+  name: "GraphQL Frameworks",
+  memberIds: [HOT_CHOCOLATE_ID, STRAWBERRY_SHAKE_ID],
+};
+
+export const MESSAGING_GROUP: ProductGroup = {
+  id: toAbsoluteUrl("/#product-group-messaging-framework"),
+  name: "Messaging Framework",
+  memberIds: [MOCHA_ID],
+};
+
+export const PRODUCT_GROUPS: readonly ProductGroup[] = [
+  FEDERATION_PLATFORM_GROUP,
+  FRAMEWORKS_GROUP,
+  MESSAGING_GROUP,
+];
+
 export interface BreadcrumbItem {
   readonly name: string;
   /** Omit only for the current page at the end of the trail. */
@@ -66,6 +102,16 @@ export function schemaId(path: string, fragment: string): string {
 
 export function schemaRef(id: string): JsonLdNode {
   return { "@id": id };
+}
+
+export function createProductGroupNodes(): readonly JsonLdNode[] {
+  return PRODUCT_GROUPS.map((group) => ({
+    "@type": "Collection",
+    "@id": group.id,
+    name: group.name,
+    publisher: schemaRef(ORGANIZATION_ID),
+    hasPart: group.memberIds.map(schemaRef),
+  }));
 }
 
 export function createPageGraph({

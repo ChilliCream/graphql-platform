@@ -2,6 +2,7 @@ import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 import {
+  FEDERATION_PLATFORM_GROUP,
   ORGANIZATION_ID,
   schemaId,
   schemaRef,
@@ -52,6 +53,7 @@ const SOFTWARE = {
   },
   runtimePlatform: ".NET and ASP.NET Core",
   license: "https://opensource.org/license/mit",
+  isPartOf: schemaRef(FEDERATION_PLATFORM_GROUP.id),
   creator: schemaRef(ORGANIZATION_ID),
   publisher: schemaRef(ORGANIZATION_ID),
 } as const;
