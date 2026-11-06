@@ -411,7 +411,7 @@ export function benchmarkPageDescription(report: BenchmarkReport): string {
   const list = new Intl.ListFormat("en", { type: "conjunction" }).format(
     releasedGatewayNames(report).names,
   );
-  return `Compare GraphQL federation router performance: throughput, latency, memory and CPU for ${list}, benchmarked daily under identical conditions.`;
+  return `Compare GraphQL federation router (gateway) throughput, latency, memory and CPU for ${list}, benchmarked daily.`;
 }
 
 /** Returns the non-empty composition tables of a scenario, rows sorted by median throughput. */
