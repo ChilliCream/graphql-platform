@@ -94,26 +94,46 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
         Dispatcher = CreateDispatcher(context);
         ConsumerManager = CreateConsumerManager(context);
+
+        if (configuration.ConnectTimeout is { } connectTimeout)
+        {
+            Dispatcher.ConnectTimeout = connectTimeout;
+            ConsumerManager.ConnectTimeout = connectTimeout;
+        }
     }
 
     private RabbitMQConsumerManager CreateConsumerManager(IMessagingSetupContext context)
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>();
 
-        return new RabbitMQConsumerManager(logger, Connection.CreateAsync);
+        return new RabbitMQConsumerManager(logger, CreateConnectionFactory(context, "consumer"));
     }
 
     private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
 
-        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync);
+        return new RabbitMQDispatcher(logger, CreateConnectionFactory(context, "dispatcher"), ProvisionTopologyAsync);
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
         {
             await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
             await new RabbitMQTopologyProvisioner(_topology).ProvisionAsync(channel, ct);
         }
+    }
+
+    private Func<CancellationToken, ValueTask<IConnection>> CreateConnectionFactory(
+        IMessagingSetupContext context,
+        string role)
+    {
+        if (Connection is not ConnectionFactoryRabbitMQConnectionProvider provider)
+        {
+            return Connection.CreateAsync;
+        }
+
+        // Each connection is named after the service and its role, so the two can be told apart on the broker.
+        var clientProvidedName = $"{context.Host.ServiceName ?? context.Host.ProcessName} {role}";
+        return cancellationToken => provider.CreateAsync(clientProvidedName, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -286,14 +306,12 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     }
 
     /// <summary>
-    /// Ensures that both the consumer and dispatcher RabbitMQ connections are established before
-    /// the transport's endpoints begin processing messages.
+    /// Connects the consumer and dispatcher RabbitMQ connections before the transport's endpoints start.
     /// </summary>
     /// <remarks>
-    /// Both <see cref="ConsumerManager"/> and <see cref="Dispatcher"/> connect concurrently via
-    /// <c>Task.WhenAll</c>. If either connection fails, the start-up will fail and the host will
-    /// not begin consuming or dispatching messages. This is the last opportunity to guarantee
-    /// network connectivity before the messaging pipeline is active.
+    /// While the broker cannot be reached, both connections keep retrying for up to the connect timeout, two minutes
+    /// by default, before the start fails. Refused credentials, refused virtual host access, and topology the broker
+    /// rejects fail the start at once.
     /// </remarks>
     /// <param name="context">The configuration context for the current startup phase.</param>
     /// <param name="cancellationToken">A token to cancel the connection establishment.</param>
@@ -301,7 +319,6 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         IMessagingConfigurationContext context,
         CancellationToken cancellationToken)
     {
-        // TODO we probably should make this resilient!
         await Task.WhenAll(
             ConsumerManager.EnsureConnectedAsync(cancellationToken),
             Dispatcher.EnsureConnectedAsync(cancellationToken));

@@ -6,6 +6,40 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 public class RabbitMQDescriptorTests
 {
+    [Theory]
+    [InlineData(-1L)]
+    [InlineData(4_294_967_295L)]
+    public void ConnectTimeout_Should_Throw_When_TimeoutOutsideSupportedRange(long milliseconds)
+    {
+        // arrange
+        var timeout = TimeSpan.FromMilliseconds(milliseconds);
+
+        // act
+        var exception = Record.Exception(() => CreateRuntime(t => t.ConnectTimeout(timeout)));
+
+        // assert
+        var error = Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Equal("timeout", error.ParamName);
+    }
+
+    [Theory]
+    [InlineData(0L)]
+    [InlineData(30_000L)]
+    [InlineData(4_294_967_294L)]
+    public void ConnectTimeout_Should_ConfigureBothConnections_When_TimeoutWithinSupportedRange(long milliseconds)
+    {
+        // arrange
+        var timeout = TimeSpan.FromMilliseconds(milliseconds);
+
+        // act
+        var runtime = CreateRuntime(t => t.ConnectTimeout(timeout));
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(timeout, transport.Dispatcher.ConnectTimeout);
+        Assert.Equal(timeout, transport.ConsumerManager.ConnectTimeout);
+    }
+
     [Fact]
     public void Transport_Should_UseCustomSchema_When_SchemaConfigured()
     {

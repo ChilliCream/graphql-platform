@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Mocha.Transport.RabbitMQ.Features;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -18,6 +19,11 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
     /// Gets the RabbitMQ queue that this endpoint consumes from.
     /// </summary>
     public RabbitMQQueue Queue { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets whether the endpoint is attached and has capacity available beyond handlers cancelled by a channel loss.
+    /// </summary>
+    public bool IsHealthy => _consumer is { IsHealthy: true };
 
     protected override void OnInitialize(
         IMessagingConfigurationContext context,
@@ -54,24 +60,33 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         Source = Queue;
     }
 
-    private IAsyncDisposable? _consumer;
+    private RabbitMQConsumerManager.RegisteredConsumer? _consumer;
 
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        var topology = transport.Topology;
-        var receiveTopology = Queue.AutoProvision ?? topology.AutoProvision
-            ? new RabbitMQReceiveTopology(topology, Queue)
-            : null;
+        var dependencies = ImmutableArray<Func<RabbitMQConsumerManager.RegisteredConsumer?>>.Empty;
+        if (Kind is not ReceiveEndpointKind.Reply
+            && transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint)
+        {
+            await replyEndpoint.StartAsync(context, cancellationToken);
+            dependencies = [() => replyEndpoint._consumer];
+        }
+
+        var provisioner = new RabbitMQTopologyProvisioner(transport.Topology);
 
         _consumer = await transport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
+            ProvisionAsync,
+            dependencies,
             ProcessMessageAsync,
-            receiveTopology,
             _maxPrefetch,
             _consumerDispatchConcurrency,
             cancellationToken);
+
+        Task ProvisionAsync(IChannel channel, CancellationToken ct)
+            => provisioner.ProvisionReceiveAsync(Queue, channel, ct);
     }
 
     private async ValueTask ProcessMessageAsync(
@@ -103,9 +118,18 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
     {
         if (_consumer is not null)
         {
-            await _consumer.DisposeAsync();
+            await _consumer.StopAsync(cancellationToken);
         }
 
         _consumer = null;
+
+        // A generated temporary reply queue is deleted on graceful stop when auto-provisioning is enabled.
+        if (Kind == ReceiveEndpointKind.Reply
+            && Configuration.IsTemporary
+            && Queue.Origin is not TopologyOrigin.Declared
+            && (Queue.AutoProvision ?? transport.Topology.AutoProvision))
+        {
+            await transport.ConsumerManager.DeleteQueueAsync(Queue.Name, cancellationToken);
+        }
     }
 }

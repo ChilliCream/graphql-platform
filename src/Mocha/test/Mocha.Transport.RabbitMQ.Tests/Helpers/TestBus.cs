@@ -8,11 +8,14 @@ public sealed class TestBus(ServiceProvider provider, MessagingRuntime runtime) 
 
     public async ValueTask DisposeAsync()
     {
+        // A host stops with a shutdown timeout, after which handlers that still run are cancelled.
+        using var shutdownTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
         foreach (var transport in runtime.Transports)
         {
             if (transport.IsStarted)
             {
-                await transport.StopAsync(runtime, CancellationToken.None);
+                await transport.StopAsync(runtime, shutdownTimeout.Token);
             }
         }
 
@@ -26,8 +29,16 @@ internal static class MessageBusHostBuilderTestExtensions
     {
         var provider = builder.Services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(CancellationToken.None);
-        return new TestBus(provider, runtime);
+        try
+        {
+            await runtime.StartAsync(TestContext.Current.CancellationToken);
+            return new TestBus(provider, runtime);
+        }
+        catch
+        {
+            await provider.DisposeAsync();
+            throw;
+        }
     }
 
     public static MessagingRuntime BuildRuntime(this IMessageBusHostBuilder builder)

@@ -8,7 +8,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 /// End-to-end Docker-gated tests for the unified <c>t.Queue(name)</c> API.
 /// Verifies that consumer placement via the Queue() API routes messages to the consumer.
 /// </summary>
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class UnifiedQueueBehaviorTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);

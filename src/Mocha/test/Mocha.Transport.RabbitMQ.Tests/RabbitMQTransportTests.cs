@@ -541,6 +541,30 @@ public class RabbitMQTransportTests
         return connectionMock;
     }
 
+    [Fact]
+    public void ConnectTimeout_Should_ApplyToBothConnections_When_Configured()
+    {
+        // arrange
+        var configured = new ServiceCollection()
+            .AddMessageBus()
+            .AddRabbitMQ(t => t.ConnectionProvider(_ => new StubConnectionProvider()).ConnectTimeout(TimeSpan.FromSeconds(30)))
+            .BuildRuntime();
+        var unconfigured = new ServiceCollection()
+            .AddMessageBus()
+            .AddRabbitMQ(t => t.ConnectionProvider(_ => new StubConnectionProvider()))
+            .BuildRuntime();
+
+        // act
+        var withTimeout = configured.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var withDefault = unconfigured.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(TimeSpan.FromSeconds(30), withTimeout.ConsumerManager.ConnectTimeout);
+        Assert.Equal(TimeSpan.FromSeconds(30), withTimeout.Dispatcher.ConnectTimeout);
+        Assert.Equal(TimeSpan.FromMinutes(2), withDefault.ConsumerManager.ConnectTimeout);
+        Assert.Equal(TimeSpan.FromMinutes(2), withDefault.Dispatcher.ConnectTimeout);
+    }
+
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();

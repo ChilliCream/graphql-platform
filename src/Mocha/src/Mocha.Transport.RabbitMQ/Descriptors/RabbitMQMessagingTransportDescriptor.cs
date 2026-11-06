@@ -150,6 +150,17 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public IRabbitMQMessagingTransportDescriptor ConnectTimeout(TimeSpan timeout)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(timeout, TimeSpan.FromMilliseconds(uint.MaxValue - 1));
+
+        Configuration.ConnectTimeout = timeout;
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IRabbitMQMessagingTransportDescriptor ConfigureDefaults(Action<RabbitMQBusDefaults> configure)
     {
         configure(Configuration.Defaults);

@@ -9,7 +9,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 /// instead of being silently delivered immediately. To enable scheduling for RabbitMQ
 /// register a fallback scheduling store (e.g. UsePostgresScheduling()).
 /// </summary>
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Messaging)]
 public class SchedulingTests
 {
     private readonly RabbitMQFixture _fixture;

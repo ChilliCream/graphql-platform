@@ -70,18 +70,26 @@ public sealed class ExponentialBackoff
     /// A <see cref="TimeSpan"/> representing the delay, clamped to the configured maximum delay.
     /// </returns>
     public TimeSpan CalculateDelay()
+        => CalculateDelay(_power, TimeSpan.FromMilliseconds(_delayInMs), TimeSpan.FromMilliseconds(_maxDelayInMs));
+
+    /// <summary>
+    /// Computes a randomized exponential delay for a failed attempt, capped at <paramref name="maxDelay"/>.
+    /// </summary>
+    /// <param name="attempt">The number of the failed attempt, starting at 1.</param>
+    /// <param name="delay">The base delay used to compute the randomized multiplier.</param>
+    /// <param name="maxDelay">The upper bound on the computed delay.</param>
+    public static TimeSpan CalculateDelay(int attempt, TimeSpan delay, TimeSpan maxDelay)
     {
-        // we use a random multiplier because we don't want to have a thundering herd problem
-        var multiplier = Random.Shared.Next(_delayInMs / 2, _delayInMs);
+        var delayInMs = (int)delay.TotalMilliseconds;
+        var multiplier = Random.Shared.Next(delayInMs / 2, delayInMs);
         if (multiplier == 0)
         {
             multiplier = 1;
         }
 
-        var waitTimeInMs = Math.Pow(2, _power) * multiplier;
+        var waitTimeInMs = Math.Pow(2, Math.Max(attempt, 1)) * multiplier;
 
-        // we make sure that we don't exceed the max delay
-        return TimeSpan.FromMilliseconds(Math.Min(_maxDelayInMs, waitTimeInMs));
+        return TimeSpan.FromMilliseconds(Math.Min(maxDelay.TotalMilliseconds, waitTimeInMs));
     }
 
     /// <summary>

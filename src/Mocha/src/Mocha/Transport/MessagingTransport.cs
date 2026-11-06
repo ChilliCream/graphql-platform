@@ -228,9 +228,8 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     }
 
     /// <summary>
-    /// Stops the transport by invoking pre-stop hooks and deactivating all receive endpoints. A failing
-    /// step does not prevent the remaining steps from running; the first failure is rethrown and the
-    /// transport stays started.
+    /// Stops application endpoints concurrently, then reply endpoints, between the pre-stop and post-stop hooks.
+    /// All steps are attempted; the first failure is rethrown and the transport stays started.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
     /// <param name="cancellationToken">A token to cancel the shutdown sequence.</param>
@@ -253,17 +252,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             failure = ExceptionDispatchInfo.Capture(ex);
         }
 
-        foreach (var endpoint in ReceiveEndpoints)
-        {
-            try
-            {
-                await endpoint.StopAsync(context, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                failure ??= ExceptionDispatchInfo.Capture(ex);
-            }
-        }
+        await Task.WhenAll(ReceiveEndpoints
+            .Where(static endpoint => endpoint.Kind != ReceiveEndpointKind.Reply)
+            .Select(StopEndpointAsync));
+
+        await Task.WhenAll(ReceiveEndpoints
+            .Where(static endpoint => endpoint.Kind == ReceiveEndpointKind.Reply)
+            .Select(StopEndpointAsync));
 
         try
         {
@@ -277,6 +272,18 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
         failure?.Throw();
 
         IsStarted = false;
+
+        async Task StopEndpointAsync(ReceiveEndpoint endpoint)
+        {
+            try
+            {
+                await endpoint.StopAsync(context, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Interlocked.CompareExchange(ref failure, ExceptionDispatchInfo.Capture(ex), null);
+            }
+        }
     }
 
     /// <summary>

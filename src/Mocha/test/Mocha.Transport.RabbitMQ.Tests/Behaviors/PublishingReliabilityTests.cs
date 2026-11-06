@@ -1,0 +1,272 @@
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Transport.RabbitMQ.Tests.Helpers;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
+
+namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
+
+[Collection(RabbitMQCollections.ConnectionRecovery)]
+public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
+{
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+
+    [Fact]
+    public async Task SendAsync_Should_DeliverOnce_When_ConcurrentPublishTargetsMissingExchange()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareExchange("orders");
+                t.DeclareQueue("healthy");
+                t.DispatchEndpoint("orders-publish").ToExchange("orders").Publish<OrderCreated>();
+                t.DispatchEndpoint("healthy-send").ToQueue("healthy").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+        await PublishAsync(bus, new OrderCreated { OrderId = "warmup" });
+        await SendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
+        var dispatcher = bus.Provider.GetRequiredService<IMessagingRuntime>()
+            .Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
+        var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        var second = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(first);
+        await dispatcher.ReturnChannelAsync(second);
+        await DeleteExchangeAsync(vhost, "orders");
+
+        // act
+        Task publish;
+        Task send;
+        await using (await vhost.FreezeConnectionsAsync())
+        {
+            publish = PublishAsync(bus, new OrderCreated { OrderId = "missing-exchange" });
+            send = SendAsync(bus, new ProcessPayment { OrderId = "healthy", Amount = 1 });
+        }
+
+        var exception = await Assert.ThrowsAsync<AlreadyClosedException>(() => publish);
+        await send;
+
+        // assert
+        Assert.Equal<ushort?>(Constants.NotFound, exception.ShutdownReason?.ReplyCode);
+        Assert.Equal(2, await vhost.GetMessageCountAsync("healthy"));
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_Throw_When_BrokerRejectsMessage()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareQueue("bounded")
+                    .WithArgument("x-max-length", 1)
+                    .WithArgument("x-overflow", "reject-publish");
+                t.DispatchEndpoint("bounded-send").ToQueue("bounded").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+
+        // act
+        await SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
+        var exception = await Assert.ThrowsAsync<PublishException>(
+            () => SendAsync(bus, new ProcessPayment { OrderId = "ORD-2", Amount = 1 }));
+
+        // assert
+        Assert.False(exception.IsReturn);
+        Assert.Equal(1, await vhost.GetMessageCountAsync("bounded"));
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_Deliver_When_PreviousPublishMadeBrokerCloseChannel()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        var payments = new MessageRecorder();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(payments)
+            .AddMessageBus()
+            .AddRequestHandler<PaymentHandler>()
+            .AddRabbitMQ(t =>
+            {
+                t.DispatchEndpoint("orders-publish").ToExchange("orders").Publish<OrderCreated>();
+                t.Endpoint("payments").Handler<PaymentHandler>();
+            })
+            .BuildTestBusAsync();
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
+        await SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
+        Assert.True(await payments.WaitAsync(s_timeout));
+        await DeleteExchangeAsync(vhost, "orders");
+
+        // act
+        var exception = await Assert.ThrowsAsync<AlreadyClosedException>(
+            () => PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }));
+        await SendAsync(bus, new ProcessPayment { OrderId = "ORD-3", Amount = 1 });
+
+        // assert
+        Assert.Equal<ushort?>(Constants.NotFound, exception.ShutdownReason?.ReplyCode);
+        Assert.True(await payments.WaitAsync(s_timeout));
+        Assert.Equal(["ORD-1", "ORD-3"], payments.Messages.Cast<ProcessPayment>().Select(p => p.OrderId).Order());
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_FailFast_When_MessageLargerThanMaxMessageSize()
+    {
+        // arrange
+        await using var maxMessageSize = await fixture.SetMaxMessageSizeAsync(4096);
+        await using var vhost = await fixture.CreateVhostAsync();
+        var orders = new MessageRecorder();
+        await using var bus = await CreateOrdersBusAsync(vhost, orders);
+
+        // act
+        var exception = await Assert.ThrowsAsync<AlreadyClosedException>(
+            () => PublishAsync(bus, new OrderCreated { OrderId = new string('x', 100_000) })
+                .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
+
+        // assert
+        Assert.Equal<ushort?>(Constants.PreconditionFailed, exception.ShutdownReason?.ReplyCode);
+        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.Equal("ORD-2", Assert.Single(orders.Messages.Cast<OrderCreated>()).OrderId);
+    }
+
+    [Fact]
+    public async Task Fault_Should_ReachErrorQueue_When_ErrorQueueDeletedByOperator()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddEventHandler<FailingOrderHandler>()
+            .AddRabbitMQ(t => t.Endpoint("orders").Handler<FailingOrderHandler>())
+            .BuildTestBusAsync();
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
+        Assert.True(await Condition.WaitAsync(
+            async () => await vhost.GetMessageCountAsync("orders_error") == 1,
+            s_timeout));
+
+        // act
+        // without mandatory, the broker confirms a message it cannot route and drops it
+        await vhost.DeleteQueueAsync("orders_error");
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
+        var deadLettered = await Condition.WaitAsync(
+            async () => await vhost.GetMessageCountAsync("orders_error") == 1,
+            s_timeout);
+        var pending = await vhost.GetMessageCountAsync("orders");
+
+        // assert
+        Assert.True(deadLettered);
+        Assert.Equal(0, pending);
+    }
+
+    [Fact]
+    public async Task Handler_Should_FaultMessageAndKeepConsuming_When_PublishInHandlerFails()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        var orders = new MessageRecorder();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(orders)
+            .AddMessageBus()
+            .AddEventHandler<InvoicingOrderHandler>()
+            .AddRabbitMQ(t =>
+            {
+                t.DispatchEndpoint("invoices-publish").ToExchange("invoices").Publish<InvoiceRequested>();
+                t.Endpoint("orders").Handler<InvoicingOrderHandler>();
+            })
+            .BuildTestBusAsync();
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
+        Assert.True(await orders.WaitAsync(s_timeout));
+        await DeleteExchangeAsync(vhost, "invoices");
+
+        // act
+        // the handler's publish to the deleted exchange makes the broker close its channel with 404
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
+        var faulted = await Condition.WaitAsync(
+            async () => await vhost.GetMessageCountAsync("orders_error") == 1,
+            s_timeout);
+        await PublishAsync(bus, new OrderCreated { OrderId = InvoicingOrderHandler.WithoutInvoice });
+        var nextHandled = await orders.WaitAsync(s_timeout);
+        var consumers = await vhost.GetConsumerCountsAsync();
+
+        // assert
+        Assert.True(faulted);
+        Assert.True(nextHandled);
+        Assert.Equal(1, consumers.GetValueOrDefault("orders"));
+    }
+
+    private static Task<TestBus> CreateOrdersBusAsync(VhostContext vhost, MessageRecorder orders)
+        => new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(orders)
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderCreatedHandler>())
+            .BuildTestBusAsync();
+
+    private static async Task DeleteExchangeAsync(VhostContext vhost, string exchange)
+    {
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        await channel.ExchangeDeleteAsync(exchange, cancellationToken: TestContext.Current.CancellationToken);
+    }
+
+    private static async Task SendAsync(TestBus bus, ProcessPayment message, TimeSpan? timeout = null)
+    {
+        using var scope = bus.Provider.CreateScope();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(timeout ?? s_timeout);
+        await scope.ServiceProvider.GetRequiredService<IMessageBus>().SendAsync(message, cts.Token);
+    }
+
+    private static async Task PublishAsync(TestBus bus, OrderCreated message, TimeSpan? timeout = null)
+    {
+        using var scope = bus.Provider.CreateScope();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(timeout ?? s_timeout);
+        await scope.ServiceProvider.GetRequiredService<IMessageBus>().PublishAsync(message, cts.Token);
+    }
+
+    public sealed class InvoiceRequested
+    {
+        public required string OrderId { get; init; }
+    }
+
+    public sealed class FailingOrderHandler : IEventHandler<OrderCreated>
+    {
+        public ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
+            => throw new InvalidOperationException($"Order {message.OrderId} failed.");
+    }
+
+    public sealed class InvoicingOrderHandler(IMessageBus bus, MessageRecorder recorder) : IEventHandler<OrderCreated>
+    {
+        public const string WithoutInvoice = "ORD-WITHOUT-INVOICE";
+
+        public async ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
+        {
+            if (message.OrderId != WithoutInvoice)
+            {
+                await bus.PublishAsync(new InvoiceRequested { OrderId = message.OrderId }, cancellationToken);
+            }
+
+            recorder.Record(message);
+        }
+    }
+
+    public sealed class PaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
+    {
+        public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken)
+        {
+            recorder.Record(request);
+            return default;
+        }
+    }
+}

@@ -1,5 +1,10 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Middlewares;
 
@@ -19,28 +24,64 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
         var channel = feature.Channel;
         var eventArgs = feature.EventArgs;
-
         try
         {
             await next(context);
-
-            // Once next returns the handler's work is committed, so the ack is sent without the
-            // shutdown token. A cancelled handler throws and is nacked with requeue instead.
-            if (channel.IsOpen)
-            {
-                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
-            }
         }
         catch
         {
-            if (channel.IsOpen)
-            {
-                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
-            }
-
+            await TryNackAsync(context, channel, eventArgs);
             throw;
         }
+
+        // Once next returns the handler's work is committed, so the ack is sent without the shutdown token.
+        await TryAckAsync(context, channel, eventArgs);
     }
+
+    private static async ValueTask TryAckAsync(
+        IReceiveContext context,
+        IChannel channel,
+        BasicDeliverEventArgs eventArgs)
+    {
+        if (channel.IsOpen)
+        {
+            try
+            {
+                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
+                return;
+            }
+            catch (Exception ex) when (ex is AlreadyClosedException or ObjectDisposedException)
+            {
+                // The channel closed after the check above.
+            }
+        }
+
+        GetLogger(context).SettlementSkippedChannelClosed("ack", eventArgs.DeliveryTag, eventArgs.RoutingKey);
+    }
+
+    private static async ValueTask TryNackAsync(
+        IReceiveContext context,
+        IChannel channel,
+        BasicDeliverEventArgs eventArgs)
+    {
+        if (channel.IsOpen)
+        {
+            try
+            {
+                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
+                return;
+            }
+            catch (Exception ex) when (ex is AlreadyClosedException or ObjectDisposedException)
+            {
+                // The channel closed after the check above.
+            }
+        }
+
+        GetLogger(context).SettlementSkippedChannelClosed("nack", eventArgs.DeliveryTag, eventArgs.RoutingKey);
+    }
+
+    private static ILogger<RabbitMQAcknowledgementMiddleware> GetLogger(IReceiveContext context)
+        => context.Services.GetRequiredService<ILogger<RabbitMQAcknowledgementMiddleware>>();
 
     private static readonly RabbitMQAcknowledgementMiddleware s_instance = new();
 

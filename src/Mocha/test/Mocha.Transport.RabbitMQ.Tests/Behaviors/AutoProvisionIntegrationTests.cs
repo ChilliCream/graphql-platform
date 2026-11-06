@@ -5,7 +5,7 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class AutoProvisionIntegrationTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);

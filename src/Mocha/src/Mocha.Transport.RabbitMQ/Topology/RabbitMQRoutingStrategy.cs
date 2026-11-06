@@ -8,6 +8,8 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingTransport>
 {
+    private static readonly TimeSpan s_replyQueueExpiration = TimeSpan.FromMinutes(1);
+
     private RabbitMQMessagingTopology _topology =>
         field ??= Transport.Topology;
 
@@ -213,16 +215,24 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             EnsureNoTemporaryQueueConflict(rabbitConfiguration);
         }
 
+        // Generated temporary reply queues expire without consumers and skip bus-level queue defaults.
+        var isReplyQueue = rabbitConfiguration.IsTemporary && rabbitEndpoint.Kind == ReceiveEndpointKind.Reply;
+
         var queue = _topology.GetOrAddQueue(
             rabbitConfiguration.QueueName,
             _ => new RabbitMQQueueConfiguration
             {
-                AutoDelete = rabbitConfiguration.IsTemporary,
+                AutoDelete = rabbitConfiguration.IsTemporary && !isReplyQueue,
                 AutoProvision = rabbitConfiguration.AutoProvision,
-                Origin = TopologyOrigin.Endpoint
+                Origin = TopologyOrigin.Endpoint,
+                ApplyBusDefaults = !isReplyQueue
             });
 
-        if (rabbitConfiguration.IsTemporary && queue.Origin is not TopologyOrigin.Declared)
+        if (isReplyQueue && queue.Origin is not TopologyOrigin.Declared)
+        {
+            queue.MarkExpiring(rabbitConfiguration.TemporaryExpiry ?? s_replyQueueExpiration);
+        }
+        else if (rabbitConfiguration.IsTemporary && queue.Origin is not TopologyOrigin.Declared)
         {
             queue.MarkTemporary(rabbitConfiguration.TemporaryExpiry ??
                 RabbitMQReceiveEndpointConfiguration.TemporaryDefaults.Expiry);

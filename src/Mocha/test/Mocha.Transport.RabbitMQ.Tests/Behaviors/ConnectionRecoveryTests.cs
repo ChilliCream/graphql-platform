@@ -3,7 +3,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.ConsumerRecovery)]
 public class ConnectionRecoveryTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
@@ -32,18 +32,18 @@ public class ConnectionRecoveryTests
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act - publish message 1, verify received
+        // act
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, TestContext.Current.CancellationToken);
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
 
         // drop all connections
         await _fixture.CloseAllConnectionsAsync("recovery-test");
 
-        // wait for reconnection with polling
-        await WaitForRecoveryAsync(messageBus, recorder, expectedCount: 2);
+        // verify delivery after recovery
+        await WaitForRecoveryAsync(messageBus, recorder, orderNumber: 2);
 
-        // assert - message 2 should have been received after recovery
-        Assert.True(recorder.Messages.Count >= 2, $"Expected at least 2 messages but got {recorder.Messages.Count}");
+        // assert
+        Assert.Equal(["ORD-1", "ORD-2"], GetOrderIds(recorder));
     }
 
     [Fact]
@@ -63,20 +63,21 @@ public class ConnectionRecoveryTests
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act - publish message 1
+        // act
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, TestContext.Current.CancellationToken);
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
 
         // drop connections twice
         await _fixture.CloseAllConnectionsAsync("recovery-test-1");
-        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+        await WaitForRecoveryAsync(messageBus, recorder, orderNumber: 2);
+        Assert.Equal(["ORD-1", "ORD-2"], GetOrderIds(recorder));
         await _fixture.CloseAllConnectionsAsync("recovery-test-2");
 
-        // wait for recovery and verify message 2
-        await WaitForRecoveryAsync(messageBus, recorder, expectedCount: 2);
+        // wait for recovery and verify message 3
+        await WaitForRecoveryAsync(messageBus, recorder, orderNumber: 3);
 
         // assert
-        Assert.True(recorder.Messages.Count >= 2, $"Expected at least 2 messages but got {recorder.Messages.Count}");
+        Assert.Equal(["ORD-1", "ORD-2", "ORD-3"], GetOrderIds(recorder));
     }
 
     [Fact]
@@ -106,64 +107,42 @@ public class ConnectionRecoveryTests
         await _fixture.CloseAllConnectionsAsync("channel-pool-recovery");
 
         // wait for recovery, then send again
-        await WaitForDispatchRecoveryAsync(messageBus, recorder, expectedCount: 2);
+        await WaitForDispatchRecoveryAsync(messageBus, recorder, orderNumber: 2);
 
         // assert
-        Assert.True(recorder.Messages.Count >= 2, $"Expected at least 2 messages but got {recorder.Messages.Count}");
+        Assert.Equal(
+            ["ORD-1", "ORD-2"],
+            recorder.Messages.Cast<ProcessPayment>().Select(p => p.OrderId).Distinct().Order());
     }
 
-    private static async Task WaitForRecoveryAsync(IMessageBus messageBus, MessageRecorder recorder, int expectedCount)
+    private static async Task WaitForRecoveryAsync(IMessageBus messageBus, MessageRecorder recorder, int orderNumber)
     {
-        var deadline = DateTimeOffset.UtcNow.Add(s_recoveryTimeout);
-        while (DateTimeOffset.UtcNow < deadline)
-        {
-            try
-            {
-                await messageBus.PublishAsync(
-                    new OrderCreated { OrderId = $"ORD-{expectedCount}" },
-                    default);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(s_recoveryTimeout);
 
-                if (await recorder.WaitAsync(TimeSpan.FromSeconds(2), expectedCount))
-                {
-                    return;
-                }
-            }
-            catch
-            {
-                // connection may not be recovered yet
-            }
-
-            await Task.Delay(TimeSpan.FromSeconds(1));
-        }
+        await messageBus.PublishAsync(new OrderCreated { OrderId = $"ORD-{orderNumber}" }, cts.Token);
+        Assert.True(await Condition.WaitAsync(
+            () => GetOrderIds(recorder).Contains($"ORD-{orderNumber}"), s_recoveryTimeout));
     }
 
     private static async Task WaitForDispatchRecoveryAsync(
         IMessageBus messageBus,
         MessageRecorder recorder,
-        int expectedCount)
+        int orderNumber)
     {
-        var deadline = DateTimeOffset.UtcNow.Add(s_recoveryTimeout);
-        while (DateTimeOffset.UtcNow < deadline)
-        {
-            try
-            {
-                await messageBus.SendAsync(
-                    new ProcessPayment { OrderId = $"ORD-{expectedCount}", Amount = 1.00m },
-                    default);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(s_recoveryTimeout);
 
-                if (await recorder.WaitAsync(TimeSpan.FromSeconds(2), expectedCount))
-                {
-                    return;
-                }
-            }
-            catch
-            {
-                // connection may not be recovered yet
-            }
-
-            await Task.Delay(TimeSpan.FromSeconds(1));
-        }
+        await messageBus.SendAsync(
+            new ProcessPayment { OrderId = $"ORD-{orderNumber}", Amount = 1.00m },
+            cts.Token);
+        Assert.True(await Condition.WaitAsync(
+            () => recorder.Messages.Cast<ProcessPayment>().Any(p => p.OrderId == $"ORD-{orderNumber}"),
+            s_recoveryTimeout));
     }
+
+    private static IEnumerable<string> GetOrderIds(MessageRecorder recorder)
+        => recorder.Messages.Cast<OrderCreated>().Select(order => order.OrderId).Distinct().Order();
 
     public sealed class PaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
     {
