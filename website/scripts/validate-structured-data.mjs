@@ -8,6 +8,11 @@ const SITE_NODE_TYPES = new Set([
   "WebSite",
   "Collection",
 ]);
+const FLOW_PAGE_NODE_TYPES = new Set([
+  ...SITE_NODE_TYPES,
+  "WebPage",
+  "BreadcrumbList",
+]);
 const BLOG_PAGINATION_PATH = /^\/blog\/\d+$/;
 const TAG_ARCHIVE_PATH = /^\/blog\/tags\/[^/?#]+(?:\/\d+)?$/;
 const EXCLUDED_SITEMAP_PATHS = new Set([
@@ -354,10 +359,7 @@ async function validatePage(pathname) {
       );
     }
 
-    if (
-      pathname !== "/" &&
-      !nodes.some((node) => node?.["@type"] === "BreadcrumbList")
-    ) {
+    if (!nodes.some((node) => node?.["@type"] === "BreadcrumbList")) {
       errors.push(`${pathname}: missing BreadcrumbList`);
     }
 
@@ -542,10 +544,8 @@ function validateBreadcrumbs(nodes, pathname) {
     typesOf(node).includes("BreadcrumbList"),
   )) {
     const items = breadcrumb.itemListElement;
-    if (!Array.isArray(items) || items.length < 2) {
-      errors.push(
-        `${pathname}: BreadcrumbList must contain at least two items`,
-      );
+    if (!Array.isArray(items) || items.length < 1) {
+      errors.push(`${pathname}: BreadcrumbList must contain at least one item`);
       continue;
     }
     for (let index = 0; index < items.length; index++) {
@@ -976,10 +976,10 @@ async function validateExcludedRoute(pathname) {
   if (documents === null) {
     return;
   }
-  const nonSiteNodes = documents
+  const unexpectedNodes = documents
     .flatMap((document) => document["@graph"] ?? [document])
-    .filter((node) => !SITE_NODE_TYPES.has(node?.["@type"]));
-  if (nonSiteNodes.length > 0) {
+    .filter((node) => !FLOW_PAGE_NODE_TYPES.has(node?.["@type"]));
+  if (unexpectedNodes.length > 0) {
     errors.push(
       `${pathname}: noindex page contains page-specific structured data`,
     );
