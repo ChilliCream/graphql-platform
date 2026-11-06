@@ -92,7 +92,7 @@ public class RabbitMQTransportTests
         // arrange
         var runtime = CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         var dispatchEndpoint = transport.DispatchEndpoints.FirstOrDefault(e =>
             topology.Address.IsBaseOf(e.Destination.Address)
@@ -394,7 +394,7 @@ public class RabbitMQTransportTests
         var runtime = CreateRuntime(b => b.AddRequestHandler<ProcessPaymentHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var context = (IMessagingConfigurationContext)runtime;
-        var topologyAddress = ((RabbitMQMessagingTopology)transport.Topology).Address;
+        var topologyAddress = transport.Topology.Address;
 
         // act - use the full topology base address with q/ path
         var config = transport.CreateEndpointConfiguration(context, new Uri(topologyAddress, "q/my-queue"));
@@ -413,7 +413,7 @@ public class RabbitMQTransportTests
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var context = (IMessagingConfigurationContext)runtime;
-        var topologyAddress = ((RabbitMQMessagingTopology)transport.Topology).Address;
+        var topologyAddress = transport.Topology.Address;
 
         // act - use the full topology base address with e/ path
         var config = transport.CreateEndpointConfiguration(context, new Uri(topologyAddress, "e/my-exchange"));

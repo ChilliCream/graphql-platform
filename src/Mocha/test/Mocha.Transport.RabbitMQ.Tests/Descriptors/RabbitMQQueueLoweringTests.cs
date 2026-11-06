@@ -70,7 +70,7 @@ public class RabbitMQQueueLoweringTests
                 t.Queue("audit").Quorum();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == "audit");

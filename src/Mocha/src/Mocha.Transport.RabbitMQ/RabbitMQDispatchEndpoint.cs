@@ -137,7 +137,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             return;
         }
 
-        var autoProvision = ((RabbitMQMessagingTopology)transport.Topology).AutoProvision;
+        var autoProvision = transport.Topology.AutoProvision;
 
         if (Queue is not null && (Queue.AutoProvision ?? autoProvision))
         {

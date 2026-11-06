@@ -25,7 +25,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     private RabbitMQMessagingTopology _topology = null!;
 
     /// <inheritdoc />
-    public override MessagingTopology Topology => _topology;
+    public override RabbitMQMessagingTopology Topology => _topology;
 
     /// <summary>
     /// Gets the consumer manager responsible for registering and maintaining queue consumers with automatic reconnection.
@@ -112,31 +112,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
         {
             await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
-            var autoProvision = _topology.AutoProvision;
-
-            foreach (var exchange in _topology.Exchanges)
-            {
-                if (exchange.AutoProvision ?? autoProvision)
-                {
-                    await exchange.ProvisionAsync(channel, ct);
-                }
-            }
-
-            foreach (var queue in _topology.Queues)
-            {
-                if (queue.AutoProvision ?? autoProvision)
-                {
-                    await queue.ProvisionAsync(channel, ct);
-                }
-            }
-
-            foreach (var binding in _topology.Bindings)
-            {
-                if (binding.AutoProvision ?? autoProvision)
-                {
-                    await binding.ProvisionAsync(channel, ct);
-                }
-            }
+            await new RabbitMQTopologyProvisioner(_topology).ProvisionAsync(channel, ct);
         }
     }
 

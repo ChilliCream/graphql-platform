@@ -45,7 +45,7 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             throw new InvalidOperationException("Queue name is required");
         }
 
-        var topology = (RabbitMQMessagingTopology)Transport.Topology;
+        var topology = transport.Topology;
 
         Queue =
             topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName)
@@ -60,14 +60,15 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        if (Transport is not RabbitMQMessagingTransport rabbitMQMessagingTransport)
-        {
-            throw new InvalidOperationException("Transport is not a RabbitMQMessagingTransport");
-        }
+        var topology = transport.Topology;
+        var receiveTopology = Queue.AutoProvision ?? topology.AutoProvision
+            ? new RabbitMQReceiveTopology(topology, Queue)
+            : null;
 
-        _consumer = await rabbitMQMessagingTransport.ConsumerManager.RegisterConsumerAsync(
+        _consumer = await transport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
             ProcessMessageAsync,
+            receiveTopology,
             _maxPrefetch,
             _consumerDispatchConcurrency,
             cancellationToken);

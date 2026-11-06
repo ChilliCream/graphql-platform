@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using CookieCrumble.Resources;
 using RabbitMQ.Client;
 
@@ -75,7 +77,127 @@ public sealed class VhostContext : IAsyncDisposable
 
     public IConnectionFactory ConnectionFactory { get; }
 
+    /// <summary>
+    /// Force-closes the connection that consumes from the queue <paramref name="queueName"/>.
+    /// </summary>
+    public async Task CloseConsumerConnectionAsync(string queueName)
+    {
+        var consumers = await ListAsync("list_consumers", "-p", VhostName, "queue_name", "channel_pid");
+        var channel = consumers.Single(row => row[0] == queueName)[1];
+        var channels = await ListAsync("list_channels", "pid", "connection");
+        var connection = channels.Single(row => row[0] == channel)[1];
+
+        await _fixture.InvokeCommandAsync(["rabbitmqctl", "close_connection", connection, "test"]);
+    }
+
+    /// <summary>
+    /// Gets the number of consumers of the queue <paramref name="queueName"/>, or <see langword="null"/> when the
+    /// queue does not exist.
+    /// </summary>
+    public async Task<int?> GetConsumerCountAsync(string queueName)
+    {
+        var queues = await ListAsync("list_queues", "-p", VhostName, "name", "consumers");
+        var queue = queues.SingleOrDefault(row => row[0] == queueName);
+
+        return queue is null ? null : int.Parse(queue[1], CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Waits until the queue <paramref name="queueName"/> exists and has a consumer.
+    /// </summary>
+    public async Task WaitForConsumerAsync(string queueName, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+
+        while (await GetConsumerCountAsync(queueName) is null or 0)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
+    public Task SetConfigurePermissionAsync(string pattern)
+        => _fixture.InvokeCommandAsync([
+            "rabbitmqctl", "set_permissions", "-p", VhostName, "guest", pattern, ".*", ".*"
+        ]);
+
+    public async Task WaitForQueueAsync(string queueName, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        while (await GetConsumerCountAsync(queueName) is null)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
+    public Task SetReadPermissionAsync(string pattern)
+        => _fixture.InvokeCommandAsync([
+            "rabbitmqctl", "set_permissions", "-p", VhostName, "guest", ".*", ".*", pattern
+        ]);
+
+    public async Task AllowReadingQueuesOnlyAsync()
+    {
+        var queues = await ListAsync("list_queues", "-p", VhostName, "name");
+        var pattern = $"^({string.Join("|", queues.Select(row => Regex.Escape(row[0])))})$";
+        await SetReadPermissionAsync(pattern);
+    }
+
+    public async Task<string> GetAutoDeleteQueueNameAsync()
+    {
+        var queues = await ListAsync("list_queues", "-p", VhostName, "name", "auto_delete");
+        return queues.Single(row => row[1] == "true")[0];
+    }
+
+    public async Task WaitForQueueDeletionAsync(string queueName, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        while (await GetConsumerCountAsync(queueName) is not null)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
+    public async Task WaitForNoBindingsAsync(string queueName, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        while (true)
+        {
+            var bindings = await ListAsync("list_bindings", "-p", VhostName, "source_name", "destination_name");
+            if (bindings.All(row => row[0].Length == 0 || row[1] != queueName))
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
+    public async Task WaitForMessagesAsync(string queueName, int count, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        while (true)
+        {
+            var queues = await ListAsync("list_queues", "-p", VhostName, "name", "messages_ready");
+            var queue = queues.Single(row => row[0] == queueName);
+            if (int.Parse(queue[1], CultureInfo.InvariantCulture) == count)
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
+        }
+    }
+
     public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);
+
+    private async Task<string[][]> ListAsync(params string[] command)
+    {
+        var output = await _fixture.InvokeCommandAsync(["rabbitmqctl", .. command, "--quiet", "--no-table-headers"]);
+
+        return output
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.TrimEnd('\r').Split('\t'))
+            .ToArray();
+    }
 }
 
 [CollectionDefinition("RabbitMQ")]
