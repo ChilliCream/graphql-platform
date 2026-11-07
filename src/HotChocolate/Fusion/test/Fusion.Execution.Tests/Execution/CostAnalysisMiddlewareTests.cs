@@ -70,6 +70,40 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         Assert.Equal(1, schemaIndex.Options.DefaultListSize);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ReportCost_Should_PreserveProbeAndCostOrder_When_ResponseSizeIsOptional(bool responseSize)
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options => options.MaxResponseSize = responseSize ? 100 : null,
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var request = OperationRequestBuilder.New()
+            .SetDocument(ItemsQuery)
+            .SetVariableValues(new Dictionary<string, object?> { ["n"] = 2 })
+            .ReportCost()
+            .Build();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var operation = result.ExpectOperationResult();
+
+        // assert
+        Assert.Empty(operation.Errors);
+        Assert.Equal(1, observation.DownstreamCalls);
+        Assert.Equal(["probe", "operationCost"], operation.Extensions.Keys);
+        var cost = Assert.IsType<ImmutableOrderedDictionary<string, object?>>(operation.Extensions["operationCost"]);
+        Assert.Equal(
+            responseSize
+                ? new[] { ("fieldCost", 1d), ("typeCost", 3d), ("maxResponseSize", 3d) }
+                : [("fieldCost", 1d), ("typeCost", 3d)],
+            cost.Select(static pair => (pair.Key, (double)pair.Value!)));
+    }
+
     [Fact]
     public async Task SchemaIndex_Should_UseConfiguredCaseBudget_When_OptionHasValue()
     {
