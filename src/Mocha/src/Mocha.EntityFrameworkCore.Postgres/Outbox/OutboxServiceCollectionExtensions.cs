@@ -43,7 +43,9 @@ public static class OutboxServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configure);
 
         var contextType = builder.ContextType;
-        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name).Configure(configure);
+        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
+            .Configure(configure)
+            .Validate(o => o.MaxConcurrentMessages > 0, "MaxConcurrentMessages must be greater than zero.");
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)
@@ -58,7 +60,8 @@ public static class OutboxServiceCollectionExtensions
 
         builder
             .Services.AddOptions<PostgresMessageOutboxOptions>(builder.Name)
-            .Configure<IOptionsMonitor<PostgresTableInfo>>((options, tableInfoMonitor) =>
+            .Configure<IOptionsMonitor<PostgresTableInfo>, IOptionsMonitor<PostgresOutboxOptions>>(
+                (options, tableInfoMonitor, outboxOptionsMonitor) =>
             {
                 options.CreateConnection = services =>
                 {
@@ -68,6 +71,7 @@ public static class OutboxServiceCollectionExtensions
 
                 var tableInfo = tableInfoMonitor.Get(builder.Name);
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
+                options.MaxConcurrentMessages = outboxOptionsMonitor.Get(builder.Name).MaxConcurrentMessages;
             });
 
         builder.Services.AddSingleton(sp =>

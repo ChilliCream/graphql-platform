@@ -12,6 +12,98 @@ public sealed class RabbitMQDispatcherIntegrationTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
+    [Fact]
+    public async Task SendAsync_Should_PipelineConfirms_When_PublishesShareAnEndpoint()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.RequestedChannelMax = 1;
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareQueue("pipelined");
+                t.DispatchEndpoint("pipelined-send").ToQueue("pipelined").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+        await SendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
+        var runtime = bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var dispatcher = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
+        var endpoint = runtime.GetSendEndpoint(runtime.GetMessageType(typeof(ProcessPayment)));
+        var channel = await dispatcher.RentChannelAsync(endpoint, TestContext.Current.CancellationToken);
+        var initialSequence = await channel.GetNextPublishSequenceNumberAsync(TestContext.Current.CancellationToken);
+        Task[] sends;
+        bool allPublished;
+        bool allWaiting;
+
+        // act
+        await using (await vhost.FreezeConnectionsAsync())
+        {
+            sends = Enumerable.Range(0, 32)
+                .Select(i => SendAsync(bus, new ProcessPayment { OrderId = $"ORD-{i}", Amount = 1 }))
+                .ToArray();
+            allPublished = await Condition.WaitAsync(async () =>
+                await channel.GetNextPublishSequenceNumberAsync(TestContext.Current.CancellationToken)
+                    == initialSequence + 32, s_timeout);
+            allWaiting = sends.All(t => !t.IsCompleted);
+        }
+
+        await Task.WhenAll(sends).WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(channel);
+
+        // assert
+        Assert.True(allPublished);
+        Assert.True(allWaiting);
+        Assert.Equal(33, await vhost.GetMessageCountAsync("pipelined"));
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_PreserveOtherPublish_When_SharedPublishIsCancelled()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.RequestedChannelMax = 1;
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareQueue("shared");
+                t.DispatchEndpoint("shared-send").ToQueue("shared").Send<ProcessPayment>();
+            })
+            .BuildTestBusAsync();
+        await SendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
+        var runtime = bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var dispatcher = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
+        var endpoint = runtime.GetSendEndpoint(runtime.GetMessageType(typeof(ProcessPayment)));
+        var channel = await dispatcher.RentChannelAsync(endpoint, TestContext.Current.CancellationToken);
+        var initialSequence = await channel.GetNextPublishSequenceNumberAsync(TestContext.Current.CancellationToken);
+        using var cancellation = new CancellationTokenSource();
+        using var scope = bus.Provider.CreateScope();
+        Task surviving;
+
+        // act
+        await using (await vhost.FreezeConnectionsAsync())
+        {
+            var cancelled = scope.ServiceProvider.GetRequiredService<IMessageBus>()
+                .SendAsync(new ProcessPayment { OrderId = "cancelled", Amount = 1 }, cancellation.Token).AsTask();
+            surviving = SendAsync(bus, new ProcessPayment { OrderId = "surviving", Amount = 1 });
+            Assert.True(await Condition.WaitAsync(async () =>
+                await channel.GetNextPublishSequenceNumberAsync(TestContext.Current.CancellationToken)
+                    == initialSequence + 2, s_timeout));
+            await cancellation.CancelAsync();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled);
+        }
+
+        await surviving.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(channel);
+
+        // assert
+        Assert.True(channel.IsOpen);
+        Assert.Equal(3, await vhost.GetMessageCountAsync("shared"));
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

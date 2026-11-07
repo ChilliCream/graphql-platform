@@ -10,4 +10,10 @@ public sealed class PostgresOutboxOptions
     /// transaction and throws an <see cref="InvalidOperationException"/> without one. The default is <c>true</c>.
     /// </summary>
     public bool RequireTransaction { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the maximum number of messages dispatched concurrently, which must be positive and defaults to one.
+    /// Values greater than one allow dispatches to complete out of order.
+    /// </summary>
+    public int MaxConcurrentMessages { get; set; } = 1;
 }

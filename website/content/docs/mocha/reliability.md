@@ -825,6 +825,21 @@ The outbox processor is a background hosted service (`IHostedService`). When the
 
 The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processor retries on the next signal. Messages are deleted from the outbox table after successful dispatch.
 
+## Configure outbox dispatch concurrency
+
+The Postgres outbox dispatches one message at a time by default. Set `MaxConcurrentMessages` to overlap dispatches, including waits for RabbitMQ publisher confirmations:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEntityFramework<AppDbContext>(p =>
+        p.UsePostgresOutbox(o => o.MaxConcurrentMessages = 32));
+```
+
+The value must be greater than zero. Each active worker uses its own database connection, transaction, and service scope. Row locks prevent workers from claiming the same message, and a row is deleted only after its dispatch succeeds. Allow capacity for these connections alongside your application's database connections.
+
+Values greater than one allow messages to be dispatched and completed out of order. A value of one keeps dispatch sequential within each processor instance; multiple application instances and retries can still change delivery order.
+
 ## Skip the outbox for specific dispatches
 
 Some messages - like internal system events or replies that do not need durability - can bypass the outbox. The outbox middleware checks for an `OutboxMiddlewareFeature` on the dispatch context. Messages with `SkipOutbox = true` pass straight through to the transport.

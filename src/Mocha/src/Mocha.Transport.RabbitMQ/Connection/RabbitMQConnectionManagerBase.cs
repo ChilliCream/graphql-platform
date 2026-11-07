@@ -183,7 +183,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
         try
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 TimeSpan delay;
 
@@ -261,7 +261,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
         try
         {
-            while (true)
+            while (!connectToken.IsCancellationRequested)
             {
                 try
                 {
@@ -293,6 +293,8 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                     await Task.Delay(delay, connectToken);
                 }
             }
+
+            connectToken.ThrowIfCancellationRequested();
         }
         catch (OperationCanceledException ex)
             when (connectCts.IsCancellationRequested

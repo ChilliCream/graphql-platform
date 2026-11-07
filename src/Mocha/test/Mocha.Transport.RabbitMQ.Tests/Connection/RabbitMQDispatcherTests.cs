@@ -8,6 +8,166 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 public class RabbitMQDispatcherTests
 {
     [Fact]
+    public async Task RentChannelAsync_Should_ShareChannel_When_PublisherHasConcurrentLeases()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        connection.SetupGet(c => c.ChannelMax).Returns(1);
+        await using var dispatcher = CreateDispatcher(connection);
+        var publisher = new object();
+
+        // act
+        var first = await dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken);
+        var second = await dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken);
+        var other = dispatcher.RentChannelAsync(new object(), TestContext.Current.CancellationToken).AsTask();
+        await dispatcher.ReturnChannelAsync(first);
+        var wasWaiting = !other.IsCompleted;
+        await dispatcher.ReturnChannelAsync(second);
+        var next = await other.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(next);
+
+        // assert
+        Assert.Same(first, second);
+        Assert.True(wasWaiting);
+        Assert.Same(first, next);
+        connection.Verify(c => c.CreateChannelAsync(
+            It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()), Times.Once());
+    }
+
+    [Fact]
+    public async Task RentChannelAsync_Should_IsolateChannels_When_PublishersDiffer()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        await using var dispatcher = CreateDispatcher(connection);
+
+        // act
+        var first = await dispatcher.RentChannelAsync(new object(), TestContext.Current.CancellationToken);
+        var second = await dispatcher.RentChannelAsync(new object(), TestContext.Current.CancellationToken);
+        var exclusive = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(first);
+        await dispatcher.ReturnChannelAsync(second);
+        await dispatcher.ReturnChannelAsync(exclusive);
+
+        // assert
+        Assert.NotSame(first, second);
+        Assert.NotSame(first, exclusive);
+        Assert.NotSame(second, exclusive);
+    }
+
+    [Fact]
+    public async Task RentChannelAsync_Should_ShareChannel_When_WaitingPublisherGetsCapacity()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        connection.SetupGet(c => c.ChannelMax).Returns(1);
+        await using var dispatcher = CreateDispatcher(connection);
+        var occupied = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        var publisher = new object();
+        var first = dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken).AsTask();
+        var second = dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken).AsTask();
+
+        // act
+        await dispatcher.ReturnChannelAsync(occupied);
+        var channels = await Task.WhenAll(first, second)
+            .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        foreach (var channel in channels)
+        {
+            await dispatcher.ReturnChannelAsync(channel);
+        }
+
+        // assert
+        Assert.Same(channels[0], channels[1]);
+    }
+
+    [Fact]
+    public async Task RentChannelAsync_Should_PreserveOtherLease_When_SharedChannelCreationWaitIsCancelled()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        var opening = new TaskCompletionSource<IChannel>(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(opening.Task);
+        await using var dispatcher = CreateDispatcher(connection);
+        var publisher = new object();
+        using var cancellation = new CancellationTokenSource();
+        var cancelled = dispatcher.RentChannelAsync(publisher, cancellation.Token).AsTask();
+        var waiting = dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken).AsTask();
+
+        // act
+        await cancellation.CancelAsync();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled);
+        var channel = CreateOpenChannel();
+        opening.SetResult(channel.Object);
+        var rented = await waiting.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(rented);
+
+        // assert
+        Assert.Same(channel.Object, rented);
+        connection.Verify(c => c.CreateChannelAsync(
+            It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()), Times.Once());
+    }
+
+    [Fact]
+    public async Task RentChannelAsync_Should_WaitForCapacity_When_OutstandingPublishLimitReached()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        await using var dispatcher = CreateDispatcher(connection);
+        var publisher = new object();
+        var channels = new IChannel[1024];
+        for (var i = 0; i < channels.Length; i++)
+        {
+            channels[i] = await dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken);
+        }
+
+        // act
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => dispatcher.RentChannelAsync(publisher, timeout.Token).AsTask());
+        await dispatcher.ReturnChannelAsync(channels[0]);
+        var next = await dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(next);
+        for (var i = 1; i < channels.Length; i++)
+        {
+            await dispatcher.ReturnChannelAsync(channels[i]);
+        }
+
+        // assert
+        Assert.Same(channels[0], next);
+        connection.Verify(c => c.CreateChannelAsync(
+            It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()), Times.Once());
+    }
+
+    [Fact]
+    public async Task ReturnChannelAsync_Should_PreserveReplacement_When_OldSharedLeaseReturns()
+    {
+        // arrange
+        var old = CreateOpenChannel();
+        var replacement = CreateOpenChannel();
+        var connection = CreateOpenConnection(old, replacement);
+        connection.SetupGet(c => c.ChannelMax).Returns(1);
+        await using var dispatcher = CreateDispatcher(connection);
+        var publisher = new object();
+        var first = await dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken);
+        var second = await dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken);
+        old.SetupGet(c => c.IsOpen).Returns(false);
+        dispatcher.DiscardChannel(first);
+        var current = await dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken);
+
+        // act
+        dispatcher.DiscardChannel(second);
+        await dispatcher.ReturnChannelAsync(current);
+        var next = await dispatcher.RentChannelAsync(publisher, TestContext.Current.CancellationToken);
+        await dispatcher.ReturnChannelAsync(next);
+
+        // assert
+        Assert.Same(replacement.Object, current);
+        Assert.Same(current, next);
+        replacement.Verify(c => c.DisposeAsync(), Times.Never());
+    }
+
+    [Fact]
     public async Task RentChannelAsync_Should_CreateNewChannel_When_NoChannelExists()
     {
         // arrange

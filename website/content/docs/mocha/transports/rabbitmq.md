@@ -191,6 +191,8 @@ graph LR
 
 Every send and publish waits until the broker confirms the message. A message that the broker rejects throws `PublishException`, for example when a queue with `x-overflow: reject-publish` is full.
 
+Concurrent sends to the same dispatch endpoint can remain in flight while earlier messages await confirmation. The transport admits up to 1,024 concurrent publish attempts and waits for capacity beyond that limit. Each call still waits for its own confirmation. Sequential awaited sends pay the confirmation latency for each message; the Postgres outbox can [dispatch concurrently](../reliability.md#configure-outbox-dispatch-concurrency).
+
 A send to a queue sets the `mandatory` flag, so that the broker returns the message instead of dropping it when the queue does not exist. When the queue is auto-provisioned, the transport declares it again and sends the message once more. Otherwise the send throws `InvalidOperationException`. Dead-lettering is a send to a queue, so a failed message whose error queue was deleted is requeued instead of lost.
 
 A publish to an exchange does not set `mandatory`, and a message that no queue is bound to is dropped.

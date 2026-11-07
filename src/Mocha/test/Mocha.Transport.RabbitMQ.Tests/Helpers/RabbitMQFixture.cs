@@ -560,7 +560,7 @@ public sealed partial class VhostContext : IAsyncDisposable
     public async Task WaitForNoBindingsAsync(string queueName, TimeSpan timeout)
     {
         using var cts = new CancellationTokenSource(timeout);
-        while (true)
+        while (!cts.IsCancellationRequested)
         {
             var bindings = await ListAsync("list_bindings", "-p", VhostName, "source_name", "destination_name");
             if (bindings.All(row => row[0].Length == 0 || row[1] != queueName))
@@ -570,12 +570,14 @@ public sealed partial class VhostContext : IAsyncDisposable
 
             await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
         }
+
+        cts.Token.ThrowIfCancellationRequested();
     }
 
     public async Task WaitForMessagesAsync(string queueName, int count, TimeSpan timeout)
     {
         using var cts = new CancellationTokenSource(timeout);
-        while (true)
+        while (!cts.IsCancellationRequested)
         {
             var queues = await ListAsync("list_queues", "-p", VhostName, "name", "messages_ready");
             var queue = queues.Single(row => row[0] == queueName);
@@ -586,6 +588,8 @@ public sealed partial class VhostContext : IAsyncDisposable
 
             await Task.Delay(TimeSpan.FromMilliseconds(200), cts.Token);
         }
+
+        cts.Token.ThrowIfCancellationRequested();
     }
 
     public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);

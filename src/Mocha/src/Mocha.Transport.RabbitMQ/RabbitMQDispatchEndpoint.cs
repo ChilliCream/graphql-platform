@@ -10,7 +10,7 @@ namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
 /// RabbitMQ dispatch endpoint that publishes outbound messages to a target queue or exchange
-/// using an exclusive publisher channel lease from the transport's dispatcher.
+/// and waits for the broker to confirm each message.
 /// </summary>
 /// <param name="transport">The owning RabbitMQ transport instance.</param>
 public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transport)
@@ -41,13 +41,13 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         var timeProvider = context.Services.GetTimeProvider();
         var attempt = 0;
 
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             IChannel? channel = null;
             var canReuseChannel = false;
             try
             {
-                channel = await dispatcher.RentChannelAsync(cancellationToken);
+                channel = await dispatcher.RentChannelAsync(this, cancellationToken);
                 await EnsureProvisionedAsync(channel, cancellationToken);
                 canReuseChannel = true;
 
@@ -109,6 +109,8 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             await dispatcher.ReturnChannelAsync(channel);
             return;
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
     private static bool IsConnectionLoss(

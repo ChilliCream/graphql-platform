@@ -11,6 +11,26 @@ public sealed class OutboxServiceRegistrationTests
 {
     private const string ConnectionString = "Host=localhost;Database=test";
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void UsePostgresOutbox_Should_RejectInvalidConcurrency_When_OptionsResolved(int concurrency)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(
+            ef => ef.UsePostgresOutbox(o => o.MaxConcurrentMessages = concurrency));
+        using var provider = services.BuildServiceProvider();
+
+        // act
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>()
+                .Get(typeof(TestDbContext).FullName));
+
+        // assert
+        Assert.Equal(["MaxConcurrentMessages must be greater than zero."], exception.Failures);
+    }
+
     [Fact]
     public void UsePostgresOutbox_Should_DeferConfiguration_When_OptionsHaveNotBeenResolved()
     {

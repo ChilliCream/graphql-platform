@@ -188,7 +188,7 @@ public sealed partial class RabbitMQConsumerManager
                 foreach (var resolveDependency in Dependencies)
                 {
                     var attempt = 0;
-                    while (true)
+                    while (!attachToken.IsCancellationRequested)
                     {
                         if (resolveDependency() is { IsDisposed: false } dependency)
                         {
@@ -213,6 +213,8 @@ public sealed partial class RabbitMQConsumerManager
                         var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
                         await Task.Delay(delay, attachToken);
                     }
+
+                    attachToken.ThrowIfCancellationRequested();
                 }
 
                 var tag = await channel.BasicConsumeAsync(
@@ -353,11 +355,10 @@ public sealed partial class RabbitMQConsumerManager
             }
         }
 
-        private async Task<ChannelConsumer> WaitForConsumerAsync()
+        private async Task<ChannelConsumer?> WaitForConsumerAsync()
         {
-            while (true)
+            while (!_consumerToken.IsCancellationRequested)
             {
-                _consumerToken.ThrowIfCancellationRequested();
                 Task available;
                 lock (_dispatchSync)
                 {
@@ -371,15 +372,16 @@ public sealed partial class RabbitMQConsumerManager
 
                 await available.WaitAsync(_consumerToken);
             }
+
+            return null;
         }
 
         private async Task ProcessDeliveriesAsync()
         {
             try
             {
-                while (true)
+                while (await WaitForConsumerAsync() is { } consumer)
                 {
-                    var consumer = await WaitForConsumerAsync();
                     try
                     {
                         await consumer.ProcessDeliveriesAsync(_consumerToken);

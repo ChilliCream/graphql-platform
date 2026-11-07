@@ -17,4 +17,9 @@ internal sealed class PostgresMessageOutboxOptions
     /// Gets or sets a factory that creates a closed connection using services from the current scope.
     /// </summary>
     public Func<IServiceProvider, NpgsqlConnection> CreateConnection { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the maximum number of messages dispatched concurrently.
+    /// </summary>
+    public int MaxConcurrentMessages { get; set; } = 1;
 }

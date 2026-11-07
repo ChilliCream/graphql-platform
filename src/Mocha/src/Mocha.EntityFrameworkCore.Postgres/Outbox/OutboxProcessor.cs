@@ -66,36 +66,70 @@ public sealed class PostgresOutboxProcessor
     /// <param name="cancellationToken">A token that signals when the processor should stop.</param>
     public async Task ProcessAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        using var workersCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        if (_options.MaxConcurrentMessages == 1)
         {
-            using var joinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            await ProcessWorkerAsync(workersCts);
+            return;
+        }
 
-            try
+        var workers = new Task[_options.MaxConcurrentMessages];
+        for (var i = 0; i < workers.Length; i++)
+        {
+            workers[i] = ProcessWorkerAsync(workersCts);
+        }
+
+        await Task.WhenAll(workers);
+    }
+
+    private async Task ProcessWorkerAsync(CancellationTokenSource workersCts)
+    {
+        var cancellationToken = workersCts.Token;
+        Task? signaled = null;
+
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var signaled = _signal.WaitAsync(joinedCts.Token);
-
-                var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
-
-                if (nextPollingInterval is not null)
+                try
                 {
-                    _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
+                    signaled ??= _signal.WaitAsync(cancellationToken);
 
-                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
+                    var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
+
+                    if (nextPollingInterval is not null)
+                    {
+                        _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
+
+                        try
+                        {
+                            await signaled.WaitAsync(nextPollingInterval.Value, cancellationToken);
+                        }
+                        catch (TimeoutException)
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        await signaled;
+                    }
+
+                    signaled = null;
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    await signaled;
+                    if (signaled is { IsCanceled: true })
+                    {
+                        signaled = null;
+                    }
                 }
             }
-            catch (OperationCanceledException)
-            {
-                joinedCts.TryCancel();
-            }
-            catch
-            {
-                joinedCts.TryCancel();
-                throw;
-            }
+        }
+        catch
+        {
+            await workersCts.CancelAsync();
+            throw;
         }
     }
 
@@ -105,7 +139,7 @@ public sealed class PostgresOutboxProcessor
         await using var connection = _options.CreateConnection(scope.ServiceProvider);
         await connection.OpenAsync(cancellationToken);
 
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             using var activity = OpenTelemetry.Source.StartActivity(
                 "Process Message Outbox",
@@ -116,9 +150,9 @@ public sealed class PostgresOutboxProcessor
             {
                 return await GetNextPollingIntervalAsync(connection, cancellationToken);
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
         }
+
+        return null;
     }
 
     private async Task<TimeSpan?> GetNextPollingIntervalAsync(
@@ -425,18 +459,6 @@ file static class Serializer
         {
             logger.LogError(ex, "Error reading message envelope");
             return null;
-        }
-    }
-
-    public static void TryCancel(this CancellationTokenSource cts)
-    {
-        try
-        {
-            cts.Cancel();
-        }
-        catch
-        {
-            // ignore
         }
     }
 }
