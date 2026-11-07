@@ -767,9 +767,7 @@ internal static class CompositeSchemaBuilder
                 SchemaExtensionNode schemaExtension => schemaExtension.Directives,
                 _ => []
             })
-            .Where(static directive => directive.Name.Value.Equals(
-                FusionBuiltIns.CostOptions,
-                StringComparison.Ordinal))
+            .Where(static directive => FusionBuiltIns.IsCostOptionsDirective(directive.Name.Value))
             .Take(2)
             .ToArray();
 
@@ -781,7 +779,7 @@ internal static class CompositeSchemaBuilder
         if (costOptionsDirectives.Length > 1)
         {
             throw new InvalidOperationException(
-                "The fusion__cost_options directive may only be applied once per schema.");
+                "The fusion__costOptions directive may only be applied once per schema.");
         }
 
         return new CostSettings(ParseDefaultListSize(costOptionsDirectives[0]));
@@ -811,7 +809,7 @@ internal static class CompositeSchemaBuilder
         }
 
         throw new InvalidOperationException(
-            "The fusion__cost_options defaultListSize argument must be a non-negative integer.");
+            "The fusion__costOptions defaultListSize argument must be a non-negative integer.");
     }
 
     private readonly record struct CostSettings(int? DefaultListSize);
@@ -1335,16 +1333,16 @@ internal static class CompositeSchemaBuilder
 
         static string GetSchemaName(EnumValueDefinitionNode sourceSchema)
         {
-            var directive = sourceSchema.Directives.FirstOrDefault(t =>
-                t.Name.Value.Equals(FusionBuiltIns.SchemaMetadata, StringComparison.Ordinal));
+            var directive = sourceSchema.Directives.FirstOrDefault(static t =>
+                FusionBuiltIns.IsSchemaMetadataDirective(t.Name.Value));
             var nameArg = directive?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("name"));
             return nameArg?.Value is StringValueNode nameValue ? nameValue.Value : sourceSchema.Name.Value;
         }
 
         static string? GetConnectorKind(EnumValueDefinitionNode sourceSchema)
         {
-            var metadataDirective = sourceSchema.Directives.FirstOrDefault(t =>
-                t.Name.Value.Equals(FusionBuiltIns.SchemaMetadata, StringComparison.Ordinal));
+            var metadataDirective = sourceSchema.Directives.FirstOrDefault(static t =>
+                FusionBuiltIns.IsSchemaMetadataDirective(t.Name.Value));
             var kindArg = metadataDirective?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("kind"));
 
             return kindArg?.Value is StringValueNode kindValue ? kindValue.Value : null;
@@ -1352,8 +1350,8 @@ internal static class CompositeSchemaBuilder
 
         static bool AllowsNonResolvableInterfaceObjects(EnumValueDefinitionNode sourceSchema)
         {
-            var metadataDirective = sourceSchema.Directives.FirstOrDefault(t =>
-                t.Name.Value.Equals(FusionBuiltIns.SchemaMetadata, StringComparison.Ordinal));
+            var metadataDirective = sourceSchema.Directives.FirstOrDefault(static t =>
+                FusionBuiltIns.IsSchemaMetadataDirective(t.Name.Value));
             var compatibilityArg = metadataDirective?.Arguments.FirstOrDefault(t =>
                 t.Name.Value.Equals(
                     "allowNonResolvableInterfaceObjects",

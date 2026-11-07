@@ -154,7 +154,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// <summary>
     /// Gets the assumed size of a list field that has no applicable <c>@listSize</c>
     /// information, as configured at composition time via
-    /// <c>@fusion__cost_options(defaultListSize:)</c>. <see langword="null"/> when the
+    /// <c>@fusion__costOptions(defaultListSize:)</c>. <see langword="null"/> when the
     /// directive is absent, meaning the assumed size is unbounded.
     /// </summary>
     public int? DefaultListSize { get; }
@@ -170,7 +170,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// <param name="sourceSchemaName">The source schema name.</param>
     /// <returns>
     /// The connector kind (for example <c>"ApolloFederation"</c>) declared via
-    /// <c>@fusion__schema_metadata(kind:)</c> on the corresponding <c>fusion__Schema</c>
+    /// <c>@fusion__schemaMetadata(kind:)</c> on the corresponding <c>fusion__Schema</c>
     /// enum value, or <see langword="null"/> if the source schema has no
     /// connector kind associated with it. Callers that want to default
     /// treat <see langword="null"/> as <c>"GraphQL"</c>.
