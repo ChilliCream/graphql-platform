@@ -523,6 +523,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             }
         }
 
+        var apolloDefinitions = OperationPlanner.IndexApolloDefinitions(nodeMap.Values);
+
         // Each operation definition inside a batch node tracks its own
         // dependencies so the executor can skip individual operations whose
         // prerequisites were not met. Here we resolve those per-operation
@@ -553,8 +555,14 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         {
                             if (planNodeMap.TryGetValue(depId, out var depNode))
                             {
-                                if (groupNode is OperationBatchExecutionNode
-                                    && OperationPlanner.IsEntityReuseOrderingDependency(opDef, depNode))
+                                if ((groupNode is OperationBatchExecutionNode
+                                        && OperationPlanner.IsEntityReuseOrderingDependency(opDef, depNode))
+                                    || (groupNode is ApolloOperationBatchExecutionNode apolloGroup
+                                        && OperationPlanner.IsEntityReuseOrderingDependency(
+                                            apolloGroup,
+                                            memberIndex,
+                                            depNode,
+                                            apolloDefinitions)))
                                 {
                                     opDef.AddOptionalDependency(depNode);
                                 }

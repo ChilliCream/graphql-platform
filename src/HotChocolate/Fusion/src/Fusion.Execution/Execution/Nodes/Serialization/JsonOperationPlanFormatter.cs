@@ -882,7 +882,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        WriteDependencies(jsonWriter, node.Dependencies, node.ParentDependencies);
+        WriteDependencies(jsonWriter, node.Dependencies, node.OptionalDependencies, node.ParentDependencies);
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
@@ -980,7 +980,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        WriteDependencies(jsonWriter, operationDef.Dependencies, operationDef.ParentDependencies);
+        WriteDependencies(
+            jsonWriter,
+            operationDef.Dependencies,
+            operationDef.OptionalDependencies,
+            operationDef.ParentDependencies);
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
@@ -1066,9 +1070,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     private static void WriteDependencies(
         JsonWriter jsonWriter,
         ReadOnlySpan<IOperationPlanNode> dependencies,
+        ReadOnlySpan<IOperationPlanNode> optionalDependencies,
         ReadOnlySpan<int> parentDependencies)
     {
-        if (dependencies.Length == 0 && parentDependencies.Length == 0)
+        if (dependencies.Length == 0 && optionalDependencies.Length == 0 && parentDependencies.Length == 0)
         {
             return;
         }
@@ -1076,10 +1081,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("dependencies");
         jsonWriter.WriteStartArray();
 
-        foreach (var dependency in dependencies)
-        {
-            jsonWriter.WriteNumberValue(dependency.Id);
-        }
+        WriteDependencyIds(jsonWriter, dependencies, optionalDependencies);
 
         foreach (var parentStepId in parentDependencies)
         {
