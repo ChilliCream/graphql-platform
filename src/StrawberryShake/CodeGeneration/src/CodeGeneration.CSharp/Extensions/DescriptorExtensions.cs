@@ -29,7 +29,8 @@ public static class DescriptorExtensions
     public static TypeReferenceBuilder ToTypeReference(
         this ITypeDescriptor typeReferenceDescriptor,
         TypeReferenceBuilder? builder = null,
-        bool nonNull = false)
+        bool nonNull = false,
+        bool inputType = false) // Todo: ugly, separate methods
     {
         var actualBuilder = builder ?? TypeReferenceBuilder.New();
 
@@ -48,7 +49,9 @@ public static class DescriptorExtensions
                 ToTypeReference(list.InnerType, actualBuilder.SetListType()),
 
             EnumTypeDescriptor @enum =>
-                actualBuilder.SetName(@enum.RuntimeType.ToString()),
+                !inputType && @enum.OptionalEnum
+                    ? actualBuilder.SetName("global::StrawberryShake.Serialization.OptionalEnum").AddGeneric(@enum.RuntimeType.ToString())
+                    : actualBuilder.SetName(@enum.RuntimeType.ToString()),
 
             ILeafTypeDescriptor leaf =>
                 actualBuilder.SetName(leaf.RuntimeType.ToString()),
@@ -86,7 +89,9 @@ public static class DescriptorExtensions
                 ToStateTypeReference(listTypeDescriptor.InnerType, actualBuilder.SetListType()),
 
             EnumTypeDescriptor @enum =>
-                actualBuilder.SetName(@enum.RuntimeType.ToString()),
+                @enum.OptionalEnum
+                    ? actualBuilder.SetName("global::StrawberryShake.Serialization.OptionalEnum").AddGeneric(@enum.RuntimeType.ToString())
+                    : actualBuilder.SetName(@enum.RuntimeType.ToString()),
 
             ILeafTypeDescriptor leaf =>
                 actualBuilder.SetName(leaf.RuntimeType.ToString()),

@@ -72,7 +72,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
             watchMethod
                 .AddParameter()
                 .SetName(NameUtils.GetParameterName(arg.Name))
-                .SetType(arg.Type.ToTypeReference());
+                .SetType(arg.Type.ToTypeReference(inputType: true));
         }
 
         watchMethod.AddParameter()
@@ -100,7 +100,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
             executeMethod
                 .AddParameter()
                 .SetName(NameUtils.GetParameterName(arg.Name))
-                .SetType(arg.Type.ToTypeReference());
+                .SetType(arg.Type.ToTypeReference(inputType: true));
         }
 
         executeMethod
