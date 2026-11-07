@@ -1320,15 +1320,9 @@ internal static class CompositeSchemaBuilder
         {
             var schemaName = GetSchemaName(sourceSchema);
             var connectorKind = GetConnectorKind(sourceSchema);
-            var allowNonResolvableInterfaceObjects =
-                AllowsNonResolvableInterfaceObjects(sourceSchema);
             sourceSchemaBuilder.Add(
                 sourceSchema.Name.Value,
-                new SourceSchemaInfo(
-                    sourceSchema.Name.Value,
-                    schemaName,
-                    connectorKind,
-                    allowNonResolvableInterfaceObjects));
+                new SourceSchemaInfo(sourceSchema.Name.Value, schemaName, connectorKind));
         }
 
         return sourceSchemaBuilder.ToImmutable();
@@ -1348,18 +1342,6 @@ internal static class CompositeSchemaBuilder
             var kindArg = metadataDirective?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("kind"));
 
             return kindArg?.Value is StringValueNode kindValue ? kindValue.Value : null;
-        }
-
-        static bool AllowsNonResolvableInterfaceObjects(EnumValueDefinitionNode sourceSchema)
-        {
-            var metadataDirective = sourceSchema.Directives.FirstOrDefault(t =>
-                t.Name.Value.Equals(FusionBuiltIns.SchemaMetadata, StringComparison.Ordinal));
-            var compatibilityArg = metadataDirective?.Arguments.FirstOrDefault(t =>
-                t.Name.Value.Equals(
-                    "allowNonResolvableInterfaceObjects",
-                    StringComparison.Ordinal));
-
-            return compatibilityArg?.Value is BooleanValueNode { Value: true };
         }
     }
 
