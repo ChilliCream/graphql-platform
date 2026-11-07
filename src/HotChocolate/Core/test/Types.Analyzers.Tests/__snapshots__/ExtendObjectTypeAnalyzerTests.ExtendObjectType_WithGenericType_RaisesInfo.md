@@ -38,8 +38,8 @@ namespace Microsoft.Extensions.DependencyInjection
     "Severity": "Info",
     "WarningLevel": 1,
     "Location": ": (4,1)-(4,26)",
-    "MessageFormat": "Consider upgrading [ExtendObjectType<{0}>] to [ObjectType<{0}>]",
-    "Message": "Consider upgrading [ExtendObjectType<Product>] to [ObjectType<Product>]",
+    "MessageFormat": "Consider upgrading to [ObjectType<{0}>]",
+    "Message": "Consider upgrading to [ObjectType<Product>]",
     "Category": "TypeSystem",
     "CustomTags": []
   }
