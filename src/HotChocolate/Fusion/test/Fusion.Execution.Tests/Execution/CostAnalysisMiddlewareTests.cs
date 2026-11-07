@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Caching.Memory;
@@ -5,6 +8,8 @@ using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -755,10 +760,76 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         Assert.Equal(7.0, observation.Result!.Estimates[0].FieldCost);
     }
 
+    [Theory]
+    [InlineData("missing", false, null)]
+    [InlineData("null", true, "null")]
+    [InlineData("default", true, "5")]
+    public async Task TryGetValue_Should_PreserveCoercedValues_When_UsedForCostAnalysis(
+        string name,
+        bool expectedFound,
+        string? expectedValue)
+    {
+        // arrange
+        await using var services = CreateServices();
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var type = executor.Schema.Types.GetType<IInputTypeDefinition>("Int");
+        ICostVariableValues values = new VariableValueCollection(new Dictionary<string, VariableValue>
+        {
+            ["null"] = new("null", type, NullValueNode.Default),
+            ["default"] = new("default", type, new IntValueNode(5))
+        });
+
+        // act
+        var found = values.TryGetValue(name, out var value);
+
+        // assert
+        Assert.Equal(expectedFound, found);
+        Assert.Equal(expectedValue, value?.ToString());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Analyze_Should_UseVariableCollectionContract_When_CustomCostLookupDiffers(bool allCustom)
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(null, observation, Schema, allCustom);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var variables = JsonDocument.Parse("""[{"n":1},{"n":2},{"n":4},{"n":8}]""");
+        using var request = VariableBatchRequest.FromSourceText(ItemsQuery, variables);
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal<CostEstimate>(
+            [new(1, 2, null), new(1, 3, null), new(1, 5, null), new(1, 9, null)],
+            observation.Result!.Estimates);
+        Assert.Equal(1, observation.DownstreamCalls);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "extensions": {
+                "probe": true
+              }
+            }
+            """);
+    }
+
     private static ServiceProvider CreateServices(
         Action<FusionCostOptions>? configure = null,
         CostObservation? observation = null,
         string schema = Schema)
+        => CreateServices(configure, observation, schema, null);
+
+    private static ServiceProvider CreateServices(
+        Action<FusionCostOptions>? configure,
+        CostObservation? observation,
+        string schema,
+        bool? allCustom)
     {
         var services = new ServiceCollection();
         var builder = services
@@ -768,6 +839,22 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         if (configure is not null)
         {
             builder.ModifyCostOptions(configure);
+        }
+
+        if (allCustom.HasValue)
+        {
+            builder.UseRequest(
+                (_, next) => context =>
+                {
+                    context.VariableValues = context.VariableValues
+                        .Select((values, index) => allCustom.Value || index % 2 == 1
+                            ? new DivergentCustomValues(values)
+                            : values)
+                        .ToImmutableArray();
+                    return next(context);
+                },
+                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware,
+                allowMultiple: true);
         }
 
         if (observation is not null)
@@ -815,5 +902,29 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         public CostAnalysisResult? Result { get; set; }
 
         public int DownstreamCalls { get; set; }
+    }
+
+    private sealed class DivergentCustomValues(IVariableValueCollection values)
+        : IVariableValueCollection, ICostVariableValues
+    {
+        public bool IsEmpty => values.IsEmpty;
+
+        public T GetValue<T>(string name) where T : IValueNode
+            => values.GetValue<T>(name);
+
+        public bool TryGetValue<T>(string name, [NotNullWhen(true)] out T? value) where T : IValueNode
+            => values.TryGetValue(name, out value);
+
+        bool ICostVariableValues.TryGetValue(string name, out IValueNode? value)
+        {
+            value = new IntValueNode(999999);
+            return true;
+        }
+
+        public IEnumerator<VariableValue> GetEnumerator()
+            => values.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

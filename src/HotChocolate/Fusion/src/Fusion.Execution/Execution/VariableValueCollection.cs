@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class VariableValueCollection : IVariableValueCollection
+internal sealed class VariableValueCollection : IVariableValueCollection, ICostVariableValues
 {
     private readonly Dictionary<string, VariableValue> _coercedValues;
 
@@ -50,6 +51,9 @@ internal sealed class VariableValueCollection : IVariableValueCollection
 
     public IEnumerator<VariableValue> GetEnumerator()
         => _coercedValues.Values.GetEnumerator();
+
+    bool ICostVariableValues.TryGetValue(string name, out IValueNode? value)
+        => TryGetValue(name, out value);
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
