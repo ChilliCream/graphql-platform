@@ -479,7 +479,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
             // The payload is streamed into the document's own gap-free geometric arena chunks so the
             // chunk schedule matches the packed data-location encoding.
-            var chunks = arena.RentSegmentTable(64);
+            var chunks = arena.RentSegmentTable(16);
             var chunkIndex = 0;
             var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
             var current = chunks[chunkIndex] = arena.Rent(chunkSize);
@@ -618,7 +618,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         IMemoryArena arena,
         CancellationToken cancellationToken)
     {
-        var chunks = arena.RentSegmentTable(64);
+        var chunks = arena.RentSegmentTable(16);
         var chunkIndex = 0;
         var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
         var current = chunks[chunkIndex] = arena.Rent(chunkSize);

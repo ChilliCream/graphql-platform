@@ -141,7 +141,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         // Fallback: larger records (and the degenerate empty line) are filled across the geometric data
         // chunk schedule and parsed as a multi-segment sequence, using the same per-record mechanic as
         // the SSE reader.
-        var chunks = arena.RentSegmentTable(64);
+        var chunks = arena.RentSegmentTable(16);
         var chunkIndex = 0;
         var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
         var current = chunks[chunkIndex] = arena.Rent(chunkSize);
