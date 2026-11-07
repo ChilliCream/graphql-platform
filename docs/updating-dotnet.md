@@ -13,7 +13,7 @@ The reader was last compared with these tags, whose multipart branches are ident
 | `net8.0`         | `v8.0.31`                |
 | `net9.0`         | `v9.0.20`                |
 | `net10.0`        | `v10.0.12`               |
-| `net11.0`        | `v11.0.0-rc.1.26425.128` |
+| `net11.0`        | `v11.0.0-rc.2.26504.105` |
 
 To list the upstream changes between a recorded tag and a new one, here from `v10.0.12` to `v10.0.13`:
 
