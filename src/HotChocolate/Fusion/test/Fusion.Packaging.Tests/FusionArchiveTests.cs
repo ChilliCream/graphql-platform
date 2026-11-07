@@ -57,6 +57,51 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
+    public async Task ArchiveMetadata_Should_RoundTripGatewayFormats()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["Products"]
+        };
+
+        // act
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        stream.Position = 0;
+        ArchiveMetadata readMetadata;
+        using (var archive = FusionArchive.Open(stream, leaveOpen: true))
+        {
+            readMetadata = Assert.IsType<ArchiveMetadata>(
+                await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken));
+        }
+
+        stream.Position = 0;
+#if NET10_0_OR_GREATER
+        await using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+#else
+        using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+#endif
+        var entry = Assert.IsType<ZipArchiveEntry>(zip.GetEntry("archive-metadata.json"));
+        await using var entryStream = entry.Open();
+        using var reader = new StreamReader(entryStream);
+        var serializedMetadata = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(metadata.SupportedGatewayFormats, readMetadata.SupportedGatewayFormats);
+        serializedMetadata.MatchInlineSnapshot(
+            """
+            {"formatVersion":"1.0.0","supportedGatewayFormats":["2.0.0"],"sourceSchemas":["Products"]}
+            """);
+    }
+
+    [Fact]
     public async Task GetArchiveMetadata_WhenNotSet_ReturnsNull()
     {
         // Arrange
