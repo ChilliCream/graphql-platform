@@ -48,6 +48,7 @@ public static class LogEntryCodes
     public const string InterfaceObjectNoInterface = "INTERFACE_OBJECT_NO_INTERFACE";
     public const string InvalidEnumValuesMergeBehavior = "INVALID_ENUM_VALUES_MERGE_BEHAVIOR";
     public const string InvalidFieldSharing = "INVALID_FIELD_SHARING";
+    public const string InvalidGatewaySettings = "INVALID_GATEWAY_SETTINGS";
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidApolloFederationSupportSettings =
         "INVALID_APOLLO_FEDERATION_SUPPORT_SETTINGS";
