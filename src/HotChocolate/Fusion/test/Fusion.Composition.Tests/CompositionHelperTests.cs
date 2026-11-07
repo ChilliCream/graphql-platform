@@ -723,36 +723,40 @@ public sealed class CompositionHelperTests
             entry.Message);
     }
 
-    [Theory]
-    [InlineData("maxFieldCost", "-1", LogEntryCodes.InvalidMaxFieldCostSetting)]
-    [InlineData("maxTypeCost", "-1", LogEntryCodes.InvalidMaxTypeCostSetting)]
-    [InlineData("maxResponseSize", "-1", LogEntryCodes.InvalidMaxResponseSizeSetting)]
-    [InlineData("costPlanCacheSize", "0", LogEntryCodes.InvalidCostPlanCacheSizeSetting)]
-    public async Task TryGetCompositionSettingsAsync_Should_ReportCompositionError_When_CostSettingIsInvalid(
-        string settingName,
-        string rawValue,
-        string expectedCode)
+    [Fact]
+    public async Task TryGetCompositionSettingsAsync_Should_IgnoreRemovedCostSettings_When_ReadingPreviewArchive()
     {
         // arrange
-        var stream = new MemoryStream();
+        await using var stream = new MemoryStream();
         var log = new CompositionLog();
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
-        using (var rawCompositionSettings =
-            JsonDocument.Parse($$"""{ "merger": { "{{settingName}}": {{rawValue}} } }"""))
-        {
-            await archive.SetCompositionSettingsAsync(
-                rawCompositionSettings,
-                TestContext.Current.CancellationToken);
-        }
+        using var rawSettings = JsonDocument.Parse(
+            """
+            {
+              "merger": {
+                "defaultListSize": 7,
+                "maxFieldCost": -1,
+                "maxTypeCost": "ignored",
+                "enforceCostLimits": false,
+                "skipCostAnalyzer": true,
+                "maxResponseSize": -1,
+                "costPlanCacheSize": 0,
+                "caseBudget": 500,
+                "caseBudgetExceededBehavior": "Overestimate"
+              }
+            }
+            """);
+        await archive.SetCompositionSettingsAsync(rawSettings, TestContext.Current.CancellationToken);
 
         // act
-        var (success, _) = await CompositionHelper.TryGetCompositionSettingsAsync(
+        var (success, settings) = await CompositionHelper.TryGetCompositionSettingsAsync(
             archive,
             log,
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.False(success);
-        Assert.Equal(expectedCode, Assert.Single(log).Code);
+        Assert.True(success);
+        Assert.Equal(7, settings.Merger.DefaultListSize);
+        Assert.Empty(log);
     }
 }
