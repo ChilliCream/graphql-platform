@@ -1,6 +1,8 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
@@ -63,6 +65,101 @@ public sealed class EventStreamCursorTests
               }
             }
             ---
+            {
+              "data": {
+                "onBookChanged": {
+                  "id": 2,
+                  "title": "Two",
+                  "cursor": "Y3Vyc29yLTI="
+                }
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("[]")]
+    [InlineData("\"é\\u0063\"")]
+    [InlineData("{ \"number\":1.20e+03,\"zero\":-0.0,\"text\":\"é\\u0063\",\"list\":[true,false,null]}")]
+    public async Task Subscribe_Should_PreservePayloadTokens_When_CursorIsInjected(string payload)
+    {
+        // arrange
+        var topic = CreateTopic();
+        var publisher = new InMemoryEventStreamBrokerHub();
+        await using var services = CreateServices(topic, publisher).BuildServiceProvider();
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cancellation.CancelAfter(TimeSpan.FromSeconds(10));
+        var events = CollectEventsAsync(
+            executor,
+            "subscription { onBookChanged { id title payload cursor } }",
+            1,
+            cancellation.Token);
+        await WaitForSubscribersAsync(publisher, topic, 1, cancellation.Token);
+        var body = Encoding.UTF8.GetBytes(
+            "{\"id\":1,\"title\":\"é\",\"payload\":" + payload + ",\"cursor\":\"stale\"}");
+
+        // act
+        await publisher.PublishAsync(topic, CreateMessage(body, "Y3Vyc29yLTE="u8), cancellation.Token);
+        var captured = await events;
+        using var document = JsonDocument.Parse(captured.Single());
+        var data = document.RootElement.GetProperty("data").GetProperty("onBookChanged");
+
+        // assert
+        Assert.Equal(1, data.GetProperty("id").GetInt32());
+        Assert.Equal("é", data.GetProperty("title").GetString());
+        Assert.Equal(ReadPayloadTokens(payload), ReadPayloadTokens(data.GetProperty("payload").GetRawText()));
+        Assert.Equal("Y3Vyc29yLTE=", data.GetProperty("cursor").GetString());
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_PreserveDecodeFailureAndContinue_When_PayloadContainsInvalidUtf8()
+    {
+        // arrange
+        var topic = CreateTopic();
+        var publisher = new InMemoryEventStreamBrokerHub();
+        await using var services = CreateServices(topic, publisher).BuildServiceProvider();
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cancellation.CancelAfter(TimeSpan.FromSeconds(10));
+        using var request = OperationRequestBuilder.New()
+            .SetDocument("subscription { onBookChanged { id title cursor } }")
+            .Build();
+        await using var result = await executor.ExecuteAsync(request, cancellation.Token);
+        await using var enumerator = result.ExpectResponseStream().ReadResultsAsync()
+            .GetAsyncEnumerator(cancellation.Token);
+        byte[] invalidBody = [.. "{\"id\":1,\"title\":\""u8, 0xff, .. "\"}"u8];
+        using var legacyDocument = JsonDocument.Parse(invalidBody);
+        var expected = Record.Exception(() => legacyDocument.RootElement.GetProperty("title").GetRawText())!;
+        var pending = enumerator.MoveNextAsync();
+        await WaitForSubscribersAsync(publisher, topic, 1, cancellation.Token);
+
+        // act
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage(invalidBody, "Y3Vyc29yLTE="u8),
+            cancellation.Token);
+        var failedMoved = await pending;
+        await using var failed = enumerator.Current;
+        var exception = failed.Errors.Single().Exception!;
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("{\"id\":2,\"title\":\"Two\"}"u8, "Y3Vyc29yLTI="u8),
+            cancellation.Token);
+        var nextMoved = await enumerator.MoveNextAsync();
+        await using var next = enumerator.Current;
+
+        // assert
+        Assert.True(failedMoved);
+        Assert.Equal(
+            (expected.GetType(), expected.Message, expected.InnerException?.GetType(), expected.InnerException?.Message),
+            (exception.GetType(), exception.Message, exception.InnerException?.GetType(), exception.InnerException?.Message));
+        Assert.True(nextMoved);
+        next.MatchInlineSnapshot(
+            """
             {
               "data": {
                 "onBookChanged": {
@@ -206,11 +303,11 @@ public sealed class EventStreamCursorTests
         int count,
         CancellationToken cancellationToken)
     {
-        var request = OperationRequestBuilder.New()
+        using var request = OperationRequestBuilder.New()
             .SetDocument(document)
             .Build();
 
-        var result = await executor.ExecuteAsync(request, cancellationToken);
+        await using var result = await executor.ExecuteAsync(request, cancellationToken);
         var stream = result.ExpectResponseStream();
         var events = new List<string>();
 
@@ -218,16 +315,30 @@ public sealed class EventStreamCursorTests
             .ReadResultsAsync()
             .WithCancellation(cancellationToken))
         {
-            events.Add(operationResult.ToJson());
-
-            if (events.Count == count)
+            await using (operationResult)
             {
-                break;
+                events.Add(operationResult.ToJson());
+
+                if (events.Count == count)
+                {
+                    break;
+                }
             }
         }
 
-        await result.DisposeAsync();
         return events;
+    }
+
+    private static List<(JsonTokenType Type, string Value)> ReadPayloadTokens(string json)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
+        var tokens = new List<(JsonTokenType Type, string Value)>();
+        while (reader.Read())
+        {
+            tokens.Add((reader.TokenType, Encoding.UTF8.GetString(reader.ValueSpan)));
+        }
+
+        return tokens;
     }
 
     private static async Task WaitForSubscribersAsync(
@@ -281,7 +392,7 @@ public sealed class EventStreamCursorTests
                   schema: EVENTS
                   topics: ["{{topic}}"]
                   broker: "memory"
-                  message: "{ id title }"
+                  message: "{ id title payload }"
                   cursorField: "cursor"
                   cursorArgument: "after"
                 )
@@ -293,6 +404,8 @@ public sealed class EventStreamCursorTests
                 @fusion__field(schema: EVENTS)
               title: String!
                 @fusion__field(schema: EVENTS)
+              payload: JSON
+                @fusion__field(schema: EVENTS)
               cursor: String
                 @fusion__field(schema: EVENTS)
             }
@@ -300,6 +413,9 @@ public sealed class EventStreamCursorTests
             enum fusion__Schema {
               EVENTS
             }
+
+            scalar JSON
+              @fusion__type(schema: EVENTS)
 
             scalar fusion__FieldDefinition
             scalar fusion__FieldSelectionMap
