@@ -827,7 +827,7 @@ The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processo
 
 ## Configure outbox dispatch concurrency
 
-The Postgres outbox dispatches one message at a time by default. Set `MaxConcurrentMessages` to overlap dispatches, including waits for RabbitMQ publisher confirmations:
+The Postgres outbox sends one stored message at a time by default. Set `MaxConcurrentMessages` to allow it to send several messages concurrently. With RabbitMQ, this lets the outbox send another message while an earlier one waits for the broker's [publisher confirmation](./transports/rabbitmq.md#publisher-confirms):
 
 ```csharp
 builder.Services
@@ -836,9 +836,9 @@ builder.Services
         p.UsePostgresOutbox(o => o.MaxConcurrentMessages = 32));
 ```
 
-The value must be greater than zero. Each active worker uses its own database connection, transaction, and service scope. Row locks prevent workers from claiming the same message, and a row is deleted only after its dispatch succeeds. Allow capacity for these connections alongside your application's database connections.
+The value must be greater than zero and applies to each outbox processor in each application instance. Each concurrent send needs a database connection. When increasing the limit, leave enough connections in the database pool for the rest of your application.
 
-Values greater than one allow messages to be dispatched and completed out of order. A value of one keeps dispatch sequential within each processor instance; multiple application instances and retries can still change delivery order.
+With a value greater than one, messages may arrive in a different order from the order in which they were stored. A value of one keeps sends sequential within that processor, but retries and multiple application instances can still change delivery order.
 
 ## Skip the outbox for specific dispatches
 
