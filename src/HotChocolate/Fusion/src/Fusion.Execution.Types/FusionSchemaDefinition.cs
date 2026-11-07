@@ -42,7 +42,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         FusionDirectiveDefinitionCollection directiveDefinitions,
         NodeResolution nodeResolution,
         ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
-        int? defaultListSize,
         IFeatureCollection features,
         ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup)
     {
@@ -57,7 +56,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         DirectiveDefinitions = directiveDefinitions;
         NodeResolution = nodeResolution;
         ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting;
-        DefaultListSize = defaultListSize;
         _features = features;
         _sourceSchemaLookup = sourceSchemaLookup;
     }
@@ -81,7 +79,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(document);
 
-        return CompositeSchemaBuilder.Create(name, document, services, features);
+        return CompositeSchemaBuilder.Create(name, document, services: services, features: features);
     }
 
     /// <summary>
@@ -150,14 +148,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     /// Gets how runtime types are routed for shareable fields whose result type is abstract.
     /// </summary>
     public ShareableFieldRuntimeTypeRouting ShareableFieldRuntimeTypeRouting { get; }
-
-    /// <summary>
-    /// Gets the assumed size of a list field that has no applicable <c>@listSize</c>
-    /// information, as configured at composition time via
-    /// <c>@fusion__cost_options(defaultListSize:)</c>. <see langword="null"/> when the
-    /// directive is absent, meaning the assumed size is unbounded.
-    /// </summary>
-    public int? DefaultListSize { get; }
 
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;

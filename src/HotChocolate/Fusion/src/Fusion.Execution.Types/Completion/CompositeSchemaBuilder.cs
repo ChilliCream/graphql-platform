@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using System.Globalization;
+using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Collections;
@@ -17,7 +17,6 @@ using StringValueNode = HotChocolate.Language.StringValueNode;
 using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
 using EnumValueNode = HotChocolate.Language.EnumValueNode;
 using ListValueNode = HotChocolate.Language.ListValueNode;
-using NullValueNode = HotChocolate.Language.NullValueNode;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
@@ -26,6 +25,7 @@ internal static class CompositeSchemaBuilder
     public static FusionSchemaDefinition Create(
         string name,
         DocumentNode schemaDocument,
+        JsonDocument? settings = null,
         IServiceProvider? services = null,
         IFeatureCollection? features = null)
     {
@@ -33,14 +33,14 @@ internal static class CompositeSchemaBuilder
         var typeInterceptor = CreateTypeInterceptor(services);
         var options = FusionSchemaOptions.From(features?.Get<IFusionSchemaOptions>());
         var executionSettings = ParseExecutionSettings(schemaDocument);
-        var costSettings = ParseCostSettings(schemaDocument);
+        var costOptions = FusionSchemaCostOptionsParser.Parse(schemaDocument, settings);
         var context = CreateTypes(name, schemaDocument, services, features, options, typeInterceptor);
         return CompleteTypes(
             context,
             options,
             executionSettings.NodeResolution,
             executionSettings.ShareableFieldRuntimeTypeRouting,
-            costSettings.DefaultListSize);
+            costOptions);
     }
 
     private static CompositeSchemaBuilderContext CreateTypes(
@@ -570,7 +570,7 @@ internal static class CompositeSchemaBuilder
         FusionSchemaOptions options,
         NodeResolution nodeResolution,
         ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
-        int? defaultListSize)
+        FusionSchemaCostOptions costOptions)
     {
         foreach (var type in context.TypeDefinitions)
         {
@@ -661,10 +661,10 @@ internal static class CompositeSchemaBuilder
             new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
             nodeResolution,
             shareableFieldRuntimeTypeRouting,
-            defaultListSize,
             features,
             context.SourceSchemaLookup);
 
+        schema.Features.Set(costOptions);
         context.Interceptor.OnAfterCompleteSchema(context, schema);
         schema.Seal();
         context.Complete(schema);
@@ -757,64 +757,6 @@ internal static class CompositeSchemaBuilder
     private readonly record struct ExecutionSettings(
         NodeResolution NodeResolution,
         ShareableFieldRuntimeTypeRouting ShareableFieldRuntimeTypeRouting);
-
-    private static CostSettings ParseCostSettings(DocumentNode document)
-    {
-        var costOptionsDirectives = document.Definitions
-            .SelectMany(static definition => definition switch
-            {
-                SchemaDefinitionNode schemaDefinition => schemaDefinition.Directives,
-                SchemaExtensionNode schemaExtension => schemaExtension.Directives,
-                _ => []
-            })
-            .Where(static directive => directive.Name.Value.Equals(
-                FusionBuiltIns.CostOptions,
-                StringComparison.Ordinal))
-            .Take(2)
-            .ToArray();
-
-        if (costOptionsDirectives.Length == 0)
-        {
-            return new CostSettings(null);
-        }
-
-        if (costOptionsDirectives.Length > 1)
-        {
-            throw new InvalidOperationException(
-                "The fusion__cost_options directive may only be applied once per schema.");
-        }
-
-        return new CostSettings(ParseDefaultListSize(costOptionsDirectives[0]));
-    }
-
-    private static int? ParseDefaultListSize(DirectiveNode costOptionsDirective)
-    {
-        var defaultListSizeArgument = costOptionsDirective.Arguments.FirstOrDefault(
-            static argument => argument.Name.Value.Equals(
-                "defaultListSize",
-                StringComparison.Ordinal));
-
-        if (defaultListSizeArgument is null || defaultListSizeArgument.Value is NullValueNode)
-        {
-            return null;
-        }
-
-        if (defaultListSizeArgument.Value is IntValueNode intValue
-            && int.TryParse(
-                intValue.Value,
-                NumberStyles.Integer,
-                CultureInfo.InvariantCulture,
-                out var value)
-            && value >= 0)
-        {
-            return value;
-        }
-
-        throw new InvalidOperationException(
-            "The fusion__cost_options defaultListSize argument must be a non-negative integer.");
-    }
-
-    private readonly record struct CostSettings(int? DefaultListSize);
 
     private static void CompleteObjectType(
         FusionObjectTypeDefinition type,
