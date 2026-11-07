@@ -274,7 +274,9 @@ public class DefaultSecurityTests : FusionTestBase
             configureGatewayBuilder: b =>
             {
                 b.AddHttpRequestInterceptor<DefaultHttpRequestInterceptor>();
+#pragma warning disable CS0618
                 b.ModifyCostOptions(o => o.MaxTypeCost = 1_000);
+#pragma warning restore CS0618
             },
             environmentName: environment);
 

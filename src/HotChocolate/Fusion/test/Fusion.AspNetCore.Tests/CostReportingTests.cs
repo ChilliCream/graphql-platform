@@ -192,7 +192,9 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
+#pragma warning disable CS0618
             configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
+#pragma warning restore CS0618
         var request = new OperationRequest(ExpensiveQuery);
 
         // act
@@ -239,11 +241,13 @@ public class CostReportingTests : FusionTestBase
             configureGatewayBuilder: b =>
             {
                 b.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
+#pragma warning disable CS0618
                 b.ModifyCostOptions(o =>
                 {
                     o.MaxFieldCost = double.PositiveInfinity;
                     o.MaxTypeCost = 10;
                 });
+#pragma warning restore CS0618
             });
         var batch = new VariableBatchRequest(
             ItemsQuery,
@@ -320,11 +324,13 @@ public class CostReportingTests : FusionTestBase
             configureGatewayBuilder: b =>
             {
                 b.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
+#pragma warning disable CS0618
                 b.ModifyCostOptions(o =>
                 {
                     o.MaxFieldCost = double.PositiveInfinity;
                     o.MaxTypeCost = 10;
                 });
+#pragma warning restore CS0618
             });
         var batch = new VariableBatchRequest(
             ItemsQuery,
@@ -542,12 +548,14 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
+#pragma warning disable CS0618
             configureGatewayBuilder: b => b.ModifyCostOptions(o =>
             {
                 o.MaxFieldCost = double.PositiveInfinity;
                 o.MaxTypeCost = double.PositiveInfinity;
                 o.MaxResponseSize = 100;
             }));
+#pragma warning restore CS0618
         var request = new OperationRequest(ItemsQuery, variables: new Dictionary<string, object?> { ["n"] = 1000 });
 
         // act
@@ -596,12 +604,14 @@ public class CostReportingTests : FusionTestBase
             configureGatewayBuilder: b =>
             {
                 b.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
+#pragma warning disable CS0618
                 b.ModifyCostOptions(o =>
                 {
                     o.MaxFieldCost = double.PositiveInfinity;
                     o.MaxTypeCost = double.PositiveInfinity;
                     o.MaxResponseSize = 100;
                 });
+#pragma warning restore CS0618
             });
         var batch = new VariableBatchRequest(
             ItemsQuery,
@@ -734,7 +744,9 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var infiniteGateway = await CreateCompositeSchemaAsync(
             [("A", server)],
+#pragma warning disable CS0618
             configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxFieldCost = double.PositiveInfinity),
+#pragma warning restore CS0618
             defaultListSize: null);
         using var finiteGateway = await CreateCompositeSchemaAsync(
             [("A", server)]);
@@ -875,7 +887,9 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
+#pragma warning disable CS0618
             configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
+#pragma warning restore CS0618
 
         // act
         using var response = await SendRawAsync(gateway, "application/graphql-response+json");
@@ -891,7 +905,9 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
+#pragma warning disable CS0618
             configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxTypeCost = 1_000));
+#pragma warning restore CS0618
 
         // act
         using var response = await SendRawAsync(gateway, "application/json");

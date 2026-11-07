@@ -50,10 +50,12 @@ public class LookupFanOutBenchmark
             : ["accounts", "inventory", "products", "reviews"];
 
         var services = new ServiceCollection();
+#pragma warning disable CS0618
         var builder = services
             .AddGraphQLGateway()
             .AddInMemoryConfiguration(schemaDocument)
             .ModifyCostOptions(o => o.EnforceCostLimits = false);
+#pragma warning restore CS0618
 
         services.RemoveAll<ISourceSchemaClientFactory>();
         services.AddSingleton<ISourceSchemaClientFactory, CannedSourceSchemaClientFactory>();

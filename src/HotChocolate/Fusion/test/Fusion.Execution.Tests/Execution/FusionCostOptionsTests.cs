@@ -32,6 +32,7 @@ public class FusionCostOptionsTests : FusionTestBase
     public async Task MaxFieldCost_Should_Throw_When_Set_After_Executor_Is_Built()
     {
         // arrange
+#pragma warning disable CS0618
         var services = new ServiceCollection();
         services
             .AddGraphQLGateway()
@@ -43,6 +44,7 @@ public class FusionCostOptionsTests : FusionTestBase
                       field: String!
                     }
                     """));
+#pragma warning restore CS0618
 
         // act
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(

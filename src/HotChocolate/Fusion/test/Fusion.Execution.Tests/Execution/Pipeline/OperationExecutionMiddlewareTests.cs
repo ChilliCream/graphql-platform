@@ -17,6 +17,7 @@ public class OperationExecutionMiddlewareTests : FusionTestBase
     {
         // arrange
         // with the cost analyzer skipped, the empty batch reaches operation execution
+#pragma warning disable CS0618
         var executor = await new ServiceCollection()
             .AddGraphQLGateway()
             .ModifyCostOptions(o => o.SkipAnalyzer = true)
@@ -24,6 +25,7 @@ public class OperationExecutionMiddlewareTests : FusionTestBase
             .Services
             .BuildServiceProvider()
             .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+#pragma warning restore CS0618
 
         using var request = OperationRequestBuilder.New()
             .SetDocument("query($input: String!) { field(input: $input) }")

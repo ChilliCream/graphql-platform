@@ -316,6 +316,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var operationIds = new ConcurrentBag<string>();
         const int rejectedRequestCount = 4;
 
+#pragma warning disable CS0618
         var executor = await new ServiceCollection()
             .AddGraphQLGateway()
             .UseDefaultPipeline()
@@ -337,6 +338,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             .Services
             .BuildServiceProvider()
             .GetRequestExecutorAsync(cancellationToken: cts.Token);
+#pragma warning restore CS0618
         using var costlyRequest = CreateVariableCostRequest(1000);
 
         // act
