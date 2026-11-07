@@ -7,6 +7,105 @@ namespace HotChocolate.Fusion.Execution;
 
 public class VariableCoercionHelperTests : FusionTestBase
 {
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(200)]
+    [InlineData(512)]
+    public void TryCoerceVariableValues_Should_PreserveEveryValue_When_InitialCapacityIsBounded(int count)
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var definitions = Enumerable.Range(0, count)
+            .Select(i => CreateVariableDefinition($"v{i}", new NamedTypeNode("String")))
+            .ToArray();
+        var expected = Enumerable.Range(0, count)
+            .ToDictionary(i => $"v{i}", i => $"value{i}:\"Ä\"\n");
+        using var values = JsonDocument.Parse(JsonSerializer.Serialize(expected));
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(), schema, definitions, values.RootElement, false,
+            out var result, out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Equal(expected, result!.ToDictionary(
+            entry => entry.Key,
+            entry => ((StringValueNode)entry.Value.Value).Value));
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_PreserveNullAndOmission_When_MostDefinitionsAreAbsent()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var definitions = Enumerable.Range(0, 200)
+            .Select(i => CreateVariableDefinition($"v{i}", new NamedTypeNode("String")))
+            .ToArray();
+        using var values = JsonDocument.Parse("""{"v0":null,"noise":42}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(), schema, definitions, values.RootElement, false,
+            out var result, out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Collection(result!, entry =>
+        {
+            Assert.Equal("v0", entry.Key);
+            Assert.IsType<NullValueNode>(entry.Value.Value);
+        });
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_ApplyEveryDefault_When_NoPropertiesAreSupplied()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var definitions = Enumerable.Range(0, 200)
+            .Select(i => new VariableDefinitionNode(
+                null, new VariableNode($"v{i}"), null, new NamedTypeNode("String"),
+                new StringValueNode($"fallback{i}"), []))
+            .ToArray();
+        using var values = JsonDocument.Parse("{}");
+        var expected = Enumerable.Range(0, 200).ToDictionary(i => $"v{i}", i => $"fallback{i}");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(), schema, definitions, values.RootElement, false,
+            out var result, out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Equal(expected, result!.ToDictionary(
+            entry => entry.Key,
+            entry => ((StringValueNode)entry.Value.Value).Value));
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_UseLastValue_When_PropertyIsDuplicated()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var definitions = new[] { CreateVariableDefinition("v0", new NamedTypeNode("String")) };
+        using var values = JsonDocument.Parse("""{"v0":"old","v0":"new"}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(), schema, definitions, values.RootElement, false,
+            out var result, out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Collection(result!, entry =>
+        {
+            Assert.Equal("v0", entry.Key);
+            Assert.Equal("new", ((StringValueNode)entry.Value.Value).Value);
+        });
+    }
+
     [Fact]
     public void Coerce_String_WithEscapedQuotes_IsUnescaped()
     {
