@@ -343,7 +343,7 @@ public sealed class SagaStateMachineTests
     }
 
     [Fact]
-    public async Task Saga_Should_ReturnFalse_When_InvalidCorrelationId()
+    public async Task Saga_Should_ThrowSagaInstanceNotFound_When_InvalidCorrelationId()
     {
         // Arrange
         var saga =
@@ -367,10 +367,13 @@ public sealed class SagaStateMachineTests
         var context = CreateContext(
             saga,
             new Trigger { CorrelationId = Guid.Parse("B396C409-F0D5-4888-A6D2-A940482ADC4B") });
-        var result = await saga.HandleEvent(context);
+        var ex = await Assert.ThrowsAsync<SagaInstanceNotFoundException>(() => saga.HandleEvent(context));
 
         // Assert
-        Assert.False(result);
+        Assert.Equal(
+            "No instance of saga 'Saga.FluentSaga<TestState>' exists for correlation id "
+            + "'b396c409-f0d5-4888-a6d2-a940482adc4b', so the event 'Trigger' cannot be applied.",
+            ex.Message);
     }
 
     [Fact]
