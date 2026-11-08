@@ -30,9 +30,9 @@ public sealed class Policy
     /// </param>
     public Policy(IReadOnlyList<IReadOnlyList<string>> policies)
     {
-        Policies = AuthorizationGroups.Canonicalize(
-            DirectiveNames.Policy.Name,
+        Policies = RequirementGroupHelper.Canonicalize(
             policies,
+            DirectiveNames.Policy.Name,
             nameof(policies));
     }
 

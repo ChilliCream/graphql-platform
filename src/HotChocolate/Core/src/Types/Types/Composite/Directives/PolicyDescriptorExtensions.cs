@@ -1,3 +1,7 @@
+using HotChocolate.Internal;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
+
 namespace HotChocolate.Types.Composite;
 
 /// <summary>
@@ -31,14 +35,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(policies);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<Policy>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.Policy.Name,
-            policies,
-            nameof(policies),
-            static directive => directive.Policies,
-            static groups => new Policy(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, policies);
         return descriptor;
     }
 
@@ -68,14 +65,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(policies);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<Policy>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.Policy.Name,
-            policies,
-            nameof(policies),
-            static directive => directive.Policies,
-            static groups => new Policy(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, policies);
         return descriptor;
     }
 
@@ -105,14 +95,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(policies);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<Policy>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.Policy.Name,
-            policies,
-            nameof(policies),
-            static directive => directive.Policies,
-            static groups => new Policy(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, policies);
         return descriptor;
     }
 
@@ -142,14 +125,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(policies);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<Policy>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.Policy.Name,
-            policies,
-            nameof(policies),
-            static directive => directive.Policies,
-            static groups => new Policy(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, policies);
         return descriptor;
     }
 
@@ -179,14 +155,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(policies);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<Policy>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.Policy.Name,
-            policies,
-            nameof(policies),
-            static directive => directive.Policies,
-            static groups => new Policy(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, policies);
         return descriptor;
     }
 
@@ -216,14 +185,36 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(policies);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<Policy>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.Policy.Name,
-            policies,
-            nameof(policies),
-            static directive => directive.Policies,
-            static groups => new Policy(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, policies);
         return descriptor;
+    }
+
+    private static void AddGroup(
+        IDirectiveConfigurationProvider configuration,
+        ITypeInspector typeInspector,
+        string[] policies)
+    {
+        var groups = new List<IReadOnlyList<string>>();
+
+        for (var i = configuration.Directives.Count - 1; i >= 0; i--)
+        {
+            if (configuration.Directives[i].Value is Policy existing)
+            {
+                groups.AddRange(existing.Policies);
+            }
+        }
+
+        groups.Add(policies);
+        var policy = new Policy(groups);
+
+        for (var i = configuration.Directives.Count - 1; i >= 0; i--)
+        {
+            if (configuration.Directives[i].Value is Policy)
+            {
+                configuration.Directives.RemoveAt(i);
+            }
+        }
+
+        configuration.AddDirective(policy, typeInspector);
     }
 }

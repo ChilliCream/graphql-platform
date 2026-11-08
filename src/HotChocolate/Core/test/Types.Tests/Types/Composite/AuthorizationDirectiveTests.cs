@@ -292,6 +292,138 @@ public static class AuthorizationDirectiveTests
             "The @policy directive does not allow null or empty values. (Parameter 'policies')");
     }
 
+    [Fact]
+    public static async Task RequiresScopes_Should_PreserveExistingDirective_When_SubsequentGroupIsEmpty()
+    {
+        // arrange
+        var exceptionCaught = false;
+        var builder =
+            new ServiceCollection()
+                .AddGraphQL()
+                .UseField(x => x)
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    var field = d.Field("field").Type<StringType>();
+                    field.RequiresScopes("read");
+
+                    try
+                    {
+                        field.RequiresScopes();
+                    }
+                    catch (ArgumentException)
+                    {
+                        exceptionCaught = true;
+                    }
+                });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(exceptionCaught);
+        schema.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public static async Task RequiresScopes_Should_PreserveExistingDirective_When_SubsequentGroupHasEmptyName()
+    {
+        // arrange
+        var exceptionCaught = false;
+        var builder =
+            new ServiceCollection()
+                .AddGraphQL()
+                .UseField(x => x)
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    var field = d.Field("field").Type<StringType>();
+                    field.RequiresScopes("read");
+
+                    try
+                    {
+                        field.RequiresScopes("");
+                    }
+                    catch (ArgumentException)
+                    {
+                        exceptionCaught = true;
+                    }
+                });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(exceptionCaught);
+        schema.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public static async Task Policy_Should_PreserveExistingDirective_When_SubsequentGroupIsEmpty()
+    {
+        // arrange
+        var exceptionCaught = false;
+        var builder =
+            new ServiceCollection()
+                .AddGraphQL()
+                .UseField(x => x)
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    var field = d.Field("field").Type<StringType>();
+                    field.Policy("read");
+
+                    try
+                    {
+                        field.Policy();
+                    }
+                    catch (ArgumentException)
+                    {
+                        exceptionCaught = true;
+                    }
+                });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(exceptionCaught);
+        schema.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public static async Task Policy_Should_PreserveExistingDirective_When_SubsequentGroupHasEmptyName()
+    {
+        // arrange
+        var exceptionCaught = false;
+        var builder =
+            new ServiceCollection()
+                .AddGraphQL()
+                .UseField(x => x)
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    var field = d.Field("field").Type<StringType>();
+                    field.Policy("read");
+
+                    try
+                    {
+                        field.Policy("");
+                    }
+                    catch (ArgumentException)
+                    {
+                        exceptionCaught = true;
+                    }
+                });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(exceptionCaught);
+        schema.MatchMarkdownSnapshot();
+    }
+
     private sealed class ConfigurableScalarType : StringType
     {
         private readonly Action<IScalarTypeDescriptor> _configure;

@@ -30,9 +30,9 @@ public sealed class RequiresScopes
     /// </param>
     public RequiresScopes(IReadOnlyList<IReadOnlyList<string>> scopes)
     {
-        Scopes = AuthorizationGroups.Canonicalize(
-            DirectiveNames.RequiresScopes.Name,
+        Scopes = RequirementGroupHelper.Canonicalize(
             scopes,
+            DirectiveNames.RequiresScopes.Name,
             nameof(scopes));
     }
 

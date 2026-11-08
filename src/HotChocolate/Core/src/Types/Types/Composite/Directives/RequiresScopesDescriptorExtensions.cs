@@ -1,3 +1,7 @@
+using HotChocolate.Internal;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
+
 namespace HotChocolate.Types.Composite;
 
 /// <summary>
@@ -31,14 +35,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(scopes);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<RequiresScopes>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.RequiresScopes.Name,
-            scopes,
-            nameof(scopes),
-            static directive => directive.Scopes,
-            static groups => new RequiresScopes(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, scopes);
         return descriptor;
     }
 
@@ -68,14 +65,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(scopes);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<RequiresScopes>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.RequiresScopes.Name,
-            scopes,
-            nameof(scopes),
-            static directive => directive.Scopes,
-            static groups => new RequiresScopes(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, scopes);
         return descriptor;
     }
 
@@ -105,14 +95,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(scopes);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<RequiresScopes>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.RequiresScopes.Name,
-            scopes,
-            nameof(scopes),
-            static directive => directive.Scopes,
-            static groups => new RequiresScopes(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, scopes);
         return descriptor;
     }
 
@@ -142,14 +125,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(scopes);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<RequiresScopes>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.RequiresScopes.Name,
-            scopes,
-            nameof(scopes),
-            static directive => directive.Scopes,
-            static groups => new RequiresScopes(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, scopes);
         return descriptor;
     }
 
@@ -179,14 +155,7 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(scopes);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<RequiresScopes>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.RequiresScopes.Name,
-            scopes,
-            nameof(scopes),
-            static directive => directive.Scopes,
-            static groups => new RequiresScopes(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, scopes);
         return descriptor;
     }
 
@@ -216,14 +185,36 @@ public static class RequiresScopesDescriptorExtensions
         ArgumentNullException.ThrowIfNull(scopes);
 
         var extension = descriptor.Extend();
-        AuthorizationGroups.AddGroup<RequiresScopes>(
-            extension.Configuration,
-            extension.Context.TypeInspector,
-            DirectiveNames.RequiresScopes.Name,
-            scopes,
-            nameof(scopes),
-            static directive => directive.Scopes,
-            static groups => new RequiresScopes(groups));
+        AddGroup(extension.Configuration, extension.Context.TypeInspector, scopes);
         return descriptor;
+    }
+
+    private static void AddGroup(
+        IDirectiveConfigurationProvider configuration,
+        ITypeInspector typeInspector,
+        string[] scopes)
+    {
+        var groups = new List<IReadOnlyList<string>>();
+
+        for (var i = configuration.Directives.Count - 1; i >= 0; i--)
+        {
+            if (configuration.Directives[i].Value is RequiresScopes existing)
+            {
+                groups.AddRange(existing.Scopes);
+            }
+        }
+
+        groups.Add(scopes);
+        var requiresScopes = new RequiresScopes(groups);
+
+        for (var i = configuration.Directives.Count - 1; i >= 0; i--)
+        {
+            if (configuration.Directives[i].Value is RequiresScopes)
+            {
+                configuration.Directives.RemoveAt(i);
+            }
+        }
+
+        configuration.AddDirective(requiresScopes, typeInspector);
     }
 }

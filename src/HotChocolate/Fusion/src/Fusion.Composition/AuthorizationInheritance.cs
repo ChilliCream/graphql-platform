@@ -150,7 +150,7 @@ internal static class AuthorizationInheritance
         var directive = directives.FirstOrDefault(DirectiveNames.FusionAuthorization);
         var auth = directive is null
             ? MergedAuthorization.Empty
-            : AuthorizationGroups.FromFusionDirective(directive);
+            : AuthorizationDirectiveMerger.FromFusionDirective(directive);
 
         return new Node(coordinate, directives, new Tracked(auth, auth.IsEmpty ? s_noSources : directSources));
     }

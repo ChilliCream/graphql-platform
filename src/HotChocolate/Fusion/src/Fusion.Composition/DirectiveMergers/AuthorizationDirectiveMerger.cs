@@ -26,7 +26,7 @@ internal sealed class AuthorizationDirectiveMerger(MutableDirectiveDefinition fu
         ImmutableArray<DirectivesProviderInfo> memberDefinitions,
         MutableSchemaDefinition mergedSchema)
     {
-        var merged = AuthorizationGroups.Merge(memberDefinitions);
+        var merged = Merge(memberDefinitions);
 
         if (merged.IsEmpty)
         {
@@ -52,15 +52,128 @@ internal sealed class AuthorizationDirectiveMerger(MutableDirectiveDefinition fu
 
         if (!merged.Scopes.IsEmpty)
         {
-            arguments.Add(new ArgumentAssignment(ArgumentNames.Scopes, ToValueNode(merged.Scopes)));
+            arguments.Add(new ArgumentAssignment(ArgumentNames.Scopes, ToValueNode(merged.Scopes.Groups)));
         }
 
         if (!merged.Policies.IsEmpty)
         {
-            arguments.Add(new ArgumentAssignment(ArgumentNames.Policies, ToValueNode(merged.Policies)));
+            arguments.Add(new ArgumentAssignment(ArgumentNames.Policies, ToValueNode(merged.Policies.Groups)));
         }
 
         return new Directive(fusionAuthorization, arguments);
+    }
+
+    /// <summary>
+    /// Merges the authorization directives of source schema members.
+    /// </summary>
+    internal static MergedAuthorization Merge(IEnumerable<DirectivesProviderInfo> memberDefinitions)
+    {
+        var authenticated = false;
+        var scopes = PolicyRequirement.Empty;
+        var policies = PolicyRequirement.Empty;
+
+        foreach (var (member, _) in memberDefinitions)
+        {
+            foreach (var directive in member.Directives)
+            {
+                switch (directive.Name)
+                {
+                    case DirectiveNames.Authenticated:
+                        authenticated = true;
+                        break;
+
+                    case DirectiveNames.RequiresScopes:
+                        scopes = scopes.And(PolicyRequirement.Create(ParseGroups(directive, ArgumentNames.Scopes)));
+                        break;
+
+                    case DirectiveNames.Policy:
+                        policies = policies.And(PolicyRequirement.Create(ParseGroups(directive, ArgumentNames.Policies)));
+                        break;
+                }
+            }
+        }
+
+        return new MergedAuthorization(authenticated, scopes, policies);
+    }
+
+    /// <summary>
+    /// Reads the requirement carried by a <c>@fusion__authorization</c> directive.
+    /// </summary>
+    internal static MergedAuthorization FromFusionDirective(IDirective directive)
+    {
+        var authenticated = directive.Arguments.TryGetValue(ArgumentNames.Authenticated, out var value)
+            && value is BooleanValueNode { Value: true };
+
+        return new MergedAuthorization(
+            authenticated,
+            ReadRequirement(directive, ArgumentNames.Scopes),
+            ReadRequirement(directive, ArgumentNames.Policies));
+    }
+
+    private static PolicyRequirement ReadRequirement(IDirective directive, string argumentName)
+    {
+        return directive.Arguments.ContainsName(argumentName)
+            ? PolicyRequirement.Create(ParseGroups(directive, argumentName))
+            : PolicyRequirement.Empty;
+    }
+
+    private static ImmutableArray<ImmutableArray<string>> ParseGroups(
+        IDirective directive,
+        string argumentName)
+    {
+        if (!directive.Arguments.TryGetValue(argumentName, out var argument))
+        {
+            throw ThrowHelper.AuthorizationDirectiveArgumentInvalid(directive.Name, argumentName);
+        }
+
+        // A single string coerces to a list of one group of one.
+        if (argument is StringValueNode singleValue)
+        {
+            return [[singleValue.Value]];
+        }
+
+        if (argument is not ListValueNode outer)
+        {
+            throw ThrowHelper.AuthorizationDirectiveArgumentInvalid(directive.Name, argumentName);
+        }
+
+        var groups = ImmutableArray.CreateBuilder<ImmutableArray<string>>(outer.Items.Count);
+
+        foreach (var item in outer.Items)
+        {
+            switch (item)
+            {
+                // A single string coerces to a group of one.
+                case StringValueNode single:
+                    groups.Add([single.Value]);
+                    break;
+
+                case ListValueNode inner:
+                    var values = ImmutableArray.CreateBuilder<string>(inner.Items.Count);
+
+                    foreach (var value in inner.Items)
+                    {
+                        if (value is not StringValueNode stringValue)
+                        {
+                            throw ThrowHelper.AuthorizationDirectiveArgumentInvalid(
+                                directive.Name,
+                                argumentName);
+                        }
+
+                        values.Add(stringValue.Value);
+                    }
+
+                    groups.Add(values.ToImmutable());
+                    break;
+
+                default:
+                    throw ThrowHelper.AuthorizationDirectiveArgumentInvalid(
+                        directive.Name,
+                        argumentName);
+            }
+        }
+
+        return groups.ToImmutable();
     }
 
     private static ListValueNode ToValueNode(ImmutableArray<ImmutableArray<string>> groups)

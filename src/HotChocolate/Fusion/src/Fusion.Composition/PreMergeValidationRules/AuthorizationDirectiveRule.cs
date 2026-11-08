@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Directives;
+using HotChocolate.Fusion.DirectiveMergers;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Info;
@@ -68,28 +68,28 @@ internal sealed class AuthorizationDirectiveRule
                     memberDefinitions.Except(marked).Select(static m => m.Schema.Name)));
         }
 
-        var merged = AuthorizationGroups.Merge(memberDefinitions);
+        var merged = AuthorizationDirectiveMerger.Merge(memberDefinitions);
         var schema = memberDefinitions[0].Schema;
 
-        if (merged.Scopes.Length > GroupCountThreshold)
+        if (merged.Scopes.Groups.Length > GroupCountThreshold)
         {
             context.Log.Write(
                 AuthorizationGroupCountExceeded(
                     "scopes",
                     coordinate,
                     schema,
-                    merged.Scopes.Length,
+                    merged.Scopes.Groups.Length,
                     GroupCountThreshold));
         }
 
-        if (merged.Policies.Length > GroupCountThreshold)
+        if (merged.Policies.Groups.Length > GroupCountThreshold)
         {
             context.Log.Write(
                 AuthorizationGroupCountExceeded(
                     "policies",
                     coordinate,
                     schema,
-                    merged.Policies.Length,
+                    merged.Policies.Groups.Length,
                     GroupCountThreshold));
         }
     }

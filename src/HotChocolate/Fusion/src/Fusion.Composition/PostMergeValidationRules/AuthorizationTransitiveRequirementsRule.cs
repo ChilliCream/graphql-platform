@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.DirectiveMergers;
 using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
@@ -347,7 +348,7 @@ internal sealed class AuthorizationTransitiveRequirementsRule : IEventHandler<Sc
         private static MergedAuthorization GetRequirement(IOutputFieldDefinition field)
         {
             return field.Directives.FirstOrDefault(FusionAuthorization) is { } directive
-                ? AuthorizationGroups.FromFusionDirective(directive)
+                ? AuthorizationDirectiveMerger.FromFusionDirective(directive)
                 : MergedAuthorization.Empty;
         }
     }
