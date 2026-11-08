@@ -608,6 +608,38 @@ public sealed class DeferredResultFormatterTests
             lines);
     }
 
+    [Fact]
+    public async Task FormatAsync_Should_WriteThePathOfTheFirstItem_When_LegacyFormatStreamsItems()
+    {
+        // arrange
+        var document = ParseDocument("{ tags @stream(initialCount: 1) }");
+        var initial = CreateInitialResult(
+            document,
+            new Dictionary<string, object?> { ["tags"] = new[] { "a" } },
+            hasNext: true,
+            new PendingResult(2, Path.Root.Append("tags")));
+        var firstBatch = CreateIncrementalEnvelope(
+            document,
+            new IncrementalListResult(2, errors: null, new StringItemCollection(1, "b", "c")),
+            hasNext: true);
+        var secondBatch = CreateIncrementalEnvelope(
+            document,
+            new IncrementalListResult(2, errors: null, new StringItemCollection(3, "d")),
+            hasNext: false,
+            completedId: 2);
+
+        // act
+        var lines = await FormatLegacyJsonLinesAsync(initial, firstBatch, secondBatch);
+
+        // assert
+        lines.MatchInlineSnapshots(
+            [
+                """{"data":{"tags":["a"]},"hasNext":true}""",
+                """{"incremental":[{"items":["b","c"],"path":["tags",1]}],"hasNext":true}""",
+                """{"incremental":[{"items":["d"],"path":["tags",3]}],"hasNext":false}"""
+            ]);
+    }
+
     private static async Task<string> FormatAsync(
         IExecutionResultFormatter formatter,
         ExecutionResultFormatFlags flags)
@@ -761,6 +793,33 @@ public sealed class DeferredResultFormatterTests
 
     private static string Normalize(string value)
         => value.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
+
+    private sealed class StringItemCollection(int startIndex, params string[] items) : OperationResultItemCollection
+    {
+        public override void WriteDataTo(JsonWriter jsonWriter)
+        {
+            jsonWriter.WriteStartArray();
+
+            foreach (var item in items)
+            {
+                jsonWriter.WriteStringValue(item);
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
+        public override IEnumerator<OperationResultItem> GetEnumerator()
+        {
+            for (var i = 0; i < items.Length; i++)
+            {
+                yield return new OperationResultItem(startIndex + i, items[i]);
+            }
+        }
+
+        protected override void Release()
+        {
+        }
+    }
 
     private sealed class DictionaryJsonFormatter(object value) : IRawJsonFormatter
     {

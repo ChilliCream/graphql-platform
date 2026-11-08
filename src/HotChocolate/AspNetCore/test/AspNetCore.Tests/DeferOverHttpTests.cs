@@ -180,11 +180,11 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"incremental":[{"items":["b"],"path":["tags"]}],"hasNext":true}
+                {"incremental":[{"items":["b"],"path":["tags",1]}],"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"incremental":[{"items":["c"],"path":["tags"]}],"hasNext":true}
+                {"incremental":[{"items":["c"],"path":["tags",2]}],"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
