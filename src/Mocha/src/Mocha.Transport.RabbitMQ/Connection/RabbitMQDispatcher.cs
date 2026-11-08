@@ -23,7 +23,6 @@ public sealed class RabbitMQDispatcher(
 
     private readonly object _channelSync = new();
     private readonly SemaphoreSlim _publishSlots = new(MaxConcurrentPublishes);
-    private readonly CancellationTokenSource _channelCts = new();
     private readonly Dictionary<IChannel, PublisherChannel> _rentedChannels = new(MaxPublisherChannels);
     private PublisherChannelPool? _channelPool;
 
@@ -58,7 +57,7 @@ public sealed class RabbitMQDispatcher(
 
         if (!_publishSlots.Wait(0))
         {
-            using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _channelCts.Token);
+            using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, DisposalToken);
             await _publishSlots.WaitAsync(waitCts.Token);
         }
 
@@ -132,7 +131,7 @@ public sealed class RabbitMQDispatcher(
                 if (slot.Current is null)
                 {
                     slot.Current = new PublisherChannel(slot);
-                    slot.Current.Creation = CreateChannelAsync(slot.Current, slot.Cleanup, _channelCts.Token);
+                    slot.Current.Creation = CreateChannelAsync(slot.Current, slot.Cleanup, DisposalToken);
                 }
 
                 owner = slot.Current;
@@ -142,7 +141,7 @@ public sealed class RabbitMQDispatcher(
         if (slot is null)
         {
             using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken, _channelCts.Token, pool.RetirementToken);
+                cancellationToken, DisposalToken, pool.RetirementToken);
             try
             {
                 await available!.WaitAsync(waitCts.Token);
@@ -297,6 +296,14 @@ public sealed class RabbitMQDispatcher(
     internal void LogPublishRetry(Exception exception, int attempt, TimeSpan delay)
         => Logger.PublishFailedRetrying(exception, attempt, delay);
 
+    internal IConnection GetChannelConnection(IChannel channel)
+    {
+        lock (_channelSync)
+        {
+            return _rentedChannels[channel].Connection;
+        }
+    }
+
     internal void LogReturnedQueueRedeclared(string queueName)
         => Logger.RedeclaredQueueOfReturnedMessage(queueName);
 
@@ -381,9 +388,7 @@ public sealed class RabbitMQDispatcher(
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        await _channelCts.CancelAsync();
         await ClearChannelsAsync(preserveCurrentConnection: false);
-        _channelCts.Dispose();
     }
 
     private sealed class PublisherChannelPool

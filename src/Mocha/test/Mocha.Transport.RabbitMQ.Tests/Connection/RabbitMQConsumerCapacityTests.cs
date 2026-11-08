@@ -58,7 +58,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
     }
 
     [Fact]
-    public async Task Consumer_Should_KeepConcurrencyBudget_When_ChannelsAreLostRepeatedly()
+    public async Task Consumer_Should_WaitForCapacity_When_AllLostHandlersIgnoreCancellation()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -83,26 +83,22 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         try
         {
             // act
-            var recoveries = new List<RecoveryState>();
+            await registration.Channel!.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
+            var cancelled = await Condition.WaitAsync(() => gate.CancelledHandlers == 2, s_timeout);
+            await vhost.WaitForNoConsumerAsync("orders", s_timeout);
+            // Repeated recovery requests must not prefetch messages while no worker can handle them.
             for (var i = 0; i < 6; i++)
             {
-                var lostChannel = registration.Channel!;
-                await lostChannel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
-                var reattached = await Condition.WaitAsync(
-                    () => registration.IsAttached && !ReferenceEquals(registration.Channel, lostChannel), s_timeout);
-                recoveries.Add(new RecoveryState(reattached, gate.Invocations, gate.ActiveHandlers, manager.IsHealthy));
+                await registration.ConnectAsync(await manager.GetConnectionAsync(TestContext.Current.CancellationToken),
+                    TestContext.Current.CancellationToken);
             }
 
-            var cancelled = await Condition.WaitAsync(() => gate.CancelledHandlers == 2, s_timeout);
+            var whileBlocked = (registration.IsAttached, gate.Invocations, gate.ActiveHandlers, manager.IsHealthy);
             gate.Release.TrySetResult();
             var delivered = await Condition.WaitAsync(() => gate.Delivered.Count == 4 && manager.IsHealthy, s_timeout);
 
             // assert
-            Assert.Equal(
-                Enumerable.Repeat(
-                    new RecoveryState(Reattached: true, Invocations: 2, ActiveHandlers: 2, IsHealthy: false),
-                    6),
-                recoveries);
+            Assert.Equal((false, 2, 2, false), whileBlocked);
             Assert.True(cancelled);
             Assert.True(delivered);
             Assert.Equal(2, gate.PeakConcurrency);
@@ -138,8 +134,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             // act
             var lostChannel = registration.Channel!;
             await lostChannel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
-            var reattached = await Condition.WaitAsync(
-                () => registration.IsAttached && !ReferenceEquals(registration.Channel, lostChannel), s_timeout);
+            var cancelled = await Condition.WaitAsync(() => gate.CancelledHandlers == 1, s_timeout);
             using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
             await registration.StopAsync(deadline.Token).WaitAsync(s_timeout, TestContext.Current.CancellationToken);
             var activeAtStop = gate.ActiveHandlers;
@@ -147,7 +142,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             var finished = await Condition.WaitAsync(() => gate.ActiveHandlers == 0, s_timeout);
 
             // assert
-            Assert.True(reattached);
+            Assert.True(cancelled);
             Assert.Equal(1, activeAtStop);
             Assert.True(finished);
             Assert.Equal(1, gate.Invocations);
@@ -159,9 +154,49 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         }
     }
 
-    private sealed record HandlerState(int ActiveHandlers, int PeakConcurrency, int Invocations);
+    [Fact]
+    public async Task DisposeAsync_Should_EndGracefulStop_When_HandlerIgnoresCancellation()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+        await using var manager = new RabbitMQConsumerManager(
+            NullLogger<RabbitMQConsumerManager>.Instance,
+            async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        var gate = new HandlerGate(blockedHandlers: 1);
+        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
+            "orders", gate.HandleAsync, 1, 1, TestContext.Current.CancellationToken);
+        await channel.BasicPublishAsync("", "orders", "order"u8.ToArray(), TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
-    private sealed record RecoveryState(bool Reattached, int Invocations, int ActiveHandlers, bool IsHealthy);
+        try
+        {
+            // act
+            var gracefulStop = registration.StopAsync(CancellationToken.None);
+            await vhost.WaitForNoConsumerAsync("orders", s_timeout);
+            var draining = !gracefulStop.IsCompleted;
+            await registration.DisposeAsync().AsTask().WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await gracefulStop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await vhost.WaitForMessagesAsync("orders", 1, s_timeout);
+
+            // assert
+            Assert.True(draining);
+            Assert.True(await Condition.WaitAsync(() => gate.CancelledHandlers == 1, s_timeout));
+            Assert.False(registration.IsAttached);
+            Assert.Equal(1, gate.ActiveHandlers);
+            Assert.Equal(1, await vhost.GetMessageCountAsync("orders"));
+        }
+        finally
+        {
+            gate.Release.TrySetResult();
+        }
+    }
+
+    private sealed record HandlerState(int ActiveHandlers, int PeakConcurrency, int Invocations);
 
     private sealed class HandlerGate(int blockedHandlers)
     {

@@ -142,6 +142,8 @@ A slow or unavailable queue does not prevent unrelated endpoints from recovering
 
 Mocha manages this recovery regardless of the connection factory's `AutomaticRecoveryEnabled` setting.
 
+For quorum queues, a surviving majority can elect a new leader and continue delivering messages after a node fails. Unreplicated classic queues remain unavailable while their node is down. Configure your connection provider to reach surviving cluster nodes if the node serving its AMQP connection fails.
+
 ## Startup connection timeout
 
 If RabbitMQ is unavailable when the application starts, Mocha retries the connection for up to two minutes by default. Startup fails if it cannot connect within that time. Invalid credentials, denied access to the configured virtual host, or queue and exchange declarations rejected by the broker cause startup to fail without waiting for the timeout.
@@ -187,6 +189,8 @@ graph LR
 **Commands (send):** Each command type gets a direct exchange bound to a single queue. Sending delivers the message to exactly one consumer.
 
 **Request/reply:** The transport creates a temporary reply queue per service instance. The reply address is embedded in the request message so the responder knows where to send the reply.
+
+When the transport's default queue type is quorum, generated reply queues also use quorum and inherit `x-quorum-initial-group-size` if configured. They remain durable, expire after one minute without consumers by default, and do not inherit message limits or other queue lifecycle defaults.
 
 > [!WARNING]
 > RabbitMQ drops a published message if no queue binding matches it, even when the publish call succeeds. When Mocha creates your queues and bindings at startup, start the receiving services before services that publish to them.
@@ -240,9 +244,8 @@ builder.Services
     {
         transport.ConfigureDefaults(defaults =>
         {
-            // All queues will be quorum with a delivery limit of 5
+            // Durable queues use quorum
             defaults.Queue.QueueType = RabbitMQQueueType.Quorum;
-            defaults.Queue.Arguments["x-delivery-limit"] = 5;
 
             // All exchanges will use topic routing
             defaults.Exchange.Type = RabbitMQExchangeType.Topic;
@@ -300,6 +303,42 @@ Available exchange defaults:
 Defaults never override explicitly configured values. If you declare a queue with a specific queue type, that setting takes precedence over the transport default. You can call `ConfigureDefaults` multiple times - each call accumulates settings on the same defaults object.
 
 # Configure queues
+
+When no queue type is configured, Mocha omits `x-queue-type` and RabbitMQ selects the type using its broker or virtual-host default. Use `Queue("name").Quorum()`, `DeclareQueue("name").QueueType(...)`, or `ConfigureDefaults` to select a type explicitly.
+
+## Quorum delivery limits
+
+Mocha leaves delivery limits to RabbitMQ unless you configure `x-delivery-limit` explicitly. RabbitMQ 4 defaults quorum queues to a delivery limit of 20; RabbitMQ 3 defaults to unlimited deliveries.
+
+A finite delivery limit can cause RabbitMQ to discard or dead-letter messages after repeated connection or channel failures. See [RabbitMQ's poison message handling](https://www.rabbitmq.com/docs/quorum-queues#poison-message-handling) for how delivery limits apply.
+
+To disable the limit for a quorum queue:
+
+```csharp
+transport.DeclareQueue("orders")
+    .QueueType(RabbitMQQueueType.Quorum)
+    .MaxDeliveryLimit(-1);
+```
+
+To configure unlimited deliveries for application queues through transport defaults:
+
+```csharp
+transport.ConfigureDefaults(defaults =>
+{
+    defaults.Queue.QueueType = RabbitMQQueueType.Quorum;
+    defaults.Queue.Arguments["x-delivery-limit"] = -1;
+});
+```
+
+On RabbitMQ 3, an explicit `-1` is omitted from the declaration because that broker version already defaults to unlimited deliveries. Broker policies can also affect the effective delivery limit.
+
+When auto-provisioning is disabled, configure the queue type and delivery limit on the broker yourself. Mocha does not inspect existing queue settings through the management API.
+
+### Existing queues
+
+Leaving the queue type and delivery limit unspecified preserves declarations that use broker defaults. If you explicitly change arguments that RabbitMQ checks for equivalence, an existing queue can reject the declaration and fail startup. Use a broker policy where supported, drain and recreate the queue, or migrate to a new queue; Mocha does not delete or replace existing queues.
+
+## Queue configuration
 
 Use `transport.Queue("name")` when you need to customize a RabbitMQ queue. The queue builder is the primary API for queue names, queue type, arguments, handler assignment, source bindings, prefetch, concurrency, fault queues, and skipped queues.
 

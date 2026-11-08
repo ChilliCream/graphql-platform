@@ -7,7 +7,7 @@ public sealed class RabbitMQDefaultQueueOptions
 {
     /// <summary>
     /// Gets or sets the default queue type (Classic, Quorum, or Stream).
-    /// When set, all auto-provisioned queues will use this queue type unless explicitly overridden.
+    /// When no queue type is configured, RabbitMQ selects the queue type.
     /// </summary>
     public string? QueueType { get; set; }
 
@@ -38,11 +38,7 @@ public sealed class RabbitMQDefaultQueueOptions
         configuration.Durable ??= Durable;
         configuration.AutoDelete ??= AutoDelete;
 
-        var queueType = QueueType;
-        if (queueType is null && Arguments.TryGetValue("x-queue-type", out var argument))
-        {
-            queueType = argument as string;
-        }
+        var queueType = GetQueueType();
 
         var isIncompatibleWithQueueType =
             configuration.AutoDelete is true
@@ -70,4 +66,26 @@ public sealed class RabbitMQDefaultQueueOptions
             }
         }
     }
+
+    /// <summary>
+    /// Applies quorum replication settings to a generated reply queue.
+    /// Message limits and queue lifecycle defaults are not applied.
+    /// </summary>
+    internal void ApplyToReplyQueue(RabbitMQQueueConfiguration configuration)
+    {
+        if (GetQueueType() is not RabbitMQQueueType.Quorum)
+        {
+            return;
+        }
+
+        configuration.Arguments ??= new Dictionary<string, object>();
+        configuration.Arguments.TryAdd("x-queue-type", RabbitMQQueueType.Quorum);
+        if (Arguments.TryGetValue("x-quorum-initial-group-size", out var groupSize))
+        {
+            configuration.Arguments.TryAdd("x-quorum-initial-group-size", groupSize);
+        }
+    }
+
+    private string? GetQueueType()
+        => QueueType ?? (Arguments.TryGetValue("x-queue-type", out var value) ? value as string : null);
 }

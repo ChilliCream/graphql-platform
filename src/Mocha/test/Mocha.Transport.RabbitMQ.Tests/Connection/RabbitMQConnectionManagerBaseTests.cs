@@ -397,6 +397,71 @@ public class RabbitMQConnectionManagerBaseTests
         Assert.Equal(1, manager.ConnectionEstablishedCount);
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_DisposeConnection_When_CloseFails()
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        connection.Setup(c => c.CloseAsync(
+            It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(),
+            It.IsAny<CancellationToken>())).ThrowsAsync(new IOException("Connection lost."));
+        var manager = CreateManager(connection.Object);
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+
+        // act
+        await manager.DisposeAsync();
+
+        // assert
+        Assert.False(manager.IsConnected);
+        connection.Verify(c => c.DisposeAsync(), Times.Once());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DisposeAsync_Should_WaitForCleanup_When_FactoryReturnsAfterCancellation(bool background)
+    {
+        // arrange
+        var connection = CreateOpenConnection();
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var manager = new TestConnectionManager(NullLogger<TestConnectionManager>.Instance, async _ =>
+        {
+            started.TrySetResult();
+            await release.Task;
+            return connection.Object;
+        });
+        Task? connecting = null;
+        if (background)
+        {
+            manager.Reconnect();
+        }
+        else
+        {
+            connecting = manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        }
+
+        await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        // act
+        var firstDisposal = manager.DisposeAsync().AsTask();
+        var secondDisposal = manager.DisposeAsync().AsTask();
+        var waitingForFactory = !firstDisposal.IsCompleted && !secondDisposal.IsCompleted;
+        release.TrySetResult();
+        await Task.WhenAll(firstDisposal, secondDisposal)
+            .WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(waitingForFactory);
+        Assert.False(manager.IsConnected);
+        Assert.Equal(0, manager.ConnectionEstablishedCount);
+        connection.Verify(c => c.DisposeAsync(), Times.Once());
+        if (connecting is not null)
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => connecting);
+        }
+    }
+
     private static Mock<IConnection> CreateOpenConnection()
     {
         var connectionMock = new Mock<IConnection>();

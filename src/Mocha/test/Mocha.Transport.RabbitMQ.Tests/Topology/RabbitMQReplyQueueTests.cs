@@ -23,13 +23,14 @@ public class RabbitMQReplyQueueTests
         Assert.Equal(milliseconds, queue.Arguments["x-expires"]);
     }
 
-    [Fact]
-    public void ReplyQueue_Should_BeDurableExpiringQueue_When_RequestHandlerRegistered()
+    [Theory]
+    [InlineData(null)]
+    [InlineData(RabbitMQQueueType.Classic)]
+    [InlineData(RabbitMQQueueType.Stream)]
+    public void ReplyQueue_Should_LeaveQueueTypeUnspecified_When_DefaultIsNotQuorum(string? queueType)
     {
         // arrange
-        // RabbitMQ 4.3 denies non-durable, non-exclusive queues by default, so the per-instance
-        // reply queue stays durable and expires instead of being deleted with its last consumer.
-        var runtime = CreateRuntime(_ => { });
+        var runtime = CreateRuntime(t => t.ConfigureDefaults(d => d.Queue.QueueType = queueType));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = transport.Topology;
 
@@ -43,15 +44,29 @@ public class RabbitMQReplyQueueTests
         Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 60000 }, queue.Arguments);
     }
 
-    [Fact]
-    public void ReplyQueue_Should_StayClassic_When_QuorumDefaultsConfigured()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ReplyQueue_Should_InheritOnlyReplicationSettings_When_QuorumDefaultsConfigured(bool useArgument)
     {
         // arrange
-        // The reply queue is per instance and short-lived, so bus defaults must not reach it.
         var runtime = CreateRuntime(t => t.ConfigureDefaults(d =>
         {
-            d.Queue.QueueType = RabbitMQQueueType.Quorum;
+            if (useArgument)
+            {
+                d.Queue.Arguments["x-queue-type"] = RabbitMQQueueType.Quorum;
+            }
+            else
+            {
+                d.Queue.QueueType = RabbitMQQueueType.Quorum;
+            }
+
+            d.Queue.Durable = false;
+            d.Queue.AutoDelete = true;
+            d.Queue.Arguments["x-quorum-initial-group-size"] = 5;
             d.Queue.Arguments["x-delivery-limit"] = 5;
+            d.Queue.Arguments["x-message-ttl"] = 1000;
+            d.Queue.Arguments["x-expires"] = 1000;
         }));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = transport.Topology;
@@ -63,7 +78,14 @@ public class RabbitMQReplyQueueTests
         Assert.True(queue.Durable);
         Assert.False(queue.Exclusive);
         Assert.False(queue.AutoDelete);
-        Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 60000 }, queue.Arguments);
+        Assert.Equal(
+            new Dictionary<string, object?>
+            {
+                ["x-expires"] = 60000,
+                ["x-queue-type"] = RabbitMQQueueType.Quorum,
+                ["x-quorum-initial-group-size"] = 5
+            },
+            queue.Arguments);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IRabbitMQMessagingTransportDescriptor> configureTransport)

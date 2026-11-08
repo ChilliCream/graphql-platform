@@ -10,6 +10,60 @@ public sealed class BrokerRecoveryTests(RabbitMQFixture fixture)
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan s_recoveryTimeout = TimeSpan.FromSeconds(20);
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Bus_Should_RedeliverAndResumePublishing_When_BrokerProcessIsKilled(bool automaticRecoveryEnabled)
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
+        var gate = new CrashHandlerGate();
+        var recorder = new MessageRecorder();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddSingleton(gate)
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddEventHandler<CrashOrderHandler>()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddRabbitMQ(t =>
+            {
+                t.Endpoint("orders").Handler<CrashOrderHandler>();
+                t.Endpoint("order-status").Handler<GetOrderStatusHandler>();
+            })
+            .BuildTestBusAsync();
+        using var scope = bus.Provider.CreateScope();
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(45));
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "before-crash" }, deadline.Token);
+        await gate.Started.Task.WaitAsync(s_timeout, deadline.Token);
+
+        // act
+        Task publish;
+        await using (await fixture.KillBrokerAsync())
+        {
+            await gate.Cancelled.Task.WaitAsync(s_timeout, deadline.Token);
+            publish = messageBus.PublishAsync(new OrderCreated { OrderId = "during-outage" }, deadline.Token).AsTask();
+            await Assert.ThrowsAsync<TimeoutException>(() => publish.WaitAsync(TimeSpan.FromMilliseconds(200), deadline.Token));
+        }
+
+        await publish.WaitAsync(s_recoveryTimeout, deadline.Token);
+        var recovered = await Condition.WaitAsync(
+            () => recorder.Messages.Cast<OrderCreated>().Select(m => m.OrderId).Distinct().Count() == 2,
+            s_recoveryTimeout);
+        var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "after-crash" }, deadline.Token);
+        var settled = await Condition.WaitAsync(async () => await vhost.GetMessageCountAsync("orders") == 0, s_timeout);
+
+        // assert
+        Assert.True(recovered);
+        Assert.Equal(["before-crash", "during-outage"],
+            recorder.Messages.Cast<OrderCreated>().Select(m => m.OrderId).Distinct().Order());
+        Assert.Equal("after-crash", response.OrderId);
+        Assert.True(settled);
+    }
+
     [Fact]
     public async Task Bus_Should_DeliverEventsAndReplies_When_BrokerClosesConsumerConnection()
     {
@@ -304,6 +358,37 @@ public sealed class BrokerRecoveryTests(RabbitMQFixture fixture)
         var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(s_timeout);
         return cts;
+    }
+
+    public sealed class CrashHandlerGate
+    {
+        public int Invocations;
+
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    public sealed class CrashOrderHandler(CrashHandlerGate gate, MessageRecorder recorder) : IEventHandler<OrderCreated>
+    {
+        public async ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
+        {
+            if (Interlocked.Increment(ref gate.Invocations) == 1)
+            {
+                gate.Started.TrySetResult();
+                try
+                {
+                    await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    gate.Cancelled.TrySetResult();
+                    throw;
+                }
+            }
+
+            recorder.Record(message);
+        }
     }
 
     private sealed class Credentials(string userName, string password)

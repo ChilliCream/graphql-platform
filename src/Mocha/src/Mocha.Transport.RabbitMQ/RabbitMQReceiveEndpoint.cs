@@ -62,6 +62,16 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
 
     private RabbitMQConsumerManager.RegisteredConsumer? _consumer;
 
+    internal ValueTask WaitUntilAttachedAsync(CancellationToken cancellationToken)
+    {
+        if (_consumer is not { } consumer)
+        {
+            throw ThrowHelper.ReplyEndpointNotStarted();
+        }
+
+        return consumer.WaitUntilAttachedAsync(cancellationToken);
+    }
+
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
@@ -74,8 +84,6 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             dependencies = [() => replyEndpoint._consumer];
         }
 
-        var provisioner = new RabbitMQTopologyProvisioner(transport.Topology);
-
         _consumer = await transport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
             ProvisionAsync,
@@ -85,8 +93,8 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             _consumerDispatchConcurrency,
             cancellationToken);
 
-        Task ProvisionAsync(IChannel channel, CancellationToken ct)
-            => provisioner.ProvisionReceiveAsync(Queue, channel, ct);
+        Task ProvisionAsync(IConnection connection, IChannel channel, CancellationToken ct)
+            => new RabbitMQTopologyProvisioner(transport.Topology, connection).ProvisionReceiveAsync(Queue, channel, ct);
     }
 
     private async ValueTask ProcessMessageAsync(

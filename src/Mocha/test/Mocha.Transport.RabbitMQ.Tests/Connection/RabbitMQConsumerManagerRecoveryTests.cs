@@ -297,7 +297,7 @@ public class RabbitMQConsumerManagerRecoveryTests
         var attempts = 0;
         var replyConsumer = await manager.RegisterConsumerAsync(
             "replies",
-            async (channel, ct) =>
+            async (_, channel, ct) =>
             {
                 if (Interlocked.Increment(ref attempts) > 1)
                 {
@@ -315,7 +315,7 @@ public class RabbitMQConsumerManagerRecoveryTests
             TestContext.Current.CancellationToken);
         await manager.RegisterConsumerAsync(
             QueueName,
-            static (channel, ct) => channel.QueueDeclareAsync(
+            static (_, channel, ct) => channel.QueueDeclareAsync(
                 QueueName, durable: true, exclusive: false, autoDelete: false, cancellationToken: ct),
             dependencies: [() => replyConsumer],
             async (channel, delivery, ct) =>

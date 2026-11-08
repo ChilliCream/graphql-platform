@@ -2,7 +2,7 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ;
 
-internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topology)
+internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topology, IConnection connection)
 {
     public async Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken)
     {
@@ -10,7 +10,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
         {
             if (exchange.AutoProvision ?? topology.AutoProvision)
             {
-                await exchange.ProvisionAsync(channel, cancellationToken);
+                await exchange.ProvisionAsync(channel, connection, cancellationToken);
             }
         }
 
@@ -20,7 +20,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
         {
             if (!queue.Exclusive && (queue.AutoProvision ?? topology.AutoProvision))
             {
-                await queue.ProvisionAsync(channel, cancellationToken);
+                await queue.ProvisionAsync(channel, connection, cancellationToken);
             }
         }
 
@@ -42,7 +42,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
     {
         if (queue.AutoProvision ?? topology.AutoProvision)
         {
-            await queue.ProvisionAsync(channel, cancellationToken);
+            await queue.ProvisionAsync(channel, connection, cancellationToken);
         }
 
         var bindings = new List<RabbitMQBinding>();
@@ -65,7 +65,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
 
             if (exchange.AutoProvision ?? topology.AutoProvision)
             {
-                await exchange.ProvisionAsync(channel, cancellationToken);
+                await exchange.ProvisionAsync(channel, connection, cancellationToken);
             }
 
             foreach (var binding in exchange.Bindings)
@@ -92,7 +92,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
     {
         if (binding.AutoProvision ?? topology.AutoProvision)
         {
-            await binding.ProvisionAsync(channel, cancellationToken);
+            await binding.ProvisionAsync(channel, connection, cancellationToken);
         }
     }
 }

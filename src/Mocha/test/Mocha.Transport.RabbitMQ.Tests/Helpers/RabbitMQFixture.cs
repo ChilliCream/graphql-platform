@@ -136,6 +136,8 @@ public sealed class RabbitMQFixture : IAsyncLifetime
         });
     }
 
+    internal Task<IAsyncDisposable> KillBrokerAsync() => _resource.KillAsync();
+
     /// <summary>
     /// Lowers the largest message the broker accepts until the returned handle is disposed.
     /// </summary>
@@ -702,8 +704,22 @@ internal sealed class ManagementRabbitMQResource : RabbitMQResource
 {
     public ushort ManagementPort => Container.GetMappedPublicPort(15672);
 
+    public async Task<IAsyncDisposable> KillAsync()
+    {
+        await InvokeCommandAsync(["sh", "-c", "kill -KILL \"$(cat /tmp/rabbitmq.pid)\""]);
+        await InvokeCommandAsync(["rm", "/tmp/rabbitmq.pid"]);
+        return new AsyncDisposable(async () =>
+        {
+            await InvokeCommandAsync(["docker-entrypoint.sh", "rabbitmq-server", "-detached"]);
+            await InvokeCommandAsync(["rabbitmqctl", "wait", "/tmp/rabbitmq.pid"]);
+        });
+    }
+
     protected override RabbitMqBuilder Configure(RabbitMqBuilder builder)
         => builder
+            .WithEnvironment("RABBITMQ_PID_FILE", "/tmp/rabbitmq.pid")
+            .WithEntrypoint("/bin/sh", "-c")
+            .WithCommand("docker-entrypoint.sh rabbitmq-server -detached && exec sleep infinity")
             .WithResourceMapping("[rabbitmq_management]."u8.ToArray(), "/etc/rabbitmq/enabled_plugins")
             .WithPortBinding(15672, true)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(request => request

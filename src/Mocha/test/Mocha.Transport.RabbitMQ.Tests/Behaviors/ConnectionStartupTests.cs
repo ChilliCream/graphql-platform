@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
@@ -140,11 +141,18 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
         var recorder = new MessageRecorder();
+        var connectionProvider = new ClusterConnectionProvider(vhost);
 
         // act
-        await using var bus = await CreateBusAsync(vhost, recorder, connectionProvider: new ClusterConnectionProvider(vhost));
+        await using var bus = await CreateBusAsync(vhost, recorder, connectionProvider);
 
         // assert
+        Assert.Equal(
+            [
+                "mocha-unreachable.invalid", vhost.ConnectionSettings.HostName,
+                "mocha-unreachable.invalid", vhost.ConnectionSettings.HostName
+            ],
+            connectionProvider.ConnectionAttempts.SelectMany(attempt => attempt));
         await AssertRoundTripAsync(bus, recorder, "ORD-1");
     }
 
@@ -205,6 +213,8 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
 
     private sealed class ClusterConnectionProvider(VhostContext vhost) : IRabbitMQConnectionProvider
     {
+        public ConcurrentQueue<string[]> ConnectionAttempts { get; } = new();
+
         public string Host => vhost.ConnectionSettings.HostName;
 
         public string VirtualHost => vhost.VhostName;
@@ -220,7 +230,24 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
                 new(vhost.ConnectionSettings.HostName, vhost.ConnectionSettings.Port)
             ];
 
-            return await factory.CreateConnectionAsync(nodes, cancellationToken);
+            var resolver = new OrderedEndpointResolver(nodes);
+            var connection = await factory.CreateConnectionAsync(resolver, null, cancellationToken);
+            ConnectionAttempts.Enqueue(resolver.AttemptedHosts.ToArray());
+            return connection;
+        }
+    }
+
+    private sealed class OrderedEndpointResolver(AmqpTcpEndpoint[] endpoints) : IEndpointResolver
+    {
+        public List<string> AttemptedHosts { get; } = [];
+
+        public IEnumerable<AmqpTcpEndpoint> All()
+        {
+            foreach (var endpoint in endpoints)
+            {
+                AttemptedHosts.Add(endpoint.HostName);
+                yield return endpoint;
+            }
         }
     }
 }

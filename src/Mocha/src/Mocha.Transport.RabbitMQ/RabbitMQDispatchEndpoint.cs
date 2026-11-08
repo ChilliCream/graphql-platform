@@ -43,6 +43,12 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
         while (!cancellationToken.IsCancellationRequested)
         {
+            if (transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint
+                && envelope.ResponseAddress == replyEndpoint.Source.Address.ToString())
+            {
+                await replyEndpoint.WaitUntilAttachedAsync(cancellationToken);
+            }
+
             IChannel? channel = null;
             var canReuseChannel = false;
             try
@@ -63,7 +69,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                     }
 
                     canReuseChannel = false;
-                    await Queue.ProvisionAsync(channel, cancellationToken);
+                    await Queue.ProvisionAsync(channel, transport.Dispatcher.GetChannelConnection(channel), cancellationToken);
                     canReuseChannel = true;
                     dispatcher.LogReturnedQueueRedeclared(Queue.Name);
 
@@ -255,12 +261,12 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         // An exclusive queue belongs to the connection that declares it, which must be the consumer's.
         if (Queue is { Exclusive: false } && (Queue.AutoProvision ?? autoProvision))
         {
-            await Queue.ProvisionAsync(channel, cancellationToken);
+            await Queue.ProvisionAsync(channel, transport.Dispatcher.GetChannelConnection(channel), cancellationToken);
         }
 
         if (Exchange is not null && (Exchange.AutoProvision ?? autoProvision))
         {
-            await Exchange.ProvisionAsync(channel, cancellationToken);
+            await Exchange.ProvisionAsync(channel, transport.Dispatcher.GetChannelConnection(channel), cancellationToken);
         }
 
         _isProvisioned = true;

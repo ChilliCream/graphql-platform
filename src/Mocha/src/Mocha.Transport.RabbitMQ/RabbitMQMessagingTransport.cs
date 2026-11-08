@@ -118,7 +118,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
         {
             await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
-            await new RabbitMQTopologyProvisioner(_topology).ProvisionAsync(channel, ct);
+            await new RabbitMQTopologyProvisioner(_topology, connection).ProvisionAsync(channel, ct);
         }
     }
 

@@ -81,13 +81,17 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
     /// <param name="cancellationToken">A token to cancel the registration operation.</param>
     internal async Task<RegisteredConsumer> RegisterConsumerAsync(
         string queueName,
-        Func<IChannel, CancellationToken, Task>? provisionAsync,
+        Func<IConnection, IChannel, CancellationToken, Task>? provisionAsync,
         ImmutableArray<Func<RegisteredConsumer?>> dependencies,
         Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
         ushort prefetchCount,
         ushort consumerDispatchConcurrency,
         CancellationToken cancellationToken)
     {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentOutOfRangeException.ThrowIfZero(consumerDispatchConcurrency);
+
         var registration = new RegisteredConsumer(consumerDispatchConcurrency)
         {
             Manager = this,
@@ -99,6 +103,12 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
         };
 
         AddConsumer(registration);
+
+        if (IsDisposed)
+        {
+            await registration.DisposeAsync();
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+        }
 
         var connection = CurrentConnection;
         if (connection is { IsOpen: true })
@@ -316,54 +326,14 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
 
 internal static partial class Logs
 {
-    [LoggerMessage(LogLevel.Information, "Creating RabbitMQ connection using factory delegate")]
-    public static partial void CreatingConnectionUsingFactoryDelegate(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Information, "Successfully created connection: {ConnectionName}")]
-    public static partial void SuccessfullyCreatedConnection(this ILogger logger, string? connectionName);
-
-    [LoggerMessage(LogLevel.Error, "Failed to create connection after {Attempts} attempts")]
-    public static partial void FailedToCreateConnectionAfterAttempts(this ILogger logger, Exception ex, int attempts);
-
-    [LoggerMessage(LogLevel.Warning, "Failed to create connection (attempt {Attempt}). Retrying in {Delay}")]
-    public static partial void FailedToCreateConnectionRetrying(
-        this ILogger logger,
-        Exception ex,
-        int attempt,
-        TimeSpan delay);
-
     [LoggerMessage(LogLevel.Error, "Error processing message from queue {Queue}")]
     public static partial void ErrorProcessingMessageFromQueue(this ILogger logger, Exception ex, string queue);
 
     [LoggerMessage(LogLevel.Information, "Registered consumer for queue {Queue}")]
     public static partial void RegisteredConsumerForQueue(this ILogger logger, string queue);
 
-    [LoggerMessage(LogLevel.Warning, "Cannot provision topology - connection not available")]
-    public static partial void CannotProvisionTopologyConnectionNotAvailable(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Information, "Provisioning RabbitMQ topology")]
-    public static partial void ProvisioningRabbitMQTopology(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Debug, "Declared exchange: {Exchange}")]
-    public static partial void DeclaredExchange(this ILogger logger, string exchange);
-
-    [LoggerMessage(LogLevel.Debug, "Declared queue: {Queue}")]
-    public static partial void DeclaredQueue(this ILogger logger, string queue);
-
-    [LoggerMessage(LogLevel.Debug, "Created binding: {Queue} -> {Exchange}/{RoutingKey}")]
-    public static partial void CreatedBinding(this ILogger logger, string queue, string exchange, string routingKey);
-
-    [LoggerMessage(LogLevel.Information, "Successfully provisioned topology")]
-    public static partial void SuccessfullyProvisionedTopology(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Error, "Failed to provision topology")]
-    public static partial void FailedToProvisionTopology(this ILogger logger, Exception ex);
-
     [LoggerMessage(LogLevel.Information, "Reconnecting {Count} registered consumers")]
     public static partial void ReconnectConsumersAsync(this ILogger logger, int count);
-
-    [LoggerMessage(LogLevel.Warning, "Cannot recreate consumer for queue {Queue} - no factory or handler")]
-    public static partial void CannotRecreateConsumerNoFactoryOrHandler(this ILogger logger, string queue);
 
     [LoggerMessage(LogLevel.Information, "Reconnected consumer for queue {Queue}")]
     public static partial void ReconnectConsumerForQueue(this ILogger logger, string queue);
@@ -403,35 +373,8 @@ internal static partial class Logs
     [LoggerMessage(LogLevel.Error, "Failed to reconnect consumer for queue {Queue}")]
     public static partial void FailedToReconnectConsumerForQueue(this ILogger logger, Exception ex, string queue);
 
-    [LoggerMessage(LogLevel.Information, "Connection closed by application")]
-    public static partial void ConnectionClosedByApplication(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Warning, "Connection shutdown detected. Initiator: {Initiator}, Reason: {Reason}")]
-    public static partial void ConnectionShutdownDetected(
-        this ILogger logger,
-        ShutdownInitiator initiator,
-        string reason);
-
-    [LoggerMessage(LogLevel.Error, "Failed to reconnect after shutdown")]
-    public static partial void FailedToReconnectAfterShutdown(this ILogger logger, Exception ex);
-
-    [LoggerMessage(LogLevel.Error, "Error while handling the loss of the connection")]
-    public static partial void ErrorHandlingConnectionLoss(this ILogger logger, Exception ex);
-
-    [LoggerMessage(LogLevel.Information, "Connection recovery started")]
-    public static partial void ConnectionRecoveryStarted(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Warning, "Connection blocked: {Reason}")]
-    public static partial void ConnectionBlocked(this ILogger logger, string reason);
-
-    [LoggerMessage(LogLevel.Information, "Connection unblocked")]
-    public static partial void ConnectionUnblocked(this ILogger logger);
-
     [LoggerMessage(LogLevel.Warning, "Connection health check failed - attempting reconnection")]
     public static partial void ConnectionHealthCheckFailedAttemptingReconnection(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Error, "Reconnection attempt {Attempt} failed. Retrying in {Delay}")]
-    public static partial void ReconnectionAttemptFailed(this ILogger logger, Exception ex, int attempt, TimeSpan delay);
 
     [LoggerMessage(LogLevel.Trace, "Connection health check: OK")]
     public static partial void ConnectionHealthCheckOk(this ILogger logger);
@@ -439,50 +382,11 @@ internal static partial class Logs
     [LoggerMessage(LogLevel.Error, "Error during connection health check")]
     public static partial void ErrorDuringConnectionHealthCheck(this ILogger logger, Exception ex);
 
-    [LoggerMessage(LogLevel.Error, "Error disposing connection")]
-    public static partial void ErrorDisposingConnection(this ILogger logger, Exception ex);
-
-    [LoggerMessage(LogLevel.Information, "DelegateConnectionManager disposed")]
-    public static partial void DelegateConnectionManagerDisposed(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Error, "Exception in connection callback. Detail: {Detail}")]
-    public static partial void ExceptionInConnectionCallback(this ILogger logger, Exception ex, string detail);
-
-    [LoggerMessage(LogLevel.Information, "Consumer tag changed after recovery. Old: {OldTag}, New: {NewTag}")]
-    public static partial void ConsumerTagChangedAfterRecovery(this ILogger logger, string oldTag, string newTag);
-
-    [LoggerMessage(LogLevel.Debug, "Updated consumer tag for queue {Queue}: {OldTag} -> {NewTag}")]
-    public static partial void UpdatedConsumerTagForQueue(
-        this ILogger logger,
-        string queue,
-        string oldTag,
-        string newTag);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "Server-named queue changed after recovery. Old: {OldName}, New: {NewName}. This may affect consumers expecting the old queue name.")]
-    public static partial void ServerNamedQueueChangedAfterRecovery(
-        this ILogger logger,
-        string oldName,
-        string newName);
-
-    [LoggerMessage(LogLevel.Information, "Recovering consumer {ConsumerTag}")]
-    public static partial void RecoveringConsumer(this ILogger logger, string consumerTag);
-
     [LoggerMessage(LogLevel.Error, "Error disposing consumer {ConsumerTag}")]
     public static partial void ErrorDisposingConsumer(this ILogger logger, Exception ex, string consumerTag);
 
     [LoggerMessage(LogLevel.Warning, "Failed to delete queue {Queue}")]
     public static partial void FailedToDeleteQueue(this ILogger logger, Exception ex, string queue);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "Reconnection attempt {Attempt} failed again. Retrying in {Delay}")]
-    public static partial void ReconnectionAttemptFailedAgain(
-        this ILogger logger,
-        Exception ex,
-        int attempt,
-        TimeSpan delay);
 
     [LoggerMessage(
         LogLevel.Warning,

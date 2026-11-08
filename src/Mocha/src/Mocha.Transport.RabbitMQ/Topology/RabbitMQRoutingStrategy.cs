@@ -215,7 +215,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             EnsureNoTemporaryQueueConflict(rabbitConfiguration);
         }
 
-        // Generated temporary reply queues expire without consumers and skip bus-level queue defaults.
+        // Generated temporary reply queues expire without consumers and inherit quorum replication settings.
         var isReplyQueue = rabbitConfiguration.IsTemporary && rabbitEndpoint.Kind == ReceiveEndpointKind.Reply;
 
         var queue = _topology.GetOrAddQueue(
@@ -225,7 +225,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
                 AutoDelete = rabbitConfiguration.IsTemporary && !isReplyQueue,
                 AutoProvision = rabbitConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint,
-                ApplyBusDefaults = !isReplyQueue
+                IsTemporaryReplyQueue = isReplyQueue
             });
 
         if (isReplyQueue && queue.Origin is not TopologyOrigin.Declared)

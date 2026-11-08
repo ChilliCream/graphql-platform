@@ -106,7 +106,7 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         manager.AttachTimeout = TimeSpan.FromSeconds(1);
         await manager.RegisterConsumerAsync(
             "slow",
-            async (consumerChannel, ct) =>
+            async (_, consumerChannel, ct) =>
             {
                 await release.Task.WaitAsync(ct);
                 await DeclareQueueAsync(consumerChannel, "slow");
@@ -160,7 +160,7 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         await using var manager = CreateManager(vhost);
         var replies = await manager.RegisterConsumerAsync(
             "replies",
-            async (consumerChannel, ct) =>
+            async (_, consumerChannel, ct) =>
             {
                 replyStarted.TrySetResult();
                 await release.Task.WaitAsync(ct);
@@ -173,7 +173,7 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
             TestContext.Current.CancellationToken);
         await manager.RegisterConsumerAsync(
             "requests",
-            (_, _) =>
+            (_, _, _) =>
             {
                 requestStarted.TrySetResult();
                 return Task.CompletedTask;
@@ -226,7 +226,7 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         await using var manager = CreateManager(vhost);
         var consumer = await manager.RegisterConsumerAsync(
             "orders",
-            async (_, ct) =>
+            async (_, _, ct) =>
             {
                 started.TrySetResult();
                 await release.Task.WaitAsync(ct);

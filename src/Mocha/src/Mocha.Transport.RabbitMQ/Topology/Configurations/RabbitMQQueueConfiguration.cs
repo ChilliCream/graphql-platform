@@ -45,7 +45,7 @@ public sealed class RabbitMQQueueConfiguration : TopologyConfiguration<RabbitMQM
     public bool? AutoProvision { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the bus-level queue defaults apply to this queue. Default is true.
+    /// Gets or sets a value indicating whether this is a generated temporary reply queue.
     /// </summary>
-    internal bool ApplyBusDefaults { get; set; } = true;
+    internal bool IsTemporaryReplyQueue { get; set; }
 }

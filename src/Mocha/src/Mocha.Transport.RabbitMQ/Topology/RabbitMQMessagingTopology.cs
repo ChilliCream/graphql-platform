@@ -149,7 +149,11 @@ public sealed class RabbitMQMessagingTopology(
     {
         configuration.Topology = this;
 
-        if (configuration.ApplyBusDefaults)
+        if (configuration.IsTemporaryReplyQueue)
+        {
+            defaults.Queue.ApplyToReplyQueue(configuration);
+        }
+        else
         {
             defaults.Queue.ApplyTo(configuration);
         }

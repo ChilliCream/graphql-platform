@@ -109,15 +109,30 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
     /// Declares this queue on the broker using the specified channel.
     /// </summary>
     /// <param name="channel">The RabbitMQ channel to use for declaring the queue.</param>
+    /// <param name="connection">The connection that owns the channel.</param>
     /// <param name="cancellationToken">A token to cancel the provisioning operation.</param>
-    public async Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken)
+    public async Task ProvisionAsync(IChannel channel, IConnection connection, CancellationToken cancellationToken)
     {
+        var arguments = Arguments;
+        var isLegacyBroker = connection.ServerProperties is { } properties
+            && properties.TryGetValue("version", out var version)
+            && version switch
+            {
+                byte[] bytes => bytes.AsSpan().StartsWith("3."u8),
+                string text => text.StartsWith("3.", StringComparison.Ordinal),
+                _ => false
+            };
+        if (isLegacyBroker && arguments.TryGetValue("x-delivery-limit", out var limit) && limit is -1)
+        {
+            arguments = arguments.Remove("x-delivery-limit");
+        }
+
         await channel.QueueDeclareAsync(
             CachedName.Value,
             Durable,
             Exclusive,
             AutoDelete,
-            Arguments,
+            arguments,
             cancellationToken: cancellationToken);
     }
 }

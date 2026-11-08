@@ -215,7 +215,7 @@ public class RequestReplyTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task RequestAsync_Should_ReturnAllResponses_When_RequestsWereQueuedDuringDisconnection(
+    public async Task RequestAsync_Should_ReturnAllResponses_When_RequestsWaitForReplyRecovery(
         bool automaticRecovery)
     {
         // arrange
@@ -249,7 +249,8 @@ public class RequestReplyTests
             pendingRequests = Enumerable.Range(1, 3)
                 .Select(i => messageBus.RequestAsync(new GetOrderStatus { OrderId = $"ORD-{i}" }, cts.Token).AsTask())
                 .ToArray();
-            await vhost.WaitForMessagesAsync(queueName, pendingRequests.Length, s_timeout);
+            Assert.Equal(0, await vhost.GetMessageCountAsync(queueName));
+            Assert.All(pendingRequests, request => Assert.False(request.IsCompleted));
         }
         finally
         {
