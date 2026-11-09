@@ -195,4 +195,7 @@
   <data name="PolicyCollectionType_ParseValue_ExpectedStringArray" xml:space="preserve">
     <value>Expected a string[][]</value>
   </data>
+  <data name="ThrowHelper_Service_SdlResolvedMoreThanOnce" xml:space="preserve">
+    <value>The field `_Service.sdl` can only be resolved once per request.</value>
+  </data>
 </root>

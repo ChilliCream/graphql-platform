@@ -80,6 +80,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 objectType,
                 objectTypeDefinition,
                 discoveryContext);
+
+            ApplySdlResolver(objectTypeDefinition);
         }
     }
 
@@ -544,6 +546,22 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             // since this type has now a key directive we also need to add this type to
             // the _Entity union type provided that the key is resolvable.
             _entityTypes.Add(objectType);
+        }
+    }
+
+    private static void ApplySdlResolver(ObjectTypeDefinition objectTypeDefinition)
+    {
+        if (objectTypeDefinition.RuntimeType != typeof(_Service))
+        {
+            return;
+        }
+
+        foreach (var field in objectTypeDefinition.Fields)
+        {
+            if (field.Name.Equals(WellKnownFieldNames.Sdl, StringComparison.Ordinal))
+            {
+                field.Resolvers = new FieldResolverDelegates(pureResolver: ServerFields.ResolveSdl);
+            }
         }
     }
 

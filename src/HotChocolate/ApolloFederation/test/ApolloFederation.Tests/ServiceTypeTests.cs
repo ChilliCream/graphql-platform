@@ -124,6 +124,167 @@ public class ServiceTypeTests
                 """);
     }
 
+    [Fact]
+    public async Task GetSdl_Should_ReturnSameSdl_When_CalledTwiceForOneSchema()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildSchemaAsync();
+
+        var service = new _Service();
+
+        // act
+        var first = service.GetSdl(schema);
+        var second = service.GetSdl(schema);
+
+        // assert
+        Assert.Same(first, second);
+    }
+
+    [Fact]
+    public async Task Sdl_Should_ReturnError_When_SelectedTwiceInOneRequest()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              _service {
+                first: sdl
+                second: sdl
+              }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Cannot return null for non-nullable field.",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "_service"
+                  ],
+                  "extensions": {
+                    "code": "HC0018"
+                  }
+                },
+                {
+                  "message": "The field `_Service.sdl` can only be resolved once per request.",
+                  "locations": [
+                    {
+                      "line": 4,
+                      "column": 5
+                    }
+                  ],
+                  "path": [
+                    "_service",
+                    "second"
+                  ]
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Sdl_Should_ReturnError_When_SelectedThroughTwoServiceFields()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              first: _service {
+                sdl
+              }
+              second: _service {
+                sdl
+              }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Cannot return null for non-nullable field.",
+                  "locations": [
+                    {
+                      "line": 5,
+                      "column": 3
+                    }
+                  ],
+                  "path": [
+                    "second"
+                  ],
+                  "extensions": {
+                    "code": "HC0018"
+                  }
+                },
+                {
+                  "message": "The field `_Service.sdl` can only be resolved once per request.",
+                  "locations": [
+                    {
+                      "line": 6,
+                      "column": 5
+                    }
+                  ],
+                  "path": [
+                    "second",
+                    "sdl"
+                  ]
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Sdl_Should_ResolveInEveryRequest_When_SelectedOncePerRequest()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var first = await executor.ExecuteAsync("{ _service { sdl } }");
+        var second = await executor.ExecuteAsync("{ _service { sdl } }");
+
+        // assert
+        Assert.Null(first.ExpectOperationResult().Errors);
+        Assert.Null(second.ExpectOperationResult().Errors);
+    }
+
     public class Query
     {
         public Address GetAddress(int id) => default!;

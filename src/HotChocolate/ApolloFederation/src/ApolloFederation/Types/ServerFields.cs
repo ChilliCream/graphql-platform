@@ -2,11 +2,17 @@ using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 
 public static class ServerFields
 {
+#if NET9_0_OR_GREATER
+    private static readonly Lock _sdlLock = new();
+#else
+    private static readonly object _sdlLock = new();
+#endif
     private static readonly _Service _service = new();
 
     internal static ObjectFieldDefinition CreateServiceField(IDescriptorContext context)
@@ -34,5 +40,25 @@ public static class ServerFields
             .Resolve(c => EntitiesResolver.ResolveAsync(c, maxAllowedRepresentations));
 
         return descriptor.CreateDefinition();
+    }
+
+    internal static string ResolveSdl(IResolverContext context)
+    {
+        bool resolved;
+
+        lock (_sdlLock)
+        {
+            resolved = context.ContextData.ContainsKey(SdlResolved);
+            context.ContextData[SdlResolved] = true;
+        }
+
+        if (resolved)
+        {
+            throw ThrowHelper.Service_SdlResolvedMoreThanOnce(
+                context.Selection.SyntaxNode,
+                context.Path);
+        }
+
+        return context.Parent<_Service>().GetSdl(context.Schema);
     }
 }
