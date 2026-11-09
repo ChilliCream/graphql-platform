@@ -37,7 +37,7 @@ internal static class FederationVersionExtensions
 
     public static FederationVersion GetFederationVersion(
         this IDescriptorContext context)
-        => context.Features.GetRequired<ApolloFederationFeature>().Version;
+        => context.Features.GetRequired<ApolloFederationFeature>().Options.Version;
 
     public static Uri ToUrl(this FederationVersion version)
     {
