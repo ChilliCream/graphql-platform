@@ -25,6 +25,12 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
+    public static IError BatchSizeExceeded(int maxBatchSize)
+        => ErrorBuilder.New()
+            .SetMessage(string.Format(ErrorHelper_BatchSizeExceeded, maxBatchSize))
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
     public static IError NoSupportedAcceptMediaType()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_NoSupportedAcceptMediaType)

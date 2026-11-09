@@ -247,4 +247,35 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal("", await response.Content.ReadAsStringAsync());
     }
+
+    [Fact]
+    public async Task Post_Should_Refuse_When_VariableSetsExceedMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+        var variables = string.Join(", ", Enumerable.Repeat("""{ "if": false }""", 1025));
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql/persisted/abc123/Test",
+            new StringContent(
+                $$"""{ "variables": [{{variables}}] }""",
+                Encoding.UTF8,
+                "application/json"));
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 1024.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
 }

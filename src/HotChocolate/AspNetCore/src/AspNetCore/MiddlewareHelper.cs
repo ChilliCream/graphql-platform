@@ -200,9 +200,22 @@ internal static class MiddlewareHelper
         return requestFlags;
     }
 
+    public static void ThrowIfBatchSizeExceeded(
+        GraphQLServerOptions options,
+        int batchSize,
+        IErrorHandler errorHandler)
+    {
+        if (options.MaxBatchSize > 0 && batchSize > options.MaxBatchSize)
+        {
+            var error = ErrorHelper.BatchSizeExceeded(options.MaxBatchSize);
+            throw new GraphQLException(errorHandler.Handle(error));
+        }
+    }
+
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(
         GraphQLRequest request,
         GraphQLRequestFlags flags,
+        GraphQLServerOptions options,
         HttpContext context,
         IRequestExecutor requestExecutor,
         IErrorHandler errorHandler,
@@ -213,6 +226,8 @@ internal static class MiddlewareHelper
 
         try
         {
+            ThrowIfBatchSizeExceeded(options, request.Variables?.Count ?? 0, errorHandler);
+
             diagnosticEvents.StartSingleRequest(context, request);
 
             var requestBuilder = OperationRequestBuilder.From(request);

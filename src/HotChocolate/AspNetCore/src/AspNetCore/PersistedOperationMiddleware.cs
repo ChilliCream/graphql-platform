@@ -109,6 +109,7 @@ internal static class PersistedOperationMiddleware
             await MiddlewareHelper.ExecuteRequestAsync(
                 request,
                 requestFlags,
+                options,
                 services.Context,
                 executor,
                 errorHandler,
@@ -193,6 +194,7 @@ internal static class PersistedOperationMiddleware
             await MiddlewareHelper.ExecuteRequestAsync(
                 parserResult.Request!,
                 validationResult.RequestFlags,
+                state.GetOptions(services.Context),
                 services.Context,
                 executor,
                 errorHandler,

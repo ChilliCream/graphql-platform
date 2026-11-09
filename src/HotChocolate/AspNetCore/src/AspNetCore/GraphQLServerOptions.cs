@@ -51,4 +51,10 @@ public sealed class GraphQLServerOptions
     /// Defines if request batching is enabled.
     /// </summary>
     public bool EnableBatching { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of operations allowed in a single batch.
+    /// A value of 0 means unlimited. Defaults to 1024.
+    /// </summary>
+    public int MaxBatchSize { get; set; } = 1024;
 }

@@ -78,6 +78,9 @@
   <data name="ErrorHelper_VariableBatchingNotSupportedForWebSocket" xml:space="preserve">
     <value>Variable batching is not supported for WebSocket requests.</value>
   </data>
+  <data name="ErrorHelper_BatchSizeExceeded" xml:space="preserve">
+    <value>The batch size exceeds the maximum allowed batch size of {0}.</value>
+  </data>
   <data name="WebSocketSession_SessionEnded" xml:space="preserve">
     <value>Session ended.</value>
   </data>
