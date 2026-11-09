@@ -388,6 +388,243 @@ public class EntitiesResolverForObjectTests
         Assert.True(state.Completed);
     }
 
+    [Fact]
+    public async Task ResolveAsync_Should_ReturnError_When_RepresentationsExceedLimit()
+    {
+        // arrange
+        var state = new CountedEntityState();
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(state)
+            .AddGraphQL()
+            .AddApolloFederation(o => o.MaxAllowedRepresentations = 2)
+            .AddType<CountedEntity>()
+            .AddQueryType()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+                _entities(representations: [
+                    { id: "1", __typename: "CountedEntity" }
+                    { id: "2", __typename: "CountedEntity" }
+                    { id: "3", __typename: "CountedEntity" }
+                ]) {
+                    ... on CountedEntity { id }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(0, state.Calls);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum number of representations that can be resolved in a single request is 2.",
+                  "path": [
+                    "_entities"
+                  ],
+                  "extensions": {
+                    "code": "HC0140"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ReturnError_When_RepresentationsExceedDefaultLimit()
+    {
+        // arrange
+        var state = new CountedEntityState();
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(state)
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddType<CountedEntity>()
+            .AddQueryType()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            CreateCountedEntitiesRequest(representationCount: 10_001),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(
+            "The maximum number of representations that can be resolved in a single request "
+            + "is 10,000.",
+            error.Message);
+        Assert.Equal(0, state.Calls);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ResolveRepresentations_When_RepresentationsEqualLimit()
+    {
+        // arrange
+        var state = new CountedEntityState();
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(state)
+            .AddGraphQL()
+            .AddApolloFederation(o => o.MaxAllowedRepresentations = 3)
+            .AddType<CountedEntity>()
+            .AddQueryType()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            CreateCountedEntitiesRequest(representationCount: 3),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(3, state.Calls);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "_entities": [
+                  {
+                    "id": "1"
+                  },
+                  {
+                    "id": "2"
+                  },
+                  {
+                    "id": "3"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ResolveOneSelection_When_SelectionsExceedLimit()
+    {
+        // arrange
+        var state = new CountedEntityState();
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(state)
+            .AddGraphQL()
+            .AddApolloFederation(o => o.MaxAllowedRepresentations = 3)
+            .AddType<CountedEntity>()
+            .AddQueryType()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query($representations: [_Any!]!) {
+                    a: _entities(representations: $representations) {
+                        ... on CountedEntity { id }
+                    }
+                    b: _entities(representations: $representations) {
+                        ... on CountedEntity { id }
+                    }
+                }
+                """)
+            .SetVariableValues(
+                """
+                {
+                    "representations": [
+                        { "__typename": "CountedEntity", "id": "1" },
+                        { "__typename": "CountedEntity", "id": "2" }
+                    ]
+                }
+                """)
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal("HC0140", error.Code);
+        Assert.Equal(2, state.Calls);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ResolveOneVariableSet_When_VariableSetsExceedLimit()
+    {
+        // arrange
+        var state = new CountedEntityState();
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(state)
+            .AddGraphQL()
+            .AddApolloFederation(o => o.MaxAllowedRepresentations = 3)
+            .AddType<CountedEntity>()
+            .AddQueryType()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query($representations: [_Any!]!) {
+                    _entities(representations: $representations) {
+                        ... on CountedEntity { id }
+                    }
+                }
+                """)
+            .SetVariableValues(
+                """
+                [
+                    {
+                        "representations": [
+                            { "__typename": "CountedEntity", "id": "1" },
+                            { "__typename": "CountedEntity", "id": "2" }
+                        ]
+                    },
+                    {
+                        "representations": [
+                            { "__typename": "CountedEntity", "id": "3" },
+                            { "__typename": "CountedEntity", "id": "4" }
+                        ]
+                    }
+                ]
+                """)
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        var error = Assert.Single(batch.Results.SelectMany(t => t.ExpectOperationResult().Errors));
+        Assert.Equal("HC0140", error.Code);
+        Assert.Equal(2, state.Calls);
+    }
+
+    private static IOperationRequest CreateCountedEntitiesRequest(int representationCount)
+    {
+        var representations = Enumerable
+            .Range(1, representationCount)
+            .Select(i => $$"""{ "__typename": "CountedEntity", "id": "{{i}}" }""");
+
+        return OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query($representations: [_Any!]!) {
+                    _entities(representations: $representations) {
+                        ... on CountedEntity { id }
+                    }
+                }
+                """)
+            .SetVariableValues(
+                $$"""{ "representations": [{{string.Join(", ", representations)}}] }""")
+            .Build();
+    }
+
     private static bool HasNoFault(List<Exception> exceptions)
     {
         lock (exceptions)
@@ -465,6 +702,28 @@ public class EntitiesResolverForObjectTests
     public sealed class SlowEntityState
     {
         public bool Completed { get; set; }
+    }
+
+    [ReferenceResolver(EntityResolver = nameof(Get))]
+    public sealed class CountedEntity
+    {
+        [Key]
+        public string Id { get; set; } = null!;
+
+        public static CountedEntity Get(string id, [Service] CountedEntityState state)
+        {
+            state.Increment();
+            return new CountedEntity { Id = id };
+        }
+    }
+
+    public sealed class CountedEntityState
+    {
+        private int _calls;
+
+        public int Calls => _calls;
+
+        public void Increment() => Interlocked.Increment(ref _calls);
     }
 
     [ExtendServiceType]
