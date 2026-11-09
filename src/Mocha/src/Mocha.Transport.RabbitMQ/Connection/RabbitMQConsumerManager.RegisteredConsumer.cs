@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -459,11 +460,11 @@ public sealed partial class RabbitMQConsumerManager
 
             if (blocked == 1)
             {
-                Manager.Logger.ConsumerRecoveryBlocked(QueueName, ConsumerDispatchConcurrency);
+                Manager.Logger.ConsumerRecoveryBlocked(Manager.ConnectionName, QueueName, ConsumerDispatchConcurrency);
             }
             else
             {
-                Manager.Logger.ConsumerRecoveryResumed(QueueName);
+                Manager.Logger.ConsumerRecoveryResumed(Manager.ConnectionName, QueueName);
                 _ = Task.Run(EnsureAttached);
             }
         }
@@ -517,11 +518,11 @@ public sealed partial class RabbitMQConsumerManager
             var reason = consumer.LossReason;
             if (reason is null)
             {
-                Manager.Logger.ConsumerCancelledByBroker(QueueName);
+                Manager.Logger.ConsumerCancelledByBroker(Manager.ConnectionName, QueueName);
             }
             else
             {
-                Manager.Logger.ConsumerChannelLost(QueueName, reason.Initiator, reason.ReplyCode, reason.ReplyText);
+                Manager.Logger.ConsumerChannelLost(Manager.ConnectionName, QueueName, reason.Initiator, reason.ReplyCode, reason.ReplyText);
             }
 
             ClearDispatchConsumer(consumer);
@@ -542,6 +543,10 @@ public sealed partial class RabbitMQConsumerManager
         private async Task ReattachAsync()
         {
             var attempt = 0;
+            var timeProvider = Manager.TimeProvider;
+            var started = timeProvider.GetTimestamp();
+            var lastSummary = started;
+            var lastLevel = LogLevel.None;
             var cancellationToken = _consumerToken;
 
             try
@@ -574,7 +579,8 @@ public sealed partial class RabbitMQConsumerManager
 
                         if (IsAttached)
                         {
-                            Manager.Logger.ReattachedConsumerForQueue(QueueName);
+                            Manager.Logger.ReattachedConsumerForQueue(
+                                Manager.ConnectionName, QueueName, timeProvider.GetElapsedTime(started));
                             break;
                         }
 
@@ -586,13 +592,25 @@ public sealed partial class RabbitMQConsumerManager
                         attempt++;
                         delay = ExponentialBackoff.CalculateDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
 
-                        if (attempt == 1)
+                        var level = GetRecoveryFailureLogLevel(ex);
+                        if (attempt == 1 || level > lastLevel
+                            || timeProvider.GetElapsedTime(lastSummary) >= TimeSpan.FromMinutes(1))
                         {
-                            Manager.Logger.FailedToReattachConsumerForQueue(ex, QueueName, delay);
+                            lastSummary = timeProvider.GetTimestamp();
+                            lastLevel = level;
+                            Manager.Logger.FailedToReattachConsumerForQueue(
+                                ex,
+                                level,
+                                Manager.ConnectionName,
+                                QueueName,
+                                attempt,
+                                delay,
+                                timeProvider.GetElapsedTime(started));
                         }
                         else
                         {
-                            Manager.Logger.FailedToReattachConsumerForQueueAgain(ex, QueueName, attempt, delay);
+                            Manager.Logger.FailedToReattachConsumerForQueueAgain(
+                                ex, Manager.ConnectionName, QueueName, attempt, delay);
                         }
                     }
                     finally
@@ -719,6 +737,8 @@ public sealed partial class RabbitMQConsumerManager
                     _stopCts.Dispose();
                 }
             }
+
+            Manager.Logger.ConsumerStopped(Manager.ConnectionName, QueueName);
 
             _ = _workers.ContinueWith(
                 static (_, state) => ((CancellationTokenSource)state!).Dispose(),

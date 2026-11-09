@@ -69,6 +69,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                     }
 
                     canReuseChannel = false;
+                    dispatcher.LogReturnedQueueRepairStarted(Queue.Name);
                     var provisioner = new RabbitMQTopologyProvisioner(
                         transport.Topology,
                         dispatcher.GetChannelConnection(channel));
@@ -110,7 +111,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                 // it twice.
                 attempt++;
                 var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
-                dispatcher.LogPublishRetry(ex, attempt, delay);
+                dispatcher.LogPublishRetry(ex, Name, attempt, delay);
                 await Task.Delay(delay, cancellationToken);
                 continue;
             }

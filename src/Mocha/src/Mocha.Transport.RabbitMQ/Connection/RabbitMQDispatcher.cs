@@ -254,7 +254,7 @@ public sealed class RabbitMQDispatcher(
             await cleanup.WaitAsync(creationCts.Token);
             opening = owner.Connection.CreateChannelAsync(s_publishChannelOptions, creationCts.Token);
             var channel = await opening.WaitAsync(creationCts.Token);
-            Logger.CreatedNewChannel();
+            Logger.CreatedNewChannel(ConnectionName, channel.ChannelNumber);
             owner.Channel.TrySetResult(channel);
         }
         catch (Exception ex)
@@ -264,7 +264,13 @@ public sealed class RabbitMQDispatcher(
 
             if (ex is ChannelAllocationException)
             {
+                Logger.PublisherChannelLimitReached(ex, ConnectionName);
                 return;
+            }
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                Logger.PublisherChannelCreationFailed(ex, ConnectionName);
             }
 
             // Close the connection when opening a publisher channel fails.
@@ -293,8 +299,8 @@ public sealed class RabbitMQDispatcher(
         }
     }
 
-    internal void LogPublishRetry(Exception exception, int attempt, TimeSpan delay)
-        => Logger.PublishFailedRetrying(exception, attempt, delay);
+    internal void LogPublishRetry(Exception exception, string endpoint, int attempt, TimeSpan delay)
+        => Logger.PublishFailedRetrying(exception, ConnectionName, endpoint, attempt, delay);
 
     internal IConnection GetChannelConnection(IChannel channel)
     {
@@ -304,8 +310,11 @@ public sealed class RabbitMQDispatcher(
         }
     }
 
+    internal void LogReturnedQueueRepairStarted(string queueName)
+        => Logger.ReturnedQueueRepairStarted(ConnectionName, queueName);
+
     internal void LogReturnedQueueRedeclared(string queueName)
-        => Logger.RedeclaredQueueOfReturnedMessage(queueName);
+        => Logger.RedeclaredQueueOfReturnedMessage(ConnectionName, queueName);
 
     protected override async Task OnConnectionEstablished(IConnection connection, CancellationToken cancellationToken)
     {
@@ -522,16 +531,28 @@ public sealed class RabbitMQDispatcher(
 
 internal static partial class Logs
 {
-    [LoggerMessage(LogLevel.Debug, "Created new channel")]
-    public static partial void CreatedNewChannel(this ILogger logger);
+    [LoggerMessage(LogLevel.Debug, "Created publisher channel {ChannelNumber} on {ConnectionName}")]
+    public static partial void CreatedNewChannel(this ILogger logger, string connectionName, int channelNumber);
+
+    [LoggerMessage(LogLevel.Debug, "Publisher channel capacity reached on {ConnectionName}")]
+    public static partial void PublisherChannelLimitReached(this ILogger logger, Exception ex, string connectionName);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to open publisher channel on {ConnectionName}. Closing the connection and starting recovery")]
+    public static partial void PublisherChannelCreationFailed(this ILogger logger, Exception ex, string connectionName);
+
+    [LoggerMessage(
+        LogLevel.Debug,
+        "Publish to endpoint {Endpoint} on {ConnectionName} failed during connection recovery (attempt {Attempt}). Retrying in {Delay}")]
+    public static partial void PublishFailedRetrying(
+        this ILogger logger, Exception ex, string connectionName, string endpoint, int attempt, TimeSpan delay);
 
     [LoggerMessage(
         LogLevel.Warning,
-        "Publish attempt {Attempt} failed because the connection to the broker was lost. Retrying in {Delay}")]
-    public static partial void PublishFailedRetrying(this ILogger logger, Exception ex, int attempt, TimeSpan delay);
+        "The broker returned a message for queue {Queue} on {ConnectionName}. Repairing its configured topology")]
+    public static partial void ReturnedQueueRepairStarted(this ILogger logger, string connectionName, string queue);
 
     [LoggerMessage(
-        LogLevel.Warning,
-        "The broker returned a message because queue {Queue} does not exist. The queue was declared again")]
-    public static partial void RedeclaredQueueOfReturnedMessage(this ILogger logger, string queue);
+        LogLevel.Information,
+        "Restored configured topology for queue {Queue} on {ConnectionName}. Retrying the returned message")]
+    public static partial void RedeclaredQueueOfReturnedMessage(this ILogger logger, string connectionName, string queue);
 }

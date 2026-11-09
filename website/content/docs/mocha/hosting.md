@@ -50,7 +50,7 @@ app.MapHealthChecks("/health");
 app.Run();
 ```
 
-A `GET /health` request will now include the message bus status. If the bus cannot process and reply to the health request within the timeout, the check reports `Unhealthy`.
+A `GET /health` request includes the message bus status. The check reports `Unhealthy` if any local transport is unhealthy or the bus cannot reply to the health request within the timeout. RabbitMQ transport health includes broker connectivity, consumer attachment, and capacity occupied by canceled handlers that have not exited. Normally busy handlers do not make the transport unhealthy.
 
 ## Target a specific endpoint
 
@@ -62,7 +62,11 @@ builder.Services
     .AddMessageBus(new Uri("queue://my-service-health"));
 ```
 
-The health check is registered with the `"ready"` and `"live"` tags, so you can use tag-based filtering to separate readiness from liveness probes:
+The endpoint URI selects the destination of the health request. Every local transport must still be healthy.
+
+## Readiness and liveness
+
+The message bus check has the `"ready"` tag. Use separate, explicitly filtered endpoints for readiness and liveness:
 
 ```csharp
 app.MapHealthChecks("/health/ready", new()
@@ -75,6 +79,8 @@ app.MapHealthChecks("/health/live", new()
     Predicate = check => check.Tags.Contains("live")
 });
 ```
+
+The liveness endpoint runs only checks registered with the `"live"` tag. With none registered, it returns healthy while the application can serve the request. Broker outages and consumer recovery affect readiness without failing liveness. An unfiltered health endpoint includes the bus check and must not be used as a process liveness probe.
 
 # Next steps
 

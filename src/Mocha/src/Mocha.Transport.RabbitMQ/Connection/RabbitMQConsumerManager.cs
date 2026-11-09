@@ -125,15 +125,20 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
                 // registered consumer, and an open connection is retried by the consumer itself.
                 registration.EnsureAttached();
             }
-            catch
+            catch (Exception ex)
             {
+                if (!cancellationToken.IsCancellationRequested && !IsDisposed)
+                {
+                    Logger.ConsumerRegistrationFailed(ex, ConnectionName, queueName);
+                }
+
                 // A registration the broker refused must not be attached later by a reconnect.
                 await registration.DisposeAsync();
                 throw;
             }
         }
 
-        Logger.RegisteredConsumerForQueue(queueName);
+        Logger.RegisteredConsumerForQueue(ConnectionName, queueName, registration.IsAttached);
 
         return registration;
     }
@@ -155,9 +160,13 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
             await channel.QueueDeleteAsync(queueName, cancellationToken: cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Queue cleanup was cancelled by the caller.
+        }
         catch (Exception ex)
         {
-            Logger.FailedToDeleteQueue(ex, queueName);
+            Logger.FailedToDeleteQueue(ex, ConnectionName, queueName);
         }
     }
 
@@ -197,7 +206,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             return;
         }
 
-        Logger.ReconnectConsumersAsync(consumers.Length);
+        Logger.ReconnectConsumersAsync(ConnectionName, consumers.Length);
 
         // Consumers attach independently, so one that does not get an answer does not hold back the others.
         await Task.WhenAll(consumers.Select(consumer => ReconnectConsumerAsync(consumer, connection, cancellationToken)));
@@ -211,7 +220,10 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
         try
         {
             await consumer.ConnectAsync(connection, cancellationToken);
-            Logger.ReconnectConsumerForQueue(consumer.QueueName);
+            if (consumer.IsAttached)
+            {
+                Logger.ReconnectConsumerForQueue(ConnectionName, consumer.QueueName);
+            }
         }
         catch (ObjectDisposedException) when (consumer.IsDisposed)
         {
@@ -223,7 +235,8 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
         }
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
-            Logger.FailedToReconnectConsumerForQueue(ex, consumer.QueueName);
+            Logger.FailedToReconnectConsumerForQueue(
+                ex, GetRecoveryFailureLogLevel(ex), ConnectionName, consumer.QueueName);
 
             // The consumer retries with backoff instead of waiting for the next health check.
             consumer.EnsureAttached();
@@ -251,12 +264,12 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
 
                 if (!IsConnected)
                 {
-                    Logger.ConnectionHealthCheckFailedAttemptingReconnection();
+                    Logger.ConnectionHealthCheckFailedAttemptingReconnection(ConnectionName);
                     StartReconnecting();
                 }
                 else
                 {
-                    Logger.ConnectionHealthCheckOk();
+                    Logger.ConnectionHealthCheckOk(ConnectionName);
 
                     foreach (var consumer in _registeredConsumers)
                     {
@@ -270,7 +283,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             }
             catch (Exception ex)
             {
-                Logger.ErrorDuringConnectionHealthCheck(ex);
+                Logger.ErrorDuringConnectionHealthCheck(ex, ConnectionName);
             }
         }
     }
@@ -318,7 +331,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             }
             catch (Exception ex)
             {
-                Logger.ErrorDisposingConsumer(ex, consumer.QueueName);
+                Logger.ErrorDisposingConsumer(ex, ConnectionName, consumer.QueueName);
             }
         }
     }
@@ -326,84 +339,98 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
 
 internal static partial class Logs
 {
-    [LoggerMessage(LogLevel.Error, "Error processing message from queue {Queue}")]
-    public static partial void ErrorProcessingMessageFromQueue(this ILogger logger, Exception ex, string queue);
+    [LoggerMessage(LogLevel.Error, "Failed to register consumer for queue {Queue} on {ConnectionName}")]
+    public static partial void ConsumerRegistrationFailed(
+        this ILogger logger, Exception ex, string connectionName, string queue);
 
-    [LoggerMessage(LogLevel.Information, "Registered consumer for queue {Queue}")]
-    public static partial void RegisteredConsumerForQueue(this ILogger logger, string queue);
+    [LoggerMessage(LogLevel.Error, "Error processing message from queue {Queue} on {ConnectionName}")]
+    public static partial void ErrorProcessingMessageFromQueue(this ILogger logger, Exception ex, string connectionName, string queue);
 
-    [LoggerMessage(LogLevel.Information, "Reconnecting {Count} registered consumers")]
-    public static partial void ReconnectConsumersAsync(this ILogger logger, int count);
+    [LoggerMessage(LogLevel.Information, "Registered consumer for queue {Queue} on {ConnectionName}. Attached: {Attached}")]
+    public static partial void RegisteredConsumerForQueue(this ILogger logger, string connectionName, string queue, bool attached);
 
-    [LoggerMessage(LogLevel.Information, "Reconnected consumer for queue {Queue}")]
-    public static partial void ReconnectConsumerForQueue(this ILogger logger, string queue);
+    [LoggerMessage(LogLevel.Information, "Reconnecting {Count} consumers on {ConnectionName}")]
+    public static partial void ReconnectConsumersAsync(this ILogger logger, string connectionName, int count);
+
+    [LoggerMessage(LogLevel.Information, "Reconnected consumer for queue {Queue} on {ConnectionName}")]
+    public static partial void ReconnectConsumerForQueue(this ILogger logger, string connectionName, string queue);
 
     [LoggerMessage(
         LogLevel.Warning,
-        "Consumer for queue {Queue} lost its channel. Initiator: {Initiator}, Reply: {ReplyCode} {ReplyText}")]
+        "Consumer for queue {Queue} on {ConnectionName} lost its channel. Initiator: {Initiator}, Reply: {ReplyCode} {ReplyText}")]
     public static partial void ConsumerChannelLost(
         this ILogger logger,
+        string connectionName,
         string queue,
         ShutdownInitiator initiator,
         ushort replyCode,
         string replyText);
 
-    [LoggerMessage(LogLevel.Warning, "Consumer for queue {Queue} was cancelled by the broker")]
-    public static partial void ConsumerCancelledByBroker(this ILogger logger, string queue);
+    [LoggerMessage(LogLevel.Warning, "Consumer for queue {Queue} on {ConnectionName} was cancelled by the broker")]
+    public static partial void ConsumerCancelledByBroker(this ILogger logger, string connectionName, string queue);
 
-    [LoggerMessage(LogLevel.Information, "Re-attached consumer for queue {Queue}")]
-    public static partial void ReattachedConsumerForQueue(this ILogger logger, string queue);
+    [LoggerMessage(LogLevel.Information, "Re-attached consumer for queue {Queue} on {ConnectionName} after {Elapsed}")]
+    public static partial void ReattachedConsumerForQueue(this ILogger logger, string connectionName, string queue, TimeSpan elapsed);
 
-    [LoggerMessage(LogLevel.Error, "Failed to re-attach consumer for queue {Queue}. Retrying in {Delay}")]
+    [LoggerMessage(Message = "Consumer for queue {Queue} on {ConnectionName} is still detached after {Elapsed} (attempt {Attempt}). Retrying in {Delay}")]
     public static partial void FailedToReattachConsumerForQueue(
         this ILogger logger,
         Exception ex,
+        LogLevel level,
+        string connectionName,
         string queue,
-        TimeSpan delay);
+        int attempt,
+        TimeSpan delay,
+        TimeSpan elapsed);
 
     [LoggerMessage(
-        LogLevel.Warning,
-        "Skipped {Settlement} of delivery {DeliveryTag} (routing key {RoutingKey}) because its channel is closed. The broker redelivers the message.")]
+        LogLevel.Debug,
+        "Skipped {Settlement} of delivery {DeliveryTag} (routing key {RoutingKey}) because its channel is closed. Redelivery depends on the queue delivery limit and dead-letter configuration.")]
     public static partial void SettlementSkippedChannelClosed(
         this ILogger logger,
         string settlement,
         ulong deliveryTag,
         string routingKey);
 
-    [LoggerMessage(LogLevel.Error, "Failed to reconnect consumer for queue {Queue}")]
-    public static partial void FailedToReconnectConsumerForQueue(this ILogger logger, Exception ex, string queue);
+    [LoggerMessage(Message = "Failed to reconnect consumer for queue {Queue} on {ConnectionName}. Consumer recovery will retry")]
+    public static partial void FailedToReconnectConsumerForQueue(
+        this ILogger logger, Exception ex, LogLevel level, string connectionName, string queue);
 
-    [LoggerMessage(LogLevel.Warning, "Connection health check failed - attempting reconnection")]
-    public static partial void ConnectionHealthCheckFailedAttemptingReconnection(this ILogger logger);
+    [LoggerMessage(LogLevel.Debug, "Connection {ConnectionName} health check failed; ensuring recovery is running")]
+    public static partial void ConnectionHealthCheckFailedAttemptingReconnection(this ILogger logger, string connectionName);
 
-    [LoggerMessage(LogLevel.Trace, "Connection health check: OK")]
-    public static partial void ConnectionHealthCheckOk(this ILogger logger);
+    [LoggerMessage(LogLevel.Trace, "Connection {ConnectionName} health check: OK")]
+    public static partial void ConnectionHealthCheckOk(this ILogger logger, string connectionName);
 
-    [LoggerMessage(LogLevel.Error, "Error during connection health check")]
-    public static partial void ErrorDuringConnectionHealthCheck(this ILogger logger, Exception ex);
+    [LoggerMessage(LogLevel.Error, "Error during connection {ConnectionName} health check")]
+    public static partial void ErrorDuringConnectionHealthCheck(this ILogger logger, Exception ex, string connectionName);
 
-    [LoggerMessage(LogLevel.Error, "Error disposing consumer {ConsumerTag}")]
-    public static partial void ErrorDisposingConsumer(this ILogger logger, Exception ex, string consumerTag);
+    [LoggerMessage(LogLevel.Error, "Error disposing consumer for queue {Queue} on {ConnectionName}")]
+    public static partial void ErrorDisposingConsumer(this ILogger logger, Exception ex, string connectionName, string queue);
 
-    [LoggerMessage(LogLevel.Warning, "Failed to delete queue {Queue}")]
-    public static partial void FailedToDeleteQueue(this ILogger logger, Exception ex, string queue);
+    [LoggerMessage(LogLevel.Warning, "Failed to delete queue {Queue} on {ConnectionName}")]
+    public static partial void FailedToDeleteQueue(this ILogger logger, Exception ex, string connectionName, string queue);
 
     [LoggerMessage(
-        LogLevel.Warning,
-        "Re-attaching the consumer for queue {Queue} failed again (attempt {Attempt}). Retrying in {Delay}")]
+        LogLevel.Debug,
+        "Re-attaching the consumer for queue {Queue} on {ConnectionName} failed again (attempt {Attempt}). Retrying in {Delay}")]
     public static partial void FailedToReattachConsumerForQueueAgain(
         this ILogger logger,
         Exception ex,
+        string connectionName,
         string queue,
         int attempt,
         TimeSpan delay);
 
-    [LoggerMessage(LogLevel.Error, "Consumer for queue {Queue} is unhealthy: all {Concurrency} handler slots are occupied by cancelled handlers. Processing resumes when a handler exits")]
-    public static partial void ConsumerRecoveryBlocked(this ILogger logger, string queue, int concurrency);
+    [LoggerMessage(LogLevel.Error, "Consumer for queue {Queue} on {ConnectionName} is unhealthy: all {Concurrency} handler slots are occupied by cancelled handlers. Processing resumes when a handler exits")]
+    public static partial void ConsumerRecoveryBlocked(this ILogger logger, string connectionName, string queue, int concurrency);
 
-    [LoggerMessage(LogLevel.Information, "Consumer for queue {Queue} has handler capacity available again")]
-    public static partial void ConsumerRecoveryResumed(this ILogger logger, string queue);
+    [LoggerMessage(LogLevel.Information, "Consumer for queue {Queue} on {ConnectionName} has handler capacity available again")]
+    public static partial void ConsumerRecoveryResumed(this ILogger logger, string connectionName, string queue);
 
-    [LoggerMessage(LogLevel.Error, "Error cancelling handlers for queue {Queue}")]
-    public static partial void ErrorCancellingConsumerHandlers(this ILogger logger, Exception exception, string queue);
+    [LoggerMessage(LogLevel.Error, "Error cancelling handlers for queue {Queue} on {ConnectionName}")]
+    public static partial void ErrorCancellingConsumerHandlers(this ILogger logger, Exception exception, string connectionName, string queue);
+
+    [LoggerMessage(LogLevel.Information, "Stopped consumer for queue {Queue} on {ConnectionName}")]
+    public static partial void ConsumerStopped(this ILogger logger, string connectionName, string queue);
 }

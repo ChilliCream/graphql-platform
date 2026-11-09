@@ -1,3 +1,6 @@
+using System.Net;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Mocha.Transport.InMemory;
@@ -6,6 +9,41 @@ namespace Mocha.Hosting.Tests.Health;
 
 public sealed class MessageBusHealthCheckIntegrationTests
 {
+    [Fact]
+    public async Task HealthEndpoints_Should_KeepLivenessHealthy_When_TransportStopsAndRecovers()
+    {
+        // arrange
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseTestServer();
+        builder.Services.AddMessageBus()
+            .AddHealthCheck()
+            .AddEventHandler<OrderHandler>()
+            .AddInMemory(t => t.Endpoint("orders").Handler<OrderHandler>());
+        builder.Services.AddHealthChecks().AddMessageBus();
+        await using var app = builder.Build();
+        app.MapHealthChecks("/health/ready", new() { Predicate = check => check.Tags.Contains("ready") });
+        app.MapHealthChecks("/health/live", new() { Predicate = check => check.Tags.Contains("live") });
+        await app.StartAsync(TestContext.Current.CancellationToken);
+        using var client = app.GetTestClient();
+        var runtime = (MessagingRuntime)app.Services.GetRequiredService<IMessagingRuntime>();
+        var endpoint = runtime.Transports.Single().ReceiveEndpoints.Single(e => e.Name == "orders");
+        using var initial = await client.GetAsync("/health/ready", TestContext.Current.CancellationToken);
+
+        // act
+        await endpoint.StopAsync(runtime, TestContext.Current.CancellationToken);
+        using var readiness = await client.GetAsync("/health/ready", TestContext.Current.CancellationToken);
+        using var liveness = await client.GetAsync("/health/live", TestContext.Current.CancellationToken);
+        await endpoint.StartAsync(runtime, TestContext.Current.CancellationToken);
+        using var recovered = await client.GetAsync("/health/ready", TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, initial.StatusCode);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, readiness.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, liveness.StatusCode);
+        Assert.Equal("Healthy", await liveness.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(HttpStatusCode.OK, recovered.StatusCode);
+    }
+
     [Fact]
     public async Task CheckHealthAsync_Should_ReturnUnhealthy_When_TransportHasNotStarted()
     {

@@ -22,8 +22,7 @@ public sealed class MessageBusHealthCheckExtensionsTests
         // Assert
         var registration = Assert.Single(healthCheckOptions.Registrations, r => r.Name == "MessageBus");
 
-        Assert.Contains("ready", registration.Tags);
-        Assert.Contains("live", registration.Tags);
+        Assert.Equal(["ready"], registration.Tags);
     }
 
     [Fact]

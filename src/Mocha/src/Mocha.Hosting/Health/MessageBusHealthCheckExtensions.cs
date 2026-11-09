@@ -20,7 +20,7 @@ public static class MessageBusHealthCheckExtensions
     }
 
     /// <summary>
-    /// Adds a message bus health check to the ASP.NET Core health checks system, tagged with "ready" and "live".
+    /// Adds a message bus readiness check to the ASP.NET Core health checks system, tagged with "ready".
     /// </summary>
     /// <remarks>
     /// The check requires every local transport to be healthy and verifies a <see cref="HealthRequest"/> response.
@@ -36,7 +36,7 @@ public static class MessageBusHealthCheckExtensions
             builder.Services.Configure<MessageBusHealthCheckOptions>(o => o.Endpoint = endpoint);
         }
 
-        builder.AddCheck<MessageBusHealthCheck>("MessageBus", HealthStatus.Unhealthy, ["ready", "live"]);
+        builder.AddCheck<MessageBusHealthCheck>("MessageBus", HealthStatus.Unhealthy, ["ready"]);
 
         return builder;
     }

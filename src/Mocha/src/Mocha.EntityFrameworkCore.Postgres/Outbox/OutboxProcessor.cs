@@ -424,7 +424,7 @@ internal static partial class Logs
         "Could not resolve a dispatch endpoint for the destination {DestinationAddress} of message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotDetermineDestination(this ILogger logger, Guid id, string? destinationAddress);
 
-    [LoggerMessage(4, LogLevel.Information, "Outbox processor is sleeping for {NextPollingInterval}.")]
+    [LoggerMessage(4, LogLevel.Debug, "Outbox processor is sleeping for {NextPollingInterval}.")]
     public static partial void OutboxProcessorSleeping(this ILogger logger, TimeSpan nextPollingInterval);
 
     [LoggerMessage(5, LogLevel.Error, "An unexpected error occurred while processing outbox event")]
@@ -438,7 +438,7 @@ internal static partial class Logs
 
     [LoggerMessage(
         7,
-        LogLevel.Critical,
+        LogLevel.Error,
         "Message with ID {Id} exhausted all {MaxAttempts} attempts and will not be retried.")]
     public static partial void OutboxMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
 

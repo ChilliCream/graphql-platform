@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
@@ -11,6 +12,63 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+
+    [Fact]
+    public async Task Consumer_Should_LogCapacityTransitionsOnce_When_LostHandlerBlocksRecovery()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+        var logger = new CapturingLogger<RabbitMQConsumerManager>();
+        await using var manager = new RabbitMQConsumerManager(
+            logger, async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct))
+        {
+            ConnectionName = "service orders consumer"
+        };
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        var gate = new HandlerGate(blockedHandlers: 1);
+        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
+            "orders", gate.HandleAsync, prefetchCount: 1, consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        await channel.BasicPublishAsync("", "orders", "order"u8.ToArray(), TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        try
+        {
+            // act
+            await registration.Channel!.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
+            var blocked = await Condition.WaitAsync(
+                () => logger.Entries.Any(e => e.Event == "ConsumerRecoveryBlocked"), s_timeout);
+            for (var i = 0; i < 3; i++)
+            {
+                await registration.ConnectAsync(await manager.GetConnectionAsync(TestContext.Current.CancellationToken),
+                    TestContext.Current.CancellationToken);
+            }
+
+            gate.Release.TrySetResult();
+            var recovered = await Condition.WaitAsync(() => gate.Delivered.Count == 1 && manager.IsHealthy, s_timeout);
+            var transitions = logger.Entries
+                .Where(e => e.Event is "ConsumerRecoveryBlocked" or "ConsumerRecoveryResumed")
+                .ToArray();
+
+            // assert
+            Assert.True(blocked && recovered);
+            Assert.Equal(
+                [(LogLevel.Error, "ConsumerRecoveryBlocked"), (LogLevel.Information, "ConsumerRecoveryResumed")],
+                transitions.Select(e => (e.Level, e.Event)));
+            Assert.Equal(["service orders consumer", "service orders consumer"],
+                transitions.Select(e => e.Properties["ConnectionName"]));
+            Assert.Equal(["orders", "orders"], transitions.Select(e => e.Properties["Queue"]));
+            Assert.Equal(["order"], gate.Delivered);
+        }
+        finally
+        {
+            gate.Release.TrySetResult();
+        }
+    }
 
     [Fact]
     public async Task Consumer_Should_UseRemainingCapacity_When_OneLostHandlerIgnoresCancellation()

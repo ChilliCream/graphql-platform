@@ -130,7 +130,7 @@ Send a POST request to `/orders` and check your application logs. You should see
 
 Mocha opens two connections to RabbitMQ: one for receiving messages and one for sending them.
 
-In the RabbitMQ management UI, these connections appear as `<service> consumer` and `<service> dispatcher`. Mocha uses the host's service name, or the process name if no service name is available. Set `ClientProvidedName` on the connection factory to use a custom name.
+In the RabbitMQ management UI, these connections appear as `<service> <transport> consumer` and `<service> <transport> dispatcher`. Mocha uses the host's service name, or the process name if no service name is available. Set `ClientProvidedName` on the connection factory to use a custom name.
 
 # Connection recovery
 
@@ -143,6 +143,19 @@ A slow or unavailable queue does not prevent unrelated endpoints from recovering
 Mocha manages this recovery regardless of the connection factory's `AutomaticRecoveryEnabled` setting.
 
 For quorum queues, a surviving majority can elect a new leader and continue delivering messages after a node fails. Classic queues that are not replicated remain unavailable while their node is down. Configure your connection provider to reach surviving cluster nodes if the node serving its AMQP connection fails.
+
+## Recovery logs
+
+Logs under `Mocha.Transport.RabbitMQ` identify the service, transport, and consumer or dispatcher role through `ConnectionName`. Consumer events include the queue name; connection shutdown events include the broker's reply code and reason. Connection readiness is logged after setup completes.
+
+| Level         | Events                                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Information   | Connection ready or recovered, consumer registered or reattached, broker unblocked, handler capacity restored, topology repaired, shutdown completed |
+| Warning       | Unexpected connection or channel loss, broker cancellation or blocking, transient recovery failure, topology repair needed                           |
+| Error         | Startup failure, broker configuration rejection, consumer registration failure, all handler slots blocked by canceled handlers                       |
+| Debug / Trace | Individual retries, publisher channel activity, skipped settlement on closed channels, health monitoring                                             |
+
+Repeated connection and consumer retry failures of the same severity are summarized at most once per minute per recovery loop. An increase in failure severity is logged immediately. Authentication, configuration, and unexpected recovery failures are logged as errors. Debug logging includes the individual attempts. Recovery messages include elapsed time. A blocked-capacity error means processing cannot resume until a canceled handler exits.
 
 ## Startup connection timeout
 
@@ -207,7 +220,7 @@ The transport allows up to 1,024 concurrent publish attempts per transport insta
 
 ### Missing queues and bindings
 
-When you send directly to a queue that no longer exists, Mocha recreates the queue and retries once if auto-provisioning is enabled and the queue is not exclusive. Otherwise, or if the queue is still missing after the retry, the send throws `InvalidOperationException`.
+When you send directly to a queue that no longer exists, Mocha restores the queue and its configured bindings and retries once if auto-provisioning is enabled and the queue is not exclusive. Otherwise, or if the queue is still missing after the retry, the send throws `InvalidOperationException`.
 
 Publishing to an exchange behaves differently: if no queue binding matches the message, RabbitMQ drops it and the publish can still complete successfully. Publisher confirmations do not detect missing subscribers.
 
@@ -310,7 +323,7 @@ When no queue type is configured, Mocha omits `x-queue-type` and RabbitMQ select
 
 Mocha leaves delivery limits to RabbitMQ unless you configure `x-delivery-limit` explicitly. RabbitMQ 4 defaults quorum queues to a delivery limit of 20; RabbitMQ 3 defaults to unlimited deliveries.
 
-A finite delivery limit can cause RabbitMQ to discard or dead-letter messages after repeated connection or channel failures. See [RabbitMQ's poison message handling](https://www.rabbitmq.com/docs/quorum-queues#poison-message-handling) for how delivery limits apply.
+A finite delivery limit can cause RabbitMQ to discard or dead-letter messages after repeated connection or channel failures. Without a configured dead-letter exchange, messages that exceed the limit are discarded. Mocha's fault queue does not automatically capture messages discarded by the broker. See [RabbitMQ's poison message handling](https://www.rabbitmq.com/docs/quorum-queues#poison-message-handling) for how delivery limits apply.
 
 To disable the limit for a quorum queue:
 

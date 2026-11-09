@@ -111,7 +111,7 @@ public sealed partial class RabbitMQConsumerManager
                 }
                 catch (Exception ex)
                 {
-                    _owner.Manager.Logger.ErrorCancellingConsumerHandlers(ex, _owner.QueueName);
+                    _owner.Manager.Logger.ErrorCancellingConsumerHandlers(ex, _owner.Manager.ConnectionName, _owner.QueueName);
                 }
                 finally
                 {
@@ -228,7 +228,7 @@ public sealed partial class RabbitMQConsumerManager
                         }
                         catch (Exception ex)
                         {
-                            _owner.Manager.Logger.ErrorProcessingMessageFromQueue(ex, _owner.QueueName);
+                            _owner.Manager.Logger.ErrorProcessingMessageFromQueue(ex, _owner.Manager.ConnectionName, _owner.QueueName);
                         }
                         finally
                         {

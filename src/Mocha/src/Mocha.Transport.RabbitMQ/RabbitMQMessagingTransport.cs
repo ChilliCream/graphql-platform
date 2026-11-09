@@ -111,14 +111,22 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>();
 
-        return new RabbitMQConsumerManager(logger, CreateConnectionFactory(context, "consumer"));
+        var connectionName = $"{context.Host.ServiceName ?? context.Host.ProcessName} {Name} consumer";
+        return new RabbitMQConsumerManager(logger, CreateConnectionFactory(connectionName))
+        {
+            ConnectionName = connectionName
+        };
     }
 
     private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
 
-        return new RabbitMQDispatcher(logger, CreateConnectionFactory(context, "dispatcher"), ProvisionTopologyAsync);
+        var connectionName = $"{context.Host.ServiceName ?? context.Host.ProcessName} {Name} dispatcher";
+        return new RabbitMQDispatcher(logger, CreateConnectionFactory(connectionName), ProvisionTopologyAsync)
+        {
+            ConnectionName = connectionName
+        };
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
         {
@@ -127,18 +135,14 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         }
     }
 
-    private Func<CancellationToken, ValueTask<IConnection>> CreateConnectionFactory(
-        IMessagingSetupContext context,
-        string role)
+    private Func<CancellationToken, ValueTask<IConnection>> CreateConnectionFactory(string connectionName)
     {
         if (Connection is not ConnectionFactoryRabbitMQConnectionProvider provider)
         {
             return Connection.CreateAsync;
         }
 
-        // Each connection is named after the service and its role, so the two can be told apart on the broker.
-        var clientProvidedName = $"{context.Host.ServiceName ?? context.Host.ProcessName} {role}";
-        return cancellationToken => provider.CreateAsync(clientProvidedName, cancellationToken);
+        return cancellationToken => provider.CreateAsync(connectionName, cancellationToken);
     }
 
     /// <inheritdoc />
