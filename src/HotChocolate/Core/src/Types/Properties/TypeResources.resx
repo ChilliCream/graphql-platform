@@ -865,6 +865,9 @@ Type: `{0}`</value>
   <data name="ThrowHelper_SubscribeAttribute_MessageTypeUnspecified" xml:space="preserve">
     <value>You need to specify the message type on {0}.{1}. (SubscribeAttribute)</value>
   </data>
+  <data name="ThrowHelper_SubscribeResolver_TopicOfOtherField" xml:space="preserve">
+    <value>The topic resolved from the arguments of `{0}` is the topic of another subscription field.</value>
+  </data>
   <data name="ThrowHelper_EventMessage_NotFound" xml:space="preserve">
     <value>There is no event message on the context.</value>
   </data>
