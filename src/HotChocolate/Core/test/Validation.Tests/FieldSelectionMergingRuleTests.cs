@@ -1,4 +1,5 @@
 using ChilliCream.Testing;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -1294,4 +1295,51 @@ public class FieldSelectionMergingRuleTests()
             .AddResolver("Query", "y", () => "")
             .AddType(new AnyType())
             .Create();
+
+    [Fact]
+    public void MergeIdenticalFieldsWithManyReorderedArguments()
+    {
+        // arrange
+        var context = ValidationUtils.CreateContext();
+        var query = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    a: doesKnowCommand(dogCommand: SIT, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7, i: 8)
+                    a: doesKnowCommand(i: 8, h: 7, g: 6, f: 5, e: 4, d: 3, c: 2, b: 1, dogCommand: SIT)
+                }
+            }
+            """);
+        context.Prepare(query);
+
+        // act
+        Rule.Validate(context, query);
+
+        // assert
+        Assert.False(context.UnexpectedErrorsDetected);
+        Assert.Empty(context.Errors);
+    }
+
+    [Fact]
+    public void ConflictWhenManyArgumentsDifferInOneValue()
+    {
+        // arrange
+        var context = ValidationUtils.CreateContext();
+        var query = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    a: doesKnowCommand(dogCommand: SIT, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7, i: 8)
+                    a: doesKnowCommand(dogCommand: SIT, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7, i: 9)
+                }
+            }
+            """);
+        context.Prepare(query);
+
+        // act
+        Rule.Validate(context, query);
+
+        // assert
+        Assert.Single(context.Errors);
+    }
 }

@@ -344,6 +344,38 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return false;
         }
 
+        if (fieldA.Arguments.Count > 8)
+        {
+            var lookup = new Dictionary<string, ArgumentNode>(
+                fieldB.Arguments.Count,
+                StringComparer.Ordinal);
+
+            for (var i = 0; i < fieldB.Arguments.Count; i++)
+            {
+                var argumentB = fieldB.Arguments[i];
+
+                if (!lookup.ContainsKey(argumentB.Name.Value))
+                {
+                    lookup.Add(argumentB.Name.Value, argumentB);
+                }
+            }
+
+            var matchedByLookup = 0;
+
+            for (var i = 0; i < fieldA.Arguments.Count; i++)
+            {
+                var argumentA = fieldA.Arguments[i];
+
+                if (lookup.TryGetValue(argumentA.Name.Value, out var argumentB)
+                    && BySyntax.Equals(argumentA.Value, argumentB.Value))
+                {
+                    matchedByLookup++;
+                }
+            }
+
+            return fieldA.Arguments.Count == matchedByLookup;
+        }
+
         var validPairs = 0;
 
         for (var i = 0; i < fieldA.Arguments.Count; i++)
