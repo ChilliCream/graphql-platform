@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.IO.Hashing;
-using System.Text;
+using System.Runtime.InteropServices;
 using HotChocolate.Language;
 
 #if FUSION
@@ -27,7 +27,8 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class RequestDeduplicationHandler : DelegatingHandler
 {
-    private readonly ConcurrentDictionary<ulong, Lazy<TaskCompletionSource<BufferedHttpResponse>>> _inFlight = new();
+    private readonly ConcurrentDictionary<RequestKey, Lazy<TaskCompletionSource<BufferedHttpResponse>>>
+        _inFlight = new();
     private readonly ImmutableArray<string> _hashHeaders;
 
     /// <summary>
@@ -75,6 +76,7 @@ public sealed class RequestDeduplicationHandler : DelegatingHandler
         if (!ReferenceEquals(existing, entry))
         {
             // Follower path: another request is already in flight.
+            key = default;
             var result = await existing.Value.Task
                 .WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -126,60 +128,103 @@ public sealed class RequestDeduplicationHandler : DelegatingHandler
         return operationType is OperationType.Query;
     }
 
-    private async ValueTask<ulong> ComputeRequestKeyAsync(
+    private async ValueTask<RequestKey> ComputeRequestKeyAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        var hash = new XxHash64();
-
-        // Method
-        AppendString(ref hash, request.Method.Method);
-
-        // URI
-        if (request.RequestUri is not null)
-        {
-            AppendString(ref hash, request.RequestUri.AbsoluteUri);
-        }
-
         // Body
+        byte[] body = [];
+
         if (request.Content is not null)
         {
-            var bodyBytes = await request.Content
+            body = await request.Content
                 .ReadAsByteArrayAsync(cancellationToken)
                 .ConfigureAwait(false);
-            hash.Append(bodyBytes);
         }
 
         // Configured headers (pre-sorted for determinism)
-        foreach (var headerName in _hashHeaders)
-        {
-            if (request.Headers.TryGetValues(headerName, out var values))
-            {
-                AppendString(ref hash, headerName);
+        string[]?[] headerValues = [];
 
-                foreach (var value in values)
+        for (var i = 0; i < _hashHeaders.Length; i++)
+        {
+            if (request.Headers.TryGetValues(_hashHeaders[i], out var values))
+            {
+                if (headerValues.Length == 0)
                 {
-                    AppendString(ref hash, value);
+                    headerValues = new string[]?[_hashHeaders.Length];
                 }
+
+                headerValues[i] = values as string[] ?? [.. values];
             }
         }
 
-        return hash.GetCurrentHashAsUInt64();
+        return new RequestKey(
+            request.Method.Method,
+            request.RequestUri?.AbsoluteUri,
+            headerValues,
+            body);
     }
 
-    private static void AppendString(ref XxHash64 hash, string value)
+    private readonly struct RequestKey : IEquatable<RequestKey>
     {
-        var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+        private static readonly long s_seed = Random.Shared.NextInt64();
 
-        if (maxByteCount <= 256)
+        private readonly string _method;
+        private readonly string? _uri;
+        private readonly string[]?[] _headerValues;
+        private readonly byte[] _body;
+        private readonly int _hashCode;
+
+        public RequestKey(string method, string? uri, string[]?[] headerValues, byte[] body)
         {
-            Span<byte> buffer = stackalloc byte[maxByteCount];
-            var bytesWritten = Encoding.UTF8.GetBytes(value, buffer);
-            hash.Append(buffer[..bytesWritten]);
+            _method = method;
+            _uri = uri;
+            _headerValues = headerValues;
+            _body = body;
+
+            var hashCode = new HashCode();
+            hashCode.Add(method);
+            hashCode.Add(uri);
+
+            foreach (var values in headerValues)
+            {
+                foreach (var value in values ?? [])
+                {
+                    var valueBytes = MemoryMarshal.AsBytes(value.AsSpan());
+                    hashCode.Add(XxHash3.HashToUInt64(valueBytes, s_seed));
+                }
+            }
+
+            hashCode.Add(XxHash3.HashToUInt64(body, s_seed));
+            _hashCode = hashCode.ToHashCode();
         }
-        else
+
+        public bool Equals(RequestKey other)
         {
-            hash.Append(Encoding.UTF8.GetBytes(value));
+            if (!string.Equals(_method, other._method, StringComparison.Ordinal)
+                || !string.Equals(_uri, other._uri, StringComparison.Ordinal)
+                || _headerValues.Length != other._headerValues.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < _headerValues.Length; i++)
+            {
+                ReadOnlySpan<string> values = _headerValues[i] ?? [];
+
+                if (!values.SequenceEqual(other._headerValues[i] ?? []))
+                {
+                    return false;
+                }
+            }
+
+            return _body.AsSpan().SequenceEqual(other._body);
         }
+
+        public override bool Equals(object? obj)
+            => obj is RequestKey other && Equals(other);
+
+        public override int GetHashCode()
+            => _hashCode;
     }
 }
