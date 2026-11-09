@@ -100,6 +100,76 @@ public class ObjectValueNodeTests
     }
 
     [Fact]
+    public void Equals_Should_IgnoreFieldOrder_When_ObjectHasManyFields()
+    {
+        // arrange
+        var fields = Enumerable.Range(0, 12)
+            .Select(i => new ObjectFieldNode($"f{i:00}", i))
+            .ToArray();
+        var a = new ObjectValueNode(fields);
+        var b = new ObjectValueNode(fields.Reverse().ToArray());
+
+        // act
+        var equals = SyntaxComparer.BySyntax.Equals(a, b);
+
+        // assert
+        Assert.True(equals);
+        Assert.Equal(
+            SyntaxComparer.BySyntax.GetHashCode(a),
+            SyntaxComparer.BySyntax.GetHashCode(b));
+    }
+
+    [Fact]
+    public void Equals_Should_BeFalse_When_ManyFieldsDifferInOneValue()
+    {
+        // arrange
+        var a = new ObjectValueNode(
+            Enumerable.Range(0, 12).Select(i => new ObjectFieldNode($"f{i:00}", i)).ToArray());
+        var b = new ObjectValueNode(
+            Enumerable.Range(0, 12).Select(i => new ObjectFieldNode($"f{i:00}", i == 7 ? 99 : i)).ToArray());
+
+        // act
+        var equals = SyntaxComparer.BySyntax.Equals(a, b);
+
+        // assert
+        Assert.False(equals);
+        Assert.NotEqual(
+            SyntaxComparer.BySyntax.GetHashCode(a),
+            SyntaxComparer.BySyntax.GetHashCode(b));
+    }
+
+    [Fact]
+    public void Equals_Should_BeFalse_When_NestedValueDiffers()
+    {
+        // arrange
+        var a = CreateNestedObject(depth: 4, leafValue: 1);
+        var b = CreateNestedObject(depth: 4, leafValue: 2);
+
+        // act
+        var equals = SyntaxComparer.BySyntax.Equals(a, b);
+
+        // assert
+        Assert.False(equals);
+        Assert.True(SyntaxComparer.BySyntax.Equals(a, CreateNestedObject(depth: 4, leafValue: 1)));
+    }
+
+    [Fact]
+    public void Equals_Should_BeFalse_When_ReorderedFieldsDifferInOneValue()
+    {
+        // arrange
+        var a = new ObjectValueNode(
+            Enumerable.Range(0, 12).Select(i => new ObjectFieldNode($"f{i:00}", i)).ToArray());
+        var b = new ObjectValueNode(
+            Enumerable.Range(0, 12).Reverse().Select(i => new ObjectFieldNode($"f{i:00}", i == 7 ? 99 : i)).ToArray());
+
+        // act
+        var equals = SyntaxComparer.BySyntax.Equals(a, b);
+
+        // assert
+        Assert.False(equals);
+    }
+
+    [Fact]
     public void Equals_Different_Objects()
     {
         // arrange
@@ -201,5 +271,24 @@ public class ObjectValueNodeTests
         Assert.Equal(aHash, bHash);
         Assert.NotEqual(aHash, cHash);
         Assert.Equal(cHash, dHash);
+    }
+
+    private static ObjectValueNode CreateNestedObject(int depth, int leafValue)
+    {
+        IValueNode value = new IntValueNode(leafValue);
+
+        for (var level = 0; level < depth; level++)
+        {
+            var fields = new List<ObjectFieldNode> { new("child", value) };
+
+            for (var i = 0; i < 8; i++)
+            {
+                fields.Add(new ObjectFieldNode($"f{i}", i));
+            }
+
+            value = new ObjectValueNode(fields);
+        }
+
+        return (ObjectValueNode)value;
     }
 }
