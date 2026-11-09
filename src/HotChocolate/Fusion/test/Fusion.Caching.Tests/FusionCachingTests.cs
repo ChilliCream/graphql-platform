@@ -88,6 +88,43 @@ public partial class FusionCachingTests : FusionTestBase
         Assert.Equal(TimeSpan.FromSeconds(3600), response.Headers.CacheControl.MaxAge);
     }
 
+    [Fact]
+    public async Task Query_With_Entity_CacheControl_From_Owner_Should_Apply_Type_Policy()
+    {
+        // arrange
+        using var accounts = CreateSourceSchema(
+            "accounts",
+            b => b.AddQueryType<EntityOwnerSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var reviews = CreateSourceSchema(
+            "reviews",
+            b => b.AddQueryType<EntityReferenceSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("accounts", accounts), ("reviews", reviews)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.GetGraphQLAsync("{ topReviews { body author { email } } }");
+
+        // assert
+        Assert.NotNull(response.Headers.CacheControl);
+        Assert.True(response.Headers.CacheControl.Private);
+        Assert.Equal(TimeSpan.FromSeconds(30), response.Headers.CacheControl.MaxAge);
+        Assert.Collection(
+            response.Headers.Vary,
+            value => Assert.Equal("Accept", value),
+            value => Assert.Equal("authorization", value));
+    }
+
     [Theory]
     [InlineData("POST")]
     [InlineData("QUERY")]
@@ -744,6 +781,36 @@ public static class PrivateCachedSchema
         [CacheControl(3600, Scope = CacheControlScope.Private)]
         public string UserData() => "private-data";
     }
+}
+
+public static class EntityOwnerSchema
+{
+    public class Query
+    {
+        [Lookup]
+        [CacheControl(60)]
+        public User? GetUserById(int id) => new(id, $"user{id}@example.com");
+    }
+
+    [CacheControl(30, Scope = CacheControlScope.Private, Vary = ["Authorization"])]
+    public record User(int Id, string Email);
+}
+
+public static class EntityReferenceSchema
+{
+    public class Query
+    {
+        [CacheControl(300)]
+        public List<Review> GetTopReviews() => [new(1, "Great", new User(1))];
+
+        [Lookup]
+        [Internal]
+        public User? GetUserById(int id) => new(id);
+    }
+
+    public record Review(int Id, string Body, User? Author);
+
+    public record User(int Id);
 }
 
 public static class SharedCachedSchema
