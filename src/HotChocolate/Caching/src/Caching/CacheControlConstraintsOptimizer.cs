@@ -12,8 +12,12 @@ namespace HotChocolate.Caching;
 /// <summary>
 /// Computes the cache control constraints for an operation during compilation.
 /// </summary>
-internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
+internal sealed class CacheControlConstraintsOptimizer(
+    ICacheControlOptionsAccessor optionsAccessor)
+    : IOperationOptimizer
 {
+    private readonly ICacheControlOptions _options = optionsAccessor.CacheControl;
+
     public void OptimizeOperation(OperationOptimizerContext context)
     {
         if (context.Definition.Operation is not OperationType.Query ||
@@ -24,7 +28,8 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             return;
         }
 
-        var constraints = ComputeCacheControlConstraints(context.CreateOperation());
+        var defaults = _options is { Enable: true, ApplyDefaults: true } ? _options : null;
+        var constraints = ComputeCacheControlConstraints(context.CreateOperation(), defaults);
 
         if (constraints.MaxAge is not null)
         {
@@ -47,27 +52,58 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
     }
 
     private static CacheControlConstraints ComputeCacheControlConstraints(
-        IOperation operation)
+        IOperation operation,
+        ICacheControlOptions? defaults)
     {
         var constraints = new CacheControlConstraints();
         var rootSelections = operation.RootSelectionSet.Selections;
 
         foreach (var rootSelection in rootSelections)
         {
-            ProcessSelection(rootSelection, constraints, operation);
+            ProcessSelection(rootSelection, constraints, operation, defaults);
         }
 
         return constraints;
     }
 
+    private static CacheControlDirective? GetCacheControlDirective(IDirectiveCollection directives)
+        => directives
+            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
+            .AsValue<CacheControlDirective>();
+
+    private static bool DeclaresLifetime(CacheControlDirective? directive)
+        => directive is not null
+            && (directive.MaxAge.HasValue || directive.InheritMaxAge == true);
+
     private static void ProcessSelection(
         ISelection selection,
         CacheControlConstraints constraints,
-        IOperation operation)
+        IOperation operation,
+        ICacheControlOptions? defaults)
     {
         var field = selection.Field;
         var maxAgeSet = false;
         var scopeSet = false;
+
+        // A root field without @cacheControl, or whose directive and return type set no
+        // lifetime, takes the default lifetime, and the default scope unless its directive
+        // sets one.
+        if (defaults is not null && !field.IsIntrospectionField)
+        {
+            var fieldDirective = GetCacheControlDirective(field.Directives);
+            var typeDirective = field.Type is IHasDirectives returnType
+                ? GetCacheControlDirective(returnType.Directives)
+                : null;
+
+            if (fieldDirective is null
+                || (!DeclaresLifetime(fieldDirective) && !DeclaresLifetime(typeDirective)))
+            {
+                ApplyCacheControl(
+                    defaults.DefaultMaxAge,
+                    directiveInheritMaxAge: null,
+                    fieldDirective?.Scope is null ? defaults.DefaultScope : null);
+            }
+        }
 
         ExtractCacheControlDetailsFromDirectives(field.Directives);
 
@@ -97,7 +133,11 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
                 for (var i = 0; i < length; i++)
                 {
-                    ProcessSelection(Unsafe.Add(ref start, i), constraints, operation);
+                    ProcessSelection(
+                        Unsafe.Add(ref start, i),
+                        constraints,
+                        operation,
+                        defaults: null);
                 }
             }
         }
@@ -105,36 +145,47 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         void ExtractCacheControlDetailsFromDirectives(
             IDirectiveCollection directives)
         {
-            var directive = directives
-                .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
-                .AsValue<CacheControlDirective>();
+            var directive = GetCacheControlDirective(directives);
 
-            if (directive is not null)
+            if (directive is null)
             {
-                if (!maxAgeSet &&
-                    directive.MaxAge.HasValue &&
-                    (!constraints.MaxAge.HasValue || directive.MaxAge < constraints.MaxAge.Value))
-                {
-                    // The maxAge of the @cacheControl directive is lower
-                    // than the previously lowest maxAge value.
-                    constraints.MaxAge = directive.MaxAge.Value;
-                    maxAgeSet = true;
-                }
-                else if (directive.InheritMaxAge == true)
-                {
-                    // If inheritMaxAge is set, we keep the
-                    // computed maxAge value as is.
-                    maxAgeSet = true;
-                }
+                return;
+            }
 
-                if (directive.Scope.HasValue &&
-                    directive.Scope < constraints.Scope)
-                {
-                    // The scope of the @cacheControl directive is more
-                    // restrictive than the computed scope.
-                    constraints.Scope = directive.Scope.Value;
-                    scopeSet = true;
-                }
+            ApplyCacheControl(
+                directive.MaxAge,
+                directive.InheritMaxAge,
+                directive.Scope);
+        }
+
+        void ApplyCacheControl(
+            int? directiveMaxAge,
+            bool? directiveInheritMaxAge,
+            CacheControlScope? directiveScope)
+        {
+            if (!maxAgeSet &&
+                directiveMaxAge.HasValue &&
+                (!constraints.MaxAge.HasValue || directiveMaxAge < constraints.MaxAge.Value))
+            {
+                // The maxAge of the @cacheControl directive is lower
+                // than the previously lowest maxAge value.
+                constraints.MaxAge = directiveMaxAge.Value;
+                maxAgeSet = true;
+            }
+            else if (directiveInheritMaxAge == true)
+            {
+                // If inheritMaxAge is set, we keep the
+                // computed maxAge value as is.
+                maxAgeSet = true;
+            }
+
+            if (directiveScope.HasValue &&
+                directiveScope < constraints.Scope)
+            {
+                // The scope of the @cacheControl directive is more
+                // restrictive than the computed scope.
+                constraints.Scope = directiveScope.Value;
+                scopeSet = true;
             }
         }
     }

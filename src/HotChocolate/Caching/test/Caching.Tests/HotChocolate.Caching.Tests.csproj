@@ -19,4 +19,8 @@
     <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">
+    <ProjectReference Include="..\..\..\ApolloFederation\src\ApolloFederation\HotChocolate.ApolloFederation.csproj" />
+  </ItemGroup>
+
 </Project>
