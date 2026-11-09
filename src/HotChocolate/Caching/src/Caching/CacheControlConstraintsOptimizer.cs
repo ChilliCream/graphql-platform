@@ -22,7 +22,10 @@ internal sealed class CacheControlConstraintsOptimizer(
             return;
         }
 
-        var constraints = CacheControlConstraintsComputer.Compute(context.Operation, _options);
+        var constraints = CacheControlConstraintsComputer.Compute(
+            context.Operation,
+            _options,
+            lookupSelections: null);
 
         if (constraints is not null)
         {

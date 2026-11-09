@@ -204,14 +204,14 @@ builder
     .UseQueryCache();
 ```
 
-| Option          | Type                | Default  | Description                                                     |
-| --------------- | ------------------- | -------- | --------------------------------------------------------------- |
-| `Enable`        | `bool`              | `true`   | Enables or disables cache-control header generation.            |
-| `DefaultMaxAge` | `int`               | `0`      | Default `max-age` when `ApplyDefaults` is enabled.              |
-| `DefaultScope`  | `CacheControlScope` | `Public` | Default cache scope when `ApplyDefaults` is enabled.            |
-| `ApplyDefaults` | `bool`              | `true`   | Applies the defaults to root fields that set no cache lifetime. |
+| Option          | Type                | Default  | Description                                                                                        |
+| --------------- | ------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `Enable`        | `bool`              | `true`   | Enables or disables cache-control header generation.                                               |
+| `DefaultMaxAge` | `int`               | `0`      | Default `max-age` when `ApplyDefaults` is enabled.                                                 |
+| `DefaultScope`  | `CacheControlScope` | `Public` | Default cache scope when `ApplyDefaults` is enabled.                                               |
+| `ApplyDefaults` | `bool`              | `true`   | Applies the defaults to root fields, and to fields a lookup brings in, that set no cache lifetime. |
 
-With `ApplyDefaults` enabled, a root field without `@cacheControl`, such as one from a subgraph that does not use cache control, contributes `DefaultMaxAge` and `DefaultScope`. So does a root field whose `@cacheControl` sets no `maxAge`, no `sharedMaxAge`, and no `inheritMaxAge: true`, unless its return type's `@cacheControl` sets a lifetime. When such a field's `@cacheControl` sets `scope`, the field contributes that scope with `DefaultMaxAge`. With the default settings, a response that selects such a field gets `max-age=0`. The gateway applies its own options, so a subgraph's `ApplyDefaults = false` does not change them. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false` on the gateway.
+With `ApplyDefaults` enabled, a root field without `@cacheControl`, such as one from a subgraph that does not use cache control, contributes `DefaultMaxAge` and `DefaultScope`. So does a root field whose `@cacheControl` sets no `maxAge`, no `sharedMaxAge`, and no `inheritMaxAge: true`, unless its return type's `@cacheControl` sets a lifetime. When such a field's `@cacheControl` sets `scope`, the field contributes that scope with `DefaultMaxAge`. A field that the gateway selects directly on an entity it fetches from another subgraph through a lookup is treated like a root field, and the fields selected below it are not. With the default settings, a response that selects such a field gets `max-age=0`. The gateway applies its own options, so a subgraph's `ApplyDefaults = false` does not change them. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false` on the gateway.
 
 # Skip Cache Control for a Specific Request
 
