@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Features;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
@@ -57,6 +58,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         if (string.IsNullOrEmpty(With))
         {
             var topicString = ResolveTopicString(method);
+            var fixedTopics = context.Features.GetOrSet<SubscriptionTopicFeature>().FixedTopics;
 
             descriptor.Extend().OnBeforeNaming(
                 (_, fieldDef) =>
@@ -64,7 +66,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 #pragma warning disable IL3050, IL2060
                     var factory = s_subscribeFactory.MakeGenericMethod(MessageType);
 #pragma warning restore IL3050, IL2060
-                    factory.Invoke(null, [fieldDef, topicString]);
+                    factory.Invoke(null, [fieldDef, topicString, fixedTopics]);
                 });
         }
         else
@@ -115,9 +117,25 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         return method.Name;
     }
 
+    /// <summary>
+    /// Creates the subscribe resolver of a subscription field.
+    /// </summary>
+    /// <param name="fieldDef">
+    /// The configuration of the subscription field.
+    /// </param>
+    /// <param name="topicString">
+    /// The topic name, which can contain argument placeholders such as <c>{id}</c>.
+    /// </param>
+    /// <param name="fixedTopics">
+    /// The fixed topics of the schema. A topic name without argument placeholders is added.
+    /// </param>
+    /// <typeparam name="TMessage">
+    /// The type of the message / event payload.
+    /// </typeparam>
     private static void SubscribeFactory<TMessage>(
         ObjectFieldConfiguration fieldDef,
-        string topicString)
+        string topicString,
+        HashSet<string> fixedTopics)
     {
         var arg = false;
 
@@ -138,10 +156,12 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
         if (arg)
         {
-            fieldDef.SubscribeResolver = CreateArgumentSubscribeResolver<TMessage>(topicString);
+            fieldDef.SubscribeResolver =
+                CreateArgumentSubscribeResolver<TMessage>(topicString, fixedTopics);
         }
         else
         {
+            fixedTopics.Add(topicString);
             fieldDef.SubscribeResolver = CreateSubscribeResolver<TMessage>(topicString);
         }
     }
@@ -162,8 +182,21 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
         };
     }
 
+    /// <summary>
+    /// Creates a subscribe resolver that resolves its topic from the argument values of the field.
+    /// </summary>
+    /// <param name="topicFormatString">
+    /// The composite format string of the topic, with one index per argument of the field.
+    /// </param>
+    /// <param name="fixedTopics">
+    /// The fixed topics of the schema, which the resolved topic must not match.
+    /// </param>
+    /// <typeparam name="TMessage">
+    /// The type of the message / event payload.
+    /// </typeparam>
     private static SubscribeResolverDelegate CreateArgumentSubscribeResolver<TMessage>(
-        string topicFormatString)
+        string topicFormatString,
+        HashSet<string> fixedTopics)
     {
         return async ctx =>
         {
@@ -179,6 +212,12 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
             // next we create from it the topic string.
             var topicString = string.Format(topicFormatString, argumentValues);
+
+            // then we make sure the topic is not the fixed topic of another subscription field.
+            if (fixedTopics.Contains(topicString))
+            {
+                throw SubscribeResolver_TopicOfOtherField(ctx.Selection.Field);
+            }
 
             // last we subscribe with the topic string.
             var receiver = ctx.Service<ITopicEventReceiver>();

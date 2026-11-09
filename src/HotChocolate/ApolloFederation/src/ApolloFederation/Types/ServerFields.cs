@@ -1,4 +1,5 @@
 using HotChocolate.ApolloFederation.Resolvers;
+using HotChocolate.Features;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -30,18 +31,15 @@ public static class ServerFields
     internal static ObjectFieldConfiguration CreateEntitiesField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, WellKnownFieldNames.Entities);
+        var options = context.Features.GetRequired<ApolloFederationFeature>().Options;
+        var maxAllowedRepresentations = options.MaxAllowedRepresentations;
 
         descriptor
             .Type<NonNullType<ListType<_EntityType>>>()
             .Argument(
                 WellKnownArgumentNames.Representations,
                 d => d.Type<NonNullType<ListType<NonNullType<_AnyType>>>>())
-            .Resolve(
-                c => EntitiesResolver.ResolveAsync(
-                    c.Schema,
-                    c.ArgumentValue<IReadOnlyList<Representation>>(
-                        WellKnownArgumentNames.Representations),
-                    c));
+            .Resolve(c => EntitiesResolver.ResolveAsync(c, maxAllowedRepresentations));
 
         return descriptor.CreateConfiguration();
     }

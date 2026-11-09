@@ -220,6 +220,86 @@ public class RepresentationFillerTests
         Assert.Equal(0, entity.Gadget.Serial);
     }
 
+    [Fact]
+    public async Task Invoke_Should_PreserveOwnedFields_When_RepresentationCarriesValue()
+    {
+        // arrange
+        var schema = await BuildSchemaAsync();
+        var type = schema.Types.GetType<ObjectType>(nameof(Post));
+        var filler = GetFiller(type);
+        var entity = new Post
+        {
+            Id = "p1",
+            Owner = "alice",
+            Labels = ["old"],
+            Editor = new Author { Id = "a1", YearsOfExperience = 7 }
+        };
+        var representation = new ObjectValueNode(
+            new ObjectFieldNode("id", "p1"),
+            new ObjectFieldNode("owner", "mallory"),
+            new ObjectFieldNode("labels", new ListValueNode(new StringValueNode("new"))),
+            new ObjectFieldNode(
+                "editor",
+                new ObjectValueNode(new ObjectFieldNode("yearsOfExperience", 9))),
+            new ObjectFieldNode(
+                "reviewer",
+                new ObjectValueNode(new ObjectFieldNode("id", "a2"))));
+
+        // act
+        filler.Invoke(schema, type, representation, entity);
+
+        // assert
+        Assert.Equal("alice", entity.Owner);
+        Assert.Equal(["old"], entity.Labels);
+        Assert.Equal(7, entity.Editor!.YearsOfExperience);
+        Assert.Null(entity.Reviewer);
+    }
+
+    [Fact]
+    public async Task Invoke_Should_FillOnlyNestedExternalField_When_ParentFieldIsOwned()
+    {
+        // arrange
+        var schema = await BuildSchemaAsync();
+        var type = schema.Types.GetType<ObjectType>(nameof(Post));
+        var filler = GetFiller(type);
+        var entity = new Post { Id = "p1", Publisher = new Publisher { Name = "old", Revenue = 1 } };
+        var representation = new ObjectValueNode(
+            new ObjectFieldNode("id", "p1"),
+            new ObjectFieldNode(
+                "publisher",
+                new ObjectValueNode(
+                    new ObjectFieldNode("name", "new"),
+                    new ObjectFieldNode("revenue", 2))));
+
+        // act
+        filler.Invoke(schema, type, representation, entity);
+
+        // assert
+        Assert.Equal("old", entity.Publisher!.Name);
+        Assert.Equal(2, entity.Publisher.Revenue);
+    }
+
+    [Fact]
+    public async Task Invoke_Should_FillAllFields_When_TypeIsExternal()
+    {
+        // arrange
+        var schema = await BuildSchemaAsync();
+        var type = schema.Types.GetType<ObjectType>(nameof(Post));
+        var filler = GetFiller(type);
+        var entity = new Post { Id = "p1", Stats = new Stats { Views = 1 } };
+        var representation = new ObjectValueNode(
+            new ObjectFieldNode("id", "p1"),
+            new ObjectFieldNode(
+                "stats",
+                new ObjectValueNode(new ObjectFieldNode("views", 2))));
+
+        // act
+        filler.Invoke(schema, type, representation, entity);
+
+        // assert
+        Assert.Equal(2, entity.Stats!.Views);
+    }
+
     private static async Task<Schema> BuildSchemaAsync()
         => await new ServiceCollection()
             .AddGraphQL()
@@ -252,11 +332,26 @@ public class RepresentationFillerTests
         [Key]
         public string Id { get; set; } = null!;
 
+        [External]
         public Author? Author { get; set; }
 
+        [External]
         public IReadOnlyList<string>? Tags { get; set; }
 
+        [External]
         public int Rating { get; set; }
+
+        public string? Owner { get; set; }
+
+        public IReadOnlyList<string>? Labels { get; set; }
+
+        public Author? Editor { get; set; }
+
+        public Author? Reviewer { get; set; }
+
+        public Publisher? Publisher { get; set; }
+
+        public Stats? Stats { get; set; }
 
         public static Task<Post> GetAsync(string id)
             => Task.FromResult(new Post { Id = id });
@@ -269,6 +364,20 @@ public class RepresentationFillerTests
         public int YearsOfExperience { get; set; }
 
         public Address? Address { get; set; }
+    }
+
+    public sealed class Publisher
+    {
+        public string? Name { get; set; }
+
+        [External]
+        public int Revenue { get; set; }
+    }
+
+    [External]
+    public sealed class Stats
+    {
+        public int Views { get; set; }
     }
 
     public sealed class Address
@@ -284,6 +393,7 @@ public class RepresentationFillerTests
         [Key]
         public string Id { get; set; } = null!;
 
+        [External]
         public IPet? Pet { get; set; }
 
         public static Task<PetHost> GetAsync(string id)
@@ -311,6 +421,7 @@ public class RepresentationFillerTests
 
         public string? Label { get; set; }
 
+        [External]
         public CyclicNode? Next { get; set; }
 
         public static Task<CyclicNode> GetAsync(string id)
@@ -323,6 +434,7 @@ public class RepresentationFillerTests
         [Key]
         public string Id { get; set; } = null!;
 
+        [External]
         public Gadget? Gadget { get; set; }
 
         public static Task<GadgetHost> GetAsync(string id)
