@@ -6,6 +6,7 @@ internal static class FederationContextData
     public const string ContactMarker = "HotChocolate.ApolloFederation.Contact";
     public const string ExportedDirectives = "HotChocolate.ApolloFederation.ExportedDirectives";
     public const string RepresentationCount = "HotChocolate.ApolloFederation.RepresentationCount";
+    public const string SdlResolved = "HotChocolate.ApolloFederation.SdlResolved";
     public const string DataField = "data";
     public const string TypeField = "__type";
 }

@@ -261,5 +261,13 @@ namespace HotChocolate.ApolloFederation.Properties
                 return ResourceManager.GetString("PolicyCollectionType_ParseValue_ExpectedStringArray", resourceCulture);
             }
         }
+
+        internal static string ThrowHelper_Service_SdlResolvedMoreThanOnce
+        {
+            get
+            {
+                return ResourceManager.GetString("ThrowHelper_Service_SdlResolvedMoreThanOnce", resourceCulture);
+            }
+        }
     }
 }
