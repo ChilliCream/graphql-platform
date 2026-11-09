@@ -3,6 +3,7 @@ using HotChocolate.Caching;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 using CacheControlAttribute = HotChocolate.Caching.CacheControlAttribute;
 
@@ -217,6 +218,175 @@ public class FusionCachingTests : FusionTestBase
         Assert.True(verifyingInterceptor.HasCacheControlHeaderValue);
     }
 
+    [Theory]
+    [InlineData("{ plainField }")]
+    [InlineData("{ expensiveField plainField }")]
+    [InlineData("{ plainField expensiveField }")]
+    public async Task Query_Should_UseDefaultMaxAge_When_RootFieldHasNoCacheControl(string query)
+    {
+        // arrange
+        using var cachedServer = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<CachedSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var plainServer = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<NoCacheSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", cachedServer), ("b", plainServer)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.PostGraphQLAsync(query);
+
+        // assert
+        Assert.Equal("max-age=0", response.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Query_Should_UseConfiguredDefaults_When_RootFieldHasNoCacheControl()
+    {
+        // arrange
+        using var cachedServer = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<CachedSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var plainServer = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<NoCacheSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", cachedServer), ("b", plainServer)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o =>
+                {
+                    o.DefaultMaxAge = 60;
+                    o.DefaultScope = CacheControlScope.Private;
+                })
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.PostGraphQLAsync("{ expensiveField plainField }");
+
+        // assert
+        Assert.Equal("max-age=60, private", response.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Query_Should_UseDefaultMaxAge_When_RootFieldDeclaresOnlyScope()
+    {
+        // arrange
+        using var cachedServer = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<CachedSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var profileServer = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<ScopeOnlySchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", cachedServer), ("b", profileServer)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.PostGraphQLAsync("{ expensiveField profile }");
+
+        // assert
+        Assert.Equal("max-age=0, private", response.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Query_Should_UseReturnTypeMaxAge_When_RootFieldDeclaresOnlyScope()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<ViewerSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", server)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.PostGraphQLAsync("{ me { email } }");
+
+        // assert
+        Assert.Equal("max-age=60, private", response.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Query_Should_UseDefaultMaxAge_When_ShareableRootFieldIsCacheableInOneSchema()
+    {
+        // arrange
+        using var cachedServer = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<CachedShareableSchema.Query>()
+                .AddCacheControl());
+
+        using var plainServer = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<ShareableSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", cachedServer), ("b", plainServer)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.PostGraphQLAsync("{ announcement }");
+
+        // assert
+        Assert.Equal("max-age=0", response.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Query_Should_KeepMaxAge_When_TypenameIsSelected()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<CachedSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", server)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.PostGraphQLAsync("{ __typename expensiveField }");
+
+        // assert
+        Assert.Equal("max-age=3600", response.Headers.CacheControl?.ToString());
+    }
+
     private sealed class VerifyingInterceptor : IOperationPlannerInterceptor
     {
         public bool HasHitOnAfterPlanCompleted;
@@ -293,6 +463,49 @@ public static class MutationSchema
     public class Mutation
     {
         public string DoSomething() => "done";
+    }
+}
+
+public static class ScopeOnlySchema
+{
+    public class Query
+    {
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public string Profile() => "profile";
+    }
+}
+
+public static class ViewerSchema
+{
+    public class Query
+    {
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public User? GetMe() => new();
+    }
+
+    [CacheControl(60)]
+    public class User
+    {
+        public string Email => "alice@example.com";
+    }
+}
+
+public static class CachedShareableSchema
+{
+    public class Query
+    {
+        [Shareable]
+        [CacheControl(300)]
+        public string Announcement() => "announcement";
+    }
+}
+
+public static class ShareableSchema
+{
+    public class Query
+    {
+        [Shareable]
+        public string Announcement() => "announcement";
     }
 }
 

@@ -8,8 +8,12 @@ namespace HotChocolate.Caching;
 /// <summary>
 /// Computes the cache control constraints for an operation during compilation.
 /// </summary>
-internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
+internal sealed class CacheControlConstraintsOptimizer(
+    ICacheControlOptionsAccessor optionsAccessor)
+    : IOperationOptimizer
 {
+    private readonly ICacheControlOptions _options = optionsAccessor.CacheControl;
+
     public void OptimizeOperation(OperationOptimizerContext context)
     {
         if (context.Operation.Kind is not OperationType.Query
@@ -18,7 +22,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             return;
         }
 
-        var constraints = CacheControlConstraintsComputer.Compute(context.Operation);
+        var constraints = CacheControlConstraintsComputer.Compute(context.Operation, _options);
 
         if (constraints is not null)
         {
