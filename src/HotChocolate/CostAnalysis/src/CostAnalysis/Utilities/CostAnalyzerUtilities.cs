@@ -157,6 +157,7 @@ internal static class CostAnalyzerUtilities
                     operation.SelectionSet,
                     rootType,
                     string.Empty,
+                    [],
                     []);
             }
 
@@ -188,7 +189,8 @@ internal static class CostAnalyzerUtilities
             SelectionSetNode selectionSet,
             IComplexTypeDefinition declaringType,
             string parentPath,
-            HashSet<string> activeFragments)
+            HashSet<string> activeFragments,
+            HashSet<(string ParentPath, string FragmentName)> indexedFragments)
         {
             foreach (var selection in selectionSet.Selections)
             {
@@ -213,7 +215,8 @@ internal static class CostAnalyzerUtilities
                                 field.SelectionSet,
                                 childType,
                                 responsePath,
-                                activeFragments);
+                                activeFragments,
+                                indexedFragments);
                         }
                         break;
 
@@ -225,20 +228,29 @@ internal static class CostAnalyzerUtilities
                             inlineFragment.SelectionSet,
                             inlineType,
                             parentPath,
-                            activeFragments);
+                            activeFragments,
+                            indexedFragments);
                         break;
 
                     case FragmentSpreadNode spread
                         when fragments.TryGetValue(spread.Name.Value, out var fragment)
                             && activeFragments.Add(fragment.Name.Value):
-                        var fragmentType = ResolveType(schema, fragment.TypeCondition, declaringType);
-                        IndexSelectionSet(
-                            schema,
-                            fragments,
-                            fragment.SelectionSet,
-                            fragmentType,
-                            parentPath,
-                            activeFragments);
+                        // A fragment indexes the same fields under the same response path wherever
+                        // it is spread, so indexing it there again cannot add an entry. Indexing it
+                        // once per path keeps the work proportional to the index.
+                        if (indexedFragments.Add((parentPath, fragment.Name.Value)))
+                        {
+                            var fragmentType = ResolveType(schema, fragment.TypeCondition, declaringType);
+                            IndexSelectionSet(
+                                schema,
+                                fragments,
+                                fragment.SelectionSet,
+                                fragmentType,
+                                parentPath,
+                                activeFragments,
+                                indexedFragments);
+                        }
+
                         activeFragments.Remove(fragment.Name.Value);
                         break;
                 }
