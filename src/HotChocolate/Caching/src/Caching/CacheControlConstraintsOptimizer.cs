@@ -13,8 +13,12 @@ namespace HotChocolate.Caching;
 /// <summary>
 /// Computes the cache control constraints for an operation during compilation.
 /// </summary>
-internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
+internal sealed class CacheControlConstraintsOptimizer(
+    ICacheControlOptionsAccessor optionsAccessor)
+    : IOperationOptimizer
 {
+    private readonly ICacheControlOptions _options = optionsAccessor.CacheControl;
+
     public void OptimizeOperation(OperationOptimizerContext context)
     {
         if (context.Definition.Operation is not OperationType.Query ||
@@ -25,7 +29,8 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             return;
         }
 
-        var constraints = ComputeCacheControlConstraints(context.CreateOperation());
+        var defaults = _options is { Enable: true, ApplyDefaults: true } ? _options : null;
+        var constraints = ComputeCacheControlConstraints(context.CreateOperation(), defaults);
 
         if (constraints.MaxAge is not null || constraints.SharedMaxAge is not null)
         {
@@ -58,14 +63,15 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
     }
 
     private static ImmutableCacheConstraints ComputeCacheControlConstraints(
-        IOperation operation)
+        IOperation operation,
+        ICacheControlOptions? defaults)
     {
         var constraints = new CacheControlConstraints();
         var rootSelections = operation.RootSelectionSet.Selections;
 
         foreach (var rootSelection in rootSelections)
         {
-            ProcessSelection(rootSelection, constraints, operation);
+            ProcessSelection(rootSelection, constraints, operation, defaults);
         }
 
         ImmutableArray<string> vary;
@@ -92,16 +98,50 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             vary);
     }
 
+    private static CacheControlDirective? GetCacheControlDirective(IDirectiveCollection directives)
+        => directives
+            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
+            .AsValue<CacheControlDirective>();
+
+    private static bool DeclaresLifetime(CacheControlDirective? directive)
+        => directive is not null
+            && (directive.MaxAge.HasValue
+                || directive.SharedMaxAge.HasValue
+                || directive.InheritMaxAge == true);
+
     private static void ProcessSelection(
         ISelection selection,
         CacheControlConstraints constraints,
-        IOperation operation)
+        IOperation operation,
+        ICacheControlOptions? defaults)
     {
         var field = selection.Field;
         var maxAgeSet = false;
         var sharedMaxAgeSet = false;
         var scopeSet = false;
         var varySet = false;
+
+        // A root field without @cacheControl, or whose directive and return type set no
+        // lifetime, takes the default lifetime, and the default scope unless its directive
+        // sets one.
+        if (defaults is not null && !field.IsIntrospectionField)
+        {
+            var fieldDirective = GetCacheControlDirective(field.Directives);
+            var typeDirective = field.Type is IHasDirectives returnType
+                ? GetCacheControlDirective(returnType.Directives)
+                : null;
+
+            if (fieldDirective is null
+                || (!DeclaresLifetime(fieldDirective) && !DeclaresLifetime(typeDirective)))
+            {
+                ApplyCacheControl(
+                    defaults.DefaultMaxAge,
+                    directiveSharedMaxAge: null,
+                    directiveInheritMaxAge: null,
+                    fieldDirective?.Scope is null ? defaults.DefaultScope : null,
+                    directiveVary: null);
+            }
+        }
 
         ExtractCacheControlDetailsFromDirectives(field.Directives);
 
@@ -131,7 +171,11 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
                 for (var i = 0; i < length; i++)
                 {
-                    ProcessSelection(Unsafe.Add(ref start, i), constraints, operation);
+                    ProcessSelection(
+                        Unsafe.Add(ref start, i),
+                        constraints,
+                        operation,
+                        defaults: null);
                 }
             }
         }
@@ -139,87 +183,102 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         void ExtractCacheControlDetailsFromDirectives(
             IDirectiveCollection directives)
         {
-            var directive = directives
-                .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
-                .AsValue<CacheControlDirective>();
+            var directive = GetCacheControlDirective(directives);
 
-            if (directive is not null)
+            if (directive is null)
             {
-                var previousMaxAge = constraints.MaxAge;
-                if (!maxAgeSet &&
-                    directive.MaxAge.HasValue)
+                return;
+            }
+
+            ApplyCacheControl(
+                directive.MaxAge,
+                directive.SharedMaxAge,
+                directive.InheritMaxAge,
+                directive.Scope,
+                directive.Vary);
+        }
+
+        void ApplyCacheControl(
+            int? directiveMaxAge,
+            int? directiveSharedMaxAge,
+            bool? directiveInheritMaxAge,
+            CacheControlScope? directiveScope,
+            ImmutableArray<string>? directiveVary)
+        {
+            var previousMaxAge = constraints.MaxAge;
+            if (!maxAgeSet &&
+                directiveMaxAge.HasValue)
+            {
+                // If only max-age has been set, we honor the expected behavior that a CDN
+                // cannot ever cache longer than this unless s-maxage specifies otherwise.
+                if (!constraints.MaxAge.HasValue || directiveMaxAge < constraints.MaxAge.Value)
+                {
+                    constraints.MaxAge = directiveMaxAge.Value;
+                }
+
+                if (!directiveSharedMaxAge.HasValue &&
+                    constraints.SharedMaxAge.HasValue &&
+                    constraints.SharedMaxAge.Value > directiveMaxAge.Value)
+                {
+                    constraints.SharedMaxAge = directiveMaxAge;
+                }
+
+                maxAgeSet = true;
+            }
+            else if (directiveInheritMaxAge == true)
+            {
+                // If inheritMaxAge is set, we keep the
+                // computed maxAge value as is.
+                maxAgeSet = true;
+            }
+
+            if (!sharedMaxAgeSet &&
+                directiveSharedMaxAge.HasValue &&
+                (!constraints.SharedMaxAge.HasValue || directiveSharedMaxAge < constraints.SharedMaxAge.Value))
+            {
+                // The maxAge of the @cacheControl directive is lower
+                // than the previously lowest maxAge value.
+                if (!constraints.SharedMaxAge.HasValue &&
+                    previousMaxAge.HasValue &&
+                    previousMaxAge.Value < directiveSharedMaxAge.Value)
                 {
                     // If only max-age has been set, we honor the expected behavior that a CDN
                     // cannot ever cache longer than this unless s-maxage specifies otherwise.
-                    if (!constraints.MaxAge.HasValue || directive.MaxAge < constraints.MaxAge.Value)
-                    {
-                        constraints.MaxAge = directive.MaxAge.Value;
-                    }
-
-                    if (!directive.SharedMaxAge.HasValue &&
-                        constraints.SharedMaxAge.HasValue &&
-                        constraints.SharedMaxAge.Value > directive.MaxAge.Value)
-                    {
-                        constraints.SharedMaxAge = directive.MaxAge;
-                    }
-
-                    maxAgeSet = true;
+                    constraints.SharedMaxAge = previousMaxAge.Value;
                 }
-                else if (directive.InheritMaxAge == true)
+                else
                 {
-                    // If inheritMaxAge is set, we keep the
-                    // computed maxAge value as is.
-                    maxAgeSet = true;
+                    constraints.SharedMaxAge = directiveSharedMaxAge.Value;
                 }
 
-                if (!sharedMaxAgeSet &&
-                    directive.SharedMaxAge.HasValue &&
-                    (!constraints.SharedMaxAge.HasValue || directive.SharedMaxAge < constraints.SharedMaxAge.Value))
+                sharedMaxAgeSet = true;
+            }
+            else if (directiveInheritMaxAge == true)
+            {
+                // If inheritMaxAge is set, we keep the
+                // computed maxAge value as is.
+                sharedMaxAgeSet = true;
+            }
+
+            if (directiveScope.HasValue &&
+                directiveScope < constraints.Scope)
+            {
+                // The scope of the @cacheControl directive is more
+                // restrictive than the computed scope.
+                constraints.Scope = directiveScope.Value;
+                scopeSet = true;
+            }
+
+            if (directiveVary is { Length: > 0 })
+            {
+                constraints.Vary ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var value in directiveVary)
                 {
-                    // The maxAge of the @cacheControl directive is lower
-                    // than the previously lowest maxAge value.
-                    if (!constraints.SharedMaxAge.HasValue &&
-                        previousMaxAge.HasValue &&
-                        previousMaxAge.Value < directive.SharedMaxAge.Value)
-                    {
-                        // If only max-age has been set, we honor the expected behavior that a CDN
-                        // cannot ever cache longer than this unless s-maxage specifies otherwise.
-                        constraints.SharedMaxAge = previousMaxAge.Value;
-                    }
-                    else
-                    {
-                        constraints.SharedMaxAge = directive.SharedMaxAge.Value;
-                    }
-
-                    sharedMaxAgeSet = true;
-                }
-                else if (directive.InheritMaxAge == true)
-                {
-                    // If inheritMaxAge is set, we keep the
-                    // computed maxAge value as is.
-                    sharedMaxAgeSet = true;
+                    constraints.Vary.Add(value);
                 }
 
-                if (directive.Scope.HasValue &&
-                    directive.Scope < constraints.Scope)
-                {
-                    // The scope of the @cacheControl directive is more
-                    // restrictive than the computed scope.
-                    constraints.Scope = directive.Scope.Value;
-                    scopeSet = true;
-                }
-
-                if (directive.Vary is { Length: > 0 })
-                {
-                    constraints.Vary ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-                    foreach (var value in directive.Vary)
-                    {
-                        constraints.Vary.Add(value);
-                    }
-
-                    varySet = true;
-                }
+                varySet = true;
             }
         }
     }

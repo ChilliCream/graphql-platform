@@ -1,6 +1,9 @@
 using System.Net.Http.Headers;
 using System.Text;
+using HotChocolate.ApolloFederation.Resolvers;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -414,6 +417,249 @@ public class HttpCachingTests : ServerTestBase
 
         result.MatchSnapshot();
     }
+
+    [Theory]
+    [InlineData(
+        """{ node(id: "UHJvZHVjdDox") { ... on Product { name } } }""",
+        """{"data":{"node":{"name":"Product 1"}}}""")]
+    [InlineData(
+        """{ nodes(ids: ["UHJvZHVjdDox"]) { ... on Product { name } } }""",
+        """{"data":{"nodes":[{"name":"Product 1"}]}}""")]
+    public async Task NodeFields_Should_UseDefaultMaxAge_When_ApplyDefaultsIsEnabled(
+        string query,
+        string expectedBody)
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<ProductQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync(query);
+
+        // assert
+        Assert.Equal(expectedBody, result.Body);
+        Assert.Equal("max-age=0", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task EntitiesField_Should_UseDefaultMaxAge_When_ApplyDefaultsIsEnabled()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddApolloFederation()
+                .AddQueryType<ReviewQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync(
+            """
+            {
+                _entities(representations: [{ __typename: "Review", id: 1 }]) {
+                    ... on Review {
+                        body
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Equal("""{"data":{"_entities":[{"body":"Review 1"}]}}""", result.Body);
+        Assert.Equal("max-age=0", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task ServiceField_Should_UseDefaultMaxAge_When_ApplyDefaultsIsEnabled()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddApolloFederation()
+                .AddQueryType<ReviewQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ _service { sdl } }");
+
+        // assert
+        Assert.Equal("max-age=0", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task PagingField_Should_UseDefaultMaxAge_When_ResolverIsSynchronous()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType<CatalogQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ catalog { tags { nodes } } }");
+
+        // assert
+        Assert.Equal("""{"data":{"catalog":{"tags":{"nodes":["new"]}}}}""", result.Body);
+        Assert.Equal("max-age=0", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task RootField_Should_UseDefaultMaxAge_When_CacheControlDeclaresOnlyScope()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType<StoreQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ name profile }");
+
+        // assert
+        Assert.Equal("""{"data":{"name":"Main","profile":"profile"}}""", result.Body);
+        Assert.Equal("max-age=0, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task RootField_Should_UseReturnTypeMaxAge_When_CacheControlDeclaresOnlyScope()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType<ViewerQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ me { email } }");
+
+        // assert
+        Assert.Equal("""{"data":{"me":{"email":"alice@example.com"}}}""", result.Body);
+        Assert.Equal("max-age=60, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task RootField_Should_KeepPublicScope_When_DefaultScopeIsPrivate()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
+                .AddQueryType<PublicScopeQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ name motto }");
+
+        // assert
+        Assert.Equal("""{"data":{"name":"Main","motto":"Always open"}}""", result.Body);
+        Assert.Equal("max-age=0", result.Headers.CacheControl?.ToString());
+    }
+
+    public class Catalog
+    {
+        [UsePaging]
+        public List<string> GetTags() => ["new"];
+    }
+
+    public class CatalogQuery
+    {
+        [CacheControl(3600)]
+        public Catalog GetCatalog() => new();
+    }
+
+    [Node]
+    public class Product
+    {
+        public int Id { get; init; }
+
+        [CacheControl(3600)]
+        public string Name { get; init; } = default!;
+
+        [NodeResolver]
+        public static Product Get(int id) => new() { Id = id, Name = $"Product {id}" };
+    }
+
+    public class ProductQuery
+    {
+        public Product GetProduct(int id) => Product.Get(id);
+    }
+
+    public class PublicScopeQuery
+    {
+        [CacheControl(Scope = CacheControlScope.Public)]
+        public string GetMotto() => "Always open";
+
+        [CacheControl(3600)]
+        public string GetName() => "Main";
+    }
+
+    [Key("id")]
+    public class Review
+    {
+        public int Id { get; init; }
+
+        [CacheControl(3600)]
+        public string Body { get; init; } = default!;
+
+        [ReferenceResolver]
+        public static Review Get(int id) => new() { Id = id, Body = $"Review {id}" };
+    }
+
+    public class ReviewQuery
+    {
+        public Review GetReview(int id) => Review.Get(id);
+    }
+
+    public class StoreQuery
+    {
+        [CacheControl(3600)]
+        public string GetName() => "Main";
+
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public string GetProfile() => "profile";
+    }
+
+    [CacheControl(60)]
+    public class User
+    {
+        public string Email => "alice@example.com";
+    }
+
+    public class ViewerQuery
+    {
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public User? GetMe() => new();
+    }
 }
 
 public class GraphQLResult
@@ -427,6 +673,18 @@ public class GraphQLResult
 
 internal static class TestServerExtensions
 {
+    public static async Task<GraphQLResult> GetQueryAsync(this HttpClient client, string query)
+    {
+        var response = await client.GetAsync("/graphql?query=" + Uri.EscapeDataString(query));
+
+        return new GraphQLResult
+        {
+            Headers = response.Headers,
+            ContentHeaders = response.Content.Headers,
+            Body = await response.Content.ReadAsStringAsync()
+        };
+    }
+
     public static async Task<GraphQLResult> PostQueryAsync(this HttpClient client, string query)
     {
         var payload = $"{{ \"query\": \"{query}\" }}";

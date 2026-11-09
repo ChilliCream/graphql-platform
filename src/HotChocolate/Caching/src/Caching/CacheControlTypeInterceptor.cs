@@ -14,7 +14,6 @@ internal sealed class CacheControlTypeInterceptor(
 {
     private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
     private readonly ICacheControlOptions _cacheControlOptions = accessor.CacheControl;
-    private TypeDependency? _cacheControlDependency;
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
@@ -31,7 +30,7 @@ internal sealed class CacheControlTypeInterceptor(
         }
     }
 
-    public override void OnAfterMergeTypeExtensions()
+    public override void OnBeforeCompleteMetadata()
     {
         foreach (var item in _types)
         {
@@ -53,15 +52,7 @@ internal sealed class CacheControlTypeInterceptor(
             return;
         }
 
-        _cacheControlDependency ??= new TypeDependency(
-            new ExtendedTypeDirectiveReference(
-                type.TypeInspector.GetType(
-                    typeof(CacheControlDirectiveType))),
-            TypeDependencyFulfilled.Completed);
-
         var length = objectDef.Fields.Count;
-        var appliedDefaults = false;
-
         var fields = ((BindableList<ObjectFieldDefinition>)objectDef.Fields).AsSpan();
 
         for (var i = 0; i < length; i++)
@@ -86,13 +77,7 @@ internal sealed class CacheControlTypeInterceptor(
                 // Each field on the query type or data resolver fields
                 // are treated as fields that need to be explicitly cached.
                 ApplyCacheControlWithDefaults(field);
-                appliedDefaults = true;
             }
-        }
-
-        if (appliedDefaults)
-        {
-            type.Dependencies.Add(_cacheControlDependency);
         }
     }
 
