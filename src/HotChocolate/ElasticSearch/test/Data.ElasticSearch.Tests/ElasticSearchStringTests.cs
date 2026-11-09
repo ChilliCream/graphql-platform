@@ -40,7 +40,7 @@ public class ElasticSearchStringTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_SingleField()
+    public async Task Execute_Should_MatchSnapshot_When_SingleField()
     {
         await IndexDocuments(_data);
 

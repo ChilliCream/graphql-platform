@@ -36,7 +36,9 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
         if (IsStringList(list.Type))
         {
-            return node.Arguments.Count == 2 ? RewriteStringList(node, list) ?? base.VisitMethodCall(node) : base.VisitMethodCall(node);
+            return node.Arguments.Count == 2
+                ? RewriteStringList(node, list) ?? base.VisitMethodCall(node)
+                : base.VisitMethodCall(node);
         }
 
         return TryGetObjectElement(list.Type, out var element)
@@ -246,10 +248,16 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
     private static Expression StripGuard(Expression expression, ParameterExpression item)
         => expression switch
         {
-            BinaryExpression { NodeType: ExpressionType.AndAlso, Left: BinaryExpression { NodeType: ExpressionType.NotEqual } guard } b
-                when guard.Left == item && IsNull(guard.Right) => StripGuard(b.Right, item),
-            BinaryExpression { NodeType: ExpressionType.OrElse, Left: BinaryExpression { NodeType: ExpressionType.Equal } guard } b
-                when guard.Left == item && IsNull(guard.Right) => StripGuard(b.Right, item),
+            BinaryExpression
+            {
+                NodeType: ExpressionType.AndAlso,
+                Left: BinaryExpression { NodeType: ExpressionType.NotEqual } guard
+            } b when guard.Left == item && IsNull(guard.Right) => StripGuard(b.Right, item),
+            BinaryExpression
+            {
+                NodeType: ExpressionType.OrElse,
+                Left: BinaryExpression { NodeType: ExpressionType.Equal } guard
+            } b when guard.Left == item && IsNull(guard.Right) => StripGuard(b.Right, item),
             UnaryExpression { NodeType: ExpressionType.Not } u => Expression.Not(StripGuard(u.Operand, item)),
             _ => expression
         };
@@ -422,7 +430,10 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         private string In(MethodCallExpression call)
         {
             var field = Field(call.Object is null ? call.Arguments[1] : call.Arguments[0]);
-            var values = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!).Cast<object?>().Select(Literal).ToList();
+            var values = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!)
+                .Cast<object?>()
+                .Select(Literal)
+                .ToList();
 
             return IsQueryString
                 ? $"{field}:({string.Join(" OR ", values)})"
@@ -469,7 +480,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
             foreach (var c in value)
             {
                 if (c is '\\' or '(' or ')' or ':' or '<' or '>' or '"' or '*' or '{' or '}' or ' '
-                    || (IsQueryString && c is '+' or '-' or '=' or '&' or '|' or '!' or '[' or ']' or '^' or '~' or '?' or '/'))
+                    || (IsQueryString
+                        && c is '+' or '-' or '=' or '&' or '|' or '!' or '[' or ']' or '^' or '~' or '?' or '/'))
                 {
                     builder.Append('\\');
                 }

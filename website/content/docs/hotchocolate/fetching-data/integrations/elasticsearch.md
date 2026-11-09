@@ -56,13 +56,13 @@ Filters on a `nested` field are tested on Elasticsearch 9.5. On 9.1, the KQL fun
 
 # Sorting
 
-The default sorting convention works without further configuration:
+Register the sorting convention on the schema builder:
 
 ```csharp
 builder
     .AddGraphQL()
     .AddQueryType<Query>()
-    .AddSorting();
+    .AddElasticSearchSorting();
 ```
 
 # Pagination

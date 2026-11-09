@@ -71,28 +71,28 @@ public class InTests : FilterTestBase<InTests.Foo, InTests.FooFilter>
     }
 
     [Fact]
-    public async Task ElasticSearch_String_In()
+    public async Task Execute_Should_MatchSnapshot_When_String_In()
     {
         var result = await ExecuteFilterTest(@"textId: { in: [""2"", ""3""]}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_String_NotIn()
+    public async Task Execute_Should_MatchSnapshot_When_String_NotIn()
     {
         var result = await ExecuteFilterTest(@"textId: { nin: [""2"", ""3""]}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Number_In()
+    public async Task Execute_Should_MatchSnapshot_When_Number_In()
     {
         var result = await ExecuteFilterTest("id: { in: [2, 3]}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Number_NotIn()
+    public async Task Execute_Should_MatchSnapshot_When_Number_NotIn()
     {
         var result = await ExecuteFilterTest("id: { nin: [2, 3]}", Selection);
         result.MatchQuerySnapshot();

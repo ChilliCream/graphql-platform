@@ -72,7 +72,7 @@ public class ListIntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Scalar_Some()
+    public async Task Execute_Should_MatchSnapshot_When_Scalar_Some()
     {
         await IndexDocuments(_data);
 
@@ -103,7 +103,7 @@ public class ListIntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Scalar_Some_Negated()
+    public async Task Execute_Should_MatchSnapshot_When_Scalar_Some_Negated()
     {
         await IndexDocuments(_data);
 
@@ -134,7 +134,7 @@ public class ListIntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Scalar_None()
+    public async Task Execute_Should_MatchSnapshot_When_Scalar_None()
     {
         await IndexDocuments(_data);
 
@@ -165,7 +165,7 @@ public class ListIntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Scalar_None_Negate()
+    public async Task Execute_Should_MatchSnapshot_When_Scalar_None_Negate()
     {
         await IndexDocuments(_data);
 
@@ -196,7 +196,7 @@ public class ListIntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Scalar_Any_True()
+    public async Task Execute_Should_MatchSnapshot_When_Scalar_Any_True()
     {
         await IndexDocuments(_data);
 
@@ -225,7 +225,7 @@ public class ListIntegrationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Scalar_Any_False()
+    public async Task Execute_Should_MatchSnapshot_When_Scalar_Any_False()
     {
         await IndexDocuments(_data);
 

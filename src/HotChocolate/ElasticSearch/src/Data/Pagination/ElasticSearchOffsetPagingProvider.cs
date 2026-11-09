@@ -56,7 +56,8 @@ public sealed class ElasticSearchOffsetPagingProvider : OffsetPagingProvider
         }
     }
 
-    private sealed class ElasticSearchOffsetPagination<TEntity> : OffsetPaginationAlgorithm<IQueryable<TEntity>, TEntity>
+    private sealed class ElasticSearchOffsetPagination<TEntity>
+        : OffsetPaginationAlgorithm<IQueryable<TEntity>, TEntity>
     {
         protected override IQueryable<TEntity> ApplySkip(IQueryable<TEntity> query, int skip)
             => skip == 0 ? query : throw ThrowHelper.Paging_SkipNotSupported();

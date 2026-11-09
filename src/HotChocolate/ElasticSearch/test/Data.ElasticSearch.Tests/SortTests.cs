@@ -20,7 +20,7 @@ public class SortTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Sort_Ascending()
+    public async Task Execute_Should_MatchSnapshot_When_Sort_Ascending()
     {
         await IndexDocuments(_data);
         var executor = await CreateExecutorAsync();
@@ -38,7 +38,7 @@ public class SortTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Sort_Descending()
+    public async Task Execute_Should_MatchSnapshot_When_Sort_Descending()
     {
         await IndexDocuments(_data);
         var executor = await CreateExecutorAsync();
@@ -65,7 +65,7 @@ public class SortTests : TestBase
                 .UseSorting<SortInputType<Foo>>()
                 .UseTestReport()
                 .ResolveTestData<Foo>(Client))
-            .AddSorting()
+            .AddElasticSearchSorting()
             .BuildTestExecutorAsync();
     }
 

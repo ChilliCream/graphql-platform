@@ -35,56 +35,56 @@ public class StringFilterTests
     }
 
     [Fact]
-    public async Task ElasticSearch_String_StartsWith()
+    public async Task Execute_Should_MatchSnapshot_When_String_StartsWith()
     {
         var result = await ExecuteFilterTest(@"value: { startsWith: ""Mutat""}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_String_EndsWith()
+    public async Task Execute_Should_MatchSnapshot_When_String_EndsWith()
     {
         var result = await ExecuteFilterTest(@"description: { endsWith: ""nges""}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_String_Contains()
+    public async Task Execute_Should_MatchSnapshot_When_String_Contains()
     {
         var result = await ExecuteFilterTest(@"description: { contains: ""ields""}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_String_NotStartsWith()
+    public async Task Execute_Should_MatchSnapshot_When_String_NotStartsWith()
     {
         var result = await ExecuteFilterTest(@"value: { nstartsWith: ""Mutat""}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_String_NotEndsWith()
+    public async Task Execute_Should_MatchSnapshot_When_String_NotEndsWith()
     {
         var result = await ExecuteFilterTest(@"description: { nendsWith: ""nges""}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_String_NotContains()
+    public async Task Execute_Should_MatchSnapshot_When_String_NotContains()
     {
         var result = await ExecuteFilterTest(@"description: { ncontains: ""ields""}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_String_StartsWithSpecialCharacter()
+    public async Task Execute_Should_MatchSnapshot_When_String_StartsWithSpecialCharacter()
     {
         var result = await ExecuteFilterTest(@"special: { startsWith: ""-""}", "value special");
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_String_EndsWithSpecialCharacter()
+    public async Task Execute_Should_MatchSnapshot_When_String_EndsWithSpecialCharacter()
     {
         var result = await ExecuteFilterTest(@"special: { endsWith: ""-""}", "value special");
         result.MatchQuerySnapshot();

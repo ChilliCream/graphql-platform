@@ -74,7 +74,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_SingleField()
+    public async Task Execute_Should_MatchSnapshot_When_SingleField()
     {
         await IndexDocuments(_data);
 
@@ -104,7 +104,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_SingleNegatedField()
+    public async Task Execute_Should_MatchSnapshot_When_SingleNegatedField()
     {
         await IndexDocuments(_data);
 
@@ -134,7 +134,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_MultipleField()
+    public async Task Execute_Should_MatchSnapshot_When_MultipleField()
     {
         await IndexDocuments(_data);
 
@@ -164,7 +164,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_MultipleField_OneNegated()
+    public async Task Execute_Should_MatchSnapshot_When_MultipleField_OneNegated()
     {
         await IndexDocuments(_data);
 
@@ -194,7 +194,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_AndField()
+    public async Task Execute_Should_MatchSnapshot_When_AndField()
     {
         await IndexDocuments(_data);
 
@@ -228,7 +228,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_AndField_WithNegation()
+    public async Task Execute_Should_MatchSnapshot_When_AndField_WithNegation()
     {
         await IndexDocuments(_data);
 
@@ -262,7 +262,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_OrField()
+    public async Task Execute_Should_MatchSnapshot_When_OrField()
     {
         await IndexDocuments(_data);
 
@@ -292,7 +292,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_OrField_WithNegation()
+    public async Task Execute_Should_MatchSnapshot_When_OrField_WithNegation()
     {
         await IndexDocuments(_data);
 
@@ -322,7 +322,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_DeepField()
+    public async Task Execute_Should_MatchSnapshot_When_DeepField()
     {
         await IndexDocuments(_data);
 
@@ -352,7 +352,7 @@ public class StringPrefixTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_DeepNegatedField()
+    public async Task Execute_Should_MatchSnapshot_When_DeepNegatedField()
     {
         await IndexDocuments(_data);
 

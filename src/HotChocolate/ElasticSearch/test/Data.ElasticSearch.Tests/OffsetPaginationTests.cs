@@ -20,7 +20,7 @@ public class OffsetPaginationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Offset_Pagination_Default_Items()
+    public async Task Execute_Should_MatchSnapshot_When_Offset_Pagination_Default_Items()
     {
         await IndexDocuments(_data);
 
@@ -45,7 +45,7 @@ public class OffsetPaginationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Offset_Pagination_Take_2()
+    public async Task Execute_Should_MatchSnapshot_When_Offset_Pagination_Take_2()
     {
         await IndexDocuments(_data);
 
@@ -71,7 +71,7 @@ public class OffsetPaginationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Offset_Pagination_Skip_2()
+    public async Task Execute_Should_MatchSnapshot_When_Offset_Pagination_Skip_2()
     {
         await IndexDocuments(_data);
 
@@ -97,7 +97,7 @@ public class OffsetPaginationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Offset_Pagination_Skip_Take_2()
+    public async Task Execute_Should_MatchSnapshot_When_Offset_Pagination_Skip_Take_2()
     {
         await IndexDocuments(_data);
 

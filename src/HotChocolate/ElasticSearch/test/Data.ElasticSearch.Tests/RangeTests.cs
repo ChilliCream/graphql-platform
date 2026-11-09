@@ -105,63 +105,63 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     #region Double
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_GreaterThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_GreaterThan()
     {
         var result = await ExecuteFilterTest("value :{ gt: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_NotGreaterThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_NotGreaterThan()
     {
         var result = await ExecuteFilterTest("value :{ ngt: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_GreaterThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_GreaterThanOrEquals()
     {
         var result = await ExecuteFilterTest("value :{ gte: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_NotGreaterThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_NotGreaterThanOrEquals()
     {
         var result = await ExecuteFilterTest("value :{ ngte: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_LowerThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_LowerThan()
     {
         var result = await ExecuteFilterTest("value :{ lt: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_NotLowerThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_NotLowerThan()
     {
         var result = await ExecuteFilterTest("value :{ nlt: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_LowerThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_LowerThanOrEquals()
     {
         var result = await ExecuteFilterTest("value :{ lte: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_NotLowerThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_NotLowerThanOrEquals()
     {
         var result = await ExecuteFilterTest("value :{ nlte: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Double_LowerThan_And_GreaterThan_Combined()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Double_LowerThan_And_GreaterThan_Combined()
     {
         var result =
             await ExecuteFilterTest("and: [{ value :{ lt: 1}} { value :{ gt: -1}}]", Selection);
@@ -173,63 +173,63 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     #region Float
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_GreaterThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_GreaterThan()
     {
         var result = await ExecuteFilterTest("fValue :{ gt: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_NotGreaterThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_NotGreaterThan()
     {
         var result = await ExecuteFilterTest("fValue :{ ngt: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_GreaterThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_GreaterThanOrEquals()
     {
         var result = await ExecuteFilterTest("fValue :{ gte: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_NotGreaterThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_NotGreaterThanOrEquals()
     {
         var result = await ExecuteFilterTest("fValue :{ ngte: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_LowerThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_LowerThan()
     {
         var result = await ExecuteFilterTest("fValue :{ lt: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_NotLowerThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_NotLowerThan()
     {
         var result = await ExecuteFilterTest("fValue :{ nlt: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_LowerThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_LowerThanOrEquals()
     {
         var result = await ExecuteFilterTest("fValue :{ lte: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_NotLowerThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_NotLowerThanOrEquals()
     {
         var result = await ExecuteFilterTest("fValue :{ nlte: 0}", Selection);
         result.MatchQuerySnapshot();
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_Float_LowerThan_And_GreaterThan_Combined()
+    public async Task Execute_Should_MatchSnapshot_When_Range_Float_LowerThan_And_GreaterThan_Combined()
     {
         var result = await ExecuteFilterTest("and: [{ fValue :{ lt: 1}} { fValue :{ gt: -1}}]",
             Selection);
@@ -241,7 +241,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     #region DateTime
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_GreaterThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_GreaterThan()
     {
         var result = await ExecuteFilterTest(@"dateTimeValue :{ gt: ""2022-12-23T15:05:22Z""}",
             Selection);
@@ -249,7 +249,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_NotGreaterThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_NotGreaterThan()
     {
         var result = await ExecuteFilterTest(@"dateTimeValue :{ ngt: ""2022-12-23T15:05:22Z""}",
             Selection);
@@ -257,7 +257,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_GreaterThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_GreaterThanOrEquals()
     {
         var result = await ExecuteFilterTest(@"dateTimeValue :{ gte: ""2022-12-23T15:05:22Z""}",
             Selection);
@@ -265,7 +265,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_NotGreaterThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_NotGreaterThanOrEquals()
     {
         var result =
             await ExecuteFilterTest(@"dateTimeValue :{ ngte: ""2022-12-23T15:05:22Z""}",
@@ -274,7 +274,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_LowerThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_LowerThan()
     {
         var result = await ExecuteFilterTest(@"dateTimeValue :{ lt: ""2022-12-23T15:05:22Z""}",
             Selection);
@@ -282,7 +282,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_NotLowerThan()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_NotLowerThan()
     {
         var result = await ExecuteFilterTest(@"dateTimeValue :{ nlt: ""2022-12-23T15:05:22Z""}",
             Selection);
@@ -290,7 +290,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_LowerThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_LowerThanOrEquals()
     {
         var result = await ExecuteFilterTest(@"dateTimeValue :{ lte: ""2022-12-23T15:05:22Z""}",
             Selection);
@@ -298,7 +298,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_NotLowerThanOrEquals()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_NotLowerThanOrEquals()
     {
         var result =
             await ExecuteFilterTest(@"dateTimeValue :{ nlte: ""2022-12-23T15:05:22Z""}",
@@ -307,7 +307,7 @@ public class RangeTests : FilterTestBase<RangeTests.Foo, RangeTests.FooFilterTyp
     }
 
     [Fact]
-    public async Task ElasticSearch_Range_DateTime_LowerThan_And_GreaterThan_Combined()
+    public async Task Execute_Should_MatchSnapshot_When_Range_DateTime_LowerThan_And_GreaterThan_Combined()
     {
         var result = await ExecuteFilterTest(
             @"and: [{ dateTimeValue :{ gt: ""2022-12-22T15:05:22Z""}} { dateTimeValue :{ lt: ""2022-12-24T15:05:22Z""}}]",

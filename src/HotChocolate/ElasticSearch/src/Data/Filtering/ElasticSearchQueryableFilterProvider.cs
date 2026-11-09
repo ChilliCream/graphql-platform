@@ -33,7 +33,8 @@ internal sealed class ElasticSearchQueryableFilterProvider : QueryableFilterProv
         object? input,
         Expression<Func<TEntityType, bool>> where)
     {
-        var rewritten = (Expression<Func<TEntityType, bool>>)new ElasticSearchFilterRewriter(_namingPolicy).Visit(where);
+        var rewriter = new ElasticSearchFilterRewriter(_namingPolicy);
+        var rewritten = (Expression<Func<TEntityType, bool>>)rewriter.Visit(where);
         return base.ApplyToResult(input, rewritten);
     }
 }

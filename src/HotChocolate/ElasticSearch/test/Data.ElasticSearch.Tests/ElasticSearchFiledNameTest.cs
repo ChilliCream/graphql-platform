@@ -14,7 +14,7 @@ public class ElasticSearchFiledNameTest : TestBase
     }
 
     [Fact]
-    public async Task Custom_FieldName_IsUsed()
+    public async Task Execute_Should_MatchSnapshot_When_Custom_FieldName_IsUsed()
     {
         await IndexDocuments(new List<FieldNameTestTerm>
         {
@@ -52,7 +52,7 @@ public class ElasticSearchFiledNameTest : TestBase
                 .UseSorting<SortInputType<CursorPaginationTests.Foo>>()
                 .UseTestReport()
                 .ResolveTestData<FieldNameTestTerm>(Client))
-            .AddSorting()
+            .AddElasticSearchSorting()
             .BuildTestExecutorAsync();
     }
 }

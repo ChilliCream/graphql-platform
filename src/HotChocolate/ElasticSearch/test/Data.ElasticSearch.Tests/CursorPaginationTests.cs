@@ -20,7 +20,7 @@ public class CursorPaginationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Cursor_Pagination_Default_Items()
+    public async Task Execute_Should_MatchSnapshot_When_Cursor_Pagination_Default_Items()
     {
         await IndexDocuments(_data);
 
@@ -53,7 +53,7 @@ public class CursorPaginationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Cursor_Pagination_First_2()
+    public async Task Execute_Should_MatchSnapshot_When_Cursor_Pagination_First_2()
     {
         await IndexDocuments(_data);
 
@@ -86,7 +86,7 @@ public class CursorPaginationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Cursor_Pagination_First_2_After()
+    public async Task Execute_Should_MatchSnapshot_When_Cursor_Pagination_First_2_After()
     {
         await IndexDocuments(_data);
 
@@ -121,7 +121,7 @@ public class CursorPaginationTests : TestBase
     }
 
     [Fact]
-    public async Task ElasticSearch_Cursor_Pagination_Last_2_Before()
+    public async Task Execute_Should_MatchSnapshot_When_Cursor_Pagination_Last_2_Before()
     {
         await IndexDocuments(_data);
 
