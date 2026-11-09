@@ -169,6 +169,18 @@ builder
     .AddCacheControl();
 ```
 
+## Types and Fields in Several Source Schemas
+
+When several source schemas define the same type or field and at least one of them declares `@cacheControl`, composition merges the declarations. A source schema that defines the type or field without `@cacheControl` declares nothing.
+
+| Argument        | Object type, interface, or union                                                                              | Field                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `scope`         | `PRIVATE` if any source schema declares it                                                                    | `PRIVATE` if any source schema declares it                  |
+| `vary`          | Every declared value                                                                                          | Every declared value                                        |
+| `maxAge`        | The lowest declared value, and when `sharedMaxAge` is left out, no higher than any declared `sharedMaxAge`    | The lowest value, only when every source schema declares it |
+| `sharedMaxAge`  | The lowest declared value, only when every source schema that declares `maxAge` or `sharedMaxAge` declares it | The lowest value, only when every source schema declares it |
+| `inheritMaxAge` | `true` only when every source schema declares `true`                                                          | `true` only when every source schema declares `true`        |
+
 # Enable Cache Control in the Fusion Gateway
 
 The gateway must be configured to read cache-control metadata during planning and to write the final HTTP headers on the response.
