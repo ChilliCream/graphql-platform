@@ -668,6 +668,58 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
             s_removeCacheControlDirective);
     }
 
+    // Keep "scope" and "vary" of a type when no member definition declares a lifetime.
+    [Fact]
+    public void Merge_CacheControlDirectivesOnTypesWithoutLifetimes_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Foo1 @cacheControl(scope: PRIVATE) {
+                    field: Int
+                }
+
+                type Foo2 @cacheControl(scope: PRIVATE) {
+                    field: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """,
+                $$"""
+                # Schema B
+                type Foo1 @cacheControl(vary: ["X-Region"]) {
+                    field: Int
+                }
+
+                type Foo2 {
+                    field: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """
+            ],
+            """
+            type Foo1
+              @cacheControl(scope: PRIVATE, vary: ["X-Region"])
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            type Foo2
+              @cacheControl(scope: PRIVATE)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+            """,
+            options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
+            s_removeCacheControlDirective);
+    }
+
     private static readonly CacheControlScopeMutableEnumTypeDefinition s_cacheControlScopeEnum
         = new();
 
