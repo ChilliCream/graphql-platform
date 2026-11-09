@@ -162,7 +162,7 @@ public static class ErrorCodes
         /// <summary>
         /// The request tried to resolve more entity representations than allowed.
         /// </summary>
-        public const string TooManyRepresentations = "HC0139";
+        public const string TooManyRepresentations = "HC0140";
     }
 
     /// <summary>

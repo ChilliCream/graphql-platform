@@ -76,7 +76,7 @@ public class ApolloFederationRequestExecutorBuilderExtensionsTests
 
         // assert
         var error = Assert.Single(result.ExpectOperationResult().Errors);
-        Assert.Equal("HC0139", error.Code);
+        Assert.Equal("HC0140", error.Code);
     }
 
     public sealed class Query

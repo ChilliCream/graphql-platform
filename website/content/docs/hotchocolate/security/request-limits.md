@@ -206,7 +206,7 @@ builder
 
 ## Entity Representations
 
-The Apollo Federation `#!sdl _entities(representations: [_Any!]!)` field resolves one entity per representation. A request resolves at most **10,000** representations, counted across all of its `_entities` selections and variable sets. A selection that would exceed the limit is rejected with the error code `HC0139`:
+The Apollo Federation `#!sdl _entities(representations: [_Any!]!)` field resolves one entity per representation. A request resolves at most **10,000** representations, counted across all of its `_entities` selections and variable sets. A selection that would exceed the limit is rejected with the error code `HC0140`:
 
 ```csharp
 builder

@@ -429,7 +429,7 @@ public class EntitiesResolverForObjectTests
                     "_entities"
                   ],
                   "extensions": {
-                    "code": "HC0139"
+                    "code": "HC0140"
                   }
                 }
               ],
@@ -549,7 +549,7 @@ public class EntitiesResolverForObjectTests
 
         // assert
         var error = Assert.Single(result.ExpectOperationResult().Errors);
-        Assert.Equal("HC0139", error.Code);
+        Assert.Equal("HC0140", error.Code);
         Assert.Equal(2, state.Calls);
     }
 
@@ -601,7 +601,7 @@ public class EntitiesResolverForObjectTests
         // assert
         var batch = Assert.IsType<OperationResultBatch>(result);
         var error = Assert.Single(batch.Results.SelectMany(t => t.ExpectOperationResult().Errors));
-        Assert.Equal("HC0139", error.Code);
+        Assert.Equal("HC0140", error.Code);
         Assert.Equal(2, state.Calls);
     }
 
