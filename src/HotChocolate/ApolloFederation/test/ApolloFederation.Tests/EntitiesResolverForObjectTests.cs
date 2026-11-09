@@ -98,7 +98,7 @@ public class EntitiesResolverForObjectTests
     }
 
     [Fact]
-    public async Task TestResolveViaEntityResolver_OwnedFieldIsNotTakenFromRepresentation()
+    public async Task ResolveAsync_Should_PreserveOwnedField_When_RepresentationCarriesValue()
     {
         // arrange
         var schema = await new ServiceCollection()
