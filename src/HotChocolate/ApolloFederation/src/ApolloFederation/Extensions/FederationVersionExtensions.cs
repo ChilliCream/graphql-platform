@@ -34,10 +34,10 @@ internal static class FederationVersionExtensions
         where T : DefinitionBase
     {
         var contextData = descriptor.Extend().Context.ContextData;
-        if (contextData.TryGetValue(FederationContextData.FederationVersion, out var value) &&
-            value is FederationVersion version and > FederationVersion.Unknown)
+        if (contextData.TryGetValue(FederationContextData.Options, out var value) &&
+            value is ApolloFederationOptions { Version: > FederationVersion.Unknown } options)
         {
-            return version;
+            return options.Version;
         }
 
         // TODO : resources
@@ -47,10 +47,23 @@ internal static class FederationVersionExtensions
     public static FederationVersion GetFederationVersion(
         this IDescriptorContext context)
     {
-        if (context.ContextData.TryGetValue(FederationContextData.FederationVersion, out var value) &&
-            value is FederationVersion version and > FederationVersion.Unknown)
+        if (context.ContextData.TryGetValue(FederationContextData.Options, out var value) &&
+            value is ApolloFederationOptions { Version: > FederationVersion.Unknown } options)
         {
-            return version;
+            return options.Version;
+        }
+
+        // TODO : resources
+        throw new InvalidOperationException("The configuration state is invalid.");
+    }
+
+    public static ApolloFederationOptions GetFederationOptions(
+        this IDescriptorContext context)
+    {
+        if (context.ContextData.TryGetValue(FederationContextData.Options, out var value) &&
+            value is ApolloFederationOptions options)
+        {
+            return options;
         }
 
         // TODO : resources
