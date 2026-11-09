@@ -433,6 +433,82 @@ public class CodeFirstAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Validation_With_Multiple_Schemas()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.Allowed,
+            validation: (_, d) => d.Policy.EqualsOrdinal("READ_AUTH")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLServer("a")
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Authorize("QUERY", ApplyPolicy.Validation)
+                    .Field("foo")
+                    .Resolve("bar"))
+                .AddAuthorizationHandler(_ => handler)
+                .AddGraphQLServer("b")
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Authorize("READ_AUTH", ApplyPolicy.Validation)
+                    .Resolve("bar"))
+                .AddAuthorizationHandler(_ => handler)
+                .Services
+                .BuildServiceProvider();
+        var executorA = await services.GetRequestExecutorAsync(
+            "a",
+            TestContext.Current.CancellationToken);
+        var executorB = await services.GetRequestExecutorAsync(
+            "b",
+            TestContext.Current.CancellationToken);
+
+        // act
+        var resultA = await executorA.ExecuteAsync(
+            "{ foo }",
+            TestContext.Current.CancellationToken);
+        var resultB = await executorB.ExecuteAsync(
+            "{ foo }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(resultA, "a")
+            .Add(resultB, "b")
+            .MatchInline(
+                """
+                a
+                ---------------
+                {
+                  "data": {
+                    "foo": "bar"
+                  }
+                }
+                ---------------
+
+                b
+                ---------------
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ]
+                }
+                ---------------
+
+                """);
+    }
+
+    [Fact]
     public async Task Authorize_Schema_Field()
     {
         // arrange

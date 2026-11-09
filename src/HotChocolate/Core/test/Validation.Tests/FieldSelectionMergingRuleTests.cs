@@ -1460,6 +1460,50 @@ public class FieldSelectionMergingRuleTests
     }
 
     [Fact]
+    public void Validate_Should_NotReportError_When_ManyArgumentsAreInDifferentOrder()
+    {
+        // arrange
+        var rule = new OverlappingFieldsCanBeMergedRule(
+            maxAllowedFieldMergeComparisons: 100_000,
+            enableCovariantFieldMerging: false);
+        var ascending = string.Concat(Enumerable.Range(0, 12).Select(i => $"a{i:00}: 0 "));
+        var descending = string.Concat(Enumerable.Range(0, 12).Reverse().Select(i => $"a{i:00}: 0 "));
+        var document = Utf8GraphQLParser.Parse(
+            $$"""{ x: __typename({{ascending}}) x: __typename({{descending}}) }""");
+        var context = ValidationUtils.CreateContext(document);
+
+        // act
+        rule.Validate(context, document);
+
+        // assert
+        Assert.Empty(context.Errors);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportError_When_ManyArgumentsDifferInOneValue()
+    {
+        // arrange
+        var rule = new OverlappingFieldsCanBeMergedRule(
+            maxAllowedFieldMergeComparisons: 100_000,
+            enableCovariantFieldMerging: false);
+        var first = string.Concat(Enumerable.Range(0, 12).Select(i => $"a{i:00}: 0 "));
+        var second = string.Concat(Enumerable.Range(0, 12).Select(i => $"a{i:00}: {(i == 7 ? 1 : 0)} "));
+        var document = Utf8GraphQLParser.Parse(
+            $$"""{ x: __typename({{first}}) x: __typename({{second}}) }""");
+        var context = ValidationUtils.CreateContext(document);
+
+        // act
+        rule.Validate(context, document);
+
+        // assert
+        var error = Assert.Single(context.Errors);
+        Assert.Equal(
+            "Fields `x` conflict because they have differing arguments. "
+            + "Use different aliases on the fields to fetch both if this was intentional. ",
+            error.Message);
+    }
+
+    [Fact]
     public void Default_Budget_Allows_Normal_Queries()
     {
         // arrange - default constructor (100,000 budget)
