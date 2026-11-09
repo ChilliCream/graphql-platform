@@ -40,8 +40,13 @@ public sealed class RabbitMQClusterFixture : IAsyncLifetime
     public ConnectionFactory CreateConnectionFactory(int index)
         => new() { Uri = new Uri(_nodes[index].ConnectionString) };
 
+    /// <summary>
+    /// Kills the node once every quorum queue keeps a majority of online replicas without it.
+    /// </summary>
     public async Task<IAsyncDisposable> KillNodeAsync(int index)
     {
+        await _nodes[index].InvokeCommandAsync(
+            ["rabbitmq-upgrade", "await_online_quorum_plus_one", "--timeout", "30"]);
         await _nodes[index].KillAsync();
         return new AsyncDisposable(() => _nodes[index].RestartAsync());
     }
