@@ -624,6 +624,55 @@ public class WebSocketProtocolTests : SubscriptionTestBase
     }
 
     [Fact]
+    public Task Subscribe_Should_Send_Error_When_Request_Is_Variable_Batch()
+    {
+        var snapshot = new Snapshot();
+
+        return TryTest(
+            async ct =>
+            {
+                // arrange
+                using var testServer = CreateStarWarsServer(output: _output);
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                const string subscribeMessage =
+                    """
+                    {
+                      "id": "abc",
+                      "type": "subscribe",
+                      "payload": {
+                        "query": "query($episode: Episode) { hero(episode: $episode) { name } }",
+                        "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+                      }
+                    }
+                    """;
+
+                // act
+                await webSocket.SendMessageAsync(subscribeMessage, ct);
+
+                // assert
+                var message = await WaitForMessage(webSocket, Messages.Error, ct);
+                Assert.NotNull(message);
+                snapshot.Add(message).MatchInline(
+                    """
+                    {
+                      "id": "abc",
+                      "type": "error",
+                      "payload": [
+                        {
+                          "message": "Variable batching is not supported for WebSocket requests.",
+                          "extensions": {
+                            "code": "HC0009"
+                          }
+                        }
+                      ]
+                    }
+                    """);
+            });
+    }
+
+    [Fact]
     public Task Send_Ping()
     {
         var snapshot = new Snapshot();

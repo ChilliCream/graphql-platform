@@ -159,6 +159,12 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
+        internal static string ErrorHelper_VariableBatchingNotSupportedForWebSocket {
+            get {
+                return ResourceManager.GetString("ErrorHelper_VariableBatchingNotSupportedForWebSocket", resourceCulture);
+            }
+        }
+        
         internal static string WebSocketSession_SessionEnded {
             get {
                 return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);

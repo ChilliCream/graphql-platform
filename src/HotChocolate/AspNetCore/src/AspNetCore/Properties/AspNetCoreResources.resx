@@ -75,6 +75,9 @@
   <data name="ErrorHelper_RequestHasNoElements" xml:space="preserve">
     <value>The GraphQL batch request has no elements.</value>
   </data>
+  <data name="ErrorHelper_VariableBatchingNotSupportedForWebSocket" xml:space="preserve">
+    <value>Variable batching is not supported for WebSocket requests.</value>
+  </data>
   <data name="WebSocketSession_SessionEnded" xml:space="preserve">
     <value>Session ended.</value>
   </data>
