@@ -20,6 +20,10 @@ namespace HotChocolate.Transport.Http;
 /// The operation kind is signaled via <see cref="HttpRequestMessage.Options"/>
 /// using the <see cref="GraphQLHttpRequest.OperationKindOptionsKey"/>.
 /// </para>
+/// <para>
+/// The deduplication key covers the <see cref="RequestDeduplicationOptions.HashHeaders"/>
+/// that are present on the request when it reaches this handler.
+/// </para>
 /// </summary>
 public sealed class RequestDeduplicationHandler : DelegatingHandler
 {

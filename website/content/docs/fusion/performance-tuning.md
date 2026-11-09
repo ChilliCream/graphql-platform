@@ -109,6 +109,8 @@ The deduplication hash includes the request body, URL, and the values of configu
 - **Same user, same query, concurrent**: identical tokens produce the same hash and are deduplicated.
 - **Different users, same query**: different tokens produce different hashes. Never deduplicated. One user's response is never shared with another.
 
+Requests from different users are told apart only by the hash headers. When the gateway identifies the caller by another header, for instance a user ID that it derives from the caller's claims, add that header to the hash headers as shown in [Customizing Hash Headers](#customizing-hash-headers).
+
 ## How to Enable
 
 Enabling deduplication takes two parts, and both are required. The gateway must annotate outgoing subgraph requests with the operation kind, and the HTTP client must carry the deduplication handler. Either part alone produces no deduplication.
@@ -133,14 +135,16 @@ builder.Services
 
 Without the gateway-level annotation, the handler has nothing to key off and passes all requests through unchanged.
 
+The deduplication handler runs after the other message handlers of the client, wherever `.AddRequestDeduplication()` appears in the chain, so hash headers that other handlers set on the request, such as an `Authorization` header forwarded by `.AddHeaderPropagation()`, are part of the hash. With a resilience handler on the same client, each attempt is deduplicated on its own.
+
 ## Customizing Hash Headers
 
-By default, the `Authorization` and `Cookie` headers are included in the deduplication hash, which covers most setups. If you need additional headers to be part of the hash, for instance a tenant identifier in a multi-tenant application, add them to `HashHeaders`:
+By default, the `Authorization` and `Cookie` headers are included in the deduplication hash, which covers most setups. If you need additional headers to be part of the hash, for instance a tenant identifier in a multi-tenant application or a user ID that the gateway derives from claims, add them to `HashHeaders`:
 
 ```csharp
 .AddRequestDeduplication(options =>
 {
-    options.HashHeaders = ["Authorization", "Cookie", "X-Tenant-Id"];
+    options.HashHeaders = ["Authorization", "Cookie", "X-Tenant-Id", "X-User-Id"];
 });
 ```
 
