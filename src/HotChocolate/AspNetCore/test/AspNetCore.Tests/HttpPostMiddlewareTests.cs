@@ -1097,6 +1097,130 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     }
 
     [Fact]
+    public async Task RequestBatch_Should_RefuseEntry_When_VariableBatchExceedsMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.MaxBatchSize = 2));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """
+            [
+              { "query": "{ hero(episode: NEW_HOPE) { name } }" },
+              {
+                "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+                "variables": [
+                  { "episode": "NEW_HOPE" },
+                  { "episode": "EMPIRE" },
+                  { "episode": "JEDI" }
+                ]
+              }
+            ]
+            """,
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 2.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_RefuseEntry_When_VariableBatchingIsDisabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.RequestBatching));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """
+            [
+              { "query": "{ hero(episode: NEW_HOPE) { name } }" },
+              {
+                "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+                "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+              }
+            ]
+            """,
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_ReportReasonToDiagnostics_When_VariableBatchingIsOff()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.RequestBatching));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """
+            [
+              { "query": "{ hero(episode: NEW_HOPE) { name } }" },
+              {
+                "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+                "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+              }
+            ]
+            """,
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Collection(
+            listener.Errors,
+            error => Assert.Equal(
+                "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+                error.Message),
+            error => Assert.Equal("Invalid GraphQL Request.", error.Message));
+    }
+
+    [Fact]
     public async Task OperationBatch_Should_ReportReasonToDiagnostics_When_BatchingIsDisabled()
     {
         // arrange
@@ -1173,6 +1297,186 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         Assert.NotNull(result.Errors);
         var responseError = Assert.Single(result.Errors);
         Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_Refuse_When_OperationCountExceedsMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.MaxBatchSize = 1));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a { hero(episode: NEW_HOPE) { name } }
+            query b { hero(episode: EMPIRE) { name } }
+            """;
+
+        // act
+        using var request = CreatePostRequest(
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"),
+            $$"""{ "query": {{JsonSerializer.Serialize(document)}} }""",
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 1.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_Refuse_When_VariableBatchExceedsMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.MaxBatchSize = 2));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a($episode: Episode!) { hero(episode: $episode) { name } }
+            query b($episode: Episode!) { hero(episode: $episode) { id } }
+            """;
+
+        // act
+        using var request = CreatePostRequest(
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"),
+            $$"""
+            {
+              "query": {{JsonSerializer.Serialize(document)}},
+              "variables": [
+                { "episode": "NEW_HOPE" },
+                { "episode": "EMPIRE" },
+                { "episode": "JEDI" }
+              ]
+            }
+            """,
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 2.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_Refuse_When_VariableBatchingIsDisabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.RequestBatching));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a($episode: Episode!) { hero(episode: $episode) { name } }
+            query b($episode: Episode!) { hero(episode: $episode) { id } }
+            """;
+
+        // act
+        using var request = CreatePostRequest(
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"),
+            $$"""
+            {
+              "query": {{JsonSerializer.Serialize(document)}},
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """,
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_ReportReasonToDiagnostics_When_VariableBatchingIsOff()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.RequestBatching));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a($episode: Episode!) { hero(episode: $episode) { name } }
+            query b($episode: Episode!) { hero(episode: $episode) { id } }
+            """;
+
+        // act
+        using var request = CreatePostRequest(
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"),
+            $$"""
+            {
+              "query": {{JsonSerializer.Serialize(document)}},
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """,
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Collection(
+            listener.Errors,
+            error => Assert.Equal(
+                "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+                error.Message),
+            error => Assert.Equal("Invalid GraphQL Request.", error.Message));
+    }
+
+    private static HttpRequestMessage CreatePostRequest(Uri url, string body, string acceptHeader)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = new StringContent(body, Encoding.UTF8, "application/json")
+        };
+        request.Headers.Add("Accept", acceptHeader);
+
+        return request;
     }
 
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
