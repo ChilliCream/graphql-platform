@@ -127,6 +127,7 @@ internal static class CacheControlConstraintsComputer
         IReadOnlySet<ISelection>? lookupSelections)
     {
         var field = selection.Field;
+        var returnType = field.Type.NamedType();
         var maxAgeSet = false;
         var sharedMaxAgeSet = false;
         var scopeSet = false;
@@ -138,11 +139,10 @@ internal static class CacheControlConstraintsComputer
         if (takesDefaults && defaults is not null && !field.IsIntrospectionField)
         {
             var fieldDirective = field.Directives.FirstOrDefault(DirectiveName);
-            var returnType = CacheControlTypeHelper.GetCacheControlType(field.Type);
 
             if (fieldDirective is null
                 || (!DeclaresLifetime(fieldDirective)
-                    && !DeclaresLifetime(returnType?.Directives.FirstOrDefault(DirectiveName))))
+                    && !ReturnTypeDeclaresLifetime(selection, returnType, operation)))
             {
                 ApplyCacheControl(
                     defaults.DefaultMaxAge,
@@ -157,26 +157,31 @@ internal static class CacheControlConstraintsComputer
 
         ExtractCacheControlFromDirectives(field);
 
+        var maxAgeSetByField = maxAgeSet;
+        var sharedMaxAgeSetByField = sharedMaxAgeSet;
+
         if (!maxAgeSet || !sharedMaxAgeSet || !scopeSet || !varySet)
         {
             // Either maxAge or scope have not been specified by the @cacheControl
             // directive on the field, so we try to infer these details
             // from the type of the field.
-
-            if (CacheControlTypeHelper.GetCacheControlType(field.Type) is { } type)
-            {
-                // The type of the field is complex and can therefore be
-                // annotated with a @cacheControl directive.
-                ExtractCacheControlFromDirectives(type);
-            }
+            ExtractCacheControlFromDirectives(returnType);
         }
 
         if (!selection.IsLeaf)
         {
+            var isAbstractType = returnType.IsAbstractType();
             var possibleTypes = operation.GetPossibleTypes(selection);
 
             foreach (var type in possibleTypes)
             {
+                if (isAbstractType)
+                {
+                    maxAgeSet = maxAgeSetByField;
+                    sharedMaxAgeSet = sharedMaxAgeSetByField;
+                    ExtractCacheControlFromDirectives(type);
+                }
+
                 var selectionSet = operation.GetSelectionSet(selection, type);
                 var selections = selectionSet.GetSelections();
 
@@ -294,6 +299,32 @@ internal static class CacheControlConstraintsComputer
                 varySet = true;
             }
         }
+    }
+
+    private static bool ReturnTypeDeclaresLifetime(
+        ISelection selection,
+        ITypeDefinition returnType,
+        IOperation operation)
+    {
+        if (DeclaresLifetime(returnType.Directives.FirstOrDefault(DirectiveName)))
+        {
+            return true;
+        }
+
+        if (!returnType.IsAbstractType())
+        {
+            return false;
+        }
+
+        foreach (var possibleType in operation.GetPossibleTypes(selection))
+        {
+            if (!DeclaresLifetime(possibleType.Directives.FirstOrDefault(DirectiveName)))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static int? GetIntArgument(IDirective directive, string name)
