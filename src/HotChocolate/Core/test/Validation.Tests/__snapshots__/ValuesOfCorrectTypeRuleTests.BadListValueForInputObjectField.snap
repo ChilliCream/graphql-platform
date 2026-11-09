@@ -1,0 +1,18 @@
+{
+  "message": "The specified value type of field \u0060child\u0060 does not match the field type.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 31
+    }
+  ],
+  "path": [
+    "findDog"
+  ],
+  "extensions": {
+    "fieldName": "child",
+    "fieldType": "ComplexInput",
+    "locationType": "ComplexInput",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+  }
+}
