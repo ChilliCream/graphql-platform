@@ -1,0 +1,42 @@
+---------------
+{
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 22
+    }
+  ],
+  "path": [
+    "findDog"
+  ],
+  "extensions": {
+    "argument": "complex",
+    "argumentValue": "[]",
+    "locationType": "ComplexInput",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 27
+    }
+  ],
+  "path": [
+    "findDog",
+    "name"
+  ],
+  "extensions": {
+    "argument": "if",
+    "argumentValue": "\u0022x\u0022",
+    "locationType": "Boolean!",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+  }
+}
+---------------
