@@ -123,6 +123,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             await MiddlewareHelper.ExecuteRequestAsync(
                 request,
                 requestFlags,
+                options,
                 context,
                 executor,
                 errorHandler,

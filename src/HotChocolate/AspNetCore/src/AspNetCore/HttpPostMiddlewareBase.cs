@@ -165,6 +165,16 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                         TryParseOperations(operationNames, out var ops) &&
                         GetOptions(context).EnableBatching)
                     {
+                        var options = GetOptions(context);
+                        MiddlewareHelper.ThrowIfBatchSizeExceeded(
+                            options,
+                            ops.Count,
+                            errorHandler);
+                        MiddlewareHelper.ThrowIfBatchSizeExceeded(
+                            options,
+                            requests[0].Variables?.Count ?? 0,
+                            errorHandler);
+
                         result = await ExecuteOperationBatchAsync(
                             context,
                             requestExecutor,
@@ -193,6 +203,11 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // a single GraphQL query or mutation.
                 case 1:
                 {
+                    MiddlewareHelper.ThrowIfBatchSizeExceeded(
+                        GetOptions(context),
+                        requests[0].Variables?.Count ?? 0,
+                        errorHandler);
+
                     result = await ExecuteSingleAsync(
                         context,
                         requestExecutor,
@@ -209,6 +224,20 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 default:
                     if (GetOptions(context).EnableBatching)
                     {
+                        var options = GetOptions(context);
+                        MiddlewareHelper.ThrowIfBatchSizeExceeded(
+                            options,
+                            requests.Count,
+                            errorHandler);
+
+                        foreach (var request in requests)
+                        {
+                            MiddlewareHelper.ThrowIfBatchSizeExceeded(
+                                options,
+                                request.Variables?.Count ?? 0,
+                                errorHandler);
+                        }
+
                         result = await ExecuteBatchAsync(
                             context,
                             requestExecutor,

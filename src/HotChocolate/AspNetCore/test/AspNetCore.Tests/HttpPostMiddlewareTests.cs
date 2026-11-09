@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using CookieCrumble;
 using CookieCrumble.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -6,6 +8,7 @@ using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -1081,6 +1084,269 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 Status Code: OK
                 -------------------------->
                 {""data"":{""nullValues"":[""abc""]}}");
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_Refuse_When_VariableSetsExceedMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions { MaxBatchSize = 2 }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = new StringContent(
+                """
+                {
+                  "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+                  "variables": [
+                    { "episode": "NEW_HOPE" },
+                    { "episode": "EMPIRE" },
+                    { "episode": "JEDI" }
+                  ]
+                }
+                """,
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 2.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_Execute_When_VariableSetsEqualMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions { MaxBatchSize = 2 }));
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+
+        // act
+        var request = new GraphQLHttpRequest(
+            new Transport.VariableBatchRequest(
+                "query($episode: Episode!) { hero(episode: $episode) { name } }",
+                variables:
+                [
+                    new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                    new Dictionary<string, object?> { { "episode", "EMPIRE" } }
+                ]),
+            _url);
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        var names = new SortedList<int, string?>();
+
+        await foreach (var result in response.ReadAsResultStreamAsync())
+        {
+            names.Add(
+                result.VariableIndex!.Value,
+                result.Data.GetProperty("hero").GetProperty("name").GetString());
+        }
+
+        Assert.Collection(
+            names.Values,
+            name => Assert.Equal("R2-D2", name),
+            name => Assert.Equal("Luke Skywalker", name));
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_Refuse_When_EntryCountExceedsMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions { EnableBatching = true, MaxBatchSize = 2 }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = new StringContent(
+                """
+                [
+                  { "query": "{ hero(episode: NEW_HOPE) { name } }" },
+                  { "query": "{ hero(episode: EMPIRE) { name } }" },
+                  { "query": "{ hero(episode: JEDI) { name } }" }
+                ]
+                """,
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 2.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_RefuseEntry_When_VariableBatchExceedsMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions { EnableBatching = true, MaxBatchSize = 2 }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
+        {
+            Content = new StringContent(
+                """
+                [
+                  { "query": "{ hero(episode: NEW_HOPE) { name } }" },
+                  {
+                    "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+                    "variables": [
+                      { "episode": "NEW_HOPE" },
+                      { "episode": "EMPIRE" },
+                      { "episode": "JEDI" }
+                    ]
+                  }
+                ]
+                """,
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 2.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_Refuse_When_OperationCountExceedsMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions { EnableBatching = true, MaxBatchSize = 1 }));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a { hero(episode: NEW_HOPE) { name } }
+            query b { hero(episode: EMPIRE) { name } }
+            """;
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"))
+        {
+            Content = new StringContent(
+                $$"""{ "query": {{JsonSerializer.Serialize(document)}} }""",
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 1.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_Refuse_When_VariableBatchExceedsMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions { EnableBatching = true, MaxBatchSize = 2 }));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a($episode: Episode!) { hero(episode: $episode) { name } }
+            query b($episode: Episode!) { hero(episode: $episode) { id } }
+            """;
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"))
+        {
+            Content = new StringContent(
+                $$"""
+                {
+                  "query": {{JsonSerializer.Serialize(document)}},
+                  "variables": [
+                    { "episode": "NEW_HOPE" },
+                    { "episode": "EMPIRE" },
+                    { "episode": "JEDI" }
+                  ]
+                }
+                """,
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 2.","extensions":{"code":"HC0009"}}]}
+                """);
     }
 
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor

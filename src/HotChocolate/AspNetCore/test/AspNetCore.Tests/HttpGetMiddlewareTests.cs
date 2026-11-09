@@ -775,6 +775,38 @@ public class HttpGetMiddlewareTests : ServerTestBase
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task VariableBatch_Should_Refuse_When_VariableSetsExceedMaxBatchSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: e => e.WithOptions(
+                new GraphQLServerOptions { MaxBatchSize = 2 }));
+        var client = server.CreateClient();
+        var query = Uri.EscapeDataString(
+            "query($episode: Episode!) { hero(episode: $episode) { name } }");
+        var variables = Uri.EscapeDataString(
+            """[{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }, { "episode": "JEDI" }]""");
+
+        // act
+        using var response = await client.GetAsync(
+            $"http://localhost:5000/graphql?query={query}&variables={variables}");
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The batch size exceeds the maximum allowed batch size of 2.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
     private class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
     {
         public override ValueTask OnCreateAsync(
