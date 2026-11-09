@@ -144,6 +144,12 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     return;
                 }
 
+                if (subscribeMessage.Payload.Variables is { Count: > 1 })
+                {
+                    throw new GraphQLRequestException(
+                        ErrorHelper.VariableBatchingNotSupportedForWebSocket());
+                }
+
                 if (!session.Operations.Enqueue(subscribeMessage.Id, subscribeMessage.Payload))
                 {
                     await connection.CloseSubscriptionIdNotUniqueAsync(cancellationToken);

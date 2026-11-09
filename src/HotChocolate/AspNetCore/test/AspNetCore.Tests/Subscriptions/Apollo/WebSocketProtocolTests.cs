@@ -449,6 +449,52 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
     }
 
     [Fact]
+    public Task Start_Should_Send_Error_When_Request_Is_Variable_Batch()
+    {
+        var snapshot = new Snapshot();
+
+        return TryTest(async ct =>
+        {
+            // arrange
+            using var testServer = CreateStarWarsServer();
+            var client = CreateWebSocketClient(testServer);
+            using var webSocket = await ConnectToServerAsync(client, ct);
+
+            const string startMessage =
+                """
+                {
+                  "id": "abc",
+                  "type": "start",
+                  "payload": {
+                    "query": "query($episode: Episode) { hero(episode: $episode) { name } }",
+                    "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+                  }
+                }
+                """;
+
+            // act
+            await webSocket.SendMessageAsync(startMessage, ct);
+
+            // assert
+            var message = await WaitForMessage(webSocket, "error", ct);
+            Assert.NotNull(message);
+            snapshot.Add(message).MatchInline(
+                """
+                {
+                  "id": "abc",
+                  "type": "error",
+                  "payload": {
+                    "message": "Variable batching is not supported for WebSocket requests.",
+                    "extensions": {
+                      "code": "HC0009"
+                    }
+                  }
+                }
+                """);
+        });
+    }
+
+    [Fact]
     public Task Send_Invalid_Message_String()
         => TryTest(async ct =>
         {

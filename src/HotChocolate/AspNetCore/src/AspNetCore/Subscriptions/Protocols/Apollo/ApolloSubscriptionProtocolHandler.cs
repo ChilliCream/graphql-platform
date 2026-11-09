@@ -143,6 +143,12 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     return;
                 }
 
+                if (dataStartMessage.Payload.Variables is { Count: > 1 })
+                {
+                    throw new GraphQLRequestException(
+                        ErrorHelper.VariableBatchingNotSupportedForWebSocket());
+                }
+
                 if (!session.Operations.Enqueue(dataStartMessage.Id, dataStartMessage.Payload))
                 {
                     await connection.CloseAsync(
