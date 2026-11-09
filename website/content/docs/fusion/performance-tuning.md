@@ -135,7 +135,7 @@ builder.Services
 
 Without the gateway-level annotation, the handler has nothing to key off and passes all requests through unchanged.
 
-The deduplication handler runs after the other message handlers of the client, wherever `.AddRequestDeduplication()` appears in the chain, so headers that other handlers add to the request, such as those of `.AddHeaderPropagation()`, are part of the hash. With a resilience handler on the same client, each attempt is deduplicated on its own.
+The deduplication handler runs after the other message handlers of the client, wherever `.AddRequestDeduplication()` appears in the chain, so hash headers that other handlers set on the request, such as an `Authorization` header forwarded by `.AddHeaderPropagation()`, are part of the hash. With a resilience handler on the same client, each attempt is deduplicated on its own.
 
 ## Customizing Hash Headers
 
