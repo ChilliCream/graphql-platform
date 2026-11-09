@@ -3,6 +3,7 @@ using HotChocolate.Caching;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 using CacheControlAttribute = HotChocolate.Caching.CacheControlAttribute;
 
@@ -84,6 +85,43 @@ public class FusionCachingTests : FusionTestBase
         Assert.NotNull(response.Headers.CacheControl);
         Assert.True(response.Headers.CacheControl.Private);
         Assert.Equal(TimeSpan.FromSeconds(3600), response.Headers.CacheControl.MaxAge);
+    }
+
+    [Fact]
+    public async Task Query_With_Entity_CacheControl_From_Owner_Should_Apply_Type_Policy()
+    {
+        // arrange
+        using var accounts = CreateSourceSchema(
+            "accounts",
+            b => b.AddQueryType<EntityOwnerSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var reviews = CreateSourceSchema(
+            "reviews",
+            b => b.AddQueryType<EntityReferenceSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("accounts", accounts), ("reviews", reviews)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.GetGraphQLAsync("{ topReviews { body author { email } } }");
+
+        // assert
+        Assert.NotNull(response.Headers.CacheControl);
+        Assert.True(response.Headers.CacheControl.Private);
+        Assert.Equal(TimeSpan.FromSeconds(30), response.Headers.CacheControl.MaxAge);
+        Assert.Collection(
+            response.Headers.Vary,
+            value => Assert.Equal("Accept", value),
+            value => Assert.Equal("authorization", value));
     }
 
     [Theory]
@@ -257,6 +295,36 @@ public static class PrivateCachedSchema
     }
 }
 
+public static class EntityOwnerSchema
+{
+    public class Query
+    {
+        [Lookup]
+        [CacheControl(60)]
+        public User? GetUserById(int id) => new(id, $"user{id}@example.com");
+    }
+
+    [CacheControl(30, Scope = CacheControlScope.Private, Vary = ["Authorization"])]
+    public record User(int Id, string Email);
+}
+
+public static class EntityReferenceSchema
+{
+    public class Query
+    {
+        [CacheControl(300)]
+        public List<Review> GetTopReviews() => [new(1, "Great", new User(1))];
+
+        [Lookup]
+        [Internal]
+        public User? GetUserById(int id) => new(id);
+    }
+
+    public record Review(int Id, string Body, User? Author);
+
+    public record User(int Id);
+}
+
 public static class SharedCachedSchema
 {
     public class Query
@@ -298,6 +366,9 @@ public static class MutationSchema
 
 internal static class TestHttpClientExtensions
 {
+    public static Task<HttpResponseMessage> GetGraphQLAsync(this HttpClient client, string query)
+        => client.GetAsync("/graphql?query=" + Uri.EscapeDataString(query));
+
     public static Task<HttpResponseMessage> PostGraphQLAsync(this HttpClient client, string query)
         => client.SendGraphQLAsync(HttpMethod.Post, query);
 
