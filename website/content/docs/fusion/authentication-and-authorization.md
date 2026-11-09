@@ -168,6 +168,8 @@ builder.Services
     .AddHttpMessageHandler<ClaimsHeaderHandler>();
 ```
 
+If the client also uses request deduplication, add the headers that the handler sets to the hash headers, as described in [Customizing Hash Headers](./performance-tuning.md#customizing-hash-headers).
+
 # Client-to-gateway trust (mTLS)
 
 In some scenarios, only trusted clients should be able to call your gateway. Mutual TLS (mTLS) supports this by requiring the client to present a certificate. The gateway validates that certificate against a trusted certificate authority (CA).

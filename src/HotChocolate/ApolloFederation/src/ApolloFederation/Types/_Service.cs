@@ -1,3 +1,6 @@
+using System.Runtime.CompilerServices;
+using HotChocolate.Language.Utilities;
+using HotChocolate.Serialization;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
@@ -16,7 +19,13 @@ namespace HotChocolate.ApolloFederation.Types;
 // ReSharper disable once InconsistentNaming
 public sealed class _Service
 {
+    private static readonly SchemaFormatterOptions s_formatterOptions =
+        new() { IncludeInternalDirectives = false };
+    private static readonly ConditionalWeakTable<Schema, string> s_sdl = [];
+
     [GraphQLName(WellKnownFieldNames.Sdl)]
     public string GetSdl(Schema schema)
-        => schema.ToString();
+        => s_sdl.GetValue(
+            schema,
+            static s => SchemaFormatter.FormatAsDocument(s, s_formatterOptions).Print());
 }

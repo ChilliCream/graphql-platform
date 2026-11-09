@@ -238,6 +238,14 @@ public sealed partial class DocumentRewriter(
             fragmentContext = GetOrAddContextForFragment(context, inlineFragment, typeCondition);
         }
 
+        // A deferred fragment produces its own payload and is never merged with another, so each
+        // occurrence is collected. Outside a defer, collecting the same fragment body into the same
+        // context again is redundant, so we follow it only the first time.
+        if (defer is null && !fragmentContext.TryMarkSelectionSetCollected(selectionSet))
+        {
+            return;
+        }
+
         CollectSelections(selectionSet, fragmentContext);
     }
 
@@ -1095,6 +1103,37 @@ public sealed partial class DocumentRewriter(
         /// The type selections in this context are on.
         /// </summary>
         public ITypeDefinition Type { get; } = type;
+
+        /// <summary>
+        /// The selection sets already collected into this context, by reference. A fragment has
+        /// the same body wherever it is spread, so collecting it into a context a second time only
+        /// adds selections that merge away; skipping it keeps the work proportional to the result.
+        /// Most contexts collect zero or one fragment, so the first is kept in a field and the set
+        /// is only allocated once a second, different fragment is collected into the same context.
+        /// </summary>
+        private SelectionSetNode? _firstCollectedSelectionSet;
+        private HashSet<SelectionSetNode>? _collectedSelectionSets;
+
+        /// <summary>
+        /// Records that <paramref name="selectionSet"/> is being collected into this context and
+        /// returns <c>true</c> if it had not been collected here before.
+        /// </summary>
+        public bool TryMarkSelectionSetCollected(SelectionSetNode selectionSet)
+        {
+            if (_firstCollectedSelectionSet is null)
+            {
+                _firstCollectedSelectionSet = selectionSet;
+                return true;
+            }
+
+            if (ReferenceEquals(_firstCollectedSelectionSet, selectionSet))
+            {
+                return false;
+            }
+
+            _collectedSelectionSets ??= new HashSet<SelectionSetNode>(ReferenceEqualityComparer.Instance);
+            return _collectedSelectionSets.Add(selectionSet);
+        }
 
         [MemberNotNullWhen(true, nameof(Conditional))]
         [MemberNotNullWhen(true, nameof(UnconditionalContext))]

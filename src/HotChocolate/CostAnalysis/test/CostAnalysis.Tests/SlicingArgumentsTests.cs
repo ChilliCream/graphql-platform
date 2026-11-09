@@ -321,6 +321,53 @@ public class SlicingArgumentsTests
         ]);
     }
 
+    [Fact]
+    public async Task SlicingArguments_Reported_When_FieldIsReachedThroughRepeatedFragment()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        ...F
+                        ...F
+                    }
+
+                    fragment F on Query {
+                        foos {
+                            nodes
+                        }
+                    }
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Exactly one slicing argument must be defined.",
+                  "locations": [
+                    {
+                      "line": 7,
+                      "column": 5
+                    }
+                  ],
+                  "path": [
+                    "foos"
+                  ],
+                  "extensions": {
+                    "code": "HC0082"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
     public class Query
     {
         [UsePaging]

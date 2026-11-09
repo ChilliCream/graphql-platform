@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
@@ -150,6 +151,15 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                         CloseReasons.InvalidMessage,
                         cancellationToken);
                     return;
+                }
+
+                var variables = dataStartMessage.Payload.Variables;
+
+                if (variables?.RootElement.ValueKind is JsonValueKind.Array)
+                {
+                    dataStartMessage.Payload.Dispose();
+                    throw new GraphQLRequestException(
+                        ErrorHelper.VariableBatchingNotSupportedForWebSocket());
                 }
 
                 if (!session.Operations.Enqueue(dataStartMessage.Id, dataStartMessage.Payload))

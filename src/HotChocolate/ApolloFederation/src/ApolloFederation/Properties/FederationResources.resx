@@ -174,6 +174,9 @@
   <data name="ThrowHelper_EntityResolver_NoEntityResolverFound" xml:space="preserve">
     <value>The apollo gateway tries to resolve an entity for which no EntityResolver method was found.</value>
   </data>
+  <data name="ThrowHelper_EntityResolver_TooManyRepresentations" xml:space="preserve">
+    <value>The maximum number of representations that can be resolved in a single request is {0:N0}.</value>
+  </data>
   <data name="EntityResolver_MustBeMethod" xml:space="preserve">
     <value>The EntityResolver must be a method. Please check if the EntityResolverAttribute is correctly set to a method.</value>
   </data>
@@ -191,5 +194,8 @@
   </data>
   <data name="PolicyCollectionType_ParseValue_ExpectedStringArray" xml:space="preserve">
     <value>Expected a string[][]</value>
+  </data>
+  <data name="ThrowHelper_Service_SdlResolvedMoreThanOnce" xml:space="preserve">
+    <value>The field `_Service.sdl` can only be resolved once per request.</value>
   </data>
 </root>

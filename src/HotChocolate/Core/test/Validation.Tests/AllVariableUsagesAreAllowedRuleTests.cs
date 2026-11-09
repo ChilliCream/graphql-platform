@@ -29,6 +29,35 @@ public class AllVariableUsagesAreAllowedRuleTests
     }
 
     [Fact]
+    public void VariableInsideListOnAnyArg()
+    {
+        ExpectValid(
+            """
+            query ($value: Any) {
+                anyArg(arg: [$value])
+            }
+            """);
+    }
+
+    [Fact]
+    public void IntVariableInBooleanArgWithListOnAnyArg()
+    {
+        ExpectErrors(
+            """
+            query ($intArg: Int) {
+              anyArg(arg: [1])
+              arguments {
+                booleanArgField(booleanArg: $intArg)
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "The variable `intArg` is not compatible with the "
+                + "type of the current location.",
+                t.Message));
+    }
+
+    [Fact]
     public void BooleanListCannotGoIntoBoolean()
     {
         // arrange

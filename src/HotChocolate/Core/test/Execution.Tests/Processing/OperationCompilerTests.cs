@@ -2236,6 +2236,9 @@ public class OperationCompilerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Foo>()
+                // raise the selection limit so the operation reaches the compiler, which has its
+                // own, higher limit that this test exercises.
+                .ModifyValidationOptions(o => o.MaxAllowedSelections = int.MaxValue)
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
