@@ -56,7 +56,7 @@ The gateway limits how deeply the selection sets of an operation can be nested w
 ```csharp
 builder
     .AddGraphQLGateway()
-    .ConfigureValidation((_, b) => b.ModifyOptions(o => o.MaxAllowedSelectionSetDepth = 100));
+    .ModifyValidationOptions(o => o.MaxAllowedSelectionSetDepth = 100);
 ```
 
 If you raise the parser option [`MaxAllowedRecursionDepth`](#parser-limits), raise this limit as well.
@@ -68,7 +68,7 @@ The gateway limits how many selections an operation has once its fragment spread
 ```csharp
 builder
     .AddGraphQLGateway()
-    .ConfigureValidation((_, b) => b.ModifyOptions(o => o.MaxAllowedSelections = 50_000));
+    .ModifyValidationOptions(o => o.MaxAllowedSelections = 50_000);
 ```
 
 ## Fragment Visits

@@ -64,7 +64,7 @@ Hot Chocolate limits how deeply the selection sets of an operation can be nested
 ```csharp
 builder
     .AddGraphQL()
-    .ConfigureValidation((_, b) => b.ModifyOptions(o => o.MaxAllowedSelectionSetDepth = 100));
+    .ModifyValidationOptions(o => o.MaxAllowedSelectionSetDepth = 100);
 ```
 
 If you raise the parser option [`MaxAllowedRecursionDepth`](#parser-limits), raise this limit as well.
@@ -76,7 +76,7 @@ Hot Chocolate limits how many selections an operation has once its fragment spre
 ```csharp
 builder
     .AddGraphQL()
-    .ConfigureValidation((_, b) => b.ModifyOptions(o => o.MaxAllowedSelections = 50_000));
+    .ModifyValidationOptions(o => o.MaxAllowedSelections = 50_000);
 ```
 
 ## Fragment Visits
