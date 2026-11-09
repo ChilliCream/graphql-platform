@@ -374,6 +374,33 @@ public partial class FusionCachingTests : FusionTestBase
         Assert.Equal("max-age=60, private", response.Headers.CacheControl?.ToString());
     }
 
+    [Theory]
+    [InlineData("{ owner { email } }")]
+    [InlineData("{ members { email } }")]
+    public async Task Query_Should_UseReturnTypeMaxAge_When_ScopeOnlyRootFieldTypeIsNonNullOrList(
+        string query)
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<TeamSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", server)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.GetGraphQLAsync(query);
+
+        // assert
+        Assert.Equal("max-age=60, private", response.Headers.CacheControl?.ToString());
+    }
+
     [Fact]
     public async Task Query_Should_UseDefaultMaxAge_When_ShareableRootFieldIsCacheableInOneSchema()
     {
@@ -718,6 +745,60 @@ public partial class FusionCachingTests : FusionTestBase
         Assert.Equal("max-age=0", response.Headers.CacheControl?.ToString());
     }
 
+    [Theory]
+    [InlineData("{ account { email } }")]
+    [InlineData("{ accounts { email } }")]
+    public async Task Query_Should_UseReturnTypeScope_When_TypeIsNonNullOrList(string query)
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<AccountsSchema.Query>()
+                .AddType<AccountsSchema.Article>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", server)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.GetGraphQLAsync(query);
+
+        // assert
+        Assert.Equal("max-age=60, private", response.Headers.CacheControl?.ToString());
+    }
+
+    [Theory]
+    [InlineData("{ search { ... on Article { title } } }")]
+    [InlineData("{ contact { email } }")]
+    public async Task Query_Should_UseObjectTypeScope_When_TypeIsUnionOrInterface(string query)
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<AccountsSchema.Query>()
+                .AddType<AccountsSchema.Article>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", server)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.GetGraphQLAsync(query);
+
+        // assert
+        Assert.Equal("max-age=60, private", response.Headers.CacheControl?.ToString());
+    }
+
     private async Task<Gateway> CreateWishlistGatewayAsync(
         Action<IRequestExecutorBuilder> configureWishlist,
         Action<CacheControlOptions>? modifyGatewayOptions = null)
@@ -760,6 +841,38 @@ public partial class FusionCachingTests : FusionTestBase
                 .TryGet<Microsoft.Net.Http.Headers.CacheControlHeaderValue>(out _);
         }
     }
+}
+
+public static class AccountsSchema
+{
+    public class Query
+    {
+        [CacheControl(60)]
+        public Account GetAccount() => new(1, "alice@example.com");
+
+        [CacheControl(60)]
+        public List<Account> GetAccounts() => [new(1, "alice@example.com")];
+
+        [CacheControl(60)]
+        public IContact GetContact() => new Account(1, "alice@example.com");
+
+        [CacheControl(60)]
+        public ISearchResult GetSearch() => new Account(1, "alice@example.com");
+    }
+
+    [CacheControl(Scope = CacheControlScope.Private)]
+    public record Account(int Id, string Email) : IContact, ISearchResult;
+
+    public record Article(string Title) : ISearchResult;
+
+    [HotChocolate.Types.InterfaceType("Contact")]
+    public interface IContact
+    {
+        string Email { get; }
+    }
+
+    [HotChocolate.Types.UnionType("SearchResult")]
+    public interface ISearchResult;
 }
 
 public static class CachedSchema
@@ -858,6 +971,24 @@ public static class ScopeOnlySchema
     {
         [CacheControl(Scope = CacheControlScope.Private)]
         public string Profile() => "profile";
+    }
+}
+
+public static class TeamSchema
+{
+    public class Query
+    {
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public List<User> GetMembers() => [new()];
+
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public User GetOwner() => new();
+    }
+
+    [CacheControl(60)]
+    public class User
+    {
+        public string Email => "alice@example.com";
     }
 }
 
