@@ -737,7 +737,7 @@ export async function generateLlmsFiles() {
 
   const rootCatalog = catalog(
     "ChilliCream",
-    "ChilliCream provides a GraphQL platform for teams and AI agents on any stack. Its products include Fusion, a language-agnostic GraphQL federation router (gateway); Nitro, a language-agnostic API operations platform; and open-source GraphQL and messaging frameworks for .NET.",
+    "Unify, manage, and monitor APIs across any stack with ChilliCream’s GraphQL federation platform, open-source Fusion router (gateway), and Nitro API control plane.",
     [
       { title: "Start Here", items: startHere.map(pageListItem) },
       {
