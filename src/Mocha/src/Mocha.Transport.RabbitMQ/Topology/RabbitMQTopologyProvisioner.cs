@@ -35,7 +35,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
         }
     }
 
-    public async Task ProvisionReceiveAsync(
+    public async Task ProvisionQueueAsync(
         RabbitMQQueue queue,
         IChannel channel,
         CancellationToken cancellationToken)

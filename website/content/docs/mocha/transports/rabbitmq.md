@@ -142,7 +142,7 @@ A slow or unavailable queue does not prevent unrelated endpoints from recovering
 
 Mocha manages this recovery regardless of the connection factory's `AutomaticRecoveryEnabled` setting.
 
-For quorum queues, a surviving majority can elect a new leader and continue delivering messages after a node fails. Unreplicated classic queues remain unavailable while their node is down. Configure your connection provider to reach surviving cluster nodes if the node serving its AMQP connection fails.
+For quorum queues, a surviving majority can elect a new leader and continue delivering messages after a node fails. Classic queues that are not replicated remain unavailable while their node is down. Configure your connection provider to reach surviving cluster nodes if the node serving its AMQP connection fails.
 
 ## Startup connection timeout
 

@@ -94,7 +94,7 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             cancellationToken);
 
         Task ProvisionAsync(IConnection connection, IChannel channel, CancellationToken ct)
-            => new RabbitMQTopologyProvisioner(transport.Topology, connection).ProvisionReceiveAsync(Queue, channel, ct);
+            => new RabbitMQTopologyProvisioner(transport.Topology, connection).ProvisionQueueAsync(Queue, channel, ct);
     }
 
     private async ValueTask ProcessMessageAsync(

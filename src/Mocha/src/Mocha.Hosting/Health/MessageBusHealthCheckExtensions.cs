@@ -23,9 +23,8 @@ public static class MessageBusHealthCheckExtensions
     /// Adds a message bus health check to the ASP.NET Core health checks system, tagged with "ready" and "live".
     /// </summary>
     /// <remarks>
-    /// The check sends a <see cref="HealthRequest"/> through the message bus and verifies the response.
-    /// When an <paramref name="endpoint"/> is provided, the request is routed to that specific endpoint
-    /// rather than using the default routing.
+    /// The check requires every local transport to be healthy and verifies a <see cref="HealthRequest"/> response.
+    /// The request uses the specified <paramref name="endpoint"/>, or default routing when it is <see langword="null"/>.
     /// </remarks>
     /// <param name="builder">The health checks builder to extend.</param>
     /// <param name="endpoint">An optional endpoint URI to target with the health check request.</param>

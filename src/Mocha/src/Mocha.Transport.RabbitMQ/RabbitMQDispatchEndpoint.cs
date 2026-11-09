@@ -69,7 +69,10 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                     }
 
                     canReuseChannel = false;
-                    await Queue.ProvisionAsync(channel, transport.Dispatcher.GetChannelConnection(channel), cancellationToken);
+                    var provisioner = new RabbitMQTopologyProvisioner(
+                        transport.Topology,
+                        dispatcher.GetChannelConnection(channel));
+                    await provisioner.ProvisionQueueAsync(Queue, channel, cancellationToken);
                     canReuseChannel = true;
                     dispatcher.LogReturnedQueueRedeclared(Queue.Name);
 
@@ -261,7 +264,10 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         // An exclusive queue belongs to the connection that declares it, which must be the consumer's.
         if (Queue is { Exclusive: false } && (Queue.AutoProvision ?? autoProvision))
         {
-            await Queue.ProvisionAsync(channel, transport.Dispatcher.GetChannelConnection(channel), cancellationToken);
+            var provisioner = new RabbitMQTopologyProvisioner(
+                transport.Topology,
+                transport.Dispatcher.GetChannelConnection(channel));
+            await provisioner.ProvisionQueueAsync(Queue, channel, cancellationToken);
         }
 
         if (Exchange is not null && (Exchange.AutoProvision ?? autoProvision))

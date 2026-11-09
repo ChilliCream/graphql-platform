@@ -43,6 +43,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     public IRabbitMQConnectionProvider Connection { get; private set; } = null!;
 
     /// <summary>
+    /// Gets whether the transport is started, both broker connections are ready, and every receive endpoint is healthy.
+    /// </summary>
+    public override bool IsHealthy => base.IsHealthy && Dispatcher.IsConnected && ConsumerManager.IsHealthy;
+
+    /// <summary>
     /// Resolves the RabbitMQ connection provider, builds the transport topology URI, and creates
     /// the <see cref="Dispatcher"/> and <see cref="ConsumerManager"/> instances used for the
     /// lifetime of this transport.

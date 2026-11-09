@@ -204,6 +204,12 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     public bool IsStarted { get; private set; }
 
     /// <summary>
+    /// Gets whether the transport is ready to send and receive messages.
+    /// By default, the transport and all receive endpoints must be started.
+    /// </summary>
+    public virtual bool IsHealthy => IsStarted && ReceiveEndpoints.All(static endpoint => endpoint.IsStarted);
+
+    /// <summary>
     /// Starts the transport by invoking pre-start hooks and activating all receive endpoints.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
