@@ -1,3 +1,4 @@
+import productGroups from "@/src/data/productGroups.json";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 export type JsonLdScalar = string | number | boolean | null;
@@ -27,35 +28,40 @@ export interface ProductGroup {
   readonly memberIds: readonly string[];
 }
 
-const FUSION_ID = toAbsoluteUrl("/products/fusion#software");
-const NITRO_ID = toAbsoluteUrl("/products/nitro#product");
-const HOT_CHOCOLATE_ID = toAbsoluteUrl("/products/hotchocolate#software");
-const STRAWBERRY_SHAKE_ID = toAbsoluteUrl("/products/strawberryshake#software");
-const MOCHA_ID = toAbsoluteUrl("/products/mocha#software");
-
-export const FEDERATION_PLATFORM_GROUP: ProductGroup = {
-  id: toAbsoluteUrl("/#product-group-graphql-federation-platform"),
-  name: "GraphQL Federation Platform",
-  memberIds: [FUSION_ID, NITRO_ID],
+const SOFTWARE_NODE_FRAGMENTS: Readonly<Record<string, string>> = {
+  fusion: "software",
+  nitro: "product",
+  hotchocolate: "software",
+  strawberryshake: "software",
+  mocha: "software",
 };
 
-export const FRAMEWORKS_GROUP: ProductGroup = {
-  id: toAbsoluteUrl("/#product-group-graphql-frameworks"),
-  name: "GraphQL Frameworks",
-  memberIds: [HOT_CHOCOLATE_ID, STRAWBERRY_SHAKE_ID],
-};
+function toProductGroup(slug: string): ProductGroup {
+  const group = productGroups.find((candidate) => candidate.slug === slug);
+  if (!group) {
+    throw new Error(`Unknown product group: ${slug}`);
+  }
 
-export const MESSAGING_GROUP: ProductGroup = {
-  id: toAbsoluteUrl("/#product-group-messaging-framework"),
-  name: "Messaging Framework",
-  memberIds: [MOCHA_ID],
-};
+  return {
+    id: toAbsoluteUrl(`/#product-group-${group.slug}`),
+    name: group.name,
+    memberIds: group.products.map((product) =>
+      toAbsoluteUrl(`/products/${product}#${SOFTWARE_NODE_FRAGMENTS[product]}`),
+    ),
+  };
+}
 
-export const PRODUCT_GROUPS: readonly ProductGroup[] = [
-  FEDERATION_PLATFORM_GROUP,
-  FRAMEWORKS_GROUP,
-  MESSAGING_GROUP,
-];
+export const FEDERATION_PLATFORM_GROUP = toProductGroup(
+  "graphql-federation-platform",
+);
+
+export const FRAMEWORKS_GROUP = toProductGroup("graphql-frameworks");
+
+export const MESSAGING_GROUP = toProductGroup("messaging-framework");
+
+export const PRODUCT_GROUPS: readonly ProductGroup[] = productGroups.map(
+  (group) => toProductGroup(group.slug),
+);
 
 export interface BreadcrumbItem {
   readonly name: string;
