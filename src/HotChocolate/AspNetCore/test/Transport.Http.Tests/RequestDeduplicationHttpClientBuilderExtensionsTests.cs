@@ -52,6 +52,95 @@ public class RequestDeduplicationHttpClientBuilderExtensionsTests
         Assert.Equal(expectedRequestCount, requestCount);
     }
 
+    [Theory]
+    [InlineData("tenant-a", "tenant-b", 2)]
+    [InlineData("tenant-a", "tenant-a", 1)]
+    public async Task AddRequestDeduplication_Should_IncludeHashHeaders_When_AddedToClientDefaults(
+        string firstTenant,
+        string secondTenant,
+        int expectedRequestCount)
+    {
+        // arrange
+        var requestCount = 0;
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var services = new ServiceCollection();
+        services.ConfigureHttpClientDefaults(
+            builder => builder.AddRequestDeduplication(
+                options => options.HashHeaders = [TenantHeader]));
+        services
+            .AddHttpClient("test")
+            .AddHttpMessageHandler(() => new TenantHeaderHandler())
+            .ConfigurePrimaryHttpMessageHandler(() => new GatedHandler(async ct =>
+            {
+                Interlocked.Increment(ref requestCount);
+                await gate.Task.WaitAsync(ct);
+            }));
+
+        await using var provider = services.BuildServiceProvider();
+        using var client = provider.GetRequiredService<IHttpClientFactory>().CreateClient("test");
+
+        using var request1 = CreateQueryRequest(firstTenant);
+        using var request2 = CreateQueryRequest(secondTenant);
+
+        // act
+        var task1 = client.SendAsync(request1, TestContext.Current.CancellationToken);
+        var task2 = client.SendAsync(request2, TestContext.Current.CancellationToken);
+
+        await Task.Delay(50, TestContext.Current.CancellationToken);
+        gate.SetResult();
+
+        using var response1 = await task1;
+        using var response2 = await task2;
+
+        // assert
+        Assert.Equal(expectedRequestCount, requestCount);
+    }
+
+    [Theory]
+    [InlineData("tenant-a", "tenant-b", 2)]
+    [InlineData("tenant-a", "tenant-a", 1)]
+    public async Task AddRequestDeduplication_Should_IncludeHashHeaders_When_ClientDefaultsSetThem(
+        string firstTenant,
+        string secondTenant,
+        int expectedRequestCount)
+    {
+        // arrange
+        var requestCount = 0;
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var services = new ServiceCollection();
+        services.ConfigureHttpClientDefaults(
+            builder => builder.AddHttpMessageHandler(() => new TenantHeaderHandler()));
+        services
+            .AddHttpClient("test")
+            .AddRequestDeduplication(options => options.HashHeaders = [TenantHeader])
+            .ConfigurePrimaryHttpMessageHandler(() => new GatedHandler(async ct =>
+            {
+                Interlocked.Increment(ref requestCount);
+                await gate.Task.WaitAsync(ct);
+            }));
+
+        await using var provider = services.BuildServiceProvider();
+        using var client = provider.GetRequiredService<IHttpClientFactory>().CreateClient("test");
+
+        using var request1 = CreateQueryRequest(firstTenant);
+        using var request2 = CreateQueryRequest(secondTenant);
+
+        // act
+        var task1 = client.SendAsync(request1, TestContext.Current.CancellationToken);
+        var task2 = client.SendAsync(request2, TestContext.Current.CancellationToken);
+
+        await Task.Delay(50, TestContext.Current.CancellationToken);
+        gate.SetResult();
+
+        using var response1 = await task1;
+        using var response2 = await task2;
+
+        // assert
+        Assert.Equal(expectedRequestCount, requestCount);
+    }
+
     private static HttpRequestMessage CreateQueryRequest(string tenant)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/graphql")
