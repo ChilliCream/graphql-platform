@@ -590,6 +590,28 @@ public class HttpCachingTests : ServerTestBase
         Assert.Equal("max-age=60, private", result.Headers.CacheControl?.ToString());
     }
 
+    [Fact]
+    public async Task RootField_Should_KeepPublicScope_When_DefaultScopeIsPrivate()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
+                .AddQueryType<PublicScopeQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ name motto }");
+
+        // assert
+        Assert.Equal("""{"data":{"name":"Main","motto":"Always open"}}""", result.Body);
+        Assert.Equal("max-age=0", result.Headers.CacheControl?.ToString());
+    }
+
     public class Catalog
     {
         [UsePaging]
@@ -617,6 +639,15 @@ public class HttpCachingTests : ServerTestBase
     public class ProductQuery
     {
         public Product GetProduct(int id) => Product.Get(id);
+    }
+
+    public class PublicScopeQuery
+    {
+        [CacheControl(Scope = CacheControlScope.Public)]
+        public string GetMotto() => "Always open";
+
+        [CacheControl(3600)]
+        public string GetName() => "Main";
     }
 
     [Key("id")]

@@ -120,8 +120,8 @@ internal static class CacheControlConstraintsComputer
         var varySet = false;
 
         // A root field without @cacheControl, or whose directive and return type set no
-        // lifetime, takes the defaults. They are applied before the field's own directive,
-        // whose scope and vary still apply.
+        // lifetime, takes the default lifetime, and the default scope unless its directive
+        // sets one.
         if (defaults is not null && !field.IsIntrospectionField)
         {
             var fieldDirective = field.Directives.FirstOrDefault(DirectiveName);
@@ -135,7 +135,9 @@ internal static class CacheControlConstraintsComputer
                     defaults.DefaultMaxAge,
                     directiveSharedMaxAge: null,
                     directiveInheritMaxAge: null,
-                    defaults.DefaultScope,
+                    fieldDirective is null || GetScopeArgument(fieldDirective, ScopeArg) is null
+                        ? defaults.DefaultScope
+                        : null,
                     directiveVary: null);
             }
         }
