@@ -176,6 +176,25 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Adds a delegate that modifies the <see cref="ValidationOptions"/>.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="configure">A delegate that modifies the <see cref="ValidationOptions"/>.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>.
+    /// </exception>
+    public static IFusionGatewayBuilder ModifyValidationOptions(
+        this IFusionGatewayBuilder builder,
+        Action<ValidationOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return ConfigureValidation(builder, (_, b) => b.ModifyOptions(configure));
+    }
+
     public static IFusionGatewayBuilder ConfigureValidation(
         this IFusionGatewayBuilder builder,
         Action<IServiceProvider, DocumentValidatorBuilder> configure)
