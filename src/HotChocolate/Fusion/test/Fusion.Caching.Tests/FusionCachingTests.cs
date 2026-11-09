@@ -374,6 +374,33 @@ public partial class FusionCachingTests : FusionTestBase
         Assert.Equal("max-age=60, private", response.Headers.CacheControl?.ToString());
     }
 
+    [Theory]
+    [InlineData("{ owner { email } }")]
+    [InlineData("{ members { email } }")]
+    public async Task Query_Should_UseReturnTypeMaxAge_When_ScopeOnlyRootFieldTypeIsNonNullOrList(
+        string query)
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<TeamSchema.Query>()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("a", server)],
+            configureGatewayBuilder: b => b
+                .AddCacheControl()
+                .UseQueryCache());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.GetGraphQLAsync(query);
+
+        // assert
+        Assert.Equal("max-age=60, private", response.Headers.CacheControl?.ToString());
+    }
+
     [Fact]
     public async Task Query_Should_UseDefaultMaxAge_When_ShareableRootFieldIsCacheableInOneSchema()
     {
@@ -944,6 +971,24 @@ public static class ScopeOnlySchema
     {
         [CacheControl(Scope = CacheControlScope.Private)]
         public string Profile() => "profile";
+    }
+}
+
+public static class TeamSchema
+{
+    public class Query
+    {
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public List<User> GetMembers() => [new()];
+
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public User GetOwner() => new();
+    }
+
+    [CacheControl(60)]
+    public class User
+    {
+        public string Email => "alice@example.com";
     }
 }
 
