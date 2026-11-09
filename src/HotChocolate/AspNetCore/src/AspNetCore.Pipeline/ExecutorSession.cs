@@ -129,6 +129,7 @@ public sealed class ExecutorSession
         return await _executor.ExecuteAsync(operationRequest, context.RequestAborted);
     }
 
+    [Obsolete("Use the overload that takes GraphQLServerOptions.")]
     public async Task<IResponseStream> ExecuteOperationBatchAsync(
         HttpContext context,
         GraphQLRequest request,
@@ -156,18 +157,51 @@ public sealed class ExecutorSession
             cancellationToken: context.RequestAborted);
     }
 
+    public async Task<IResponseStream> ExecuteOperationBatchAsync(
+        HttpContext context,
+        GraphQLRequest request,
+        RequestFlags flags,
+        IReadOnlyList<string> operationNames,
+        GraphQLServerOptions options)
+    {
+        ThrowIfBatchSizeExceeded(operationNames.Count, options);
+
+        _diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
+
+        var requestBatch = new IOperationRequest[operationNames.Count];
+
+        for (var i = 0; i < operationNames.Count; i++)
+        {
+            var requestBuilder = OperationRequestBuilder.From(request);
+            requestBuilder.SetOperationName(operationNames[i]);
+            requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
+
+            await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
+
+            requestBatch[i] = requestBuilder.Build();
+
+            if (requestBatch[i] is VariableBatchRequest variableBatch)
+            {
+                ThrowIfVariableBatchingDisabled(context, options);
+                ThrowIfBatchSizeExceeded(
+                    variableBatch.VariableValues.Document.RootElement.GetArrayLength(),
+                    options);
+            }
+        }
+
+        return await _executor.ExecuteBatchAsync(
+            new OperationRequestBatch(requestBatch, services: context.RequestServices),
+            cancellationToken: context.RequestAborted);
+    }
+
     public async Task<IResponseStream> ExecuteBatchAsync(
         HttpContext context,
         GraphQLRequest[] requests,
         RequestFlags flags,
         GraphQLServerOptions options)
     {
-        var maxBatchSize = options.MaxBatchSize;
-        if (maxBatchSize > 0 && requests.Length > maxBatchSize)
-        {
-            var error = Handle(ErrorHelper.BatchSizeExceeded(maxBatchSize));
-            throw new GraphQLException(error);
-        }
+        ThrowIfBatchSizeExceeded(requests.Length, options);
 
         _diagnosticEvents.StartBatchRequest(context, requests);
 
@@ -182,11 +216,41 @@ public sealed class ExecutorSession
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
             requestBatch[i] = requestBuilder.Build();
+
+            if (requestBatch[i] is VariableBatchRequest variableBatch)
+            {
+                ThrowIfVariableBatchingDisabled(context, options);
+                ThrowIfBatchSizeExceeded(
+                    variableBatch.VariableValues.Document.RootElement.GetArrayLength(),
+                    options);
+            }
         }
 
         return await _executor.ExecuteBatchAsync(
             new OperationRequestBatch(requestBatch, services: context.RequestServices),
             cancellationToken: context.RequestAborted);
+    }
+
+    private void ThrowIfBatchSizeExceeded(int batchSize, GraphQLServerOptions options)
+    {
+        var maxBatchSize = options.MaxBatchSize;
+        if (maxBatchSize > 0 && batchSize > maxBatchSize)
+        {
+            var error = Handle(ErrorHelper.BatchSizeExceeded(maxBatchSize));
+            throw new GraphQLException(error);
+        }
+    }
+
+    private void ThrowIfVariableBatchingDisabled(HttpContext context, GraphQLServerOptions options)
+    {
+        if (!options.Batching.HasFlag(AllowedBatching.VariableBatching))
+        {
+            _diagnosticEvents.HttpRequestError(
+                context,
+                Handle(ErrorHelper.VariableBatchingDisabled()));
+            var error = Handle(ErrorHelper.InvalidRequest());
+            throw new GraphQLException(error);
+        }
     }
 
     public async ValueTask<GraphQLRequest[]> ParseRequestAsync(
