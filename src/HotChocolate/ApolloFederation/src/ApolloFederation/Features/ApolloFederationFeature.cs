@@ -1,3 +1,6 @@
 namespace HotChocolate.ApolloFederation;
 
-internal sealed record ApolloFederationFeature(FederationVersion Version);
+internal sealed class ApolloFederationFeature
+{
+    public ApolloFederationOptions Options { get; } = new();
+}
