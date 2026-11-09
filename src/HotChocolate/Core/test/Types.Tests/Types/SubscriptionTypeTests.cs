@@ -427,6 +427,77 @@ public class SubscriptionTypeTests : TypeTestBase
                 })
             .MatchAsync();
 
+    [Theory]
+    [InlineData("OnSysMessage")]
+    [InlineData("Fixed")]
+    [InlineData("OnInferTopic")]
+    public async Task SubscribeAttribute_Should_ReturnError_When_TopicBelongsToOtherField(
+        string userId)
+    {
+        // arrange
+        var executor = await TestHelper.CreateExecutorAsync(
+            r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                .AddSubscriptionType<MySubscription>());
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            $$"""subscription { onMessage(userId: "{{userId}}") }""");
+
+        // assert
+        result.ExpectOperationResult().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The topic resolved from the arguments of `MySubscription.onMessage` is the topic of another subscription field."
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task SubscribeToTopicByArgument_Should_ReturnError_When_TopicBelongsToOtherField()
+    {
+        // arrange
+        var executor = await TestHelper.CreateExecutorAsync(
+            r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                .AddSubscriptionType(
+                    d =>
+                    {
+                        d.Field("onNotice")
+                            .Type<StringType>()
+                            .Resolve(ctx => ctx.GetEventMessage<string>())
+                            .SubscribeToTopic<string>("notices");
+
+                        d.Field("onChannel")
+                            .Argument("channel", a => a.Type<NonNullType<StringType>>())
+                            .Type<StringType>()
+                            .Resolve(ctx => ctx.GetEventMessage<string>())
+                            .SubscribeToTopicByArgument<string>("channel");
+                    }));
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            """subscription { onChannel(channel: "notices") }""");
+
+        // assert
+        result.ExpectOperationResult().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The topic resolved from the arguments of `Subscription.onChannel` is the topic of another subscription field."
+                }
+              ]
+            }
+            """);
+    }
+
     [Fact]
     public async Task Subscribe_Attribute_With_Static_Topic_Defined_On_Attribute()
         => await SnapshotTest

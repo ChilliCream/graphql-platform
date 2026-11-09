@@ -1713,6 +1713,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ThrowHelper_SubscribeResolver_TopicOfOtherField {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SubscribeResolver_TopicOfOtherField", resourceCulture);
+            }
+        }
+        
         internal static string ThrowHelper_EventMessage_NotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_EventMessage_NotFound", resourceCulture);
