@@ -1,0 +1,30 @@
+{
+  "data": {
+    "test": [
+      {
+        "bar": "A",
+        "scalarList": [
+          "A1",
+          "A2",
+          "A3"
+        ]
+      },
+      {
+        "bar": "B",
+        "scalarList": [
+          "B1",
+          "B2",
+          "B3"
+        ]
+      },
+      {
+        "bar": "C",
+        "scalarList": [
+          "C1",
+          "C2",
+          "C3"
+        ]
+      }
+    ]
+  }
+}

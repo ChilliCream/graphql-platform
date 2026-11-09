@@ -1,0 +1,497 @@
+using System.Collections;
+using System.Globalization;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Elastic.Esql.Functions;
+
+namespace HotChocolate.Data.ElasticSearch.Filtering;
+
+/// <summary>
+/// Rewrites the predicates that ES|QL answers differently from .NET, or cannot answer from a column.
+/// </summary>
+internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy) : ExpressionVisitor
+{
+    private static readonly MethodInfo s_kql =
+        typeof(EsqlFunctions).GetMethod(nameof(EsqlFunctions.Kql), [typeof(string)])!;
+
+    private static readonly MethodInfo s_qstr =
+        typeof(EsqlFunctions).GetMethod(nameof(EsqlFunctions.Qstr), [typeof(string)])!;
+
+    protected override Expression VisitMethodCall(MethodCallExpression node)
+    {
+        if (TryRewriteEnumMembership(node, out var membership))
+        {
+            return membership;
+        }
+
+        if (node.Method.DeclaringType != typeof(Enumerable)
+            || node.Method.Name is not (nameof(Enumerable.Any) or nameof(Enumerable.All))
+            || node.Arguments[0] is not MemberExpression list)
+        {
+            return base.VisitMethodCall(node);
+        }
+
+        if (IsStringList(list.Type))
+        {
+            return node.Arguments.Count == 2 ? RewriteStringList(node, list) ?? base.VisitMethodCall(node) : base.VisitMethodCall(node);
+        }
+
+        return TryGetObjectElement(list.Type, out var element)
+            ? RewriteObjectList(node, list, element)
+            : base.VisitMethodCall(node);
+    }
+
+    protected override Expression VisitBinary(BinaryExpression node)
+    {
+        if (node.NodeType == ExpressionType.NotEqual
+            && node.Left is MemberExpression list
+            && TryGetObjectElement(list.Type, out _)
+            && IsNull(node.Right))
+        {
+            return Expression.Constant(true);
+        }
+
+        if (node.NodeType == ExpressionType.AndAlso)
+        {
+            var left = Visit(node.Left);
+            var right = Visit(node.Right);
+
+            if (left is ConstantExpression { Value: true })
+            {
+                return right;
+            }
+
+            return right is ConstantExpression { Value: true } ? left : Expression.AndAlso(left, right);
+        }
+
+        if (node.NodeType == ExpressionType.NotEqual
+            && !IsNullValue(node.Right)
+            && TryGetNullableField(node.Left, out var field))
+        {
+            return OrIsNull(field, base.VisitBinary(node));
+        }
+
+        return base.VisitBinary(node);
+    }
+
+    protected override Expression VisitUnary(UnaryExpression node)
+        => node.NodeType == ExpressionType.Not && TryGetTestedNullableField(node.Operand, out var field)
+            ? OrIsNull(field, base.VisitUnary(node))
+            : base.VisitUnary(node);
+
+    private static bool TryGetTestedNullableField(Expression test, out MemberExpression field)
+    {
+        switch (test)
+        {
+            case BinaryExpression
+            {
+                NodeType: ExpressionType.Equal or ExpressionType.GreaterThan or ExpressionType.GreaterThanOrEqual
+                    or ExpressionType.LessThan or ExpressionType.LessThanOrEqual
+            } comparison when !IsNullValue(comparison.Right):
+                return TryGetNullableField(comparison.Left, out field);
+
+            case MethodCallExpression { Method.Name: nameof(Enumerable.Contains) } contains
+                when contains.Object is null && contains.Arguments.Count == 2:
+                return TryGetNullableField(contains.Arguments[1], out field);
+
+            case MethodCallExpression { Method.Name: nameof(Enumerable.Contains), Object: not null } contains
+                when contains.Arguments.Count == 1 && contains.Object.Type != typeof(string):
+                return TryGetNullableField(contains.Arguments[0], out field);
+
+            default:
+                field = null!;
+                return false;
+        }
+    }
+
+    private static bool TryGetNullableField(Expression expression, out MemberExpression field)
+    {
+        while (expression is UnaryExpression { NodeType: ExpressionType.Convert } convert)
+        {
+            expression = convert.Operand;
+        }
+
+        field = (expression as MemberExpression)!;
+
+        return field is not null
+            && field.Expression is ParameterExpression
+            && (Nullable.GetUnderlyingType(field.Type) is not null || !field.Type.IsValueType);
+    }
+
+    private static bool IsNullValue(Expression expression)
+        => IsNull(expression)
+            || (expression is MemberExpression { Expression: ConstantExpression } && Evaluate(expression) is null);
+
+    // ES|QL answers null for a comparison with a null value, where .NET answers true for its negation.
+    private static BinaryExpression OrIsNull(MemberExpression field, Expression test)
+        => Expression.OrElse(Expression.Equal(field, Expression.Constant(null, field.Type)), test);
+
+    // A field stored through a converter is compared by name, which the IN list of ES|QL does not do for an enum.
+    private static bool TryRewriteEnumMembership(MethodCallExpression node, out Expression membership)
+    {
+        membership = node;
+
+        if (node.Method.Name != nameof(Enumerable.Contains))
+        {
+            return false;
+        }
+
+        var (values, target) = node.Object is null && node.Arguments.Count == 2
+            ? (node.Arguments[0], node.Arguments[1])
+            : node.Object is not null && node.Arguments.Count == 1
+                ? (node.Object, node.Arguments[0])
+                : (null, null);
+
+        while (target is UnaryExpression { NodeType: ExpressionType.Convert } convert)
+        {
+            target = convert.Operand;
+        }
+
+        if (values is null
+            || target is not MemberExpression field
+            || (Nullable.GetUnderlyingType(field.Type) ?? field.Type) is not { IsEnum: true })
+        {
+            return false;
+        }
+
+        membership = ((IEnumerable)Evaluate(values)!).Cast<object?>()
+            .Select(Expression (value) => Expression.Equal(field, Expression.Constant(value, field.Type)))
+            .DefaultIfEmpty(Expression.Constant(false))
+            .Aggregate(Expression.OrElse);
+        return true;
+    }
+
+    private Expression RewriteObjectList(MethodCallExpression node, MemberExpression list, Type element)
+    {
+        var path = FieldPath(list);
+        var nested = list.Member.IsDefined(typeof(ElasticSearchNestedAttribute), true);
+
+        if (node.Arguments.Count == 1)
+        {
+            var fields = element.GetProperties()
+                .Where(p => p.PropertyType == typeof(string) || p.PropertyType.IsValueType)
+                .Select(FieldName);
+            return nested
+                ? Kql($"{path}:{{ {string.Join(" or ", fields.Select(f => f + ":*"))} }}")
+                : QueryString(string.Join(" OR ", fields.Select(f => $"_exists_:{path}.{f}")));
+        }
+
+        var lambda = GetLambda(node.Arguments[1]);
+        var predicate = new ObjectPredicate(this, lambda.Parameters[0], nested ? null : path + ".");
+        var text = predicate.Render(lambda.Body);
+        var any = node.Method.Name == nameof(Enumerable.Any);
+
+        if (nested)
+        {
+            return any ? Kql($"{path}:{{ {text} }}") : Expression.Not(Kql($"{path}:{{ not ({text}) }}"));
+        }
+
+        if (!any || predicate.Fields.Count > 1 || predicate.Negated)
+        {
+            throw ThrowHelper.ListFilter_RequiresNested(path);
+        }
+
+        return QueryString(text);
+    }
+
+    private Expression? RewriteStringList(MethodCallExpression node, MemberExpression list)
+    {
+        var lambda = GetLambda(node.Arguments[1]);
+        var item = lambda.Parameters[0];
+        var body = StripGuard(lambda.Body, item);
+        var any = node.Method.Name == nameof(Enumerable.Any);
+        var negated = body is UnaryExpression { NodeType: ExpressionType.Not };
+        var pattern = negated ? ((UnaryExpression)body).Operand : body;
+
+        // the remaining forms are answered on the field by the ES|QL translation.
+        if (pattern is not MethodCallExpression call || (any && !negated))
+        {
+            return null;
+        }
+
+        var regex = StringRegex(call, item);
+        var field = FieldPath(list);
+        return any
+            ? QueryString($"{field}:/~({regex})/")
+            : Expression.Not(QueryString(negated ? $"{field}:/{regex}/" : $"{field}:/~({regex})/"));
+    }
+
+    private static string StringRegex(MethodCallExpression call, ParameterExpression item)
+    {
+        if (call.Object == item)
+        {
+            var text = EscapeRegex((string)Evaluate(call.Arguments[0])!);
+            return call.Method.Name switch
+            {
+                nameof(string.StartsWith) => text + ".*",
+                nameof(string.EndsWith) => ".*" + text,
+                nameof(string.Contains) => ".*" + text + ".*",
+                _ => throw ThrowHelper.ListFilter_NotSupported(call.ToString())
+            };
+        }
+
+        if (call.Method.Name == nameof(Enumerable.Contains)
+            && (call.Object is null ? call.Arguments[1] : call.Arguments[0]) == item)
+        {
+            var values = (IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!;
+            return "(" + string.Join("|", values.Cast<string>().Select(EscapeRegex)) + ")";
+        }
+
+        throw ThrowHelper.ListFilter_NotSupported(call.ToString());
+    }
+
+    private static Expression StripGuard(Expression expression, ParameterExpression item)
+        => expression switch
+        {
+            BinaryExpression { NodeType: ExpressionType.AndAlso, Left: BinaryExpression { NodeType: ExpressionType.NotEqual } guard } b
+                when guard.Left == item && IsNull(guard.Right) => StripGuard(b.Right, item),
+            BinaryExpression { NodeType: ExpressionType.OrElse, Left: BinaryExpression { NodeType: ExpressionType.Equal } guard } b
+                when guard.Left == item && IsNull(guard.Right) => StripGuard(b.Right, item),
+            UnaryExpression { NodeType: ExpressionType.Not } u => Expression.Not(StripGuard(u.Operand, item)),
+            _ => expression
+        };
+
+    private static string EscapeRegex(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+
+        foreach (var c in value)
+        {
+            if ("\\.?+*|{}[]()\"#@&<>~^$/-".Contains(c))
+            {
+                builder.Append('\\');
+            }
+
+            builder.Append(c);
+        }
+
+        return builder.ToString();
+    }
+
+    private string FieldName(MemberInfo member)
+        => member.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name
+            ?? namingPolicy?.ConvertName(member.Name)
+            ?? member.Name;
+
+    private string FieldPath(MemberExpression member)
+        => member.Expression is MemberExpression parent
+            ? FieldPath(parent) + "." + FieldName(member.Member)
+            : FieldName(member.Member);
+
+    private static bool IsStringList(Type type)
+        => type != typeof(string) && typeof(IEnumerable<string>).IsAssignableFrom(type);
+
+    private static bool TryGetObjectElement(Type type, out Type element)
+    {
+        element = typeof(void);
+
+        if (type == typeof(string))
+        {
+            return false;
+        }
+
+        var enumerable = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+            ? type
+            : type.GetInterfaces().FirstOrDefault(
+                i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+        if (enumerable is null)
+        {
+            return false;
+        }
+
+        element = enumerable.GetGenericArguments()[0];
+        return element.IsClass && element != typeof(string);
+    }
+
+    private static LambdaExpression GetLambda(Expression expression)
+        => (LambdaExpression)(expression is UnaryExpression { NodeType: ExpressionType.Quote } quote
+            ? quote.Operand
+            : expression);
+
+    private static bool IsNull(Expression expression)
+        => expression is ConstantExpression { Value: null }
+            or UnaryExpression { NodeType: ExpressionType.Convert, Operand: ConstantExpression { Value: null } };
+
+    private static object? Evaluate(Expression expression)
+        => Expression.Lambda(expression).Compile().DynamicInvoke();
+
+    private static MethodCallExpression Kql(string query)
+        => Expression.Call(s_kql, Expression.Constant(query));
+
+    private static MethodCallExpression QueryString(string query)
+        => Expression.Call(s_qstr, Expression.Constant(query));
+
+    /// <summary>
+    /// Renders a predicate over one element of a list of objects, in KQL for a nested field and
+    /// as a query string for an object field, where a <paramref name="prefix"/> qualifies the field.
+    /// </summary>
+    private sealed class ObjectPredicate(
+        ElasticSearchFilterRewriter owner,
+        ParameterExpression item,
+        string? prefix)
+    {
+        private bool IsQueryString => prefix is not null;
+
+        public HashSet<string> Fields { get; } = [];
+
+        public bool Negated { get; private set; }
+
+        public string Render(Expression expression)
+        {
+            switch (expression)
+            {
+                case BinaryExpression { NodeType: ExpressionType.AndAlso } b:
+                    return Join(b, IsQueryString ? "AND" : "and");
+
+                case BinaryExpression { NodeType: ExpressionType.OrElse } b:
+                    return Join(b, IsQueryString ? "OR" : "or");
+
+                case UnaryExpression { NodeType: ExpressionType.Not } u:
+                    Negated = true;
+                    return $"not ({Render(u.Operand)})";
+
+                case BinaryExpression { NodeType: ExpressionType.Equal } b when IsNull(b.Right):
+                    Negated = true;
+                    return $"not {Field(b.Left)}:*";
+
+                case BinaryExpression { NodeType: ExpressionType.NotEqual } b when IsNull(b.Right):
+                    return $"{Field(b.Left)}:*";
+
+                case BinaryExpression { NodeType: ExpressionType.Equal } b:
+                    return $"{Field(b.Left)}:{Literal(Evaluate(b.Right))}";
+
+                case BinaryExpression { NodeType: ExpressionType.NotEqual } b:
+                    Negated = true;
+                    return $"not {Field(b.Left)}:{Literal(Evaluate(b.Right))}";
+
+                case BinaryExpression { NodeType: ExpressionType.GreaterThan } b:
+                    return Compare(b, ">");
+
+                case BinaryExpression { NodeType: ExpressionType.GreaterThanOrEqual } b:
+                    return Compare(b, ">=");
+
+                case BinaryExpression { NodeType: ExpressionType.LessThan } b:
+                    return Compare(b, "<");
+
+                case BinaryExpression { NodeType: ExpressionType.LessThanOrEqual } b:
+                    return Compare(b, "<=");
+
+                case MethodCallExpression { Method.Name: nameof(string.StartsWith), Object: { } o } c
+                    when o.Type == typeof(string):
+                    return StartsWith(Field(o), (string)Evaluate(c.Arguments[0])!);
+
+                case MethodCallExpression { Method.Name: nameof(string.EndsWith), Object: { } o } c
+                    when o.Type == typeof(string):
+                    return $"{Field(o)}:*{Wildcard((string)Evaluate(c.Arguments[0])!)}";
+
+                case MethodCallExpression { Method.Name: nameof(string.Contains), Object: { } o } c
+                    when o.Type == typeof(string):
+                    return $"{Field(o)}:*{Wildcard((string)Evaluate(c.Arguments[0])!)}*";
+
+                case MethodCallExpression { Method.Name: nameof(Enumerable.Contains) } c:
+                    return In(c);
+
+                default:
+                    throw ThrowHelper.ListFilter_NotSupported(expression.ToString());
+            }
+        }
+
+        private string Join(BinaryExpression b, string op) => $"({Render(b.Left)} {op} {Render(b.Right)})";
+
+        private string Compare(BinaryExpression b, string op)
+            => IsQueryString
+                ? $"{Field(b.Left)}:{op}{Literal(Evaluate(b.Right))}"
+                : $"{Field(b.Left)} {op} {Literal(Evaluate(b.Right))}";
+
+        private string StartsWith(string field, string value)
+        {
+            var pattern = Wildcard(value);
+
+            if (!IsQueryString && pattern != value)
+            {
+                throw ThrowHelper.ListFilter_ReservedCharacterInPrefix(value);
+            }
+
+            return $"{field}:{pattern}*";
+        }
+
+        private string In(MethodCallExpression call)
+        {
+            var field = Field(call.Object is null ? call.Arguments[1] : call.Arguments[0]);
+            var values = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!).Cast<object?>().Select(Literal).ToList();
+
+            return IsQueryString
+                ? $"{field}:({string.Join(" OR ", values)})"
+                : $"({string.Join(" or ", values.Select(v => $"{field}:{v}"))})";
+        }
+
+        private string Field(Expression expression)
+        {
+            while (expression is UnaryExpression { NodeType: ExpressionType.Convert } convert)
+            {
+                expression = convert.Operand;
+            }
+
+            if (expression is not MemberExpression member || !IsOnItem(member))
+            {
+                throw ThrowHelper.ListFilter_NotSupported(expression.ToString());
+            }
+
+            var parts = new Stack<string>();
+
+            for (Expression? current = member; current is MemberExpression m; current = m.Expression)
+            {
+                parts.Push(owner.FieldName(m.Member));
+            }
+
+            var name = string.Join(".", parts);
+            Fields.Add(name);
+            return prefix + name;
+        }
+
+        private bool IsOnItem(MemberExpression member)
+            => member.Expression == item
+                || (member.Expression is MemberExpression parent && IsOnItem(parent));
+
+        private string Wildcard(string value)
+        {
+            if (!IsQueryString && value.Contains('?'))
+            {
+                throw ThrowHelper.ListFilter_ReservedCharacterInPrefix(value);
+            }
+
+            var builder = new StringBuilder(value.Length);
+
+            foreach (var c in value)
+            {
+                if (c is '\\' or '(' or ')' or ':' or '<' or '>' or '"' or '*' or '{' or '}' or ' '
+                    || (IsQueryString && c is '+' or '-' or '=' or '&' or '|' or '!' or '[' or ']' or '^' or '~' or '?' or '/'))
+                {
+                    builder.Append('\\');
+                }
+
+                builder.Append(c);
+            }
+
+            return builder.ToString();
+        }
+
+        private static string Literal(object? value)
+            => value switch
+            {
+                string s => Quote(s),
+                bool b => b ? "true" : "false",
+                DateTime d => Quote(d.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)),
+                DateTimeOffset d => Quote(d.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)),
+                IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
+                _ => throw ThrowHelper.ListFilter_NotSupported(value?.ToString() ?? "null")
+            };
+
+        private static string Quote(string value)
+            => "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+    }
+}

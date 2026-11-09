@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "ES|QL cannot skip rows: `skip`, `after` and `before` are not supported.",
+      "path": [
+        "test"
+      ],
+      "extensions": {
+        "code": "ELASTICSEARCH_SKIP_NOT_SUPPORTED"
+      }
+    }
+  ],
+  "data": {
+    "test": null
+  }
+}
