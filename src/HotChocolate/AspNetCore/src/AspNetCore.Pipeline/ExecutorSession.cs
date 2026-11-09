@@ -183,7 +183,7 @@ public sealed class ExecutorSession
 
             if (requestBatch[i] is VariableBatchRequest variableBatch)
             {
-                ThrowIfVariableBatchingDisabled(options);
+                ThrowIfVariableBatchingDisabled(context, options);
                 ThrowIfBatchSizeExceeded(
                     variableBatch.VariableValues.Document.RootElement.GetArrayLength(),
                     options);
@@ -219,7 +219,7 @@ public sealed class ExecutorSession
 
             if (requestBatch[i] is VariableBatchRequest variableBatch)
             {
-                ThrowIfVariableBatchingDisabled(options);
+                ThrowIfVariableBatchingDisabled(context, options);
                 ThrowIfBatchSizeExceeded(
                     variableBatch.VariableValues.Document.RootElement.GetArrayLength(),
                     options);
@@ -241,10 +241,13 @@ public sealed class ExecutorSession
         }
     }
 
-    private void ThrowIfVariableBatchingDisabled(GraphQLServerOptions options)
+    private void ThrowIfVariableBatchingDisabled(HttpContext context, GraphQLServerOptions options)
     {
         if (!options.Batching.HasFlag(AllowedBatching.VariableBatching))
         {
+            _diagnosticEvents.HttpRequestError(
+                context,
+                Handle(ErrorHelper.VariableBatchingDisabled()));
             var error = Handle(ErrorHelper.InvalidRequest());
             throw new GraphQLException(error);
         }

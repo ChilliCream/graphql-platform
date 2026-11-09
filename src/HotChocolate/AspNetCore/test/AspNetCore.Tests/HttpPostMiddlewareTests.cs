@@ -1189,6 +1189,42 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     }
 
     [Fact]
+    public async Task RequestBatch_Should_ReportReasonToDiagnostics_When_VariableBatchingIsOff()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.RequestBatching));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreatePostRequest(
+            s_url,
+            """
+            [
+              { "query": "{ hero(episode: NEW_HOPE) { name } }" },
+              {
+                "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+                "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+              }
+            ]
+            """,
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Collection(
+            listener.Errors,
+            error => Assert.Equal(
+                "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+                error.Message),
+            error => Assert.Equal("Invalid GraphQL Request.", error.Message));
+    }
+
+    [Fact]
     public async Task OperationBatch_Should_ReportReasonToDiagnostics_When_BatchingIsDisabled()
     {
         // arrange
@@ -1396,6 +1432,44 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 -------------------------->
                 {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
                 """);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_ReportReasonToDiagnostics_When_VariableBatchingIsOff()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.RequestBatching));
+        var client = server.CreateClient();
+        const string document =
+            """
+            query a($episode: Episode!) { hero(episode: $episode) { name } }
+            query b($episode: Episode!) { hero(episode: $episode) { id } }
+            """;
+
+        // act
+        using var request = CreatePostRequest(
+            new Uri("http://localhost:5000/graphql?batchOperations=[a,b]"),
+            $$"""
+            {
+              "query": {{JsonSerializer.Serialize(document)}},
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """,
+            "application/graphql-response+json, application/jsonl");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Collection(
+            listener.Errors,
+            error => Assert.Equal(
+                "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+                error.Message),
+            error => Assert.Equal("Invalid GraphQL Request.", error.Message));
     }
 
     [Fact]
