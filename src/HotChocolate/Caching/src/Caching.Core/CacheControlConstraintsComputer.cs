@@ -104,26 +104,32 @@ internal static class CacheControlConstraintsComputer
 
         ExtractCacheControlFromDirectives(field);
 
+        var maxAgeSetByField = maxAgeSet;
+        var sharedMaxAgeSetByField = sharedMaxAgeSet;
+        var namedType = field.Type.NamedType();
+
         if (!maxAgeSet || !sharedMaxAgeSet || !scopeSet || !varySet)
         {
             // Either maxAge or scope have not been specified by the @cacheControl
             // directive on the field, so we try to infer these details
             // from the type of the field.
-
-            if (field.Type is IDirectivesProvider type)
-            {
-                // The type of the field is complex and can therefore be
-                // annotated with a @cacheControl directive.
-                ExtractCacheControlFromDirectives(type);
-            }
+            ExtractCacheControlFromDirectives(namedType);
         }
 
         if (!selection.IsLeaf)
         {
+            var isAbstractType = namedType.IsAbstractType();
             var possibleTypes = operation.GetPossibleTypes(selection);
 
             foreach (var type in possibleTypes)
             {
+                if (isAbstractType)
+                {
+                    maxAgeSet = maxAgeSetByField;
+                    sharedMaxAgeSet = sharedMaxAgeSetByField;
+                    ExtractCacheControlFromDirectives(type);
+                }
+
                 var selectionSet = operation.GetSelectionSet(selection, type);
                 var selections = selectionSet.GetSelections();
 

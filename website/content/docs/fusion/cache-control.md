@@ -116,6 +116,8 @@ type Query {
 
 Fusion computes one effective response policy by traversing the planned operation tree. It starts at the selected root fields, reads `@cacheControl` metadata on each field, falls back to the field return type when values are missing, and continues recursively through child selections, including interfaces and unions.
 
+The return type is the named type behind any non-null and list wrappers, so a field of type `UserProfile`, `UserProfile!`, or `[UserProfile!]!` takes the settings of `UserProfile`. When the return type is an interface or a union, the settings of each object type that implements it or belongs to it apply too, whether or not the operation selects fields of that object type. A `maxAge` or `sharedMaxAge` declared on the field takes precedence over the lifetimes of these types.
+
 All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated. Every GraphQL response already lists `Accept` in `Vary`, and the merged `vary` names are added to it. Some CDNs, Akamai by default, do not cache a response whose `Vary` lists anything other than `Accept-Encoding`. Configure the CDN to cache it anyway, or remove `Accept` from `Vary` in a [custom formatter](../hotchocolate/server/http-transport.md#adding-selecting-headers-to-vary).
 
 Fusion computes these cache constraints for query operations. Mutation requests, Subscription request, introspection requests, and operations with no cache constraints do not get cache-control headers.

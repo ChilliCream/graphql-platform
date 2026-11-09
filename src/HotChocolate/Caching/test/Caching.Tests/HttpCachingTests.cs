@@ -441,6 +441,202 @@ public class HttpCachingTests : ServerTestBase
         // assert
         Assert.Equal(["Accept", "x-foo"], result.Headers.Vary);
     }
+
+    [Theory]
+    [InlineData(
+        "{ requiredAccount { email } }",
+        """{"data":{"requiredAccount":{"email":"alice@example.com"}}}""")]
+    [InlineData(
+        "{ accounts { email } }",
+        """{"data":{"accounts":[{"email":"alice@example.com"}]}}""")]
+    [InlineData(
+        "{ post { author { email } } }",
+        """{"data":{"post":{"author":{"email":"alice@example.com"}}}}""")]
+    public async Task Field_Should_UseReturnTypeScope_When_TypeIsNonNullOrList(
+        string query,
+        string expectedBody)
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .AddQueryType<AccountQuery>()
+                .AddType<Article>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync(query);
+
+        // assert
+        Assert.Equal(expectedBody, result.Body);
+        Assert.Equal("max-age=60, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Theory]
+    [InlineData(
+        "{ search { ... on Account { email } } }",
+        """{"data":{"search":{"email":"alice@example.com"}}}""")]
+    [InlineData(
+        "{ search { ... on Article { title } } }",
+        """{"data":{"search":{}}}""")]
+    [InlineData(
+        "{ contact { email } }",
+        """{"data":{"contact":{"email":"alice@example.com"}}}""")]
+    public async Task Field_Should_UseObjectTypeScope_When_TypeIsUnionOrInterface(
+        string query,
+        string expectedBody)
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .AddQueryType<AccountQuery>()
+                .AddType<Article>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync(query);
+
+        // assert
+        Assert.Equal(expectedBody, result.Body);
+        Assert.Equal("max-age=60, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Field_Should_UseReturnTypeMaxAgeAndVary_When_TypeIsNonNull()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType<SettingsQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ settings { theme } }");
+
+        // assert
+        Assert.Equal("""{"data":{"settings":{"theme":"dark"}}}""", result.Body);
+        Assert.Equal("max-age=10, s-maxage=5", result.Headers.CacheControl?.ToString());
+        Assert.Equal(["Accept", "authorization"], result.Headers.Vary);
+    }
+
+    [Fact]
+    public async Task Field_Should_UseLowestObjectTypeMaxAge_When_UnionFieldSetsNoMaxAge()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType<PublicationQuery>()
+                .AddType<Book>()
+                .AddType<Magazine>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ latest { __typename } }");
+
+        // assert
+        Assert.Equal("""{"data":{"latest":{"__typename":"Magazine"}}}""", result.Body);
+        Assert.Equal("max-age=30", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Field_Should_KeepItsMaxAge_When_UnionObjectTypeSetsLowerMaxAge()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType<PublicationQuery>()
+                .AddType<Book>()
+                .AddType<Magazine>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ featured { __typename } }");
+
+        // assert
+        Assert.Equal("""{"data":{"featured":{"__typename":"Magazine"}}}""", result.Body);
+        Assert.Equal("max-age=120", result.Headers.CacheControl?.ToString());
+    }
+
+    [CacheControl(Scope = CacheControlScope.Private)]
+    public record Account(int Id, string Email) : IContact, ISearchResult;
+
+    public class AccountQuery
+    {
+        [CacheControl(60)]
+        public List<Account> GetAccounts() => [new(1, "alice@example.com")];
+
+        [CacheControl(60)]
+        public IContact GetContact() => new Account(1, "alice@example.com");
+
+        [CacheControl(60)]
+        public Post GetPost() => new(new Account(1, "alice@example.com"));
+
+        [CacheControl(60)]
+        public Account GetRequiredAccount() => new(1, "alice@example.com");
+
+        [CacheControl(60)]
+        public ISearchResult GetSearch() => new Account(1, "alice@example.com");
+    }
+
+    public record Article(string Title) : ISearchResult;
+
+    [CacheControl(30)]
+    public record Book(string Title) : IPublication;
+
+    [InterfaceType("Contact")]
+    public interface IContact
+    {
+        string Email { get; }
+    }
+
+    [UnionType("Publication")]
+    public interface IPublication;
+
+    [UnionType("SearchResult")]
+    public interface ISearchResult;
+
+    [CacheControl(60)]
+    public record Magazine(string Title) : IPublication;
+
+    public record Post(Account Author);
+
+    public class PublicationQuery
+    {
+        [CacheControl(120)]
+        public IPublication GetFeatured() => new Magazine("Monthly");
+
+        public IPublication GetLatest() => new Magazine("Monthly");
+    }
+
+    [CacheControl(10, SharedMaxAge = 5, Vary = ["Authorization"])]
+    public record Settings(string Theme);
+
+    public class SettingsQuery
+    {
+        public Settings GetSettings() => new("dark");
+    }
 }
 
 public class GraphQLResult
@@ -454,6 +650,18 @@ public class GraphQLResult
 
 internal static class TestServerExtensions
 {
+    public static async Task<GraphQLResult> GetQueryAsync(this HttpClient client, string query)
+    {
+        var response = await client.GetAsync("/graphql?query=" + Uri.EscapeDataString(query));
+
+        return new GraphQLResult
+        {
+            Headers = response.Headers,
+            ContentHeaders = response.Content.Headers,
+            Body = await response.Content.ReadAsStringAsync()
+        };
+    }
+
     public static Task<GraphQLResult> PostQueryAsync(this HttpClient client, string query)
         => client.SendQueryAsync(HttpMethod.Post, query);
 
