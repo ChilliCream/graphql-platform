@@ -24,7 +24,8 @@ internal sealed class CacheControlPlannerInterceptor(
     {
         var constraints = CacheControlConstraintsComputer.Compute(
             operationPlan.Operation,
-            _options);
+            _options,
+            LookupSelectionCollector.Collect(operationPlan));
 
         if (constraints is not null)
         {

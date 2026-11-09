@@ -27,12 +27,17 @@ internal static class CacheControlConstraintsComputer
     /// The operation to compute the cache constraints for.
     /// </param>
     /// <param name="options">
-    /// The options whose defaults apply to query type fields without a <c>maxAge</c>,
-    /// <c>sharedMaxAge</c>, or <c>inheritMaxAge: true</c>, or <c>null</c> to apply no defaults.
+    /// The options whose defaults apply to root fields and to the selections in
+    /// <paramref name="lookupSelections"/> without a <c>maxAge</c>, <c>sharedMaxAge</c>,
+    /// or <c>inheritMaxAge: true</c>, or <c>null</c> to apply no defaults.
+    /// </param>
+    /// <param name="lookupSelections">
+    /// The selections below the root that a lookup brings in, or <c>null</c> when there are none.
     /// </param>
     public static ImmutableCacheConstraints? Compute(
         IOperation operation,
-        ICacheControlOptions? options)
+        ICacheControlOptions? options,
+        IReadOnlySet<ISelection>? lookupSelections)
     {
         if (operation.Definition.Operation is not OperationType.Query)
         {
@@ -52,7 +57,13 @@ internal static class CacheControlConstraintsComputer
                 return null;
             }
 
-            ProcessSelection(rootSelection, constraints, operation, defaults);
+            ProcessSelection(
+                rootSelection,
+                constraints,
+                operation,
+                defaults,
+                takesDefaults: true,
+                lookupSelections);
         }
 
         if (constraints.MaxAge is null && constraints.SharedMaxAge is null)
@@ -111,7 +122,9 @@ internal static class CacheControlConstraintsComputer
         ISelection selection,
         CacheControlConstraints constraints,
         IOperation operation,
-        ICacheControlOptions? defaults)
+        ICacheControlOptions? defaults,
+        bool takesDefaults,
+        IReadOnlySet<ISelection>? lookupSelections)
     {
         var field = selection.Field;
         var maxAgeSet = false;
@@ -119,10 +132,10 @@ internal static class CacheControlConstraintsComputer
         var scopeSet = false;
         var varySet = false;
 
-        // A root field without @cacheControl, or whose directive and return type set no
-        // lifetime, takes the default lifetime, and the default scope unless its directive
-        // sets one.
-        if (defaults is not null && !field.IsIntrospectionField)
+        // A root field or a field a lookup brings in takes the default lifetime when it has
+        // no @cacheControl, or when neither its directive nor its return type sets a
+        // lifetime, and then the default scope unless its directive sets one.
+        if (takesDefaults && defaults is not null && !field.IsIntrospectionField)
         {
             var fieldDirective = field.Directives.FirstOrDefault(DirectiveName);
             var returnType = CacheControlTypeHelper.GetCacheControlType(field.Type);
@@ -169,7 +182,13 @@ internal static class CacheControlConstraintsComputer
 
                 foreach (var childSelection in selections)
                 {
-                    ProcessSelection(childSelection, constraints, operation, defaults: null);
+                    ProcessSelection(
+                        childSelection,
+                        constraints,
+                        operation,
+                        defaults,
+                        takesDefaults: lookupSelections?.Contains(childSelection) == true,
+                        lookupSelections);
                 }
             }
         }
