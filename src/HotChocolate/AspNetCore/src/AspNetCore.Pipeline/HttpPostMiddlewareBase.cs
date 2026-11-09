@@ -179,7 +179,12 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                     }
                     else
                     {
-                        result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
+                        result = await session.ExecuteOperationBatchAsync(
+                            context,
+                            requests[0],
+                            requestFlags,
+                            ops,
+                            options);
                     }
 
                     break;

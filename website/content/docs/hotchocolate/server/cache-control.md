@@ -194,7 +194,9 @@ builder
 | `DefaultScope`  | `CacheControlScope` | `Public` | Default cache scope when `ApplyDefaults` is enabled.                  |
 | `ApplyDefaults` | `bool`              | `true`   | Applies defaults to eligible fields without explicit `@cacheControl`. |
 
-With the default settings, eligible query fields that do not declare explicit cache metadata still contribute `max-age=0`. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false`.
+With `ApplyDefaults` enabled, Hot Chocolate writes `@cacheControl(maxAge: <DefaultMaxAge>)` onto each query type field, each field without a pure resolver, and each field with middleware, when the field has no `@cacheControl` of its own. That covers asynchronous resolvers and fields with paging, filtering, or sorting. The directive also sets `scope` when `DefaultScope` is not `Public`. A query type field whose `@cacheControl` sets no `maxAge`, `sharedMaxAge`, or `inheritMaxAge: true` takes the lifetime of its return type's `@cacheControl`, or contributes `DefaultMaxAge` when the return type sets none, together with its own `scope` if it sets one and `DefaultScope` otherwise. With the default settings, these fields contribute `max-age=0`. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false`.
+
+Any other field adds no constraint of its own, so a response that selects it can be cached for as long as the other selected fields allow. Annotate such a field when its value is specific to the current user, for example with `@cacheControl(scope: PRIVATE)`.
 
 # Skip Cache Control for a Specific Request
 

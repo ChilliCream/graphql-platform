@@ -171,6 +171,18 @@ builder
     .AddCacheControl();
 ```
 
+## Types and Fields in Several Source Schemas
+
+When several source schemas define the same type or field and at least one of them declares `@cacheControl`, composition merges the declarations. A source schema that defines the type or field without `@cacheControl` declares nothing.
+
+| Argument        | Object type, interface, or union                                                                              | Field                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `scope`         | `PRIVATE` if any source schema declares it                                                                    | `PRIVATE` if any source schema declares it                  |
+| `vary`          | Every declared value                                                                                          | Every declared value                                        |
+| `maxAge`        | The lowest declared value, and when `sharedMaxAge` is left out, no higher than any declared `sharedMaxAge`    | The lowest value, only when every source schema declares it |
+| `sharedMaxAge`  | The lowest declared value, only when every source schema that declares `maxAge` or `sharedMaxAge` declares it | The lowest value, only when every source schema declares it |
+| `inheritMaxAge` | `true` only when every source schema declares `true`                                                          | `true` only when every source schema declares `true`        |
+
 # Enable Cache Control in the Fusion Gateway
 
 The gateway must be configured to read cache-control metadata during planning and to write the final HTTP headers on the response.
@@ -185,6 +197,35 @@ builder
 ```
 
 `AddCacheControl()` enables cache-constraint planning. `UseQueryCache()` writes the final `Cache-Control` and `Vary` headers to HTTP responses.
+
+# Cache-Control Options
+
+`ModifyCacheControlOptions` configures the gateway's defaults:
+
+```csharp
+using HotChocolate.Caching;
+
+builder
+    .AddGraphQLGateway()
+    .AddCacheControl()
+    .ModifyCacheControlOptions(o =>
+    {
+        o.Enable = true;
+        o.DefaultMaxAge = 60;
+        o.DefaultScope = CacheControlScope.Public;
+        o.ApplyDefaults = true;
+    })
+    .UseQueryCache();
+```
+
+| Option          | Type                | Default  | Description                                                                                        |
+| --------------- | ------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `Enable`        | `bool`              | `true`   | Enables or disables cache-control header generation.                                               |
+| `DefaultMaxAge` | `int`               | `0`      | Default `max-age` when `ApplyDefaults` is enabled.                                                 |
+| `DefaultScope`  | `CacheControlScope` | `Public` | Default cache scope when `ApplyDefaults` is enabled.                                               |
+| `ApplyDefaults` | `bool`              | `true`   | Applies the defaults to root fields, and to fields a lookup brings in, that set no cache lifetime. |
+
+With `ApplyDefaults` enabled, a root field without `@cacheControl`, such as one from a subgraph that does not use cache control, contributes `DefaultMaxAge` and `DefaultScope`. So does a root field whose `@cacheControl` sets no `maxAge`, no `sharedMaxAge`, and no `inheritMaxAge: true`, unless its return type's `@cacheControl` sets a lifetime. When such a field's `@cacheControl` sets `scope`, the field contributes that scope with `DefaultMaxAge`. A field that the gateway selects directly on an entity it fetches from another subgraph through a lookup is treated like a root field, and the fields selected below it are not. With the default settings, a response that selects such a field gets `max-age=0`. The gateway applies its own options, so a subgraph's `ApplyDefaults = false` does not change them. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false` on the gateway.
 
 # Skip Cache Control for a Specific Request
 

@@ -158,6 +158,11 @@ public static class ErrorCodes
         /// The request tried to fetch to many nodes at once.
         /// </summary>
         public const string FetchedToManyNodesAtOnce = "HC0076";
+
+        /// <summary>
+        /// The request tried to resolve more entity representations than allowed.
+        /// </summary>
+        public const string TooManyRepresentations = "HC0140";
     }
 
     /// <summary>
@@ -438,6 +443,11 @@ public static class ErrorCodes
         /// The maximum allowed selection set depth was exceeded.
         /// </summary>
         public const string MaxSelectionSetDepthOverflow = "HC0138";
+
+        /// <summary>
+        /// The maximum allowed number of selections was exceeded.
+        /// </summary>
+        public const string MaxSelectionCountOverflow = "HC0139";
     }
 
     /// <summary>
