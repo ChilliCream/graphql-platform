@@ -98,6 +98,33 @@ public class EntitiesResolverForObjectTests
     }
 
     [Fact]
+    public async Task ResolveAsync_Should_PreserveOwnedField_When_RepresentationCarriesValue()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var context = CreateResolverContext(schema);
+        var representations = new List<Representation>
+        {
+            new("TypeWithReferenceResolver",
+                new ObjectValueNode(
+                    new ObjectFieldNode("Id", "1"),
+                    new ObjectFieldNode("someField", "forged")))
+        };
+
+        // act
+        var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+
+        // assert
+        var obj = Assert.IsType<TypeWithReferenceResolver>(result[0]);
+        Assert.Equal("1", obj.Id);
+        Assert.Equal("SomeField", obj.SomeField);
+    }
+
+    [Fact]
     public async Task TestResolveViaEntityResolver_WithDataLoader()
     {
         // arrange
