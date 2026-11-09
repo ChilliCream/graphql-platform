@@ -14,6 +14,7 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
     public async Task Bus_Should_DeliverEventsAndReplies_When_ConnectedClusterNodeIsKilled(bool automaticRecoveryEnabled)
     {
         // arrange
+        var queue = $"cluster-orders-{automaticRecoveryEnabled}";
         var primary = fixture.CreateConnectionFactory(0);
         primary.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
         var secondary = fixture.CreateConnectionFactory(1);
@@ -28,7 +29,7 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
             {
                 t.ConnectionProvider(_ => provider);
                 t.ConfigureDefaults(defaults => defaults.Queue.QueueType = RabbitMQQueueType.Quorum);
-                t.Endpoint($"cluster-orders-{automaticRecoveryEnabled}").Handler<OrderCreatedHandler>();
+                t.Endpoint(queue).Handler<OrderCreatedHandler>();
                 t.Endpoint($"cluster-requests-{automaticRecoveryEnabled}").Handler<GetOrderStatusHandler>();
             })
             .BuildTestBusAsync();
@@ -46,12 +47,18 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
         await using var stopped = await fixture.KillNodeAsync(0);
         await messageBus.PublishAsync(new OrderCreated { OrderId = "after-failover" }, deadline.Token);
         var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "after-failover" }, deadline.Token);
-        var consumed = await Condition.WaitAsync(() => recorder.Messages.Count == 1, s_timeout);
+        var settled = await Condition.WaitAsync(async () =>
+            !recorder.Messages.IsEmpty
+                && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
+                && transport.ConsumerManager.IsHealthy,
+            s_timeout);
         var after = await transport.ConsumerManager.GetConnectionAsync(deadline.Token);
 
         // assert
-        Assert.True(consumed);
-        Assert.Equal(["after-failover"], recorder.Messages.Cast<OrderCreated>().Select(message => message.OrderId));
+        // Recovery may redeliver messages whose acknowledgements were lost.
+        Assert.Equal(["after-failover"],
+            recorder.Messages.Cast<OrderCreated>().Select(message => message.OrderId).Distinct());
+        Assert.True(settled);
         Assert.Equal("after-failover", response.OrderId);
         Assert.Equal(secondary.Port, after.Endpoint.Port);
     }
