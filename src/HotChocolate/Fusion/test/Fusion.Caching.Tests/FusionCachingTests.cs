@@ -559,6 +559,23 @@ public partial class FusionCachingTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Query_Should_UseDefaultMaxAge_When_DeferOfLookupFieldIsDisabled()
+    {
+        // arrange
+        using var gateway = await CreateWishlistGatewayAsync(
+            b => b.AddQueryType<WishlistSchema.Query>());
+
+        // act
+        var httpClient = gateway.CreateClient();
+        var response = await httpClient.GetGraphQLAsync(
+            "query($defer: Boolean!) { products { name ... @defer(if: $defer) { inWishlist } } }",
+            """{"defer":false}""");
+
+        // assert
+        Assert.Equal("max-age=0", response.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
     public async Task Query_Should_KeepLookupFieldMaxAge_When_TypenameIsSelected()
     {
         // arrange
@@ -993,6 +1010,14 @@ internal static class TestHttpClientExtensions
 {
     public static Task<HttpResponseMessage> GetGraphQLAsync(this HttpClient client, string query)
         => client.GetAsync("/graphql?query=" + Uri.EscapeDataString(query));
+
+    public static Task<HttpResponseMessage> GetGraphQLAsync(
+        this HttpClient client,
+        string query,
+        string variables)
+        => client.GetAsync(
+            "/graphql?query=" + Uri.EscapeDataString(query)
+            + "&variables=" + Uri.EscapeDataString(variables));
 
     public static Task<HttpResponseMessage> PostGraphQLAsync(this HttpClient client, string query)
         => client.SendGraphQLAsync(HttpMethod.Post, query);
