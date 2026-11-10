@@ -67,12 +67,5 @@ operationPlan:
           a @skip(if: $f)
           b @include(if: $f)
         }
-      conditionAlternatives:
-        -
-          - variable: $f
-            passingValue: false
-        -
-          - variable: $f
-            passingValue: true
       forwardedVariables:
         - f

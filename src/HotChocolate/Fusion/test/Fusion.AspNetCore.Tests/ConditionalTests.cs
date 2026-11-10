@@ -1353,6 +1353,68 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Lookup_Should_SendRequestWithoutConditionAlternatives_When_SkipAndIncludeUseSameVariable(
+        bool f)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($f: Boolean!) {
+              thing {
+                delta @skip(if: $f)
+                epsilon @include(if: $f)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["f"] = f });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: f.ToString());
+    }
+
     [Fact]
     public async Task Lookup_With_Path_And_Common_Condition_Is_Hoisted()
     {

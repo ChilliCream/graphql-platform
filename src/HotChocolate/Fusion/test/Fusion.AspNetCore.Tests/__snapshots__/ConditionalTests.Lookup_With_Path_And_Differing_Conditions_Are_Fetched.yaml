@@ -143,13 +143,6 @@ operationPlan:
         - name: __fusion_1_id
           selectionMap: >-
             id
-      conditionAlternatives:
-        -
-          - variable: $f
-            passingValue: false
-        -
-          - variable: $f
-            passingValue: true
       forwardedVariables:
         - f
       dependencies:

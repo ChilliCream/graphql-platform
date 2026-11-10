@@ -3727,7 +3727,7 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Builds the condition alternatives from the conditions that gate each leaf selection
     /// without the common conditions. Returns an empty array when a leaf selection has no
-    /// remaining condition.
+    /// remaining condition or when the alternatives contain a pair that always passes.
     /// </summary>
     private static ExecutionNodeCondition[][] BuildConditionAlternatives(
         List<HashSet<ExecutionNodeCondition>> leafConditions,
@@ -3782,6 +3782,11 @@ public sealed partial class OperationPlanner
             }
         }
 
+        if (HasComplementaryPair(alternatives))
+        {
+            return [];
+        }
+
         alternatives.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
 
         var result = new ExecutionNodeCondition[alternatives.Count][];
@@ -3792,6 +3797,33 @@ public sealed partial class OperationPlanner
         }
 
         return result;
+
+        static bool HasComplementaryPair(List<(string Key, ExecutionNodeCondition[] Conditions)> alternatives)
+        {
+            for (var i = 0; i < alternatives.Count; i++)
+            {
+                var first = alternatives[i].Conditions;
+
+                if (first.Length != 1)
+                {
+                    continue;
+                }
+
+                for (var j = i + 1; j < alternatives.Count; j++)
+                {
+                    var second = alternatives[j].Conditions;
+
+                    if (second.Length == 1
+                        && first[0].VariableName == second[0].VariableName
+                        && first[0].PassingValue != second[0].PassingValue)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         static bool IsSubset(ExecutionNodeCondition[] subset, ExecutionNodeCondition[] superset)
         {
