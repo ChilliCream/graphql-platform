@@ -507,7 +507,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
     {
         private bool IsQueryString => prefix is not null;
 
-        private readonly List<string> _rendered = [];
+        // the object that holds each rendered field, or null for a field of the element itself.
+        private readonly List<string?> _owners = [];
 
         private readonly Dictionary<string, Type> _ownerTypes = [];
 
@@ -530,11 +531,11 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
                 case UnaryExpression { NodeType: ExpressionType.Not } u:
                     Negated = true;
-                    return WithOwners(_rendered.Count, () => $"not ({Render(u.Operand)})");
+                    return WithOwners(_owners.Count, () => $"not ({Render(u.Operand)})");
 
                 case BinaryExpression { NodeType: ExpressionType.Equal } b when IsNullValue(b.Right):
                     Negated = true;
-                    return WithOwners(_rendered.Count, () => $"not {Field(b.Left)}:*");
+                    return WithOwners(_owners.Count, () => $"not {Field(b.Left)}:*");
 
                 case BinaryExpression { NodeType: ExpressionType.NotEqual } b when IsNullValue(b.Right):
                     return $"{Field(b.Left)}:*";
@@ -545,7 +546,7 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
                 case BinaryExpression { NodeType: ExpressionType.NotEqual } b:
                     Negated = true;
                     return WithOwners(
-                        _rendered.Count,
+                        _owners.Count,
                         () => $"not {Field(b.Left)}:{Literal(b.Left, Evaluate(b.Right))}");
 
                 case BinaryExpression { NodeType: ExpressionType.GreaterThan } b:
@@ -586,9 +587,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         private string WithOwners(int from, Func<string> render)
         {
             var text = render();
-            var owners = _rendered.Skip(from)
-                .Where(name => name.Contains('.'))
-                .Select(name => name[..name.LastIndexOf('.')])
+            var owners = _owners.Skip(from)
+                .OfType<string>()
                 .Distinct()
                 .Select(name => IsQueryString ? $"_exists_:{prefix}{QueryStringName(name)}" : OwnerExists(name))
                 .ToList();
@@ -635,7 +635,7 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         private string In(MethodCallExpression call)
         {
             var target = call.Object is null ? call.Arguments[1] : call.Arguments[0];
-            var from = _rendered.Count;
+            var from = _owners.Count;
             var field = Field(target);
             var choices = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!).Cast<object?>().ToList();
             var values = choices.Where(value => value is not null).Select(value => Literal(target, value)).ToList();
@@ -678,13 +678,17 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
                 parts.Push(owner.FieldName(m.Member));
             }
 
-            var name = string.Join(".", parts);
+            var path = parts.ToList();
+            var name = string.Join(".", path);
             Fields.Add(name);
-            _rendered.Add(name);
 
-            if (member.Expression is MemberExpression parent)
+            // the owner comes from the members, since a serialized name can hold a dot of its own.
+            var container = path.Count > 1 ? string.Join(".", path.Take(path.Count - 1)) : null;
+            _owners.Add(container);
+
+            if (container is not null && member.Expression is MemberExpression parent)
             {
-                _ownerTypes[name[..name.LastIndexOf('.')]] = parent.Type;
+                _ownerTypes[container] = parent.Type;
             }
 
             return IsQueryString ? prefix + QueryStringName(name) : KqlName(name);

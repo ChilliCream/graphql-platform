@@ -50,8 +50,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
 
     private static readonly (string Name, List<ReservedItem> Items)[] s_reserved =
     [
-        ("1", [new ReservedItem { Bar = "x", Details = new ReservedDetails { Code = "a", Kind = "k" } }]),
-        ("2", [new ReservedItem { Bar = "y" }]),
+        ("1", [new ReservedItem { Bar = "x", Dotted = "x", Details = new ReservedDetails { Code = "a", Kind = "k" } }]),
+        ("2", [new ReservedItem { Bar = "y", Dotted = "y" }]),
         ("3", [new ReservedItem { Bar = "y", Details = new ReservedDetails { Kind = "k" } }]),
         ("4", [])
     ];
@@ -248,6 +248,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
     [InlineData("""some: { bar: { neq: "x" } }""")]
     [InlineData("""some: { details: { code: { neq: "a" } } }""")]
     [InlineData("any: true")]
+    [InlineData("""some: { dotted: { neq: "x" } }""")]
+    [InlineData("some: { dotted: { eq: null } }")]
     public async Task Filter_Should_MatchLinq_When_NestedFieldNameHasReservedCharacter(string filter)
     {
         // arrange
@@ -390,6 +392,9 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
 
         [JsonPropertyName("de:tails")]
         public ReservedDetails? Details { get; set; }
+
+        [JsonPropertyName("n.ote")]
+        public string? Dotted { get; set; }
     }
 
     public class ReservedDetails
