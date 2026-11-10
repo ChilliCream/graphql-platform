@@ -11,7 +11,8 @@ internal sealed class PostgresChannel : IAsyncDisposable
     private readonly ResilientNpgsqlConnection _connection;
     private readonly CopyOnWriteList<PostgresChannelObserver> _observers = new();
     private readonly PostgresChannelWriter _writer;
-    private bool _initialized;
+    private bool _channelInitialized;
+    private bool _writerInitialized;
     private ContinuousTask? _waitOnNotificationTask;
     private ChannelSubscription? _subscription;
 
@@ -31,12 +32,8 @@ internal sealed class PostgresChannel : IAsyncDisposable
 
     public async ValueTask EnsureInitialized(CancellationToken cancellationToken)
     {
-        if (!_initialized)
-        {
-            await _connection.Initialize(cancellationToken);
-            await _writer.Initialize(cancellationToken);
-            _initialized = true;
-        }
+        await EnsureChannelInitialized(cancellationToken);
+        await EnsureWriterInitialized(cancellationToken);
     }
 
     public IAsyncDisposable Subscribe(PostgresChannelObserver observer)
@@ -60,7 +57,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
         PostgresMessageEnvelope message,
         CancellationToken cancellationToken)
     {
-        await EnsureInitialized(cancellationToken);
+        await EnsureWriterInitialized(cancellationToken);
 
         await _writer.SendAsync(message, cancellationToken);
     }
@@ -81,6 +78,28 @@ internal sealed class PostgresChannel : IAsyncDisposable
         _waitOnNotificationTask = new ContinuousTask(connection.WaitAsync, TimeProvider.System);
 
         _diagnosticEvents.ProviderInfo(PostgresChannel_ConnectionEstablished);
+    }
+
+    private async ValueTask EnsureChannelInitialized(CancellationToken cancellationToken)
+    {
+        if (_channelInitialized)
+        {
+            return;
+        }
+
+        await _connection.Initialize(cancellationToken);
+        _channelInitialized = true;
+    }
+
+    private async ValueTask EnsureWriterInitialized(CancellationToken cancellationToken)
+    {
+        if (_writerInitialized)
+        {
+            return;
+        }
+
+        await _writer.Initialize(cancellationToken);
+        _writerInitialized = true;
     }
 
     private async ValueTask OnDisconnect(CancellationToken cancellationToken = default)
