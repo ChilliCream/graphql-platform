@@ -103,55 +103,30 @@ internal static class CursorKeySerializerHelper
 
     private static bool ReplaceColons(Span<byte> original, int start, int length, out int written)
     {
-        written = 0;
+        var escapedLength = length + original[start..length].Count((byte)':');
 
-        if (length == original.Length)
+        if (escapedLength > original.Length)
         {
+            written = 0;
             return false;
         }
 
-        byte[]? rented = null;
-        var buffer = original.Length <= 256
-            ? stackalloc byte[original.Length]
-            : rented = ArrayPool<byte>.Shared.Rent(original.Length);
+        // Escaping only grows the key, so it is done in place from the end.
+        var i = escapedLength;
+        var j = length;
 
-        original[..start].CopyTo(buffer);
-
-        var i = start;
-        var j = start;
-
-        while (j < length)
+        while (j > start)
         {
-            var c = original[j++];
+            var c = original[--j];
+            original[--i] = c;
 
             if (c == (byte)':')
             {
-                if (i + 1 >= original.Length)
-                {
-                    if (rented != null)
-                    {
-                        ArrayPool<byte>.Shared.Return(rented);
-                    }
-                    written = 0;
-                    return false;
-                }
-
-                buffer[i++] = (byte)'\\';
-                buffer[i++] = (byte)':';
-            }
-            else
-            {
-                buffer[i++] = c;
+                original[--i] = (byte)'\\';
             }
         }
 
-        buffer[..i].CopyTo(original);
-        written = i;
-
-        if (rented != null)
-        {
-            ArrayPool<byte>.Shared.Return(rented);
-        }
+        written = escapedLength;
 
         return true;
     }

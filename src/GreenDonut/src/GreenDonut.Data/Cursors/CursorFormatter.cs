@@ -82,15 +82,13 @@ public static class CursorFormatter
                 first = false;
             }
 
-            if (!key.TryFormat(entity, span[totalWritten..], out var written))
+            // A serializer does not report the size it needs, so the buffer doubles until the key fits.
+            int written;
+            while (!key.TryFormat(entity, span[totalWritten..], out written))
             {
-                ExpandBuffer(ref poolArray, ref span, totalWritten, written);
-
-                if (!key.TryFormat(entity, span[totalWritten..], out written))
-                {
-                    throw new InvalidOperationException();
-                }
+                ExpandBuffer(ref poolArray, ref span, totalWritten, span.Length);
             }
+
             totalWritten += written;
         }
 
@@ -146,7 +144,12 @@ public static class CursorFormatter
         int currentLength,
         int additionalLength)
     {
-        var newSize = poolArray == null ? 256 : poolArray.Length * 2;
+        if (span.Length > Array.MaxLength / 2)
+        {
+            throw new InvalidOperationException("The cursor exceeds the maximum size.");
+        }
+
+        var newSize = span.Length * 2;
         while (newSize < currentLength + additionalLength)
         {
             newSize *= 2;
