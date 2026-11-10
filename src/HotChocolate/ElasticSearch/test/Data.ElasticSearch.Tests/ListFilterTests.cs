@@ -11,7 +11,7 @@ namespace HotChocolate.Data.ElasticSearch;
 public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource)
 {
     private static List<Item> Items(params (string Bar, string Qux)[] items)
-        => [.. items.Select(i => new Item { Bar = i.Bar, Qux = i.Qux })];
+        => [.. items.Select(i => new Item { Bar = i.Bar, Qux = i.Qux, Note = i.Bar })];
 
     private static readonly (string Name, List<Item> Items)[] s_objects =
     [
@@ -21,7 +21,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         ("5", Items(("X1", "Y1"), ("X2", "Y2"))),
         ("6", Items(("A1", "Z"), ("A1", "A1"))),
         ("7", Items(("A:1 (x)", "a\"b"), ("and", "a b"))),
-        ("8", Items(("a1", "a1")))
+        ("8", Items(("a1", "a1"))),
+        ("9", Items((null!, "N")))
     ];
 
     private static readonly StringDocument[] s_strings =
@@ -58,7 +59,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         """some: { qux: { endsWith: " b" } }""",
         """some: { bar: { eq: "a1" } }""",
         "some: { bar: { in: [] } }",
-        "none: { bar: { in: [] } }"
+        "none: { bar: { in: [] } }",
+        "some: { note: { neq: null } }"
     ];
 
     public static TheoryData<string> OneObject =>
@@ -75,7 +77,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         """some: { bar: { eq: "X1" }, qux: { eq: "Y2" } }""",
         """some: { or: [{ bar: { eq: "B1" } }, { qux: { eq: "Y2" } }] }""",
         """some: { bar: { contains: "1", endsWith: "3" } }""",
-        "all: { bar: { in: [] } }"
+        "all: { bar: { in: [] } }",
+        "some: { note: { eq: null } }"
     ];
 
     public static TheoryData<string> Strings =>
@@ -246,6 +249,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         public string Bar { get; set; } = "";
 
         public string Qux { get; set; } = "";
+
+        public string? Note { get; set; }
     }
 
     public class NestedDocument

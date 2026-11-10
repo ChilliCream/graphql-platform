@@ -424,11 +424,11 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
                     Negated = true;
                     return $"not ({Render(u.Operand)})";
 
-                case BinaryExpression { NodeType: ExpressionType.Equal } b when IsNull(b.Right):
+                case BinaryExpression { NodeType: ExpressionType.Equal } b when IsNullValue(b.Right):
                     Negated = true;
                     return $"not {Field(b.Left)}:*";
 
-                case BinaryExpression { NodeType: ExpressionType.NotEqual } b when IsNull(b.Right):
+                case BinaryExpression { NodeType: ExpressionType.NotEqual } b when IsNullValue(b.Right):
                     return $"{Field(b.Left)}:*";
 
                 case BinaryExpression { NodeType: ExpressionType.Equal } b:
