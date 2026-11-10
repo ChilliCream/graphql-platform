@@ -119,6 +119,7 @@ partial class Build
                 _ => _
                     .SetSource(NuGetSource)
                     .SetApiKey(NuGetApiKey)
+                    .EnableSkipDuplicate()
                     .CombineWith(
                         packages,
                         (_, v) => _.SetTargetPath(v)),
