@@ -74,6 +74,11 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
             return right is ConstantExpression { Value: true } ? left : Expression.AndAlso(left, right);
         }
 
+        if (node.NodeType == ExpressionType.Equal && IsNullValue(node.Right))
+        {
+            return WithOwners(base.VisitBinary(node), node.Left);
+        }
+
         if (node.NodeType == ExpressionType.NotEqual
             && !IsNullValue(node.Right)
             && TryGetNullableField(node.Left, out var field))
@@ -85,9 +90,24 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
     }
 
     protected override Expression VisitUnary(UnaryExpression node)
-        => node.NodeType == ExpressionType.Not && TryGetTestedNullableField(node.Operand, out var field)
+    {
+        if (node.NodeType != ExpressionType.Not)
+        {
+            return base.VisitUnary(node);
+        }
+
+        var test = TryGetTestedNullableField(node.Operand, out var field)
             ? OrIsNull(field, base.VisitUnary(node))
             : base.VisitUnary(node);
+        return WithOwners(test, node.Operand);
+    }
+
+    // a test that holds for a missing field of an object holds in .NET only when the object exists.
+    private Expression WithOwners(Expression test, Expression scope)
+        => new OwnerFinder().Find(scope)
+            .Select(FieldPath)
+            .Distinct()
+            .Aggregate(test, (result, owner) => Expression.AndAlso(QueryString($"_exists_:{owner}"), result));
 
     private static bool TryGetTestedNullableField(Expression test, out MemberExpression field)
     {
@@ -353,6 +373,31 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         => member.Expression is MemberExpression parent
             ? FieldPath(parent) + "." + FieldName(member.Member)
             : FieldName(member.Member);
+
+    // the objects that hold the fields of the document read by an expression, outside the lambdas of lists.
+    private sealed class OwnerFinder : ExpressionVisitor
+    {
+        private readonly List<MemberExpression> _owners = [];
+
+        public List<MemberExpression> Find(Expression expression)
+        {
+            Visit(expression);
+            return _owners;
+        }
+
+        protected override Expression VisitLambda<T>(Expression<T> node) => node;
+
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            if (node.Expression is MemberExpression owner && IsDocumentField(owner))
+            {
+                _owners.Add(owner);
+                return node;
+            }
+
+            return base.VisitMember(node);
+        }
+    }
 
     private static bool IsStringList(Type type)
         => type != typeof(string) && typeof(IEnumerable<string>).IsAssignableFrom(type);

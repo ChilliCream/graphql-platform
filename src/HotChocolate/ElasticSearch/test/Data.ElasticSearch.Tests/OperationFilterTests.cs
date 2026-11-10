@@ -126,7 +126,13 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         { "inner", """code: { startsWith: "a" }""" },
         { "inner", "count: { neq: 1 }" },
         { "inner", "count: { nin: [1] }" },
-        { "inner", "count: { ngt: 1 }" }
+        { "inner", "count: { ngt: 1 }" },
+        { "inner", "count: { eq: null }" },
+        { "inner", "count: { in: [null] }" },
+        { "inner", "count: { in: [1, null] }" },
+        { "inner", "count: { nin: [1, null] }" },
+        { "inner", """code: { nstartsWith: "a" }""" },
+        { "inner", """code: { ncontains: "a" }""" }
     };
 
     [Theory]
