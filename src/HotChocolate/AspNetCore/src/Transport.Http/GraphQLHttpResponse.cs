@@ -427,7 +427,11 @@ public sealed class GraphQLHttpResponse : IDisposable
             || contentLength <= 0
             || contentLength > MaxSingleSpanResponseLength)
         {
-            return await ReadIntoArenaAsync(stream, arena, ct).ConfigureAwait(false);
+            return await ReadIntoArenaAsync(
+                stream,
+                arena,
+                completeAtRootEnd: _message.Version.Major == 1,
+                ct).ConfigureAwait(false);
         }
 
         var reader = PipeReader.Create(stream, s_options);
@@ -616,6 +620,7 @@ public sealed class GraphQLHttpResponse : IDisposable
     private static async ValueTask<SourceResultDocument> ReadIntoArenaAsync(
         Stream stream,
         IMemoryArena arena,
+        bool completeAtRootEnd,
         CancellationToken cancellationToken)
     {
         var chunks = arena.RentSegmentTable(64);
@@ -626,8 +631,9 @@ public sealed class GraphQLHttpResponse : IDisposable
         var scanner = default(JsonRootEndScanner);
         var rootEnded = false;
 
-        // The read stops once the root value has ended and only whitespace followed it in the same read.
-        // Disposing the stream drains the rest of the body.
+        // With completeAtRootEnd (HTTP/1.x), the read stops once the root value has ended and only whitespace
+        // followed it in the same read, and disposing the stream drains the rest of the body. Otherwise the
+        // read continues to the end of the body.
         while (!rootEnded)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -641,12 +647,15 @@ public sealed class GraphQLHttpResponse : IDisposable
                 break;
             }
 
-            var received = current.Span.Slice(position, bytesRead);
-            var rootEnd = scanner.Scan(received);
-
-            if (rootEnd >= 0)
+            if (completeAtRootEnd)
             {
-                rootEnded = JsonRootEndScanner.IsWhitespace(received[rootEnd..]);
+                var received = current.Span.Slice(position, bytesRead);
+                var rootEnd = scanner.Scan(received);
+
+                if (rootEnd >= 0)
+                {
+                    rootEnded = JsonRootEndScanner.IsWhitespace(received[rootEnd..]);
+                }
             }
 
             position += bytesRead;

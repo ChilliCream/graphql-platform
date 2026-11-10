@@ -73,6 +73,35 @@ public class JsonRootEndScannerTests
         Assert.Equal(-1, end);
     }
 
+    [Theory]
+    [MemberData(nameof(LongDocumentsWithoutRootEndData))]
+    public void Scan_Should_ReturnMinusOne_When_LongRootDoesNotEnd(string document)
+    {
+        // arrange
+        var scanner = default(JsonRootEndScanner);
+
+        // act
+        var end = scanner.Scan(Encoding.UTF8.GetBytes(document));
+
+        // assert
+        Assert.Equal(-1, end);
+    }
+
+    public static TheoryData<string> LongDocumentsWithoutRootEndData()
+    {
+        return new TheoryData<string>
+        {
+            // unterminated string
+            "{\"data\":\"" + new string('a', 150),
+            // escaped quote across the first block boundary, so the closing brackets stay inside the string
+            "{\"data\":\"" + new string('a', 54) + "\\\"" + new string('a', 10) + "}}" + new string('a', 60),
+            // closing bracket without an opening bracket inside the second block
+            new string(' ', 70) + "]{}" + new string(' ', 60),
+            // nested arrays that close inside the blocks while the root stays open
+            "{\"data\":{\"items\":[" + string.Concat(Enumerable.Repeat("[1],", 30)) + "1]}"
+        };
+    }
+
     [Fact]
     public void Scan_Should_ReturnMinusOne_When_RootHasAlreadyEnded()
     {

@@ -84,15 +84,34 @@ public class GraphQLHttpResponseArenaReadTests
         using var arena = new MemoryArena();
 
         // act
-        await Record.ExceptionAsync(async () =>
-        {
-            using var document = await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken);
-        });
+        using var document = await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken);
         arena.Seal();
 
         // assert
         Assert.Equal(payload.Length, stream.BytesRead);
         Assert.Equal(2, stream.ReadCount);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public async Task ReadAsResult_Should_ReadToEndOfBody_When_ResponseIsNotHttp1(int majorVersion)
+    {
+        // arrange
+        var payload = CreatePayload(512);
+        var stream = new FragmentedStream(Encoding.UTF8.GetBytes(payload), 4096, asynchronous: false);
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        response.HttpResponseMessage.Version = new Version(majorVersion, 0);
+        using var arena = new MemoryArena();
+
+        // act
+        using var document = await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(payload, document.Root.GetRawText());
+        Assert.Equal(2, stream.ReadCount);
+        Assert.True(stream.IsDisposed);
     }
 
     [Theory]
