@@ -191,7 +191,7 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
             return any ? Kql($"{path}:{{ {text} }}") : Expression.Not(Kql($"{path}:{{ not ({text}) }}"));
         }
 
-        if (!any || predicate.Fields.Count > 1 || predicate.Negated)
+        if (!any || predicate.Fields.Count > 1 || predicate.Negated || predicate.Conjunction)
         {
             throw ThrowHelper.ListFilter_RequiresNested(path);
         }
@@ -348,11 +348,14 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
         public bool Negated { get; private set; }
 
+        public bool Conjunction { get; private set; }
+
         public string Render(Expression expression)
         {
             switch (expression)
             {
                 case BinaryExpression { NodeType: ExpressionType.AndAlso } b:
+                    Conjunction |= !IsNullGuard(b);
                     return Join(b, IsQueryString ? "AND" : "and");
 
                 case BinaryExpression { NodeType: ExpressionType.OrElse } b:
@@ -409,6 +412,13 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         }
 
         private string Join(BinaryExpression b, string op) => $"({Render(b.Left)} {op} {Render(b.Right)})";
+
+        // the null check that the filter adds before a string operation on the same field.
+        private static bool IsNullGuard(BinaryExpression b)
+            => b.Left is BinaryExpression { NodeType: ExpressionType.NotEqual } guard
+                && IsNull(guard.Right)
+                && b.Right is MethodCallExpression { Object: { } target }
+                && target.ToString() == guard.Left.ToString();
 
         private string Compare(BinaryExpression b, string op)
             => IsQueryString

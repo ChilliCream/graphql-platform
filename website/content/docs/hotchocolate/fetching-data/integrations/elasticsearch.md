@@ -49,7 +49,7 @@ Field names are camel case by default. If the client uses another naming policy,
 
 ## Lists of objects
 
-An object mapping stores the values of each field in a column of its own, so it cannot tell which values belong to the same object. Map the list as `nested` and mark the property with `ElasticSearchNested` to filter on several fields of one object, or to use `all` and negative conditions:
+An object mapping stores the values of each field in a column of its own, so it cannot tell which values belong to the same object. Map the list as `nested` and mark the property with `ElasticSearchNested` to combine several conditions on one object, or to use `all` and negative conditions:
 
 ```csharp
 public class Product
@@ -61,7 +61,7 @@ public class Product
 }
 ```
 
-Without the attribute, a list of objects answers `some`, `none` and `any` on a single field, and any other filter returns an error that names the field.
+Without the attribute, a list of objects answers `some`, `none` and `any` with a single condition on a single field, and any other filter returns an error that names the field.
 
 Filters on a `nested` field are tested on Elasticsearch 9.5. On 9.1, the KQL function behind them ignores the case of the value. A `startsWith` on a `nested` field cannot contain a character that is reserved in KQL.
 

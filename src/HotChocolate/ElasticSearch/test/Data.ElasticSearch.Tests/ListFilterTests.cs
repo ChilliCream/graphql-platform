@@ -71,7 +71,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         """some: { bar: { eq: "A1" }, qux: { eq: "A1" } }""",
         """some: { bar: { eq: "A1" }, qux: { eq: "A2" } }""",
         """some: { bar: { eq: "X1" }, qux: { eq: "Y2" } }""",
-        """some: { or: [{ bar: { eq: "B1" } }, { qux: { eq: "Y2" } }] }"""
+        """some: { or: [{ bar: { eq: "B1" } }, { qux: { eq: "Y2" } }] }""",
+        """some: { bar: { contains: "1", endsWith: "3" } }"""
     ];
 
     public static TheoryData<string> Strings =>
