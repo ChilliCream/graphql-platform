@@ -432,11 +432,11 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
                     return $"{Field(b.Left)}:*";
 
                 case BinaryExpression { NodeType: ExpressionType.Equal } b:
-                    return $"{Field(b.Left)}:{Literal(Evaluate(b.Right))}";
+                    return $"{Field(b.Left)}:{Literal(b.Left, Evaluate(b.Right))}";
 
                 case BinaryExpression { NodeType: ExpressionType.NotEqual } b:
                     Negated = true;
-                    return $"not {Field(b.Left)}:{Literal(Evaluate(b.Right))}";
+                    return $"not {Field(b.Left)}:{Literal(b.Left, Evaluate(b.Right))}";
 
                 case BinaryExpression { NodeType: ExpressionType.GreaterThan } b:
                     return Compare(b, ">");
@@ -481,8 +481,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
         private string Compare(BinaryExpression b, string op)
             => IsQueryString
-                ? $"{Field(b.Left)}:{op}{Literal(Evaluate(b.Right))}"
-                : $"{Field(b.Left)} {op} {Literal(Evaluate(b.Right))}";
+                ? $"{Field(b.Left)}:{op}{Literal(b.Left, Evaluate(b.Right))}"
+                : $"{Field(b.Left)} {op} {Literal(b.Left, Evaluate(b.Right))}";
 
         private string StartsWith(string field, string value)
         {
@@ -498,10 +498,11 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
         private string In(MethodCallExpression call)
         {
-            var field = Field(call.Object is null ? call.Arguments[1] : call.Arguments[0]);
+            var target = call.Object is null ? call.Arguments[1] : call.Arguments[0];
+            var field = Field(target);
             var values = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!)
                 .Cast<object?>()
-                .Select(Literal)
+                .Select(value => Literal(target, value))
                 .ToList();
 
             // no value is in an empty list, so the condition holds for no element.
@@ -566,6 +567,33 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
             return builder.ToString();
         }
+
+        // an enum is stored by name through a string converter, and by number otherwise.
+        private static string Literal(Expression field, object? value)
+            => value is Enum enumValue && !IsStoredByName(field)
+                ? Literal(Convert.ChangeType(
+                    enumValue,
+                    Enum.GetUnderlyingType(enumValue.GetType()),
+                    CultureInfo.InvariantCulture))
+                : Literal(value);
+
+        private static bool IsStoredByName(Expression field)
+        {
+            while (field is UnaryExpression { NodeType: ExpressionType.Convert } convert)
+            {
+                field = convert.Operand;
+            }
+
+            var type = Nullable.GetUnderlyingType(field.Type) ?? field.Type;
+            return (field is MemberExpression member && IsStringConverter(member.Member))
+                || IsStringConverter(type);
+        }
+
+        private static bool IsStringConverter(MemberInfo member)
+            => member.GetCustomAttribute<JsonConverterAttribute>()?.ConverterType is { } converter
+                && (converter == typeof(JsonStringEnumConverter)
+                    || (converter.IsGenericType
+                        && converter.GetGenericTypeDefinition() == typeof(JsonStringEnumConverter<>)));
 
         private static string Literal(object? value)
             => value switch

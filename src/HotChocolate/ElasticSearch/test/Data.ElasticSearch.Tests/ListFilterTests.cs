@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Elastic.Esql.Extensions;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
@@ -11,7 +12,10 @@ namespace HotChocolate.Data.ElasticSearch;
 public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource)
 {
     private static List<Item> Items(params (string Bar, string Qux)[] items)
-        => [.. items.Select(i => new Item { Bar = i.Bar, Qux = i.Qux, Note = i.Bar })];
+        => [.. items.Select(i => new Item { Bar = i.Bar, Qux = i.Qux, Note = i.Bar, Tone = ToneOf(i.Bar), Hue = ToneOf(i.Bar) })];
+
+    private static OperationFilterTests.Color ToneOf(string? bar)
+        => bar?.StartsWith('B') == true ? OperationFilterTests.Color.Blue : OperationFilterTests.Color.Red;
 
     private static readonly (string Name, List<Item> Items)[] s_objects =
     [
@@ -60,7 +64,11 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         """some: { bar: { eq: "a1" } }""",
         "some: { bar: { in: [] } }",
         "none: { bar: { in: [] } }",
-        "some: { note: { neq: null } }"
+        "some: { note: { neq: null } }",
+        "some: { tone: { eq: BLUE } }",
+        "some: { hue: { eq: BLUE } }",
+        "some: { tone: { in: [BLUE] } }",
+        "some: { hue: { in: [BLUE] } }"
     ];
 
     public static TheoryData<string> OneObject =>
@@ -251,6 +259,11 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         public string Qux { get; set; } = "";
 
         public string? Note { get; set; }
+
+        public OperationFilterTests.Color Tone { get; set; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public OperationFilterTests.Color Hue { get; set; }
     }
 
     public class NestedDocument
