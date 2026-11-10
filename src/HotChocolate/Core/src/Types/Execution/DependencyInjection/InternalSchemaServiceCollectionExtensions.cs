@@ -24,7 +24,8 @@ public static class InternalSchemaServiceCollectionExtensions
                 sp.GetRequiredService<IErrorHandler>(),
                 sp.GetRequiredService<IExecutionDiagnosticEvents>(),
                 sp.GetService<ExecutionConcurrencyGate>(),
-                sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
+                sp.GetRequiredService<IRequestExecutorOptionsAccessor>(),
+                sp.GetService<TimeProvider>() ?? TimeProvider.System));
         return services;
     }
 

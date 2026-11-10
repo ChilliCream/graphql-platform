@@ -12,7 +12,8 @@ internal sealed partial class SubscriptionExecutor(
     IErrorHandler errorHandler,
     IExecutionDiagnosticEvents diagnosticEvents,
     ExecutionConcurrencyGate? concurrencyGate,
-    IRequestTimeoutOptionsAccessor timeoutOptions)
+    IRequestTimeoutOptionsAccessor timeoutOptions,
+    TimeProvider timeProvider)
 {
     public async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
@@ -50,7 +51,8 @@ internal sealed partial class SubscriptionExecutor(
                 resolveQueryValue,
                 diagnosticEvents,
                 concurrencyGate,
-                timeoutOptions.ExecutionTimeout)
+                timeoutOptions.ExecutionTimeout,
+                timeProvider)
                 .ConfigureAwait(false);
 
             // the subscription setup is complete and nothing writes into the request memory

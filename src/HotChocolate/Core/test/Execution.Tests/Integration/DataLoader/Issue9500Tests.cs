@@ -1,23 +1,29 @@
 using GreenDonut;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 
+[Collection(Issue9500Collection.Name)]
 public class Issue9500Tests
 {
     [Fact]
     public async Task Composite_DataLoader_Result_Overflows_Selection_Buffer_When_Paging_Many_Nodes()
     {
+        // arrange
+        // the request timeout runs on a fake clock, so the size of the result cannot time out the request.
         const int nodeCount = 100_000;
 
         var executor = await CreateExecutorAsync(
             c => c
                 .AddQueryType<Issue9500Query>()
                 .AddDataLoader<INoteDataLoader, NoteDataLoader>()
-                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .ConfigureSchemaServices(s => s.AddSingleton<TimeProvider>(new FakeTimeProvider())));
 
+        // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
@@ -53,6 +59,7 @@ public class Issue9500Tests
                 .Build(),
             TestContext.Current.CancellationToken);
 
+        // assert
         Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
@@ -132,4 +139,10 @@ public class Issue9500Tests
         string Owner,
         string Reviewer,
         string Milestone);
+}
+
+[CollectionDefinition(Name, DisableParallelization = true)]
+public sealed class Issue9500Collection
+{
+    public const string Name = "Issue9500";
 }
