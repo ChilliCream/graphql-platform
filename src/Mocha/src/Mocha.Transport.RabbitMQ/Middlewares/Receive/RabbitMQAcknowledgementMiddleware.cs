@@ -92,10 +92,15 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowle
         }
 
         using var connectionScope = (context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.BeginLogScope(channel);
-        using var messageScope = logger.BeginMessageScope(context, LogLevel.Debug);
+        using var messageScope = logger.BeginMessageScope(context);
         logger.SettlementSkippedChannelClosed(
-            settlement, delivery.BasicProperties.MessageId ?? context.MessageId,
-            delivery.ConsumerTag, delivery.DeliveryTag, delivery.Exchange, delivery.RoutingKey, delivery.Redelivered);
+            settlement,
+            delivery.BasicProperties.MessageId ?? context.MessageId,
+            delivery.ConsumerTag,
+            delivery.DeliveryTag,
+            delivery.Exchange,
+            delivery.RoutingKey,
+            delivery.Redelivered);
     }
 
     /// <summary>
@@ -119,6 +124,12 @@ internal static partial class RabbitMQAcknowledgementLogs
         "Skipped {Settlement} of message {MessageId}, consumer {ConsumerTag}, delivery {DeliveryTag} "
             + "from exchange {Exchange} with routing key {RoutingKey} (redelivered: {Redelivered}) because its channel closed")]
     public static partial void SettlementSkippedChannelClosed(
-        this ILogger logger, string settlement, string? messageId, string consumerTag,
-        ulong deliveryTag, string exchange, string routingKey, bool redelivered);
+        this ILogger logger,
+        string settlement,
+        string? messageId,
+        string consumerTag,
+        ulong deliveryTag,
+        string exchange,
+        string routingKey,
+        bool redelivered);
 }

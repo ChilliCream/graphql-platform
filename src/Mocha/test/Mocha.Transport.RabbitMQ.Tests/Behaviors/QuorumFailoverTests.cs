@@ -47,10 +47,11 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
         await using var stopped = await fixture.KillNodeAsync(0);
         await messageBus.PublishAsync(new OrderCreated { OrderId = "after-failover" }, deadline.Token);
         var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "after-failover" }, deadline.Token);
-        var settled = await Condition.WaitAsync(async () =>
-            !recorder.Messages.IsEmpty
-                && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
-                && transport.ConsumerManager.IsHealthy,
+        var settled = await Condition.WaitAsync(
+            async () =>
+                !recorder.Messages.IsEmpty
+                    && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
+                    && transport.ConsumerManager.IsHealthy,
             s_timeout);
         var after = await transport.ConsumerManager.GetConnectionAsync(deadline.Token);
 
@@ -79,8 +80,13 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
                 ["x-queue-type"] = "quorum",
                 ["x-queue-leader-locator"] = "client-local"
             };
-            await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false,
-                arguments: arguments, cancellationToken: TestContext.Current.CancellationToken);
+            await channel.QueueDeclareAsync(
+                queue,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: arguments,
+                cancellationToken: TestContext.Current.CancellationToken);
         }
 
         var before = await fixture.GetQueueStateAsync(1, queue);
@@ -118,20 +124,24 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
 
         // act
         await using var stopped = await fixture.KillNodeAsync(0);
-        var elected = await Condition.WaitAsync(async () =>
-            await fixture.GetQueueStateAsync(1, queue) is { Leader: { Length: > 0 } leader }
-                && leader != before.Leader, s_timeout);
+        var elected = await Condition.WaitAsync(
+            async () =>
+                await fixture.GetQueueStateAsync(1, queue) is { Leader: { Length: > 0 } leader }
+                    && leader != before.Leader,
+            s_timeout);
         gate.Release.TrySetResult();
         await messageBus.PublishAsync(new OrderCreated { OrderId = "after-failover" }, deadline.Token);
-        var settled = await Condition.WaitAsync(async () =>
-            recorder.Messages.Cast<OrderCreated>().Select(m => m.OrderId).Distinct().Count() == 26
-                && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
-                && transport.ConsumerManager.IsHealthy,
+        var settled = await Condition.WaitAsync(
+            async () =>
+                recorder.Messages.Cast<OrderCreated>().Select(m => m.OrderId).Distinct().Count() == 26
+                    && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
+                    && transport.ConsumerManager.IsHealthy,
             s_timeout);
 
         // assert
         Assert.True(elected);
-        Assert.Equal(Enumerable.Range(0, 25).Select(i => $"ORD-{i}").Append("after-failover").Order(),
+        Assert.Equal(
+            Enumerable.Range(0, 25).Select(i => $"ORD-{i}").Append("after-failover").Order(),
             recorder.Messages.Cast<OrderCreated>().Select(m => m.OrderId).Distinct().Order());
         Assert.True(settled);
     }
@@ -147,12 +157,17 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
         await using (var connection = await secondary.CreateConnectionAsync(TestContext.Current.CancellationToken))
         await using (var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken))
         {
-            await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false,
+            await channel.QueueDeclareAsync(
+                queue,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
                 arguments: new Dictionary<string, object?>
                 {
                     ["x-queue-type"] = "quorum",
                     ["x-queue-leader-locator"] = "client-local"
-                }, cancellationToken: TestContext.Current.CancellationToken);
+                },
+                cancellationToken: TestContext.Current.CancellationToken);
         }
 
         var primary = fixture.CreateConnectionFactory(0);
@@ -186,10 +201,11 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
         // act
         await using var stopped = await fixture.KillNodeAsync(0);
         gate.Release.TrySetResult();
-        var settled = await Condition.WaitAsync(async () =>
-            !recorder.Messages.IsEmpty
-                && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
-                && transport.ConsumerManager.IsHealthy,
+        var settled = await Condition.WaitAsync(
+            async () =>
+                !recorder.Messages.IsEmpty
+                    && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
+                    && transport.ConsumerManager.IsHealthy,
             s_timeout);
 
         // assert

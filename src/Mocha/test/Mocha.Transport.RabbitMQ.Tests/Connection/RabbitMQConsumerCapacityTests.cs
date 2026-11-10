@@ -19,17 +19,25 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await using var vhost = await fixture.CreateVhostAsync();
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
-        await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+        await channel.QueueDeclareAsync(
+            "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
         await using var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance, async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct))
+            NullLogger<RabbitMQConsumerManager>.Instance,
+            async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct))
         {
             ConnectionName = "service orders consumer"
         };
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);
         var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
-            "orders", gate.HandleAsync, prefetchCount: 1, consumerDispatchConcurrency: 1,
+            "orders",
+            gate.HandleAsync,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
             TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "order"u8.ToArray(), TestContext.Current.CancellationToken);
         await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
@@ -39,10 +47,12 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             // act
             await registration.Channel!.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
             var blocked = await Condition.WaitAsync(
-                () => gate.CancelledHandlers == 1 && !manager.IsHealthy, s_timeout);
+                () => gate.CancelledHandlers == 1 && !manager.IsHealthy,
+                s_timeout);
             for (var i = 0; i < 3; i++)
             {
-                await registration.ConnectAsync(await manager.GetConnectionAsync(TestContext.Current.CancellationToken),
+                await registration.ConnectAsync(
+                    await manager.GetConnectionAsync(TestContext.Current.CancellationToken),
                     TestContext.Current.CancellationToken);
             }
 
@@ -68,7 +78,11 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await using var vhost = await fixture.CreateVhostAsync();
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
-        await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+        await channel.QueueDeclareAsync(
+            "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
         await using var manager = new RabbitMQConsumerManager(
             NullLogger<RabbitMQConsumerManager>.Instance,
@@ -76,7 +90,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);
         var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
-            "orders", gate.HandleAsync, prefetchCount: 2, consumerDispatchConcurrency: 2,
+            "orders",
+            gate.HandleAsync,
+            prefetchCount: 2,
+            consumerDispatchConcurrency: 2,
             TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "order-0"u8.ToArray(), TestContext.Current.CancellationToken);
         await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
@@ -120,7 +137,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 2);
         var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
-            "orders", gate.HandleAsync, prefetchCount: 4, consumerDispatchConcurrency: 2,
+            "orders",
+            gate.HandleAsync,
+            prefetchCount: 4,
+            consumerDispatchConcurrency: 2,
             TestContext.Current.CancellationToken);
         for (var i = 0; i < 4; i++)
         {
@@ -138,7 +158,8 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             // Repeated recovery requests must not prefetch messages while no worker can handle them.
             for (var i = 0; i < 6; i++)
             {
-                await registration.ConnectAsync(await manager.GetConnectionAsync(TestContext.Current.CancellationToken),
+                await registration.ConnectAsync(
+                    await manager.GetConnectionAsync(TestContext.Current.CancellationToken),
                     TestContext.Current.CancellationToken);
             }
 
@@ -173,7 +194,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);
         var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
-            "orders", gate.HandleAsync, prefetchCount: 1, consumerDispatchConcurrency: 1,
+            "orders",
+            gate.HandleAsync,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
             TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "order"u8.ToArray(), TestContext.Current.CancellationToken);
         await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
@@ -210,7 +234,11 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await using var vhost = await fixture.CreateVhostAsync();
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
-        await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+        await channel.QueueDeclareAsync(
+            "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
         await using var manager = new RabbitMQConsumerManager(
             NullLogger<RabbitMQConsumerManager>.Instance,
@@ -218,7 +246,11 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);
         var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
-            "orders", gate.HandleAsync, 1, 1, TestContext.Current.CancellationToken);
+            "orders",
+            gate.HandleAsync,
+            1,
+            1,
+            TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "order"u8.ToArray(), TestContext.Current.CancellationToken);
         await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 

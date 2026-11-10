@@ -168,7 +168,8 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         foreach (var queue in new[] { "nested-first", "nested-second" })
         {
-            await bus.SendAsync(new NestedRequest(queue),
+            await bus.SendAsync(
+                new NestedRequest(queue),
                 new SendOptions { Endpoint = new Uri($"rabbitmq:q/{queue}") },
                 TestContext.Current.CancellationToken);
         }

@@ -60,7 +60,11 @@ public sealed class RabbitMQLifecycleTests
 
         // act
         var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => manager.RegisterConsumerAsync(
-            "orders", static (_, _, _) => default, 1, 0, TestContext.Current.CancellationToken));
+            "orders",
+            static (_, _, _) => default,
+            1,
+            0,
+            TestContext.Current.CancellationToken));
 
         // assert
         Assert.Equal("consumerDispatchConcurrency", exception.ParamName);
@@ -77,7 +81,11 @@ public sealed class RabbitMQLifecycleTests
 
         // act
         var exception = await Record.ExceptionAsync(() => manager.RegisterConsumerAsync(
-            "orders", static (_, _, _) => default, 1, 1, TestContext.Current.CancellationToken));
+            "orders",
+            static (_, _, _) => default,
+            1,
+            1,
+            TestContext.Current.CancellationToken));
 
         // assert
         Assert.IsType<ObjectDisposedException>(exception);
@@ -92,7 +100,11 @@ public sealed class RabbitMQLifecycleTests
             NullLogger<RabbitMQConsumerManager>.Instance,
             static _ => throw new InvalidOperationException("No connection expected."));
         var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
-            "orders", static (_, _, _) => default, 1, 1, TestContext.Current.CancellationToken);
+            "orders",
+            static (_, _, _) => default,
+            1,
+            1,
+            TestContext.Current.CancellationToken);
         using var cancelled = new CancellationTokenSource();
         var first = registration.WaitUntilAttachedAsync(cancelled.Token).AsTask();
         var second = registration.WaitUntilAttachedAsync(CancellationToken.None).AsTask();
@@ -117,7 +129,11 @@ public sealed class RabbitMQLifecycleTests
             NullLogger<RabbitMQConsumerManager>.Instance,
             static _ => throw new InvalidOperationException("No connection expected."));
         var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
-            "orders", static (_, _, _) => default, 1, 1, TestContext.Current.CancellationToken);
+            "orders",
+            static (_, _, _) => default,
+            1,
+            1,
+            TestContext.Current.CancellationToken);
         await registration.StopAsync(TestContext.Current.CancellationToken);
 
         // act

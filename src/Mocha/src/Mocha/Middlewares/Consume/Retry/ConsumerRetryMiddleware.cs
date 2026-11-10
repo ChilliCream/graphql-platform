@@ -39,12 +39,12 @@ internal sealed class ConsumerRetryMiddleware(
                 ct => ExecuteAttemptAsync(s.next, s.context, s.retryState, s.consumer, ct)),
             onRetry: static (s, exception, attempt, delay) =>
             {
-                using var scope = s.logger.BeginMessageScope(s.context, LogLevel.Information);
+                using var scope = s.logger.BeginMessageScope(s.context);
                 s.logger.RetryingMessage(exception, s.context.MessageId, s.consumer.Name, attempt, delay);
             },
             onDiscard: static (s, exception) =>
             {
-                using var scope = s.logger.BeginMessageScope(s.context, LogLevel.Warning);
+                using var scope = s.logger.BeginMessageScope(s.context);
                 s.logger.MessageDiscarded(exception, s.context.MessageId);
             },
             context.CancellationToken);

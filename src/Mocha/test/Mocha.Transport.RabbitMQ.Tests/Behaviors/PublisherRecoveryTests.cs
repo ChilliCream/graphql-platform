@@ -36,7 +36,8 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
 
         // assert
         Assert.True(await Condition.WaitAsync(
-            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-3"), s_timeout));
+            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-3"),
+            s_timeout));
     }
 
     [Fact]
@@ -68,7 +69,8 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
 
         // assert
         Assert.True(await Condition.WaitAsync(
-            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"), s_timeout));
+            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"),
+            s_timeout));
     }
 
     [Fact]
@@ -93,7 +95,8 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
 
         // assert
         Assert.True(await Condition.WaitAsync(
-            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-3"), s_timeout));
+            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-3"),
+            s_timeout));
     }
 
     [Fact]
@@ -119,7 +122,8 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
 
         // assert
         Assert.True(await Condition.WaitAsync(
-            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"), s_timeout));
+            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"),
+            s_timeout));
     }
 
     [Fact]
@@ -178,7 +182,8 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
 
         // assert
         Assert.True(await Condition.WaitAsync(
-            () => orders.Messages.Cast<OrderCreated>().Any(o => o.OrderId == "ORD-3"), s_timeout));
+            () => orders.Messages.Cast<OrderCreated>().Any(o => o.OrderId == "ORD-3"),
+            s_timeout));
     }
 
     [Fact]

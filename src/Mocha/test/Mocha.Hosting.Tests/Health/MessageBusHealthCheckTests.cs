@@ -101,7 +101,9 @@ public sealed class MessageBusHealthCheckTests
         transport.SetupGet(t => t.HealthFailureReason).Returns("The dispatcher connection is unavailable.");
         var bus = new Mock<IMessageBus>();
         bus.Setup(m => m.RequestAsync(
-                It.IsAny<HealthRequest>(), It.IsAny<SendOptions>(), It.IsAny<CancellationToken>()))
+                It.IsAny<HealthRequest>(),
+                It.IsAny<SendOptions>(),
+                It.IsAny<CancellationToken>()))
             .Returns(() =>
             {
                 transport.SetupGet(t => t.IsHealthy).Returns(false);

@@ -407,7 +407,8 @@ public sealed class ConsumerRecoveryTests(RabbitMQFixture fixture)
 
         var allHandled = await Condition.WaitAsync(() => batches.OrderIds.Count == 10, s_timeout);
         var drained = await Condition.WaitAsync(
-            async () => await vhost.GetMessageCountAsync("batch-orders") == 0, s_timeout);
+            async () => await vhost.GetMessageCountAsync("batch-orders") == 0,
+            s_timeout);
 
         // assert
         Assert.True(allHandled);

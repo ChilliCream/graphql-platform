@@ -5,13 +5,8 @@ namespace Mocha;
 
 internal static class MessageLogging
 {
-    public static IDisposable? BeginMessageScope(this ILogger logger, IMessageContext context, LogLevel level)
+    public static IDisposable? BeginMessageScope(this ILogger logger, IMessageContext context)
     {
-        if (!logger.IsEnabled(level))
-        {
-            return null;
-        }
-
         return logger.BeginScope(new Dictionary<string, object?>
         {
             ["InstanceId"] = (context as IExecutionContext)?.Runtime?.Host.InstanceId,
@@ -27,13 +22,8 @@ internal static class MessageLogging
         });
     }
 
-    public static IDisposable? BeginMessageScope(this ILogger logger, IDispatchContext context, LogLevel level)
+    public static IDisposable? BeginMessageScope(this ILogger logger, IDispatchContext context)
     {
-        if (!logger.IsEnabled(level))
-        {
-            return null;
-        }
-
         return logger.BeginScope(new Dictionary<string, object?>
         {
             ["InstanceId"] = context.Runtime?.Host.InstanceId,

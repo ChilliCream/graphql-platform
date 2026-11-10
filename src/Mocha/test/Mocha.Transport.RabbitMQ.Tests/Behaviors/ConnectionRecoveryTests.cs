@@ -125,7 +125,8 @@ public class ConnectionRecoveryTests
 
         await messageBus.PublishAsync(new OrderCreated { OrderId = $"ORD-{orderNumber}" }, cts.Token);
         Assert.True(await Condition.WaitAsync(
-            () => GetOrderIds(recorder).Contains($"ORD-{orderNumber}"), s_recoveryTimeout));
+            () => GetOrderIds(recorder).Contains($"ORD-{orderNumber}"),
+            s_recoveryTimeout));
     }
 
     private static async Task WaitForDispatchRecoveryAsync(

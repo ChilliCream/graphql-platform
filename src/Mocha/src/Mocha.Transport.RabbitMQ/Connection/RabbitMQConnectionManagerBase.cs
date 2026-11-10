@@ -690,7 +690,10 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Failed to establish RabbitMQ connection {ConnectionName} after {Attempts} attempts")]
     public static partial void FailedToCreateConnectionAfterAttempts(
-        this ILogger logger, Exception ex, string connectionName, int attempts);
+        this ILogger logger,
+        Exception ex,
+        string connectionName,
+        int attempts);
 
     [LoggerMessage(Message = "Failed to establish RabbitMQ connection {ConnectionName} (attempt {Attempt}). Retrying in {Delay}")]
     public static partial void FailedToCreateConnectionRetrying(
@@ -739,7 +742,10 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Exception in RabbitMQ connection {ConnectionName} callback. Detail: {Detail}")]
     public static partial void ExceptionInConnectionCallback(
-        this ILogger logger, Exception ex, string connectionName, string detail);
+        this ILogger logger,
+        Exception ex,
+        string connectionName,
+        string detail);
 
     [LoggerMessage(LogLevel.Debug, "RabbitMQ connection {ConnectionName} recovery attempt {Attempt} failed. Retrying in {Delay}")]
     public static partial void ReconnectionAttemptFailedAgain(

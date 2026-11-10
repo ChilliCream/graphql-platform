@@ -141,7 +141,9 @@ public sealed partial class RabbitMQDispatcher(
         if (slot is null)
         {
             using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken, DisposalToken, pool.RetirementToken);
+                cancellationToken,
+                DisposalToken,
+                pool.RetirementToken);
             try
             {
                 await available!.WaitAsync(waitCts.Token);
@@ -532,8 +534,14 @@ internal static partial class Logs
 
     [LoggerMessage(Message = "Publish of message {MessageId} finished with {Outcome} in phase {Phase} after {Elapsed} and {Retries} retries")]
     public static partial void PublishFinished(
-        this ILogger logger, Exception? exception, LogLevel level, string? messageId, string outcome,
-        string phase, int retries, TimeSpan elapsed);
+        this ILogger logger,
+        Exception? exception,
+        LogLevel level,
+        string? messageId,
+        string outcome,
+        string phase,
+        int retries,
+        TimeSpan elapsed);
 
     [LoggerMessage(LogLevel.Debug, "Created publisher channel {ChannelNumber} on {ConnectionName}")]
     public static partial void CreatedNewChannel(this ILogger logger, string connectionName, int channelNumber);
@@ -548,7 +556,12 @@ internal static partial class Logs
         LogLevel.Debug,
         "Publish to endpoint {Endpoint} on {ConnectionName} failed during connection recovery (attempt {Attempt}). Retrying in {Delay}")]
     public static partial void PublishFailedRetrying(
-        this ILogger logger, Exception ex, string connectionName, string endpoint, int attempt, TimeSpan delay);
+        this ILogger logger,
+        Exception ex,
+        string connectionName,
+        string endpoint,
+        int attempt,
+        TimeSpan delay);
 
     [LoggerMessage(
         LogLevel.Warning,

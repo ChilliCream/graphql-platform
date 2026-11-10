@@ -231,9 +231,13 @@ public sealed partial class RabbitMQConsumerManager
                         catch (Exception ex)
                         {
                             _owner.Manager.Logger.ErrorProcessingMessageFromQueue(
-                                ex, _owner.Manager.ConnectionName, _owner.QueueName,
-                                delivery.EventArgs.BasicProperties.MessageId, delivery.EventArgs.BasicProperties.CorrelationId,
-                                delivery.EventArgs.ConsumerTag, delivery.EventArgs.DeliveryTag);
+                                ex,
+                                _owner.Manager.ConnectionName,
+                                _owner.QueueName,
+                                delivery.EventArgs.BasicProperties.MessageId,
+                                delivery.EventArgs.BasicProperties.CorrelationId,
+                                delivery.EventArgs.ConsumerTag,
+                                delivery.EventArgs.DeliveryTag);
                         }
                         finally
                         {

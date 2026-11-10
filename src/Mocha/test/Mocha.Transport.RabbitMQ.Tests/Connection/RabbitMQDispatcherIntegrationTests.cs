@@ -43,9 +43,11 @@ public sealed class RabbitMQDispatcherIntegrationTests(RabbitMQFixture fixture)
             sends = Enumerable.Range(0, 32)
                 .Select(i => SendAsync(bus, new ProcessPayment { OrderId = $"ORD-{i}", Amount = 1 }))
                 .ToArray();
-            allPublished = await Condition.WaitAsync(async () =>
-                await channel.GetNextPublishSequenceNumberAsync(TestContext.Current.CancellationToken)
-                    == initialSequence + 32, s_timeout);
+            allPublished = await Condition.WaitAsync(
+                async () =>
+                    await channel.GetNextPublishSequenceNumberAsync(TestContext.Current.CancellationToken)
+                        == initialSequence + 32,
+                s_timeout);
             allWaiting = sends.All(t => !t.IsCompleted);
         }
 
@@ -89,9 +91,11 @@ public sealed class RabbitMQDispatcherIntegrationTests(RabbitMQFixture fixture)
             var cancelled = scope.ServiceProvider.GetRequiredService<IMessageBus>()
                 .SendAsync(new ProcessPayment { OrderId = "cancelled", Amount = 1 }, cancellation.Token).AsTask();
             surviving = SendAsync(bus, new ProcessPayment { OrderId = "surviving", Amount = 1 });
-            Assert.True(await Condition.WaitAsync(async () =>
-                await channel.GetNextPublishSequenceNumberAsync(TestContext.Current.CancellationToken)
-                    == initialSequence + 2, s_timeout));
+            Assert.True(await Condition.WaitAsync(
+                async () =>
+                    await channel.GetNextPublishSequenceNumberAsync(TestContext.Current.CancellationToken)
+                        == initialSequence + 2,
+                s_timeout));
             await cancellation.CancelAsync();
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled);
         }
@@ -129,7 +133,11 @@ public sealed class RabbitMQDispatcherIntegrationTests(RabbitMQFixture fixture)
                 }
 
                 await channel.ExchangeDeclareAsync("events", "fanout", durable: true, cancellationToken: ct);
-                await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+                await channel.QueueDeclareAsync(
+                    "orders",
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
                     cancellationToken: ct);
                 await channel.QueueBindAsync("orders", "events", "", cancellationToken: ct);
             });
@@ -164,7 +172,12 @@ public sealed class RabbitMQDispatcherIntegrationTests(RabbitMQFixture fixture)
             var channel = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
             try
             {
-                await channel.BasicPublishAsync("events", "", false, new BasicProperties(), "order"u8.ToArray(),
+                await channel.BasicPublishAsync(
+                    "events",
+                    "",
+                    false,
+                    new BasicProperties(),
+                    "order"u8.ToArray(),
                     TestContext.Current.CancellationToken);
             }
             finally
@@ -396,7 +409,11 @@ public sealed class RabbitMQDispatcherIntegrationTests(RabbitMQFixture fixture)
             async (connection, ct) =>
             {
                 await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
-                await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+                await channel.QueueDeclareAsync(
+                    "orders",
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
                     cancellationToken: ct);
             });
 
@@ -405,7 +422,12 @@ public sealed class RabbitMQDispatcherIntegrationTests(RabbitMQFixture fixture)
         var channel = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
         try
         {
-            await channel.BasicPublishAsync("", "orders", false, new BasicProperties(), "order"u8.ToArray(),
+            await channel.BasicPublishAsync(
+                "",
+                "orders",
+                false,
+                new BasicProperties(),
+                "order"u8.ToArray(),
                 TestContext.Current.CancellationToken);
         }
         finally

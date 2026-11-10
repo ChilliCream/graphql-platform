@@ -66,7 +66,8 @@ public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
             {
                 await Task.WhenAll(Enumerable.Range(0, 100).Select(i =>
                     Assert.ThrowsAnyAsync<OperationCanceledException>(
-                        () => SendAsync(bus,
+                        () => SendAsync(
+                            bus,
                             new ProcessPayment { OrderId = $"{wave}-{i}", Amount = 1 },
                             TimeSpan.FromMilliseconds(300)))));
             }
@@ -76,7 +77,8 @@ public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
 
         // assert
         Assert.True(await Condition.WaitAsync(
-            () => payments.Messages.Cast<ProcessPayment>().Any(p => p.OrderId == "resumed"), s_timeout));
+            () => payments.Messages.Cast<ProcessPayment>().Any(p => p.OrderId == "resumed"),
+            s_timeout));
         Assert.Equal(1m, Assert.Single(payments.Messages.Cast<ProcessPayment>(), p => p.OrderId == "resumed").Amount);
         Assert.Equal(2, await vhost.GetConnectionCountAsync());
     }
@@ -100,7 +102,8 @@ public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
 
         // act
         await Task.WhenAll(Enumerable.Range(0, count).Select(i => messageBus.PublishAsync(
-            new OrderCreated { OrderId = $"ORD-{i}" }, TestContext.Current.CancellationToken).AsTask()));
+            new OrderCreated { OrderId = $"ORD-{i}" },
+            TestContext.Current.CancellationToken).AsTask()));
 
         // assert
         Assert.True(await orders.WaitAsync(s_timeout, count));

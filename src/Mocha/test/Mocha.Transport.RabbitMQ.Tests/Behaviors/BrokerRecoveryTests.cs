@@ -193,7 +193,8 @@ public sealed class BrokerRecoveryTests(RabbitMQFixture fixture)
         // user exists again
         await vhost.DeleteUserAsync(credentials.UserName);
         var lost = await Condition.WaitAsync(
-            async () => await vhost.GetConnectionCountAsync() == 0, s_timeout);
+            async () => await vhost.GetConnectionCountAsync() == 0,
+            s_timeout);
         await using var recreated = await vhost.AddUserAsync(credentials.UserName, credentials.Password);
         await AssertRecoveredAsync(vhost, bus, recorder, "ORD-2");
 
@@ -330,7 +331,8 @@ public sealed class BrokerRecoveryTests(RabbitMQFixture fixture)
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         await messageBus.PublishAsync(new OrderCreated { OrderId = orderId }, deadline.Token);
         Assert.True(await Condition.WaitAsync(
-            () => recorder.Messages.Cast<OrderCreated>().Any(order => order.OrderId == orderId), s_timeout));
+            () => recorder.Messages.Cast<OrderCreated>().Any(order => order.OrderId == orderId),
+            s_timeout));
         var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = orderId }, deadline.Token);
         Assert.Equal(orderId, response.OrderId);
         Assert.Equal("Shipped", response.Status);
@@ -338,14 +340,16 @@ public sealed class BrokerRecoveryTests(RabbitMQFixture fixture)
 
     private static async Task AssertBrokerResourcesAsync(VhostContext vhost, BrokerState expected)
     {
-        Assert.True(await Condition.WaitAsync(async () =>
-        {
-            var state = await vhost.GetStateAsync();
-            return state.Connections == expected.Connections
-                && state.ConsumerChannels == expected.ConsumerChannels
-                && state.Consumers == expected.Consumers
-                && state.ConsumedQueues == expected.ConsumedQueues;
-        }, s_timeout));
+        Assert.True(await Condition.WaitAsync(
+            async () =>
+            {
+                var state = await vhost.GetStateAsync();
+                return state.Connections == expected.Connections
+                    && state.ConsumerChannels == expected.ConsumerChannels
+                    && state.Consumers == expected.Consumers
+                    && state.ConsumedQueues == expected.ConsumedQueues;
+            },
+            s_timeout));
         var actual = await vhost.GetStateAsync();
         Assert.Equal(expected.Connections, actual.Connections);
         Assert.Equal(expected.ConsumerChannels, actual.ConsumerChannels);

@@ -91,7 +91,8 @@ public sealed class TopologyRecoveryTests(RabbitMQFixture fixture)
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
         var delivery = await channel.BasicGetAsync("archive", true, TestContext.Current.CancellationToken);
         Assert.NotNull(delivery);
-        var order = JsonSerializer.Deserialize<OrderCreated>(delivery.Body.Span,
+        var order = JsonSerializer.Deserialize<OrderCreated>(
+            delivery.Body.Span,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         Assert.Equal("ORD-1", order?.OrderId);
         Assert.Equal("orders", delivery.Exchange);

@@ -246,8 +246,10 @@ public sealed class PostgresOutboxConcurrencyTests(PostgresFixture fixture) : IC
             t.DispatchEndpoint("pending").ToQueue("pending").Publish<PendingEvent>();
         });
         builder.ConfigureMessageBus(b => b.UseDispatch(
-            new DispatchMiddlewareConfiguration((_, next) => context => probe.DispatchAsync(context, next),
-                "DispatchProbe"), after: "Serialization"));
+            new DispatchMiddlewareConfiguration(
+                (_, next) => context => probe.DispatchAsync(context, next),
+                "DispatchProbe"),
+            after: "Serialization"));
 
         if (probe.ConnectionCreated is { } onConnectionCreated)
         {
@@ -280,14 +282,17 @@ public sealed class PostgresOutboxConcurrencyTests(PostgresFixture fixture) : IC
         var type = runtime.GetMessageType(typeof(PendingEvent));
         for (var i = startIndex; i < startIndex + count; i++)
         {
-            await MessageRows.InsertOutboxAsync(connectionString, new MessageEnvelope
-            {
-                MessageId = i.ToString(),
-                MessageType = type.Identity,
-                ContentType = MessageContentType.Json.Value,
-                DestinationAddress = runtime.GetPublishEndpoint(type).Address.ToString(),
-                Body = JsonSerializer.SerializeToUtf8Bytes(new PendingEvent(i))
-            }, TestToken);
+            await MessageRows.InsertOutboxAsync(
+                connectionString,
+                new MessageEnvelope
+                {
+                    MessageId = i.ToString(),
+                    MessageType = type.Identity,
+                    ContentType = MessageContentType.Json.Value,
+                    DestinationAddress = runtime.GetPublishEndpoint(type).Address.ToString(),
+                    Body = JsonSerializer.SerializeToUtf8Bytes(new PendingEvent(i))
+                },
+                TestToken);
         }
     }
 

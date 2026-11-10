@@ -597,7 +597,9 @@ public sealed partial class RabbitMQConsumerManager
                         if (IsAttached)
                         {
                             Manager.Logger.ReattachedConsumerForQueue(
-                                Manager.ConnectionName, QueueName, timeProvider.GetElapsedTime(started));
+                                Manager.ConnectionName,
+                                QueueName,
+                                timeProvider.GetElapsedTime(started));
                             break;
                         }
 
@@ -627,7 +629,11 @@ public sealed partial class RabbitMQConsumerManager
                         else
                         {
                             Manager.Logger.FailedToReattachConsumerForQueueAgain(
-                                ex, Manager.ConnectionName, QueueName, attempt, delay);
+                                ex,
+                                Manager.ConnectionName,
+                                QueueName,
+                                attempt,
+                                delay);
                         }
                     }
                     finally
@@ -670,7 +676,8 @@ public sealed partial class RabbitMQConsumerManager
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await using var cancellation = cancellationToken.UnsafeRegister(
-                static state => ((RegisteredConsumer)state!).CancelStop(), this);
+                static state => ((RegisteredConsumer)state!).CancelStop(),
+                this);
             Task stopTask;
             lock (_stopSync)
             {
@@ -740,7 +747,9 @@ public sealed partial class RabbitMQConsumerManager
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     Manager.Logger.ConsumerDrainCancelled(
-                        QueueName, Volatile.Read(ref _runningHandlers), Manager.TimeProvider.GetElapsedTime(started));
+                        QueueName,
+                        Volatile.Read(ref _runningHandlers),
+                        Manager.TimeProvider.GetElapsedTime(started));
                     consumer?.CancelHandlers();
                 }
 
@@ -763,7 +772,9 @@ public sealed partial class RabbitMQConsumerManager
             }
 
             Manager.Logger.ConsumerStopped(
-                Manager.ConnectionName, QueueName, Volatile.Read(ref _runningHandlers),
+                Manager.ConnectionName,
+                QueueName,
+                Volatile.Read(ref _runningHandlers),
                 Manager.TimeProvider.GetElapsedTime(started));
 
             _ = _workers.ContinueWith(

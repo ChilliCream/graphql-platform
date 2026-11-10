@@ -30,8 +30,11 @@ public class RabbitMQDispatcherTests
         Assert.Same(first, second);
         Assert.True(wasWaiting);
         Assert.Same(first, next);
-        connection.Verify(c => c.CreateChannelAsync(
-            It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()), Times.Once());
+        connection.Verify(
+            c => c.CreateChannelAsync(
+                It.IsAny<CreateChannelOptions?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once());
     }
 
     [Fact]
@@ -104,8 +107,11 @@ public class RabbitMQDispatcherTests
 
         // assert
         Assert.Same(channel.Object, rented);
-        connection.Verify(c => c.CreateChannelAsync(
-            It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()), Times.Once());
+        connection.Verify(
+            c => c.CreateChannelAsync(
+                It.IsAny<CreateChannelOptions?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once());
     }
 
     [Fact]
@@ -135,8 +141,11 @@ public class RabbitMQDispatcherTests
 
         // assert
         Assert.Same(channels[0], next);
-        connection.Verify(c => c.CreateChannelAsync(
-            It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()), Times.Once());
+        connection.Verify(
+            c => c.CreateChannelAsync(
+                It.IsAny<CreateChannelOptions?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once());
     }
 
     [Fact]

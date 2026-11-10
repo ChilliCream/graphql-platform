@@ -19,7 +19,9 @@ public sealed class RabbitMQPublishWaitTests
 
         // act
         var waiting = dispatcher.WaitForPublishChannelAsync(
-            new ValueTask<IChannel>(pending.Task), new DispatchContext(), "ChannelCapacity").AsTask();
+            new ValueTask<IChannel>(pending.Task),
+            new DispatchContext(),
+            "ChannelCapacity").AsTask();
         timeProvider.Advance(TimeSpan.FromMinutes(1));
         var wasWaiting = !waiting.IsCompleted;
         pending.SetResult(channel);
@@ -43,7 +45,10 @@ public sealed class RabbitMQPublishWaitTests
 
         // act
         var waiting = dispatcher.WaitForPublishPhaseAsync(
-            new ValueTask(pending.Task), new DispatchContext(), null, "PublisherConfirm").AsTask();
+            new ValueTask(pending.Task),
+            new DispatchContext(),
+            null,
+            "PublisherConfirm").AsTask();
         timeProvider.Advance(TimeSpan.FromMinutes(1));
         pending.SetException(expected);
         var actual = await Record.ExceptionAsync(
@@ -64,7 +69,10 @@ public sealed class RabbitMQPublishWaitTests
 
         // act
         var waiting = dispatcher.WaitForPublishPhaseAsync(
-            new ValueTask(pending.Task), new DispatchContext(), null, "ReplyConsumer").AsTask();
+            new ValueTask(pending.Task),
+            new DispatchContext(),
+            null,
+            "ReplyConsumer").AsTask();
         timeProvider.Advance(TimeSpan.FromMinutes(1));
         await cancellation.CancelAsync();
         pending.SetCanceled(cancellation.Token);

@@ -56,7 +56,10 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                     phase = "ReplyConsumer";
                     dispatcher.LogPublishPhase(context, channel, phase);
                     await dispatcher.WaitForPublishPhaseAsync(
-                        replyEndpoint.WaitUntilAttachedAsync(cancellationToken), context, channel, phase);
+                        replyEndpoint.WaitUntilAttachedAsync(cancellationToken),
+                        context,
+                        channel,
+                        phase);
                 }
 
                 var canReuseChannel = false;
@@ -65,11 +68,16 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                     phase = "ChannelCapacity";
                     dispatcher.LogPublishPhase(context, channel, phase);
                     channel = await dispatcher.WaitForPublishChannelAsync(
-                        dispatcher.RentChannelAsync(this, cancellationToken), context, phase);
+                        dispatcher.RentChannelAsync(this, cancellationToken),
+                        context,
+                        phase);
                     phase = "Topology";
                     dispatcher.LogPublishPhase(context, channel, phase);
                     await dispatcher.WaitForPublishPhaseAsync(
-                        EnsureProvisionedAsync(channel, cancellationToken), context, channel, phase);
+                        EnsureProvisionedAsync(channel, cancellationToken),
+                        context,
+                        channel,
+                        phase);
                     canReuseChannel = true;
 
                     try
@@ -77,7 +85,10 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                         phase = "PublisherConfirm";
                         dispatcher.LogPublishPhase(context, channel, phase);
                         await dispatcher.WaitForPublishPhaseAsync(
-                            DispatchAsync(channel, envelope, timeProvider, cancellationToken), context, channel, phase);
+                            DispatchAsync(channel, envelope, timeProvider, cancellationToken),
+                            context,
+                            channel,
+                            phase);
                     }
                     catch (PublishException ex) when (ex.IsReturn && Queue is not null)
                     {
@@ -95,7 +106,9 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                         dispatcher.LogPublishPhase(context, channel, phase);
                         await dispatcher.WaitForPublishPhaseAsync(
                             new ValueTask(provisioner.ProvisionQueueAsync(Queue, channel, cancellationToken)),
-                            context, channel, phase);
+                            context,
+                            channel,
+                            phase);
                         canReuseChannel = true;
                         dispatcher.LogReturnedQueueRedeclared(context, channel, Queue.Name);
 
@@ -104,7 +117,10 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
                             phase = "PublisherConfirm";
                             dispatcher.LogPublishPhase(context, channel, phase);
                             await dispatcher.WaitForPublishPhaseAsync(
-                                DispatchAsync(channel, envelope, timeProvider, cancellationToken), context, channel, phase);
+                                DispatchAsync(channel, envelope, timeProvider, cancellationToken),
+                                context,
+                                channel,
+                                phase);
                         }
                         catch (PublishException again) when (again.IsReturn)
                         {
@@ -152,8 +168,13 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         catch (Exception ex)
         {
             dispatcher.LogPublishOutcome(
-                context, channel, ex, cancellationToken.IsCancellationRequested ? "Cancelled" : "Failed",
-                phase, attempt, Stopwatch.GetElapsedTime(started));
+                context,
+                channel,
+                ex,
+                cancellationToken.IsCancellationRequested ? "Cancelled" : "Failed",
+                phase,
+                attempt,
+                Stopwatch.GetElapsedTime(started));
             throw;
         }
     }

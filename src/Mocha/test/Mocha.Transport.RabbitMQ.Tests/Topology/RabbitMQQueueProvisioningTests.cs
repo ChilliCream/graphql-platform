@@ -54,10 +54,20 @@ public sealed class RabbitMQQueueProvisioningTests(RabbitMQFixture fixture)
         await using var vhost = await fixture.CreateVhostAsync();
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(
-            new CreateChannelOptions(true, true), TestContext.Current.CancellationToken);
-        await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+            new CreateChannelOptions(true, true),
+            TestContext.Current.CancellationToken);
+        await channel.QueueDeclareAsync(
+            "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
-        await channel.BasicPublishAsync("", "orders", true, new BasicProperties(), "retained"u8.ToArray(),
+        await channel.BasicPublishAsync(
+            "",
+            "orders",
+            true,
+            new BasicProperties(),
+            "retained"u8.ToArray(),
             TestContext.Current.CancellationToken);
 
         // act
@@ -110,7 +120,8 @@ public sealed class RabbitMQQueueProvisioningTests(RabbitMQFixture fixture)
         var queue = transport.Topology.Queues.Single(queue => queue.Name == "orders");
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(
-            new CreateChannelOptions(true, true), TestContext.Current.CancellationToken);
+            new CreateChannelOptions(true, true),
+            TestContext.Current.CancellationToken);
         if (!provisionBeforeStart)
         {
             await runtime.StartAsync(TestContext.Current.CancellationToken);
@@ -118,7 +129,12 @@ public sealed class RabbitMQQueueProvisioningTests(RabbitMQFixture fixture)
 
         // act
         await queue.ProvisionAsync(channel, connection, TestContext.Current.CancellationToken);
-        await channel.BasicPublishAsync("", "orders", true, new BasicProperties(), "order"u8.ToArray(),
+        await channel.BasicPublishAsync(
+            "",
+            "orders",
+            true,
+            new BasicProperties(),
+            "order"u8.ToArray(),
             TestContext.Current.CancellationToken);
         if (provisionBeforeStart)
         {

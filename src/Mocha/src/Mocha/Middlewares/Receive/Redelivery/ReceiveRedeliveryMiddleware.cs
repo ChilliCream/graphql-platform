@@ -50,7 +50,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             switch (decision.Action)
             {
                 case RedeliveryAction.Discard:
-                    using (logger.BeginMessageScope(context, LogLevel.Warning))
+                    using (logger.BeginMessageScope(context))
                     {
                         logger.MessageDiscarded(ex, context.MessageId);
                     }
@@ -59,15 +59,16 @@ internal sealed class ReceiveRedeliveryMiddleware(
 
                 case RedeliveryAction.Redeliver:
                     var scheduledTime = timeProvider.GetUtcNow().Add(decision.Delay);
-                    using (logger.BeginMessageScope(context, LogLevel.Warning))
+                    using (logger.BeginMessageScope(context))
                     {
                         logger.RedeliveringMessage(ex, context.MessageId, delayedRetryCount + 1, decision.Delay);
                     }
                     var isScheduled = await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
-                    using (logger.BeginMessageScope(context, LogLevel.Information))
+                    using (logger.BeginMessageScope(context))
                     {
                         logger.MessageRedelivered(
-                            context.MessageId, delayedRetryCount + 1,
+                            context.MessageId,
+                            delayedRetryCount + 1,
                             isScheduled ? scheduledTime : null);
                     }
                     context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
@@ -152,7 +153,9 @@ internal sealed class ReceiveRedeliveryMiddleware(
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
 
                 var middleware = new ReceiveRedeliveryMiddleware(
-                    feature.Rules.ToImmutableArray(), timeProvider, pools,
+                    feature.Rules.ToImmutableArray(),
+                    timeProvider,
+                    pools,
                     context.Services.GetRequiredService<ILogger<ReceiveRedeliveryMiddleware>>());
 
                 return ctx => middleware.InvokeAsync(ctx, next);

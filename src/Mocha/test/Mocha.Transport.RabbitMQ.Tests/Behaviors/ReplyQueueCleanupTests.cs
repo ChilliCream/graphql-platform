@@ -46,7 +46,10 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         await using var channel = await connection.CreateChannelAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         await channel.QueueDeclareAsync(
-            queueName, durable: true, exclusive: false, autoDelete: false,
+            queueName,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
@@ -81,7 +84,10 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         await using var channel = await connection.CreateChannelAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         await channel.QueueDeclareAsync(
-            queueName, durable: true, exclusive: false, autoDelete: false,
+            queueName,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             arguments: new Dictionary<string, object?> { ["x-expires"] = 60000 },
             cancellationToken: TestContext.Current.CancellationToken);
         await using var bus = await new ServiceCollection()
@@ -117,10 +123,15 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         await using var channel = await connection.CreateChannelAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         await channel.QueueDeclareAsync(
-            queueName, durable: true, exclusive: false, autoDelete: true,
+            queueName,
+            durable: true,
+            exclusive: false,
+            autoDelete: true,
             cancellationToken: TestContext.Current.CancellationToken);
         await channel.BasicConsumeAsync(
-            queueName, autoAck: true, consumer: new AsyncDefaultBasicConsumer(channel),
+            queueName,
+            autoAck: true,
+            consumer: new AsyncDefaultBasicConsumer(channel),
             cancellationToken: TestContext.Current.CancellationToken);
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)

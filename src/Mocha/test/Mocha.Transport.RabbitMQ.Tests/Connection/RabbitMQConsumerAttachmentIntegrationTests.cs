@@ -267,7 +267,10 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
 
     private static async Task DeclareQueueAsync(IChannel channel, string queue)
         => await channel.QueueDeclareAsync(
-            queue, durable: true, exclusive: false, autoDelete: false,
+            queue,
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
 
     private static async ValueTask RecordDeliveryAsync(

@@ -60,7 +60,8 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         Assert.NotNull(delivery);
         Assert.Equal("", delivery.Exchange);
         Assert.Equal(queueName, delivery.RoutingKey);
-        var order = JsonSerializer.Deserialize<OrderCreated>(delivery.Body.Span,
+        var order = JsonSerializer.Deserialize<OrderCreated>(
+            delivery.Body.Span,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         Assert.Equal("EXTERNAL-1", order?.OrderId);
     }
@@ -108,7 +109,11 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(cancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
         await channel.ExchangeDeclareAsync("reporting", "fanout", durable: true, cancellationToken: cancellationToken);
-        await channel.QueueDeclareAsync("reports", durable: true, exclusive: false, autoDelete: false,
+        await channel.QueueDeclareAsync(
+            "reports",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             cancellationToken: cancellationToken);
         await channel.QueueBindAsync("reports", "reporting", "", cancellationToken: cancellationToken);
         await using var bus = await new ServiceCollection()
@@ -136,7 +141,8 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         // assert
         var delivery = await GetMessageAsync(channel, "reports", cancellationToken);
         Assert.NotNull(delivery);
-        var order = JsonSerializer.Deserialize<OrderCreated>(delivery.Body.Span,
+        var order = JsonSerializer.Deserialize<OrderCreated>(
+            delivery.Body.Span,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         Assert.Equal("EXTERNAL-3", order?.OrderId);
         Assert.Equal("reporting", delivery.Exchange);

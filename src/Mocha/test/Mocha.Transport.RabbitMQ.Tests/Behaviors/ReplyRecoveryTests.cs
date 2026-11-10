@@ -221,7 +221,8 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         await messageBus.PublishAsync(new OrderCreated { OrderId = orderId }, deadline.Token);
         Assert.True(await Condition.WaitAsync(
-            () => recorder.Messages.Cast<OrderCreated>().Any(order => order.OrderId == orderId), s_timeout));
+            () => recorder.Messages.Cast<OrderCreated>().Any(order => order.OrderId == orderId),
+            s_timeout));
         var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = orderId }, deadline.Token);
         Assert.Equal(orderId, response.OrderId);
         Assert.Equal("Shipped", response.Status);

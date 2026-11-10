@@ -20,7 +20,11 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
         await using var vhost = await fixture.CreateVhostAsync();
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
-        await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+        await channel.QueueDeclareAsync(
+            "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             arguments: new Dictionary<string, object?> { ["x-queue-type"] = "quorum", ["x-delivery-limit"] = 2 },
             cancellationToken: TestContext.Current.CancellationToken);
         await using var manager = new RabbitMQConsumerManager(
@@ -32,19 +36,24 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
         var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var invocations = 0;
         var delivered = new ConcurrentQueue<string>();
-        await manager.RegisterConsumerAsync("orders", async (consumerChannel, delivery, ct) =>
-        {
-            if (Interlocked.Increment(ref invocations) == 1)
+        await manager.RegisterConsumerAsync(
+            "orders",
+            async (consumerChannel, delivery, ct) =>
             {
-                await using var registration = ct.Register(() => cancelled.TrySetResult());
-                started.TrySetResult();
-                await release.Task;
-                ct.ThrowIfCancellationRequested();
-            }
+                if (Interlocked.Increment(ref invocations) == 1)
+                {
+                    await using var registration = ct.Register(() => cancelled.TrySetResult());
+                    started.TrySetResult();
+                    await release.Task;
+                    ct.ThrowIfCancellationRequested();
+                }
 
-            delivered.Enqueue(Encoding.UTF8.GetString(delivery.Body.Span));
-            await consumerChannel.BasicAckAsync(delivery.DeliveryTag, false, ct);
-        }, 2, 1, TestContext.Current.CancellationToken);
+                delivered.Enqueue(Encoding.UTF8.GetString(delivery.Body.Span));
+                await consumerChannel.BasicAckAsync(delivery.DeliveryTag, false, ct);
+            },
+            2,
+            1,
+            TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "first"u8.ToArray(), TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "second"u8.ToArray(), TestContext.Current.CancellationToken);
         await started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
@@ -56,11 +65,15 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
             await vhost.WaitForNoConsumerAsync("orders", s_timeout);
             // This spans several broker acknowledgement deadlines and exceeds the delivery limit if reattached.
             await Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
-            var whileBlocked = (await vhost.GetConsumerCountAsync("orders"),
-                await vhost.GetMessageCountAsync("orders"), invocations, manager.IsHealthy);
+            var whileBlocked = (
+                await vhost.GetConsumerCountAsync("orders"),
+                await vhost.GetMessageCountAsync("orders"),
+                invocations,
+                manager.IsHealthy);
             release.TrySetResult();
             var settled = await Condition.WaitAsync(
-                async () => delivered.Count == 2 && await vhost.GetMessageCountAsync("orders") == 0, s_timeout);
+                async () => delivered.Count == 2 && await vhost.GetMessageCountAsync("orders") == 0,
+                s_timeout);
 
             // assert
             Assert.Equal((0, 2, 1, false), whileBlocked);
@@ -130,11 +143,13 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
         {
             await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
             BasicGetResult? delivery = null;
-            var available = await Condition.WaitAsync(async () =>
-            {
-                delivery = await channel.BasicGetAsync("orders", false, TestContext.Current.CancellationToken);
-                return delivery is not null;
-            }, TimeSpan.FromSeconds(2));
+            var available = await Condition.WaitAsync(
+                async () =>
+                {
+                    delivery = await channel.BasicGetAsync("orders", false, TestContext.Current.CancellationToken);
+                    return delivery is not null;
+                },
+                TimeSpan.FromSeconds(2));
             if (!available)
             {
                 break;
@@ -170,7 +185,11 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
 
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
-        await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
+        await channel.QueueDeclareAsync(
+            "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
             arguments: new Dictionary<string, object?> { ["x-queue-type"] = "quorum" },
             cancellationToken: TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "retained"u8.ToArray(), TestContext.Current.CancellationToken);

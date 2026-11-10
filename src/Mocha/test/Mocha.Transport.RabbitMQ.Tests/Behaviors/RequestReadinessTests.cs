@@ -77,7 +77,8 @@ public sealed class RequestReadinessTests(RabbitMQFixture fixture)
             // assert
             Assert.Equal(["before"], dispatchedWhileUnavailable);
             Assert.False(completedWhileUnavailable);
-            Assert.Equal(cancel ? ["before", "probe"] : new[] { "after", "before", "probe" },
+            Assert.Equal(
+                cancel ? ["before", "probe"] : new[] { "after", "before", "probe" },
                 handled.Messages.Cast<GetOrderStatus>().Select(m => m.OrderId).Order());
         }
         finally

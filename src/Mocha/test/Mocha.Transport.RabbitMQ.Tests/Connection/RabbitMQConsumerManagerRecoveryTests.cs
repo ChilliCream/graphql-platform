@@ -306,7 +306,11 @@ public class RabbitMQConsumerManagerRecoveryTests
                 }
 
                 await channel.QueueDeclareAsync(
-                    "replies", durable: false, exclusive: true, autoDelete: true, cancellationToken: ct);
+                    "replies",
+                    durable: false,
+                    exclusive: true,
+                    autoDelete: true,
+                    cancellationToken: ct);
             },
             dependencies: [],
             replies.HandleAsync,
@@ -316,7 +320,11 @@ public class RabbitMQConsumerManagerRecoveryTests
         await manager.RegisterConsumerAsync(
             QueueName,
             static (_, channel, ct) => channel.QueueDeclareAsync(
-                QueueName, durable: true, exclusive: false, autoDelete: false, cancellationToken: ct),
+                QueueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                cancellationToken: ct),
             dependencies: [() => replyConsumer],
             async (channel, delivery, ct) =>
             {

@@ -33,10 +33,12 @@ public sealed class RabbitMQFixture : IAsyncLifetime
         await _resource.InitializeAsync();
         _management.BaseAddress = new UriBuilder("http", _resource.Hostname, _resource.ManagementPort, "api/").Uri;
         _management.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Basic", Convert.ToBase64String("guest:guest"u8));
+            "Basic",
+            Convert.ToBase64String("guest:guest"u8));
         await PutAsync($"users/{ManagementUser}", new { password = ManagementPassword, tags = "administrator" });
         _management.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{ManagementUser}:{ManagementPassword}")));
+            "Basic",
+            Convert.ToBase64String(Encoding.UTF8.GetBytes($"{ManagementUser}:{ManagementPassword}")));
 
         // Quorum queues refresh the consumer and message counts that list_queues reports on each tick, so tests
         // that read those counts need a short tick.

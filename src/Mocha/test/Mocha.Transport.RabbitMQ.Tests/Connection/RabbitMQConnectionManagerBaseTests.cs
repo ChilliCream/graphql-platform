@@ -30,11 +30,13 @@ public class RabbitMQConnectionManagerBaseTests
         initial.SetupGet(c => c.IsOpen).Returns(false);
         manager.Reconnect();
         var firstRecovered = await Condition.WaitAsync(
-            () => manager.ConnectionRecoveredCount == 1, TimeSpan.FromSeconds(5));
+            () => manager.ConnectionRecoveredCount == 1,
+            TimeSpan.FromSeconds(5));
         firstReplacement.SetupGet(c => c.IsOpen).Returns(false);
         manager.Reconnect();
         var secondRecovered = await Condition.WaitAsync(
-            () => manager.ConnectionRecoveredCount == 2, TimeSpan.FromSeconds(5));
+            () => manager.ConnectionRecoveredCount == 2,
+            TimeSpan.FromSeconds(5));
 
         // assert
         Assert.True(firstRecovered && secondRecovered);
@@ -463,7 +465,10 @@ public class RabbitMQConnectionManagerBaseTests
         // arrange
         var connection = CreateOpenConnection();
         connection.Setup(c => c.CloseAsync(
-            It.IsAny<ushort>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<bool>(),
+            It.IsAny<ushort>(),
+            It.IsAny<string>(),
+            It.IsAny<TimeSpan>(),
+            It.IsAny<bool>(),
             It.IsAny<CancellationToken>())).ThrowsAsync(new IOException("Connection lost."));
         var manager = CreateManager(connection.Object);
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);

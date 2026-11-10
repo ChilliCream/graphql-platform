@@ -9,13 +9,18 @@ public sealed partial class RabbitMQDispatcher
     private static readonly TimeSpan s_publishWarningInterval = TimeSpan.FromSeconds(30);
 
     internal ValueTask WaitForPublishPhaseAsync(
-        ValueTask operation, IDispatchContext context, IChannel? channel, string phase)
+        ValueTask operation,
+        IDispatchContext context,
+        IChannel? channel,
+        string phase)
         => operation.IsCompletedSuccessfully || !Logger.IsEnabled(LogLevel.Warning)
             ? operation
             : new ValueTask(WaitForPublishPhaseAsync(operation.AsTask(), context, channel, phase));
 
     internal async ValueTask<IChannel> WaitForPublishChannelAsync(
-        ValueTask<IChannel> operation, IDispatchContext context, string phase)
+        ValueTask<IChannel> operation,
+        IDispatchContext context,
+        string phase)
     {
         if (operation.IsCompletedSuccessfully || !Logger.IsEnabled(LogLevel.Warning))
         {
@@ -28,7 +33,10 @@ public sealed partial class RabbitMQDispatcher
     }
 
     private async Task WaitForPublishPhaseAsync(
-        Task operation, IDispatchContext context, IChannel? channel, string phase)
+        Task operation,
+        IDispatchContext context,
+        IChannel? channel,
+        string phase)
     {
         var started = TimeProvider.GetTimestamp();
         while (!operation.IsCompleted)
@@ -46,7 +54,7 @@ public sealed partial class RabbitMQDispatcher
                 }
 
                 using var connectionScope = channel is not null ? BeginLogScope(channel) : BeginLogScope();
-                using var messageScope = Logger.BeginMessageScope(context, LogLevel.Warning);
+                using var messageScope = Logger.BeginMessageScope(context);
                 Logger.PublishStalled(context.Envelope?.MessageId, phase, TimeProvider.GetElapsedTime(started));
             }
         }
@@ -62,7 +70,7 @@ public sealed partial class RabbitMQDispatcher
         }
 
         using var connectionScope = channel is not null ? BeginLogScope(channel) : BeginLogScope();
-        using var messageScope = Logger.BeginMessageScope(context, LogLevel.Debug);
+        using var messageScope = Logger.BeginMessageScope(context);
         Logger.PublishFailedRetrying(exception, ConnectionName, context.Endpoint.Name, attempt, delay);
     }
 
@@ -74,12 +82,18 @@ public sealed partial class RabbitMQDispatcher
         }
 
         using var connectionScope = channel is not null ? BeginLogScope(channel) : BeginLogScope();
-        using var messageScope = Logger.BeginMessageScope(context, LogLevel.Debug);
+        using var messageScope = Logger.BeginMessageScope(context);
         Logger.PublishWaiting(context.Envelope?.MessageId, phase);
     }
 
     internal void LogPublishOutcome(
-        IDispatchContext context, IChannel? channel, Exception? exception, string outcome, string phase, int attempt, TimeSpan elapsed)
+        IDispatchContext context,
+        IChannel? channel,
+        Exception? exception,
+        string outcome,
+        string phase,
+        int attempt,
+        TimeSpan elapsed)
     {
         var level = outcome == "Failed" ? LogLevel.Error
             : elapsed >= TimeSpan.FromSeconds(10) ? LogLevel.Warning : LogLevel.Debug;
@@ -89,21 +103,21 @@ public sealed partial class RabbitMQDispatcher
         }
 
         using var connectionScope = channel is not null ? BeginLogScope(channel) : BeginLogScope();
-        using var messageScope = Logger.BeginMessageScope(context, level);
+        using var messageScope = Logger.BeginMessageScope(context);
         Logger.PublishFinished(exception, level, context.Envelope?.MessageId, outcome, phase, attempt, elapsed);
     }
 
     internal void LogReturnedQueueRepairStarted(IDispatchContext context, IChannel channel, string queueName)
     {
         using var connectionScope = BeginLogScope(channel);
-        using var messageScope = Logger.BeginMessageScope(context, LogLevel.Warning);
+        using var messageScope = Logger.BeginMessageScope(context);
         Logger.ReturnedQueueRepairStarted(ConnectionName, queueName);
     }
 
     internal void LogReturnedQueueRedeclared(IDispatchContext context, IChannel channel, string queueName)
     {
         using var connectionScope = BeginLogScope(channel);
-        using var messageScope = Logger.BeginMessageScope(context, LogLevel.Information);
+        using var messageScope = Logger.BeginMessageScope(context);
         Logger.RedeclaredQueueOfReturnedMessage(ConnectionName, queueName);
     }
 }

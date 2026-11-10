@@ -255,7 +255,10 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             Logger.FailedToReconnectConsumerForQueue(
-                ex, GetRecoveryFailureLogLevel(ex), ConnectionName, consumer.QueueName);
+                ex,
+                GetRecoveryFailureLogLevel(ex),
+                ConnectionName,
+                consumer.QueueName);
 
             // The consumer retries with backoff instead of waiting for the next health check.
             consumer.EnsureAttached();
@@ -365,12 +368,21 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Failed to register consumer for queue {Queue} on {ConnectionName}")]
     public static partial void ConsumerRegistrationFailed(
-        this ILogger logger, Exception ex, string connectionName, string queue);
+        this ILogger logger,
+        Exception ex,
+        string connectionName,
+        string queue);
 
     [LoggerMessage(LogLevel.Error, "Error processing message {MessageId} from queue {Queue} on {ConnectionName}, consumer {ConsumerTag}, delivery {DeliveryTag}, correlation {CorrelationId}")]
     public static partial void ErrorProcessingMessageFromQueue(
-        this ILogger logger, Exception ex, string connectionName, string queue,
-        string? messageId, string? correlationId, string consumerTag, ulong deliveryTag);
+        this ILogger logger,
+        Exception ex,
+        string connectionName,
+        string queue,
+        string? messageId,
+        string? correlationId,
+        string consumerTag,
+        ulong deliveryTag);
 
     [LoggerMessage(LogLevel.Information, "Registered consumer for queue {Queue} on {ConnectionName}. Attached: {Attached}")]
     public static partial void RegisteredConsumerForQueue(this ILogger logger, string connectionName, string queue, bool attached);
@@ -411,7 +423,11 @@ internal static partial class Logs
 
     [LoggerMessage(Message = "Failed to reconnect consumer for queue {Queue} on {ConnectionName}. Consumer recovery will retry")]
     public static partial void FailedToReconnectConsumerForQueue(
-        this ILogger logger, Exception ex, LogLevel level, string connectionName, string queue);
+        this ILogger logger,
+        Exception ex,
+        LogLevel level,
+        string connectionName,
+        string queue);
 
     [LoggerMessage(LogLevel.Debug, "Connection {ConnectionName} health check failed; ensuring recovery is running")]
     public static partial void ConnectionHealthCheckFailedAttemptingReconnection(this ILogger logger, string connectionName);

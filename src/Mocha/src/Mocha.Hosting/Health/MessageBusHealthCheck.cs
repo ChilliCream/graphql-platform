@@ -25,9 +25,14 @@ internal sealed class MessageBusHealthCheck(
         var request = new HealthRequest("Health Check");
         var response = await dispatcher.RequestAsync(request, sendOptions, cancellationToken);
 
-        return GetTransportHealthFailure() ?? (response.Message == "OK"
+        if (GetTransportHealthFailure() is { } failedDuringRequest)
+        {
+            return failedDuringRequest;
+        }
+
+        return response.Message == "OK"
             ? HealthCheckResult.Healthy("Message Bus is healthy.")
-            : HealthCheckResult.Unhealthy("Message Bus is unhealthy."));
+            : HealthCheckResult.Unhealthy("Message Bus is unhealthy.");
     }
 
     private HealthCheckResult? GetTransportHealthFailure()

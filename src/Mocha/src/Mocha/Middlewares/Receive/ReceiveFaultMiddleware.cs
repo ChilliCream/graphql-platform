@@ -36,7 +36,7 @@ internal sealed class ReceiveFaultMiddleware(
             var destination = reply
                 ? options.ReplyAddress
                 : errorEndpoint?.Destination?.Address ?? errorEndpoint?.Address;
-            using var logScope = logger.BeginMessageScope(context, LogLevel.Error);
+            using var logScope = logger.BeginMessageScope(context);
             logger.MessageFaulted(ex, context.MessageId, fault.Id, destination?.ToString());
             try
             {
@@ -124,7 +124,9 @@ internal sealed class ReceiveFaultMiddleware(
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
                 var timeProvider = context.Services.GetRequiredService<TimeProvider>();
                 var middleware = new ReceiveFaultMiddleware(
-                    timeProvider, errorEndpoint, pools,
+                    timeProvider,
+                    errorEndpoint,
+                    pools,
                     context.Services.GetRequiredService<ILogger<ReceiveFaultMiddleware>>());
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
