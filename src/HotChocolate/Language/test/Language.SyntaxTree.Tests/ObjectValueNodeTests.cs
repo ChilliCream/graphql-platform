@@ -107,7 +107,7 @@ public class ObjectValueNodeTests
             .Select(i => new ObjectFieldNode($"f{i:00}", i))
             .ToArray();
         var a = new ObjectValueNode(fields);
-        var b = new ObjectValueNode(fields.Reverse().ToArray());
+        var b = new ObjectValueNode(Enumerable.Reverse(fields).ToArray());
 
         // act
         var equals = SyntaxComparer.BySyntax.Equals(a, b);
