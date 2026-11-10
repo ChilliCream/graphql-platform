@@ -120,9 +120,12 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         field = (expression as MemberExpression)!;
 
         return field is not null
-            && field.Expression is ParameterExpression
+            && IsDocumentField(field.Expression)
             && (Nullable.GetUnderlyingType(field.Type) is not null || !field.Type.IsValueType);
     }
+
+    private static bool IsDocumentField(Expression? owner)
+        => owner is ParameterExpression || (owner is MemberExpression member && IsDocumentField(member.Expression));
 
     private static bool IsNullValue(Expression expression)
         => IsNull(expression)
@@ -176,8 +179,18 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
     }
 
     // ES|QL answers null for a comparison with a null value, where .NET answers true for its negation.
-    private static BinaryExpression OrIsNull(MemberExpression field, Expression test)
-        => Expression.OrElse(Expression.Equal(field, Expression.Constant(null, field.Type)), test);
+    // A field of an object is null in .NET only when the object exists, which ES|QL tells with _exists_.
+    private BinaryExpression OrIsNull(MemberExpression field, Expression test)
+    {
+        Expression isNull = Expression.Equal(field, Expression.Constant(null, field.Type));
+
+        if (field.Expression is MemberExpression owner)
+        {
+            isNull = Expression.AndAlso(isNull, QueryString($"_exists_:{FieldPath(owner)}"));
+        }
+
+        return Expression.OrElse(isNull, test);
+    }
 
     // A field stored through a converter is compared by name, which the IN list of ES|QL does not do for an enum.
     private static bool TryRewriteEnumMembership(MethodCallExpression node, out Expression membership)

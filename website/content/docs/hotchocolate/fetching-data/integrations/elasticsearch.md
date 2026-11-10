@@ -47,6 +47,8 @@ builder
 
 Field names are camel case by default. If the client uses another naming policy, pass it to `AddElasticSearchFiltering(namingPolicy)`. A `JsonPropertyName` attribute on a property takes precedence.
 
+Negative conditions such as `neq` and `nin` keep the documents where the field has no value, as in .NET. For a field of an object, this needs another field of the object to have a value: Elasticsearch stores nothing for an object whose fields are all null, so the document is treated as if the object were missing.
+
 ## Lists of objects
 
 An object mapping stores the values of each field in a column of its own, so it cannot tell which values belong to the same object. Map the list as `nested` and mark the property with `ElasticSearchNested` to combine several conditions on one object, or to use `all` and negative conditions:

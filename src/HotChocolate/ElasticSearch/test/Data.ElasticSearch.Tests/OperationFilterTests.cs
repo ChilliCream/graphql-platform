@@ -12,7 +12,7 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         {
             Name = "1", Title = "alpha", Count = 1, Total = 10, Price = 1.5, Flag = true,
             Color = Color.Red, Shade = Color.Red, When = new DateTime(2022, 12, 22, 15, 5, 22, DateTimeKind.Utc),
-            OptionalTitle = "x", OptionalCount = 1, OptionalFlag = true, Inner = new Inner { Code = "a" },
+            OptionalTitle = "x", OptionalCount = 1, OptionalFlag = true, Inner = new Inner { Code = "a", Count = 1 },
             OptionalColor = Color.Red
         },
         new()
@@ -31,7 +31,7 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         {
             Name = "4", Title = "a*b?c", Count = 0, Total = 0, Price = 0, Flag = false,
             Color = Color.Red, Shade = Color.Red, When = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            Inner = new Inner { Code = "a" }
+            Inner = new Inner { Code = "a", Count = 2 }
         },
         new()
         {
@@ -123,7 +123,10 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         { "optionalFlag", "neq: true" },
         { "inner", """code: { eq: "a" }""" },
         { "inner", """code: { neq: "a" }""" },
-        { "inner", """code: { startsWith: "a" }""" }
+        { "inner", """code: { startsWith: "a" }""" },
+        { "inner", "count: { neq: 1 }" },
+        { "inner", "count: { nin: [1] }" },
+        { "inner", "count: { ngt: 1 }" }
     };
 
     [Theory]
@@ -155,6 +158,8 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
     public class Inner
     {
         public string Code { get; set; } = "";
+
+        public int? Count { get; set; }
     }
 
     public class Document
