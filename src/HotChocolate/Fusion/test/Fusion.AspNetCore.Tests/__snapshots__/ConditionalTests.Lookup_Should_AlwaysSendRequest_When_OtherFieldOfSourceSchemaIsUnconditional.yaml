@@ -1,0 +1,142 @@
+title: Lookup_Should_AlwaysSendRequest_When_OtherFieldOfSourceSchemaIsUnconditional
+request:
+  document: |
+    query testQuery($skipDelta: Boolean!) {
+      thing {
+        id
+        delta @skip(if: $skipDelta)
+        epsilon
+      }
+    }
+  variables: |
+    {
+      "skipDelta": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "thing": {
+          "id": 123,
+          "epsilon": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thing: Thing
+      }
+
+      type Thing @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_8d84a7be_1 {
+              thing {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thing": {
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thingById(id: Int!): Thing @lookup
+      }
+
+      type Thing {
+        id: Int!
+        delta: Int!
+        epsilon: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_8d84a7be_2($skipDelta: Boolean!, $__fusion_1_id: Int!) {
+              thingById(id: $__fusion_1_id) {
+                epsilon
+                delta @skip(if: $skipDelta)
+              }
+            }
+          variables: |
+            {
+              "skipDelta": true,
+              "__fusion_1_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thingById": {
+                    "epsilon": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($skipDelta: Boolean!) {
+          thing {
+            id
+            id @fusion__requirement
+            epsilon
+            delta @skip(if: $skipDelta)
+          }
+        }
+      name: testQuery
+      hash: d114e4af58ddccdc51bcd1f790a80691
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_8d84a7be_1 {
+          thing {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_8d84a7be_2($skipDelta: Boolean!, $__fusion_1_id: Int!) {
+          thingById(id: $__fusion_1_id) {
+            epsilon
+            delta @skip(if: $skipDelta)
+          }
+        }
+      source: $.thingById
+      target: $.thing
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      forwardedVariables:
+        - skipDelta
+      dependencies:
+        - id: 1
