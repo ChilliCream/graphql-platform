@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "ES|QL cannot skip rows: `skip`, `after` and `before` are not supported.",
+      "message": "ES|QL cannot skip rows: a page must start at the first row.",
       "path": [
         "test"
       ],

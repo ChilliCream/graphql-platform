@@ -78,7 +78,7 @@ builder
 
 # Pagination
 
-ES|QL cannot skip rows, so a query can read the first page only. Requests with `skip`, `after`, or `before` return an error. Register the offset paging provider to read the first page and the total count asynchronously:
+ES|QL cannot skip rows, so a query can read the first page only. A request that would skip rows, such as one with `skip` or `after`, returns an error. Register the offset paging provider to read the first page and the total count asynchronously:
 
 ```csharp
 builder

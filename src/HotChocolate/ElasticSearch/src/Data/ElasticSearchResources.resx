@@ -28,6 +28,6 @@
     <value>KQL cannot express this pattern on a nested field: `{0}`.</value>
   </data>
   <data name="ThrowHelper_Paging_SkipNotSupported" xml:space="preserve">
-    <value>ES|QL cannot skip rows: `skip`, `after` and `before` are not supported.</value>
+    <value>ES|QL cannot skip rows: a page must start at the first row.</value>
   </data>
 </root>

@@ -87,7 +87,7 @@ namespace HotChocolate.Data.ElasticSearch {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to ES|QL cannot skip rows: `skip`, `after` and `before` are not.
+        ///   Looks up a localized string similar to ES|QL cannot skip rows: a page must start at the first row..
         /// </summary>
         internal static string ThrowHelper_Paging_SkipNotSupported {
             get {

@@ -130,7 +130,7 @@ public class CursorPaginationTests : TestBase
         const string query = """
 
         query {
-            test(last: 1 after: "MQ==") {
+            test(last: 1 before: "MQ==") {
                 edges {
                     node {
                         index
