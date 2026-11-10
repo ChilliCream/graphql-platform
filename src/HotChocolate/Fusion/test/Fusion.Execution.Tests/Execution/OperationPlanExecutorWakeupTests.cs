@@ -81,14 +81,27 @@ public sealed class OperationPlanExecutorWakeupTests : FusionTestBase
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
             var request = fixture.ExecuteAsync(cts.Token);
 
-            await counters.Waiting.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-            await PauseAsync(iteration);
-            await cts.CancelAsync();
-            await PauseAsync(iteration / 4);
-            counters.ReleaseGate();
+            try
+            {
+                await counters.Waiting.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+                await PauseAsync(iteration);
+                await cts.CancelAsync();
+                await PauseAsync(iteration / 4);
+                counters.ReleaseGate();
 
-            results.Add(await request.WaitAsync(s_timeout, TestContext.Current.CancellationToken));
-            activeNodesAfterRequest.Add(counters.Started - counters.Finished);
+                results.Add(await request.WaitAsync(s_timeout, TestContext.Current.CancellationToken));
+                activeNodesAfterRequest.Add(counters.Started - counters.Finished);
+            }
+            finally
+            {
+                if (!request.IsCompleted)
+                {
+                    // a failed iteration must not leave the request running when the fixture is disposed.
+                    await cts.CancelAsync();
+                    counters.ReleaseGate();
+                    await Task.WhenAny(request, Task.Delay(s_timeout, CancellationToken.None));
+                }
+            }
         }
 
         // assert
