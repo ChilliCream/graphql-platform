@@ -136,6 +136,68 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
         Assert.True(settled);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Bus_Should_RedeliverUnacknowledgedEvent_When_ConsumerNodeIsKilled(bool automaticRecoveryEnabled)
+    {
+        // arrange
+        var queue = $"unacknowledged-orders-{automaticRecoveryEnabled}";
+        var secondary = fixture.CreateConnectionFactory(1);
+        await using (var connection = await secondary.CreateConnectionAsync(TestContext.Current.CancellationToken))
+        await using (var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken))
+        {
+            await channel.QueueDeclareAsync(queue, durable: true, exclusive: false, autoDelete: false,
+                arguments: new Dictionary<string, object?>
+                {
+                    ["x-queue-type"] = "quorum",
+                    ["x-queue-leader-locator"] = "client-local"
+                }, cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        var primary = fixture.CreateConnectionFactory(0);
+        primary.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
+        var provider = new ClusterConnectionProvider(primary, [primary.Endpoint, secondary.Endpoint]);
+        var gate = new HandlerGate();
+        var recorder = new MessageRecorder();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(gate)
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddEventHandler<QuorumOrderHandler>()
+            .AddRabbitMQ(t =>
+            {
+                t.ConnectionProvider(_ => provider);
+                t.ConfigureDefaults(defaults => defaults.Queue.QueueType = RabbitMQQueueType.Quorum);
+                t.DeclareQueue(queue).WithArgument("x-queue-leader-locator", "client-local");
+                t.Endpoint(queue).Handler<QuorumOrderHandler>().MaxConcurrency(1).MaxPrefetch(1);
+            })
+            .BuildTestBusAsync();
+        var transport = bus.Provider.GetRequiredService<IMessagingRuntime>().Transports
+            .OfType<RabbitMQMessagingTransport>().Single();
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "unacknowledged" }, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var before = await transport.ConsumerManager.GetConnectionAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(primary.Port, before.Endpoint.Port);
+        Assert.Equal(fixture.GetNodeName(1), (await fixture.GetQueueStateAsync(1, queue))?.Leader);
+
+        // act
+        await using var stopped = await fixture.KillNodeAsync(0);
+        gate.Release.TrySetResult();
+        var settled = await Condition.WaitAsync(async () =>
+            !recorder.Messages.IsEmpty
+                && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
+                && transport.ConsumerManager.IsHealthy,
+            s_timeout);
+
+        // assert
+        Assert.True(settled);
+        Assert.Equal(["unacknowledged"],
+            recorder.Messages.Cast<OrderCreated>().Select(message => message.OrderId).Distinct());
+    }
+
     public sealed class HandlerGate
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

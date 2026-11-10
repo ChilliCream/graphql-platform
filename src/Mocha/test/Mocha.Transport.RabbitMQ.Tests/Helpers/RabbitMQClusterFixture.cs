@@ -104,6 +104,11 @@ public sealed class RabbitMQClusterFixture : IAsyncLifetime
                 .WithNetworkAliases(hostname)
                 .WithHostname(hostname)
                 .WithEnvironment("RABBITMQ_ERLANG_COOKIE", "mocha-cluster-tests")
+                // Return deliveries held by a disconnected quorum consumer after one second.
+                .WithEnvironment("RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS", "-rabbit consumer_disconnected_timeout 1000")
+                .WithWaitStrategy(Wait.ForUnixContainer()
+                    .UntilMessageIsLogged("Server startup complete")
+                    .UntilCommandIsCompleted("rabbitmq-diagnostics", "-q", "check_running"))
                 .WithCreateParameterModifier(parameters => parameters.StopSignal = "SIGKILL")
                 .Build();
         }
