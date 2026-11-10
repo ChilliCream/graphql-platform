@@ -50,6 +50,39 @@ public class MultiPartResponseStreamSerializerTests
     }
 
     [Fact]
+    public async Task FormatAsync_Should_WriteEachResultOnce_When_ResultIsVariableBatch()
+    {
+        // arrange
+        var result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            "query($episode: Episode!) { hero(episode: $episode) { name } }")
+                        .SetVariableValuesSet(
+                        [
+                            new Dictionary<string, object?> { ["episode"] = "NEW_HOPE" },
+                            new Dictionary<string, object?> { ["episode"] = "EMPIRE" },
+                            new Dictionary<string, object?> { ["episode"] = "JEDI" }
+                        ])
+                        .Build());
+
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        var memoryStream = new MemoryStream();
+        var serializer = new MultiPartResultFormatter();
+
+        // act
+        await serializer.FormatAsync(batch, memoryStream, CancellationToken.None);
+
+        // assert
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        (await new StreamReader(memoryStream).ReadToEndAsync()).MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Serialize_ResponseStream_Is_Null()
     {
         // arrange
