@@ -379,7 +379,7 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
                 requestContext,
                 VariableValueCollection.Empty,
                 variableIndex: -1,
-                null,
+                PolicyEvaluationResult.Empty,
                 plan,
                 cts,
                 new MemoryArena());

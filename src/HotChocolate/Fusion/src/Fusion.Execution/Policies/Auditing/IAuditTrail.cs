@@ -13,7 +13,7 @@ public interface IAuditTrail
     string InvocationId { get; }
 
     /// <summary>
-    /// Opens the scope that records the policy decisions of one variable set. The method must be
+    /// Opens the scope that records the policy outcome of one variable set. The method must be
     /// safe for concurrent calls.
     /// </summary>
     /// <param name="info">

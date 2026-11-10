@@ -35,4 +35,36 @@ public sealed class PolicyVariable
     /// <c>true</c>. It is empty for variables that gate selections.
     /// </summary>
     public ImmutableArray<PolicyVariable> Operands { get; }
+
+    /// <summary>
+    /// Returns whether the variable is <c>true</c> for a variable set.
+    /// </summary>
+    /// <param name="policyResult">
+    /// The denied selections of the variable set.
+    /// </param>
+    internal bool IsTrue(PolicyEvaluationResult policyResult)
+    {
+        if (Operands.IsEmpty)
+        {
+            foreach (var selection in Selections)
+            {
+                if (policyResult.IsDenied(selection))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        foreach (var operand in Operands)
+        {
+            if (!operand.IsTrue(policyResult))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

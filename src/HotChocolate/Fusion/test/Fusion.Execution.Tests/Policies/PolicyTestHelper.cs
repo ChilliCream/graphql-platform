@@ -59,8 +59,8 @@ internal static class PolicyTestHelper
     public static ClaimsPrincipal Anonymous()
         => new(new ClaimsIdentity());
 
-    public static PolicyOutcome[] Outcomes(PolicyEvaluationContext context)
-        => context.Verdicts.ToArray().Select(v => v.Outcome).ToArray();
+    public static PolicyDecision[] Outcomes(PolicyEvaluationContext context)
+        => context.Verdicts.ToArray().Select(v => v.Decision).ToArray();
 
     private sealed class PlanFactory : FusionTestBase
     {

@@ -11,7 +11,7 @@ public interface IPolicy
 {
     /// <summary>
     /// Answers the entries of the context through its <c>Allow</c> and <c>Deny</c> methods.
-    /// Entries that are not answered stay <see cref="PolicyOutcome.Unanswered"/>.
+    /// Entries that are not answered stay <see cref="PolicyDecision.Unanswered"/>.
     /// </summary>
     /// <param name="context">
     /// The evaluation context.

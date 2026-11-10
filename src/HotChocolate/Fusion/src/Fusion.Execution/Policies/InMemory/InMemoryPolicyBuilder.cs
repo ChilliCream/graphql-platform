@@ -20,7 +20,7 @@ public sealed class InMemoryPolicyBuilder
     public InMemoryPolicyBuilder Allow(string policyName)
     {
         ArgumentException.ThrowIfNullOrEmpty(policyName);
-        _evaluators[policyName] = static (_, _) => new PolicyVerdict(PolicyOutcome.Allowed, null, null);
+        _evaluators[policyName] = static (_, _) => new PolicyVerdict(PolicyDecision.Allowed, null, null);
         return this;
     }
 
@@ -39,7 +39,7 @@ public sealed class InMemoryPolicyBuilder
     public InMemoryPolicyBuilder Deny(string policyName, string? reason = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(policyName);
-        _evaluators[policyName] = (_, _) => new PolicyVerdict(PolicyOutcome.Denied, reason, null);
+        _evaluators[policyName] = (_, _) => new PolicyVerdict(PolicyDecision.Denied, reason, null);
         return this;
     }
 
@@ -55,7 +55,7 @@ public sealed class InMemoryPolicyBuilder
     public InMemoryPolicyBuilder Unanswered(string policyName)
     {
         ArgumentException.ThrowIfNullOrEmpty(policyName);
-        _evaluators[policyName] = static (_, _) => new PolicyVerdict(PolicyOutcome.Unanswered, null, null);
+        _evaluators[policyName] = static (_, _) => new PolicyVerdict(PolicyDecision.Unanswered, null, null);
         return this;
     }
 
@@ -79,8 +79,8 @@ public sealed class InMemoryPolicyBuilder
         ArgumentNullException.ThrowIfNull(evaluate);
 
         _evaluators[policyName] = (context, entry) => evaluate(context, entry)
-            ? new PolicyVerdict(PolicyOutcome.Allowed, null, null)
-            : new PolicyVerdict(PolicyOutcome.Denied, null, null);
+            ? new PolicyVerdict(PolicyDecision.Allowed, null, null)
+            : new PolicyVerdict(PolicyDecision.Denied, null, null);
         return this;
     }
 

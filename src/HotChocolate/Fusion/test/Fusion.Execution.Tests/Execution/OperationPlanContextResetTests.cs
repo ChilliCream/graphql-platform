@@ -338,7 +338,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
                 requestContext,
                 VariableValueCollection.Empty,
                 variableIndex: -1,
-                null,
+                PolicyEvaluationResult.Empty,
                 plan,
                 cancellationTokenSource,
                 memory);

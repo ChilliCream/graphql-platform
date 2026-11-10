@@ -23,7 +23,7 @@ public class PolicyEvaluationContextTests
         var outcomes = Outcomes(context);
 
         // assert
-        Assert.Equal([PolicyOutcome.Unanswered, PolicyOutcome.Unanswered], outcomes);
+        Assert.Equal([PolicyDecision.Unanswered, PolicyDecision.Unanswered], outcomes);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class PolicyEvaluationContextTests
         context.Allow(context.Entries[1]);
 
         // assert
-        Assert.Equal([PolicyOutcome.Unanswered, PolicyOutcome.Allowed], Outcomes(context));
+        Assert.Equal([PolicyDecision.Unanswered, PolicyDecision.Allowed], Outcomes(context));
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class PolicyEvaluationContextTests
             "The policy 'p' already answered the entry of the field 'Product.id'. "
             + "An entry takes exactly one verdict.",
             exception.Message);
-        Assert.Equal(new PolicyVerdict(PolicyOutcome.Denied, "no", null), context.Verdicts[0]);
+        Assert.Equal(new PolicyVerdict(PolicyDecision.Denied, "no", null), context.Verdicts[0]);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class PolicyEvaluationContextTests
 
         // assert
         var verdict = context.Verdicts[0];
-        Assert.Equal(PolicyOutcome.Denied, verdict.Outcome);
+        Assert.Equal(PolicyDecision.Denied, verdict.Decision);
         Assert.Equal("no", verdict.Reason);
         Assert.Same(auditData, verdict.AuditData);
     }

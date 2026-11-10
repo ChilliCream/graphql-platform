@@ -18,6 +18,36 @@ internal sealed class VariableValueCollection : IVariableValueCollection
 
     public static EmptyVariableValueCollection Empty => EmptyVariableValueCollection.Instance;
 
+    /// <summary>
+    /// Creates a collection with the values of <paramref name="values"/> and room for more values.
+    /// </summary>
+    /// <param name="values">
+    /// The values to copy.
+    /// </param>
+    /// <param name="additionalCapacity">
+    /// The number of values that can be added without growing the collection.
+    /// </param>
+    internal static VariableValueCollection Copy(IVariableValueCollection values, int additionalCapacity)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+
+        var count = 0;
+
+        foreach (var _ in values)
+        {
+            count++;
+        }
+
+        var coercedValues = new Dictionary<string, VariableValue>(count + additionalCapacity);
+
+        foreach (var value in values)
+        {
+            coercedValues[value.Name] = value;
+        }
+
+        return new VariableValueCollection(coercedValues);
+    }
+
     public bool IsEmpty => _coercedValues.Count == 0;
 
     /// <summary>

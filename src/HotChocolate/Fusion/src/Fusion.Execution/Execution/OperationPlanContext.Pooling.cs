@@ -34,7 +34,7 @@ public sealed partial class OperationPlanContext
         RequestContext requestContext,
         IVariableValueCollection variables,
         int variableIndex,
-        PolicyDecisions? policyDecisions,
+        PolicyEvaluationResult policyResult,
         IOperationPlan operationPlan,
         CancellationTokenSource cancellationTokenSource,
         MemoryArena? memory = null)
@@ -61,7 +61,7 @@ public sealed partial class OperationPlanContext
         _variableIndex = variableIndex;
         OperationPlan = operationPlan;
 
-        PolicyDecisions = policyDecisions;
+        PolicyEvaluationResult = policyResult;
 
         switch (operationPlan)
         {
@@ -206,7 +206,7 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
-        PolicyDecisions = null;
+        PolicyEvaluationResult = PolicyEvaluationResult.Empty;
         _entityReuseCandidateMap = null;
         IncludeConditionFlags = default;
         DeferConditionFlags = default;

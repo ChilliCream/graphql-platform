@@ -80,7 +80,7 @@ internal sealed class PolicyEvaluator
     /// <param name="cancellationToken">
     /// The token that signals that the request was aborted.
     /// </param>
-    public async ValueTask<PolicyEvaluation> EvaluateAsync(
+    public async ValueTask<PolicyEvaluationResult> EvaluateAsync(
         RequestContext context,
         ClaimsPrincipal user,
         OperationPlan plan,
@@ -124,7 +124,7 @@ internal sealed class PolicyEvaluator
                         scope.Record(
                             CreateAuditEntry(
                                 entry,
-                                new PolicyVerdict(PolicyOutcome.Denied, UnauthenticatedReason, null)));
+                                new PolicyVerdict(PolicyDecision.Denied, UnauthenticatedReason, null)));
                         answered.Add(descriptor);
                     }
 
@@ -167,7 +167,7 @@ internal sealed class PolicyEvaluator
                 {
                     await group.Policy.EvaluateAsync(policyContext, cancellationToken);
                 }
-                catch (InvalidOperationException ex) when (group.Policy is UnresolvedPolicy)
+                catch (PolicyNotResolvedException ex)
                 {
                     if (answered is not null)
                     {
@@ -176,14 +176,14 @@ internal sealed class PolicyEvaluator
                             scope.Record(
                                 CreateAuditEntry(
                                     entry,
-                                    new PolicyVerdict(PolicyOutcome.Unanswered, ex.Message, null)));
+                                    new PolicyVerdict(PolicyDecision.Unanswered, ex.Message, null)));
                             answered.Add(entry.Descriptor);
                         }
 
                         RecordUnanswered(scope, occurrences, groups, answered, variables);
                     }
 
-                    return new PolicyEvaluation(null, ex);
+                    throw;
                 }
 
                 if (answered is not null)
@@ -197,7 +197,7 @@ internal sealed class PolicyEvaluator
 
             var denied = Freeze(deniedDescriptors);
 
-            return new PolicyEvaluation(CreateDecisions(occurrences, denied, isAuthenticated), null);
+            return CreateResult(occurrences, denied, isAuthenticated);
         }
         catch (Exception ex) when (answered is not null && IsFault(ex, cancellationToken))
         {
@@ -282,7 +282,7 @@ internal sealed class PolicyEvaluator
                 descriptor,
                 CoerceArguments((Selection)descriptor.Selection, variables));
 
-            scope.Record(CreateAuditEntry(entry, new PolicyVerdict(PolicyOutcome.Denied, reason, null)));
+            scope.Record(CreateAuditEntry(entry, new PolicyVerdict(PolicyDecision.Denied, reason, null)));
         }
     }
 
@@ -299,14 +299,14 @@ internal sealed class PolicyEvaluator
     public static bool IsFault(Exception exception, CancellationToken cancellationToken)
         => exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested;
 
-    private PolicyDecisions? CreateDecisions(
+    private PolicyEvaluationResult CreateResult(
         ImmutableArray<PolicyDescriptor> occurrences,
         FrozenSet<PolicyDescriptor> deniedDescriptors,
         bool isAuthenticated)
     {
         if (deniedDescriptors.Count == 0)
         {
-            return null;
+            return PolicyEvaluationResult.Empty;
         }
 
         var kind = isAuthenticated
@@ -331,8 +331,8 @@ internal sealed class PolicyEvaluator
         }
 
         return denials.Count == 0
-            ? null
-            : new PolicyDecisions(
+            ? PolicyEvaluationResult.Empty
+            : new PolicyEvaluationResult(
                 denials.ToImmutable(),
                 _options.DenyHandling,
                 _options.EnableAttribution);
@@ -427,7 +427,7 @@ internal sealed class PolicyEvaluator
 
             if (!isAuthenticated
                 && entries[i].Descriptor.DirectiveName == DirectiveNames.Authenticated.Name
-                && verdict is { Outcome: PolicyOutcome.Denied, Reason: null })
+                && verdict is { Decision: PolicyDecision.Denied, Reason: null })
             {
                 verdict = verdict with { Reason = UnauthenticatedReason };
             }
@@ -512,7 +512,7 @@ internal sealed class PolicyEvaluator
             descriptor.PolicyName,
             descriptor.Scopes,
             CreateArgumentValues(entry.Arguments),
-            verdict.Outcome,
+            verdict.Decision,
             verdict.Reason,
             verdict.AuditData);
     }
@@ -560,7 +560,7 @@ internal sealed class PolicyEvaluator
 
         for (var i = 0; i < entries.Length; i++)
         {
-            if (verdicts[i].Outcome is not PolicyOutcome.Allowed)
+            if (verdicts[i].Decision is not PolicyDecision.Allowed)
             {
                 deniedDescriptors.Add(entries[i].Descriptor);
             }

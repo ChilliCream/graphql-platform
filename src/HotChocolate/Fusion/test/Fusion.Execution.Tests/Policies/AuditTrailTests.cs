@@ -147,7 +147,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
                 "Query.ghost | @policy(ghost) | scopes=[] | args={} | Unanswered | reason=No policy provider knows the policy 'ghost' of the directive '@policy'. | data=-"
             ]);
         Assert.Equal(
-            "System.InvalidOperationException: No policy provider knows the policy 'ghost' of the directive '@policy'.",
+            "HotChocolate.Fusion.Policies.PolicyNotResolvedException: No policy provider knows the policy 'ghost' of the directive '@policy'.",
             scope.FailureReason);
         Assert.Equal(1, scope.CommitCount);
         Assert.Empty(client.Requests);
@@ -179,9 +179,106 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
                 "Query.guarded | @policy(finance) | scopes=[] | args={id:\"7\"} | Unanswered | reason=- | data=-"
             ]);
         Assert.Equal(
-            "System.InvalidOperationException: No policy provider knows the policy 'ghost' of the directive '@policy'.",
+            "HotChocolate.Fusion.Policies.PolicyNotResolvedException: No policy provider knows the policy 'ghost' of the directive '@policy'.",
             scope.FailureReason);
         Assert.Equal(1, scope.CommitCount);
+        Assert.Empty(client.Requests);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PropagatePolicyFault_When_UnresolvedPolicyIsSkipped()
+    {
+        // arrange
+        var client = new AuthorizationTestClient(Data);
+        var listener = new CapturingExecutionDiagnosticEventListener();
+        var audit = new RecordingAuditProvider(client);
+        var policyFault = new InvalidOperationException("boom");
+        var executor = await CreateAuditedExecutorAsync(
+            GhostSchema,
+            client,
+            audit,
+            policies => policies.Evaluate("finance", (_, _) => throw policyFault),
+            builder =>
+            {
+                builder.ModifyPolicyOptions(options => options.DisablePolicyValidation = true);
+                builder.AddDiagnosticEventListener(_ => listener);
+            });
+        var request = CreateRequest(
+                "query($skip: Boolean!) { guarded(id: \"7\") ghost @skip(if: $skip) }",
+                Authenticated())
+            .SetVariableValues("""{"skip":true}""")
+            .Build();
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            request,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Format(audit).MatchInlineSnapshot(
+            """
+            trails=1
+            scope trail=invocation-1 | request=-1 | set=0 | commits=1 | failure=System.InvalidOperationException: boom
+              Query.guarded | @policy(finance) | scopes=[] | args={id:"7"} | Unanswered | reason=- | data=-
+            """);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error"
+                }
+              ]
+            }
+            """);
+        Assert.Same(policyFault, Assert.Single(listener.RequestErrors));
+        Assert.Empty(client.Requests);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PropagateRecordingFault_When_UnresolvedPolicyCannotBeRecorded()
+    {
+        // arrange
+        var client = new AuthorizationTestClient(Data);
+        var listener = new CapturingExecutionDiagnosticEventListener();
+        var recordingFault = new InvalidOperationException("record");
+        var audit = new RecordingAuditProvider(client)
+        {
+            RecordFailure = (1, recordingFault)
+        };
+        var executor = await CreateAuditedExecutorAsync(
+            GhostSchema,
+            client,
+            audit,
+            configure: builder =>
+            {
+                builder.ModifyPolicyOptions(options => options.DisablePolicyValidation = true);
+                builder.AddDiagnosticEventListener(_ => listener);
+            });
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            CreateRequest("{ ghost }", Authenticated()).Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Format(audit).MatchInlineSnapshot(
+            """
+            trails=1
+            scope trail=invocation-1 | request=-1 | set=0 | commits=1 | failure=System.InvalidOperationException: record
+              Query.ghost | @policy(ghost) | scopes=[] | args={} | Unanswered | reason=- | data=-
+            """);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error"
+                }
+              ]
+            }
+            """);
+        Assert.Same(recordingFault, Assert.Single(listener.RequestErrors));
         Assert.Empty(client.Requests);
     }
 
@@ -915,7 +1012,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
             null,
             [],
             ImmutableDictionary.Create<string, string>(),
-            PolicyOutcome.Allowed,
+            PolicyDecision.Allowed,
             null,
             null);
 
@@ -929,7 +1026,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
             : "{" + string.Join(",", entry.AuditData.Select(a => $"{a.Key}:{a.Value}")) + "}";
 
         return $"{entry.Coordinate} | @{entry.DirectiveName}{policyName} | scopes=[{scopes}] "
-            + $"| args={{{arguments}}} | {entry.Outcome} | reason={entry.Reason ?? "-"} | data={data}";
+            + $"| args={{{arguments}}} | {entry.Decision} | reason={entry.Reason ?? "-"} | data={data}";
     }
 
     private static string Format(AuditSubject subject)
@@ -964,7 +1061,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
             ";",
             scope.Entries.Select(
                 e => $"{e.Coordinate} @{e.DirectiveName}{(e.PolicyName is null ? string.Empty : $"({e.PolicyName})")} "
-                    + $"args={{{string.Join(",", e.Arguments.Select(a => $"{a.Key}:{a.Value}"))}}} {e.Outcome}"));
+                    + $"args={{{string.Join(",", e.Arguments.Select(a => $"{a.Key}:{a.Value}"))}}} {e.Decision}"));
 
         return $"trail={scope.Trail.InvocationId} | request={info.RequestIndex} | set={info.VariableSetIndex} | {entries}";
     }

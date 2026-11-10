@@ -5,6 +5,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
@@ -432,7 +433,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
                 requestContext,
                 variables,
                 variableIndex: -1,
-                null,
+                PolicyEvaluationResult.Empty,
                 _operationPlan,
                 cts,
                 new MemoryArena());

@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
-/// The input and the outcome of one policy evaluation for one directive occurrence.
+/// The input and the decision of one policy evaluation for one directive occurrence.
 /// </summary>
 /// <param name="Coordinate">
 /// The schema coordinate of the protected field.
@@ -20,11 +20,11 @@ namespace HotChocolate.Fusion.Policies.Auditing;
 /// <param name="Arguments">
 /// The arguments of the field as GraphQL literals, with variables replaced by their values.
 /// </param>
-/// <param name="Outcome">
-/// The outcome of the evaluation.
+/// <param name="Decision">
+/// The decision of the evaluation.
 /// </param>
 /// <param name="Reason">
-/// The reason of the outcome, or <c>null</c> if there is none.
+/// The reason of the decision, or <c>null</c> if there is none.
 /// </param>
 /// <param name="AuditData">
 /// The audit data of the policy, or <c>null</c> if it attached none.
@@ -35,6 +35,6 @@ public readonly record struct AuditLogEntry(
     string? PolicyName,
     ImmutableArray<ImmutableArray<string>> Scopes,
     ImmutableDictionary<string, string> Arguments,
-    PolicyOutcome Outcome,
+    PolicyDecision Decision,
     string? Reason,
     ImmutableDictionary<string, string>? AuditData);

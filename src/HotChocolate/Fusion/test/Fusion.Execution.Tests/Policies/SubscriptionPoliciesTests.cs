@@ -348,7 +348,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     private static string Format(RecordingAuditScope scope)
     {
         var entries = scope.Entries.Select(
-            e => $"{e.Coordinate} @{e.DirectiveName}({e.PolicyName}) {e.Outcome} {e.Reason ?? "-"}");
+            e => $"{e.Coordinate} @{e.DirectiveName}({e.PolicyName}) {e.Decision} {e.Reason ?? "-"}");
 
         return $"commits={scope.CommitCount} | {string.Join("; ", entries)} | failure={scope.FailureReason ?? "-"}";
     }

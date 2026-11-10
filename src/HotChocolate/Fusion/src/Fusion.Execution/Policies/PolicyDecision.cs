@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Policies;
 /// <summary>
 /// The decision a policy reached for a single <see cref="PolicyEvaluationEntry"/>.
 /// </summary>
-public enum PolicyOutcome
+public enum PolicyDecision
 {
     /// <summary>
     /// The policy did not decide the entry. The entry is denied for the client.

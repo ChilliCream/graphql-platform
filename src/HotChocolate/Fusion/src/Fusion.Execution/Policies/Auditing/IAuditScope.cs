@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Policies.Auditing;
 
 /// <summary>
-/// The policy decisions of one variable set, which the gateway commits exactly once before it
+/// The policy outcome of one variable set, which the gateway commits exactly once before it
 /// executes the variable set. A scope is owned by the evaluation of its variable set and is not
 /// thread-safe.
 /// </summary>

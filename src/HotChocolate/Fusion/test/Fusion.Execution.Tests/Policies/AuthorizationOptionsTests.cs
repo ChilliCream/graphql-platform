@@ -174,7 +174,7 @@ public class AuthorizationOptionsTests : FusionTestBase
         await policy.EvaluateAsync(context, CancellationToken.None);
 
         // assert
-        Assert.Equal([PolicyOutcome.Allowed, PolicyOutcome.Denied], Outcomes(context));
+        Assert.Equal([PolicyDecision.Allowed, PolicyDecision.Denied], Outcomes(context));
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class AuthorizationOptionsTests : FusionTestBase
         await policy.EvaluateAsync(context, CancellationToken.None);
 
         // assert
-        Assert.Equal([PolicyOutcome.Allowed], Outcomes(context));
+        Assert.Equal([PolicyDecision.Allowed], Outcomes(context));
     }
 
     private static async Task<IRequestExecutor> CreateExecutorAsync(

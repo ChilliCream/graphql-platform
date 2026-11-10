@@ -38,7 +38,7 @@ public sealed class RecordingAuditProvider : IAuditProvider
         public string Describe()
         {
             var entries = _entries.Select(
-                e => $"{e.Coordinate} @{e.DirectiveName}({e.PolicyName}) {e.Outcome} {e.Reason ?? "-"}");
+                e => $"{e.Coordinate} @{e.DirectiveName}({e.PolicyName}) {e.Decision} {e.Reason ?? "-"}");
 
             return $"commits={_commits} | {string.Join("; ", entries)} | failure={FailureReason ?? "-"}";
         }

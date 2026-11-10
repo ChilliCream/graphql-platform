@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Policies;
 /// <summary>
 /// The result a policy recorded for a single <see cref="PolicyEvaluationEntry"/>.
 /// </summary>
-/// <param name="Outcome">
+/// <param name="Decision">
 /// The decision of the policy.
 /// </param>
 /// <param name="Reason">
@@ -15,6 +15,6 @@ namespace HotChocolate.Fusion.Policies;
 /// Optional key/value pairs that are only meant for auditing.
 /// </param>
 public readonly record struct PolicyVerdict(
-    PolicyOutcome Outcome,
+    PolicyDecision Decision,
     string? Reason,
     ImmutableDictionary<string, string>? AuditData);

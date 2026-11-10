@@ -8,14 +8,16 @@ namespace HotChocolate.Fusion.Policies;
 /// <summary>
 /// The denied selections of one variable set of a request.
 /// </summary>
-internal sealed class PolicyDecisions
+internal sealed class PolicyEvaluationResult
 {
     private readonly FrozenDictionary<Selection, SelectionDenial> _denialsBySelection;
     private readonly DenyHandling _denyHandling;
     private readonly bool _isAttributed;
 
+    public static PolicyEvaluationResult Empty { get; } = new([], DenyHandling.Null, false);
+
     /// <summary>
-    /// Initializes a new instance of <see cref="PolicyDecisions"/>.
+    /// Initializes a new instance of <see cref="PolicyEvaluationResult"/>.
     /// </summary>
     /// <param name="denials">
     /// The denied selections in evaluation order. A selection appears at most once.
@@ -26,7 +28,7 @@ internal sealed class PolicyDecisions
     /// <param name="isAttributed">
     /// Whether the errors of denied selections name the directive, policy and required scopes.
     /// </param>
-    public PolicyDecisions(
+    public PolicyEvaluationResult(
         ImmutableArray<SelectionDenial> denials,
         DenyHandling denyHandling,
         bool isAttributed)

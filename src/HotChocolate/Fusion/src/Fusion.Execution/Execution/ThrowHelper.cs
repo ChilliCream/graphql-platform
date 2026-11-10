@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -69,7 +70,7 @@ internal static class ThrowHelper
             FusionExecutionResources.DeliveryGroup_InvalidIfVariable,
             variableName));
 
-    public static InvalidOperationException PolicyNotResolved(string directiveName, string? policyName)
+    public static PolicyNotResolvedException PolicyNotResolved(string directiveName, string? policyName)
         => new(string.Format(
             FusionExecutionResources.PolicyResolver_PolicyNotResolved,
             policyName ?? string.Empty,

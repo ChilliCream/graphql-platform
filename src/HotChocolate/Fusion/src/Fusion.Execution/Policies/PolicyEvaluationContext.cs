@@ -108,7 +108,7 @@ public sealed class PolicyEvaluationContext
     /// The entry was already answered.
     /// </exception>
     public void Allow(in PolicyEvaluationEntry entry)
-        => Record(entry, PolicyOutcome.Allowed, null, null);
+        => Record(entry, PolicyDecision.Allowed, null, null);
 
     /// <summary>
     /// Allows the entry.
@@ -125,7 +125,7 @@ public sealed class PolicyEvaluationContext
     public void Allow(in PolicyEvaluationEntry entry, ImmutableDictionary<string, string> auditData)
     {
         ArgumentNullException.ThrowIfNull(auditData);
-        Record(entry, PolicyOutcome.Allowed, null, auditData);
+        Record(entry, PolicyDecision.Allowed, null, auditData);
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public sealed class PolicyEvaluationContext
     /// The entry was already answered.
     /// </exception>
     public void Deny(in PolicyEvaluationEntry entry, string? reason = null)
-        => Record(entry, PolicyOutcome.Denied, reason, null);
+        => Record(entry, PolicyDecision.Denied, reason, null);
 
     /// <summary>
     /// Denies the entry.
@@ -164,7 +164,7 @@ public sealed class PolicyEvaluationContext
         ImmutableDictionary<string, string> auditData)
     {
         ArgumentNullException.ThrowIfNull(auditData);
-        Record(entry, PolicyOutcome.Denied, reason, auditData);
+        Record(entry, PolicyDecision.Denied, reason, auditData);
     }
 
     /// <summary>
@@ -178,13 +178,13 @@ public sealed class PolicyEvaluationContext
 
     private void Record(
         in PolicyEvaluationEntry entry,
-        PolicyOutcome outcome,
+        PolicyDecision decision,
         string? reason,
         ImmutableDictionary<string, string>? auditData)
     {
         var index = GetIndex(entry);
 
-        if (_verdicts[index].Outcome is not PolicyOutcome.Unanswered)
+        if (_verdicts[index].Decision is not PolicyDecision.Unanswered)
         {
             var descriptor = entry.Descriptor;
 
@@ -193,7 +193,7 @@ public sealed class PolicyEvaluationContext
                 descriptor.PolicyName ?? descriptor.DirectiveName);
         }
 
-        _verdicts[index] = new PolicyVerdict(outcome, reason, auditData);
+        _verdicts[index] = new PolicyVerdict(decision, reason, auditData);
     }
 
     private int GetIndex(in PolicyEvaluationEntry entry)

@@ -26,13 +26,13 @@ internal sealed class InMemoryPolicy : IPolicy
 
             var verdict = _evaluate(context, entry);
 
-            switch (verdict.Outcome)
+            switch (verdict.Decision)
             {
-                case PolicyOutcome.Allowed:
+                case PolicyDecision.Allowed:
                     context.Allow(in entry);
                     break;
 
-                case PolicyOutcome.Denied:
+                case PolicyDecision.Denied:
                     context.Deny(in entry, verdict.Reason);
                     break;
             }

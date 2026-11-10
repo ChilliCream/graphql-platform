@@ -21,7 +21,7 @@ public class BuiltInPolicyTests
         await policy.EvaluateAsync(context, CancellationToken.None);
 
         // assert
-        Assert.Equal([PolicyOutcome.Allowed, PolicyOutcome.Allowed], Outcomes(context));
+        Assert.Equal([PolicyDecision.Allowed, PolicyDecision.Allowed], Outcomes(context));
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class BuiltInPolicyTests
         await policy.EvaluateAsync(context, CancellationToken.None);
 
         // assert
-        Assert.Equal([PolicyOutcome.Denied, PolicyOutcome.Denied], Outcomes(context));
+        Assert.Equal([PolicyDecision.Denied, PolicyDecision.Denied], Outcomes(context));
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class BuiltInPolicyTests
         await policy.EvaluateAsync(context, CancellationToken.None);
 
         // assert
-        Assert.Equal([PolicyOutcome.Denied], Outcomes(context));
+        Assert.Equal([PolicyDecision.Denied], Outcomes(context));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class BuiltInPolicyTests
 
         // assert
         Assert.Equal(
-            [PolicyOutcome.Allowed, PolicyOutcome.Allowed, PolicyOutcome.Denied, PolicyOutcome.Denied],
+            [PolicyDecision.Allowed, PolicyDecision.Allowed, PolicyDecision.Denied, PolicyDecision.Denied],
             Outcomes(context));
     }
 
@@ -103,7 +103,7 @@ public class BuiltInPolicyTests
         await policy.EvaluateAsync(context, CancellationToken.None);
 
         // assert
-        Assert.Equal([PolicyOutcome.Allowed, PolicyOutcome.Denied], Outcomes(context));
+        Assert.Equal([PolicyDecision.Allowed, PolicyDecision.Denied], Outcomes(context));
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class BuiltInPolicyTests
 
         // assert
         Assert.Equal(
-            [PolicyOutcome.Allowed, PolicyOutcome.Allowed, PolicyOutcome.Denied],
+            [PolicyDecision.Allowed, PolicyDecision.Allowed, PolicyDecision.Denied],
             Outcomes(context));
     }
 
@@ -142,7 +142,7 @@ public class BuiltInPolicyTests
         await policy.EvaluateAsync(context, CancellationToken.None);
 
         // assert
-        Assert.Equal([PolicyOutcome.Denied, PolicyOutcome.Allowed], Outcomes(context));
+        Assert.Equal([PolicyDecision.Denied, PolicyDecision.Allowed], Outcomes(context));
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class BuiltInPolicyTests
         await policy.EvaluateAsync(context, CancellationToken.None);
 
         // assert
-        Assert.Equal([PolicyOutcome.Allowed], Outcomes(context));
+        Assert.Equal([PolicyDecision.Allowed], Outcomes(context));
     }
 
     [Fact]
@@ -177,6 +177,6 @@ public class BuiltInPolicyTests
         // assert
         Assert.False(entry.Descriptor.Scopes.IsDefault);
         Assert.Empty(entry.Descriptor.Scopes);
-        Assert.Equal([PolicyOutcome.Denied], Outcomes(context));
+        Assert.Equal([PolicyDecision.Denied], Outcomes(context));
     }
 }

@@ -75,7 +75,7 @@ internal sealed class OperationPolicyMiddleware
         var trail = context.Features.TryGet(out AuditInvocation? auditInvocation)
             ? auditInvocation.GetOrCreateTrail(_auditProvider, context.RequestServices)
             : _auditProvider.CreateTrail(context.RequestServices);
-        PolicyDecisions?[]? decisionSets = null;
+        PolicyEvaluationResult[] policyResults = [];
         IVariableValueCollection[]? updatedVariableSets = null;
         var isSubscription = plan.Operation.Definition.Operation is OperationType.Subscription;
         var expiry = isSubscription ? GetExpiry(user) : null;
@@ -94,11 +94,11 @@ internal sealed class OperationPolicyMiddleware
                 new AuditScopeInfo(plan.Operation.Id, plan.Id, context.RequestIndex, i),
                 user);
 
-            PolicyEvaluation evaluation;
+            PolicyEvaluationResult policyResult;
 
             try
             {
-                evaluation = await _evaluator.EvaluateAsync(
+                policyResult = await _evaluator.EvaluateAsync(
                     context,
                     user,
                     plan,
@@ -111,6 +111,13 @@ internal sealed class OperationPolicyMiddleware
             {
                 await _evaluator.CommitFaultedScopeAsync(context, scope, ex);
 
+                if (ex is PolicyNotResolvedException)
+                {
+                    _diagnosticEvents.RequestError(context, ex);
+                    context.Result = ErrorHelper.AuthorizationFailed();
+                    return;
+                }
+
                 if (ex is OperationCanceledException)
                 {
                     throw ThrowHelper.OperationPolicyFaulted(ex);
@@ -119,40 +126,27 @@ internal sealed class OperationPolicyMiddleware
                 throw;
             }
 
-            var failure = evaluation.Failure;
-
-            if (failure is not null)
-            {
-                scope.Fail(failure);
-            }
-
             await scope.CommitAsync(context.RequestAborted);
 
-            if (failure is not null)
-            {
-                _diagnosticEvents.RequestError(context, failure);
-                context.Result = ErrorHelper.AuthorizationFailed();
-                return;
-            }
-
-            var decisions = evaluation.Decisions;
-
-            if (decisions is not null
-                && decisions.TryGetRejection(_options.RejectRequestOn, out var denial))
+            if (policyResult.TryGetRejection(_options.RejectRequestOn, out var denial))
             {
                 await RejectAsync(context, denial);
                 return;
             }
 
-            if (decisions is not null)
+            if (!policyResult.Denials.IsEmpty)
             {
-                decisionSets ??= new PolicyDecisions?[variableSets.Length];
-                decisionSets[i] = decisions;
+                if (policyResults.Length == 0)
+                {
+                    policyResults = new PolicyEvaluationResult[variableSets.Length];
+                    Array.Fill(policyResults, PolicyEvaluationResult.Empty);
+                }
+
+                policyResults[i] = policyResult;
             }
 
             if (isSubscription
-                && decisions is not null
-                && decisions.TryGetDenial(plan.Operation.RootSelectionSet, out var rootDenial))
+                && policyResult.TryGetDenial(plan.Operation.RootSelectionSet, out var rootDenial))
             {
                 await RejectAsync(context, rootDenial);
                 return;
@@ -169,18 +163,21 @@ internal sealed class OperationPolicyMiddleware
                 continue;
             }
 
-            if (!isSubscription && variableSets[i] is VariableValueCollection values)
+            if (variableSets[i] is not VariableValueCollection values)
             {
-                PolicyVariableValues.AddTo(values, policies.Variables, decisions, _booleanType);
-            }
-            else
-            {
+                values = VariableValueCollection.Copy(variableSets[i], policies.Variables.Length);
                 updatedVariableSets ??= [.. variableSets];
-                updatedVariableSets[i] = PolicyVariableValues.Create(
-                    variableSets[i],
-                    policies.Variables,
-                    decisions,
-                    _booleanType);
+                updatedVariableSets[i] = values;
+            }
+
+            foreach (var variable in policies.Variables)
+            {
+                values.Add(
+                    variable.Name,
+                    new VariableValue(
+                        variable.Name,
+                        _booleanType,
+                        variable.IsTrue(policyResult) ? BooleanValueNode.True : BooleanValueNode.False));
             }
         }
 
@@ -189,9 +186,9 @@ internal sealed class OperationPolicyMiddleware
             context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(updatedVariableSets);
         }
 
-        if (decisionSets is not null)
+        if (policyResults.Length > 0)
         {
-            context.SetPolicyDecisions(ImmutableCollectionsMarshal.AsImmutableArray(decisionSets));
+            context.SetPolicyEvaluationResults(ImmutableCollectionsMarshal.AsImmutableArray(policyResults));
         }
 
         await next(context);

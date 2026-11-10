@@ -228,7 +228,7 @@ public class AuthorizationStartupValidationTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        var exception = await Assert.ThrowsAsync<PolicyNotResolvedException>(act);
         Assert.Equal(
             "No policy provider knows the policy 'auditor' of the directive '@policy'.",
             exception.Message);

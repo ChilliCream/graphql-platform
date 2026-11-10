@@ -953,7 +953,7 @@ public class PolicyPlanningTests : FusionTestBase
             new PolicyEvaluationEntry(descriptor, new Dictionary<string, object?>()));
 
         // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        var exception = await Assert.ThrowsAsync<PolicyNotResolvedException>(
             async () => await descriptor.Policy.EvaluateAsync(context, TestContext.Current.CancellationToken));
 
         // assert

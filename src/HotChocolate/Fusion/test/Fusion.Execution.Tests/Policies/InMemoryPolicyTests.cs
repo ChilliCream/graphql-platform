@@ -25,11 +25,11 @@ public class InMemoryPolicyTests : FusionTestBase
         var odd = await EvaluateAsync(resolver, "odd", selections[0], selections[1], selections[2]);
 
         // assert
-        Assert.Equal([PolicyOutcome.Allowed, PolicyOutcome.Allowed], allowed.Select(v => v.Outcome));
-        Assert.Equal([new PolicyVerdict(PolicyOutcome.Denied, "no", null)], denied);
+        Assert.Equal([PolicyDecision.Allowed, PolicyDecision.Allowed], allowed.Select(v => v.Decision));
+        Assert.Equal([new PolicyVerdict(PolicyDecision.Denied, "no", null)], denied);
         Assert.Equal(
-            selections.Select(s => s.Id % 2 == 1 ? PolicyOutcome.Allowed : PolicyOutcome.Denied),
-            odd.Select(v => v.Outcome));
+            selections.Select(s => s.Id % 2 == 1 ? PolicyDecision.Allowed : PolicyDecision.Denied),
+            odd.Select(v => v.Decision));
     }
 
     [Fact]
@@ -44,8 +44,8 @@ public class InMemoryPolicyTests : FusionTestBase
 
         // assert
         Assert.Equal(
-            [PolicyOutcome.Unanswered, PolicyOutcome.Unanswered],
-            verdicts.Select(v => v.Outcome));
+            [PolicyDecision.Unanswered, PolicyDecision.Unanswered],
+            verdicts.Select(v => v.Decision));
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class InMemoryPolicyTests : FusionTestBase
         var verdicts = await EvaluateAsync(resolver, "b", selections[1]);
 
         // assert
-        Assert.Equal([PolicyOutcome.Denied], verdicts.Select(v => v.Outcome));
+        Assert.Equal([PolicyDecision.Denied], verdicts.Select(v => v.Decision));
     }
 
     [Fact]
