@@ -78,7 +78,9 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
     {
         // arrange
         var executor = await CreateExecutorAsync(
+#pragma warning disable CS0618
             builder => builder.ModifyCostOptions(options => options.SkipAnalyzer = true));
+#pragma warning restore CS0618
         var request = OperationRequestBuilder.New()
             .SetDocument(OperationText)
             .AddGlobalState(ExecutionContextData.ValidateCost, true)

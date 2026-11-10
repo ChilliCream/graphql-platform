@@ -767,7 +767,9 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
 
         if (configure is not null)
         {
+#pragma warning disable CS0618
             builder.ModifyCostOptions(configure);
+#pragma warning restore CS0618
         }
 
         if (observation is not null)

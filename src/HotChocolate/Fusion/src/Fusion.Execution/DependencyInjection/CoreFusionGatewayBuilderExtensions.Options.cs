@@ -67,12 +67,14 @@ public static partial class CoreFusionGatewayBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a callback to modify the <see cref="FusionCostOptions"/>
-    /// (cost limits, response-size limits, cost plan cache size, etc.).
+    /// Registers a callback that configures the <see cref="FusionCostOptions"/>.
+    /// The configured values override composition settings in the Fusion archive.
     /// </summary>
     /// <param name="builder">The gateway builder.</param>
     /// <param name="configure">A delegate that configures the cost options.</param>
     /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    [Obsolete(
+        "Configure cost options as composition settings in the Fusion archive, for example: nitro fusion settings set max-field-cost 2000 --archive ./gateway.far. Values configured with this method override composition settings; this method will be removed in v17.")]
     public static IFusionGatewayBuilder ModifyCostOptions(
         this IFusionGatewayBuilder builder,
         Action<FusionCostOptions> configure)

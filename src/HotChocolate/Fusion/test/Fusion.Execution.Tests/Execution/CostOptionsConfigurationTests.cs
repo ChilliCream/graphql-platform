@@ -66,6 +66,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
     public async Task CostOptions_Should_ApplyCallbacksAfterSettings_When_CallbacksAreConfigured()
     {
         // arrange
+#pragma warning disable CS0618
         var services = new ServiceCollection();
         services
             .AddGraphQLGateway()
@@ -78,6 +79,7 @@ public class CostOptionsConfigurationTests : FusionTestBase
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(SourceSchema),
                 Settings("""{ "cost": { "maxFieldCost": 10, "enforceCostLimits": false } }"""));
+#pragma warning restore CS0618
 
         // act
         var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
