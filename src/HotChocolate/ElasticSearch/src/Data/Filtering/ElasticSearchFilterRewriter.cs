@@ -295,8 +295,10 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         if (call.Method.Name == nameof(Enumerable.Contains)
             && (call.Object is null ? call.Arguments[1] : call.Arguments[0]) == item)
         {
-            var values = (IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!;
-            return "(" + string.Join("|", values.Cast<string>().Select(EscapeRegex)) + ")";
+            var values = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!).Cast<string>().ToArray();
+
+            // # is the empty language of Lucene, so an empty list matches no value.
+            return values.Length == 0 ? "#" : "(" + string.Join("|", values.Select(EscapeRegex)) + ")";
         }
 
         throw ThrowHelper.ListFilter_NotSupported(call.ToString());

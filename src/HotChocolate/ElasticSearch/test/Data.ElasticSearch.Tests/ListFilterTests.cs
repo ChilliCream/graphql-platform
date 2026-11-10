@@ -98,7 +98,9 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         """some: { ncontains: "/" }""",
         """all: { contains: "-" }""",
         """all: { startsWith: "a" }""",
-        """some: { nstartsWith: "A1" }"""
+        """some: { nstartsWith: "A1" }""",
+        "some: { nin: [] }",
+        "all: { in: [] }"
     ];
 
     [Theory]
