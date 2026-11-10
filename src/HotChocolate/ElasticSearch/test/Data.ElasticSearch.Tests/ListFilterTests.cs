@@ -93,7 +93,10 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         "some: { note: { eq: null } }",
         """some: { details: { code: { neq: "a" } } }""",
         "some: { details: { code: { eq: null } } }",
-        """some: { details: { code: { nstartsWith: "a" } } }"""
+        """some: { details: { code: { nstartsWith: "a" } } }""",
+        """some: { note: { in: ["A1", null] } }""",
+        """some: { note: { nin: ["A1", null] } }""",
+        """some: { details: { code: { in: ["a", null] } } }"""
     ];
 
     public static TheoryData<string> Strings =>

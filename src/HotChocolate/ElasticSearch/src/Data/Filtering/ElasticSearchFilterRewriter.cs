@@ -529,21 +529,28 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         private string In(MethodCallExpression call)
         {
             var target = call.Object is null ? call.Arguments[1] : call.Arguments[0];
+            var from = _rendered.Count;
             var field = Field(target);
-            var values = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!)
-                .Cast<object?>()
-                .Select(value => Literal(target, value))
-                .ToList();
+            var choices = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!).Cast<object?>().ToList();
+            var values = choices.Where(value => value is not null).Select(value => Literal(target, value)).ToList();
 
             // no value is in an empty list, so the condition holds for no element.
-            if (values.Count == 0)
+            var text = values.Count == 0
+                ? IsQueryString ? $"({field}:* AND NOT {field}:*)" : $"({field}:* and not {field}:*)"
+                : IsQueryString
+                    ? $"{field}:({string.Join(" OR ", values)})"
+                    : $"({string.Join(" or ", values.Select(v => $"{field}:{v}"))})";
+
+            if (!choices.Contains(null))
             {
-                return IsQueryString ? $"({field}:* AND NOT {field}:*)" : $"({field}:* and not {field}:*)";
+                return text;
             }
 
-            return IsQueryString
-                ? $"{field}:({string.Join(" OR ", values)})"
-                : $"({string.Join(" or ", values.Select(v => $"{field}:{v}"))})";
+            // a null choice matches an element where the field is missing.
+            Negated = true;
+            var missing = IsQueryString ? $"NOT {field}:*" : $"not {field}:*";
+            var or = IsQueryString ? "OR" : "or";
+            return WithOwners(from, () => values.Count == 0 ? missing : $"({missing} {or} {text})");
         }
 
         private string Field(Expression expression)
