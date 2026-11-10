@@ -14,13 +14,15 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
             Color = Color.Red, Shade = Color.Red, When = new DateTime(2022, 12, 22, 15, 5, 22, DateTimeKind.Utc),
             OptionalTitle = "x", OptionalCount = 1, OptionalFlag = true,
             Inner = new Inner { Code = "a", Count = 1, Tags = ["a"], Items = [new() { Bar = "a" }] },
+            Links = [new Uri("https://a.example/")],
             OptionalColor = Color.Red
         },
         new()
         {
             Name = "2", Title = "beta", Count = 2, Total = 20, Price = 2.5, Flag = false,
             Color = Color.Green, Shade = Color.Green, When = new DateTime(2022, 12, 23, 15, 5, 22, DateTimeKind.Utc),
-            OptionalFlag = false, Inner = new Inner { Code = "b", Tags = ["b"], Items = [new() { Bar = "b" }] }
+            OptionalFlag = false, Inner = new Inner { Code = "b", Tags = ["b"], Items = [new() { Bar = "b" }] },
+            Links = [new Uri("https://b.example/")]
         },
         new()
         {
@@ -135,7 +137,11 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         { "inner", """code: { nstartsWith: "a" }""" },
         { "inner", """code: { ncontains: "a" }""" },
         { "inner", """tags: { all: { eq: "a" } }""" },
-        { "inner", """items: { all: { bar: { eq: "a" } } }""" }
+        { "inner", """items: { all: { bar: { eq: "a" } } }""" },
+        { "links", """some: { eq: "https://a.example/" }""" },
+        { "links", """none: { eq: "https://a.example/" }""" },
+        { "links", """all: { eq: "https://a.example/" }""" },
+        { "links", """some: { in: ["https://a.example/", "https://b.example/"] }""" }
     };
 
     [Theory]
@@ -211,5 +217,7 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         public Color? OptionalColor { get; set; }
 
         public Inner? Inner { get; set; }
+
+        public List<Uri> Links { get; set; } = [];
     }
 }

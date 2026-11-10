@@ -43,7 +43,7 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
             ? node.Arguments.Count == 2
                 ? RewriteStringList(node, list) ?? base.VisitMethodCall(node)
                 : base.VisitMethodCall(node)
-            : TryGetObjectElement(list.Type, out _)
+            : TryGetObjectElement(list.Type, out _) && !ComparesElement(node)
                 ? RewriteObjectList(node, list)
                 : base.VisitMethodCall(node);
 
@@ -454,6 +454,31 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
     private static bool IsStringList(Type type)
         => type != typeof(string) && typeof(IEnumerable<string>).IsAssignableFrom(type);
+
+    // a condition on the element itself, not on its fields, makes a list of values such as Uri.
+    private static bool ComparesElement(MethodCallExpression node)
+        => node.Arguments.Count == 2 && new ElementUseFinder(GetLambda(node.Arguments[1])).ComparesElement();
+
+    private sealed class ElementUseFinder(LambdaExpression lambda) : ExpressionVisitor
+    {
+        private readonly ParameterExpression _item = lambda.Parameters[0];
+        private bool _found;
+
+        public bool ComparesElement()
+        {
+            Visit(lambda.Body);
+            return _found;
+        }
+
+        protected override Expression VisitMember(MemberExpression node)
+            => node.Expression == _item ? node : base.VisitMember(node);
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            _found |= node == _item;
+            return node;
+        }
+    }
 
     private static bool TryGetObjectElement(Type type, out Type element)
     {

@@ -90,7 +90,7 @@ public class TestBase
             return new JsonObject { ["type"] = property.IsDefined(typeof(JsonConverterAttribute)) ? "keyword" : "integer" };
         }
 
-        if (type == typeof(string) || type == typeof(Guid))
+        if (type == typeof(string) || type == typeof(Guid) || type == typeof(Uri))
         {
             return new JsonObject { ["type"] = "keyword" };
         }
