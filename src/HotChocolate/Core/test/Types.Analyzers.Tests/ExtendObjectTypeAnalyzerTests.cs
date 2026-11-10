@@ -53,6 +53,50 @@ public class ExtendObjectTypeAnalyzerTests
     }
 
     [Fact]
+    public async Task ExtendObjectType_WithTypeArgument_RaisesInfo()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+             using HotChocolate.Types;
+
+             namespace TestNamespace;
+
+             [ExtendObjectType(typeof(Product))]
+             public static partial class ProductExtensions
+             {
+                 public static string GetDisplayName(Product product)
+                     => $"{product.Name} (ID: {product.Id})";
+             }
+
+             public class Product
+             {
+                 public int Id { get; set; }
+                 public string Name { get; set; }
+             }
+             """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task ExtendObjectType_WithStringArgument_NoInfo()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+             using HotChocolate.Types;
+
+             namespace TestNamespace;
+
+             [ExtendObjectType("Product")]
+             public static partial class ProductExtensions
+             {
+                 public static string GetDisplayName(string name)
+                     => name;
+             }
+             """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task ExtendObjectType_MultipleClasses_RaisesInfoForAll()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
