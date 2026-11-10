@@ -103,13 +103,15 @@ internal static class CursorKeySerializerHelper
 
     private static bool ReplaceColons(Span<byte> original, int start, int length, out int written)
     {
-        var escapedLength = length + original[start..length].Count((byte)':');
+        var colons = original[start..length].Count((byte)':');
 
-        if (escapedLength > original.Length)
+        if (colons > original.Length - length)
         {
             written = 0;
             return false;
         }
+
+        var escapedLength = length + colons;
 
         // Escaping only grows the key, so it is done in place from the end.
         var i = escapedLength;
