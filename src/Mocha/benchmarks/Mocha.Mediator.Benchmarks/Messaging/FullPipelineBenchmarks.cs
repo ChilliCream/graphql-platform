@@ -110,7 +110,9 @@ public class FullPipelineBenchmarks
     public ValueTask<BenchmarkResponse> FullPipeline_MediatorSg()
     {
         if (_mediatorSgProvider is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         var scope = _mediatorSgProvider.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<global::Mediator.IMediator>();
@@ -121,7 +123,9 @@ public class FullPipelineBenchmarks
     public ValueTask<BenchmarkResponse> FullPipeline_SwitchMediator()
     {
         if (_switchMediatorProvider is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         var scope = _switchMediatorProvider.CreateScope();
         var sender = scope.ServiceProvider.GetRequiredService<global::Mediator.Switch.IValueSender>();
@@ -132,7 +136,9 @@ public class FullPipelineBenchmarks
     public ValueTask<BenchmarkResponse> FullPipeline_ImmediateHandlers()
     {
         if (_immediateProvider is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         var scope = _immediateProvider.CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<IHandler<ImmediateFullPipelineCommandHandler.Command, BenchmarkResponse>>();

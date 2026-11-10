@@ -1,6 +1,5 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
-using Immediate.Handlers.Shared;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.Mediator.Benchmarks.Messaging;
@@ -18,12 +17,8 @@ public class ConcurrentPipelineBenchmarks
     private MediatR.IMediator _mediatr = null!;
     private Mocha.Mediator.IMediator _mocha = null!;
     private global::Mediator.IMediator? _mediatorSg;
-    private global::Mediator.Switch.IValueSender? _switchMediator;
-    private IHandler<ImmediatePipelineCommandHandler.Command, BenchmarkResponse>? _immediateHandler;
     private BenchmarkCommand _command = null!;
     private MediatorSgCommand _mediatorSgCommand = null!;
-    private SwitchMediatorCommand _switchMediatorCommand = null!;
-    private ImmediatePipelineCommandHandler.Command _immediateCommand = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -53,42 +48,20 @@ public class ConcurrentPipelineBenchmarks
         {
         }
 
-        // SwitchMediator with pipeline behavior
-        try
-        {
-            var provider = SwitchMediatorFactory.CreateServiceProviderWithPipeline();
-            _switchMediator = provider.GetRequiredService<global::Mediator.Switch.IValueSender>();
-        }
-        catch (InvalidOperationException)
-        {
-        }
-
-        // Immediate.Handlers with pipeline behavior
-        try
-        {
-            var provider = ImmediateHandlersFactory.CreateServiceProviderWithPipeline();
-            _immediateHandler = provider.GetRequiredService<IHandler<ImmediatePipelineCommandHandler.Command, BenchmarkResponse>>();
-        }
-        catch (InvalidOperationException)
-        {
-        }
-
         _command = new BenchmarkCommand(Guid.NewGuid());
         _mediatorSgCommand = new MediatorSgCommand(Guid.NewGuid());
-        _switchMediatorCommand = new SwitchMediatorCommand(Guid.NewGuid());
-        _immediateCommand = new ImmediatePipelineCommandHandler.Command(Guid.NewGuid());
     }
 
     [Benchmark(Baseline = true)]
     public async Task WithPipeline_MediatR()
     {
         var tasks = new Task<BenchmarkResponse>[10];
-        for (int i = 0; i < tasks.Length; i++)
+        for (var i = 0; i < tasks.Length; i++)
         {
             tasks[i] = _mediatr.Send(_command, CancellationToken.None);
         }
 
-        for (int i = 0; i < tasks.Length; i++)
+        for (var i = 0; i < tasks.Length; i++)
         {
             _ = await tasks[i];
         }
@@ -98,11 +71,12 @@ public class ConcurrentPipelineBenchmarks
     public async ValueTask WithPipeline_Mocha()
     {
         var tasks = new ValueTask<BenchmarkResponse>[10];
-        for (int i = 0; i < tasks.Length; i++)        {
+        for (var i = 0; i < tasks.Length; i++)
+        {
             tasks[i] = _mocha.SendAsync<BenchmarkResponse>(_command, CancellationToken.None);
         }
 
-        for (int i = 0; i < tasks.Length; i++)
+        for (var i = 0; i < tasks.Length; i++)
         {
             _ = await tasks[i];
         }
@@ -112,11 +86,12 @@ public class ConcurrentPipelineBenchmarks
     public async ValueTask WithPipeline_MediatorSg()
     {
         var tasks = new ValueTask<BenchmarkResponse>[10];
-        for (int i = 0; i < tasks.Length; i++)        {
+        for (var i = 0; i < tasks.Length; i++)
+        {
             tasks[i] = _mediatorSg!.Send(_mediatorSgCommand, CancellationToken.None);
         }
 
-        for (int i = 0; i < tasks.Length; i++)
+        for (var i = 0; i < tasks.Length; i++)
         {
             _ = await tasks[i]!;
         }
