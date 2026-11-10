@@ -56,6 +56,15 @@ public class TestBase
             new StringContent(bulk.ToString(), Encoding.UTF8, "application/x-ndjson"),
             TestContext.Current.CancellationToken);
         indexed.EnsureSuccessStatusCode();
+
+        // a bulk request succeeds even when some of its documents are rejected.
+        var response = JsonNode.Parse(
+            await indexed.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))!;
+
+        if (response["errors"]?.GetValue<bool>() == true)
+        {
+            throw new InvalidOperationException("Some documents were not indexed: " + response.ToJsonString());
+        }
     }
 
     private static JsonObject Properties(Type type)
