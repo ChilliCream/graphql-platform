@@ -76,6 +76,7 @@ jobs:
     needs: [compute-release-context, create-draft]
     permissions:
       contents: write
+      id-token: write
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -96,11 +97,17 @@ jobs:
         run: |
           ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
 
+      - name: 🔑 NuGet login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USERNAME }}
+
       - name: 🚀 Push Packages to NuGet
         run: |
           ./build.sh publish --skip
         env:
-          NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
+          NuGetApiKey: ${{ steps.login.outputs.NUGET_API_KEY }}
 
       - name: 📤 Attach .nupkg assets to GitHub release
         shell: bash
