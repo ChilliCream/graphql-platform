@@ -3,6 +3,9 @@ title: Elasticsearch
 description: Learn how to integrate Elasticsearch with Hot Chocolate through ES|QL, including filtering, sorting, and pagination.
 ---
 
+> [!EXPERIMENTAL]
+> The Elasticsearch integration is currently in preview and its API may change in future releases.
+
 Hot Chocolate has a data integration for Elasticsearch. It runs filtering, sorting, and the first page of a query as [ES|QL](https://www.elastic.co/docs/reference/query-languages/esql), using the official `Elastic.Clients.Esql` client.
 
 # Get Started
@@ -10,6 +13,14 @@ Hot Chocolate has a data integration for Elasticsearch. It runs filtering, sorti
 Install the `HotChocolate.Data.ElasticSearch` package:
 
 <PackageInstallation packageName="HotChocolate.Data.ElasticSearch" />
+
+Its APIs are marked as experimental with the `HC8003` diagnostic. Suppress it in the project file to use them:
+
+```xml
+<PropertyGroup>
+  <NoWarn>$(NoWarn);HC8003</NoWarn>
+</PropertyGroup>
+```
 
 Return the query as an executable, so that it runs asynchronously:
 

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Elastic.Esql.Extensions;
 using HotChocolate.Internal;
@@ -9,6 +10,7 @@ namespace HotChocolate.Data.ElasticSearch.Pagination;
 /// <summary>
 /// An offset paging provider that reads the first page of an ES|QL query.
 /// </summary>
+[Experimental(ElasticSearchExperiments.Provider)]
 public sealed class ElasticSearchOffsetPagingProvider : OffsetPagingProvider
 {
     private static readonly MethodInfo s_createHandler =

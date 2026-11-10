@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using HotChocolate.Data.ElasticSearch;
 using HotChocolate.Data.ElasticSearch.Filtering;
 using HotChocolate.Data.Filters;
 
@@ -7,6 +9,7 @@ namespace HotChocolate.Data;
 /// <summary>
 /// Common extensions of <see cref="ISchemaBuilder"/> for Elasticsearch.
 /// </summary>
+[Experimental(ElasticSearchExperiments.Provider)]
 public static class ElasticSearchFilteringSchemaBuilderExtensions
 {
     /// <summary>

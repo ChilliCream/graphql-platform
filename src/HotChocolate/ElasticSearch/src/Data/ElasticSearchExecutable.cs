@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Elastic.Esql.Core;
@@ -10,6 +11,7 @@ namespace HotChocolate.Data.ElasticSearch;
 /// An executable that runs an ES|QL queryable asynchronously.
 /// </summary>
 /// <typeparam name="T">The element type.</typeparam>
+[Experimental(ElasticSearchExperiments.Provider)]
 public sealed class ElasticSearchExecutable<T>(IQueryable<T> source) : IQueryableExecutable<T>
 {
     /// <inheritdoc />

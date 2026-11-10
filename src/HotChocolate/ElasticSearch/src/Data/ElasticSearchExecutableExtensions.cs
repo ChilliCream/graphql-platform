@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.ElasticSearch;
 
 namespace HotChocolate.Data;
@@ -5,6 +6,7 @@ namespace HotChocolate.Data;
 /// <summary>
 /// Common extensions of <see cref="IQueryable{T}"/> for Elasticsearch.
 /// </summary>
+[Experimental(ElasticSearchExperiments.Provider)]
 public static class ElasticSearchExecutableExtensions
 {
     /// <summary>

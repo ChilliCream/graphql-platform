@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Data.ElasticSearch;
 using HotChocolate.Data.ElasticSearch.Pagination;
 using HotChocolate.Execution.Configuration;
 
@@ -6,6 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Common extensions of <see cref="IRequestExecutorBuilder"/> for Elasticsearch pagination.
 /// </summary>
+[Experimental(ElasticSearchExperiments.Provider)]
 public static class ElasticSearchPagingRequestExecutorBuilderExtensions
 {
     /// <summary>

@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Data;
+using HotChocolate.Data.ElasticSearch;
 using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -7,6 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Common extensions of <see cref="IRequestExecutorBuilder"/> for Elasticsearch.
 /// </summary>
+[Experimental(ElasticSearchExperiments.Provider)]
 public static class ElasticSearchFilteringRequestExecutorBuilderExtensions
 {
     /// <summary>

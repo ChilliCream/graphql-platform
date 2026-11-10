@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Data.ElasticSearch</AssemblyName>
     <RootNamespace>HotChocolate.Data.ElasticSearch</RootNamespace>
     <Description>Contains extensions for seamless integration of Elasticsearch ES|QL into the HotChocolate.Data package.</Description>
+    <NoWarn>HC8003;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
