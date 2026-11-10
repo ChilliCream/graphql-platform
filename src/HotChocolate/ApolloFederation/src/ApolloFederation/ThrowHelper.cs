@@ -1,5 +1,6 @@
 using System.Reflection;
 using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Language;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation;
@@ -228,4 +229,15 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage("The @contact directive is not repeatable and can.")
                 .Build()); 
+
+    /// <summary>
+    /// The <c>_Service.sdl</c> field was resolved more than once in the same request.
+    /// </summary>
+    public static GraphQLException Service_SdlResolvedMoreThanOnce(FieldNode field, Path path) =>
+        new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_Service_SdlResolvedMoreThanOnce)
+                .SetPath(path)
+                .AddLocation(field)
+                .Build());
 }
