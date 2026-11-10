@@ -16,7 +16,7 @@ interface DocsPageActionsProps {
 }
 
 const ACTION_CLASS_NAME =
-  "border-cc-card-border bg-cc-white/2.5 text-cc-ink-dim hover:border-cc-card-border-hover hover:bg-cc-white/5 hover:text-cc-heading h-9 border px-3 text-xs font-medium";
+  "border-cc-card-border bg-cc-heading/2.5 text-cc-ink-dim hover:border-cc-card-border-hover hover:bg-cc-heading/5 hover:text-cc-heading h-9 border px-3 text-xs font-medium";
 
 export function DocsPageActions({
   fallbackMarkdown,

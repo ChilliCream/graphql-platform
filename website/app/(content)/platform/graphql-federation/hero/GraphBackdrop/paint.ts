@@ -4,8 +4,8 @@
 // never from a loop. Node/edge size, alpha and colour are all resolved by
 // graph.ts; this file only draws them.
 import type { GraphModel } from "./graph";
-import { rgba, WHITE } from "./color";
-import { CYAN, NAVY, SLATE, TEAL } from "../palette";
+import { rgba } from "./color";
+import type { BackdropPalette } from "./palette";
 
 export interface Rect {
   readonly x: number;
@@ -22,10 +22,10 @@ export interface PaintOptions {
   readonly copyRect: Rect | null;
   readonly paragraphRect: Rect | null;
   readonly ctaRect: Rect | null;
+  readonly palette: BackdropPalette;
 }
 
 const HUB_HALO_R = 14;
-const TINTS = [CYAN, TEAL] as const;
 // An extra scrim behind the paragraph block and the button row, each on
 // top of the general copy scrim: two or more independently alpha-capped
 // nodes/edges can still converge on the same glyph row and composite
@@ -49,7 +49,11 @@ const CORNER_SAFE_K = 0.7;
  * fixed pad that overwhelms a short, narrow rect on desktop or undershoots
  * a tall one on mobile.
  */
-function paintCopyScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
+function paintCopyScrim(
+  ctx: CanvasRenderingContext2D,
+  rect: Rect,
+  palette: BackdropPalette,
+) {
   const pad = 24;
   const x = rect.x - pad;
   const y = rect.y - pad;
@@ -71,8 +75,8 @@ function paintCopyScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
   ctx.translate(cx, cy);
   ctx.scale(rx, ry);
   const grad = ctx.createRadialGradient(0, 0, cornerFrac, 0, 0, 1);
-  grad.addColorStop(0, rgba(NAVY, 0.55));
-  grad.addColorStop(1, rgba(NAVY, 0));
+  grad.addColorStop(0, rgba(palette.surface, 0.55));
+  grad.addColorStop(1, rgba(palette.surface, 0));
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(0, 0, 1, 0, Math.PI * 2);
@@ -92,7 +96,11 @@ function paintCopyScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
  * safely under 1 for ANY aspect ratio (hypot(K, K) with K = 0.7 is ~0.99),
  * and the feather floor can only ever shrink that fraction further.
  */
-function paintExtraScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
+function paintExtraScrim(
+  ctx: CanvasRenderingContext2D,
+  rect: Rect,
+  palette: BackdropPalette,
+) {
   const pad = 6;
   const x = rect.x - pad;
   const y = rect.y - pad;
@@ -109,8 +117,8 @@ function paintExtraScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
   ctx.translate(cx, cy);
   ctx.scale(rx, ry);
   const grad = ctx.createRadialGradient(0, 0, cornerFrac, 0, 0, 1);
-  grad.addColorStop(0, rgba(NAVY, EXTRA_SCRIM_ALPHA));
-  grad.addColorStop(1, rgba(NAVY, 0));
+  grad.addColorStop(0, rgba(palette.surface, EXTRA_SCRIM_ALPHA));
+  grad.addColorStop(1, rgba(palette.surface, 0));
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(0, 0, 1, 0, Math.PI * 2);
@@ -118,13 +126,18 @@ function paintExtraScrim(ctx: CanvasRenderingContext2D, rect: Rect) {
   ctx.restore();
 }
 
-function paintVignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
+function paintVignette(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  palette: BackdropPalette,
+) {
   const cx = w / 2;
   const cy = h / 2;
   const r = Math.hypot(w, h) * 0.62;
   const g = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r);
-  g.addColorStop(0, rgba(NAVY, 0));
-  g.addColorStop(1, rgba(NAVY, 0.55));
+  g.addColorStop(0, rgba(palette.surface, 0));
+  g.addColorStop(1, rgba(palette.surface, 0.55));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
 }
@@ -137,6 +150,7 @@ export function paint({
   copyRect,
   paragraphRect,
   ctaRect,
+  palette,
 }: PaintOptions) {
   ctx.clearRect(0, 0, w, h);
 
@@ -152,10 +166,11 @@ export function paint({
     ctx.lineWidth = e.lineWidth;
     const cyanRatio = e.near ? 0.7 : 0.4;
     ctx.strokeStyle = rgba(
-      SLATE,
-      e.alpha,
-      { with: CYAN, ratio: cyanRatio },
+      palette.edge,
+      Math.min(1, e.alpha * palette.edgeGain),
+      { with: palette.edgeTint, ratio: cyanRatio },
       e.darken,
+      palette.darkenTo,
     );
     ctx.beginPath();
     ctx.moveTo(e.points[0].x, e.points[0].y);
@@ -171,25 +186,25 @@ export function paint({
 
   for (const { i } of nodeOrder) {
     const n = graph.nodes[i];
-    const tint = TINTS[n.tint];
+    const tint = palette.tints[n.tint];
 
     if (n.hub) {
       const glow = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, HUB_HALO_R);
-      glow.addColorStop(0, rgba(CYAN, 0.28));
-      glow.addColorStop(1, rgba(CYAN, 0));
+      glow.addColorStop(0, rgba(palette.halo, 0.28));
+      glow.addColorStop(1, rgba(palette.halo, 0));
       ctx.fillStyle = glow;
       ctx.beginPath();
       ctx.arc(n.x, n.y, HUB_HALO_R, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    ctx.fillStyle = rgba(tint, n.alpha, undefined, n.darken);
+    ctx.fillStyle = rgba(tint, n.alpha, undefined, n.darken, palette.darkenTo);
     ctx.beginPath();
     ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
     ctx.fill();
 
     if (n.hub) {
-      ctx.fillStyle = rgba(WHITE, 0.9);
+      ctx.fillStyle = rgba(palette.hubCore, 0.9);
       ctx.beginPath();
       ctx.arc(n.x, n.y, n.r * 0.42, 0, Math.PI * 2);
       ctx.fill();
@@ -197,13 +212,13 @@ export function paint({
   }
 
   if (copyRect) {
-    paintCopyScrim(ctx, copyRect);
+    paintCopyScrim(ctx, copyRect, palette);
   }
   if (paragraphRect) {
-    paintExtraScrim(ctx, paragraphRect);
+    paintExtraScrim(ctx, paragraphRect, palette);
   }
   if (ctaRect) {
-    paintExtraScrim(ctx, ctaRect);
+    paintExtraScrim(ctx, ctaRect, palette);
   }
-  paintVignette(ctx, w, h);
+  paintVignette(ctx, w, h, palette);
 }

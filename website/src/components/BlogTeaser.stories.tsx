@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { lightAppearance } from "@/src/components/lightAppearance";
 import { BlogTeaser } from "./BlogTeaser";
 
 const meta = {
@@ -54,4 +55,9 @@ export const LongTitle: Story = {
       authorImageUrl: null,
     },
   },
+};
+
+export const LightWithImage: Story = {
+  ...WithImage,
+  beforeEach: lightAppearance,
 };

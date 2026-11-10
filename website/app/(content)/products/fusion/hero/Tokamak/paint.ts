@@ -1,6 +1,6 @@
-import { BRAND } from "../../tokens";
 import type { InstrumentLight, Tile } from "./chamber";
-import { blackToRgba, hexToRgba, mixHexToRgba, whiteToRgba } from "./colors";
+import { hexToRgba, mixHexToRgba } from "./colors";
+import type { TokamakPalette } from "./palette";
 import type { ShadedPoint } from "./plasma";
 
 interface Pt {
@@ -118,6 +118,7 @@ function withBlurHalo(
   w: number,
   h: number,
   blurPx: number,
+  composite: GlobalCompositeOperation,
   paint: (haloCtx: CanvasRenderingContext2D) => void,
 ): void {
   const canvas = ctx.canvas;
@@ -130,12 +131,12 @@ function withBlurHalo(
   }
   offCtx.setTransform(ctx.getTransform());
   offCtx.lineCap = "round";
-  offCtx.globalCompositeOperation = "lighter";
+  offCtx.globalCompositeOperation = composite;
   paint(offCtx);
 
   ctx.save();
   ctx.filter = `blur(${blurPx}px)`;
-  ctx.globalCompositeOperation = "lighter";
+  ctx.globalCompositeOperation = composite;
   ctx.drawImage(off, 0, 0, off.width, off.height, 0, 0, w, h);
   ctx.restore();
 }
@@ -148,7 +149,11 @@ function withBlurHalo(
  * the wall uses, just painted into a separate, transparent-background
  * canvas.
  */
-function paintTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
+function paintTile(
+  ctx: CanvasRenderingContext2D,
+  tile: Tile,
+  palette: TokamakPalette,
+): void {
   const grad = ctx.createLinearGradient(
     tile.hi.x,
     tile.hi.y,
@@ -163,20 +168,21 @@ function paintTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
   // outside the band's falloff, so the chamber's overall luminance budget
   // outside the band is untouched.
   const warm = tile.warmth;
-  const hiAlpha = 0.11 + tile.shade * 0.2 + warm * 0.15;
-  const midAlpha = 0.08 + tile.shade * 0.14 + warm * 0.12;
-  const loAlpha = 0.04 + tile.shade * 0.07 + warm * 0.08;
+  const gain = palette.tileGain;
+  const hiAlpha = (0.11 + tile.shade * 0.2 + warm * 0.15) * gain;
+  const midAlpha = (0.08 + tile.shade * 0.14 + warm * 0.12) * gain;
+  const loAlpha = (0.04 + tile.shade * 0.07 + warm * 0.08) * gain;
   grad.addColorStop(
     0,
-    mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.85, hiAlpha),
+    mixHexToRgba(palette.tileTone, palette.coral, warm * 0.85, hiAlpha),
   );
   grad.addColorStop(
     0.45,
-    mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.7, midAlpha),
+    mixHexToRgba(palette.tileTone, palette.coral, warm * 0.7, midAlpha),
   );
   grad.addColorStop(
     1,
-    mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.45, loAlpha),
+    mixHexToRgba(palette.tileTone, palette.coral, warm * 0.45, loAlpha),
   );
   ctx.fillStyle = grad;
   ctx.beginPath();
@@ -198,11 +204,11 @@ function paintTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
     };
     const r = Math.max(1.2, tile.size * 0.06);
     for (const d of [d0, d1]) {
-      ctx.fillStyle = hexToRgba(BRAND.navy, 0.6);
+      ctx.fillStyle = palette.fastenerShadow;
       ctx.beginPath();
       ctx.arc(d.x, d.y + r * 0.3, r, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = whiteToRgba(0.3 * tile.shade + 0.06);
+      ctx.fillStyle = palette.fastenerHighlight(0.3 * tile.shade + 0.06);
       ctx.beginPath();
       ctx.arc(d.x - r * 0.2, d.y - r * 0.2, r * 0.5, 0, Math.PI * 2);
       ctx.fill();
@@ -234,10 +240,11 @@ export function paintWall(
   h: number,
   wallTiles: readonly Tile[],
   lights: readonly InstrumentLight[],
+  palette: TokamakPalette,
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.globalCompositeOperation = "source-over";
-  ctx.fillStyle = hexToRgba(BRAND.navy, 1);
+  ctx.fillStyle = hexToRgba(palette.base, 1);
   ctx.fillRect(0, 0, w, h);
 
   // A whisper of ambient slate wash across the whole frame, well under the
@@ -252,18 +259,18 @@ export function paintWall(
     h * 0.5,
     Math.max(w, h) * 0.75,
   );
-  ambient.addColorStop(0, hexToRgba(BRAND.slate, 0.02));
-  ambient.addColorStop(1, hexToRgba(BRAND.slate, 0));
+  ambient.addColorStop(0, hexToRgba(palette.tileTone, 0.02));
+  ambient.addColorStop(1, hexToRgba(palette.tileTone, 0));
   ctx.fillStyle = ambient;
   ctx.fillRect(0, 0, w, h);
 
   for (const tile of wallTiles) {
-    paintTile(ctx, tile);
+    paintTile(ctx, tile, palette);
   }
 
   ctx.shadowBlur = 7;
-  ctx.shadowColor = hexToRgba(BRAND.cyan, 0.9);
-  ctx.fillStyle = hexToRgba(BRAND.cyan, 0.75);
+  ctx.shadowColor = hexToRgba(palette.instrumentLight, 0.9);
+  ctx.fillStyle = hexToRgba(palette.instrumentLight, 0.75);
   for (const light of lights) {
     ctx.beginPath();
     ctx.arc(light.x, light.y, light.r, 0, Math.PI * 2);
@@ -279,8 +286,8 @@ export function paintWall(
     h / 2,
     Math.max(w, h) * 0.72,
   );
-  vignette.addColorStop(0, hexToRgba(BRAND.navy, 0));
-  vignette.addColorStop(1, hexToRgba(BRAND.navy, 0.7));
+  vignette.addColorStop(0, hexToRgba(palette.base, 0));
+  vignette.addColorStop(1, hexToRgba(palette.base, 0.7));
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, w, h);
 }
@@ -376,6 +383,7 @@ export function paintColumnLayer(
    * fixed `0.5` stop anchors the opaque core off-centre.
    */
   bandY: number,
+  palette: TokamakPalette,
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.globalCompositeOperation = "source-over";
@@ -435,15 +443,15 @@ export function paintColumnLayer(
     const grad = ctx.createLinearGradient(0, minY, 0, maxY);
     const span = maxY - minY || 1;
     const bandStop = Math.min(0.999, Math.max(0.001, (bandY - minY) / span));
-    grad.addColorStop(0, blackToRgba(topFade));
-    grad.addColorStop(bandStop, blackToRgba(1));
-    grad.addColorStop(1, blackToRgba(bottomFade));
+    grad.addColorStop(0, palette.backing(topFade));
+    grad.addColorStop(bandStop, palette.backing(1));
+    grad.addColorStop(1, palette.backing(bottomFade));
     ctx.fillStyle = grad;
     ctx.fill();
   }
   for (const tile of columnTiles) {
     ctx.globalAlpha = tile.bandFade;
-    ctx.fillStyle = hexToRgba(BRAND.navy, 1);
+    ctx.fillStyle = hexToRgba(palette.base, 1);
     ctx.beginPath();
     ctx.moveTo(tile.poly[0].x, tile.poly[0].y);
     ctx.lineTo(tile.poly[1].x, tile.poly[1].y);
@@ -454,7 +462,7 @@ export function paintColumnLayer(
   }
   for (const tile of columnTiles) {
     ctx.globalAlpha = tile.bandFade;
-    paintTile(ctx, tile);
+    paintTile(ctx, tile, palette);
   }
   ctx.globalAlpha = 1;
 }
@@ -491,6 +499,7 @@ export function paintBridgeLayer(
   w: number,
   h: number,
   tiles: readonly Tile[],
+  palette: TokamakPalette,
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.globalCompositeOperation = "source-over";
@@ -504,11 +513,11 @@ export function paintBridgeLayer(
       ctx.lineTo(oriented[3].x, oriented[3].y);
       ctx.closePath();
     }
-    ctx.fillStyle = blackToRgba(1);
+    ctx.fillStyle = palette.backing(1);
     ctx.fill();
   }
   for (const tile of tiles) {
-    paintTile(ctx, tile);
+    paintTile(ctx, tile, palette);
   }
 }
 
@@ -556,19 +565,27 @@ export function paintPlasmaLayer(
   paths: readonly ShadedPoint[][],
   ringWidthPx: number,
   style: PlasmaLayerStyle,
+  palette: TokamakPalette,
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.lineCap = "round";
-  ctx.globalCompositeOperation = "lighter";
+  ctx.globalCompositeOperation = palette.composite;
   const { colorHex, alphaMul } = style;
 
-  withBlurHalo(ctx, w, h, Math.max(1, ringWidthPx * 0.022), (haloCtx) => {
-    for (const path of paths) {
-      strokeShadedPath(haloCtx, path, colorHex, 3, 0.18 * alphaMul);
-    }
-  });
+  withBlurHalo(
+    ctx,
+    w,
+    h,
+    Math.max(1, ringWidthPx * 0.022),
+    palette.composite,
+    (haloCtx) => {
+      for (const path of paths) {
+        strokeShadedPath(haloCtx, path, colorHex, 3, 0.18 * alphaMul);
+      }
+    },
+  );
 
-  withBlurHalo(ctx, w, h, 3.5, (haloCtx) => {
+  withBlurHalo(ctx, w, h, 3.5, palette.composite, (haloCtx) => {
     for (const path of paths) {
       strokeShadedPath(haloCtx, path, colorHex, 2.6, 0.08 * alphaMul);
     }
@@ -577,7 +594,7 @@ export function paintPlasmaLayer(
     strokeShadedPath(ctx, path, colorHex, 2, 0.12 * alphaMul);
   }
   for (const path of paths) {
-    strokeShadedPathRgba(ctx, path, whiteToRgba, 0.6, 0.07 * alphaMul);
+    strokeShadedPathRgba(ctx, path, palette.streakCore, 0.6, 0.07 * alphaMul);
   }
 
   ctx.globalCompositeOperation = "source-over";

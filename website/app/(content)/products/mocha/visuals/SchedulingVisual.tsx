@@ -10,32 +10,38 @@ import {
 } from "@/src/components/mocha/geometry";
 import {
   AMBER,
+  AMBER_TEXT,
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
   GREEN,
   MONO_FONT,
-  NAVY,
   SLATE,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fff", "#0b0f1a");
 const T = 12000;
 const REST_T = 11280;
 const H = 212;
 const MIN_W = 660;
 
-const INK = "#a1a3af";
-const SURFACE = "#0c1322";
-const HAIR = "rgba(139,160,188,0.22)";
-const PANEL_STROKE = "rgba(158,176,204,0.44)";
-const LANE_STROKE = "rgba(139,160,188,0.4)";
-const VIA_STROKE = "rgba(164,180,208,0.55)";
-const PAD_FILL = "rgba(158,176,204,0.34)";
-const SILK = "rgba(154,172,200,0.75)";
-const SILK_SOFT = "rgba(154,172,200,0.7)";
-const GRID_DOT = "rgba(150,166,194,0.10)";
+const INK = lightDark("#334155", "#a1a3af");
+const SURFACE = lightDark("#fff", "#0c1322");
+const HAIR = lightDark("rgba(139,92,246,0.35)", "rgba(139,160,188,0.22)");
+const PANEL_STROKE = lightDark(
+  "rgba(139,92,246,0.7)",
+  "rgba(158,176,204,0.44)",
+);
+const LANE_STROKE = lightDark("rgba(6,182,212,0.85)", "rgba(139,160,188,0.4)");
+const VIA_STROKE = lightDark("rgba(6,182,212,0.95)", "rgba(164,180,208,0.55)");
+const PAD_FILL = lightDark("rgba(6,182,212,0.5)", "rgba(158,176,204,0.34)");
+const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
+const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
+const GRID_DOT = lightDark("rgba(6,182,212,0.28)", "rgba(150,166,194,0.10)");
 
 const M = 8;
 const PW1 = 150;
@@ -489,7 +495,7 @@ export function SchedulingVisual() {
               fontSize={10.5}
             >
               <tspan fill={SILK_SOFT}>{"delivers in "}</tspan>
-              <tspan ref={set("cdNum")} fill={AMBER}>
+              <tspan ref={set("cdNum")} fill={AMBER_TEXT}>
                 12
               </tspan>
               <tspan fill={SILK_SOFT}>{" min"}</tspan>
@@ -524,7 +530,7 @@ export function SchedulingVisual() {
             width={PW1}
             height={PANEL_H}
             rx={3}
-            fill="rgba(139,160,188,0.03)"
+            fill={lightDark("rgba(139,92,246,0.07)", "rgba(139,160,188,0.03)")}
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
@@ -593,7 +599,7 @@ export function SchedulingVisual() {
             y={ROW_TOP + 20}
             fontFamily={MONO_FONT}
             fontSize={10}
-            fill={CORAL_SOFT}
+            fill={CORAL_SOFT_TEXT}
           >
             WelcomeEmail
           </text>
@@ -655,7 +661,7 @@ export function SchedulingVisual() {
             width={PW2}
             height={PANEL_H}
             rx={3}
-            fill="rgba(139,160,188,0.03)"
+            fill={lightDark("rgba(139,92,246,0.07)", "rgba(139,160,188,0.03)")}
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
@@ -734,7 +740,7 @@ export function SchedulingVisual() {
             y={ROW_TOP + 20}
             fontFamily={MONO_FONT}
             fontSize={10}
-            fill={CORAL_SOFT}
+            fill={CORAL_SOFT_TEXT}
             opacity={0}
           >
             SendWelcomeEmailHandler

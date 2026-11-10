@@ -56,7 +56,7 @@ export const Default: Story = {};
 
 export const FullBleedHero: Story = {
   args: {
-    className: "border-cc-card-border/50 bg-cc-surface/25 border-b",
+    className: "border-cc-card-border/50 bg-cc-band border-b",
     children: heroContent,
   },
   decorators: [

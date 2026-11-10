@@ -1,0 +1,1851 @@
+import {
+  expect,
+  test as base,
+  type Browser,
+  type Locator,
+  type Page,
+} from "@playwright/test";
+import sharp from "sharp";
+
+type Scheme = "light" | "dark";
+
+interface OpenOptions {
+  readonly system?: Scheme;
+  readonly stored?: string;
+  readonly storage?: "access-throws" | "methods-throw";
+  readonly javaScript?: boolean;
+  readonly width?: number;
+  readonly height?: number;
+}
+
+interface PaintSnapshot {
+  theme?: string;
+  colorScheme?: string;
+  themeColor?: string;
+}
+
+declare global {
+  interface Window {
+    __paint?: PaintSnapshot;
+    __soft?: number;
+  }
+}
+
+const LIGHT_BG = "rgb(252, 251, 248)";
+const DARK_BG = "rgb(11, 15, 26)";
+const THEME_COLOR = { light: "#fcfbf8", dark: "#0b0f1a" } as const;
+const BACKGROUND = { light: LIGHT_BG, dark: DARK_BG } as const;
+const NAMES = { light: "Light", dark: "Dark", auto: "Auto" } as const;
+
+// A light 1x1 PNG stands in for remote images, so poster slots do not render
+// as the black of a failed request.
+const PLACEHOLDER_PIXEL = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+function opposite(scheme: Scheme): Scheme {
+  return scheme === "light" ? "dark" : "light";
+}
+
+async function openPage(
+  browser: Browser,
+  problems: string[],
+  options: OpenOptions,
+) {
+  const context = await browser.newContext({
+    colorScheme: options.system ?? "light",
+    javaScriptEnabled: options.javaScript ?? true,
+    viewport: { width: options.width ?? 1440, height: options.height ?? 900 },
+  });
+  const page = await context.newPage();
+
+  await page.route(
+    (url) => url.hostname !== "127.0.0.1",
+    (route) =>
+      route.request().resourceType() === "image"
+        ? route.fulfill({
+            status: 200,
+            contentType: "image/png",
+            body: PLACEHOLDER_PIXEL,
+          })
+        : route.abort(),
+  );
+  page.on("pageerror", (error) => problems.push(`pageerror: ${error.message}`));
+  page.on("console", (message) => {
+    const text = message.text();
+    const failedRequest = text.startsWith("Failed to load resource");
+    if (
+      (message.type() === "error" && !failedRequest) ||
+      (message.type() === "warning" && /hydrat/i.test(text))
+    ) {
+      problems.push(`${message.type()}: ${text}`);
+    }
+  });
+
+  if (options.javaScript !== false) {
+    await page.addInitScript(
+      ({ stored, storage }) => {
+        if (storage === "access-throws") {
+          Object.defineProperty(window, "localStorage", {
+            get() {
+              throw new DOMException("denied", "SecurityError");
+            },
+          });
+        } else if (storage === "methods-throw") {
+          const fail = () => {
+            throw new DOMException("denied", "QuotaExceededError");
+          };
+          Storage.prototype.getItem = fail;
+          Storage.prototype.setItem = fail;
+        } else if (
+          stored !== undefined &&
+          sessionStorage.getItem("seeded") === null
+        ) {
+          sessionStorage.setItem("seeded", "1");
+          localStorage.setItem("cc-theme", stored);
+        }
+
+        const paint: PaintSnapshot = {};
+        window.__paint = paint;
+        new MutationObserver((_records, observer) => {
+          if (document.body) {
+            const root = document.documentElement;
+            paint.theme = root.dataset.theme;
+            paint.colorScheme = root.style.colorScheme;
+            paint.themeColor = Array.from(
+              document.querySelectorAll<HTMLMetaElement>(
+                'meta[name="theme-color"]',
+              ),
+            ).find(
+              (meta) => !meta.media || window.matchMedia(meta.media).matches,
+            )?.content;
+            observer.disconnect();
+          }
+        }).observe(document, { childList: true, subtree: true });
+      },
+      { stored: options.stored, storage: options.storage },
+    );
+  }
+
+  return { context, page };
+}
+
+interface Fixtures {
+  readonly problems: string[];
+  readonly open: (path: string, options?: OpenOptions) => Promise<Page>;
+}
+
+const test = base.extend<Fixtures>({
+  problems: [
+    async ({}, provide) => {
+      const problems: string[] = [];
+      await provide(problems);
+      expect(
+        problems,
+        "console errors, page errors or hydration warnings",
+      ).toEqual([]);
+    },
+    { auto: true },
+  ],
+  open: async ({ browser, problems }, provide) => {
+    const contexts: { close(): Promise<void> }[] = [];
+    await provide(async (path, options = {}) => {
+      const { context, page } = await openPage(browser, problems, options);
+      contexts.push(context);
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+      return page;
+    });
+    await Promise.all(contexts.map((context) => context.close()));
+  },
+});
+
+function root(page: Page) {
+  return page.evaluate(() => {
+    const element = document.documentElement;
+    return {
+      theme: element.dataset.theme ?? null,
+      inlineScheme: element.style.colorScheme,
+      scheme: getComputedStyle(element).colorScheme,
+      background: getComputedStyle(document.body).backgroundColor,
+      themeColor:
+        Array.from(
+          document.querySelectorAll<HTMLMetaElement>(
+            'meta[name="theme-color"]',
+          ),
+        ).find((meta) => !meta.media || matchMedia(meta.media).matches)
+          ?.content ?? null,
+      stored: (() => {
+        try {
+          return localStorage.getItem("cc-theme");
+        } catch {
+          return "unavailable";
+        }
+      })(),
+    };
+  });
+}
+
+async function expectResolved(page: Page, scheme: Scheme) {
+  await expect.poll(() => root(page).then(({ theme }) => theme)).toBe(scheme);
+  expect(await root(page)).toMatchObject({
+    theme: scheme,
+    inlineScheme: scheme,
+    scheme,
+    background: BACKGROUND[scheme],
+    themeColor: THEME_COLOR[scheme],
+  });
+}
+
+function radio(page: Page, name: keyof typeof NAMES | string, scope?: Locator) {
+  const label = NAMES[name as keyof typeof NAMES] ?? name;
+  return (scope ?? page).getByRole("radio", { name: label, exact: true });
+}
+
+function headerGroup(page: Page) {
+  return page.locator("header").getByRole("radiogroup", { name: "Appearance" });
+}
+
+async function expectSelected(
+  page: Page,
+  preference: "auto" | "light" | "dark",
+  scope?: Locator,
+) {
+  for (const value of ["light", "dark", "auto"] as const) {
+    const expectation = expect(radio(page, value, scope));
+    if (value === preference) {
+      await expectation.toBeChecked();
+    } else {
+      await expectation.not.toBeChecked();
+    }
+  }
+}
+
+async function highlighted(group: Locator) {
+  return group
+    .locator("label")
+    .evaluateAll((labels) =>
+      labels
+        .filter(
+          (label) =>
+            getComputedStyle(label).backgroundColor !== "rgba(0, 0, 0, 0)",
+        )
+        .map((label) => label.textContent),
+    );
+}
+
+function openMobileMenu(page: Page) {
+  return page.getByRole("button", { name: "Open navigation menu" }).click();
+}
+
+test.describe("server markup", () => {
+  test("Should_OmitDataTheme_When_RenderingServerHtml", async ({ request }) => {
+    // act
+    const html = await (await request.get("/")).text();
+
+    // assert
+    expect(html.match(/<html[^>]*>/)?.[0]).not.toContain("data-theme");
+    expect(html).toContain(
+      '<meta name="theme-color" content="#fcfbf8" media="(prefers-color-scheme: light)"/>',
+    );
+    expect(html).toContain(
+      '<meta name="theme-color" content="#0b0f1a" media="(prefers-color-scheme: dark)"/>',
+    );
+    expect(html.indexOf("cc-theme")).toBeLessThan(html.indexOf("<body"));
+  });
+});
+
+test.describe("without JavaScript", () => {
+  for (const system of ["light", "dark"] as const) {
+    test(`Should_FollowSystem_When_JavaScriptIsDisabled_And_System${system}`, async ({
+      open,
+    }) => {
+      // arrange
+      const page = await open("/", { system, javaScript: false });
+
+      // act
+      const state = await root(page);
+
+      // assert
+      expect(state).toMatchObject({
+        theme: null,
+        inlineScheme: "",
+        scheme: system,
+        background: BACKGROUND[system],
+        themeColor: THEME_COLOR[system],
+      });
+      await expectSelected(page, "auto");
+      expect(await highlighted(headerGroup(page))).toEqual(["Auto"]);
+    });
+  }
+});
+
+test.describe("first paint", () => {
+  for (const system of ["light", "dark"] as const) {
+    test(`Should_ResolveSystem_When_NothingIsStored_And_System${system}`, async ({
+      open,
+    }) => {
+      // arrange
+      const page = await open("/", { system });
+
+      // act
+      const painted = await page.evaluate(() => window.__paint);
+
+      // assert
+      expect(painted).toEqual({
+        theme: system,
+        colorScheme: system,
+        themeColor: THEME_COLOR[system],
+      });
+      await expectResolved(page, system);
+      expect((await root(page)).stored).toBeNull();
+      await expectSelected(page, "auto");
+    });
+  }
+
+  for (const stored of ["light", "dark"] as const) {
+    test(`Should_ApplyStoredBeforeBody_When_${stored}OpposesSystem`, async ({
+      open,
+    }) => {
+      // arrange
+      const page = await open("/", {
+        system: opposite(stored),
+        stored,
+      });
+
+      // act
+      const painted = await page.evaluate(() => window.__paint);
+
+      // assert
+      expect(painted).toEqual({
+        theme: stored,
+        colorScheme: stored,
+        themeColor: THEME_COLOR[stored],
+      });
+      await expectResolved(page, stored);
+      await expectSelected(page, stored);
+    });
+  }
+
+  test("Should_ApplyStoredTheme_When_FrameworkScriptsNeverRun", async ({
+    browser,
+    problems,
+  }) => {
+    // arrange
+    const { context, page } = await openPage(browser, problems, {
+      system: "dark",
+      stored: "light",
+    });
+    await page.route("**/_next/static/**/*.js", (route) => route.abort());
+
+    // act
+    await page.goto("/");
+
+    // assert
+    await expectResolved(page, "light");
+    await context.close();
+  });
+
+  for (const stored of [undefined, "light", "dark", "banana"] as const) {
+    test(`Should_HighlightStoredOption_When_${stored ?? "nothing"}IsStored_And_HydrationNeverRuns`, async ({
+      browser,
+      problems,
+    }) => {
+      // arrange
+      const { context, page } = await openPage(browser, problems, {
+        system: "dark",
+        stored,
+      });
+      await page.route("**/_next/static/**/*.js", (route) => route.abort());
+      const expected =
+        NAMES[stored === "light" || stored === "dark" ? stored : "auto"];
+
+      // act
+      await page.goto("/");
+
+      // assert
+      expect(
+        await page.evaluate(
+          () => document.documentElement.dataset.themePreference,
+        ),
+      ).toBe(expected.toLowerCase());
+      expect(await highlighted(headerGroup(page))).toEqual([expected]);
+      await expect(radio(page, "auto", headerGroup(page))).toBeChecked();
+      await context.close();
+    });
+
+    test(`Should_KeepHighlightAndLayout_When_${stored ?? "nothing"}IsStored_And_PageHydrates`, async ({
+      browser,
+      open,
+      problems,
+    }) => {
+      // arrange
+      const expected =
+        NAMES[stored === "light" || stored === "dark" ? stored : "auto"];
+      const { context, page: unhydrated } = await openPage(browser, problems, {
+        system: "dark",
+        stored,
+      });
+      await unhydrated.route("**/_next/static/**/*.js", (route) =>
+        route.abort(),
+      );
+      await unhydrated.goto("/");
+      const boxes = (page: Page) =>
+        headerGroup(page)
+          .locator("label")
+          .evaluateAll((labels) =>
+            labels.map((label) => {
+              const { x, y, width, height } = label.getBoundingClientRect();
+              return { x, y, width, height };
+            }),
+          );
+      const before = await boxes(unhydrated);
+      await context.close();
+
+      // act
+      const page = await open("/", { system: "dark", stored });
+
+      // assert
+      expect(await highlighted(headerGroup(page))).toEqual([expected]);
+      await expect(radio(page, expected, headerGroup(page))).toBeChecked();
+      expect(await boxes(page)).toEqual(before);
+    });
+  }
+});
+
+test.describe("system changes", () => {
+  test("Should_TrackSystem_When_PreferenceIsAuto", async ({ open }) => {
+    // arrange
+    const page = await open("/", { system: "light" });
+
+    // act
+    await page.emulateMedia({ colorScheme: "dark" });
+
+    // assert
+    await expectResolved(page, "dark");
+    await page.emulateMedia({ colorScheme: "light" });
+    await expectResolved(page, "light");
+    await expectSelected(page, "auto");
+  });
+
+  for (const stored of ["light", "dark"] as const) {
+    test(`Should_IgnoreSystem_When_Preference${stored}`, async ({ open }) => {
+      // arrange
+      const page = await open("/", { system: opposite(stored), stored });
+
+      // act
+      await page.emulateMedia({ colorScheme: stored });
+      await page.emulateMedia({ colorScheme: opposite(stored) });
+
+      // assert
+      await expectResolved(page, stored);
+      await expectSelected(page, stored);
+    });
+  }
+
+  test("Should_PersistAutoAndResumeTracking_When_AutoIsChosen", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "dark", stored: "light" });
+    await expectResolved(page, "light");
+
+    // act
+    await headerGroup(page)
+      .getByRole("radio", { name: "Auto", exact: true })
+      .click();
+
+    // assert
+    await expectResolved(page, "dark");
+    expect((await root(page)).stored).toBe("auto");
+    await page.emulateMedia({ colorScheme: "light" });
+    await expectResolved(page, "light");
+    await page.reload();
+    await expectResolved(page, "light");
+    expect((await root(page)).stored).toBe("auto");
+    await expectSelected(page, "auto");
+  });
+});
+
+test.describe("persistence", () => {
+  test("Should_KeepPreferenceAndScheme_When_ReloadingAndNavigatingClientSide", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "light" });
+    await headerGroup(page)
+      .getByRole("radio", { name: "Dark", exact: true })
+      .click();
+    await expectResolved(page, "dark");
+
+    // act
+    await page.reload();
+    await expectResolved(page, "dark");
+    await page.evaluate(() => {
+      window.__soft = 1;
+    });
+    await page
+      .locator("footer")
+      .getByRole("link", { name: "Mocha" })
+      .first()
+      .click();
+    await page.waitForURL("**/products/mocha");
+
+    // assert
+    expect(await page.evaluate(() => window.__soft)).toBe(1);
+    await expectResolved(page, "dark");
+    await expectSelected(page, "dark");
+    await page.goBack();
+    await page.waitForURL((url) => url.pathname === "/");
+    await expectResolved(page, "dark");
+    await expectSelected(page, "dark");
+  });
+
+  test("Should_KeepTrackingSystem_When_AutoSurvivesClientNavigation", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "light" });
+    await page.evaluate(() => {
+      window.__soft = 1;
+    });
+
+    // act
+    await page
+      .locator("footer")
+      .getByRole("link", { name: "Mocha" })
+      .first()
+      .click();
+    await page.waitForURL("**/products/mocha");
+    await page.emulateMedia({ colorScheme: "dark" });
+
+    // assert
+    expect(await page.evaluate(() => window.__soft)).toBe(1);
+    await expectResolved(page, "dark");
+    await expectSelected(page, "auto");
+  });
+
+  for (const [value, system] of [
+    ["banana", "light"],
+    ["banana", "dark"],
+    ["", "dark"],
+    ["LIGHT", "dark"],
+    ['{"theme":"dark"}', "light"],
+  ] as const) {
+    test(`Should_DefaultToAuto_When_StoredValueIs${JSON.stringify(value)}_And_System${system}`, async ({
+      open,
+    }) => {
+      // arrange
+      const page = await open("/", { system, stored: value });
+
+      // act
+      const painted = await page.evaluate(() => window.__paint?.theme);
+
+      // assert
+      expect(painted).toBe(system);
+      await expectResolved(page, system);
+      await expectSelected(page, "auto");
+    });
+  }
+
+  for (const storage of ["access-throws", "methods-throw"] as const) {
+    test(`Should_RenderAndSwitch_When_Storage_${storage}`, async ({ open }) => {
+      // arrange
+      const page = await open("/", { system: "light", storage });
+      await expectResolved(page, "light");
+
+      // act
+      await headerGroup(page)
+        .getByRole("radio", { name: "Dark", exact: true })
+        .click();
+
+      // assert
+      await expectResolved(page, "dark");
+      await expectSelected(page, "dark");
+      await page.emulateMedia({ colorScheme: "dark" });
+      await headerGroup(page)
+        .getByRole("radio", { name: "Auto", exact: true })
+        .click();
+      await page.emulateMedia({ colorScheme: "light" });
+      await expectResolved(page, "light");
+      await expectSelected(page, "auto");
+    });
+  }
+});
+
+test.describe("appearance selector", () => {
+  test("Should_OrderSunMoonAndSunMoon_When_Rendered", async ({ open }) => {
+    // arrange
+    const page = await open("/");
+
+    // act
+    const glyphs = await headerGroup(page)
+      .locator("label")
+      .evaluateAll((labels) =>
+        labels.map((label) => ({
+          name: label.textContent,
+          circles: label.querySelectorAll("circle").length,
+          paths: label.querySelectorAll("path").length,
+        })),
+      );
+
+    // assert
+    expect(glyphs).toEqual([
+      { name: "Light", circles: 1, paths: 1 },
+      { name: "Dark", circles: 0, paths: 1 },
+      { name: "Auto", circles: 1, paths: 2 },
+    ]);
+  });
+
+  test("Should_SelectByKeyboardOnDesktop_When_UsingArrowKeys", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "dark" });
+    await page.getByRole("link", { name: "Launch Nitro" }).first().focus();
+
+    // act
+    await page.keyboard.press("Tab");
+
+    // assert
+    await expect(radio(page, "auto", headerGroup(page))).toBeFocused();
+    for (const [key, name, expected] of [
+      ["ArrowRight", "light", "light"],
+      ["ArrowRight", "dark", "dark"],
+      ["ArrowLeft", "light", "light"],
+      ["ArrowRight", "dark", "dark"],
+      ["ArrowRight", "auto", "dark"],
+    ] as const) {
+      await page.keyboard.press(key);
+      await expect(radio(page, name, headerGroup(page))).toBeChecked();
+      await expect(radio(page, name, headerGroup(page))).toBeFocused();
+      await expectResolved(page, expected);
+      expect((await root(page)).stored).toBe(name);
+    }
+  });
+
+  test("Should_SelectByPointerOnDesktop_When_ClickingEachOption", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "dark" });
+    const group = headerGroup(page);
+
+    // act
+    await group.getByRole("radio", { name: "Light", exact: true }).click();
+
+    // assert
+    await expectResolved(page, "light");
+    await expect(group.locator("label").first()).toHaveAttribute(
+      "title",
+      "Light",
+    );
+    await group.getByRole("radio", { name: "Dark", exact: true }).click();
+    await expectResolved(page, "dark");
+    await group.getByRole("radio", { name: "Auto", exact: true }).click();
+    await expectResolved(page, "dark");
+    await expectSelected(page, "auto");
+  });
+
+  test("Should_SelectByKeyboardAndPointerOnMobile_When_UsingTheDrawer", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "light", width: 375, height: 800 });
+    await expect(headerGroup(page)).toBeHidden();
+    await openMobileMenu(page);
+    const group = page.getByRole("radiogroup", { name: "Appearance" });
+    await expect(group).toBeVisible();
+
+    // act
+    const sizes = await group
+      .locator("label")
+      .evaluateAll((labels) =>
+        labels.map((label) => label.getBoundingClientRect().width),
+      );
+    await radio(page, "auto", group).focus();
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+
+    // assert
+    expect(sizes).toEqual([44, 44, 44]);
+    await expect(radio(page, "dark", group)).toBeChecked();
+    await expectResolved(page, "dark");
+    await group.getByRole("radio", { name: "Light", exact: true }).click();
+    await expectResolved(page, "light");
+    await expectSelected(page, "light", group);
+    await expect.poll(() => highlighted(group)).toEqual(["Light"]);
+    expect((await root(page)).stored).toBe("light");
+  });
+
+  for (const [width, box] of [
+    [1440, 32],
+    [1280, 32],
+    [1279, 28],
+    [1060, 28],
+  ] as const) {
+    test(`Should_FitHeaderWithoutOverflow_When_Width${width}`, async ({
+      open,
+    }) => {
+      // arrange
+      const page = await open("/", { width, height: 800 });
+      const group = headerGroup(page);
+
+      // act
+      const layout = await page.evaluate(() => {
+        const actions = document.querySelector(
+          "header [role=radiogroup]",
+        )!.parentElement!;
+        const items = [...actions.children].map((element) => {
+          const { left, right } = element.getBoundingClientRect();
+          return { left, right };
+        });
+        return {
+          items,
+          overflow: document.documentElement.scrollWidth - window.innerWidth,
+          viewport: window.innerWidth,
+        };
+      });
+      const boxes = await group
+        .locator("label")
+        .evaluateAll((labels) =>
+          labels.map((label) => label.getBoundingClientRect().width),
+        );
+      const borderWidth = await group.evaluate((element) =>
+        parseFloat(getComputedStyle(element).borderTopWidth),
+      );
+
+      // assert
+      await expect(group).toBeVisible();
+      expect(layout.overflow).toBeLessThanOrEqual(0);
+      expect(layout.items.length).toBeGreaterThanOrEqual(4);
+      for (const [index, item] of layout.items.entries()) {
+        expect(item.right).toBeLessThanOrEqual(layout.viewport);
+        if (index > 0) {
+          expect(item.left).toBeGreaterThanOrEqual(
+            layout.items[index - 1].right,
+          );
+        }
+      }
+      expect(boxes).toEqual([box, box, box]);
+      expect(borderWidth).toBeGreaterThan(0);
+    });
+  }
+
+  for (const system of ["light", "dark"] as const) {
+    for (const [width, visible] of [
+      [1060, false],
+      [1119, false],
+      [1120, true],
+      [1440, true],
+    ] as const) {
+      test(`Should_${visible ? "Show" : "Hide"}HeaderStarButton_When_Width${width}In${system}`, async ({
+        open,
+      }) => {
+        // arrange
+        const page = await open("/", { width, height: 800, system });
+
+        // act
+        const star = page
+          .locator("header")
+          .getByRole("link", { name: "Star ChilliCream on GitHub" });
+
+        // assert
+        await expect(headerGroup(page)).toBeVisible();
+        if (visible) {
+          await expect(star).toBeVisible();
+        } else {
+          await expect(star).toBeHidden();
+        }
+      });
+    }
+  }
+
+  test("Should_KeepFooterStarButtonVisible_When_Width375", async ({ open }) => {
+    // arrange
+    const page = await open("/", { width: 375, height: 800 });
+
+    // act
+    const star = page
+      .locator("footer")
+      .getByRole("link", { name: "Star ChilliCream on GitHub" });
+
+    // assert
+    await expect(star).toBeVisible();
+  });
+
+  test("Should_MoveSelectorIntoDrawer_When_BelowDesktopHeader", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { width: 1059, height: 800 });
+
+    // act
+    const menu = page.getByRole("button", { name: "Open navigation menu" });
+
+    // assert
+    await expect(headerGroup(page)).toBeHidden();
+    await expect(menu).toBeVisible();
+  });
+});
+
+const ROUTES = [
+  "/",
+  "/products/fusion",
+  "/products/nitro",
+  "/platform/graphql-federation",
+  "/pricing",
+  "/docs/fusion/adding-a-subgraph",
+  "/blog/2025-02-19-dataloader-explained",
+  "/videos",
+] as const;
+
+function scanForStages(page: Page) {
+  return page.evaluate(() => {
+    const context = document.createElement("canvas").getContext("2d")!;
+    const parse = (color: string) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = "#fff";
+      context.fillStyle = color;
+      context.fillRect(0, 0, 1, 1);
+      return context.getImageData(0, 0, 1, 1).data;
+    };
+    const luminance = (rgba: Uint8ClampedArray) => {
+      const [r, g, b] = [...rgba].slice(0, 3).map((value) => {
+        const channel = value / 255;
+        return channel <= 0.04045
+          ? channel / 12.92
+          : ((channel + 0.055) / 1.055) ** 2.4;
+      });
+      return r * 0.2126 + g * 0.7152 + b * 0.0722;
+    };
+    const describe = (element: Element) =>
+      `${element.tagName.toLowerCase()}.${element.getAttribute("class")?.slice(0, 60) ?? ""}`;
+
+    const stages: string[] = [];
+    for (const element of document.querySelectorAll("body *")) {
+      const box = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      if (
+        box.width * box.height < 30000 ||
+        style.visibility === "hidden" ||
+        Number(style.opacity) === 0 ||
+        element.closest(".aspect-video")
+      ) {
+        continue;
+      }
+      const colors: string[] = [];
+      if (!(element instanceof SVGElement)) {
+        colors.push(style.backgroundColor);
+        if (!/text/.test(style.backgroundClip)) {
+          colors.push(
+            ...(style.backgroundImage.match(/rgba?\([^)]*\)/g) ?? []),
+          );
+        }
+      } else if (
+        /^(rect|path|circle|ellipse|polygon)$/.test(element.localName)
+      ) {
+        colors.push(style.fill);
+      }
+      const dark = colors.some((color) => {
+        const rgba = parse(color);
+        return rgba[3] >= 128 && luminance(rgba) < 0.08;
+      });
+      if (dark) {
+        stages.push(describe(element));
+      }
+    }
+
+    const lightTextOnLight: string[] = [];
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+    );
+    const seen = new Set<Element>();
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      const element = node.parentElement;
+      if (
+        !node.textContent?.trim() ||
+        !element ||
+        seen.has(element) ||
+        element.closest("svg, script, style, noscript")
+      ) {
+        continue;
+      }
+      seen.add(element);
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
+      const color = parse(style.color);
+      if (
+        box.width === 0 ||
+        box.height === 0 ||
+        style.visibility === "hidden" ||
+        Number(style.opacity) === 0 ||
+        color[3] < 200 ||
+        luminance(color) < 0.6
+      ) {
+        continue;
+      }
+      let surface: number | null = null;
+      let image = false;
+      for (
+        let ancestor: Element | null = element;
+        ancestor;
+        ancestor = ancestor.parentElement
+      ) {
+        const ancestorStyle = getComputedStyle(ancestor);
+        const pageBloom =
+          ancestor === document.body ||
+          ancestor.classList.contains("cc-content-dark");
+        image ||= !pageBloom && ancestorStyle.backgroundImage !== "none";
+        const background = parse(ancestorStyle.backgroundColor);
+        if (background[3] > 76) {
+          surface = luminance(background);
+          break;
+        }
+      }
+      if (!image && surface !== null && surface > 0.5) {
+        lightTextOnLight.push(
+          `${describe(element)} "${node.textContent.trim().slice(0, 30)}"`,
+        );
+      }
+    }
+
+    return { stages, lightTextOnLight };
+  });
+}
+
+async function darkPixelFraction(page: Page) {
+  const { data, info } = await sharp(await page.screenshot())
+    .removeAlpha()
+    .resize({ width: 240 })
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  let dark = 0;
+  for (let index = 0; index < data.length; index += 3) {
+    const luma =
+      (0.2126 * data[index] +
+        0.7152 * data[index + 1] +
+        0.0722 * data[index + 2]) /
+      255;
+    if (luma < 0.25) {
+      dark++;
+    }
+  }
+  return dark / (info.width * info.height);
+}
+
+async function revealPage(page: Page) {
+  await page.evaluate(async () => {
+    const height = document.documentElement.scrollHeight;
+    for (let y = 0; y < height; y += 600) {
+      window.scrollTo(0, y);
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    }
+    window.scrollTo(0, 0);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  });
+}
+
+test.describe("rendered pages", () => {
+  for (const width of [375, 1440]) {
+    for (const scheme of ["light", "dark"] as const) {
+      for (const route of ROUTES) {
+        test(`Should_RenderCompleteScheme_When_${scheme}At${width}On${route}`, async ({
+          open,
+        }) => {
+          // arrange
+          const page = await open(route, {
+            system: opposite(scheme),
+            stored: scheme,
+            width,
+          });
+          await revealPage(page);
+
+          // act
+          const overflow = await page.evaluate(
+            () => document.documentElement.scrollWidth - window.innerWidth,
+          );
+          const scan = await scanForStages(page);
+          const dark = await darkPixelFraction(page);
+
+          // assert
+          await expectResolved(page, scheme);
+          expect(overflow).toBeLessThanOrEqual(0);
+          if (scheme === "light") {
+            expect(scan.stages, "dark stages in Light").toEqual([]);
+            expect(scan.lightTextOnLight, "Dark-only text in Light").toEqual(
+              [],
+            );
+            // The video player frames are media and stay black.
+            if (route !== "/videos") {
+              expect(dark).toBeLessThan(0.08);
+            }
+          } else {
+            expect(scan.stages.length).toBeGreaterThan(0);
+            expect(dark).toBeGreaterThan(0.5);
+          }
+        });
+      }
+    }
+  }
+});
+
+test.describe("Dark leftover scan", () => {
+  test("Should_ReportLeftovers_When_ADarkStageAndWhiteTextAreInjectedInLight", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "dark", stored: "light" });
+    await page.evaluate(() => {
+      document.body.insertAdjacentHTML(
+        "afterbegin",
+        '<div id="stage" style="width:400px;height:200px;background:#0b0f1a"></div>' +
+          '<p id="label" style="color:#fff">Leftover</p>',
+      );
+    });
+
+    // act
+    const scan = await scanForStages(page);
+
+    // assert
+    expect(scan.stages).toEqual(["div."]);
+    expect(scan.lightTextOnLight).toEqual(['p. "Leftover"']);
+  });
+});
+
+test.describe("start page detail clarity", () => {
+  async function hairlines(page: Page) {
+    return page.evaluate(() => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      const parse = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = "#fff";
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data];
+      };
+      const channel = (value: number) => {
+        const unit = value / 255;
+        return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = (rgb: number[]) =>
+        channel(rgb[0]) * 0.2126 +
+        channel(rgb[1]) * 0.7152 +
+        channel(rgb[2]) * 0.0722;
+      const surface = parse(getComputedStyle(document.body).backgroundColor);
+      const ratio = (color: string) => {
+        const [r, g, b, a] = parse(color);
+        const blended = [r, g, b].map(
+          (value, index) => value * (a / 255) + surface[index] * (1 - a / 255),
+        );
+        const [low, high] = [luminance(blended), luminance(surface)].sort(
+          (x, y) => x - y,
+        );
+        return (high + 0.05) / (low + 0.05);
+      };
+      const styles = getComputedStyle(document.documentElement);
+      const token = (name: string) =>
+        ratio(styles.getPropertyValue(name).trim());
+      const card = document.querySelector(
+        "main [class*='border-cc-card-border']",
+      );
+      return {
+        cardBorder: token("--color-cc-card-border"),
+        controlBorder: token("--color-cc-control-border"),
+        cardHover: token("--color-cc-card-border-hover"),
+        header: ratio(
+          getComputedStyle(document.querySelector("header")!).borderBottomColor,
+        ),
+        sampled: card ? ratio(getComputedStyle(card).borderTopColor) : 0,
+      };
+    });
+  }
+
+  test("Should_KeepHairlinesAsClearInLightAsInDark_When_ComparingTheStartPage", async ({
+    open,
+  }) => {
+    // arrange
+    const light = await open("/", { system: "dark", stored: "light" });
+    const dark = await open("/", { system: "light", stored: "dark" });
+
+    // act
+    const lightRatios = await hairlines(light);
+    const darkRatios = await hairlines(dark);
+
+    // assert
+    for (const key of Object.keys(
+      lightRatios,
+    ) as (keyof typeof lightRatios)[]) {
+      expect(lightRatios[key], key).toBeGreaterThanOrEqual(darkRatios[key]);
+    }
+    expect(lightRatios.sampled).toBeGreaterThan(1.3);
+  });
+});
+
+test.describe("Light accent and contrast tokens", () => {
+  const LIGHT = {
+    accent: "#0b6a89",
+    accentVivid: "#0aa5cf",
+    activePill: "#0aa5cf80",
+    tabStrip: "#0aa5cf6b",
+    selectedText: "#0b0f1a",
+    solid: "#0aa5cf",
+    glow: {
+      cyan: ["#06b6d4", "0 0 4px #06b6d473, 0 0 16px #06b6d459"],
+      violet: ["#8b5cf6", "0 0 4px #8b5cf673, 0 0 16px #8b5cf659"],
+      magenta: ["#d946ef", "0 0 4px #d946ef73, 0 0 16px #d946ef59"],
+      coral: ["#fb7185", "0 0 4px #fb718573, 0 0 16px #fb718559"],
+    },
+  };
+  const DARK = {
+    accent: "#16b9e4",
+    accentVivid: "#16b9e4",
+    activePill: "#f5f1ea29",
+    tabStrip: "#f5f1ea29",
+    selectedText: "#16b9e4",
+    solid: "#f5f0ea",
+    glow: {
+      cyan: ["#06b6d4", "0 0 #0000"],
+      violet: ["#8b5cf6", "0 0 #0000"],
+      magenta: ["#d946ef", "0 0 #0000"],
+      coral: ["#fb7185", "0 0 #0000"],
+    },
+  };
+
+  async function accentTokens(page: Page) {
+    return page.evaluate(() => {
+      const styles = getComputedStyle(document.documentElement);
+      const read = (name: string) => styles.getPropertyValue(name).trim();
+      return {
+        accent: read("--color-cc-accent"),
+        accentVivid: read("--color-cc-accent-vivid"),
+        activePill: read("--color-cc-active-pill"),
+        tabStrip: read("--color-cc-tab-strip"),
+        selectedText: read("--color-cc-selected-text"),
+        solid: read("--color-cc-solid"),
+        glow: Object.fromEntries(
+          ["cyan", "violet", "magenta", "coral"].map((hue) => [
+            hue,
+            [read(`--cc-glow-${hue}`), read(`--cc-glow-${hue}-halo`)],
+          ]),
+        ),
+      };
+    });
+  }
+
+  const cases: readonly {
+    name: string;
+    options: OpenOptions;
+    expected: typeof LIGHT;
+  }[] = [
+    {
+      name: "StoredLight",
+      options: { system: "dark", stored: "light" },
+      expected: LIGHT,
+    },
+    {
+      name: "AutoOnALightSystem",
+      options: { system: "light" },
+      expected: LIGHT,
+    },
+    {
+      name: "AutoOnALightSystemWithoutJavaScript",
+      options: { system: "light", javaScript: false },
+      expected: LIGHT,
+    },
+    {
+      name: "StoredDark",
+      options: { system: "light", stored: "dark" },
+      expected: DARK,
+    },
+    {
+      name: "AutoOnADarkSystemWithoutJavaScript",
+      options: { system: "dark", javaScript: false },
+      expected: DARK,
+    },
+  ];
+
+  for (const { name, options, expected } of cases) {
+    test(`Should_ResolveAccentTokens_When_${name}`, async ({ open }) => {
+      // arrange
+      const page = await open("/", options);
+
+      // act
+      const tokens = await accentTokens(page);
+
+      // assert
+      expect(tokens).toEqual(expected);
+    });
+  }
+
+  test("Should_UseOnlyCleanHighChromaHues_When_PaintingLightBlooms", async ({
+    open,
+  }) => {
+    // arrange
+    const read = (page: Page) =>
+      page.evaluate(() => {
+        const surface = getComputedStyle(document.documentElement)
+          .getPropertyValue("--cc-dark-surface")
+          .match(/#[0-9a-f]{6}(?:[0-9a-f]{2})?\b/gi);
+        const hues = (surface ?? []).map((stop) =>
+          [1, 3, 5].map((offset) =>
+            parseInt(stop.slice(offset, offset + 2), 16),
+          ),
+        );
+        return [...new Set(hues.map((hue) => hue.join(" ")))];
+      });
+
+    // act
+    const storedLight = await read(
+      await open("/", { system: "dark", stored: "light" }),
+    );
+    const autoLight = await read(
+      await open("/", { system: "light", javaScript: false }),
+    );
+
+    // assert
+    const hues = ["6 182 212", "139 92 246", "217 70 239", "251 113 133"];
+    expect(storedLight).toEqual(hues);
+    expect(autoLight).toEqual(hues);
+  });
+
+  test("Should_SizeBloomLayersToThePage_When_FixedAttachmentFallsBack", async ({
+    open,
+  }) => {
+    // arrange
+    const read = (page: Page) =>
+      page.evaluate(() => getComputedStyle(document.body).backgroundSize);
+
+    // act
+    const storedLight = await read(
+      await open("/", { system: "dark", stored: "light" }),
+    );
+    const autoLight = await read(
+      await open("/", { system: "light", javaScript: false }),
+    );
+    const storedDark = await read(
+      await open("/", { system: "light", stored: "dark" }),
+    );
+
+    // assert
+    expect(storedLight).toBe("auto, auto, auto, auto");
+    expect(autoLight).toBe("auto, auto, auto, auto");
+    expect(storedDark).toBe(
+      `${Array(9).fill("1440px 900px").join(", ")}, auto, auto`,
+    );
+  });
+
+  test("Should_KeepLightTextAndMarksReadable_When_UsingTheBrightPalette", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/", { system: "dark", stored: "light" });
+
+    // act
+    const ratios = await page.evaluate(() => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      const pixel = () =>
+        [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+      const parse = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return pixel();
+      };
+      const channel = (value: number) => {
+        const unit = value / 255;
+        return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = (rgb: number[]) =>
+        channel(rgb[0]) * 0.2126 +
+        channel(rgb[1]) * 0.7152 +
+        channel(rgb[2]) * 0.0722;
+      const between = (a: number[], b: number[]) => {
+        const [low, high] = [luminance(a), luminance(b)].sort((x, y) => x - y);
+        return Number(((high + 0.05) / (low + 0.05)).toFixed(2));
+      };
+      const styles = getComputedStyle(document.documentElement);
+      const token = (name: string) => styles.getPropertyValue(name).trim();
+      const PAGE = "#fcfbf8";
+      const over = (name: string, base: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = base;
+        context.fillRect(0, 0, 1, 1);
+        context.fillStyle = token(name);
+        context.fillRect(0, 0, 1, 1);
+        return pixel();
+      };
+      const on = (name: string, surface: string) =>
+        between(parse(token(name)), parse(surface));
+      const strip = over("--color-cc-tab-strip", PAGE);
+      return {
+        ink: on("--color-cc-ink", PAGE),
+        muted: on("--color-cc-ink-dim", PAGE),
+        navLabel: on("--color-cc-nav-label", PAGE),
+        cardBorder: on("--color-cc-card-border", PAGE),
+        controlBorder: on("--color-cc-control-border", PAGE),
+        tabStripOnPage: between(strip, parse(PAGE)),
+        bandOnPage: between(over("--color-cc-band", PAGE), parse(PAGE)),
+        accentOnPage: on("--color-cc-accent", PAGE),
+        accentOnRaised: on("--color-cc-accent", "#ffffff"),
+        accentOnCode: on("--color-cc-accent", "#f4f1ea"),
+        accentOnSelected: on("--color-cc-accent", "#eeebe3"),
+        accentOnBand: between(
+          parse(token("--color-cc-accent")),
+          over("--color-cc-band", PAGE),
+        ),
+        hoverOnPage: on("--color-cc-accent-hover", PAGE),
+        selectedTextOnStrip: between(
+          parse(token("--color-cc-selected-text")),
+          strip,
+        ),
+        selectedTextOnTint: between(
+          parse(token("--color-cc-selected-text")),
+          over("--color-cc-accent-vivid", "#ffffff"),
+        ),
+        solidLabelOnFill: between(
+          parse(token("--color-cc-solid-text")),
+          parse(token("--color-cc-solid")),
+        ),
+        solidLabelOnHover: between(
+          parse(token("--color-cc-solid-text")),
+          parse(token("--color-cc-solid-hover")),
+        ),
+        vividOnPage: on("--color-cc-accent-vivid", PAGE),
+      };
+    });
+
+    // assert
+    const shortfalls = (minimums: Record<string, number>) =>
+      Object.entries(minimums)
+        .filter(
+          ([key, minimum]) => ratios[key as keyof typeof ratios] < minimum,
+        )
+        .map(([key]) => `${key} ${ratios[key as keyof typeof ratios]}`);
+    expect(
+      shortfalls({
+        ink: 11,
+        muted: 7,
+        navLabel: 7,
+        cardBorder: 2,
+        controlBorder: 3,
+        tabStripOnPage: 1.52,
+        bandOnPage: 1.06,
+      }),
+    ).toEqual([]);
+    expect(
+      shortfalls({
+        accentOnPage: 4.5,
+        accentOnRaised: 4.5,
+        accentOnCode: 4.5,
+        accentOnSelected: 4.5,
+        accentOnBand: 4.5,
+        hoverOnPage: 4.5,
+        selectedTextOnStrip: 4.5,
+        solidLabelOnFill: 4.5,
+        solidLabelOnHover: 4.5,
+      }),
+    ).toEqual([]);
+    expect(ratios.vividOnPage).toBeLessThan(3);
+  });
+});
+
+test.describe("start page glow decorations", () => {
+  async function decorations(page: Page) {
+    return page.evaluate(() => {
+      const style = (element: Element | null | undefined, name: string) =>
+        element
+          ? (getComputedStyle(element) as unknown as Record<string, string>)[
+              name
+            ]
+          : null;
+      const bands = [...document.querySelectorAll("main > div.isolate")];
+      const grid = [...document.querySelectorAll("main *")].find((element) =>
+        /^linear-gradient\([^)]*\) 1px, rgba\(0, 0, 0, 0\) 1px\)/.test(
+          getComputedStyle(element).backgroundImage,
+        ),
+      );
+      const chip = bands[2]?.querySelector("span.block.rounded-full.border");
+      return {
+        grounds: bands.map((band) =>
+          style(band.firstElementChild?.firstElementChild, "backgroundColor"),
+        ),
+        gridLine: style(grid, "backgroundImage"),
+        beamHalos: [...document.querySelectorAll("main div.top-0.h-full")].map(
+          (beam) => style(beam, "filter"),
+        ),
+        chipRing: [style(chip, "borderTopColor"), style(chip, "boxShadow")],
+        nodeCore: [
+          style(document.querySelector("svg circle[r='15']"), "fill"),
+          style(document.querySelector("svg circle[r='15']"), "stroke"),
+        ],
+        nodeHalo: style(
+          document.querySelector("#ff-halo-soft stop"),
+          "stopColor",
+        ),
+        links: [
+          ...new Set(
+            [
+              ...document.querySelectorAll(
+                "svg.pointer-events-none path[vector-effect]",
+              ),
+            ].map((path) => style(path, "stroke")),
+          ),
+        ],
+      };
+    });
+  }
+
+  const LIGHT = {
+    grounds: [
+      "rgb(244, 251, 253)",
+      "rgb(244, 251, 253)",
+      "rgb(255, 255, 255)",
+      "rgb(244, 251, 253)",
+    ],
+    gridLine:
+      "linear-gradient(rgba(6, 182, 212, 0.3) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.3) 1px, rgba(0, 0, 0, 0) 1px)",
+    beamHalos: [
+      "drop-shadow(rgba(139, 92, 246, 0.55) 0px 0px 4px)",
+      "drop-shadow(rgba(6, 182, 212, 0.55) 0px 0px 4px)",
+      "drop-shadow(rgba(139, 92, 246, 0.55) 0px 0px 4px)",
+      "drop-shadow(rgba(6, 182, 212, 0.55) 0px 0px 4px)",
+      "drop-shadow(rgba(139, 92, 246, 0.55) 0px 0px 4px)",
+    ],
+    chipRing: [
+      "rgb(8, 145, 178)",
+      "rgba(6, 182, 212, 0.45) 0px 0px 4px 0px, rgba(6, 182, 212, 0.35) 0px 0px 16px 0px",
+    ],
+    nodeCore: ["rgb(6, 182, 212)", "rgb(8, 145, 178)"],
+    nodeHalo: "rgba(6, 182, 212, 0.55)",
+    links: [
+      "color(srgb 0.85098 0.27451 0.937255 / 0.8)",
+      "color(srgb 0.984314 0.443137 0.521569 / 0.8)",
+      "color(srgb 0.545098 0.360784 0.964706 / 0.8)",
+      "color(srgb 0.0235294 0.713726 0.831373 / 0.8)",
+    ],
+  };
+  const DARK = {
+    grounds: Array(4).fill("oklab(0.188243 -0.003151 -0.0324458 / 0.25)"),
+    gridLine:
+      "linear-gradient(rgba(245, 241, 234, 0.06) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(245, 241, 234, 0.06) 1px, rgba(0, 0, 0, 0) 1px)",
+    beamHalos: Array(5).fill("none"),
+    chipRing: ["rgba(205, 216, 232, 0.55)", "rgba(0, 0, 0, 0) 0px 0px 0px 0px"],
+    nodeCore: ["rgb(255, 255, 255)", "none"],
+    nodeHalo: "rgba(255, 255, 255, 0.9)",
+    links: ["rgba(245, 241, 234, 0.22)"],
+  };
+
+  const cases: readonly {
+    name: string;
+    options: OpenOptions;
+    expected: typeof LIGHT;
+  }[] = [
+    {
+      name: "StoredLight",
+      options: { system: "dark", stored: "light" },
+      expected: LIGHT,
+    },
+    {
+      name: "AutoOnALightSystemWithoutJavaScript",
+      options: { system: "light", javaScript: false },
+      expected: LIGHT,
+    },
+    {
+      name: "StoredDark",
+      options: { system: "light", stored: "dark" },
+      expected: DARK,
+    },
+  ];
+
+  for (const { name, options, expected } of cases) {
+    test(`Should_GlowInColor_When_${name}OnTheStartPage`, async ({ open }) => {
+      // arrange
+      const page = await open("/", options);
+
+      // act
+      const found = await decorations(page);
+
+      // assert
+      expect(found).toEqual(expected);
+    });
+  }
+});
+
+test.describe("Fusion HUD surfaces", () => {
+  const HUD_TOKENS = [
+    "--t-bg",
+    "--t-surface",
+    "--t-card",
+    "--t-border",
+    "--t-ch-latency",
+    "--hud-mark",
+  ] as const;
+
+  const SITE = {
+    "--t-bg": "#fcfbf8",
+    "--t-surface": "#fff",
+    "--t-card": "#fff",
+    "--t-border": "#aaa392",
+    "--t-ch-latency": "#0891b2",
+    "--hud-mark": "#0891b2",
+  };
+  const NITRO_DARK = {
+    "--t-bg": "#0b0f1a",
+    "--t-surface": "#0f1626",
+    "--t-card": "#131c30",
+    "--t-border": "#242d40",
+    "--t-ch-latency": "#5eead4",
+    "--hud-mark": "",
+  };
+
+  const cases: readonly {
+    name: string;
+    options: OpenOptions;
+    expected: typeof SITE;
+  }[] = [
+    {
+      name: "StoredLight",
+      options: { system: "dark", stored: "light" },
+      expected: SITE,
+    },
+    {
+      name: "AutoOnALightSystem",
+      options: { system: "light" },
+      expected: SITE,
+    },
+    {
+      name: "StoredDark",
+      options: { system: "light", stored: "dark" },
+      expected: NITRO_DARK,
+    },
+  ];
+
+  for (const { name, options, expected } of cases) {
+    test(`Should_ResolveHudTokens_When_${name}`, async ({ open }) => {
+      // arrange
+      const page = await open("/products/fusion", options);
+      const hud = page.locator(".nt-root.hud-theme").first();
+      await hud.waitFor({ state: "attached" });
+
+      // act
+      const tokens = await hud.evaluate((el, names) => {
+        const style = getComputedStyle(el);
+        return Object.fromEntries(
+          names.map((n) => [n, style.getPropertyValue(n).trim()]),
+        );
+      }, HUD_TOKENS);
+
+      // assert
+      expect(tokens).toEqual(expected);
+    });
+  }
+});
+
+test.describe("Light HUD marks and dial faces", () => {
+  test("Should_KeepMarksAtThreeToOneOnWarmFaces_When_Light", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/products/fusion", {
+      system: "dark",
+      stored: "light",
+    });
+    await page.locator(".nt-root.hud-theme").first().waitFor();
+
+    // act
+    const result = await page.evaluate(() => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      const parse = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = "#fff";
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+      };
+      const channel = (value: number) => {
+        const unit = value / 255;
+        return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = (rgb: number[]) =>
+        channel(rgb[0]) * 0.2126 +
+        channel(rgb[1]) * 0.7152 +
+        channel(rgb[2]) * 0.0722;
+      const hud = document.querySelector(".nt-root.hud-theme")!;
+      const faces = [
+        ...hud.querySelectorAll(
+          'radialGradient[id^="disc-"] stop, radialGradient[id^="face-"] stop',
+        ),
+      ].map((stop) => parse(getComputedStyle(stop).stopColor));
+      const marks = [...hud.querySelectorAll("svg [stroke]")]
+        .filter(
+          (element) =>
+            /hud-mark/.test(element.getAttribute("stroke")!) &&
+            !element.hasAttribute("filter"),
+        )
+        .map((element) => parse(getComputedStyle(element).stroke));
+      const darkest = Math.min(...faces.map(luminance));
+      return {
+        faces: faces.length,
+        coolFaces: faces.filter(([r, , b]) => b - r > 1).length,
+        marks: marks.length,
+        weakestMark: Math.min(
+          ...marks.map((mark) => (darkest + 0.05) / (luminance(mark) + 0.05)),
+        ),
+      };
+    });
+
+    // assert
+    expect(result.faces).toBeGreaterThanOrEqual(12);
+    expect(result.coolFaces).toBe(0);
+    expect(result.marks).toBeGreaterThan(20);
+    expect(result.weakestMark).toBeGreaterThanOrEqual(3);
+  });
+});
+
+test.describe("Layered composition outlines", () => {
+  async function effectiveRatios(page: Page) {
+    return page.evaluate(() => {
+      const context = document.createElement("canvas").getContext("2d")!;
+      const parse = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = "#fff";
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+      };
+      const channel = (value: number) => {
+        const unit = value / 255;
+        return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+      };
+      const luminance = (rgb: number[]) =>
+        channel(rgb[0]) * 0.2126 +
+        channel(rgb[1]) * 0.7152 +
+        channel(rgb[2]) * 0.0722;
+      const page = parse(getComputedStyle(document.body).backgroundColor);
+      const svg = document.querySelector("main svg.max-w-\\[35rem\\]")!;
+      return [...svg.querySelectorAll("path, line, ellipse")]
+        .map((element) => {
+          const style = getComputedStyle(element);
+          if (
+            style.stroke === "none" ||
+            style.stroke.startsWith("url") ||
+            element.querySelector("animate")
+          ) {
+            return null;
+          }
+          let alpha = Number(style.strokeOpacity);
+          for (
+            let node: Element | null = element;
+            node && node !== svg;
+            node = node.parentElement
+          ) {
+            alpha *= Number(getComputedStyle(node).opacity);
+          }
+          const stroke = parse(style.stroke);
+          const blended = stroke.map(
+            (value, index) => value * alpha + page[index] * (1 - alpha),
+          );
+          const [low, high] = [luminance(blended), luminance(page)].sort(
+            (a, b) => a - b,
+          );
+          return {
+            hairline: Number(style.strokeOpacity) < 0.3,
+            ratio: (high + 0.05) / (low + 0.05),
+          };
+        })
+        .filter((entry) => entry !== null);
+    });
+  }
+
+  test("Should_DrawEveryMeaningfulOutlineAtThreeToOne_When_Light", async ({
+    open,
+  }) => {
+    // arrange
+    const light = await open("/platform/graphql-federation", {
+      system: "dark",
+      stored: "light",
+    });
+    const dark = await open("/platform/graphql-federation", {
+      system: "light",
+      stored: "dark",
+    });
+
+    // act
+    const lightOutlines = await effectiveRatios(light);
+    const darkOutlines = await effectiveRatios(dark);
+
+    // assert
+    expect(lightOutlines).toHaveLength(40);
+    expect(
+      lightOutlines.filter((o) => !o.hairline && o.ratio < 3),
+    ).toHaveLength(0);
+    expect(lightOutlines.filter((o) => o.hairline)).toHaveLength(10);
+    expect(
+      lightOutlines.filter((o, i) => o.ratio < darkOutlines[i].ratio),
+    ).toHaveLength(0);
+  });
+});
+
+test.describe("Agentic hero beams", () => {
+  const cases = [
+    { name: "Light375", scheme: "light", width: 375, opacity: 0.4 },
+    { name: "Light1440", scheme: "light", width: 1440, opacity: 1 },
+    { name: "Dark375", scheme: "dark", width: 375, opacity: 1 },
+  ] as const;
+
+  for (const { name, scheme, width, opacity } of cases) {
+    test(`Should_SetBeamOpacityTo${opacity}_When_${name}`, async ({ open }) => {
+      // arrange
+      const page = await open("/platform/agentic-coding", {
+        system: opposite(scheme),
+        stored: scheme,
+        width,
+      });
+
+      // act
+      const opacities = await page
+        .locator(".ac-beam")
+        .evaluateAll((beams) =>
+          beams.map((beam) => Number(getComputedStyle(beam).opacity)),
+        );
+
+      // assert
+      expect(opacities).toEqual([opacity, opacity, opacity, opacity, opacity]);
+    });
+  }
+});
+
+test.describe("Mocha board visuals", () => {
+  test("Should_PaintBoardsWithoutSlateWashes_When_Light", async ({ open }) => {
+    // arrange
+    const page = await open("/products/mocha", { stored: "light" });
+    await page.locator("svg [stroke], svg [fill]").first().waitFor({
+      state: "attached",
+    });
+
+    // act
+    const washes = await page.evaluate(() => {
+      const slateWash = /^rgba\(51, 65, 85, 0\.[0-6]/;
+      let count = 0;
+      for (const el of document.querySelectorAll("svg *")) {
+        const style = getComputedStyle(el);
+        if (slateWash.test(style.stroke) || slateWash.test(style.fill)) {
+          count++;
+        }
+      }
+      return count;
+    });
+
+    // assert
+    expect(washes).toBe(0);
+  });
+});
+
+test.describe("Light and Dark toggle rules in the production build", () => {
+  test("Should_ShipToggleRules_When_LoadingTheFusionPage", async ({ open }) => {
+    // arrange
+    const page = await open("/products/fusion");
+
+    // act
+    const rules = await page.evaluate(() => {
+      const found = { light: "", dark: "", auto: "" };
+      const visit = (list: CSSRuleList, inLight: boolean) => {
+        for (const rule of list) {
+          if (rule instanceof CSSMediaRule) {
+            visit(
+              rule.cssRules,
+              /prefers-color-scheme:\s*light/.test(rule.conditionText),
+            );
+          } else if (rule instanceof CSSStyleRule) {
+            const value = rule.style.getPropertyValue("--cc-if-light").trim();
+            if (rule.selectorText === ':root[data-theme="light"]' && value) {
+              found.light = value;
+            }
+            if (
+              inLight &&
+              rule.selectorText === ":root:not([data-theme])" &&
+              value
+            ) {
+              found.auto = value;
+            }
+            if (
+              rule.selectorText === ":root" &&
+              rule.style.getPropertyValue("--cc-if-dark")
+            ) {
+              found.dark = rule.style.getPropertyValue("--cc-if-dark").trim();
+            }
+          }
+        }
+      };
+      for (const sheet of document.styleSheets) {
+        visit(sheet.cssRules, false);
+      }
+      return found;
+    });
+
+    // assert
+    expect(rules).toEqual({
+      light: "initial",
+      dark: "initial",
+      auto: "initial",
+    });
+  });
+
+  for (const scheme of ["light", "dark"] as const) {
+    test(`Should_SwitchToggledElement_When_${scheme}OnTheFusionPage`, async ({
+      open,
+    }) => {
+      // arrange
+      const page = await open("/products/fusion", {
+        system: opposite(scheme),
+        stored: scheme,
+      });
+      const element = page.locator('[style*="--cc-if-light"]').first();
+
+      // act
+      const background = await element.evaluate(
+        (node) => getComputedStyle(node).backgroundImage,
+      );
+      const probe = await page.evaluate(() => {
+        const node = document.createElement("div");
+        node.style.color =
+          "var(--cc-if-light, rgb(1, 2, 3)) var(--cc-if-dark, rgb(4, 5, 6))";
+        document.body.append(node);
+        const color = getComputedStyle(node).color;
+        node.remove();
+        return color;
+      });
+
+      // assert
+      const base =
+        scheme === "light" ? "rgba(252, 251, 248" : "rgba(11, 15, 26";
+      expect(background).toContain(base);
+      expect(probe).toBe(scheme === "light" ? "rgb(1, 2, 3)" : "rgb(4, 5, 6)");
+    });
+  }
+
+  test("Should_SwitchToggledElementLive_When_ChoosingAppearanceOnTheFusionPage", async ({
+    open,
+  }) => {
+    // arrange
+    const page = await open("/products/fusion", { system: "light" });
+    const element = page.locator('[style*="--cc-if-light"]').first();
+    const read = () =>
+      element.evaluate((node) => getComputedStyle(node).backgroundImage);
+
+    // act
+    const light = await read();
+    await headerGroup(page)
+      .getByRole("radio", { name: "Dark", exact: true })
+      .click();
+    const dark = await read();
+
+    // assert
+    expect(light).toContain("rgba(252, 251, 248");
+    expect(dark).toContain("rgba(11, 15, 26");
+  });
+});

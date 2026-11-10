@@ -11,6 +11,7 @@ import { CLUSTER, RING_GLOW } from "./hud";
 import { LatencyDial } from "./LatencyDial";
 import { PressureDial } from "./PressureDial";
 import { useTelemetryClock } from "./useTelemetryClock";
+import "./PerformanceHud.css";
 
 interface DialSlotProps {
   readonly dial: "latency" | "centre" | "pressure";
@@ -49,7 +50,11 @@ export function PerformanceHud() {
 
   return (
     <div ref={ref}>
-      <NitroTheme theme="dark" style={{ background: "transparent" }}>
+      <NitroTheme
+        theme="auto"
+        className="hud-theme"
+        style={{ background: "transparent" }}
+      >
         <div className="@container/hud">
           <div
             className="relative aspect-(--stack-aspect) w-full @min-[504px]/hud:aspect-(--row-aspect)"

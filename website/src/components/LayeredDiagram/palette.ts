@@ -1,3 +1,5 @@
+import { lightDark } from "@/src/components/lightDark";
+
 import { BRAND, CC } from "./tokens";
 
 export const MC = {
@@ -7,8 +9,10 @@ export const MC = {
   line: `color-mix(in srgb, ${BRAND.slate} 45%, transparent)`,
   ink: CC.heading,
   dim: CC.inkDim,
-  phosphor: BRAND.teal,
-  signal: BRAND.cyan,
+  phosphor: lightDark(CC.success, BRAND.teal),
+  signal: lightDark(CC.accent, BRAND.cyan),
+  phosphorGlow: lightDark("#0d9488", BRAND.teal),
+  signalGlow: lightDark("var(--color-cc-accent-vivid)", BRAND.cyan),
 } as const;
 
 export type StationSpec = "GraphQL Federation" | "Apollo Federation";
@@ -84,7 +88,7 @@ export function protocolTag(protocol: Protocol): string {
 }
 
 export function protocolColor(protocol: Protocol): string {
-  if (protocol === "OpenAPI") return BRAND.amber;
-  if (protocol === "MCP") return BRAND.coral;
+  if (protocol === "OpenAPI") return lightDark(CC.warning, BRAND.amber);
+  if (protocol === "MCP") return lightDark(CC.danger, BRAND.coral);
   return MC.phosphor;
 }

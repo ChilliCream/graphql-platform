@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { lightAppearance } from "@/src/components/lightAppearance";
 
 import { PcbBand } from "./PcbBand";
 import { SectionHeading } from "./SectionHeading";
@@ -46,4 +47,31 @@ export const CompactPadding: Story = {
   args: {
     className: "pb-8 sm:pb-12",
   },
+};
+
+export const Light: Story = {
+  beforeEach: lightAppearance,
+};
+
+const narrowArgs = {
+  className: "pb-16 w-full! left-0! translate-x-0!",
+};
+
+const narrowDecorator: NonNullable<Story["decorators"]> = [
+  (Story) => (
+    <div style={{ width: 375 }}>
+      <Story />
+    </div>
+  ),
+];
+
+export const LightNarrow: Story = {
+  beforeEach: lightAppearance,
+  args: narrowArgs,
+  decorators: narrowDecorator,
+};
+
+export const DarkNarrow: Story = {
+  args: narrowArgs,
+  decorators: narrowDecorator,
 };

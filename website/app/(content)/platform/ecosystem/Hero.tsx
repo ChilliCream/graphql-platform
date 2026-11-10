@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
 import { ButtonRow } from "@/src/components/ButtonRow";
+import { lightDark } from "@/src/components/lightDark";
 import { TOOLS } from "@/src/components/header/navData";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { GITHUB_REPO_URL, GITHUB_STARGAZERS_URL } from "@/src/helpers/github";
@@ -20,7 +21,7 @@ import {
 import { PILL_CLASSES } from "./pillClasses";
 import { StarPillContent } from "./StarPill";
 
-const RING_STROKE = "rgba(245,240,234,0.17)";
+const RING_STROKE = lightDark("rgba(6,182,212,0.9)", "rgba(245,240,234,0.17)");
 
 const NODE_EDGE_MASK =
   "linear-gradient(to bottom, transparent 0, black 64px, black calc(100% - 56px), transparent 100%)";

@@ -17,7 +17,7 @@ export function NitroFrame({
 }: NitroFrameProps) {
   return (
     <NitroTheme
-      theme="dark"
+      theme="auto"
       reducedMotion={reducedMotion}
       className={className}
       style={{ background: "transparent", ...style }}

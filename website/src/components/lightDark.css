@@ -1,0 +1,16 @@
+:root {
+  --cc-if-light: ;
+  --cc-if-dark: initial;
+}
+
+:root[data-theme="light"] {
+  --cc-if-light: initial;
+  --cc-if-dark: ;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --cc-if-light: initial;
+    --cc-if-dark: ;
+  }
+}

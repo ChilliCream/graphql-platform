@@ -9,10 +9,9 @@ import type {
   Pulse,
   RingFlash,
 } from "@/src/components/mocha/board";
+import type { BoardPalette } from "@/src/components/mocha/board";
 import {
-  GLOW_RGB,
-  MSG,
-  MSG_SOFT,
+  DARK_BOARD_PALETTE,
   PULSE_TRAIL,
   envelope,
   generateBoard,
@@ -21,18 +20,87 @@ import {
   pointAt,
 } from "@/src/components/mocha/board";
 import { MONO_FONT } from "@/src/components/mocha/palette";
+import { lightDark } from "@/src/components/lightDark";
+import type { ColorScheme } from "@/src/components/useColorScheme";
+import { useColorScheme } from "@/src/components/useColorScheme";
 
-const SHADOW_TOP =
-  "linear-gradient(to bottom, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
-const SHADOW_BOTTOM =
-  "linear-gradient(to top, rgba(2,6,16,0.7), rgba(2,6,16,0.25) 55%, transparent)";
+const BOARD_GROUND = `var(--cc-print-band-ground, ${lightDark(
+  "var(--color-cc-card-bg)",
+  "var(--color-cc-band)",
+)})`;
 
-const VIGNETTE_TOP =
-  "linear-gradient(to bottom, rgba(2,6,16,0.35), rgba(2,6,16,0) 12%)";
-const VIGNETTE_BOTTOM =
-  "linear-gradient(to top, rgba(2,6,16,0.55), rgba(2,6,16,0) 18%)";
-const VIGNETTE_SIDES =
-  "linear-gradient(to right, rgba(2,6,16,0.3), rgba(2,6,16,0) 8%, rgba(2,6,16,0) 92%, rgba(2,6,16,0.3))";
+const LIGHT_PCB_PALETTE: BoardPalette = {
+  pad: "rgba(6, 182, 212, 0.4)",
+  hatch: "rgba(139, 92, 246, 0.2)",
+  hatchEdge: "rgba(139, 92, 246, 0.32)",
+  footBody: "#fff",
+  footEdge: "rgba(139, 92, 246, 0.8)",
+  footPin: "rgba(6, 182, 212, 0.85)",
+  passivePad: "rgba(6, 182, 212, 0.9)",
+  passiveBody: "rgba(139, 92, 246, 0.45)",
+  resBody: "rgba(139, 92, 246, 0.55)",
+  resLand: "rgba(6, 182, 212, 0.9)",
+  canBody: "rgba(139, 92, 246, 0.5)",
+  canStripe: "rgba(139, 92, 246, 0.75)",
+  court: "rgba(6, 182, 212, 0.55)",
+  silk: "rgba(139, 92, 246, 0.75)",
+  trace: "rgba(6, 182, 212, 0.9)",
+  traceAlt: "rgba(139, 92, 246, 0.6)",
+  lane: "rgba(139, 92, 246, 0.9)",
+  via: "rgba(6, 182, 212, 0.95)",
+  hole: "#fff",
+  msg: "217, 70, 239",
+  msgSoft: "232, 121, 249",
+  glow: "6, 182, 212",
+  glowGain: 2,
+  glowComposite: "source-over",
+};
+
+const LIGHT_PCB_PALETTE_NARROW: BoardPalette = {
+  ...LIGHT_PCB_PALETTE,
+  hatch: "rgba(139, 92, 246, 0.1)",
+  hatchEdge: "rgba(139, 92, 246, 0.2)",
+  court: "rgba(6, 182, 212, 0.35)",
+  silk: "rgba(139, 92, 246, 0.5)",
+  trace: "rgba(6, 182, 212, 0.45)",
+  traceAlt: "rgba(139, 92, 246, 0.35)",
+  lane: "rgba(139, 92, 246, 0.4)",
+  glowGain: 1.2,
+};
+
+const NARROW_MAX_WIDTH = 640;
+
+const SHADOW_STRONG = lightDark("rgba(6,182,212,0.2)", "rgba(2,6,16,0.7)");
+const SHADOW_SOFT = lightDark("rgba(6,182,212,0.06)", "rgba(2,6,16,0.25)");
+
+const SHADOW_TOP = `linear-gradient(to bottom, ${SHADOW_STRONG}, ${SHADOW_SOFT} 55%, transparent)`;
+const SHADOW_BOTTOM = `linear-gradient(to top, ${SHADOW_STRONG}, ${SHADOW_SOFT} 55%, transparent)`;
+
+const VIGNETTE_TOP_COLOR = lightDark(
+  "rgba(255,255,255,0)",
+  "rgba(2,6,16,0.35)",
+);
+const VIGNETTE_BOTTOM_COLOR = lightDark(
+  "rgba(255,255,255,0)",
+  "rgba(2,6,16,0.55)",
+);
+const VIGNETTE_SIDE_COLOR = lightDark(
+  "rgba(255,255,255,0)",
+  "rgba(2,6,16,0.3)",
+);
+const VIGNETTE_CLEAR = lightDark("rgba(255,255,255,0)", "rgba(2,6,16,0)");
+
+const VIGNETTE_TOP = `linear-gradient(to bottom, ${VIGNETTE_TOP_COLOR}, ${VIGNETTE_CLEAR} 12%)`;
+const VIGNETTE_BOTTOM = `linear-gradient(to top, ${VIGNETTE_BOTTOM_COLOR}, ${VIGNETTE_CLEAR} 18%)`;
+const VIGNETTE_SIDES = `linear-gradient(to right, ${VIGNETTE_SIDE_COLOR}, ${VIGNETTE_CLEAR} 8%, ${VIGNETTE_CLEAR} 92%, ${VIGNETTE_SIDE_COLOR})`;
+
+const CHIP_RING = lightDark("#0891b2", "rgba(205,216,232,0.55)");
+const CHIP_CORE = lightDark("#06b6d4", "rgba(232,238,248,0.9)");
+const CHIP_LABEL = lightDark("rgba(51,65,85,0.85)", "rgba(170,188,214,0.8)");
+const CHIP_DESIGNATOR = lightDark(
+  "rgba(51,65,85,0.55)",
+  "rgba(154,172,200,0.45)",
+);
 
 const BASE_ALPHA = 0.3;
 const LIT_ALPHA = 0.85;
@@ -90,17 +158,23 @@ function NodeChip({ seed }: NodeChipProps) {
       }`}
       style={{ left: `${seed.fx * 100}%`, top: `${seed.fy * 100}%` }}
     >
-      <span className="relative block h-2.5 w-2.5 rounded-full border border-[rgba(205,216,232,0.55)]">
-        <span className="absolute inset-[2.5px] rounded-full bg-[rgba(232,238,248,0.9)]" />
+      <span
+        className="relative block h-2.5 w-2.5 rounded-full border"
+        style={{
+          borderColor: CHIP_RING,
+          boxShadow: "var(--cc-glow-cyan-halo)",
+        }}
+      >
+        <span
+          className="absolute inset-[2.5px] rounded-full"
+          style={{ backgroundColor: CHIP_CORE }}
+        />
       </span>
       <span
         className="font-mono text-[0.68rem] font-semibold tracking-[0.26em] whitespace-nowrap uppercase"
-        style={{ color: "rgba(170,188,214,0.8)", fontFamily: MONO_FONT }}
+        style={{ color: CHIP_LABEL, fontFamily: MONO_FONT }}
       >
-        <span
-          className="font-normal"
-          style={{ color: "rgba(154,172,200,0.45)" }}
-        >
+        <span className="font-normal" style={{ color: CHIP_DESIGNATOR }}>
           {seed.designator}·
         </span>
         {seed.label}
@@ -126,7 +200,10 @@ export function PcbBand({ children, className = "", id }: PcbBandProps) {
   return (
     <div id={id} className={bandClass}>
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="bg-cc-surface/25 absolute inset-0" />
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: BOARD_GROUND }}
+        />
         <PcbBoard />
         <div
           className="absolute inset-0"
@@ -160,7 +237,17 @@ export function PcbBand({ children, className = "", id }: PcbBandProps) {
   );
 }
 
+function pickPalette(scheme: ColorScheme, width: number): BoardPalette {
+  if (scheme !== "light") {
+    return DARK_BOARD_PALETTE;
+  }
+  return width < NARROW_MAX_WIDTH
+    ? LIGHT_PCB_PALETTE_NARROW
+    : LIGHT_PCB_PALETTE;
+}
+
 function PcbBoard() {
+  const scheme = useColorScheme();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -181,6 +268,7 @@ function PcbBoard() {
       return;
     }
 
+    let palette = DARK_BOARD_PALETTE;
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -211,7 +299,7 @@ function PcbBoard() {
       const g = offCtx!;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, w, h);
-      paintBoard(g, board, w, h);
+      paintBoard(g, board, w, h, palette);
 
       base.width = dw;
       base.height = dh;
@@ -294,22 +382,28 @@ function PcbBoard() {
         return;
       }
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
-      c.globalCompositeOperation = "lighter";
+      c.globalCompositeOperation = palette.glowComposite;
 
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
         const breathe = 1 + 0.08 * Math.sin(time / 177 + i * 2.1);
         const level = breathe * (1 + 0.8 * flash[i]);
         const halo = c.createRadialGradient(n.x, n.y, 0, n.x, n.y, 90);
-        halo.addColorStop(0, `rgba(${GLOW_RGB},${0.13 * level})`);
-        halo.addColorStop(1, `rgba(${GLOW_RGB},0)`);
+        halo.addColorStop(
+          0,
+          `rgba(${palette.glow},${0.13 * palette.glowGain * level})`,
+        );
+        halo.addColorStop(1, `rgba(${palette.glow},0)`);
         c.fillStyle = halo;
         c.beginPath();
         c.arc(n.x, n.y, 90, 0, Math.PI * 2);
         c.fill();
         const core = c.createRadialGradient(n.x, n.y, 0, n.x, n.y, 16);
-        core.addColorStop(0, `rgba(${GLOW_RGB},${0.3 * level})`);
-        core.addColorStop(1, `rgba(${GLOW_RGB},0)`);
+        core.addColorStop(
+          0,
+          `rgba(${palette.glow},${0.3 * palette.glowGain * level})`,
+        );
+        core.addColorStop(1, `rgba(${palette.glow},0)`);
         c.fillStyle = core;
         c.beginPath();
         c.arc(n.x, n.y, 16, 0, Math.PI * 2);
@@ -332,7 +426,7 @@ function PcbBoard() {
             pulse.dist - PULSE_TRAIL + (k * PULSE_TRAIL) / chunks,
           );
           const p = pointAt(pulse.trace, d);
-          c.strokeStyle = `rgba(${MSG},${alpha * Math.pow(k / chunks, 2) * 0.9})`;
+          c.strokeStyle = `rgba(${palette.msg},${alpha * Math.pow(k / chunks, 2) * 0.9})`;
           c.beginPath();
           c.moveTo(prev.x, prev.y);
           c.lineTo(p.x, p.y);
@@ -340,13 +434,13 @@ function PcbBoard() {
           prev = p;
         }
         const g = c.createRadialGradient(head.x, head.y, 0, head.x, head.y, 8);
-        g.addColorStop(0, `rgba(${MSG_SOFT},${alpha * 0.4})`);
-        g.addColorStop(1, `rgba(${MSG_SOFT},0)`);
+        g.addColorStop(0, `rgba(${palette.msgSoft},${alpha * 0.4})`);
+        g.addColorStop(1, `rgba(${palette.msgSoft},0)`);
         c.fillStyle = g;
         c.beginPath();
         c.arc(head.x, head.y, 8, 0, Math.PI * 2);
         c.fill();
-        c.fillStyle = `rgba(${MSG_SOFT},${alpha})`;
+        c.fillStyle = `rgba(${palette.msgSoft},${alpha})`;
         c.beginPath();
         c.arc(head.x, head.y, 1.8, 0, Math.PI * 2);
         c.fill();
@@ -358,7 +452,7 @@ function PcbBoard() {
           continue;
         }
         const n = nodes[i];
-        c.strokeStyle = `rgba(${MSG},${0.4 * flash[i]})`;
+        c.strokeStyle = `rgba(${palette.msg},${0.4 * flash[i]})`;
         c.beginPath();
         c.arc(n.x, n.y, 8 + (1 - flash[i]) * 20, 0, Math.PI * 2);
         c.stroke();
@@ -367,7 +461,7 @@ function PcbBoard() {
         if (rf.life <= 0.02) {
           continue;
         }
-        c.strokeStyle = `rgba(${MSG},${0.4 * rf.life})`;
+        c.strokeStyle = `rgba(${palette.msg},${0.4 * rf.life})`;
         c.beginPath();
         c.arc(rf.x, rf.y, 8 + (1 - rf.life) * 20, 0, Math.PI * 2);
         c.stroke();
@@ -454,6 +548,7 @@ function PcbBoard() {
       if (w === 0 || h === 0) {
         return;
       }
+      palette = pickPalette(scheme, w);
       canvas!.width = Math.round(w * dpr);
       canvas!.height = Math.round(h * dpr);
       nodes = SEEDS.map((s) => ({ x: s.fx * w, y: s.fy * h }));
@@ -507,7 +602,7 @@ function PcbBoard() {
       io?.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, []);
+  }, [scheme]);
 
   return (
     <div ref={wrapperRef} className="absolute inset-0">

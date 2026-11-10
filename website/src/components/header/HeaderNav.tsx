@@ -101,7 +101,7 @@ function NavSimple({ item }: { item: NavItem }) {
       <Link
         href={item.href}
         prefetch={false}
-        className="text-cc-heading flex items-center px-4 text-sm font-medium no-underline max-[1200px]:px-2.5"
+        className="text-cc-heading flex items-center px-4 text-sm font-medium no-underline max-[1280px]:px-2.5"
       >
         {item.label}
       </Link>
@@ -155,7 +155,7 @@ function NavWithSubmenu({
         href={item.href}
         prefetch={false}
         onClick={handleNavigate}
-        className="text-cc-heading flex items-center pl-4 text-sm font-medium no-underline max-[1200px]:pl-2.5"
+        className="text-cc-heading flex items-center pl-4 text-sm font-medium no-underline max-[1280px]:pl-2.5"
       >
         {item.label}
       </Link>
@@ -182,7 +182,7 @@ function NavWithSubmenu({
           pressRef.current = null;
           onExpandedChange(next);
         }}
-        className="text-cc-heading focus-visible:ring-cc-accent/50 mr-2.5 cursor-pointer self-center rounded-md p-1.5 focus-visible:ring-2 focus-visible:outline-none max-[1200px]:mr-1"
+        className="text-cc-heading focus-visible:ring-cc-accent/50 mr-2.5 cursor-pointer self-center rounded-md p-1.5 focus-visible:ring-2 focus-visible:outline-none max-[1280px]:mr-1"
       >
         <ChevronDownIcon className="h-3 w-3 fill-current" />
       </button>
@@ -241,7 +241,7 @@ function SubmenuPanel({
     >
       <div
         className={[
-          "border-cc-white/10 bg-cc-surface/95 grid gap-8 rounded-lg border p-6 shadow-2xl backdrop-blur-md",
+          "border-cc-card-border bg-cc-surface/95 grid gap-8 rounded-lg border p-6 shadow-2xl backdrop-blur-md",
           showAside ? "grid-cols-[1fr_280px]" : "grid-cols-1",
           item.panelWidth ?? "w-120",
         ].join(" ")}
@@ -385,7 +385,7 @@ function LatestBlogPanel({
         className="group/blog text-cc-ink focus-visible:ring-cc-accent/50 flex flex-col gap-2 rounded-md no-underline focus-visible:ring-2 focus-visible:outline-none"
       >
         {image && (
-          <div className="border-cc-white/10 overflow-hidden rounded-md border">
+          <div className="border-cc-card-border overflow-hidden rounded-md border">
             {image}
           </div>
         )}
@@ -408,7 +408,7 @@ function GetInTouchPanel() {
       >
         Get in touch
       </div>
-      <div className="border-cc-white/10 flex h-45 items-center justify-center rounded-md border bg-(image:--cc-promo-gradient)">
+      <div className="border-cc-card-border flex h-45 items-center justify-center rounded-md border bg-(image:--cc-promo-gradient)">
         <div className="text-cc-ink text-center text-sm leading-snug font-medium">
           Your technology journey.
           <br />

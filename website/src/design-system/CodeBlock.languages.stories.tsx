@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import type { ReactElement } from "react";
 import { CodeBlock } from "./CodeBlock";
-import { renderBlock } from "./codeBlockStoryUtils";
+import { expect } from "storybook/test";
+import { lowestContrast, renderBlock, storyTheme } from "./codeBlockStoryUtils";
 
 const meta = {
   title: "Design System/CodeBlock/Languages",
@@ -88,4 +89,17 @@ export const AllLanguages: Story = {
       ))}
     </div>
   ),
+};
+
+export const AllLanguagesLight: Story = {
+  ...AllLanguages,
+  beforeEach: storyTheme("light"),
+  play: async ({ canvasElement }) => {
+    expect(lowestContrast(canvasElement, ".shiki span")).toBeGreaterThanOrEqual(
+      4.5,
+    );
+    expect(
+      lowestContrast(canvasElement, ".code-lang-badge"),
+    ).toBeGreaterThanOrEqual(4.5);
+  },
 };
