@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
+using HotChocolate.Utilities;
 using HotChocolate.Utilities.StreamAdapters;
 using HotChocolate.Utilities.Subscriptions;
 
@@ -132,6 +133,7 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
 
     /// <summary>
     /// Subscribes to fixed topic on the <see cref="ITopicEventReceiver" />.
+    /// Fields that resolve their topic from argument values cannot subscribe to this topic.
     /// </summary>
     /// <param name="descriptor">
     /// The object field descriptor.
@@ -145,10 +147,17 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor SubscribeToTopic<TMessage>(
         this IObjectFieldDescriptor descriptor,
         string topicName)
-        => SubscribeToTopic<TMessage>(descriptor, _ => topicName);
+    {
+        var feature = SubscriptionTopicFeature.GetOrCreate(descriptor.Extend().Context);
+        feature.FixedTopics.Add(topicName);
+
+        return SubscribeToTopic<TMessage>(descriptor, _ => topicName);
+    }
 
     /// <summary>
     /// Subscribes to a topic that is represented by an argument value.
+    /// An argument value that is the fixed topic of another subscription field is refused
+    /// with a GraphQL error.
     /// </summary>
     /// <param name="descriptor">
     /// The object field descriptor.
@@ -162,9 +171,24 @@ public static class SubscribeResolverObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor SubscribeToTopicByArgument<TMessage>(
         this IObjectFieldDescriptor descriptor,
         string argumentName)
-        => SubscribeToTopic<TMessage>(
+    {
+        var feature = SubscriptionTopicFeature.GetOrCreate(descriptor.Extend().Context);
+
+        return SubscribeToTopic<TMessage>(
             descriptor,
-            ctx => ctx.ArgumentValue<object>(argumentName).ToString()!);
+            ctx =>
+            {
+                var topicName = ctx.ArgumentValue<object>(argumentName).ToString()!;
+
+                // the topic must not be the fixed topic of another subscription field.
+                if (feature.FixedTopics.Contains(topicName))
+                {
+                    throw ThrowHelper.SubscribeResolver_TopicOfOtherField(ctx.Selection.Field);
+                }
+
+                return topicName;
+            });
+    }
 
     /// <summary>
     /// Subscribes to a topic that is resolved by executing <paramref name="resolveTopic" />.

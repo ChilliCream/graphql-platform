@@ -37,6 +37,14 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
+    public static GraphQLException SubscribeResolver_TopicOfOtherField(IObjectField field) =>
+        new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_SubscribeResolver_TopicOfOtherField,
+                    field.Coordinate.ToString())
+                .Build());
+
     public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member) =>
         new SchemaException(
             SchemaErrorBuilder.New()
