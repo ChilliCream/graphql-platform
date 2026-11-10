@@ -415,18 +415,26 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
 ## Available Settings
 
-| Setting                                  | Values                                   | Description                                                        |
-| ---------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                          | Allow Apollo interface objects without a resolvable key            |
-| `global-object-identification`           | `true`, `false`                          | Enable Relay-style node queries                                    |
-| `include-satisfiability-paths`           | `true`, `false`                          | Include paths in satisfiability diagnostics                        |
-| `node-resolution`                        | `gateway`, `source-schema`               | Choose who resolves `Query.node` IDs                               |
-| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types`   | Choose routing for type-conditioned selections on shareable fields |
-| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private`   | How to merge `@cacheControl` directives                            |
-| `enum-values-merge-behavior`             | `auto`, `strict`, `union`                | How to merge enum values across source schemas                     |
-| `tag-merge-behavior`                     | `ignore`, `include`, `include-private`   | How to merge `@tag` directives                                     |
-| `exclude-by-tag`                         | Comma-separated tags                     | Exclude fields/types by tag                                        |
-| `default-list-size`                      | Non-negative integer, or `null` to unset | Assumed size for lists without `@listSize` metadata                |
+| Setting                                  | Values                                                     | Description                                                        |
+| ---------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                                            | Allow Apollo interface objects without a resolvable key            |
+| `global-object-identification`           | `true`, `false`                                            | Enable Relay-style node queries                                    |
+| `include-satisfiability-paths`           | `true`, `false`                                            | Include paths in satisfiability diagnostics                        |
+| `node-resolution`                        | `gateway`, `source-schema`                                 | Choose who resolves `Query.node` IDs                               |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types`                     | Choose routing for type-conditioned selections on shareable fields |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private`                     | How to merge `@cacheControl` directives                            |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`                                  | How to merge enum values across source schemas                     |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private`                     | How to merge `@tag` directives                                     |
+| `exclude-by-tag`                         | Comma-separated tags                                       | Exclude fields/types by tag                                        |
+| `default-list-size`                      | Non-negative integer, or `null` to unset                   | Assumed size for lists without `@listSize` metadata                |
+| `case-budget`                            | Integer, or `null` to unset                                | Maximum Boolean case splits before using the configured fallback   |
+| `case-budget-exceeded-behavior`          | `evaluate-per-request`, `overestimate`, or `null` to unset | Behavior after the case budget is exhausted                        |
+| `cost-plan-cache-size`                   | Positive integer, or `null` to unset                       | Maximum compiled cost plans cached per schema                      |
+| `enforce-cost-limits`                    | `true`, `false`, or `null` to unset                        | Enforce field, type, and response-size limits                      |
+| `max-field-cost`                         | Non-negative finite number, or `null` to unset             | Maximum allowed field cost                                         |
+| `max-response-size`                      | Non-negative finite number, or `null` to unset             | Maximum estimated response-field count                             |
+| `max-type-cost`                          | Non-negative finite number, or `null` to unset             | Maximum allowed type cost                                          |
+| `skip-cost-analyzer`                     | `true`, `false`, or `null` to unset                        | Skip analysis, enforcement, and reporting                          |
 
 ## Examples
 
