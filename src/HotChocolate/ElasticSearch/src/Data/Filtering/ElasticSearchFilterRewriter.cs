@@ -107,7 +107,9 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         => new OwnerFinder().Find(scope)
             .Select(FieldPath)
             .Distinct()
-            .Aggregate(test, (result, owner) => Expression.AndAlso(QueryString($"_exists_:{owner}"), result));
+            .Aggregate(
+                test,
+                (result, owner) => Expression.AndAlso(QueryString($"_exists_:{QueryStringName(owner)}"), result));
 
     private static bool TryGetTestedNullableField(Expression test, out MemberExpression field)
     {
@@ -211,7 +213,7 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
         if (field.Expression is MemberExpression owner)
         {
-            isNull = Expression.AndAlso(isNull, QueryString($"_exists_:{FieldPath(owner)}"));
+            isNull = Expression.AndAlso(isNull, QueryString($"_exists_:{QueryStringName(FieldPath(owner))}"));
         }
 
         return Expression.OrElse(isNull, test);
@@ -256,21 +258,22 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
     {
         var path = FieldPath(list);
         var nested = list.Member.IsDefined(typeof(ElasticSearchNestedAttribute), true);
+        var kqlPath = KqlName(path);
 
         if (node.Arguments.Count == 1)
         {
             // a nested element exists even when all its fields are null; an object mapping keeps no trace of it.
-            return nested ? Kql($"{path}:{{ * }}") : QueryString($"_exists_:{path}");
+            return nested ? Kql($"{kqlPath}:{{ * }}") : QueryString($"_exists_:{QueryStringName(path)}");
         }
 
         var lambda = GetLambda(node.Arguments[1]);
-        var predicate = new ObjectPredicate(this, lambda.Parameters[0], nested ? null : path + ".");
+        var predicate = new ObjectPredicate(this, lambda.Parameters[0], nested ? null : QueryStringName(path) + ".");
         var text = predicate.Render(lambda.Body);
         var any = node.Method.Name == nameof(Enumerable.Any);
 
         if (nested)
         {
-            return any ? Kql($"{path}:{{ {text} }}") : Expression.Not(Kql($"{path}:{{ not ({text}) }}"));
+            return any ? Kql($"{kqlPath}:{{ {text} }}") : Expression.Not(Kql($"{kqlPath}:{{ not ({text}) }}"));
         }
 
         if (!any || predicate.Fields.Count > 1 || predicate.Negated || predicate.Conjunction)
@@ -297,7 +300,7 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         }
 
         var regex = StringRegex(call, item);
-        var field = FieldPath(list);
+        var field = QueryStringName(FieldPath(list));
         return any
             ? QueryString($"{field}:/~({regex})/")
             : Expression.Not(QueryString(negated ? $"{field}:/{regex}/" : $"{field}:/~({regex})/"));
@@ -399,6 +402,53 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         }
     }
 
+    // a name with a reserved character is quoted in KQL and escaped in a query string.
+    private static string KqlName(string name)
+        => name.All(c => char.IsAsciiLetterOrDigit(c) || c is '_' or '.')
+            ? name
+            : "\"" + name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+
+    private static string QueryStringName(string name)
+    {
+        var builder = new StringBuilder(name.Length);
+
+        foreach (var c in name)
+        {
+            if (char.IsWhiteSpace(c) || "+-=&|><!(){}[]^\"~*?:\\/".Contains(c))
+            {
+                builder.Append('\\');
+            }
+
+            builder.Append(c);
+        }
+
+        return builder.ToString();
+    }
+
+    // the fields that tell that an object exists, since KQL applies no wildcard to a quoted name.
+    private IEnumerable<string> Leaves(Type type, string path, HashSet<Type> seen)
+    {
+        foreach (var property in type.GetProperties())
+        {
+            var name = path + "." + FieldName(property);
+            var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+
+            if (propertyType == typeof(string)
+                || propertyType.IsValueType
+                || typeof(IEnumerable).IsAssignableFrom(propertyType))
+            {
+                yield return name;
+            }
+            else if (seen.Add(propertyType))
+            {
+                foreach (var leaf in Leaves(propertyType, name, seen))
+                {
+                    yield return leaf;
+                }
+            }
+        }
+    }
+
     private static bool IsStringList(Type type)
         => type != typeof(string) && typeof(IEnumerable<string>).IsAssignableFrom(type);
 
@@ -455,6 +505,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         private bool IsQueryString => prefix is not null;
 
         private readonly List<string> _rendered = [];
+
+        private readonly Dictionary<string, Type> _ownerTypes = [];
 
         public HashSet<string> Fields { get; } = [];
 
@@ -535,7 +587,7 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
                 .Where(name => name.Contains('.'))
                 .Select(name => name[..name.LastIndexOf('.')])
                 .Distinct()
-                .Select(owner => IsQueryString ? $"_exists_:{prefix}{owner}" : $"{owner}.*:*")
+                .Select(name => IsQueryString ? $"_exists_:{prefix}{QueryStringName(name)}" : OwnerExists(name))
                 .ToList();
 
             if (owners.Count == 0)
@@ -545,6 +597,12 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
             var and = IsQueryString ? " AND " : " and ";
             return $"({string.Join(and, owners)}{and}{text})";
+        }
+
+        private string OwnerExists(string name)
+        {
+            var leaves = owner.Leaves(_ownerTypes[name], name, []).Select(leaf => $"{KqlName(leaf)}:*");
+            return "(" + string.Join(" or ", leaves) + ")";
         }
 
         // the null check that the filter adds before a string operation on the same field.
@@ -620,7 +678,13 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
             var name = string.Join(".", parts);
             Fields.Add(name);
             _rendered.Add(name);
-            return prefix + name;
+
+            if (member.Expression is MemberExpression parent)
+            {
+                _ownerTypes[name[..name.LastIndexOf('.')]] = parent.Type;
+            }
+
+            return IsQueryString ? prefix + QueryStringName(name) : KqlName(name);
         }
 
         private bool IsOnItem(MemberExpression member)

@@ -47,6 +47,14 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         new() { Name = "12", Values = ["A/1", "A-1"] }
     ];
 
+    private static readonly (string Name, List<ReservedItem> Items)[] s_reserved =
+    [
+        ("1", [new ReservedItem { Bar = "x", Details = new ReservedDetails { Code = "a", Kind = "k" } }]),
+        ("2", [new ReservedItem { Bar = "y" }]),
+        ("3", [new ReservedItem { Bar = "y", Details = new ReservedDetails { Kind = "k" } }]),
+        ("4", [])
+    ];
+
     public static TheoryData<string> SingleField =>
     [
         """some: { bar: { eq: "A1" } }""",
@@ -234,6 +242,63 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         Assert.Equal(Names(expected), Names(actual));
     }
 
+    [Theory]
+    [InlineData("""some: { bar: { eq: "x" } }""")]
+    [InlineData("""some: { bar: { neq: "x" } }""")]
+    [InlineData("""some: { details: { code: { neq: "a" } } }""")]
+    [InlineData("any: true")]
+    public async Task Filter_Should_MatchLinq_When_NestedFieldNameHasReservedCharacter(string filter)
+    {
+        // arrange
+        var data = s_reserved.Select(r => new ReservedNestedDocument { Name = r.Name, Items = r.Items }).ToArray();
+        await IndexDocuments(data);
+
+        // act
+        var expected = await ExecuteAsync(() => data.AsQueryable(), false, "items", filter);
+        var actual = await ExecuteAsync(Query<ReservedNestedDocument>, true, "items", filter);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
+    [Theory]
+    [InlineData("""some: { bar: { eq: "x" } }""")]
+    [InlineData("any: true")]
+    public async Task Filter_Should_MatchLinq_When_ObjectFieldNameHasReservedCharacter(string filter)
+    {
+        // arrange
+        var data = s_reserved.Select(r => new ReservedObjectDocument { Name = r.Name, Items = r.Items }).ToArray();
+        await IndexDocuments(data);
+
+        // act
+        var expected = await ExecuteAsync(() => data.AsQueryable(), false, "items", filter);
+        var actual = await ExecuteAsync(Query<ReservedObjectDocument>, true, "items", filter);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
+    [Theory]
+    [InlineData("""some: { nstartsWith: "A" }""")]
+    [InlineData("""all: { in: ["A1"] }""")]
+    public async Task Filter_Should_MatchLinq_When_StringListNameHasReservedCharacter(string filter)
+    {
+        // arrange
+        ReservedStringDocument[] data =
+        [
+            new() { Name = "1", Values = ["A1"] },
+            new() { Name = "2", Values = ["B1"] }
+        ];
+        await IndexDocuments(data);
+
+        // act
+        var expected = await ExecuteAsync(() => data.AsQueryable(), false, "values", filter);
+        var actual = await ExecuteAsync(Query<ReservedStringDocument>, true, "values", filter);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
     private IQueryable<T> Query<T>() where T : class => Client.Esql.CreateQuery<T>().From(Client.Index);
 
     internal static async Task<JsonNode> ExecuteAsync<T>(
@@ -280,6 +345,48 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         public OperationFilterTests.Color Hue { get; set; }
 
         public ItemDetails? Details { get; set; }
+    }
+
+    public class ReservedItem
+    {
+        [JsonPropertyName("b ar")]
+        public string? Bar { get; set; }
+
+        [JsonPropertyName("de:tails")]
+        public ReservedDetails? Details { get; set; }
+    }
+
+    public class ReservedDetails
+    {
+        [JsonPropertyName("co de")]
+        public string? Code { get; set; }
+
+        public string? Kind { get; set; }
+    }
+
+    public class ReservedNestedDocument
+    {
+        public string Name { get; set; } = "";
+
+        [ElasticSearchNested]
+        [JsonPropertyName("it ems")]
+        public List<ReservedItem> Items { get; set; } = [];
+    }
+
+    public class ReservedObjectDocument
+    {
+        public string Name { get; set; } = "";
+
+        [JsonPropertyName("it+ems")]
+        public List<ReservedItem> Items { get; set; } = [];
+    }
+
+    public class ReservedStringDocument
+    {
+        public string Name { get; set; } = "";
+
+        [JsonPropertyName("tag:values")]
+        public List<string?> Values { get; set; } = [];
     }
 
     public class ItemDetails
