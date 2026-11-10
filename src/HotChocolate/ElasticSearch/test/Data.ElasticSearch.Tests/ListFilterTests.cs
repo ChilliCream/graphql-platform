@@ -299,6 +299,41 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         Assert.Equal(Names(expected), Names(actual));
     }
 
+    [Theory]
+    [InlineData(false, """some: { bar: { contains: "foo\nbar" } }""")]
+    [InlineData(false, """some: { bar: { contains: "a\tb" } }""")]
+    [InlineData(true, """some: { bar: { contains: "foo\nbar" } }""")]
+    [InlineData(true, """some: { bar: { contains: "a\tb" } }""")]
+    [InlineData(false, """some: { bar: { startsWith: "foo\nb" } }""")]
+    [InlineData(true, """some: { bar: { endsWith: "\r\nz" } }""")]
+    public async Task Filter_Should_MatchLinq_When_ValueHasWhitespace(bool nested, string filter)
+    {
+        // arrange
+        var items = new[] { ("1", "foo\nbar"), ("2", "fooX"), ("3", "barn"), ("4", "a\tb"), ("5", "y\r\nz") };
+        var objects = items.Select(i => new ObjectDocument { Name = i.Item1, Items = Items((i.Item2, "q")) }).ToArray();
+        var nesteds = items.Select(i => new NestedDocument { Name = i.Item1, Items = Items((i.Item2, "q")) }).ToArray();
+
+        // act
+        JsonNode expected;
+        JsonNode actual;
+
+        if (nested)
+        {
+            await IndexDocuments(nesteds);
+            expected = await ExecuteAsync(() => nesteds.AsQueryable(), false, "items", filter);
+            actual = await ExecuteAsync(Query<NestedDocument>, true, "items", filter);
+        }
+        else
+        {
+            await IndexDocuments(objects);
+            expected = await ExecuteAsync(() => objects.AsQueryable(), false, "items", filter);
+            actual = await ExecuteAsync(Query<ObjectDocument>, true, "items", filter);
+        }
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
     private IQueryable<T> Query<T>() where T : class => Client.Esql.CreateQuery<T>().From(Client.Index);
 
     internal static async Task<JsonNode> ExecuteAsync<T>(

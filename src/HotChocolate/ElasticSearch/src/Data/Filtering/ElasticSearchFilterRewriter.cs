@@ -702,9 +702,17 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
             foreach (var c in value)
             {
+                // KQL reads a tab or a line break in a value only as an escape sequence.
+                if (!IsQueryString && c is '\t' or '\n' or '\r')
+                {
+                    builder.Append(c switch { '\t' => "\\t", '\n' => "\\n", _ => "\\r" });
+                    continue;
+                }
+
                 if (c is '\\' or '(' or ')' or ':' or '<' or '>' or '"' or '*' or '{' or '}' or ' '
                     || (IsQueryString
-                        && c is '+' or '-' or '=' or '&' or '|' or '!' or '[' or ']' or '^' or '~' or '?' or '/'))
+                        && (char.IsWhiteSpace(c)
+                            || c is '+' or '-' or '=' or '&' or '|' or '!' or '[' or ']' or '^' or '~' or '?' or '/')))
                 {
                     builder.Append('\\');
                 }
