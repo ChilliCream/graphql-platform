@@ -23,20 +23,29 @@ internal static class CircuitBreakerLogging
         };
         options.OnOpened = args =>
         {
-            using var scope = logger.BeginScope(logContext);
-            logger.CircuitOpen(args.Outcome.Exception, endpoint, args.BreakDuration);
+            using (logger.BeginScope(logContext))
+            {
+                logger.CircuitOpen(args.Outcome.Exception, endpoint, args.BreakDuration);
+            }
+
             return default;
         };
         options.OnClosed = _ =>
         {
-            using var scope = logger.BeginScope(logContext);
-            logger.CircuitClosed(endpoint);
+            using (logger.BeginScope(logContext))
+            {
+                logger.CircuitClosed(endpoint);
+            }
+
             return default;
         };
         options.OnHalfOpened = _ =>
         {
-            using var scope = logger.BeginScope(logContext);
-            logger.CircuitHalfOpen(endpoint);
+            using (logger.BeginScope(logContext))
+            {
+                logger.CircuitHalfOpen(endpoint);
+            }
+
             return default;
         };
         return options;

@@ -203,7 +203,7 @@ public sealed partial class RabbitMQConsumerManager
 
         private async Task ConnectCoreAsync(IConnection connection, CancellationToken cancellationToken)
         {
-            using var logScope = Manager.BeginLogScope(connection);
+            using var _ = Manager.BeginLogScope(connection);
             await DetachAsync(cancellationToken);
 
             if (!HasCapacity)
@@ -279,8 +279,10 @@ public sealed partial class RabbitMQConsumerManager
                 _consumer = consumer;
                 _connection = connection;
                 SetDispatchConsumer(consumer);
-                using var channelScope = Manager.BeginLogScope(channel);
-                Manager.Logger.ConsumerAttached(QueueName, tag, PrefetchCount, ConsumerDispatchConcurrency);
+                using (Manager.BeginLogScope(channel))
+                {
+                    Manager.Logger.ConsumerAttached(QueueName, tag, PrefetchCount, ConsumerDispatchConcurrency);
+                }
             }
             catch (OperationCanceledException)
                 when (attachToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
@@ -530,7 +532,7 @@ public sealed partial class RabbitMQConsumerManager
 
         private void HandleLoss(ChannelConsumer consumer)
         {
-            using var logScope = Manager.BeginLogScope(consumer.Channel);
+            using var _ = Manager.BeginLogScope(consumer.Channel);
             var reason = consumer.LossReason;
             if (reason is null)
             {
@@ -578,7 +580,7 @@ public sealed partial class RabbitMQConsumerManager
 
                     TimeSpan delay;
 
-                    using var logScope = Manager.BeginLogScope(connection);
+                    using var _ = Manager.BeginLogScope(connection);
                     await _gate.WaitAsync(cancellationToken);
                     try
                     {

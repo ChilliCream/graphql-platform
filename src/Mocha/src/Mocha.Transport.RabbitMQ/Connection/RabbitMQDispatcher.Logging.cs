@@ -53,9 +53,11 @@ public sealed partial class RabbitMQDispatcher
                     break;
                 }
 
-                using var connectionScope = channel is not null ? BeginLogScope(channel) : BeginLogScope();
-                using var messageScope = Logger.BeginMessageScope(context);
-                Logger.PublishStalled(context.Envelope?.MessageId, phase, TimeProvider.GetElapsedTime(started));
+                using (channel is not null ? BeginLogScope(channel) : BeginLogScope())
+                using (Logger.BeginMessageScope(context))
+                {
+                    Logger.PublishStalled(context.Envelope?.MessageId, phase, TimeProvider.GetElapsedTime(started));
+                }
             }
         }
 
@@ -69,9 +71,11 @@ public sealed partial class RabbitMQDispatcher
             return;
         }
 
-        using var connectionScope = channel is not null ? BeginLogScope(channel) : BeginLogScope();
-        using var messageScope = Logger.BeginMessageScope(context);
-        Logger.PublishFailedRetrying(exception, ConnectionName, context.Endpoint.Name, attempt, delay);
+        using (channel is not null ? BeginLogScope(channel) : BeginLogScope())
+        using (Logger.BeginMessageScope(context))
+        {
+            Logger.PublishFailedRetrying(exception, ConnectionName, context.Endpoint.Name, attempt, delay);
+        }
     }
 
     internal void LogPublishPhase(IDispatchContext context, IChannel? channel, string phase)
@@ -81,9 +85,11 @@ public sealed partial class RabbitMQDispatcher
             return;
         }
 
-        using var connectionScope = channel is not null ? BeginLogScope(channel) : BeginLogScope();
-        using var messageScope = Logger.BeginMessageScope(context);
-        Logger.PublishWaiting(context.Envelope?.MessageId, phase);
+        using (channel is not null ? BeginLogScope(channel) : BeginLogScope())
+        using (Logger.BeginMessageScope(context))
+        {
+            Logger.PublishWaiting(context.Envelope?.MessageId, phase);
+        }
     }
 
     internal void LogPublishOutcome(
@@ -102,22 +108,28 @@ public sealed partial class RabbitMQDispatcher
             return;
         }
 
-        using var connectionScope = channel is not null ? BeginLogScope(channel) : BeginLogScope();
-        using var messageScope = Logger.BeginMessageScope(context);
-        Logger.PublishFinished(exception, level, context.Envelope?.MessageId, outcome, phase, attempt, elapsed);
+        using (channel is not null ? BeginLogScope(channel) : BeginLogScope())
+        using (Logger.BeginMessageScope(context))
+        {
+            Logger.PublishFinished(exception, level, context.Envelope?.MessageId, outcome, phase, attempt, elapsed);
+        }
     }
 
     internal void LogReturnedQueueRepairStarted(IDispatchContext context, IChannel channel, string queueName)
     {
-        using var connectionScope = BeginLogScope(channel);
-        using var messageScope = Logger.BeginMessageScope(context);
-        Logger.ReturnedQueueRepairStarted(ConnectionName, queueName);
+        using (BeginLogScope(channel))
+        using (Logger.BeginMessageScope(context))
+        {
+            Logger.ReturnedQueueRepairStarted(ConnectionName, queueName);
+        }
     }
 
     internal void LogReturnedQueueRedeclared(IDispatchContext context, IChannel channel, string queueName)
     {
-        using var connectionScope = BeginLogScope(channel);
-        using var messageScope = Logger.BeginMessageScope(context);
-        Logger.RedeclaredQueueOfReturnedMessage(ConnectionName, queueName);
+        using (BeginLogScope(channel))
+        using (Logger.BeginMessageScope(context))
+        {
+            Logger.RedeclaredQueueOfReturnedMessage(ConnectionName, queueName);
+        }
     }
 }

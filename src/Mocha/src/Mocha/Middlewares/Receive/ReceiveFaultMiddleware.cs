@@ -36,7 +36,7 @@ internal sealed class ReceiveFaultMiddleware(
             var destination = reply
                 ? options.ReplyAddress
                 : errorEndpoint?.Destination?.Address ?? errorEndpoint?.Address;
-            using var logScope = logger.BeginMessageScope(context);
+            using var _ = logger.BeginMessageScope(context);
             logger.MessageFaulted(ex, context.MessageId, fault.Id, destination?.ToString());
             try
             {

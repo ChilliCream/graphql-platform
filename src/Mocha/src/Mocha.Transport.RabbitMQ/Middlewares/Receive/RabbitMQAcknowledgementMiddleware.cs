@@ -91,16 +91,18 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowle
             return;
         }
 
-        using var connectionScope = (context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.BeginLogScope(channel);
-        using var messageScope = logger.BeginMessageScope(context);
-        logger.SettlementSkippedChannelClosed(
-            settlement,
-            delivery.BasicProperties.MessageId ?? context.MessageId,
-            delivery.ConsumerTag,
-            delivery.DeliveryTag,
-            delivery.Exchange,
-            delivery.RoutingKey,
-            delivery.Redelivered);
+        using ((context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.BeginLogScope(channel))
+        using (logger.BeginMessageScope(context))
+        {
+            logger.SettlementSkippedChannelClosed(
+                settlement,
+                delivery.BasicProperties.MessageId ?? context.MessageId,
+                delivery.ConsumerTag,
+                delivery.DeliveryTag,
+                delivery.Exchange,
+                delivery.RoutingKey,
+                delivery.Redelivered);
+        }
     }
 
     /// <summary>

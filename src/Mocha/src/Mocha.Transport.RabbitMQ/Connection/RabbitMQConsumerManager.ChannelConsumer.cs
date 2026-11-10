@@ -111,7 +111,7 @@ public sealed partial class RabbitMQConsumerManager
                 }
                 catch (Exception ex)
                 {
-                    using var logScope = _owner.Manager.BeginLogScope(Channel);
+                    using var _ = _owner.Manager.BeginLogScope(Channel);
                     _owner.Manager.Logger.ErrorCancellingConsumerHandlers(ex, _owner.Manager.ConnectionName, _owner.QueueName);
                 }
                 finally
@@ -204,7 +204,7 @@ public sealed partial class RabbitMQConsumerManager
 
             public async Task ProcessDeliveriesAsync(CancellationToken cancellationToken)
             {
-                using var logScope = _owner.Manager.BeginLogScope(Channel);
+                using var _ = _owner.Manager.BeginLogScope(Channel);
                 var reader = _deliveries.Reader;
                 while (await reader.WaitToReadAsync(cancellationToken))
                 {

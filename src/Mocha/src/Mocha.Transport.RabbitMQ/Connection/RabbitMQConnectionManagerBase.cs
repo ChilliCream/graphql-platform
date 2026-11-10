@@ -258,7 +258,7 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
                 }
                 catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
-                    using var logScope = BeginLogScope();
+                    using var _ = BeginLogScope();
                     attempt++;
                     delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
 
@@ -345,13 +345,13 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
                 }
                 catch (Exception ex) when (!IsConnectivityFailure(ex))
                 {
-                    using var logScope = BeginLogScope();
+                    using var _ = BeginLogScope();
                     Logger.FailedToCreateConnectionAfterAttempts(ex, ConnectionName, attempt + 1);
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    using var logScope = BeginLogScope();
+                    using var _ = BeginLogScope();
                     attempt++;
                     var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
 
@@ -386,7 +386,7 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
                 && !cancellationToken.IsCancellationRequested
                 && !_disposeToken.IsCancellationRequested)
         {
-            using var logScope = BeginLogScope();
+            using var _ = BeginLogScope();
             Logger.FailedToCreateConnectionAfterAttempts(ex, ConnectionName, attempt + 1);
             throw ThrowHelper.ConnectionTimedOut(connectTimeout, ex);
         }
@@ -492,22 +492,24 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private Task OnCallbackExceptionAsync(object? sender, CallbackExceptionEventArgs e)
     {
-        using var logScope = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
+        using var _ = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
         Logger.ExceptionInConnectionCallback(e.Exception, ConnectionName, e.Detail.Print());
-
         return Task.CompletedTask;
     }
 
     private Task OnConnectionShutdownAsync(IConnection connection, ShutdownEventArgs e)
     {
-        using var logScope = BeginLogScope(connection);
         if (e.Initiator == ShutdownInitiator.Application)
         {
+            using var _ = BeginLogScope(connection);
             Logger.ConnectionClosedByApplication(ConnectionName);
             return Task.CompletedTask;
         }
 
-        Logger.ConnectionShutdownDetected(ConnectionName, e.Initiator, e.ReplyCode, e.ReplyText);
+        using (BeginLogScope(connection))
+        {
+            Logger.ConnectionShutdownDetected(ConnectionName, e.Initiator, e.ReplyCode, e.ReplyText);
+        }
 
         // The client raises this event on its reader loop or heartbeat timer, which cannot process the
         // replies that closing a channel waits for, so the cleanup must not run inline.
@@ -517,7 +519,7 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private async Task HandleConnectionLostAsync(IConnection connection)
     {
-        using var logScope = BeginLogScope(connection);
+        using var _ = BeginLogScope(connection);
         try
         {
             var isCurrent = false;
@@ -557,14 +559,14 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private Task OnConnectionBlockedAsync(object? sender, ConnectionBlockedEventArgs e)
     {
-        using var logScope = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
+        using var _ = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
         Logger.ConnectionBlocked(ConnectionName, e.Reason);
         return Task.CompletedTask;
     }
 
     private Task OnConnectionUnblockedAsync(object? sender, AsyncEventArgs e)
     {
-        using var logScope = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
+        using var _ = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
         Logger.ConnectionUnblocked(ConnectionName);
         return Task.CompletedTask;
     }
@@ -578,7 +580,7 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
             return;
         }
 
-        using var logScope = BeginLogScope(_currentConnection);
+        using var _ = BeginLogScope(_currentConnection);
         try
         {
             UnwireConnectionEvents(_currentConnection);
@@ -656,7 +658,7 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
 
         // The semaphore remains valid until all cancelled waiters have exited.
         _disposeCts.Dispose();
-        using var logScope = BeginLogScope();
+        using var _ = BeginLogScope();
         Logger.ConnectionManagerStopped(ConnectionName);
     }
 }

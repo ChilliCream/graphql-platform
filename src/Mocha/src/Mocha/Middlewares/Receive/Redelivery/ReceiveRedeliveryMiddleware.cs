@@ -54,6 +54,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
                     {
                         logger.MessageDiscarded(ex, context.MessageId);
                     }
+
                     context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
                     return;
 
@@ -62,15 +63,13 @@ internal sealed class ReceiveRedeliveryMiddleware(
                     using (logger.BeginMessageScope(context))
                     {
                         logger.RedeliveringMessage(ex, context.MessageId, delayedRetryCount + 1, decision.Delay);
-                    }
-                    var isScheduled = await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
-                    using (logger.BeginMessageScope(context))
-                    {
+                        var isScheduled = await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
                         logger.MessageRedelivered(
                             context.MessageId,
                             delayedRetryCount + 1,
                             isScheduled ? scheduledTime : null);
                     }
+
                     context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
                     return;
 

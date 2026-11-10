@@ -118,7 +118,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             PrefetchCount = prefetchCount
         };
 
-        using var logScope = BeginLogScope();
+        using var _ = BeginLogScope();
         AddConsumer(registration);
 
         if (IsDisposed)
@@ -167,7 +167,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
     /// <param name="cancellationToken">A token to cancel the deletion.</param>
     internal async Task DeleteQueueAsync(string queueName, CancellationToken cancellationToken)
     {
-        using var logScope = BeginLogScope();
+        using var _ = BeginLogScope();
         if (CurrentConnection is not { IsOpen: true } connection || cancellationToken.IsCancellationRequested)
         {
             return;
@@ -235,7 +235,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
         IConnection connection,
         CancellationToken cancellationToken)
     {
-        using var logScope = BeginLogScope(connection);
+        using var _ = BeginLogScope(connection);
         try
         {
             await consumer.ConnectAsync(connection, cancellationToken);
@@ -283,7 +283,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
-                using var logScope = BeginLogScope();
+                using var _ = BeginLogScope();
 
                 if (!IsConnected)
                 {
@@ -354,7 +354,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             }
             catch (Exception ex)
             {
-                using var logScope = consumer.Channel is { } channel ? BeginLogScope(channel) : BeginLogScope();
+                using var _ = consumer.Channel is { } channel ? BeginLogScope(channel) : BeginLogScope();
                 Logger.ErrorDisposingConsumer(ex, ConnectionName, consumer.QueueName);
             }
         }
