@@ -1,5 +1,6 @@
 ---
 title: "How to Use State in DataLoader for Context-Aware Fetching"
+metaTitle: "How to Use DataLoader State for Context-Aware Fetching"
 description: "Make your DataLoaders stateful to pass tenant IDs or authorization context and fetch data in the right scope without losing performance."
 youtubeId: "4Mw2A548OGM"
 duration: "15:51"

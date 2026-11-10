@@ -13,7 +13,7 @@ import { FusionPage } from "./FusionPage";
 const PAGE = {
   title: "Fusion: GraphQL Federation Router (Gateway)",
   description:
-    "Fusion is a high-performance GraphQL Federation router (gateway) for connecting GraphQL, REST, and gRPC APIs at scale, with native support for GraphQL Federation and Apollo Federation.",
+    "Fusion is a high-performance GraphQL Federation router (gateway) for GraphQL, REST, and gRPC APIs, supporting GraphQL Federation and Apollo Federation.",
   path: "/products/fusion",
   keywords: [
     "GraphQL Federation router",
