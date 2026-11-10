@@ -144,18 +144,20 @@ public static class CursorFormatter
         int currentLength,
         int additionalLength)
     {
-        if (span.Length > Array.MaxLength / 2)
-        {
-            throw new InvalidOperationException("The cursor exceeds the maximum size.");
-        }
+        var newSize = (long)span.Length * 2;
+        var requiredSize = (long)currentLength + additionalLength;
 
-        var newSize = span.Length * 2;
-        while (newSize < currentLength + additionalLength)
+        while (newSize < requiredSize)
         {
             newSize *= 2;
         }
 
-        var newPoolArray = ArrayPool<byte>.Shared.Rent(newSize);
+        if (newSize > Array.MaxLength)
+        {
+            throw new InvalidOperationException("The cursor exceeds the maximum size.");
+        }
+
+        var newPoolArray = ArrayPool<byte>.Shared.Rent((int)newSize);
         span[..currentLength].CopyTo(newPoolArray);
 
         if (poolArray != null)
