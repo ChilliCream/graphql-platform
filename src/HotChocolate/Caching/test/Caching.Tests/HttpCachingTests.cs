@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -226,6 +227,245 @@ public class HttpCachingTests : ServerTestBase
         Assert.Equal("max-age=60, private", result.Headers.CacheControl?.ToString());
     }
 
+    [Theory]
+    [InlineData("{ owner { email } }")]
+    [InlineData("{ members { email } }")]
+    public async Task RootField_Should_UseReturnTypeMaxAge_When_ScopeOnlyFieldTypeIsNonNullOrList(
+        string query)
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType<TeamQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync(query);
+
+        // assert
+        Assert.Equal("max-age=60, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task RootField_Should_UseLowestObjectTypeMaxAge_When_ScopeOnlyFieldTypeIsUnion()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType<PublicationQuery>()
+                .AddType<Book>()
+                .AddType<Magazine>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ saved { __typename } }");
+
+        // assert
+        Assert.Equal("max-age=30, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task RootField_Should_UseDefaultMaxAge_When_ScopeOnlyUnionHasMemberWithoutMaxAge()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType<FeedQuery>()
+                .AddType<Announcement>()
+                .AddType<Event>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ feed { __typename } }");
+
+        // assert
+        Assert.Equal("max-age=0, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Theory]
+    [InlineData("{ requiredAccount { email } }")]
+    [InlineData("{ accounts { email } }")]
+    [InlineData("{ post { author { email } } }")]
+    public async Task Field_Should_UseReturnTypeScope_When_TypeIsNonNullOrList(string query)
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType<AccountQuery>()
+                .AddType<Article>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync(query);
+
+        // assert
+        Assert.Equal("max-age=60, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Theory]
+    [InlineData("{ search { ... on Account { email } } }")]
+    [InlineData("{ search { ... on Article { title } } }")]
+    [InlineData("{ contact { email } }")]
+    public async Task Field_Should_UseObjectTypeScope_When_TypeIsUnionOrInterface(string query)
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType<AccountQuery>()
+                .AddType<Article>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync(query);
+
+        // assert
+        Assert.Equal("max-age=60, private", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Field_Should_UseReturnTypeMaxAge_When_TypeIsNonNull()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType<SettingsQuery>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ settings { theme } }");
+
+        // assert
+        Assert.Equal("public, max-age=10", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Field_Should_UseLowestObjectTypeMaxAge_When_UnionFieldSetsNoMaxAge()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType<PublicationQuery>()
+                .AddType<Book>()
+                .AddType<Magazine>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ latest { __typename } }");
+
+        // assert
+        Assert.Equal("public, max-age=30", result.Headers.CacheControl?.ToString());
+    }
+
+    [Fact]
+    public async Task Field_Should_KeepItsMaxAge_When_UnionObjectTypeSetsLowerMaxAge()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType<PublicationQuery>()
+                .AddType<Book>()
+                .AddType<Magazine>();
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.GetQueryAsync("{ featured { __typename } }");
+
+        // assert
+        Assert.Equal("public, max-age=120", result.Headers.CacheControl?.ToString());
+    }
+
+    [CacheControl(Scope = CacheControlScope.Private)]
+    public record Account(int Id, string Email) : IContact, ISearchResult;
+
+    public class AccountQuery
+    {
+        [CacheControl(60)]
+        public List<Account> GetAccounts() => [new(1, "alice@example.com")];
+
+        [CacheControl(60)]
+        public IContact GetContact() => new Account(1, "alice@example.com");
+
+        [CacheControl(60)]
+        public Post GetPost() => new(new Account(1, "alice@example.com"));
+
+        [CacheControl(60)]
+        public Account GetRequiredAccount() => new(1, "alice@example.com");
+
+        [CacheControl(60)]
+        public ISearchResult GetSearch() => new Account(1, "alice@example.com");
+    }
+
+    public record Announcement(string Title) : IFeedItem;
+
+    public record Article(string Title) : ISearchResult;
+
+    [CacheControl(30)]
+    public record Book(string Title) : IPublication;
+
+    [CacheControl(30)]
+    public record Event(string Title) : IFeedItem;
+
+    public class FeedQuery
+    {
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public IFeedItem GetFeed() => new Announcement("Closed today");
+    }
+
+    [InterfaceType("Contact")]
+    public interface IContact
+    {
+        string Email { get; }
+    }
+
+    [UnionType("FeedItem")]
+    public interface IFeedItem;
+
+    [UnionType("Publication")]
+    public interface IPublication;
+
+    [UnionType("SearchResult")]
+    public interface ISearchResult;
+
+    [CacheControl(60)]
+    public record Magazine(string Title) : IPublication;
+
+    public record Post(Account Author);
+
     [Node]
     public class Product
     {
@@ -241,6 +481,17 @@ public class HttpCachingTests : ServerTestBase
     public class ProductQuery
     {
         public Product GetProduct(int id) => Product.Get(id);
+    }
+
+    public class PublicationQuery
+    {
+        [CacheControl(120)]
+        public IPublication GetFeatured() => new Magazine("Monthly");
+
+        public IPublication GetLatest() => new Magazine("Monthly");
+
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public IPublication GetSaved() => new Magazine("Monthly");
     }
 
 #if NET7_0_OR_GREATER
@@ -262,6 +513,14 @@ public class HttpCachingTests : ServerTestBase
     }
 #endif
 
+    [CacheControl(10)]
+    public record Settings(string Theme);
+
+    public class SettingsQuery
+    {
+        public Settings GetSettings() => new("dark");
+    }
+
     public class StoreQuery
     {
         [CacheControl(3600)]
@@ -269,6 +528,15 @@ public class HttpCachingTests : ServerTestBase
 
         [CacheControl(Scope = CacheControlScope.Private)]
         public string GetProfile() => "profile";
+    }
+
+    public class TeamQuery
+    {
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public List<User> GetMembers() => [new()];
+
+        [CacheControl(Scope = CacheControlScope.Private)]
+        public User GetOwner() => new();
     }
 
     [CacheControl(60)]
