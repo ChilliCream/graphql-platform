@@ -12,14 +12,15 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         {
             Name = "1", Title = "alpha", Count = 1, Total = 10, Price = 1.5, Flag = true,
             Color = Color.Red, Shade = Color.Red, When = new DateTime(2022, 12, 22, 15, 5, 22, DateTimeKind.Utc),
-            OptionalTitle = "x", OptionalCount = 1, OptionalFlag = true, Inner = new Inner { Code = "a", Count = 1 },
+            OptionalTitle = "x", OptionalCount = 1, OptionalFlag = true,
+            Inner = new Inner { Code = "a", Count = 1, Tags = ["a"], Items = [new() { Bar = "a" }] },
             OptionalColor = Color.Red
         },
         new()
         {
             Name = "2", Title = "beta", Count = 2, Total = 20, Price = 2.5, Flag = false,
             Color = Color.Green, Shade = Color.Green, When = new DateTime(2022, 12, 23, 15, 5, 22, DateTimeKind.Utc),
-            OptionalFlag = false, Inner = new Inner { Code = "b" }
+            OptionalFlag = false, Inner = new Inner { Code = "b", Tags = ["b"], Items = [new() { Bar = "b" }] }
         },
         new()
         {
@@ -132,7 +133,9 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         { "inner", "count: { in: [1, null] }" },
         { "inner", "count: { nin: [1, null] }" },
         { "inner", """code: { nstartsWith: "a" }""" },
-        { "inner", """code: { ncontains: "a" }""" }
+        { "inner", """code: { ncontains: "a" }""" },
+        { "inner", """tags: { all: { eq: "a" } }""" },
+        { "inner", """items: { all: { bar: { eq: "a" } } }""" }
     };
 
     [Theory]
@@ -166,6 +169,16 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         public string Code { get; set; } = "";
 
         public int? Count { get; set; }
+
+        public List<string?> Tags { get; set; } = [];
+
+        [ElasticSearchNested]
+        public List<InnerItem> Items { get; set; } = [];
+    }
+
+    public class InnerItem
+    {
+        public string? Bar { get; set; }
     }
 
     public class Document

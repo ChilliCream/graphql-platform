@@ -39,16 +39,16 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
             return base.VisitMethodCall(node);
         }
 
-        if (IsStringList(list.Type))
-        {
-            return node.Arguments.Count == 2
+        var rewritten = IsStringList(list.Type)
+            ? node.Arguments.Count == 2
                 ? RewriteStringList(node, list) ?? base.VisitMethodCall(node)
+                : base.VisitMethodCall(node)
+            : TryGetObjectElement(list.Type, out _)
+                ? RewriteObjectList(node, list)
                 : base.VisitMethodCall(node);
-        }
 
-        return TryGetObjectElement(list.Type, out _)
-            ? RewriteObjectList(node, list)
-            : base.VisitMethodCall(node);
+        // All holds for a list that is missing, so a list of an object holds in .NET only when the object exists.
+        return node.Method.Name == nameof(Enumerable.All) ? WithOwners(rewritten, list) : rewritten;
     }
 
     protected override Expression VisitBinary(BinaryExpression node)
