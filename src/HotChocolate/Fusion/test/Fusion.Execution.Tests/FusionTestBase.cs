@@ -36,6 +36,19 @@ public abstract class FusionTestBase : IAsyncDisposable
                 new EmptyMemoryOwner()));
     }
 
+    protected static FusionConfiguration CreateFusionConfiguration(
+        Action<SchemaComposerOptions> configure,
+        [StringSyntax("graphql")] params string[] schemas)
+    {
+        var compositeSchema = ComposeSchemaDocument(configure, schemas);
+
+        return new FusionConfiguration(
+            compositeSchema,
+            new JsonDocumentOwner(
+                JsonDocument.Parse("{ }"),
+                new EmptyMemoryOwner()));
+    }
+
     protected static FusionSchemaDefinition CreateCompositeSchema()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -458,18 +471,22 @@ public abstract class FusionTestBase : IAsyncDisposable
     protected static DocumentNode ComposeSchemaDocument(
         int? defaultListSize,
         [StringSyntax("graphql")] params string[] schemas)
+        => ComposeSchemaDocument(
+            options => options.Merger.DefaultListSize = defaultListSize,
+            schemas);
+
+    protected static DocumentNode ComposeSchemaDocument(
+        Action<SchemaComposerOptions> configure,
+        [StringSyntax("graphql")] params string[] schemas)
     {
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
         var compositionLog = new CompositionLog();
         var composerOptions = new SchemaComposerOptions
         {
-            Merger =
-            {
-                EnableGlobalObjectIdentification = false,
-                DefaultListSize = defaultListSize
-            }
+            Merger = { EnableGlobalObjectIdentification = false }
         };
+        configure(composerOptions);
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
