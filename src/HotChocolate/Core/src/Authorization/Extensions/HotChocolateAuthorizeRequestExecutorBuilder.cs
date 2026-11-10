@@ -34,11 +34,8 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         }
 
         builder.Services.TryAddSingleton<IRequestContextEnricher, AuthorizationContextEnricher>();
-        builder.Services.TryAddSingleton(new AuthorizationCache());
         builder.ConfigureSchema(sb => sb.AddAuthorizeDirectiveType());
-        builder.AddValidationRule(
-            (s, _) => new AuthorizeValidationRule(
-                s.GetRequiredService<AuthorizationCache>()));
+        builder.AddValidationRule((_, _) => new AuthorizeValidationRule(new AuthorizationCache()));
         builder.AddValidationResultAggregator(
             (s, _) => new AuthorizeValidationResultAggregator(s));
         return builder;
