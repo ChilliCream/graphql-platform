@@ -504,6 +504,12 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
                 .Select(Literal)
                 .ToList();
 
+            // no value is in an empty list, so the condition holds for no element.
+            if (values.Count == 0)
+            {
+                return IsQueryString ? $"({field}:* AND NOT {field}:*)" : $"({field}:* and not {field}:*)";
+            }
+
             return IsQueryString
                 ? $"{field}:({string.Join(" OR ", values)})"
                 : $"({string.Join(" or ", values.Select(v => $"{field}:{v}"))})";
