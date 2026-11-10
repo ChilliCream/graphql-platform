@@ -1846,6 +1846,77 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Lookup_Should_SendOnlyRunningOperation_When_OneBatchedOperationIsSkippedByAlternatives()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($a: Boolean!, $b: Boolean!, $c: Boolean!, $d: Boolean!) {
+              first: thing {
+                id
+                delta @skip(if: $a)
+                epsilon @skip(if: $b)
+              }
+              second: thing {
+                id
+                delta @skip(if: $c)
+                epsilon @skip(if: $d)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["a"] = true,
+                ["b"] = true,
+                ["c"] = true,
+                ["d"] = false
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     #endregion
 
     #region Require
