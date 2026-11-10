@@ -635,6 +635,7 @@ internal sealed class FusionComposeCommand : Command
                 environment,
                 preferDevUrls: false,
                 compositionSettings,
+                gatewaySettings: null,
                 legacyArchive: null,
                 cancellationToken);
 

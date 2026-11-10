@@ -22,9 +22,18 @@ internal static class CompositionHelper
         string environment,
         bool preferDevUrls,
         CompositionSettings? compositionSettings,
+        JsonDocument? gatewaySettings,
         Stream? legacyArchive,
         CancellationToken cancellationToken)
     {
+        if (gatewaySettings is not null
+            && (gatewaySettings.RootElement.ValueKind is not JsonValueKind.Object
+                || gatewaySettings.RootElement.TryGetProperty("sourceSchemas", out _)))
+        {
+            compositionLog.Write(LogEntryHelper.InvalidGatewaySettings());
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
+
         var existingSourceSchemaNames = new SortedSet<string>(
             await archive.GetSourceSchemaNamesAsync(cancellationToken),
             StringComparer.Ordinal);
@@ -200,6 +209,15 @@ internal static class CompositionHelper
             }
         }
 
+        var existingMetadata = await archive.GetArchiveMetadataAsync(cancellationToken);
+        using var existingGateway = existingMetadata?.SupportedGatewayFormats.IsDefaultOrEmpty == false
+            ? await archive.TryGetGatewayConfigurationAsync(
+                WellKnownVersions.LatestGatewayFormatVersion, cancellationToken)
+            : null;
+        using var composedSettings = JsonDocument.Parse(bufferWriter.WrittenMemory);
+        using var mergedGatewaySettings = GatewaySettingsMerger.Merge(
+            composedSettings, existingGateway?.Settings, gatewaySettings);
+
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
@@ -222,11 +240,9 @@ internal static class CompositionHelper
                 cancellationToken);
         }
 
-        using var gatewaySettings = JsonDocument.Parse(bufferWriter.WrittenMemory);
-
         await archive.SetGatewayConfigurationAsync(
             result.Value + Environment.NewLine,
-            gatewaySettings,
+            mergedGatewaySettings,
             WellKnownVersions.LatestGatewayFormatVersion,
             cancellationToken);
 

@@ -30,6 +30,7 @@ public sealed class CompositionHelperTests
                 "Development",
                 preferDevUrls: false,
                 compositionSettings: null,
+                gatewaySettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
 
@@ -59,6 +60,7 @@ public sealed class CompositionHelperTests
                 "Development",
                 preferDevUrls: false,
                 compositionSettings: null,
+                gatewaySettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
 
@@ -129,6 +131,7 @@ public sealed class CompositionHelperTests
                 "Development",
                 preferDevUrls: false,
                 compositionSettings: null,
+                gatewaySettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
 
@@ -212,6 +215,7 @@ public sealed class CompositionHelperTests
             "Development",
             preferDevUrls: false,
             compositionSettings: null,
+            gatewaySettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
 
@@ -286,6 +290,7 @@ public sealed class CompositionHelperTests
                 "Development",
                 preferDevUrls: false,
                 compositionSettings: null,
+                gatewaySettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
 
@@ -396,6 +401,7 @@ public sealed class CompositionHelperTests
                 "Development",
                 preferDevUrls: true,
                 compositionSettings: null,
+                gatewaySettings: null,
                 legacyArchive: null,
                 TestContext.Current.CancellationToken);
 
@@ -480,6 +486,7 @@ public sealed class CompositionHelperTests
             "Development",
             preferDevUrls: false,
             compositionSettings,
+            gatewaySettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
 
@@ -527,6 +534,7 @@ public sealed class CompositionHelperTests
             "Development",
             preferDevUrls: false,
             compositionSettings,
+            gatewaySettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
 
@@ -569,6 +577,7 @@ public sealed class CompositionHelperTests
             "Development",
             preferDevUrls: false,
             compositionSettings: null,
+            gatewaySettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
 
@@ -618,6 +627,7 @@ public sealed class CompositionHelperTests
             "Development",
             preferDevUrls: false,
             compositionSettings: null,
+            gatewaySettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
 
@@ -665,6 +675,7 @@ public sealed class CompositionHelperTests
             "Development",
             preferDevUrls: false,
             compositionSettings: null,
+            gatewaySettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
 
@@ -711,6 +722,7 @@ public sealed class CompositionHelperTests
             "Development",
             preferDevUrls: false,
             compositionSettings: null,
+            gatewaySettings: null,
             legacyArchive: null,
             TestContext.Current.CancellationToken);
 

@@ -8,6 +8,13 @@ namespace HotChocolate.Fusion.Logging;
 
 internal static class LogEntryHelper
 {
+    public static LogEntry InvalidGatewaySettings()
+        => LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidGatewaySettings)
+            .SetCode(LogEntryCodes.InvalidGatewaySettings)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+
     public static LogEntry DisallowedInaccessibleBuiltInScalar(
         MutableScalarTypeDefinition scalar,
         MutableSchemaDefinition schema)
