@@ -12,22 +12,20 @@ public class RabbitMQConsumerManagerTests
     public async Task StopAsync_Should_DisposeChannel_When_ChannelCloseFails(bool cancelled)
     {
         // arrange
-        await using var manager = CreateManager();
-        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
-            "test-queue",
-            static (_, _, _) => default,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
-            TestContext.Current.CancellationToken);
-        var channel = new Mock<IChannel>();
-        channel.SetupGet(c => c.IsOpen).Returns(true);
+        var channel = CreateOpenChannel();
         channel.Setup(c => c.CloseAsync(
                 It.IsAny<ushort>(),
                 It.IsAny<string>(),
                 It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(cancelled ? new OperationCanceledException() : new TimeoutException());
-        registration.Channel = channel.Object;
+        await using var manager = await CreateConnectedManagerAsync(channel);
+        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
+            "test-queue",
+            static (_, _, _) => default,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            TestContext.Current.CancellationToken);
 
         // act
         await registration.StopAsync(TestContext.Current.CancellationToken);
@@ -117,31 +115,55 @@ public class RabbitMQConsumerManagerTests
     public async Task DisposeAsync_Should_HandleConsumerDisposeFailure_When_ConsumerThrows()
     {
         // arrange
-        var channelMock = new Mock<IChannel>();
-        channelMock.SetupGet(c => c.IsOpen).Returns(true);
-        channelMock
+        var channel = CreateOpenChannel();
+        channel
             .Setup(c => c.BasicCancelAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromException(new InvalidOperationException("cancel failed")));
-
-        var manager = CreateManager();
-
-        var registration = await manager.RegisterConsumerAsync(
+        var manager = await CreateConnectedManagerAsync(channel);
+        await manager.RegisterConsumerAsync(
             "test-queue",
             (_, _, _) => default,
             prefetchCount: 10,
             consumerDispatchConcurrency: 1,
             CancellationToken.None);
 
-        // Manually set channel to simulate a connected consumer
-        var consumer = (RabbitMQConsumerManager.RegisteredConsumer)registration;
-        consumer.Channel = channelMock.Object;
-        consumer.ConsumerTag = "tag-1";
-
         // act - should not throw despite consumer dispose failure
         var exception = await Record.ExceptionAsync(() => manager.DisposeAsync().AsTask());
 
         // assert
         Assert.Null(exception);
+    }
+
+    private static Mock<IChannel> CreateOpenChannel()
+    {
+        var channel = new Mock<IChannel>();
+        channel.SetupGet(c => c.IsOpen).Returns(true);
+        channel
+            .Setup(c => c.BasicConsumeAsync(
+                It.IsAny<string>(),
+                It.IsAny<bool>(),
+                It.IsAny<string>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<IDictionary<string, object?>?>(),
+                It.IsAny<IAsyncBasicConsumer>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync("tag-1");
+        return channel;
+    }
+
+    private static async Task<RabbitMQConsumerManager> CreateConnectedManagerAsync(Mock<IChannel> channel)
+    {
+        var connection = new Mock<IConnection>();
+        connection.SetupGet(c => c.IsOpen).Returns(true);
+        connection
+            .Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(channel.Object);
+        var manager = new RabbitMQConsumerManager(
+            NullLogger<RabbitMQConsumerManager>.Instance,
+            _ => new ValueTask<IConnection>(connection.Object));
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        return manager;
     }
 
     private static RabbitMQConsumerManager CreateManager()

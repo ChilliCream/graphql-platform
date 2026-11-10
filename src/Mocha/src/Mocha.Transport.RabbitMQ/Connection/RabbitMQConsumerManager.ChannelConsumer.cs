@@ -69,16 +69,7 @@ public sealed partial class RabbitMQConsumerManager
             public ShutdownEventArgs? LossReason => Volatile.Read(ref _lossReason);
 
             /// <summary>
-            /// Records a loss for the owner to handle.
-            /// </summary>
-            public void MarkLostPending(ShutdownEventArgs? reason)
-            {
-                Interlocked.CompareExchange(ref _lossReason, reason, null);
-                Interlocked.CompareExchange(ref _lossState, LossPending, NotLost);
-            }
-
-            /// <summary>
-            /// Returns whether a pending loss was recorded, and marks it handled.
+            /// Returns whether a loss was recorded that the owner has not handled, and marks it handled.
             /// </summary>
             public bool TryHandlePendingLoss()
                 => Interlocked.CompareExchange(ref _lossState, LossHandled, LossPending) == LossPending;
@@ -93,7 +84,7 @@ public sealed partial class RabbitMQConsumerManager
                     }
 
                     _handlersCancelled = true;
-                    Interlocked.Add(ref _owner._cancelledHandlers, _activeHandlers);
+                    _owner.OnHandlersCancelled(_activeHandlers);
                 }
 
                 _owner.UpdateRecoveryState();
@@ -180,17 +171,27 @@ public sealed partial class RabbitMQConsumerManager
                 CancellationToken cancellationToken = default)
             {
                 await base.HandleBasicCancelAsync(consumerTag, cancellationToken);
-                _owner.OnConsumerLost(this, reason: null);
-                StopAccepting();
-                CancelHandlers();
+                OnLost(reason: null);
             }
 
             public Task OnChannelShutdownAsync(object? _, ShutdownEventArgs reason)
             {
-                _owner.OnConsumerLost(this, reason);
+                OnLost(reason);
+                return Task.CompletedTask;
+            }
+
+            /// <summary>
+            /// Records the loss of the channel or the broker-side consumer, reports it to the owner, and
+            /// stops this consumer: no further deliveries are accepted and running handlers are cancelled.
+            /// </summary>
+            private void OnLost(ShutdownEventArgs? reason)
+            {
+                Interlocked.CompareExchange(ref _lossReason, reason, null);
+                Interlocked.CompareExchange(ref _lossState, LossPending, NotLost);
+
+                _owner.OnConsumerLost(this);
                 StopAccepting();
                 CancelHandlers();
-                return Task.CompletedTask;
             }
 
             public void Dispose()
@@ -257,7 +258,7 @@ public sealed partial class RabbitMQConsumerManager
                     }
 
                     _activeHandlers++;
-                    Interlocked.Increment(ref _owner._runningHandlers);
+                    _owner.OnHandlerStarted();
                     return true;
                 }
             }
@@ -268,12 +269,8 @@ public sealed partial class RabbitMQConsumerManager
                 lock (_handlerSync)
                 {
                     _activeHandlers--;
-                    Interlocked.Decrement(ref _owner._runningHandlers);
                     cancelled = _handlersCancelled;
-                    if (cancelled)
-                    {
-                        Interlocked.Decrement(ref _owner._cancelledHandlers);
-                    }
+                    _owner.OnHandlerFinished(cancelled);
                 }
 
                 if (cancelled)

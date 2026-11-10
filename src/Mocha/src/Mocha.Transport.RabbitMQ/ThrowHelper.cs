@@ -6,7 +6,7 @@ namespace Mocha.Transport.RabbitMQ;
 internal static class ThrowHelper
 {
     public static InvalidOperationException ReplyEndpointNotStarted()
-        => new("The RabbitMQ reply endpoint must be started before dispatching requests.");
+        => new("The RabbitMQ reply endpoint is not started.");
 
     public static Exception BeforeAndAfterConflict()
         => Mocha.ThrowHelper.BeforeAndAfterConflict();

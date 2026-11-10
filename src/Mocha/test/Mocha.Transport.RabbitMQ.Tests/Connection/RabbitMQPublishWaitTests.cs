@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Mocha.Middlewares;
+using Mocha.Transport.RabbitMQ.Features;
 using Moq;
 using RabbitMQ.Client;
 
@@ -9,7 +10,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 public sealed class RabbitMQPublishWaitTests
 {
     [Fact]
-    public async Task WaitForPublishChannelAsync_Should_ReturnOriginalChannel_When_DiagnosticIntervalElapses()
+    public async Task RunPublishPhaseAsync_Should_ReturnOriginalChannel_When_DiagnosticIntervalElapses()
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
@@ -18,10 +19,11 @@ public sealed class RabbitMQPublishWaitTests
         var channel = Mock.Of<IChannel>();
 
         // act
-        var waiting = dispatcher.WaitForPublishChannelAsync(
-            new ValueTask<IChannel>(pending.Task),
+        var waiting = dispatcher.RunPublishPhaseAsync(
             new DispatchContext(),
-            "ChannelCapacity").AsTask();
+            new RabbitMQPublishFeature(),
+            PublishPhase.ChannelCapacity,
+            new ValueTask<IChannel>(pending.Task)).AsTask();
         timeProvider.Advance(TimeSpan.FromMinutes(1));
         var wasWaiting = !waiting.IsCompleted;
         pending.SetResult(channel);
@@ -35,7 +37,7 @@ public sealed class RabbitMQPublishWaitTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task WaitForPublishPhaseAsync_Should_PropagateOriginalFailure_When_OperationFails(bool timeout)
+    public async Task RunPublishPhaseAsync_Should_PropagateOriginalFailure_When_OperationFails(bool timeout)
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
@@ -44,11 +46,11 @@ public sealed class RabbitMQPublishWaitTests
         Exception expected = timeout ? new TimeoutException("broker timeout") : new IOException("connection lost");
 
         // act
-        var waiting = dispatcher.WaitForPublishPhaseAsync(
-            new ValueTask(pending.Task),
+        var waiting = dispatcher.RunPublishPhaseAsync(
             new DispatchContext(),
-            null,
-            "PublisherConfirm").AsTask();
+            new RabbitMQPublishFeature(),
+            PublishPhase.PublisherConfirm,
+            new ValueTask(pending.Task)).AsTask();
         timeProvider.Advance(TimeSpan.FromMinutes(1));
         pending.SetException(expected);
         var actual = await Record.ExceptionAsync(
@@ -59,7 +61,7 @@ public sealed class RabbitMQPublishWaitTests
     }
 
     [Fact]
-    public async Task WaitForPublishPhaseAsync_Should_PropagateCancellation_When_OperationIsCancelled()
+    public async Task RunPublishPhaseAsync_Should_PropagateCancellation_When_OperationIsCancelled()
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
@@ -68,11 +70,11 @@ public sealed class RabbitMQPublishWaitTests
         using var cancellation = new CancellationTokenSource();
 
         // act
-        var waiting = dispatcher.WaitForPublishPhaseAsync(
-            new ValueTask(pending.Task),
+        var waiting = dispatcher.RunPublishPhaseAsync(
             new DispatchContext(),
-            null,
-            "ReplyConsumer").AsTask();
+            new RabbitMQPublishFeature(),
+            PublishPhase.ReplyConsumer,
+            new ValueTask(pending.Task)).AsTask();
         timeProvider.Advance(TimeSpan.FromMinutes(1));
         await cancellation.CancelAsync();
         pending.SetCanceled(cancellation.Token);

@@ -111,7 +111,6 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
                 await release.Task.WaitAsync(ct);
                 await DeclareQueueAsync(consumerChannel, "slow");
             },
-            dependencies: [],
             (consumerChannel, delivery, ct) => RecordDeliveryAsync(slowDelivery, consumerChannel, delivery, ct),
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
@@ -166,19 +165,17 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
                 await release.Task.WaitAsync(ct);
                 await DeclareQueueAsync(consumerChannel, "replies");
             },
-            dependencies: [],
             (consumerChannel, delivery, ct) => RecordDeliveryAsync(response, consumerChannel, delivery, ct),
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
             TestContext.Current.CancellationToken);
         await manager.RegisterConsumerAsync(
             "requests",
-            (_, _, _) =>
+            async (_, _, ct) =>
             {
                 requestStarted.TrySetResult();
-                return Task.CompletedTask;
+                await replies.WaitUntilHealthyAsync(ct);
             },
-            dependencies: [() => replies],
             async (consumerChannel, delivery, ct) =>
             {
                 await consumerChannel.BasicPublishAsync("", "replies", delivery.Body, ct);
@@ -231,7 +228,6 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
                 started.TrySetResult();
                 await release.Task.WaitAsync(ct);
             },
-            dependencies: [],
             static (_, _, _) => default,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,

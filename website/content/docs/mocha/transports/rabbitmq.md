@@ -153,9 +153,9 @@ Logs under `Mocha.Transport.RabbitMQ` identify the service, transport, and consu
 | Information   | Connection ready or recovered, consumer registered or reattached, broker unblocked, handler capacity restored, topology repaired, shutdown completed |
 | Warning       | Unexpected connection or channel loss, broker cancellation or blocking, transient recovery failure, topology repair needed                           |
 | Error         | Startup failure, broker configuration rejection, consumer registration failure, all handler slots blocked by canceled handlers                       |
-| Debug / Trace | Individual retries, publisher channel activity, skipped settlement on closed channels, health monitoring                                             |
+| Debug / Trace | Publish retries, publisher channel activity, skipped settlement on closed channels, health monitoring                                                |
 
-Repeated connection and consumer retry failures of the same severity are summarized at most once per minute per recovery loop. An increase in failure severity is logged immediately. Authentication, configuration, and unexpected recovery failures are logged as errors. Debug logging includes the individual attempts. Recovery messages include elapsed time. A blocked-capacity error means processing cannot resume until a canceled handler exits.
+Every failed attempt to recover a connection or a consumer is logged. Connectivity failures are logged as warnings; authentication, configuration, and unexpected recovery failures are logged as errors. Recovery messages include elapsed time. A blocked-capacity error means processing cannot resume until a canceled handler exits.
 
 ## Startup connection timeout
 

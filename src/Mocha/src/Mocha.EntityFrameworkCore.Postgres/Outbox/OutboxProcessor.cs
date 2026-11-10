@@ -67,12 +67,6 @@ public sealed class PostgresOutboxProcessor
     public async Task ProcessAsync(CancellationToken cancellationToken)
     {
         using var workersCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        if (_options.MaxConcurrentMessages == 1)
-        {
-            await ProcessWorkerAsync(workersCts);
-            return;
-        }
-
         var workers = new Task[_options.MaxConcurrentMessages];
         for (var i = 0; i < workers.Length; i++)
         {

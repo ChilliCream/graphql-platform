@@ -43,15 +43,12 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     public IRabbitMQConnectionProvider Connection { get; private set; } = null!;
 
     /// <summary>
-    /// Gets whether the transport is started, both broker connections are ready, and every receive endpoint is healthy.
+    /// Gets the reason the transport is unhealthy, or <c>null</c> when it is started, both broker connections
+    /// are ready, and every receive endpoint is healthy.
     /// </summary>
-    public override bool IsHealthy => base.IsHealthy && Dispatcher.IsConnected && ConsumerManager.IsHealthy;
-
-    /// <inheritdoc />
     public override string? HealthFailureReason
         => !IsStarted ? "The transport is not started."
             : !Dispatcher.IsConnected ? "The dispatcher connection is unavailable."
-            : !ConsumerManager.IsConnected ? "The consumer connection is unavailable."
             : ConsumerManager.HealthFailureReason ?? base.HealthFailureReason;
 
     /// <summary>
@@ -175,7 +172,6 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
         var entities = new List<TopologyEntityDescription>();
         var links = new List<TopologyLinkDescription>();
-        var autoProvision = _topology.AutoProvision;
 
         foreach (var exchange in _topology.Exchanges)
         {
@@ -191,7 +187,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["type"] = exchange.Type,
                         ["durable"] = exchange.Durable,
                         ["autoDelete"] = exchange.AutoDelete,
-                        ["autoProvision"] = exchange.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(exchange),
                         ["origin"] = exchange.Origin
                     }));
         }
@@ -210,7 +206,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["durable"] = queue.Durable,
                         ["exclusive"] = queue.Exclusive,
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(queue),
                         ["origin"] = queue.Origin
                     }));
         }
@@ -236,7 +232,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     new Dictionary<string, object?>
                     {
                         ["routingKey"] = string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
-                        ["autoProvision"] = binding.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(binding),
                         ["origin"] = binding.Origin
                     }));
         }

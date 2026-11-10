@@ -39,15 +39,9 @@ internal sealed class MessageBusHealthCheck(
     {
         foreach (var transport in runtime.Transports)
         {
-            if (!transport.IsHealthy)
+            if (transport.HealthFailureReason is { } reason)
             {
-                var description = $"Transport '{transport.Name}' is unhealthy.";
-                if (transport.HealthFailureReason is { } reason)
-                {
-                    description += $" {reason}";
-                }
-
-                return HealthCheckResult.Unhealthy(description);
+                return HealthCheckResult.Unhealthy($"Transport '{transport.Name}' is unhealthy. {reason}");
             }
         }
 

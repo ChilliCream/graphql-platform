@@ -30,24 +30,33 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowle
         }
         catch
         {
-            await TryNackAsync(context, channel, eventArgs);
+            await TrySettleAsync(context, channel, eventArgs, ack: false);
             throw;
         }
 
         // Once next returns the handler's work is committed, so the ack is sent without the shutdown token.
-        await TryAckAsync(context, channel, eventArgs);
+        await TrySettleAsync(context, channel, eventArgs, ack: true);
     }
 
-    private async ValueTask TryAckAsync(
+    private async ValueTask TrySettleAsync(
         IReceiveContext context,
         IChannel channel,
-        BasicDeliverEventArgs eventArgs)
+        BasicDeliverEventArgs eventArgs,
+        bool ack)
     {
         if (channel.IsOpen)
         {
             try
             {
-                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
+                if (ack)
+                {
+                    await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
+                }
+                else
+                {
+                    await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
+                }
+
                 return;
             }
             catch (Exception ex) when (ex is AlreadyClosedException or ObjectDisposedException)
@@ -56,28 +65,7 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowle
             }
         }
 
-        LogSkippedSettlement(context, channel, eventArgs, "ack");
-    }
-
-    private async ValueTask TryNackAsync(
-        IReceiveContext context,
-        IChannel channel,
-        BasicDeliverEventArgs eventArgs)
-    {
-        if (channel.IsOpen)
-        {
-            try
-            {
-                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
-                return;
-            }
-            catch (Exception ex) when (ex is AlreadyClosedException or ObjectDisposedException)
-            {
-                // The channel closed after the check above.
-            }
-        }
-
-        LogSkippedSettlement(context, channel, eventArgs, "nack");
+        LogSkippedSettlement(context, channel, eventArgs, ack ? "ack" : "nack");
     }
 
     private void LogSkippedSettlement(

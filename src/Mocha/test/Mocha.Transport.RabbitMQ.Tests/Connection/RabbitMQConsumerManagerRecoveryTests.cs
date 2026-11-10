@@ -312,20 +312,22 @@ public class RabbitMQConsumerManagerRecoveryTests
                     autoDelete: true,
                     cancellationToken: ct);
             },
-            dependencies: [],
             replies.HandleAsync,
             prefetchCount: 1,
             consumerDispatchConcurrency: 1,
             TestContext.Current.CancellationToken);
         await manager.RegisterConsumerAsync(
             QueueName,
-            static (_, channel, ct) => channel.QueueDeclareAsync(
-                QueueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                cancellationToken: ct),
-            dependencies: [() => replyConsumer],
+            async (_, channel, ct) =>
+            {
+                await channel.QueueDeclareAsync(
+                    QueueName,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    cancellationToken: ct);
+                await replyConsumer.WaitUntilHealthyAsync(ct);
+            },
             async (channel, delivery, ct) =>
             {
                 if (!delivery.Redelivered)

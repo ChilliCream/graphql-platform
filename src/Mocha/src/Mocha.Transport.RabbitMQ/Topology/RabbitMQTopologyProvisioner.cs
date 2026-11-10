@@ -8,7 +8,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
     {
         foreach (var exchange in topology.Exchanges)
         {
-            if (exchange.AutoProvision ?? topology.AutoProvision)
+            if (topology.ShouldProvision(exchange))
             {
                 await exchange.ProvisionAsync(channel, connection, cancellationToken);
             }
@@ -18,7 +18,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
         // the bindings that target it.
         foreach (var queue in topology.Queues)
         {
-            if (!queue.Exclusive && (queue.AutoProvision ?? topology.AutoProvision))
+            if (!queue.Exclusive && topology.ShouldProvision(queue))
             {
                 await queue.ProvisionAsync(channel, connection, cancellationToken);
             }
@@ -26,12 +26,11 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
 
         foreach (var binding in topology.Bindings)
         {
-            if (binding is RabbitMQQueueBinding { Destination.Exclusive: true })
+            if (binding is not RabbitMQQueueBinding { Destination.Exclusive: true }
+                && topology.ShouldProvision(binding))
             {
-                continue;
+                await binding.ProvisionAsync(channel, connection, cancellationToken);
             }
-
-            await ProvisionBindingAsync(binding, channel, cancellationToken);
         }
     }
 
@@ -40,7 +39,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
         IChannel channel,
         CancellationToken cancellationToken)
     {
-        if (queue.AutoProvision ?? topology.AutoProvision)
+        if (topology.ShouldProvision(queue))
         {
             await queue.ProvisionAsync(channel, connection, cancellationToken);
         }
@@ -48,12 +47,13 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
         var bindings = new List<RabbitMQBinding>();
         foreach (var binding in queue.Bindings)
         {
-            if (binding.AutoProvision ?? topology.AutoProvision)
+            if (topology.ShouldProvision(binding))
             {
                 bindings.Add(binding);
             }
         }
 
+        // The list grows while it is read, which follows exchange-to-exchange bindings upstream of the queue.
         var exchanges = new HashSet<RabbitMQExchange>();
         for (var i = 0; i < bindings.Count; i++)
         {
@@ -63,7 +63,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
                 continue;
             }
 
-            if (exchange.AutoProvision ?? topology.AutoProvision)
+            if (topology.ShouldProvision(exchange))
             {
                 await exchange.ProvisionAsync(channel, connection, cancellationToken);
             }
@@ -72,7 +72,7 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
             {
                 if (binding is RabbitMQExchangeBinding exchangeBinding
                     && exchangeBinding.Destination == exchange
-                    && (binding.AutoProvision ?? topology.AutoProvision))
+                    && topology.ShouldProvision(binding))
                 {
                     bindings.Add(binding);
                 }
@@ -80,17 +80,6 @@ internal sealed class RabbitMQTopologyProvisioner(RabbitMQMessagingTopology topo
         }
 
         foreach (var binding in bindings)
-        {
-            await ProvisionBindingAsync(binding, channel, cancellationToken);
-        }
-    }
-
-    private async Task ProvisionBindingAsync(
-        RabbitMQBinding binding,
-        IChannel channel,
-        CancellationToken cancellationToken)
-    {
-        if (binding.AutoProvision ?? topology.AutoProvision)
         {
             await binding.ProvisionAsync(channel, connection, cancellationToken);
         }

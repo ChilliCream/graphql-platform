@@ -1,135 +1,57 @@
 using Microsoft.Extensions.Logging;
-using Mocha.Middlewares;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ;
 
-public sealed partial class RabbitMQDispatcher
+internal static partial class Logs
 {
-    private static readonly TimeSpan s_publishWarningInterval = TimeSpan.FromSeconds(30);
+    [LoggerMessage(LogLevel.Warning, "Publishing message {MessageId} is still waiting for {Phase} after {Elapsed}")]
+    public static partial void PublishStalled(
+        this ILogger logger,
+        string? messageId,
+        PublishPhase phase,
+        TimeSpan elapsed);
 
-    internal ValueTask WaitForPublishPhaseAsync(
-        ValueTask operation,
-        IDispatchContext context,
-        IChannel? channel,
-        string phase)
-        => operation.IsCompletedSuccessfully || !Logger.IsEnabled(LogLevel.Warning)
-            ? operation
-            : new ValueTask(WaitForPublishPhaseAsync(operation.AsTask(), context, channel, phase));
+    [LoggerMessage(LogLevel.Debug, "Publishing message {MessageId}: waiting for {Phase}")]
+    public static partial void PublishWaiting(this ILogger logger, string? messageId, PublishPhase phase);
 
-    internal async ValueTask<IChannel> WaitForPublishChannelAsync(
-        ValueTask<IChannel> operation,
-        IDispatchContext context,
-        string phase)
-    {
-        if (operation.IsCompletedSuccessfully || !Logger.IsEnabled(LogLevel.Warning))
-        {
-            return await operation;
-        }
-
-        var pending = operation.AsTask();
-        await WaitForPublishPhaseAsync(pending, context, null, phase);
-        return await pending;
-    }
-
-    private async Task WaitForPublishPhaseAsync(
-        Task operation,
-        IDispatchContext context,
-        IChannel? channel,
-        string phase)
-    {
-        var started = TimeProvider.GetTimestamp();
-        while (!operation.IsCompleted)
-        {
-            try
-            {
-                await operation.WaitAsync(s_publishWarningInterval, TimeProvider);
-                return;
-            }
-            catch (TimeoutException)
-            {
-                if (operation.IsCompleted)
-                {
-                    break;
-                }
-
-                using (channel is not null ? BeginLogScope(channel) : BeginLogScope())
-                using (Logger.BeginMessageScope(context))
-                {
-                    Logger.PublishStalled(context.Envelope?.MessageId, phase, TimeProvider.GetElapsedTime(started));
-                }
-            }
-        }
-
-        await operation;
-    }
-
-    internal void LogPublishRetry(IDispatchContext context, IChannel? channel, Exception exception, int attempt, TimeSpan delay)
-    {
-        if (!Logger.IsEnabled(LogLevel.Debug))
-        {
-            return;
-        }
-
-        using (channel is not null ? BeginLogScope(channel) : BeginLogScope())
-        using (Logger.BeginMessageScope(context))
-        {
-            Logger.PublishFailedRetrying(exception, ConnectionName, context.Endpoint.Name, attempt, delay);
-        }
-    }
-
-    internal void LogPublishPhase(IDispatchContext context, IChannel? channel, string phase)
-    {
-        if (!Logger.IsEnabled(LogLevel.Debug))
-        {
-            return;
-        }
-
-        using (channel is not null ? BeginLogScope(channel) : BeginLogScope())
-        using (Logger.BeginMessageScope(context))
-        {
-            Logger.PublishWaiting(context.Envelope?.MessageId, phase);
-        }
-    }
-
-    internal void LogPublishOutcome(
-        IDispatchContext context,
-        IChannel? channel,
+    [LoggerMessage(Message = "Publish of message {MessageId} finished with {Outcome} in phase {Phase} after {Elapsed} and {Retries} retries")]
+    public static partial void PublishFinished(
+        this ILogger logger,
         Exception? exception,
-        string outcome,
-        string phase,
+        LogLevel level,
+        string? messageId,
+        PublishOutcome outcome,
+        PublishPhase phase,
+        int retries,
+        TimeSpan elapsed);
+
+    [LoggerMessage(LogLevel.Debug, "Created publisher channel {ChannelNumber} on {ConnectionName}")]
+    public static partial void CreatedNewChannel(this ILogger logger, string connectionName, int channelNumber);
+
+    [LoggerMessage(LogLevel.Debug, "Publisher channel capacity reached on {ConnectionName}")]
+    public static partial void PublisherChannelLimitReached(this ILogger logger, Exception ex, string connectionName);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to open publisher channel on {ConnectionName}. Closing the connection and starting recovery")]
+    public static partial void PublisherChannelCreationFailed(this ILogger logger, Exception ex, string connectionName);
+
+    [LoggerMessage(
+        LogLevel.Debug,
+        "Publish to endpoint {Endpoint} on {ConnectionName} failed during connection recovery (attempt {Attempt}). Retrying in {Delay}")]
+    public static partial void PublishFailedRetrying(
+        this ILogger logger,
+        Exception ex,
+        string connectionName,
+        string endpoint,
         int attempt,
-        TimeSpan elapsed)
-    {
-        var level = outcome == "Failed" ? LogLevel.Error
-            : elapsed >= TimeSpan.FromSeconds(10) ? LogLevel.Warning : LogLevel.Debug;
-        if (!Logger.IsEnabled(level))
-        {
-            return;
-        }
+        TimeSpan delay);
 
-        using (channel is not null ? BeginLogScope(channel) : BeginLogScope())
-        using (Logger.BeginMessageScope(context))
-        {
-            Logger.PublishFinished(exception, level, context.Envelope?.MessageId, outcome, phase, attempt, elapsed);
-        }
-    }
+    [LoggerMessage(
+        LogLevel.Warning,
+        "The broker returned a message for queue {Queue} on {ConnectionName}. Repairing its configured topology")]
+    public static partial void ReturnedQueueRepairStarted(this ILogger logger, string connectionName, string queue);
 
-    internal void LogReturnedQueueRepairStarted(IDispatchContext context, IChannel channel, string queueName)
-    {
-        using (BeginLogScope(channel))
-        using (Logger.BeginMessageScope(context))
-        {
-            Logger.ReturnedQueueRepairStarted(ConnectionName, queueName);
-        }
-    }
-
-    internal void LogReturnedQueueRedeclared(IDispatchContext context, IChannel channel, string queueName)
-    {
-        using (BeginLogScope(channel))
-        using (Logger.BeginMessageScope(context))
-        {
-            Logger.RedeclaredQueueOfReturnedMessage(ConnectionName, queueName);
-        }
-    }
+    [LoggerMessage(
+        LogLevel.Information,
+        "Restored configured topology for queue {Queue} on {ConnectionName}. Retrying the returned message")]
+    public static partial void RedeclaredQueueOfReturnedMessage(this ILogger logger, string connectionName, string queue);
 }

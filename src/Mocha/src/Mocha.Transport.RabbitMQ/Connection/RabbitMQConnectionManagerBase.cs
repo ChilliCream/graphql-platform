@@ -1,12 +1,9 @@
 using System.Diagnostics;
-using System.Net.Sockets;
-using System.Security.Authentication;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ;
 
@@ -129,64 +126,6 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
         await GetConnectionAsync(cancellationToken);
     }
 
-    private static bool IsConnectivityFailure(Exception exception)
-    {
-        for (var current = exception; current is not null; current = current.InnerException)
-        {
-            // Refused credentials or virtual host access, and operations the broker rejects, such as a declare
-            // with different arguments, fail the same way on every attempt.
-            if (current is AuthenticationFailureException
-                || current is OperationInterruptedException
-                {
-                    ShutdownReason.ReplyCode:
-                        Constants.AccessRefused
-                        or Constants.NotFound
-                        or Constants.ResourceLocked
-                        or Constants.PreconditionFailed
-                        or Constants.NotAllowed
-                })
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    internal static LogLevel GetRecoveryFailureLogLevel(Exception exception)
-    {
-        if (exception is AggregateException aggregate)
-        {
-            return aggregate.InnerExceptions.Count > 0
-                && aggregate.InnerExceptions.All(static ex => GetRecoveryFailureLogLevel(ex) == LogLevel.Warning)
-                    ? LogLevel.Warning
-                    : LogLevel.Error;
-        }
-
-        if (exception.InnerException is { } inner && GetRecoveryFailureLogLevel(inner) == LogLevel.Error)
-        {
-            return LogLevel.Error;
-        }
-
-        return exception switch
-        {
-            AuthenticationException or PossibleAuthenticationFailureException => LogLevel.Error,
-            OperationInterruptedException
-            {
-                ShutdownReason.ReplyCode:
-                    Constants.AccessRefused
-                    or Constants.NotFound
-                    or Constants.ResourceLocked
-                    or Constants.PreconditionFailed
-                    or Constants.NotAllowed
-            } => LogLevel.Error,
-            IOException or SocketException or TimeoutException or OperationCanceledException
-                or ObjectDisposedException or BrokerUnreachableException or ConnectFailureException
-                or OperationInterruptedException => LogLevel.Warning,
-            _ => LogLevel.Error
-        };
-    }
-
     /// <summary>
     /// Called before an existing connection is replaced or a new connection is created.
     /// </summary>
@@ -236,8 +175,6 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
     private async Task ReconnectAsync(CancellationToken cancellationToken)
     {
         var attempt = 0;
-        var lastSummary = TimeProvider.GetTimestamp();
-        var lastLevel = LogLevel.None;
 
         try
         {
@@ -261,25 +198,13 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
                     using var _ = BeginLogScope();
                     attempt++;
                     delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
-
-                    var level = GetRecoveryFailureLogLevel(ex);
-                    if (attempt == 1 || level > lastLevel
-                        || TimeProvider.GetElapsedTime(lastSummary) >= TimeSpan.FromMinutes(1))
-                    {
-                        lastSummary = TimeProvider.GetTimestamp();
-                        lastLevel = level;
-                        Logger.ReconnectionAttemptFailed(
-                            ex,
-                            level,
-                            ConnectionName,
-                            attempt,
-                            delay,
-                            TimeProvider.GetElapsedTime(_connectionStartedAt!.Value));
-                    }
-                    else
-                    {
-                        Logger.ReconnectionAttemptFailedAgain(ex, ConnectionName, attempt, delay);
-                    }
+                    Logger.ReconnectionAttemptFailed(
+                        ex,
+                        RabbitMQFailure.GetLogLevel(ex),
+                        ConnectionName,
+                        attempt,
+                        delay,
+                        TimeProvider.GetElapsedTime(_connectionStartedAt!.Value));
                 }
                 finally
                 {
@@ -302,7 +227,7 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
             Volatile.Write(ref _isReconnecting, 0);
         }
 
-        // A connection lost between the successful attempt and the reset above is not reconnected otherwise.
+        // A connection can be lost after the attempt succeeded and before the flag above was reset.
         if (!cancellationToken.IsCancellationRequested && _readyConnection is not { IsOpen: true })
         {
             StartReconnecting();
@@ -316,7 +241,6 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
     /// </summary>
     private async Task CreateConnectionWithRetryAsync(CancellationToken cancellationToken)
     {
-        // A retry that outlives the manager would create a connection that nothing disposes.
         using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposeToken);
         var connectTimeout = ConnectTimeout;
         if (connectTimeout > TimeSpan.Zero)
@@ -326,8 +250,6 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
 
         var connectToken = connectCts.Token;
         var started = Stopwatch.GetTimestamp();
-        var lastSummary = TimeProvider.GetTimestamp();
-        var lastLevel = LogLevel.None;
         var attempt = 0;
 
         try
@@ -339,41 +261,25 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
                     await ConnectAsync(connectToken);
                     return;
                 }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex) when (!IsConnectivityFailure(ex))
-                {
-                    using var _ = BeginLogScope();
-                    Logger.FailedToCreateConnectionAfterAttempts(ex, ConnectionName, attempt + 1);
-                    throw;
-                }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     using var _ = BeginLogScope();
                     attempt++;
                     var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
 
-                    if (Stopwatch.GetElapsedTime(started) + delay > connectTimeout)
+                    if (RabbitMQFailure.IsBrokerRejection(ex)
+                        || Stopwatch.GetElapsedTime(started) + delay > connectTimeout)
                     {
                         Logger.FailedToCreateConnectionAfterAttempts(ex, ConnectionName, attempt);
                         throw;
                     }
 
-                    var level = GetRecoveryFailureLogLevel(ex);
-                    if (attempt == 1 || level > lastLevel
-                        || TimeProvider.GetElapsedTime(lastSummary) >= TimeSpan.FromMinutes(1))
-                    {
-                        lastSummary = TimeProvider.GetTimestamp();
-                        lastLevel = level;
-                    }
-                    else
-                    {
-                        level = LogLevel.Debug;
-                    }
-
-                    Logger.FailedToCreateConnectionRetrying(ex, level, ConnectionName, attempt, delay);
+                    Logger.FailedToCreateConnectionRetrying(
+                        ex,
+                        RabbitMQFailure.GetLogLevel(ex),
+                        ConnectionName,
+                        attempt,
+                        delay);
 
                     await Task.Delay(delay, connectToken);
                 }
@@ -457,7 +363,6 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
         }
         catch
         {
-            // A connection without its topology must not be handed out, so the next attempt starts over.
             await DisposeConnectionInternalAsync();
             throw;
         }
@@ -492,7 +397,7 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private Task OnCallbackExceptionAsync(object? sender, CallbackExceptionEventArgs e)
     {
-        using var _ = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
+        using var _ = BeginLogScope(sender as IConnection);
         Logger.ExceptionInConnectionCallback(e.Exception, ConnectionName, e.Detail.Print());
         return Task.CompletedTask;
     }
@@ -511,8 +416,8 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
             Logger.ConnectionShutdownDetected(ConnectionName, e.Initiator, e.ReplyCode, e.ReplyText);
         }
 
-        // The client raises this event on its reader loop or heartbeat timer, which cannot process the
-        // replies that closing a channel waits for, so the cleanup must not run inline.
+        // The client raises this event on its reader loop or heartbeat timer, which cannot process the reply
+        // to a channel close.
         _ = Task.Run(() => HandleConnectionLostAsync(connection));
         return Task.CompletedTask;
     }
@@ -527,13 +432,12 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
             await _connectionLock.WaitAsync(_disposeToken);
             try
             {
-                // A late event from a connection that was already replaced must not disturb the current one.
+                // The event of a connection that was already replaced is ignored.
                 if (ReferenceEquals(_currentConnection, connection))
                 {
                     isCurrent = true;
 
-                    // Disposing stops the client's automatic recovery, and replaces a connection that the client
-                    // already recovered with consumers this manager no longer tracks.
+                    // Disposing also stops the client's own automatic recovery.
                     await DisposeConnectionInternalAsync();
                 }
             }
@@ -559,14 +463,14 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private Task OnConnectionBlockedAsync(object? sender, ConnectionBlockedEventArgs e)
     {
-        using var _ = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
+        using var _ = BeginLogScope(sender as IConnection);
         Logger.ConnectionBlocked(ConnectionName, e.Reason);
         return Task.CompletedTask;
     }
 
     private Task OnConnectionUnblockedAsync(object? sender, AsyncEventArgs e)
     {
-        using var _ = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
+        using var _ = BeginLogScope(sender as IConnection);
         Logger.ConnectionUnblocked(ConnectionName);
         return Task.CompletedTask;
     }
@@ -608,6 +512,35 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
     }
 
     /// <summary>
+    /// Closes and disposes a channel, ignoring failures of either step.
+    /// </summary>
+    internal static async Task CloseChannelAsync(IChannel channel, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (channel.IsOpen)
+            {
+                await channel.CloseAsync(cancellationToken: cancellationToken);
+            }
+        }
+        catch
+        {
+            // Ignore close errors.
+        }
+        finally
+        {
+            try
+            {
+                await channel.DisposeAsync();
+            }
+            catch
+            {
+                // Ignore disposal errors.
+            }
+        }
+    }
+
+    /// <summary>
     /// Override to perform cleanup before base disposal.
     /// </summary>
     protected virtual ValueTask DisposeAsyncCore()
@@ -631,7 +564,7 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
         _isDisposed = true;
         await _disposeCts.CancelAsync();
 
-        // Foreground connection attempts and background recovery must finish before their resources are closed.
+        // Connection attempts in progress hold the lock.
         await _connectionLock.WaitAsync(CancellationToken.None);
         try
         {
@@ -643,7 +576,6 @@ public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
             _connectionLock.Release();
         }
 
-        // A reconnect that is still running could otherwise create a connection after the one below is disposed.
         if (_reconnectTask is not null)
         {
             try
@@ -674,86 +606,4 @@ file static class Extensions
         }
         return sb.ToString();
     }
-}
-
-internal static partial class Logs
-{
-    [LoggerMessage(LogLevel.Debug, "Creating RabbitMQ connection {ConnectionName}")]
-    public static partial void CreatingConnectionUsingFactoryDelegate(this ILogger logger, string connectionName);
-
-    [LoggerMessage(LogLevel.Debug, "RabbitMQ connection {ConnectionName} is open with client name {ClientProvidedName}; setup is pending")]
-    public static partial void ConnectionOpened(this ILogger logger, string connectionName, string? clientProvidedName);
-
-    [LoggerMessage(LogLevel.Information, "RabbitMQ connection {ConnectionName} is ready after {Elapsed}")]
-    public static partial void ConnectionReady(this ILogger logger, string connectionName, TimeSpan elapsed);
-
-    [LoggerMessage(LogLevel.Information, "RabbitMQ connection {ConnectionName} recovered after {Elapsed}")]
-    public static partial void ConnectionRecovered(this ILogger logger, string connectionName, TimeSpan elapsed);
-
-    [LoggerMessage(LogLevel.Error, "Failed to establish RabbitMQ connection {ConnectionName} after {Attempts} attempts")]
-    public static partial void FailedToCreateConnectionAfterAttempts(
-        this ILogger logger,
-        Exception ex,
-        string connectionName,
-        int attempts);
-
-    [LoggerMessage(Message = "Failed to establish RabbitMQ connection {ConnectionName} (attempt {Attempt}). Retrying in {Delay}")]
-    public static partial void FailedToCreateConnectionRetrying(
-        this ILogger logger,
-        Exception ex,
-        LogLevel level,
-        string connectionName,
-        int attempt,
-        TimeSpan delay);
-
-    [LoggerMessage(LogLevel.Debug, "RabbitMQ connection {ConnectionName} closed by application")]
-    public static partial void ConnectionClosedByApplication(this ILogger logger, string connectionName);
-
-    [LoggerMessage(LogLevel.Information, "RabbitMQ connection manager {ConnectionName} stopped")]
-    public static partial void ConnectionManagerStopped(this ILogger logger, string connectionName);
-
-    [LoggerMessage(LogLevel.Warning, "RabbitMQ connection {ConnectionName} lost. Initiator: {Initiator}, Reply: {ReplyCode} {ReplyText}")]
-    public static partial void ConnectionShutdownDetected(
-        this ILogger logger,
-        string connectionName,
-        ShutdownInitiator initiator,
-        ushort replyCode,
-        string replyText);
-
-    [LoggerMessage(LogLevel.Error, "Error handling loss of RabbitMQ connection {ConnectionName}")]
-    public static partial void ErrorHandlingConnectionLoss(this ILogger logger, Exception ex, string connectionName);
-
-    [LoggerMessage(LogLevel.Warning, "RabbitMQ connection {ConnectionName} blocked by broker: {Reason}")]
-    public static partial void ConnectionBlocked(this ILogger logger, string connectionName, string reason);
-
-    [LoggerMessage(LogLevel.Information, "RabbitMQ connection {ConnectionName} unblocked by broker")]
-    public static partial void ConnectionUnblocked(this ILogger logger, string connectionName);
-
-    [LoggerMessage(Message = "RabbitMQ connection {ConnectionName} is still unavailable after {Elapsed} (attempt {Attempt}). Retrying in {Delay}")]
-    public static partial void ReconnectionAttemptFailed(
-        this ILogger logger,
-        Exception ex,
-        LogLevel level,
-        string connectionName,
-        int attempt,
-        TimeSpan delay,
-        TimeSpan elapsed);
-
-    [LoggerMessage(LogLevel.Error, "Error disposing RabbitMQ connection {ConnectionName}")]
-    public static partial void ErrorDisposingConnection(this ILogger logger, Exception ex, string connectionName);
-
-    [LoggerMessage(LogLevel.Error, "Exception in RabbitMQ connection {ConnectionName} callback. Detail: {Detail}")]
-    public static partial void ExceptionInConnectionCallback(
-        this ILogger logger,
-        Exception ex,
-        string connectionName,
-        string detail);
-
-    [LoggerMessage(LogLevel.Debug, "RabbitMQ connection {ConnectionName} recovery attempt {Attempt} failed. Retrying in {Delay}")]
-    public static partial void ReconnectionAttemptFailedAgain(
-        this ILogger logger,
-        Exception ex,
-        string connectionName,
-        int attempt,
-        TimeSpan delay);
 }

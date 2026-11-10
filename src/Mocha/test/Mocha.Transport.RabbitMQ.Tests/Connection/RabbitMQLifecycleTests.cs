@@ -93,7 +93,7 @@ public sealed class RabbitMQLifecycleTests
     }
 
     [Fact]
-    public async Task WaitUntilAttachedAsync_Should_CancelAllWaiters_When_RegistrationStops()
+    public async Task WaitUntilHealthyAsync_Should_CancelAllWaiters_When_RegistrationStops()
     {
         // arrange
         await using var manager = new RabbitMQConsumerManager(
@@ -106,8 +106,8 @@ public sealed class RabbitMQLifecycleTests
             1,
             TestContext.Current.CancellationToken);
         using var cancelled = new CancellationTokenSource();
-        var first = registration.WaitUntilAttachedAsync(cancelled.Token).AsTask();
-        var second = registration.WaitUntilAttachedAsync(CancellationToken.None).AsTask();
+        var first = registration.WaitUntilHealthyAsync(cancelled.Token).AsTask();
+        var second = registration.WaitUntilHealthyAsync(CancellationToken.None).AsTask();
 
         // act
         await cancelled.CancelAsync();

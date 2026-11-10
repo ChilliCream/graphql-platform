@@ -1,9 +1,7 @@
-using System.Diagnostics;
-using System.Net.Sockets;
 using Mocha.Middlewares;
 using Mocha.Threading;
+using Mocha.Transport.RabbitMQ.Features;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using static System.StringSplitOptions;
 
@@ -19,6 +17,8 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 {
     private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromMilliseconds(250);
     private static readonly TimeSpan s_maxRetryDelay = TimeSpan.FromSeconds(5);
+
+    private bool _isProvisioned;
 
     /// <summary>
     /// Gets the target queue for this endpoint, or <c>null</c> if the endpoint targets an exchange.
@@ -39,109 +39,24 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
         var dispatcher = transport.Dispatcher;
         var cancellationToken = context.CancellationToken;
-        var timeProvider = context.Services.GetTimeProvider();
-        var attempt = 0;
-        var started = Stopwatch.GetTimestamp();
-        var phase = "ReplyConsumer";
-        IChannel? channel = null;
+        var publish = context.Features.GetOrSet<RabbitMQPublishFeature>();
+        publish.Start();
 
         try
         {
-            while (!cancellationToken.IsCancellationRequested)
+            while (true)
             {
-                channel = null;
-                if (transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint
-                    && envelope.ResponseAddress == replyEndpoint.Source.Address.ToString())
-                {
-                    phase = "ReplyConsumer";
-                    dispatcher.LogPublishPhase(context, channel, phase);
-                    await dispatcher.WaitForPublishPhaseAsync(
-                        replyEndpoint.WaitUntilAttachedAsync(cancellationToken),
-                        context,
-                        channel,
-                        phase);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var canReuseChannel = false;
                 try
                 {
-                    phase = "ChannelCapacity";
-                    dispatcher.LogPublishPhase(context, channel, phase);
-                    channel = await dispatcher.WaitForPublishChannelAsync(
-                        dispatcher.RentChannelAsync(this, cancellationToken),
-                        context,
-                        phase);
-                    phase = "Topology";
-                    dispatcher.LogPublishPhase(context, channel, phase);
-                    await dispatcher.WaitForPublishPhaseAsync(
-                        EnsureProvisionedAsync(channel, cancellationToken),
-                        context,
-                        channel,
-                        phase);
-                    canReuseChannel = true;
-
-                    try
-                    {
-                        phase = "PublisherConfirm";
-                        dispatcher.LogPublishPhase(context, channel, phase);
-                        await dispatcher.WaitForPublishPhaseAsync(
-                            DispatchAsync(channel, envelope, timeProvider, cancellationToken),
-                            context,
-                            channel,
-                            phase);
-                    }
-                    catch (PublishException ex) when (ex.IsReturn && Queue is not null)
-                    {
-                        if (Queue.Exclusive || !(Queue.AutoProvision ?? transport.Topology.AutoProvision))
-                        {
-                            throw ThrowHelper.MessageReturned(Queue.Name, ex);
-                        }
-
-                        canReuseChannel = false;
-                        dispatcher.LogReturnedQueueRepairStarted(context, channel, Queue.Name);
-                        var provisioner = new RabbitMQTopologyProvisioner(
-                            transport.Topology,
-                            dispatcher.GetChannelConnection(channel));
-                        phase = "Topology";
-                        dispatcher.LogPublishPhase(context, channel, phase);
-                        await dispatcher.WaitForPublishPhaseAsync(
-                            new ValueTask(provisioner.ProvisionQueueAsync(Queue, channel, cancellationToken)),
-                            context,
-                            channel,
-                            phase);
-                        canReuseChannel = true;
-                        dispatcher.LogReturnedQueueRedeclared(context, channel, Queue.Name);
-
-                        try
-                        {
-                            phase = "PublisherConfirm";
-                            dispatcher.LogPublishPhase(context, channel, phase);
-                            await dispatcher.WaitForPublishPhaseAsync(
-                                DispatchAsync(channel, envelope, timeProvider, cancellationToken),
-                                context,
-                                channel,
-                                phase);
-                        }
-                        catch (PublishException again) when (again.IsReturn)
-                        {
-                            throw ThrowHelper.MessageReturned(Queue.Name, again);
-                        }
-                    }
+                    await PublishOnceAsync(context, publish, envelope);
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    var isConnectionLoss = IsConnectionLoss(ex, dispatcher, cancellationToken);
-                    if (channel is not null)
-                    {
-                        if (canReuseChannel && channel.IsOpen && !isConnectionLoss)
-                        {
-                            await dispatcher.ReturnChannelAsync(channel);
-                        }
-                        else
-                        {
-                            dispatcher.DiscardChannel(channel);
-                        }
-                    }
+                    var isConnectionLoss = RabbitMQFailure.IsConnectionLoss(ex, dispatcher, cancellationToken);
+                    await ReleaseFailedChannelAsync(publish, isConnectionLoss);
 
                     if (!isConnectionLoss)
                     {
@@ -150,76 +65,137 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
                     // The message may have reached the broker before the connection was lost, so a retry can deliver
                     // it twice.
-                    attempt++;
-                    var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
-                    dispatcher.LogPublishRetry(context, channel, ex, attempt, delay);
-                    phase = "RecoveryBackoff";
-                    await Task.Delay(delay, cancellationToken);
-                    continue;
+                    await BackOffAsync(context, publish, ex);
                 }
-
-                await dispatcher.ReturnChannelAsync(channel);
-                dispatcher.LogPublishOutcome(context, channel, null, "Confirmed", phase, attempt, Stopwatch.GetElapsedTime(started));
-                return;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
+            await dispatcher.ReturnChannelAsync(publish.Channel!);
+            dispatcher.LogPublishOutcome(context, publish, PublishOutcome.Confirmed, exception: null);
         }
         catch (Exception ex)
         {
-            dispatcher.LogPublishOutcome(
-                context,
-                channel,
-                ex,
-                cancellationToken.IsCancellationRequested ? "Cancelled" : "Failed",
-                phase,
-                attempt,
-                Stopwatch.GetElapsedTime(started));
+            var outcome = cancellationToken.IsCancellationRequested ? PublishOutcome.Cancelled : PublishOutcome.Failed;
+            dispatcher.LogPublishOutcome(context, publish, outcome, ex);
             throw;
         }
     }
 
-    private static bool IsConnectionLoss(
-        Exception exception,
-        RabbitMQDispatcher dispatcher,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Publishes the message on a rented channel and waits for the broker's confirmation. The channel stays
+    /// rented, and <paramref name="publish"/> tells the caller how to release it.
+    /// </summary>
+    private async ValueTask PublishOnceAsync(
+        IDispatchContext context,
+        RabbitMQPublishFeature publish,
+        MessageEnvelope envelope)
     {
-        if (cancellationToken.IsCancellationRequested || dispatcher.IsShutDown)
+        var dispatcher = transport.Dispatcher;
+        var cancellationToken = context.CancellationToken;
+        var timeProvider = context.Services.GetTimeProvider();
+        publish.Channel = null;
+        publish.IsChannelReusable = false;
+
+        if (transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint
+            && envelope.ResponseAddress == replyEndpoint.Source.Address.ToString())
         {
-            return false;
+            await dispatcher.RunPublishPhaseAsync(
+                context,
+                publish,
+                PublishPhase.ReplyConsumer,
+                replyEndpoint.WaitUntilHealthyAsync(cancellationToken));
         }
 
-        return exception switch
-        {
-            // The broker rejected the message, and publishing it again fails the same way.
-            PublishException => false,
+        var channel = await dispatcher.RunPublishPhaseAsync(
+            context,
+            publish,
+            PublishPhase.ChannelCapacity,
+            dispatcher.RentChannelAsync(this, cancellationToken));
+        publish.Channel = channel;
 
-            // A cancellation the caller did not request comes from a timed out operation on a broken connection.
-            OperationCanceledException or ObjectDisposedException => true,
-            TimeoutException => !dispatcher.IsConnected,
-            BrokerUnreachableException { InnerException: AuthenticationFailureException } => false,
-            BrokerUnreachableException or ConnectFailureException => true,
-            OperationInterruptedException { ShutdownReason: var reason } => IsConnectionLoss(reason),
-            IOException or SocketException => true,
-            _ => false
-        };
+        await dispatcher.RunPublishPhaseAsync(
+            context,
+            publish,
+            PublishPhase.Topology,
+            EnsureProvisionedAsync(channel, cancellationToken));
+        publish.IsChannelReusable = true;
+
+        var isQueueRestored = false;
+        while (true)
+        {
+            try
+            {
+                await dispatcher.RunPublishPhaseAsync(
+                    context,
+                    publish,
+                    PublishPhase.PublisherConfirm,
+                    PublishAsync(channel, envelope, timeProvider, cancellationToken));
+                return;
+            }
+            catch (PublishException ex) when (ex.IsReturn && Queue is { } queue)
+            {
+                if (isQueueRestored || queue.Exclusive || !transport.Topology.ShouldProvision(queue))
+                {
+                    throw ThrowHelper.MessageReturned(queue.Name, ex);
+                }
+
+                await RestoreQueueAsync(context, publish, channel, queue);
+                isQueueRestored = true;
+            }
+        }
     }
 
-    private static bool IsConnectionLoss(ShutdownEventArgs? reason)
-        => reason is null
-            || reason.Initiator != ShutdownInitiator.Peer
-            || reason.ReplyCode
-                is Constants.ConnectionForced
-                or Constants.FrameError
-                or Constants.SyntaxError
-                or Constants.CommandInvalid
-                or Constants.ChannelError
-                or Constants.UnexpectedFrame
-                or Constants.ResourceError
-                or Constants.NotImplemented
-                or Constants.InternalError;
+    /// <summary>
+    /// Declares the queue of a returned message and its bindings again.
+    /// </summary>
+    private async ValueTask RestoreQueueAsync(
+        IDispatchContext context,
+        RabbitMQPublishFeature publish,
+        IChannel channel,
+        RabbitMQQueue queue)
+    {
+        var dispatcher = transport.Dispatcher;
+        publish.IsChannelReusable = false;
+        dispatcher.LogReturnedQueueRepairStarted(context, channel, queue.Name);
 
-    private async ValueTask DispatchAsync(
+        var provisioner = new RabbitMQTopologyProvisioner(transport.Topology, dispatcher.GetChannelConnection(channel));
+        await dispatcher.RunPublishPhaseAsync(
+            context,
+            publish,
+            PublishPhase.Topology,
+            new ValueTask(provisioner.ProvisionQueueAsync(queue, channel, context.CancellationToken)));
+        publish.IsChannelReusable = true;
+        dispatcher.LogReturnedQueueRedeclared(context, channel, queue.Name);
+    }
+
+    /// <summary>
+    /// Releases the channel of a failed attempt: back to the pool when it is still usable, retired otherwise.
+    /// </summary>
+    private ValueTask ReleaseFailedChannelAsync(RabbitMQPublishFeature publish, bool isConnectionLoss)
+    {
+        if (publish.Channel is not { } channel)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        if (publish.IsChannelReusable && channel.IsOpen && !isConnectionLoss)
+        {
+            return transport.Dispatcher.ReturnChannelAsync(channel);
+        }
+
+        transport.Dispatcher.DiscardChannel(channel);
+        return ValueTask.CompletedTask;
+    }
+
+    private async ValueTask BackOffAsync(IDispatchContext context, RabbitMQPublishFeature publish, Exception exception)
+    {
+        publish.Retries++;
+        var delay = ExponentialBackoff.CalculateDelay(publish.Retries, s_initialRetryDelay, s_maxRetryDelay);
+        transport.Dispatcher.LogPublishRetry(context, publish, exception, delay);
+        publish.Phase = PublishPhase.RecoveryBackoff;
+        await Task.Delay(delay, context.CancellationToken);
+    }
+
+    private ValueTask PublishAsync(
         IChannel channel,
         MessageEnvelope envelope,
         TimeProvider timeProvider,
@@ -304,10 +280,14 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         // A reply whose requester is gone has no queue, and is dropped.
         var mandatory = Queue is not null && Kind != DispatchEndpointKind.Reply;
 
-        await channel.BasicPublishAsync(exchangeName, routingKey, mandatory, properties, envelope.Body, cancellationToken);
+        return channel.BasicPublishAsync(
+            exchangeName,
+            routingKey,
+            mandatory,
+            properties,
+            envelope.Body,
+            cancellationToken);
     }
-
-    private bool _isProvisioned;
 
     private async ValueTask EnsureProvisionedAsync(IChannel channel, CancellationToken cancellationToken)
     {
@@ -316,20 +296,19 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             return;
         }
 
-        var autoProvision = transport.Topology.AutoProvision;
+        var topology = transport.Topology;
+        var connection = transport.Dispatcher.GetChannelConnection(channel);
 
         // An exclusive queue belongs to the connection that declares it, which must be the consumer's.
-        if (Queue is { Exclusive: false } && (Queue.AutoProvision ?? autoProvision))
+        if (Queue is { Exclusive: false } && topology.ShouldProvision(Queue))
         {
-            var provisioner = new RabbitMQTopologyProvisioner(
-                transport.Topology,
-                transport.Dispatcher.GetChannelConnection(channel));
+            var provisioner = new RabbitMQTopologyProvisioner(topology, connection);
             await provisioner.ProvisionQueueAsync(Queue, channel, cancellationToken);
         }
 
-        if (Exchange is not null && (Exchange.AutoProvision ?? autoProvision))
+        if (Exchange is not null && topology.ShouldProvision(Exchange))
         {
-            await Exchange.ProvisionAsync(channel, transport.Dispatcher.GetChannelConnection(channel), cancellationToken);
+            await Exchange.ProvisionAsync(channel, connection, cancellationToken);
         }
 
         _isProvisioned = true;

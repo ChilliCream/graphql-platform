@@ -86,7 +86,7 @@ public sealed partial class RabbitMQDispatcher(
                     continue;
                 }
 
-                channel = await RentChannelAsync(pool, publisher, cancellationToken);
+                channel = await TryRentChannelAsync(pool, publisher, cancellationToken);
             }
 
             return channel;
@@ -98,14 +98,18 @@ public sealed partial class RabbitMQDispatcher(
         }
     }
 
-    private async ValueTask<IChannel?> RentChannelAsync(
+    /// <summary>
+    /// Rents a channel from the pool, or returns <c>null</c> when the caller has to try again because the
+    /// pool was replaced, it had to wait for a free slot, or the channel is no longer usable.
+    /// </summary>
+    private async ValueTask<IChannel?> TryRentChannelAsync(
         PublisherChannelPool pool,
         object? publisher,
         CancellationToken cancellationToken)
     {
         PublisherChannelSlot? slot;
-        PublisherChannel? owner = null;
-        Task? available = null;
+        PublisherChannel? publisherChannel = null;
+        Task? slotAvailable = null;
         lock (_channelSync)
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
@@ -117,13 +121,11 @@ public sealed partial class RabbitMQDispatcher(
             slot = pool.TryRentSlot(publisher);
             if (slot is null)
             {
-                available = pool.WaitForSlot();
+                slotAvailable = pool.WaitForSlot();
             }
             else
             {
-                if (slot.Current is { } previous
-                    && (previous.Channel.Task.IsFaulted
-                        || (previous.Channel.Task.IsCompletedSuccessfully && !previous.Channel.Task.Result.IsOpen)))
+                if (slot.Current is { IsUnusable: true })
                 {
                     RetireChannel(slot);
                 }
@@ -134,27 +136,13 @@ public sealed partial class RabbitMQDispatcher(
                     slot.Current.Creation = CreateChannelAsync(slot.Current, slot.Cleanup, DisposalToken);
                 }
 
-                owner = slot.Current;
+                publisherChannel = slot.Current;
             }
         }
 
         if (slot is null)
         {
-            using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                DisposalToken,
-                pool.RetirementToken);
-            try
-            {
-                await available!.WaitAsync(waitCts.Token);
-            }
-            catch (OperationCanceledException)
-                when (pool.RetirementToken.IsCancellationRequested
-                    && !cancellationToken.IsCancellationRequested
-                    && !IsDisposed)
-            {
-            }
-
+            await WaitForSlotAsync(pool, slotAvailable!, cancellationToken);
             return null;
         }
 
@@ -162,19 +150,19 @@ public sealed partial class RabbitMQDispatcher(
         try
         {
             // Caller cancellation releases the lease; channel creation remains owned by the dispatcher.
-            var channel = await owner!.Channel.Task.WaitAsync(cancellationToken);
+            var channel = await publisherChannel!.Opened.WaitAsync(cancellationToken);
             lock (_channelSync)
             {
                 ObjectDisposedException.ThrowIf(IsDisposed, this);
-                if (!ReferenceEquals(slot.Current, owner)
+                if (!ReferenceEquals(slot.Current, publisherChannel)
                     || !ReferenceEquals(pool.Connection, CurrentConnection)
                     || !channel.IsOpen)
                 {
                     return null;
                 }
 
-                _rentedChannels.TryAdd(channel, owner);
-                owner.RentCount++;
+                _rentedChannels.TryAdd(channel, publisherChannel);
+                publisherChannel.RentCount++;
                 isRented = true;
                 return channel;
             }
@@ -188,6 +176,28 @@ public sealed partial class RabbitMQDispatcher(
                     pool.ReturnSlot(slot);
                 }
             }
+        }
+    }
+
+    private async Task WaitForSlotAsync(
+        PublisherChannelPool pool,
+        Task slotAvailable,
+        CancellationToken cancellationToken)
+    {
+        using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            DisposalToken,
+            pool.RetirementToken);
+        try
+        {
+            await slotAvailable.WaitAsync(waitCts.Token);
+        }
+        catch (OperationCanceledException)
+            when (pool.RetirementToken.IsCancellationRequested
+                && !cancellationToken.IsCancellationRequested
+                && !IsDisposed)
+        {
+            // The pool was replaced, and the caller rents from its successor.
         }
     }
 
@@ -209,20 +219,20 @@ public sealed partial class RabbitMQDispatcher(
     {
         lock (_channelSync)
         {
-            if (!_rentedChannels.TryGetValue(channel, out var owner))
+            if (!_rentedChannels.TryGetValue(channel, out var publisherChannel))
             {
                 return;
             }
 
-            if (--owner.RentCount == 0)
+            if (--publisherChannel.RentCount == 0)
             {
                 _rentedChannels.Remove(channel);
             }
 
-            var slot = owner.Slot;
-            if (ReferenceEquals(slot.Current, owner)
+            var slot = publisherChannel.Slot;
+            if (ReferenceEquals(slot.Current, publisherChannel)
                 && (discard || IsDisposed || !channel.IsOpen
-                    || !ReferenceEquals(owner.Connection, CurrentConnection)))
+                    || !ReferenceEquals(publisherChannel.Connection, CurrentConnection)))
             {
                 RetireChannel(slot);
             }
@@ -235,36 +245,36 @@ public sealed partial class RabbitMQDispatcher(
 
     private static void RetireChannel(PublisherChannelSlot slot)
     {
-        if (slot.Current is { } channel)
+        if (slot.Current is { } publisherChannel)
         {
             slot.Current = null;
-            slot.Cleanup = DisposePublisherChannelAsync(channel);
+            slot.Cleanup = DisposePublisherChannelAsync(publisherChannel);
         }
     }
 
     private async Task CreateChannelAsync(
-        PublisherChannel owner,
+        PublisherChannel publisherChannel,
         Task cleanup,
         CancellationToken cancellationToken)
     {
         await Task.Yield();
-        using var logScope = BeginLogScope(owner.Connection);
+        var connection = publisherChannel.Connection;
+        using var _ = BeginLogScope(connection);
         using var creationCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         creationCts.CancelAfter(ChannelCreationTimeout);
         Task<IChannel>? opening = null;
         try
         {
             await cleanup.WaitAsync(creationCts.Token);
-            opening = owner.Connection.CreateChannelAsync(s_publishChannelOptions, creationCts.Token);
+            opening = connection.CreateChannelAsync(s_publishChannelOptions, creationCts.Token);
             var channel = await opening.WaitAsync(creationCts.Token);
-            TrackChannel(owner.Connection, channel);
+            TrackChannel(connection, channel);
             Logger.CreatedNewChannel(ConnectionName, channel.ChannelNumber);
-            owner.Channel.TrySetResult(channel);
+            publisherChannel.SetOpened(channel);
         }
         catch (Exception ex)
         {
-            owner.Channel.TrySetException(ex);
-            _ = owner.Channel.Task.Exception;
+            publisherChannel.SetFailed(ex);
 
             if (ex is ChannelAllocationException)
             {
@@ -280,7 +290,7 @@ public sealed partial class RabbitMQDispatcher(
             // Close the connection when opening a publisher channel fails.
             try
             {
-                await owner.Connection.AbortAsync();
+                await connection.AbortAsync();
             }
             catch
             {
@@ -291,7 +301,7 @@ public sealed partial class RabbitMQDispatcher(
             {
                 try
                 {
-                    await DisposeChannelSafelyAsync(await opening);
+                    await CloseChannelAsync(await opening, CancellationToken.None);
                 }
                 catch
                 {
@@ -355,38 +365,12 @@ public sealed partial class RabbitMQDispatcher(
         await Task.WhenAll(cleanup);
     }
 
-    private static async Task DisposePublisherChannelAsync(PublisherChannel channel)
+    private static async Task DisposePublisherChannelAsync(PublisherChannel publisherChannel)
     {
-        await channel.Creation;
-        if (channel.Channel.Task.IsCompletedSuccessfully)
+        await publisherChannel.Creation;
+        if (publisherChannel.Opened.IsCompletedSuccessfully)
         {
-            await DisposeChannelSafelyAsync(channel.Channel.Task.Result);
-        }
-    }
-
-    private static async ValueTask DisposeChannelSafelyAsync(IChannel channel)
-    {
-        try
-        {
-            if (channel.IsOpen)
-            {
-                await channel.CloseAsync();
-            }
-        }
-        catch
-        {
-            // Ignore close errors.
-        }
-        finally
-        {
-            try
-            {
-                await channel.DisposeAsync();
-            }
-            catch
-            {
-                // Ignore disposal errors.
-            }
+            await CloseChannelAsync(publisherChannel.Opened.Result, CancellationToken.None);
         }
     }
 
@@ -394,182 +378,4 @@ public sealed partial class RabbitMQDispatcher(
     {
         await ClearChannelsAsync(preserveCurrentConnection: false);
     }
-
-    private sealed class PublisherChannelPool
-    {
-        private readonly CancellationTokenSource _retirementCts = new();
-        private readonly Dictionary<object, PublisherChannelSlot> _publishers = new(ReferenceEqualityComparer.Instance);
-        private readonly LinkedList<PublisherChannelSlot> _available = new();
-        private readonly int _capacity;
-        private TaskCompletionSource? _slotAvailable;
-
-        public PublisherChannelPool(IConnection connection)
-        {
-            Connection = connection;
-            RetirementToken = _retirementCts.Token;
-            _capacity = connection.ChannelMax == 0
-                ? MaxPublisherChannels
-                : Math.Min(MaxPublisherChannels, (int)connection.ChannelMax);
-            Slots = new List<PublisherChannelSlot>(_capacity);
-        }
-
-        public IConnection Connection { get; }
-
-        public List<PublisherChannelSlot> Slots { get; }
-
-        public CancellationToken RetirementToken { get; }
-
-        public PublisherChannelSlot? TryRentSlot(object? publisher)
-        {
-            PublisherChannelSlot slot;
-            if (publisher is not null && _publishers.TryGetValue(publisher, out var shared))
-            {
-                slot = shared;
-                if (slot.ActiveRentals == 0)
-                {
-                    _available.Remove(slot.Node);
-                }
-            }
-            else
-            {
-                if (_available.Last is { } available)
-                {
-                    slot = available.Value;
-                    _available.RemoveLast();
-                    if (slot.Publisher is { } previousPublisher)
-                    {
-                        _publishers.Remove(previousPublisher);
-                    }
-                }
-                else if (Slots.Count < _capacity)
-                {
-                    slot = new PublisherChannelSlot(this);
-                    Slots.Add(slot);
-                }
-                else
-                {
-                    return null;
-                }
-
-                slot.Publisher = publisher;
-                if (publisher is not null)
-                {
-                    _publishers.Add(publisher, slot);
-                    SignalSlotAvailable();
-                }
-            }
-
-            slot.ActiveRentals++;
-            return slot;
-        }
-
-        public void ReturnSlot(PublisherChannelSlot slot)
-        {
-            if (--slot.ActiveRentals == 0)
-            {
-                _available.AddLast(slot.Node);
-                SignalSlotAvailable();
-            }
-        }
-
-        public Task WaitForSlot()
-            => (_slotAvailable ??= new(TaskCreationOptions.RunContinuationsAsynchronously)).Task;
-
-        private void SignalSlotAvailable()
-        {
-            var available = _slotAvailable;
-            _slotAvailable = null;
-            available?.TrySetResult();
-        }
-
-        public async Task RetireAsync()
-        {
-            await _retirementCts.CancelAsync();
-            _retirementCts.Dispose();
-        }
-    }
-
-    private sealed class PublisherChannelSlot
-    {
-        public PublisherChannelSlot(PublisherChannelPool pool)
-        {
-            Pool = pool;
-            Node = new LinkedListNode<PublisherChannelSlot>(this);
-        }
-
-        public PublisherChannelPool Pool { get; }
-
-        public LinkedListNode<PublisherChannelSlot> Node { get; }
-
-        public object? Publisher { get; set; }
-
-        public int ActiveRentals { get; set; }
-
-        public PublisherChannel? Current { get; set; }
-
-        public Task Cleanup { get; set; } = Task.CompletedTask;
-    }
-
-    private sealed class PublisherChannel(PublisherChannelSlot slot)
-    {
-        public PublisherChannelSlot Slot { get; } = slot;
-
-        public IConnection Connection => Slot.Pool.Connection;
-
-        public int RentCount { get; set; }
-
-        public TaskCompletionSource<IChannel> Channel { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public Task Creation { get; set; } = Task.CompletedTask;
-    }
-}
-
-internal static partial class Logs
-{
-    [LoggerMessage(LogLevel.Warning, "Publishing message {MessageId} is still waiting for {Phase} after {Elapsed}")]
-    public static partial void PublishStalled(this ILogger logger, string? messageId, string phase, TimeSpan elapsed);
-
-    [LoggerMessage(LogLevel.Debug, "Publishing message {MessageId}: waiting for {Phase}")]
-    public static partial void PublishWaiting(this ILogger logger, string? messageId, string phase);
-
-    [LoggerMessage(Message = "Publish of message {MessageId} finished with {Outcome} in phase {Phase} after {Elapsed} and {Retries} retries")]
-    public static partial void PublishFinished(
-        this ILogger logger,
-        Exception? exception,
-        LogLevel level,
-        string? messageId,
-        string outcome,
-        string phase,
-        int retries,
-        TimeSpan elapsed);
-
-    [LoggerMessage(LogLevel.Debug, "Created publisher channel {ChannelNumber} on {ConnectionName}")]
-    public static partial void CreatedNewChannel(this ILogger logger, string connectionName, int channelNumber);
-
-    [LoggerMessage(LogLevel.Debug, "Publisher channel capacity reached on {ConnectionName}")]
-    public static partial void PublisherChannelLimitReached(this ILogger logger, Exception ex, string connectionName);
-
-    [LoggerMessage(LogLevel.Warning, "Failed to open publisher channel on {ConnectionName}. Closing the connection and starting recovery")]
-    public static partial void PublisherChannelCreationFailed(this ILogger logger, Exception ex, string connectionName);
-
-    [LoggerMessage(
-        LogLevel.Debug,
-        "Publish to endpoint {Endpoint} on {ConnectionName} failed during connection recovery (attempt {Attempt}). Retrying in {Delay}")]
-    public static partial void PublishFailedRetrying(
-        this ILogger logger,
-        Exception ex,
-        string connectionName,
-        string endpoint,
-        int attempt,
-        TimeSpan delay);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "The broker returned a message for queue {Queue} on {ConnectionName}. Repairing its configured topology")]
-    public static partial void ReturnedQueueRepairStarted(this ILogger logger, string connectionName, string queue);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "Restored configured topology for queue {Queue} on {ConnectionName}. Retrying the returned message")]
-    public static partial void RedeclaredQueueOfReturnedMessage(this ILogger logger, string connectionName, string queue);
 }

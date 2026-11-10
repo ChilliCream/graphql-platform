@@ -205,20 +205,21 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
     /// <summary>
     /// Gets whether the transport is ready to send and receive messages.
-    /// By default, the transport and all receive endpoints must be started.
     /// </summary>
-    public virtual bool IsHealthy => IsStarted && ReceiveEndpoints.All(static endpoint => endpoint.IsStarted);
+    public bool IsHealthy => HealthFailureReason is null;
 
     /// <summary>
     /// Gets the reason the transport is unhealthy, or <c>null</c> when it is healthy.
+    /// By default, the transport and all receive endpoints must be started.
     /// </summary>
     public virtual string? HealthFailureReason
-        => IsHealthy ? null
-            : !IsStarted ? "The transport is not started."
+        => !IsStarted ? "The transport is not started."
+            : ReceiveEndpoints.All(static endpoint => endpoint.IsStarted) ? null
             : "A receive endpoint is not started.";
 
     /// <summary>
-    /// Starts the transport by invoking pre-start hooks and activating all receive endpoints.
+    /// Starts the transport by invoking pre-start hooks and starting the reply endpoints, then all other
+    /// receive endpoints.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
     /// <param name="cancellationToken">A token to cancel the startup sequence.</param>
@@ -235,7 +236,18 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         foreach (var endpoint in ReceiveEndpoints)
         {
-            await endpoint.StartAsync(context, cancellationToken);
+            if (endpoint.Kind == ReceiveEndpointKind.Reply)
+            {
+                await endpoint.StartAsync(context, cancellationToken);
+            }
+        }
+
+        foreach (var endpoint in ReceiveEndpoints)
+        {
+            if (endpoint.Kind != ReceiveEndpointKind.Reply)
+            {
+                await endpoint.StartAsync(context, cancellationToken);
+            }
         }
 
         IsStarted = true;
