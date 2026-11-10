@@ -133,7 +133,7 @@ test("describes the page with released gateways, Fusion first and without generi
         ["fusion", "Fusion", [false]],
       ]),
     ),
-    "Compare GraphQL federation router (gateway) throughput, latency, memory and CPU for Fusion, Apollo, and Hive, benchmarked daily.",
+    "Daily GraphQL federation router (gateway) performance benchmarks: throughput, latency, memory and CPU for Fusion, Apollo, and Hive.",
   );
 });
 
