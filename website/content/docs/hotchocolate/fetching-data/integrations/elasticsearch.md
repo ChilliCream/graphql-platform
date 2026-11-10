@@ -63,7 +63,7 @@ public class Product
 }
 ```
 
-Without the attribute, a list of objects answers `some`, `none` and `any` with a single condition on a single field, and any other filter returns an error that names the field.
+Without the attribute, a list of objects answers `some`, `none` and `any` with a single condition on a single field, and any other filter returns an error that names the field. It does not see an element whose fields are all null, so `any` counts only the elements with a value.
 
 Filters on a `nested` field are tested on Elasticsearch 9.5. On 9.1, the KQL function behind them ignores the case of the value. A `startsWith` on a `nested` field cannot contain a character that is reserved in KQL.
 

@@ -46,8 +46,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
                 : base.VisitMethodCall(node);
         }
 
-        return TryGetObjectElement(list.Type, out var element)
-            ? RewriteObjectList(node, list, element)
+        return TryGetObjectElement(list.Type, out _)
+            ? RewriteObjectList(node, list)
             : base.VisitMethodCall(node);
     }
 
@@ -227,19 +227,15 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         return true;
     }
 
-    private Expression RewriteObjectList(MethodCallExpression node, MemberExpression list, Type element)
+    private Expression RewriteObjectList(MethodCallExpression node, MemberExpression list)
     {
         var path = FieldPath(list);
         var nested = list.Member.IsDefined(typeof(ElasticSearchNestedAttribute), true);
 
         if (node.Arguments.Count == 1)
         {
-            var fields = element.GetProperties()
-                .Where(p => p.PropertyType == typeof(string) || p.PropertyType.IsValueType)
-                .Select(FieldName);
-            return nested
-                ? Kql($"{path}:{{ {string.Join(" or ", fields.Select(f => f + ":*"))} }}")
-                : QueryString(string.Join(" OR ", fields.Select(f => $"_exists_:{path}.{f}")));
+            // a nested element exists even when all its fields are null; an object mapping keeps no trace of it.
+            return nested ? Kql($"{path}:{{ * }}") : QueryString($"_exists_:{path}");
         }
 
         var lambda = GetLambda(node.Arguments[1]);

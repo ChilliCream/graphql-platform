@@ -148,6 +148,28 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         Assert.Equal("ELASTICSEARCH_LIST_FILTER_REQUIRES_NESTED", result["errors"]?[0]?["extensions"]?["code"]?.ToString());
     }
 
+    [Theory]
+    [InlineData("any: true")]
+    [InlineData("any: false")]
+    public async Task Filter_Should_MatchLinq_When_NestedListHoldsEmptyElement(string filter)
+    {
+        // arrange
+        NestedDocument[] data =
+        [
+            new() { Name = "1", Items = [new Item { Bar = null!, Qux = null! }] },
+            new() { Name = "2" },
+            new() { Name = "3", Items = Items(("A1", "A1")) }
+        ];
+        await IndexDocuments(data);
+
+        // act
+        var expected = await ExecuteAsync(() => data.AsQueryable(), false, "items", filter);
+        var actual = await ExecuteAsync(Query<NestedDocument>, true, "items", filter);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
     [Fact]
     public async Task Filter_Should_ReportError_When_NestedPrefixHasReservedCharacter()
     {
