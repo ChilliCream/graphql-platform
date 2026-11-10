@@ -2746,6 +2746,12 @@
           "System.Collections.Immutable": "[7.0.0, )"
         }
       },
+      "hotchocolate.apollofederation": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate": "[0.0.0, )"
+        }
+      },
       "hotchocolate.aspnetcore": {
         "type": "Project",
         "dependencies": {
@@ -4319,6 +4325,12 @@
         "dependencies": {
           "HotChocolate.Language": "[0.0.0, )",
           "System.Collections.Immutable": "[8.0.0, )"
+        }
+      },
+      "hotchocolate.apollofederation": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate": "[0.0.0, )"
         }
       },
       "hotchocolate.aspnetcore": {

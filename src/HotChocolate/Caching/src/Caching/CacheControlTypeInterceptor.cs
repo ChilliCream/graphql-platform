@@ -21,6 +21,8 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         _cacheControlOptions = accessor.CacheControl;
     }
 
+    internal override uint Position => uint.MaxValue - 150;
+
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
@@ -41,6 +43,17 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         foreach (var item in _types)
         {
             TryApplyDefaults(item.Type, item.TypeDef);
+        }
+    }
+
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition)
+    {
+        if (completionContext is RegisteredType { IsQueryType: true } type &&
+            definition is ObjectTypeDefinition typeDef)
+        {
+            TryApplyDefaults(type, typeDef);
         }
     }
 
