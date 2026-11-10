@@ -26,7 +26,10 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         ("6", Items(("A1", "Z"), ("A1", "A1"))),
         ("7", Items(("A:1 (x)", "a\"b"), ("and", "a b"))),
         ("8", Items(("a1", "a1"))),
-        ("9", Items((null!, "N")))
+        ("9", Items((null!, "N"))),
+        ("10", [new Item { Bar = "D1", Qux = "D1" }]),
+        ("11", [new Item { Bar = "D2", Qux = "D2", Details = new ItemDetails { Code = "a", Kind = "k" } }]),
+        ("12", [new Item { Bar = "D3", Qux = "D3", Details = new ItemDetails { Kind = "k" } }])
     ];
 
     private static readonly StringDocument[] s_strings =
@@ -68,7 +71,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         "some: { tone: { eq: BLUE } }",
         "some: { hue: { eq: BLUE } }",
         "some: { tone: { in: [BLUE] } }",
-        "some: { hue: { in: [BLUE] } }"
+        "some: { hue: { in: [BLUE] } }",
+        """some: { details: { code: { eq: "a" } } }"""
     ];
 
     public static TheoryData<string> OneObject =>
@@ -86,7 +90,10 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         """some: { or: [{ bar: { eq: "B1" } }, { qux: { eq: "Y2" } }] }""",
         """some: { bar: { contains: "1", endsWith: "3" } }""",
         "all: { bar: { in: [] } }",
-        "some: { note: { eq: null } }"
+        "some: { note: { eq: null } }",
+        """some: { details: { code: { neq: "a" } } }""",
+        "some: { details: { code: { eq: null } } }",
+        """some: { details: { code: { nstartsWith: "a" } } }"""
     ];
 
     public static TheoryData<string> Strings =>
@@ -268,6 +275,15 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public OperationFilterTests.Color Hue { get; set; }
+
+        public ItemDetails? Details { get; set; }
+    }
+
+    public class ItemDetails
+    {
+        public string? Code { get; set; }
+
+        public string? Kind { get; set; }
     }
 
     public class NestedDocument

@@ -409,6 +409,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
     {
         private bool IsQueryString => prefix is not null;
 
+        private readonly List<string> _rendered = [];
+
         public HashSet<string> Fields { get; } = [];
 
         public bool Negated { get; private set; }
@@ -428,11 +430,11 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
                 case UnaryExpression { NodeType: ExpressionType.Not } u:
                     Negated = true;
-                    return $"not ({Render(u.Operand)})";
+                    return WithOwners(_rendered.Count, () => $"not ({Render(u.Operand)})");
 
                 case BinaryExpression { NodeType: ExpressionType.Equal } b when IsNullValue(b.Right):
                     Negated = true;
-                    return $"not {Field(b.Left)}:*";
+                    return WithOwners(_rendered.Count, () => $"not {Field(b.Left)}:*");
 
                 case BinaryExpression { NodeType: ExpressionType.NotEqual } b when IsNullValue(b.Right):
                     return $"{Field(b.Left)}:*";
@@ -442,7 +444,9 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
                 case BinaryExpression { NodeType: ExpressionType.NotEqual } b:
                     Negated = true;
-                    return $"not {Field(b.Left)}:{Literal(b.Left, Evaluate(b.Right))}";
+                    return WithOwners(
+                        _rendered.Count,
+                        () => $"not {Field(b.Left)}:{Literal(b.Left, Evaluate(b.Right))}");
 
                 case BinaryExpression { NodeType: ExpressionType.GreaterThan } b:
                     return Compare(b, ">");
@@ -477,6 +481,26 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         }
 
         private string Join(BinaryExpression b, string op) => $"({Render(b.Left)} {op} {Render(b.Right)})";
+
+        // a negated condition on a field of an object holds in .NET only when the object exists.
+        private string WithOwners(int from, Func<string> render)
+        {
+            var text = render();
+            var owners = _rendered.Skip(from)
+                .Where(name => name.Contains('.'))
+                .Select(name => name[..name.LastIndexOf('.')])
+                .Distinct()
+                .Select(owner => IsQueryString ? $"_exists_:{prefix}{owner}" : $"{owner}.*:*")
+                .ToList();
+
+            if (owners.Count == 0)
+            {
+                return text;
+            }
+
+            var and = IsQueryString ? " AND " : " and ";
+            return $"({string.Join(and, owners)}{and}{text})";
+        }
 
         // the null check that the filter adds before a string operation on the same field.
         private static bool IsNullGuard(BinaryExpression b)
@@ -543,6 +567,7 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
             var name = string.Join(".", parts);
             Fields.Add(name);
+            _rendered.Add(name);
             return prefix + name;
         }
 
