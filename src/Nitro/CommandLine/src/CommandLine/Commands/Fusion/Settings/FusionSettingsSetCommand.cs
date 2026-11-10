@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -20,7 +21,7 @@ internal sealed class FusionSettingsSetCommand : Command
 {
     public FusionSettingsSetCommand() : base("set")
     {
-        Description = "Set a Fusion composition setting in a Fusion archive.";
+        Description = "Set a Fusion setting in a Fusion archive.";
 
         Arguments.Add(Opt<FusionSettingsNameArgument>.Instance);
         Arguments.Add(Opt<FusionSettingsValueArgument>.Instance);
@@ -55,8 +56,14 @@ internal sealed class FusionSettingsSetCommand : Command
         var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
 
+        if (GetGatewaySetting(settingName) is { } gatewaySetting)
+        {
+            return await SetGatewaySettingAsync(
+                fileSystem, archiveFile, settingName, settingValue, gatewaySetting, cancellationToken);
+        }
+
         var compositionSettings = new CompositionSettings();
-        var unsetDefaultListSize = false;
+        Action<CompositionSettings>? clearSetting = null;
 
         switch (settingName)
         {
@@ -86,7 +93,7 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.DefaultListSize:
                 if (string.Equals(settingValue, "null", StringComparison.Ordinal))
                 {
-                    unsetDefaultListSize = true;
+                    clearSetting = settings => settings.Merger.DefaultListSize = null;
                 }
                 else if (!int.TryParse(
                         settingValue,
@@ -196,10 +203,10 @@ internal sealed class FusionSettingsSetCommand : Command
 
         using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
 
-        if (unsetDefaultListSize)
+        if (clearSetting is not null)
         {
             // Clear the persisted value first: merging null settings preserves an existing value.
-            await ClearDefaultListSizeSettingAsync(archive, cancellationToken);
+            await ClearSettingAsync(archive, clearSetting, cancellationToken);
         }
 
         environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
@@ -244,8 +251,90 @@ internal sealed class FusionSettingsSetCommand : Command
         }
     }
 
-    private static async Task ClearDefaultListSizeSettingAsync(
+    private static (string Section, string Property, string Type)? GetGatewaySetting(string name)
+        => name switch
+        {
+            FusionSettingsNameArgument.MaxFieldCost => ("cost", "maxFieldCost", "number"),
+            FusionSettingsNameArgument.MaxTypeCost => ("cost", "maxTypeCost", "number"),
+            FusionSettingsNameArgument.EnforceCostLimits => ("cost", "enforceCostLimits", "boolean"),
+            FusionSettingsNameArgument.SkipCostAnalyzer => ("cost", "skipAnalyzer", "boolean"),
+            FusionSettingsNameArgument.MaxResponseSize => ("cost", "maxResponseSize", "number"),
+            FusionSettingsNameArgument.CostPlanCacheSize => ("cost", "costPlanCacheSize", "integer"),
+            FusionSettingsNameArgument.CaseBudget => ("cost", "caseBudget", "integer"),
+            FusionSettingsNameArgument.CaseBudgetExceededBehavior => ("cost", "caseBudgetExceededBehavior", "case"),
+            FusionSettingsNameArgument.DepthWeight => ("planner", "depthWeight", "number"),
+            FusionSettingsNameArgument.OperationWeight => ("planner", "operationWeight", "number"),
+            FusionSettingsNameArgument.ExcessFanoutWeight => ("planner", "excessFanoutWeight", "number"),
+            FusionSettingsNameArgument.FanoutPenaltyThreshold => ("planner", "fanoutPenaltyThreshold", "integer"),
+            FusionSettingsNameArgument.EnableRequestGrouping => ("planner", "enableRequestGrouping", "boolean"),
+            FusionSettingsNameArgument.EnableDefer => ("planner", "enableDefer", "boolean"),
+            FusionSettingsNameArgument.InlineUnlabeledDeferFragments => ("planner", "inlineUnlabeledDeferFragments", "boolean"),
+            FusionSettingsNameArgument.MergePolicy => ("planner", "mergePolicy", "merge"),
+            FusionSettingsNameArgument.EnableEntityReuseSplitting => ("planner", "enableEntityReuseSplitting", "boolean"),
+            FusionSettingsNameArgument.MaxPlanningTime => ("planner", "maxPlanningTime", "time"),
+            FusionSettingsNameArgument.MaxExpandedNodes => ("planner", "maxExpandedNodes", "integer"),
+            FusionSettingsNameArgument.MaxQueueSize => ("planner", "maxQueueSize", "integer"),
+            FusionSettingsNameArgument.MaxGeneratedOptionsPerWorkItem => ("planner", "maxGeneratedOptionsPerWorkItem", "integer"),
+            _ => null
+        };
+
+    private static async Task<int> SetGatewaySettingAsync(
+        IFileSystem fileSystem,
+        string archiveFile,
+        string name,
+        string value,
+        (string Section, string Property, string Type) setting,
+        CancellationToken cancellationToken)
+    {
+        if (!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+        }
+
+        if (!fileSystem.FileExists(archiveFile))
+        {
+            throw ThrowHelper.Exit(Messages.ArchiveFileDoesNotExist(archiveFile));
+        }
+
+        using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
+        if (archive.IsSigned)
+        {
+            throw ThrowHelper.Exit("The archive is signed. Changing gateway settings would invalidate its signature.");
+        }
+
+        JsonNode? parsed = value switch
+        {
+            _ when setting.Type == "boolean" && bool.TryParse(value, out var boolean) => JsonValue.Create(boolean),
+            _ when setting.Type == "integer" && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var integer) => JsonValue.Create(integer),
+            _ when setting.Type == "number" && double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) => JsonValue.Create(number),
+            _ when setting.Type == "case" && CaseBudgetExceededBehaviorParser.TryParse(value, out var behavior) => JsonValue.Create(behavior.ToString()),
+            _ when setting.Type == "merge" && value is "none" or "conservative" or "balanced" or "aggressive" => JsonValue.Create(char.ToUpperInvariant(value[0]) + value[1..]),
+            _ when setting.Type == "time" && TimeSpan.TryParseExact(value, "c", CultureInfo.InvariantCulture, out var time) => JsonValue.Create(time.ToString("c", CultureInfo.InvariantCulture)),
+            _ => throw ThrowHelper.Exit($"Invalid {setting.Type} value for setting '{name}'.")
+        };
+
+        using var configuration = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion, cancellationToken)
+            ?? throw ThrowHelper.Exit("The archive does not contain a supported gateway configuration.");
+        var settings = JsonNode.Parse(configuration.Settings.RootElement.GetRawText())!.AsObject();
+        if (settings[setting.Section] is null)
+        {
+            settings[setting.Section] = new JsonObject();
+        }
+        settings[setting.Section]![setting.Property] = parsed;
+        using var updatedSettings = JsonDocument.Parse(settings.ToJsonString());
+        await using var buffer = new MemoryStream();
+        await using (var schema = await configuration.OpenReadSchemaAsync(cancellationToken))
+        {
+            await schema.CopyToAsync(buffer, cancellationToken);
+        }
+        await archive.SetGatewayConfigurationAsync(buffer.ToArray(), updatedSettings, configuration.Version, cancellationToken);
+        await archive.CommitAsync(cancellationToken);
+        return ExitCodes.Success;
+    }
+    private static async Task ClearSettingAsync(
         FusionArchive archive,
+        Action<CompositionSettings> clearSetting,
         CancellationToken cancellationToken)
     {
         var compositionLog = new CompositionLog();
@@ -261,7 +350,7 @@ internal sealed class FusionSettingsSetCommand : Command
             throw new ExitException(string.Join(Environment.NewLine, compositionLog.Select(e => e.Message)));
         }
 
-        existingSettings.Merger.DefaultListSize = null;
+        clearSetting(existingSettings);
 
         using var updatedSettingsJson = JsonSerializer.SerializeToDocument(
             existingSettings,
