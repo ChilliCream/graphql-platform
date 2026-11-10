@@ -125,6 +125,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
             {
                 case IOperationResult operationResult:
                     buffer ??= new ArrayWriter();
+                    buffer.Reset();
                     MessageHelper.WriteNext(buffer);
                     MessageHelper.WriteResultHeader(buffer);
                     MessageHelper.WritePayload(buffer, operationResult, _payloadFormatter);
