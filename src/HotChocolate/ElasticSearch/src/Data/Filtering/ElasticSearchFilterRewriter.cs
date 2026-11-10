@@ -164,17 +164,22 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         var array = Array.CreateInstance(target.Type, rest.Length);
         Array.Copy(rest, array, rest.Length);
 
+        Expression contains = Expression.Call(
+            typeof(Enumerable),
+            nameof(Enumerable.Contains),
+            [target.Type],
+            Expression.Constant(array),
+            target);
+
+        // a value of a list is never null, since Elasticsearch does not index a null in a list.
+        if (target is ParameterExpression)
+        {
+            split = contains;
+            return true;
+        }
+
         Expression isNull = Expression.Equal(target, Expression.Constant(null, target.Type));
-        split = rest.Length == 0
-            ? isNull
-            : Expression.OrElse(
-                isNull,
-                Expression.Call(
-                    typeof(Enumerable),
-                    nameof(Enumerable.Contains),
-                    [target.Type],
-                    Expression.Constant(array),
-                    target));
+        split = rest.Length == 0 ? isNull : Expression.OrElse(isNull, contains);
         return true;
     }
 
@@ -295,7 +300,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         if (call.Method.Name == nameof(Enumerable.Contains)
             && (call.Object is null ? call.Arguments[1] : call.Arguments[0]) == item)
         {
-            var values = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!).Cast<string>().ToArray();
+            // Elasticsearch does not index a null in a list, so a null choice matches no value.
+            var values = ((IEnumerable)Evaluate(call.Object ?? call.Arguments[0])!).OfType<string>().ToArray();
 
             // # is the empty language of Lucene, so an empty list matches no value.
             return values.Length == 0 ? "#" : "(" + string.Join("|", values.Select(EscapeRegex)) + ")";

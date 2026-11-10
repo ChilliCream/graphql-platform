@@ -114,7 +114,11 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         """all: { startsWith: "a" }""",
         """some: { nstartsWith: "A1" }""",
         "some: { nin: [] }",
-        "all: { in: [] }"
+        "all: { in: [] }",
+        """some: { nin: ["A1", null] }""",
+        """all: { in: ["A1", "A2", "A3", null] }""",
+        """some: { in: ["A1", null] }""",
+        """none: { in: ["A1", null] }"""
     ];
 
     [Theory]
@@ -285,6 +289,6 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
     {
         public string Name { get; set; } = "";
 
-        public List<string> Values { get; set; } = [];
+        public List<string?> Values { get; set; } = [];
     }
 }
