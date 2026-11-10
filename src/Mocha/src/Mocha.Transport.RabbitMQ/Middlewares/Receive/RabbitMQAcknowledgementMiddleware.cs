@@ -12,7 +12,7 @@ namespace Mocha.Transport.RabbitMQ.Middlewares;
 /// Receive middleware that sends a BasicAck on successful processing and a BasicNack (with requeue) on failure,
 /// ensuring messages are properly acknowledged or returned to the broker.
 /// </summary>
-internal sealed class RabbitMQAcknowledgementMiddleware
+internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowledgementMiddleware> logger)
 {
     /// <summary>
     /// Invokes the next middleware in the pipeline and acknowledges or negatively acknowledges the message based on the outcome.
@@ -38,7 +38,7 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         await TryAckAsync(context, channel, eventArgs);
     }
 
-    private static async ValueTask TryAckAsync(
+    private async ValueTask TryAckAsync(
         IReceiveContext context,
         IChannel channel,
         BasicDeliverEventArgs eventArgs)
@@ -56,10 +56,10 @@ internal sealed class RabbitMQAcknowledgementMiddleware
             }
         }
 
-        GetLogger(context).SettlementSkippedChannelClosed("ack", eventArgs.DeliveryTag, eventArgs.RoutingKey);
+        LogSkippedSettlement(context, channel, eventArgs, "ack");
     }
 
-    private static async ValueTask TryNackAsync(
+    private async ValueTask TryNackAsync(
         IReceiveContext context,
         IChannel channel,
         BasicDeliverEventArgs eventArgs)
@@ -77,20 +77,48 @@ internal sealed class RabbitMQAcknowledgementMiddleware
             }
         }
 
-        GetLogger(context).SettlementSkippedChannelClosed("nack", eventArgs.DeliveryTag, eventArgs.RoutingKey);
+        LogSkippedSettlement(context, channel, eventArgs, "nack");
     }
 
-    private static ILogger<RabbitMQAcknowledgementMiddleware> GetLogger(IReceiveContext context)
-        => context.Services.GetRequiredService<ILogger<RabbitMQAcknowledgementMiddleware>>();
+    private void LogSkippedSettlement(
+        IReceiveContext context,
+        IChannel channel,
+        BasicDeliverEventArgs delivery,
+        string settlement)
+    {
+        if (!logger.IsEnabled(LogLevel.Debug))
+        {
+            return;
+        }
 
-    private static readonly RabbitMQAcknowledgementMiddleware s_instance = new();
+        using var connectionScope = (context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.BeginLogScope(channel);
+        using var messageScope = logger.BeginMessageScope(context, LogLevel.Debug);
+        logger.SettlementSkippedChannelClosed(
+            settlement, delivery.BasicProperties.MessageId ?? context.MessageId,
+            delivery.ConsumerTag, delivery.DeliveryTag, delivery.Exchange, delivery.RoutingKey, delivery.Redelivered);
+    }
 
     /// <summary>
-    /// Creates a <see cref="ReceiveMiddlewareConfiguration"/> that wraps the acknowledgement middleware singleton.
+    /// Creates middleware that acknowledges handled deliveries and requeues failed deliveries.
     /// </summary>
-    /// <returns>A middleware configuration keyed as "RabbitMQAcknowledgement".</returns>
     public static ReceiveMiddlewareConfiguration Create()
         => new(
-            static (_, next) => ctx => s_instance.InvokeAsync(ctx, next),
+            static (context, next) =>
+            {
+                var middleware = new RabbitMQAcknowledgementMiddleware(
+                    context.Services.GetRequiredService<ILogger<RabbitMQAcknowledgementMiddleware>>());
+                return ctx => middleware.InvokeAsync(ctx, next);
+            },
             "RabbitMQAcknowledgement");
+}
+
+internal static partial class RabbitMQAcknowledgementLogs
+{
+    [LoggerMessage(
+        LogLevel.Debug,
+        "Skipped {Settlement} of message {MessageId}, consumer {ConsumerTag}, delivery {DeliveryTag} "
+            + "from exchange {Exchange} with routing key {RoutingKey} (redelivered: {Redelivered}) because its channel closed")]
+    public static partial void SettlementSkippedChannelClosed(
+        this ILogger logger, string settlement, string? messageId, string consumerTag,
+        ulong deliveryTag, string exchange, string routingKey, bool redelivered);
 }

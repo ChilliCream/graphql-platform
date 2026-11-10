@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
 using Mocha.Transport.RabbitMQ.Middlewares;
@@ -27,7 +28,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         var context = CreateContext(channel.Object, redelivered: false);
 
         // act
-        await new RabbitMQAcknowledgementMiddleware().InvokeAsync(context, _ => default);
+        await new RabbitMQAcknowledgementMiddleware(NullLogger<RabbitMQAcknowledgementMiddleware>.Instance).InvokeAsync(context, _ => default);
 
         // assert
         channel.Verify(c => c.BasicAckAsync(7, false, It.IsAny<CancellationToken>()), Times.Once());
@@ -42,7 +43,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         var handled = false;
 
         // act
-        await new RabbitMQAcknowledgementMiddleware().InvokeAsync(
+        await new RabbitMQAcknowledgementMiddleware(NullLogger<RabbitMQAcknowledgementMiddleware>.Instance).InvokeAsync(
             context,
             _ =>
             {
@@ -64,7 +65,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         var handled = false;
 
         // act
-        await new RabbitMQAcknowledgementMiddleware().InvokeAsync(
+        await new RabbitMQAcknowledgementMiddleware(NullLogger<RabbitMQAcknowledgementMiddleware>.Instance).InvokeAsync(
             context,
             _ =>
             {
@@ -95,7 +96,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         // act
         var expected = new InvalidOperationException("handler failed");
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await new RabbitMQAcknowledgementMiddleware().InvokeAsync(context, _ => throw expected));
+            async () => await new RabbitMQAcknowledgementMiddleware(NullLogger<RabbitMQAcknowledgementMiddleware>.Instance).InvokeAsync(context, _ => throw expected));
 
         // assert
         Assert.Same(expected, exception);

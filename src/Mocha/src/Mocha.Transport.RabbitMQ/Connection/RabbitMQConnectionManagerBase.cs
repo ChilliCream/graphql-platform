@@ -14,7 +14,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// Manages RabbitMQ connections with retries and reconnection.
 /// Recovery is managed independently of the connection factory's automatic recovery setting.
 /// </summary>
-public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
+public abstract partial class RabbitMQConnectionManagerBase : IAsyncDisposable
 {
     private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan s_maxBackoffDelay = TimeSpan.FromSeconds(10);
@@ -258,6 +258,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 }
                 catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
+                    using var logScope = BeginLogScope();
                     attempt++;
                     delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
 
@@ -344,11 +345,13 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 }
                 catch (Exception ex) when (!IsConnectivityFailure(ex))
                 {
+                    using var logScope = BeginLogScope();
                     Logger.FailedToCreateConnectionAfterAttempts(ex, ConnectionName, attempt + 1);
                     throw;
                 }
                 catch (Exception ex)
                 {
+                    using var logScope = BeginLogScope();
                     attempt++;
                     var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
 
@@ -383,6 +386,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 && !cancellationToken.IsCancellationRequested
                 && !_disposeToken.IsCancellationRequested)
         {
+            using var logScope = BeginLogScope();
             Logger.FailedToCreateConnectionAfterAttempts(ex, ConnectionName, attempt + 1);
             throw ThrowHelper.ConnectionTimedOut(connectTimeout, ex);
         }
@@ -394,6 +398,8 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     /// </summary>
     private async Task ConnectAsync(CancellationToken cancellationToken)
     {
+        StartConnectionLogContext();
+        using var attemptScope = BeginLogScope();
         Volatile.Write(ref _readyConnection, null);
 
         _connectionStartedAt ??= TimeProvider.GetTimestamp();
@@ -411,6 +417,8 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
         var connection = await _connectionFactory(cancellationToken);
 
+        TrackConnection(connection);
+        using var connectionScope = BeginLogScope(connection);
         WireConnectionEvents(connection);
         _currentConnection = connection;
 
@@ -484,6 +492,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private Task OnCallbackExceptionAsync(object? sender, CallbackExceptionEventArgs e)
     {
+        using var logScope = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
         Logger.ExceptionInConnectionCallback(e.Exception, ConnectionName, e.Detail.Print());
 
         return Task.CompletedTask;
@@ -491,6 +500,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private Task OnConnectionShutdownAsync(IConnection connection, ShutdownEventArgs e)
     {
+        using var logScope = BeginLogScope(connection);
         if (e.Initiator == ShutdownInitiator.Application)
         {
             Logger.ConnectionClosedByApplication(ConnectionName);
@@ -507,6 +517,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private async Task HandleConnectionLostAsync(IConnection connection)
     {
+        using var logScope = BeginLogScope(connection);
         try
         {
             var isCurrent = false;
@@ -546,12 +557,14 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private Task OnConnectionBlockedAsync(object? sender, ConnectionBlockedEventArgs e)
     {
+        using var logScope = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
         Logger.ConnectionBlocked(ConnectionName, e.Reason);
         return Task.CompletedTask;
     }
 
     private Task OnConnectionUnblockedAsync(object? sender, AsyncEventArgs e)
     {
+        using var logScope = sender is IConnection connection ? BeginLogScope(connection) : BeginLogScope();
         Logger.ConnectionUnblocked(ConnectionName);
         return Task.CompletedTask;
     }
@@ -565,6 +578,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
             return;
         }
 
+        using var logScope = BeginLogScope(_currentConnection);
         try
         {
             UnwireConnectionEvents(_currentConnection);
@@ -642,6 +656,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
         // The semaphore remains valid until all cancelled waiters have exited.
         _disposeCts.Dispose();
+        using var logScope = BeginLogScope();
         Logger.ConnectionManagerStopped(ConnectionName);
     }
 }

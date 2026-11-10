@@ -47,6 +47,13 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     /// </summary>
     public override bool IsHealthy => base.IsHealthy && Dispatcher.IsConnected && ConsumerManager.IsHealthy;
 
+    /// <inheritdoc />
+    public override string? HealthFailureReason
+        => !IsStarted ? "The transport is not started."
+            : !Dispatcher.IsConnected ? "The dispatcher connection is unavailable."
+            : !ConsumerManager.IsConnected ? "The consumer connection is unavailable."
+            : ConsumerManager.HealthFailureReason ?? base.HealthFailureReason;
+
     /// <summary>
     /// Resolves the RabbitMQ connection provider, builds the transport topology URI, and creates
     /// the <see cref="Dispatcher"/> and <see cref="ConsumerManager"/> instances used for the
@@ -114,7 +121,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         var connectionName = $"{context.Host.ServiceName ?? context.Host.ProcessName} {Name} consumer";
         return new RabbitMQConsumerManager(logger, CreateConnectionFactory(connectionName))
         {
-            ConnectionName = connectionName
+            ConnectionName = connectionName,
+            LogContext = CreateLogContext(context, "consumer")
         };
     }
 
@@ -125,7 +133,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         var connectionName = $"{context.Host.ServiceName ?? context.Host.ProcessName} {Name} dispatcher";
         return new RabbitMQDispatcher(logger, CreateConnectionFactory(connectionName), ProvisionTopologyAsync)
         {
-            ConnectionName = connectionName
+            ConnectionName = connectionName,
+            LogContext = CreateLogContext(context, "dispatcher")
         };
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
@@ -144,6 +153,18 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
         return cancellationToken => provider.CreateAsync(connectionName, cancellationToken);
     }
+
+    private Dictionary<string, object?> CreateLogContext(IMessagingSetupContext context, string role)
+        => new()
+        {
+            ["ServiceName"] = context.Host.ServiceName ?? context.Host.ProcessName,
+            ["InstanceId"] = context.Host.InstanceId,
+            ["Transport"] = Name,
+            ["ConnectionRole"] = role,
+            ["BrokerHost"] = Connection.Host,
+            ["BrokerPort"] = Connection.Port,
+            ["VirtualHost"] = Connection.VirtualHost
+        };
 
     /// <inheritdoc />
     public override TransportDescription Describe()

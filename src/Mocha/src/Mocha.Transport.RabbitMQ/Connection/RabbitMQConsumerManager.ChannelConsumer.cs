@@ -111,6 +111,7 @@ public sealed partial class RabbitMQConsumerManager
                 }
                 catch (Exception ex)
                 {
+                    using var logScope = _owner.Manager.BeginLogScope(Channel);
                     _owner.Manager.Logger.ErrorCancellingConsumerHandlers(ex, _owner.Manager.ConnectionName, _owner.QueueName);
                 }
                 finally
@@ -203,6 +204,7 @@ public sealed partial class RabbitMQConsumerManager
 
             public async Task ProcessDeliveriesAsync(CancellationToken cancellationToken)
             {
+                using var logScope = _owner.Manager.BeginLogScope(Channel);
                 var reader = _deliveries.Reader;
                 while (await reader.WaitToReadAsync(cancellationToken))
                 {
@@ -228,7 +230,10 @@ public sealed partial class RabbitMQConsumerManager
                         }
                         catch (Exception ex)
                         {
-                            _owner.Manager.Logger.ErrorProcessingMessageFromQueue(ex, _owner.Manager.ConnectionName, _owner.QueueName);
+                            _owner.Manager.Logger.ErrorProcessingMessageFromQueue(
+                                ex, _owner.Manager.ConnectionName, _owner.QueueName,
+                                delivery.EventArgs.BasicProperties.MessageId, delivery.EventArgs.BasicProperties.CorrelationId,
+                                delivery.EventArgs.ConsumerTag, delivery.EventArgs.DeliveryTag);
                         }
                         finally
                         {
@@ -248,6 +253,7 @@ public sealed partial class RabbitMQConsumerManager
                     }
 
                     _activeHandlers++;
+                    Interlocked.Increment(ref _owner._runningHandlers);
                     return true;
                 }
             }
@@ -258,6 +264,7 @@ public sealed partial class RabbitMQConsumerManager
                 lock (_handlerSync)
                 {
                     _activeHandlers--;
+                    Interlocked.Decrement(ref _owner._runningHandlers);
                     cancelled = _handlersCancelled;
                     if (cancelled)
                     {

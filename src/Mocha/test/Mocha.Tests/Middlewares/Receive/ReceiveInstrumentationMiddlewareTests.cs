@@ -14,6 +14,31 @@ namespace Mocha.Tests.Middlewares.Receive;
 public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTestBase
 {
     [Fact]
+    public void Receive_Should_RecordConversationId_When_CorrelationIdDiffers()
+    {
+        // arrange
+        var activities = new ConcurrentBag<Activity>();
+        using var listener = CreateActivityListener(activities);
+        var observer = new ActivityMessagingDiagnosticListener();
+        var context = new StubReceiveContext
+        {
+            Endpoint = new InMemoryReceiveEndpoint(new InMemoryMessagingTransport(_ => { })),
+            MessageId = "message-1",
+            CorrelationId = "request-1",
+            ConversationId = "conversation-1"
+        };
+
+        // act
+        var activityScope = observer.Receive(context);
+        activityScope.Dispose();
+
+        // assert
+        var activity = Assert.Single(activities);
+        Assert.Equal("message-1", activity.GetTagItem("messaging.message.id"));
+        Assert.Equal("conversation-1", activity.GetTagItem("messaging.message.conversation_id"));
+    }
+
+    [Fact]
     public async Task InvokeAsync_Should_CallObserverReceive_When_MiddlewareInvoked()
     {
         // arrange

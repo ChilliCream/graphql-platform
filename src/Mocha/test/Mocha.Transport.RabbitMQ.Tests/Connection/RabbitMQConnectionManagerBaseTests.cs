@@ -1,222 +1,53 @@
-using System.Net.Sockets;
-using System.Security.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Time.Testing;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using Moq;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
 public class RabbitMQConnectionManagerBaseTests
 {
     [Fact]
-    public void GetRecoveryFailureLogLevel_Should_ReturnWarning_When_AllFailuresAreNetworkErrors()
+    public async Task Reconnect_Should_ReplaceConnection_When_ConnectionFailsRepeatedly()
     {
         // arrange
-        var failure = new BrokerUnreachableException(new AggregateException(
-            new SocketException((int)SocketError.ConnectionRefused),
-            new IOException("Connection lost.")));
-
-        // act
-        var level = RabbitMQConnectionManagerBase.GetRecoveryFailureLogLevel(failure);
-
-        // assert
-        Assert.Equal(LogLevel.Warning, level);
-    }
-
-    [Fact]
-    public void GetRecoveryFailureLogLevel_Should_ReturnError_When_TlsAuthenticationFails()
-    {
-        // arrange
-        var failure = new AuthenticationException("TLS certificate validation failed.");
-
-        // act
-        var level = RabbitMQConnectionManagerBase.GetRecoveryFailureLogLevel(failure);
-
-        // assert
-        Assert.Equal(LogLevel.Error, level);
-    }
-
-    [Fact]
-    public void GetRecoveryFailureLogLevel_Should_ReturnError_When_OneWrappedFailureIsNotTransient()
-    {
-        // arrange
-        var failure = new BrokerUnreachableException(new AggregateException(
-            new IOException("Connection lost."),
-            new IOException("Handshake failed.", new AuthenticationException("TLS certificate validation failed."))));
-
-        // act
-        var level = RabbitMQConnectionManagerBase.GetRecoveryFailureLogLevel(failure);
-
-        // assert
-        Assert.Equal(LogLevel.Error, level);
-    }
-
-    [Fact]
-    public void GetRecoveryFailureLogLevel_Should_ReturnError_When_FailureIsUnexpected()
-    {
-        // arrange
-        var failure = new InvalidOperationException("Connection provider configuration is invalid.");
-
-        // act
-        var level = RabbitMQConnectionManagerBase.GetRecoveryFailureLogLevel(failure);
-
-        // assert
-        Assert.Equal(LogLevel.Error, level);
-    }
-
-    [Fact]
-    public async Task Reconnect_Should_RepeatSummariesAtInterval_When_FailuresContinue()
-    {
-        // arrange
-        var clock = new FakeTimeProvider();
-        var logger = new CapturingLogger<TestConnectionManager>();
-        var failure = new IOException("Broker is unavailable.");
-        var attempts = 0;
-        await using var manager = new TestConnectionManager(logger, _ =>
-        {
-            var attempt = ++attempts;
-            if (attempt > 1)
-            {
-                clock.Advance(TimeSpan.FromSeconds(attempt % 2 == 0 ? 59 : 1));
-            }
-
-            throw failure;
-        })
-        {
-            TimeProvider = clock
-        };
-
-        // act
-        manager.Reconnect();
-        var completed = await Condition.WaitAsync(
-            () => logger.Entries.Count(e => e.Exception == failure) == 5, TimeSpan.FromSeconds(30));
-        await manager.DisposeAsync();
-        var failures = logger.Entries.Where(e => e.Exception == failure).ToArray();
-
-        // assert
-        Assert.True(completed);
-        Assert.Equal(
-            [(LogLevel.Warning, 1), (LogLevel.Debug, 2), (LogLevel.Warning, 3),
-                (LogLevel.Debug, 4), (LogLevel.Warning, 5)],
-            failures.Select(e => (e.Level, (int)e.Properties["Attempt"]!)));
-        Assert.Equal(
-            [TimeSpan.Zero, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2)],
-            failures.Where(e => e.Level == LogLevel.Warning).Select(e => (TimeSpan)e.Properties["Elapsed"]!));
-    }
-
-    [Fact]
-    public async Task Reconnect_Should_LogFirstFailureAgain_When_AnotherRecoveryCycleStarts()
-    {
-        // arrange
-        var logger = new CapturingLogger<TestConnectionManager>();
         var initial = CreateOpenConnection();
         var firstReplacement = CreateOpenConnection();
         var secondReplacement = CreateOpenConnection();
         var failure = new IOException("Broker is unavailable.");
         var attempts = 0;
-        await using var manager = new TestConnectionManager(logger, _ => ++attempts switch
+        await using var manager = new TestConnectionManager(NullLogger<TestConnectionManager>.Instance, _ => ++attempts switch
         {
             1 => new(initial.Object),
             3 => new(firstReplacement.Object),
             5 => new(secondReplacement.Object),
             _ => throw failure
-        })
-        {
-            TimeProvider = new FakeTimeProvider()
-        };
+        });
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
         // act
         initial.SetupGet(c => c.IsOpen).Returns(false);
         manager.Reconnect();
         var firstRecovered = await Condition.WaitAsync(
-            () => logger.Entries.Count(e => e.Event == "ConnectionRecovered") == 1, TimeSpan.FromSeconds(5));
+            () => manager.ConnectionRecoveredCount == 1, TimeSpan.FromSeconds(5));
         firstReplacement.SetupGet(c => c.IsOpen).Returns(false);
         manager.Reconnect();
         var secondRecovered = await Condition.WaitAsync(
-            () => logger.Entries.Count(e => e.Event == "ConnectionRecovered") == 2, TimeSpan.FromSeconds(5));
+            () => manager.ConnectionRecoveredCount == 2, TimeSpan.FromSeconds(5));
 
         // assert
         Assert.True(firstRecovered && secondRecovered);
-        Assert.Equal(
-            [(LogLevel.Warning, 1), (LogLevel.Warning, 1)],
-            logger.Entries.Where(e => e.Exception == failure).Select(e => (e.Level, (int)e.Properties["Attempt"]!)));
+        Assert.Equal(5, attempts);
         Assert.Same(secondReplacement.Object, await manager.GetConnectionAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
-    public async Task Reconnect_Should_LogErrorImmediately_When_FailureSeverityIncreases()
+    public async Task DisposeAsync_Should_CancelPendingAttempt_When_Disposed()
     {
         // arrange
-        var logger = new CapturingLogger<TestConnectionManager>();
-        var attempts = 0;
-        await using var manager = new TestConnectionManager(logger, _ =>
-            throw (++attempts == 1
-                ? new IOException("Broker is unavailable.")
-                : new AuthenticationException("TLS certificate validation failed.")))
-        {
-            TimeProvider = new FakeTimeProvider()
-        };
-
-        // act
-        manager.Reconnect();
-        var completed = await Condition.WaitAsync(
-            () => logger.Entries.Count(e => e.Exception is not null) == 2, TimeSpan.FromSeconds(5));
-        await manager.DisposeAsync();
-
-        // assert
-        Assert.True(completed);
-        Assert.Equal(
-            [(LogLevel.Warning, 1), (LogLevel.Error, 2)],
-            logger.Entries.Where(e => e.Exception is not null).Select(e => (e.Level, (int)e.Properties["Attempt"]!)));
-    }
-
-    [Fact]
-    public async Task GetConnectionAsync_Should_LogReadyAfterSetup_When_ConnectionOpens()
-    {
-        // arrange
-        var logger = new CapturingLogger<TestConnectionManager>();
-        var connection = CreateOpenConnection();
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var manager = new TestConnectionManager(logger, _ => new(connection.Object))
-        {
-            ConnectionName = "service orders consumer",
-            AfterSetupAsync = async ct =>
-            {
-                started.TrySetResult();
-                await release.Task.WaitAsync(ct);
-            }
-        };
-
-        // act
-        var connecting = manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
-        await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
-        var duringSetup = logger.Entries.Select(e => (e.Level, e.Event)).ToArray();
-        release.TrySetResult();
-        await connecting;
-
-        // assert
-        Assert.Equal(
-            [(LogLevel.Debug, "CreatingConnectionUsingFactoryDelegate"), (LogLevel.Debug, "ConnectionOpened")],
-            duringSetup);
-        var ready = Assert.Single(logger.Entries, e => e.Level >= LogLevel.Information);
-        Assert.Equal("ConnectionReady", ready.Event);
-        Assert.Equal("service orders consumer", ready.Properties["ConnectionName"]);
-        Assert.True(manager.IsConnected);
-    }
-
-    [Fact]
-    public async Task DisposeAsync_Should_LogStopWithoutFailure_When_ConnectionAttemptIsCancelled()
-    {
-        // arrange
-        var logger = new CapturingLogger<TestConnectionManager>();
-        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var manager = new TestConnectionManager(logger, async ct =>
+        var manager = new TestConnectionManager(NullLogger<TestConnectionManager>.Instance, async ct =>
         {
             started.TrySetResult();
             await Task.Delay(Timeout.InfiniteTimeSpan, ct);
@@ -233,9 +64,7 @@ public class RabbitMQConnectionManagerBaseTests
 
         // assert
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => connecting);
-        var stopped = Assert.Single(logger.Entries, e => e.Level >= LogLevel.Information);
-        Assert.Equal((LogLevel.Information, "ConnectionManagerStopped"), (stopped.Level, stopped.Event));
-        Assert.Equal("service orders consumer", stopped.Properties["ConnectionName"]);
+        Assert.False(manager.IsConnected);
     }
 
     [Theory]

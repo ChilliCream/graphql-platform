@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
@@ -14,7 +13,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
-    public async Task Consumer_Should_LogCapacityTransitionsOnce_When_LostHandlerBlocksRecovery()
+    public async Task Consumer_Should_ResumeReceiving_When_BlockedHandlerExits()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -22,9 +21,8 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
         await channel.QueueDeclareAsync("orders", durable: true, exclusive: false, autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
-        var logger = new CapturingLogger<RabbitMQConsumerManager>();
         await using var manager = new RabbitMQConsumerManager(
-            logger, async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct))
+            NullLogger<RabbitMQConsumerManager>.Instance, async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct))
         {
             ConnectionName = "service orders consumer"
         };
@@ -41,7 +39,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             // act
             await registration.Channel!.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
             var blocked = await Condition.WaitAsync(
-                () => logger.Entries.Any(e => e.Event == "ConsumerRecoveryBlocked"), s_timeout);
+                () => gate.CancelledHandlers == 1 && !manager.IsHealthy, s_timeout);
             for (var i = 0; i < 3; i++)
             {
                 await registration.ConnectAsync(await manager.GetConnectionAsync(TestContext.Current.CancellationToken),
@@ -50,18 +48,11 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
 
             gate.Release.TrySetResult();
             var recovered = await Condition.WaitAsync(() => gate.Delivered.Count == 1 && manager.IsHealthy, s_timeout);
-            var transitions = logger.Entries
-                .Where(e => e.Event is "ConsumerRecoveryBlocked" or "ConsumerRecoveryResumed")
-                .ToArray();
 
             // assert
-            Assert.True(blocked && recovered);
-            Assert.Equal(
-                [(LogLevel.Error, "ConsumerRecoveryBlocked"), (LogLevel.Information, "ConsumerRecoveryResumed")],
-                transitions.Select(e => (e.Level, e.Event)));
-            Assert.Equal(["service orders consumer", "service orders consumer"],
-                transitions.Select(e => e.Properties["ConnectionName"]));
-            Assert.Equal(["orders", "orders"], transitions.Select(e => e.Properties["Queue"]));
+            Assert.True(blocked);
+            Assert.True(recovered);
+            Assert.Equal(1, gate.PeakConcurrency);
             Assert.Equal(["order"], gate.Delivered);
         }
         finally

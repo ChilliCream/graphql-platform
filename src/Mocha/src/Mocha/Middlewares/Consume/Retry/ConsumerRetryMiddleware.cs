@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -12,7 +13,8 @@ namespace Mocha;
 internal sealed class ConsumerRetryMiddleware(
     ImmutableArray<ExceptionPolicyRule> exceptionPolicyRules,
     Consumer consumer,
-    IConsumerExecutionStrategy executionStrategy)
+    IConsumerExecutionStrategy executionStrategy,
+    ILogger<ConsumerRetryMiddleware> logger)
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
@@ -31,11 +33,20 @@ internal sealed class ConsumerRetryMiddleware(
 
         await RetryExecutor.ExecuteAsync(
             exceptionPolicyRules,
-            (next, context, retryState, consumer, executionStrategy),
+            (next, context, retryState, consumer, executionStrategy, logger),
             static (s) => s.executionStrategy.ExecuteAsync(
                 s.context,
                 ct => ExecuteAttemptAsync(s.next, s.context, s.retryState, s.consumer, ct)),
-            onRetry: null,
+            onRetry: static (s, exception, attempt, delay) =>
+            {
+                using var scope = s.logger.BeginMessageScope(s.context, LogLevel.Information);
+                s.logger.RetryingMessage(exception, s.context.MessageId, s.consumer.Name, attempt, delay);
+            },
+            onDiscard: static (s, exception) =>
+            {
+                using var scope = s.logger.BeginMessageScope(s.context, LogLevel.Warning);
+                s.logger.MessageDiscarded(exception, s.context.MessageId);
+            },
             context.CancellationToken);
     }
 
@@ -99,7 +110,8 @@ internal sealed class ConsumerRetryMiddleware(
                 var middleware = new ConsumerRetryMiddleware(
                     feature?.Rules.ToImmutableArray() ?? [],
                     context.Consumer,
-                    context.GetConsumerExecutionStrategy());
+                    context.GetConsumerExecutionStrategy(),
+                    context.Services.GetRequiredService<ILogger<ConsumerRetryMiddleware>>());
 
                 return ctx => middleware.InvokeAsync(ctx, next);
             },

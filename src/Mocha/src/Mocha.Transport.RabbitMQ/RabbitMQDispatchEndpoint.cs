@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Sockets;
 using Mocha.Middlewares;
 using Mocha.Threading;
@@ -40,87 +41,121 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         var cancellationToken = context.CancellationToken;
         var timeProvider = context.Services.GetTimeProvider();
         var attempt = 0;
+        var started = Stopwatch.GetTimestamp();
+        var phase = "ReplyConsumer";
+        IChannel? channel = null;
 
-        while (!cancellationToken.IsCancellationRequested)
+        try
         {
-            if (transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint
-                && envelope.ResponseAddress == replyEndpoint.Source.Address.ToString())
+            while (!cancellationToken.IsCancellationRequested)
             {
-                await replyEndpoint.WaitUntilAttachedAsync(cancellationToken);
-            }
+                channel = null;
+                if (transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint
+                    && envelope.ResponseAddress == replyEndpoint.Source.Address.ToString())
+                {
+                    phase = "ReplyConsumer";
+                    dispatcher.LogPublishPhase(context, channel, phase);
+                    await dispatcher.WaitForPublishPhaseAsync(
+                        replyEndpoint.WaitUntilAttachedAsync(cancellationToken), context, channel, phase);
+                }
 
-            IChannel? channel = null;
-            var canReuseChannel = false;
-            try
-            {
-                channel = await dispatcher.RentChannelAsync(this, cancellationToken);
-                await EnsureProvisionedAsync(channel, cancellationToken);
-                canReuseChannel = true;
-
+                var canReuseChannel = false;
                 try
                 {
-                    await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
-                }
-                catch (PublishException ex) when (ex.IsReturn && Queue is not null)
-                {
-                    if (Queue.Exclusive || !(Queue.AutoProvision ?? transport.Topology.AutoProvision))
-                    {
-                        throw ThrowHelper.MessageReturned(Queue.Name, ex);
-                    }
-
-                    canReuseChannel = false;
-                    dispatcher.LogReturnedQueueRepairStarted(Queue.Name);
-                    var provisioner = new RabbitMQTopologyProvisioner(
-                        transport.Topology,
-                        dispatcher.GetChannelConnection(channel));
-                    await provisioner.ProvisionQueueAsync(Queue, channel, cancellationToken);
+                    phase = "ChannelCapacity";
+                    dispatcher.LogPublishPhase(context, channel, phase);
+                    channel = await dispatcher.WaitForPublishChannelAsync(
+                        dispatcher.RentChannelAsync(this, cancellationToken), context, phase);
+                    phase = "Topology";
+                    dispatcher.LogPublishPhase(context, channel, phase);
+                    await dispatcher.WaitForPublishPhaseAsync(
+                        EnsureProvisionedAsync(channel, cancellationToken), context, channel, phase);
                     canReuseChannel = true;
-                    dispatcher.LogReturnedQueueRedeclared(Queue.Name);
 
                     try
                     {
-                        await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
+                        phase = "PublisherConfirm";
+                        dispatcher.LogPublishPhase(context, channel, phase);
+                        await dispatcher.WaitForPublishPhaseAsync(
+                            DispatchAsync(channel, envelope, timeProvider, cancellationToken), context, channel, phase);
                     }
-                    catch (PublishException again) when (again.IsReturn)
+                    catch (PublishException ex) when (ex.IsReturn && Queue is not null)
                     {
-                        throw ThrowHelper.MessageReturned(Queue.Name, again);
+                        if (Queue.Exclusive || !(Queue.AutoProvision ?? transport.Topology.AutoProvision))
+                        {
+                            throw ThrowHelper.MessageReturned(Queue.Name, ex);
+                        }
+
+                        canReuseChannel = false;
+                        dispatcher.LogReturnedQueueRepairStarted(context, channel, Queue.Name);
+                        var provisioner = new RabbitMQTopologyProvisioner(
+                            transport.Topology,
+                            dispatcher.GetChannelConnection(channel));
+                        phase = "Topology";
+                        dispatcher.LogPublishPhase(context, channel, phase);
+                        await dispatcher.WaitForPublishPhaseAsync(
+                            new ValueTask(provisioner.ProvisionQueueAsync(Queue, channel, cancellationToken)),
+                            context, channel, phase);
+                        canReuseChannel = true;
+                        dispatcher.LogReturnedQueueRedeclared(context, channel, Queue.Name);
+
+                        try
+                        {
+                            phase = "PublisherConfirm";
+                            dispatcher.LogPublishPhase(context, channel, phase);
+                            await dispatcher.WaitForPublishPhaseAsync(
+                                DispatchAsync(channel, envelope, timeProvider, cancellationToken), context, channel, phase);
+                        }
+                        catch (PublishException again) when (again.IsReturn)
+                        {
+                            throw ThrowHelper.MessageReturned(Queue.Name, again);
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                var isConnectionLoss = IsConnectionLoss(ex, dispatcher, cancellationToken);
-                if (channel is not null)
+                catch (Exception ex)
                 {
-                    if (canReuseChannel && channel.IsOpen && !isConnectionLoss)
+                    var isConnectionLoss = IsConnectionLoss(ex, dispatcher, cancellationToken);
+                    if (channel is not null)
                     {
-                        await dispatcher.ReturnChannelAsync(channel);
+                        if (canReuseChannel && channel.IsOpen && !isConnectionLoss)
+                        {
+                            await dispatcher.ReturnChannelAsync(channel);
+                        }
+                        else
+                        {
+                            dispatcher.DiscardChannel(channel);
+                        }
                     }
-                    else
+
+                    if (!isConnectionLoss)
                     {
-                        dispatcher.DiscardChannel(channel);
+                        throw;
                     }
+
+                    // The message may have reached the broker before the connection was lost, so a retry can deliver
+                    // it twice.
+                    attempt++;
+                    var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
+                    dispatcher.LogPublishRetry(context, channel, ex, attempt, delay);
+                    phase = "RecoveryBackoff";
+                    await Task.Delay(delay, cancellationToken);
+                    continue;
                 }
 
-                if (!isConnectionLoss)
-                {
-                    throw;
-                }
-
-                // The message may have reached the broker before the connection was lost, so a retry can deliver
-                // it twice.
-                attempt++;
-                var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
-                dispatcher.LogPublishRetry(ex, Name, attempt, delay);
-                await Task.Delay(delay, cancellationToken);
-                continue;
+                await dispatcher.ReturnChannelAsync(channel);
+                dispatcher.LogPublishOutcome(context, channel, null, "Confirmed", phase, attempt, Stopwatch.GetElapsedTime(started));
+                return;
             }
 
-            await dispatcher.ReturnChannelAsync(channel);
-            return;
+            cancellationToken.ThrowIfCancellationRequested();
         }
-
-        cancellationToken.ThrowIfCancellationRequested();
+        catch (Exception ex)
+        {
+            dispatcher.LogPublishOutcome(
+                context, channel, ex, cancellationToken.IsCancellationRequested ? "Cancelled" : "Failed",
+                phase, attempt, Stopwatch.GetElapsedTime(started));
+            throw;
+        }
     }
 
     private static bool IsConnectionLoss(

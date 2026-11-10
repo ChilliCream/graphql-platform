@@ -68,7 +68,9 @@ public sealed class HealthCheckTests(RabbitMQFixture fixture)
                 [HealthStatus.Healthy, HealthStatus.Healthy, HealthStatus.Unhealthy, HealthStatus.Healthy],
                 new[] { initial.Status, busy.Status, blocked.Status, recovered.Status });
             Assert.False(consumerHealthyWhileBlocked);
-            Assert.Equal($"Transport '{transport.Name}' is unhealthy.", blocked.Entries["MessageBus"].Description);
+            Assert.Equal(
+                $"Transport '{transport.Name}' is unhealthy. Queue 'orders': All handler slots are occupied by cancelled handlers.",
+                blocked.Entries["MessageBus"].Description);
             Assert.Equal("OK", response.Message);
             Assert.Equal("recovered", order.OrderId);
         }

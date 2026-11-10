@@ -127,6 +127,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         }
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
+            using var logScope = logger.BeginMessageScope(context, LogLevel.Critical);
             // exceptions should technically never bubble up here.
             logger.LogCritical(ex, "Error processing message");
         }

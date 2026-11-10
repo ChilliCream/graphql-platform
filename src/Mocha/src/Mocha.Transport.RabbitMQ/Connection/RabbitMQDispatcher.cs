@@ -7,7 +7,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Manages the RabbitMQ connection and bounded channel pool used to publish messages.
 /// </summary>
-public sealed class RabbitMQDispatcher(
+public sealed partial class RabbitMQDispatcher(
     ILogger<RabbitMQDispatcher> logger,
     Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
     Func<IConnection, CancellationToken, Task> onConnectionEstablished)
@@ -246,6 +246,7 @@ public sealed class RabbitMQDispatcher(
         CancellationToken cancellationToken)
     {
         await Task.Yield();
+        using var logScope = BeginLogScope(owner.Connection);
         using var creationCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         creationCts.CancelAfter(ChannelCreationTimeout);
         Task<IChannel>? opening = null;
@@ -254,6 +255,7 @@ public sealed class RabbitMQDispatcher(
             await cleanup.WaitAsync(creationCts.Token);
             opening = owner.Connection.CreateChannelAsync(s_publishChannelOptions, creationCts.Token);
             var channel = await opening.WaitAsync(creationCts.Token);
+            TrackChannel(owner.Connection, channel);
             Logger.CreatedNewChannel(ConnectionName, channel.ChannelNumber);
             owner.Channel.TrySetResult(channel);
         }
@@ -299,9 +301,6 @@ public sealed class RabbitMQDispatcher(
         }
     }
 
-    internal void LogPublishRetry(Exception exception, string endpoint, int attempt, TimeSpan delay)
-        => Logger.PublishFailedRetrying(exception, ConnectionName, endpoint, attempt, delay);
-
     internal IConnection GetChannelConnection(IChannel channel)
     {
         lock (_channelSync)
@@ -309,12 +308,6 @@ public sealed class RabbitMQDispatcher(
             return _rentedChannels[channel].Connection;
         }
     }
-
-    internal void LogReturnedQueueRepairStarted(string queueName)
-        => Logger.ReturnedQueueRepairStarted(ConnectionName, queueName);
-
-    internal void LogReturnedQueueRedeclared(string queueName)
-        => Logger.RedeclaredQueueOfReturnedMessage(ConnectionName, queueName);
 
     protected override async Task OnConnectionEstablished(IConnection connection, CancellationToken cancellationToken)
     {
@@ -531,6 +524,17 @@ public sealed class RabbitMQDispatcher(
 
 internal static partial class Logs
 {
+    [LoggerMessage(LogLevel.Warning, "Publishing message {MessageId} is still waiting for {Phase} after {Elapsed}")]
+    public static partial void PublishStalled(this ILogger logger, string? messageId, string phase, TimeSpan elapsed);
+
+    [LoggerMessage(LogLevel.Debug, "Publishing message {MessageId}: waiting for {Phase}")]
+    public static partial void PublishWaiting(this ILogger logger, string? messageId, string phase);
+
+    [LoggerMessage(Message = "Publish of message {MessageId} finished with {Outcome} in phase {Phase} after {Elapsed} and {Retries} retries")]
+    public static partial void PublishFinished(
+        this ILogger logger, Exception? exception, LogLevel level, string? messageId, string outcome,
+        string phase, int retries, TimeSpan elapsed);
+
     [LoggerMessage(LogLevel.Debug, "Created publisher channel {ChannelNumber} on {ConnectionName}")]
     public static partial void CreatedNewChannel(this ILogger logger, string connectionName, int channelNumber);
 

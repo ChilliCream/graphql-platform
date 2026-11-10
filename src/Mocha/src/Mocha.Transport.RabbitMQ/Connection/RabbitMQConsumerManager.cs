@@ -33,6 +33,22 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
     /// </summary>
     public bool IsHealthy => IsConnected && _registeredConsumers.All(static consumer => consumer.IsHealthy);
 
+    internal string? HealthFailureReason
+    {
+        get
+        {
+            foreach (var consumer in _registeredConsumers)
+            {
+                if (consumer.HealthFailureReason is { } reason)
+                {
+                    return $"Queue '{consumer.QueueName}': {reason}";
+                }
+            }
+
+            return null;
+        }
+    }
+
     /// <summary>
     /// Registers a new consumer for the specified queue, creating a dedicated channel with the given prefetch count.
     /// </summary>
@@ -102,6 +118,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             PrefetchCount = prefetchCount
         };
 
+        using var logScope = BeginLogScope();
         AddConsumer(registration);
 
         if (IsDisposed)
@@ -150,6 +167,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
     /// <param name="cancellationToken">A token to cancel the deletion.</param>
     internal async Task DeleteQueueAsync(string queueName, CancellationToken cancellationToken)
     {
+        using var logScope = BeginLogScope();
         if (CurrentConnection is not { IsOpen: true } connection || cancellationToken.IsCancellationRequested)
         {
             return;
@@ -217,6 +235,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
         IConnection connection,
         CancellationToken cancellationToken)
     {
+        using var logScope = BeginLogScope(connection);
         try
         {
             await consumer.ConnectAsync(connection, cancellationToken);
@@ -261,6 +280,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
+                using var logScope = BeginLogScope();
 
                 if (!IsConnected)
                 {
@@ -331,6 +351,7 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
             }
             catch (Exception ex)
             {
+                using var logScope = consumer.Channel is { } channel ? BeginLogScope(channel) : BeginLogScope();
                 Logger.ErrorDisposingConsumer(ex, ConnectionName, consumer.QueueName);
             }
         }
@@ -339,12 +360,17 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
 
 internal static partial class Logs
 {
+    [LoggerMessage(LogLevel.Information, "Attached consumer {ConsumerTag} to queue {Queue} with prefetch {Prefetch} and concurrency {Concurrency}")]
+    public static partial void ConsumerAttached(this ILogger logger, string queue, string consumerTag, ushort prefetch, ushort concurrency);
+
     [LoggerMessage(LogLevel.Error, "Failed to register consumer for queue {Queue} on {ConnectionName}")]
     public static partial void ConsumerRegistrationFailed(
         this ILogger logger, Exception ex, string connectionName, string queue);
 
-    [LoggerMessage(LogLevel.Error, "Error processing message from queue {Queue} on {ConnectionName}")]
-    public static partial void ErrorProcessingMessageFromQueue(this ILogger logger, Exception ex, string connectionName, string queue);
+    [LoggerMessage(LogLevel.Error, "Error processing message {MessageId} from queue {Queue} on {ConnectionName}, consumer {ConsumerTag}, delivery {DeliveryTag}, correlation {CorrelationId}")]
+    public static partial void ErrorProcessingMessageFromQueue(
+        this ILogger logger, Exception ex, string connectionName, string queue,
+        string? messageId, string? correlationId, string consumerTag, ulong deliveryTag);
 
     [LoggerMessage(LogLevel.Information, "Registered consumer for queue {Queue} on {ConnectionName}. Attached: {Attached}")]
     public static partial void RegisteredConsumerForQueue(this ILogger logger, string connectionName, string queue, bool attached);
@@ -382,15 +408,6 @@ internal static partial class Logs
         int attempt,
         TimeSpan delay,
         TimeSpan elapsed);
-
-    [LoggerMessage(
-        LogLevel.Debug,
-        "Skipped {Settlement} of delivery {DeliveryTag} (routing key {RoutingKey}) because its channel is closed. Redelivery depends on the queue delivery limit and dead-letter configuration.")]
-    public static partial void SettlementSkippedChannelClosed(
-        this ILogger logger,
-        string settlement,
-        ulong deliveryTag,
-        string routingKey);
 
     [LoggerMessage(Message = "Failed to reconnect consumer for queue {Queue} on {ConnectionName}. Consumer recovery will retry")]
     public static partial void FailedToReconnectConsumerForQueue(
@@ -431,6 +448,12 @@ internal static partial class Logs
     [LoggerMessage(LogLevel.Error, "Error cancelling handlers for queue {Queue} on {ConnectionName}")]
     public static partial void ErrorCancellingConsumerHandlers(this ILogger logger, Exception exception, string connectionName, string queue);
 
-    [LoggerMessage(LogLevel.Information, "Stopped consumer for queue {Queue} on {ConnectionName}")]
-    public static partial void ConsumerStopped(this ILogger logger, string connectionName, string queue);
+    [LoggerMessage(LogLevel.Information, "Stopped consumer for queue {Queue} on {ConnectionName} after {Elapsed}; {ActiveHandlers} handlers remain active")]
+    public static partial void ConsumerStopped(this ILogger logger, string connectionName, string queue, int activeHandlers, TimeSpan elapsed);
+
+    [LoggerMessage(LogLevel.Information, "Draining consumer for queue {Queue} with {ActiveHandlers} active handlers")]
+    public static partial void ConsumerDrainStarted(this ILogger logger, string queue, int activeHandlers);
+
+    [LoggerMessage(LogLevel.Warning, "Consumer drain for queue {Queue} was cancelled after {Elapsed} with {ActiveHandlers} active handlers")]
+    public static partial void ConsumerDrainCancelled(this ILogger logger, string queue, int activeHandlers, TimeSpan elapsed);
 }

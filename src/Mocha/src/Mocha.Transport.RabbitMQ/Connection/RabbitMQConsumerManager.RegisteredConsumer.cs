@@ -31,6 +31,7 @@ public sealed partial class RabbitMQConsumerManager
         private TaskCompletionSource _consumerAvailable = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private ChannelConsumer? _dispatchConsumer;
         private int _cancelledHandlers;
+        private int _runningHandlers;
         private int _isRecoveryBlocked;
         private ChannelConsumer? _consumer;
         private IConnection? _connection;
@@ -121,6 +122,12 @@ public sealed partial class RabbitMQConsumerManager
         /// </summary>
         public bool IsHealthy => !_isDisposed && IsAttached && HasCapacity;
 
+        internal string? HealthFailureReason
+            => _isDisposed ? "The consumer is stopped."
+                : !HasCapacity ? "All handler slots are occupied by cancelled handlers."
+                : !IsAttached ? "The consumer is not attached."
+                : null;
+
         private bool HasCapacity => Volatile.Read(ref _cancelledHandlers) < ConsumerDispatchConcurrency;
 
         internal async ValueTask WaitUntilAttachedAsync(CancellationToken cancellationToken)
@@ -196,6 +203,7 @@ public sealed partial class RabbitMQConsumerManager
 
         private async Task ConnectCoreAsync(IConnection connection, CancellationToken cancellationToken)
         {
+            using var logScope = Manager.BeginLogScope(connection);
             await DetachAsync(cancellationToken);
 
             if (!HasCapacity)
@@ -271,6 +279,8 @@ public sealed partial class RabbitMQConsumerManager
                 _consumer = consumer;
                 _connection = connection;
                 SetDispatchConsumer(consumer);
+                using var channelScope = Manager.BeginLogScope(channel);
+                Manager.Logger.ConsumerAttached(QueueName, tag, PrefetchCount, ConsumerDispatchConcurrency);
             }
             catch (OperationCanceledException)
                 when (attachToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
@@ -299,7 +309,9 @@ public sealed partial class RabbitMQConsumerManager
                     publisherConfirmationsEnabled: false,
                     publisherConfirmationTrackingEnabled: false,
                     consumerDispatchConcurrency: 1);
-                return await connection.CreateChannelAsync(channelOptions, cancellationToken);
+                var channel = await connection.CreateChannelAsync(channelOptions, cancellationToken);
+                Manager.TrackChannel(connection, channel);
+                return channel;
             }
             catch (Exception ex) when (ex is not ChannelAllocationException)
             {
@@ -458,6 +470,9 @@ public sealed partial class RabbitMQConsumerManager
                 _isRecoveryBlocked = blocked;
             }
 
+            using var logScope = _consumer is { } consumer
+                ? Manager.BeginLogScope(consumer.Channel)
+                : Manager.BeginLogScope();
             if (blocked == 1)
             {
                 Manager.Logger.ConsumerRecoveryBlocked(Manager.ConnectionName, QueueName, ConsumerDispatchConcurrency);
@@ -515,6 +530,7 @@ public sealed partial class RabbitMQConsumerManager
 
         private void HandleLoss(ChannelConsumer consumer)
         {
+            using var logScope = Manager.BeginLogScope(consumer.Channel);
             var reason = consumer.LossReason;
             if (reason is null)
             {
@@ -562,6 +578,7 @@ public sealed partial class RabbitMQConsumerManager
 
                     TimeSpan delay;
 
+                    using var logScope = Manager.BeginLogScope(connection);
                     await _gate.WaitAsync(cancellationToken);
                     try
                     {
@@ -676,6 +693,11 @@ public sealed partial class RabbitMQConsumerManager
 
         private async Task StopCoreAsync(CancellationToken cancellationToken)
         {
+            using var logScope = Channel is { } currentChannel
+                ? Manager.BeginLogScope(currentChannel)
+                : Manager.BeginLogScope();
+            var started = Manager.TimeProvider.GetTimestamp();
+            Manager.Logger.ConsumerDrainStarted(QueueName, Volatile.Read(ref _runningHandlers));
             Manager.RemoveConsumer(this);
             _isDisposed = true;
             await _consumerCts.CancelAsync();
@@ -717,6 +739,8 @@ public sealed partial class RabbitMQConsumerManager
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
+                    Manager.Logger.ConsumerDrainCancelled(
+                        QueueName, Volatile.Read(ref _runningHandlers), Manager.TimeProvider.GetElapsedTime(started));
                     consumer?.CancelHandlers();
                 }
 
@@ -738,7 +762,9 @@ public sealed partial class RabbitMQConsumerManager
                 }
             }
 
-            Manager.Logger.ConsumerStopped(Manager.ConnectionName, QueueName);
+            Manager.Logger.ConsumerStopped(
+                Manager.ConnectionName, QueueName, Volatile.Read(ref _runningHandlers),
+                Manager.TimeProvider.GetElapsedTime(started));
 
             _ = _workers.ContinueWith(
                 static (_, state) => ((CancellationTokenSource)state!).Dispose(),

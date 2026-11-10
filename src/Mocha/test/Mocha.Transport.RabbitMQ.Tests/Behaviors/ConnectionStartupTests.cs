@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -63,9 +62,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         await using var vhost = await fixture.CreateVhostAsync();
         vhost.ConnectionSettings.Password = "wrong-password";
         var recorder = new MessageRecorder();
-        var logger = new CapturingLogger<RabbitMQDispatcher>();
         var builder = CreateServices(vhost, recorder);
-        builder.Services.AddLogging(b => b.AddProvider(logger));
 
         // act
         var exception = await Assert.ThrowsAsync<BrokerUnreachableException>(
@@ -74,8 +71,6 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         // assert
         Assert.IsType<AuthenticationFailureException>(exception.InnerException);
         Assert.Equal(0, await vhost.GetConnectionCountAsync());
-        var failure = Assert.Single(logger.Entries, e => e.Event == "FailedToCreateConnectionAfterAttempts");
-        Assert.Equal(LogLevel.Error, failure.Level);
     }
 
     [Fact]

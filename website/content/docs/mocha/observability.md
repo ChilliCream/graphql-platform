@@ -5,7 +5,7 @@ description: "Instrument Mocha with OpenTelemetry for distributed tracing, metri
 
 Mocha integrates with OpenTelemetry to give you distributed traces, metrics, and structured logging across every stage of the messaging pipeline. When a message is dispatched, received, or consumed, Mocha emits spans and metrics that let you trace message flows end-to-end across services, measure throughput, and diagnose failures.
 
-Observability is opt-in. Call `.AddInstrumentation()` on the bus builder to activate the built-in `OpenTelemetryDiagnosticObserver`. Without it, Mocha uses a no-op observer that adds zero overhead.
+Tracing and metrics are opt-in through `.AddInstrumentation()`. Operational logs use `ILogger` independently of instrumentation.
 
 # Enable tracing and metrics
 
@@ -191,6 +191,8 @@ builder.Services
 When OpenTelemetry is configured with `AddOpenTelemetry().WithLogging()`, your `ILogger` structured log entries automatically include `TraceId` and `SpanId` fields. This means every log line written inside a handler or middleware is automatically correlated to the active span, making it possible to jump from a log entry in your logging backend directly to the corresponding trace.
 
 The Aspire configuration block above already includes `builder.Logging.AddOpenTelemetry(...)`, which enables this behavior. No additional code is needed in your handlers.
+
+Keep `IncludeScopes = true` in your OpenTelemetry logging configuration to export Mocha's message and connection correlation fields.
 
 For more detail on .NET distributed tracing concepts and how `Activity` maps to spans, see [.NET Distributed Tracing Concepts](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-concepts).
 

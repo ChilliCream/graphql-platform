@@ -98,6 +98,7 @@ public sealed class MessageBusHealthCheckTests
         var transport = new Mock<MessagingTransport>();
         transport.Object.Name = "orders";
         transport.SetupGet(t => t.IsHealthy).Returns(true);
+        transport.SetupGet(t => t.HealthFailureReason).Returns("The dispatcher connection is unavailable.");
         var bus = new Mock<IMessageBus>();
         bus.Setup(m => m.RequestAsync(
                 It.IsAny<HealthRequest>(), It.IsAny<SendOptions>(), It.IsAny<CancellationToken>()))
@@ -116,7 +117,9 @@ public sealed class MessageBusHealthCheckTests
 
         // assert
         Assert.Equal(HealthStatus.Unhealthy, result.Status);
-        Assert.Equal("Transport 'orders' is unhealthy.", result.Description);
+        Assert.Equal(
+            "Transport 'orders' is unhealthy. The dispatcher connection is unavailable.",
+            result.Description);
     }
 
     private static IMessagingRuntime CreateRuntime(params MessagingTransport[] transports)

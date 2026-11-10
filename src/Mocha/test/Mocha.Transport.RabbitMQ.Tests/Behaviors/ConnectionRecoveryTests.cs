@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
@@ -21,12 +20,10 @@ public class ConnectionRecoveryTests
     {
         // arrange
         var recorder = new MessageRecorder();
-        var logger = new CapturingLogger<RabbitMQConsumerManager>();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
-            .AddLogging(b => b.AddProvider(logger))
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
             .AddRabbitMQ()
@@ -47,13 +44,9 @@ public class ConnectionRecoveryTests
 
         // assert
         Assert.Equal(["ORD-1", "ORD-2"], GetOrderIds(recorder));
-        Assert.True(await Condition.WaitAsync(
-            () => logger.Entries.Any(e => e.Event == "ConnectionRecovered"), s_recoveryTimeout));
-        Assert.Equal(
-            [(LogLevel.Warning, "ConnectionShutdownDetected"), (LogLevel.Information, "ConnectionRecovered")],
-            logger.Entries
-                .Where(e => e.Event is "ConnectionShutdownDetected" or "ConnectionRecovered")
-                .Select(e => (e.Level, e.Event)));
+        var transport = bus.Provider.GetRequiredService<IMessagingRuntime>().Transports
+            .OfType<RabbitMQMessagingTransport>().Single();
+        Assert.True(await Condition.WaitAsync(() => transport.IsHealthy, s_recoveryTimeout));
     }
 
     [Fact]

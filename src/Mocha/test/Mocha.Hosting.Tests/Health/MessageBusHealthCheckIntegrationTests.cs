@@ -60,7 +60,9 @@ public sealed class MessageBusHealthCheckIntegrationTests
 
         // assert
         Assert.Equal(HealthStatus.Unhealthy, report.Status);
-        Assert.Equal("Transport 'orders' is unhealthy.", report.Entries["MessageBus"].Description);
+        Assert.Equal(
+            "Transport 'orders' is unhealthy. The transport is not started.",
+            report.Entries["MessageBus"].Description);
     }
 
     [Fact]
@@ -94,7 +96,9 @@ public sealed class MessageBusHealthCheckIntegrationTests
         Assert.Equal(
             [HealthStatus.Healthy, HealthStatus.Unhealthy, HealthStatus.Healthy],
             new[] { initial.Status, stopped.Status, restarted.Status });
-        Assert.Equal("Transport 'orders' is unhealthy.", stopped.Entries["MessageBus"].Description);
+        Assert.Equal(
+            "Transport 'orders' is unhealthy. A receive endpoint is not started.",
+            stopped.Entries["MessageBus"].Description);
     }
 
     [Fact]
