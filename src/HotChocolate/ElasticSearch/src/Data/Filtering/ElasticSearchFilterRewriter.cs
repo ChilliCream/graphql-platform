@@ -22,6 +22,11 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
+        if (TrySplitNullMembership(node, out var split))
+        {
+            return Visit(split);
+        }
+
         if (TryRewriteEnumMembership(node, out var membership))
         {
             return membership;
@@ -96,12 +101,8 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
                 return TryGetNullableField(comparison.Left, out field);
 
             case MethodCallExpression { Method.Name: nameof(Enumerable.Contains) } contains
-                when contains.Object is null && contains.Arguments.Count == 2:
-                return TryGetNullableField(contains.Arguments[1], out field);
-
-            case MethodCallExpression { Method.Name: nameof(Enumerable.Contains), Object: not null } contains
-                when contains.Arguments.Count == 1 && contains.Object.Type != typeof(string):
-                return TryGetNullableField(contains.Arguments[0], out field);
+                when TryGetMembership(contains, out var values, out var target) && !HasNull(values):
+                return TryGetNullableField(target, out field);
 
             default:
                 field = null!;
@@ -126,6 +127,53 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
     private static bool IsNullValue(Expression expression)
         => IsNull(expression)
             || (expression is MemberExpression { Expression: ConstantExpression } && Evaluate(expression) is null);
+
+    private static bool TryGetMembership(MethodCallExpression node, out Expression values, out Expression target)
+    {
+        (values, target) = node switch
+        {
+            { Method.Name: nameof(Enumerable.Contains), Object: null, Arguments.Count: 2 }
+                => (node.Arguments[0], node.Arguments[1]),
+            { Method.Name: nameof(Enumerable.Contains), Object: { } list, Arguments.Count: 1 }
+                when list.Type != typeof(string) => (list, node.Arguments[0]),
+            _ => (null!, null!)
+        };
+
+        return values is not null;
+    }
+
+    // only a list given by the request is read, not a field of the document.
+    private static bool HasNull(Expression values)
+        => values is ConstantExpression or MemberExpression { Expression: ConstantExpression }
+            && ((IEnumerable?)Evaluate(values))?.Cast<object?>().Any(value => value is null) == true;
+
+    // ES|QL never matches null in an IN list, so a null in the list becomes a test for a missing value.
+    private static bool TrySplitNullMembership(MethodCallExpression node, out Expression split)
+    {
+        split = node;
+
+        if (!TryGetMembership(node, out var values, out var target) || !HasNull(values))
+        {
+            return false;
+        }
+
+        var rest = ((IEnumerable)Evaluate(values)!).Cast<object?>().Where(value => value is not null).ToArray();
+        var array = Array.CreateInstance(target.Type, rest.Length);
+        Array.Copy(rest, array, rest.Length);
+
+        Expression isNull = Expression.Equal(target, Expression.Constant(null, target.Type));
+        split = rest.Length == 0
+            ? isNull
+            : Expression.OrElse(
+                isNull,
+                Expression.Call(
+                    typeof(Enumerable),
+                    nameof(Enumerable.Contains),
+                    [target.Type],
+                    Expression.Constant(array),
+                    target));
+        return true;
+    }
 
     // ES|QL answers null for a comparison with a null value, where .NET answers true for its negation.
     private static BinaryExpression OrIsNull(MemberExpression field, Expression test)

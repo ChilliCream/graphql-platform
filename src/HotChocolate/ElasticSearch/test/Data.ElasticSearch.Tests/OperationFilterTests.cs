@@ -12,7 +12,8 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         {
             Name = "1", Title = "alpha", Count = 1, Total = 10, Price = 1.5, Flag = true,
             Color = Color.Red, Shade = Color.Red, When = new DateTime(2022, 12, 22, 15, 5, 22, DateTimeKind.Utc),
-            OptionalTitle = "x", OptionalCount = 1, OptionalFlag = true, Inner = new Inner { Code = "a" }
+            OptionalTitle = "x", OptionalCount = 1, OptionalFlag = true, Inner = new Inner { Code = "a" },
+            OptionalColor = Color.Red
         },
         new()
         {
@@ -24,7 +25,7 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         {
             Name = "3", Title = "Alpha", Count = 3, Total = 30, Price = -1, Flag = true,
             Color = Color.Blue, Shade = Color.Blue, When = new DateTime(2022, 12, 24, 15, 5, 22, DateTimeKind.Utc),
-            OptionalTitle = "y", OptionalCount = 3
+            OptionalTitle = "y", OptionalCount = 3, OptionalColor = Color.Blue
         },
         new()
         {
@@ -101,6 +102,8 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         { "optionalTitle", """nstartsWith: "x" """ },
         { "optionalTitle", """in: ["x", "y"] """ },
         { "optionalTitle", """nin: ["x", "y"] """ },
+        { "optionalTitle", """in: ["x", null] """ },
+        { "optionalTitle", """nin: ["x", null] """ },
         { "optionalCount", "eq: null" },
         { "optionalCount", "neq: null" },
         { "optionalCount", "eq: 1" },
@@ -109,6 +112,11 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         { "optionalCount", "ngt: 0" },
         { "optionalCount", "in: [1, 3]" },
         { "optionalCount", "nin: [1, 3]" },
+        { "optionalCount", "in: [1, null]" },
+        { "optionalCount", "nin: [1, null]" },
+        { "optionalCount", "nin: [null]" },
+        { "optionalColor", "in: [RED, null]" },
+        { "optionalColor", "nin: [RED, null]" },
         { "optionalFlag", "eq: null" },
         { "optionalFlag", "neq: null" },
         { "optionalFlag", "eq: true" },
@@ -175,6 +183,8 @@ public class OperationFilterTests(ElasticsearchResource resource) : TestBase(res
         public int? OptionalCount { get; set; }
 
         public bool? OptionalFlag { get; set; }
+
+        public Color? OptionalColor { get; set; }
 
         public Inner? Inner { get; set; }
     }
