@@ -165,6 +165,12 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
+        internal static string ThrowHelper_EntityResolver_TooManyRepresentations {
+            get {
+                return ResourceManager.GetString("ThrowHelper_EntityResolver_TooManyRepresentations", resourceCulture);
+            }
+        }
+        
         internal static string EntityResolver_MustBeMethod {
             get {
                 return ResourceManager.GetString("EntityResolver_MustBeMethod", resourceCulture);

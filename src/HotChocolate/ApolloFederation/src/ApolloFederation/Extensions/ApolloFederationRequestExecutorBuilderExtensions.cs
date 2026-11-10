@@ -28,9 +28,41 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddApolloFederation(
         this IRequestExecutorBuilder builder,
         FederationVersion version = FederationVersion.Latest)
+        => AddApolloFederation(builder, o => o.Version = version);
+
+    /// <summary>
+    /// Adds support for Apollo Federation to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// An action to configure the <see cref="ApolloFederationOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder AddApolloFederation(
+        this IRequestExecutorBuilder builder,
+        Action<ApolloFederationOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.SetContextData(FederationContextData.FederationVersion, version);
+        ArgumentNullException.ThrowIfNull(configure);
+        builder.ConfigureSchema(
+            b =>
+            {
+                if (!b.ContextData.TryGetValue(FederationContextData.Options, out var value)
+                    || value is not ApolloFederationOptions options)
+                {
+                    options = new ApolloFederationOptions();
+                    b.ContextData[FederationContextData.Options] = options;
+                }
+
+                configure(options);
+            });
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
         return builder;
     }
