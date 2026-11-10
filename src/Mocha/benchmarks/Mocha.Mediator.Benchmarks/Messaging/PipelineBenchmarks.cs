@@ -95,7 +95,9 @@ public class PipelineBenchmarks
     public ValueTask<BenchmarkResponse> WithPipeline_MediatorSg()
     {
         if (_mediatorSg is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         return _mediatorSg.Send(_mediatorSgCommand, CancellationToken.None);
     }
@@ -104,7 +106,9 @@ public class PipelineBenchmarks
     public ValueTask<BenchmarkResponse> WithPipeline_SwitchMediator()
     {
         if (_switchMediator is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         return _switchMediator.Send<BenchmarkResponse>(_switchMediatorCommand, CancellationToken.None);
     }
@@ -113,7 +117,9 @@ public class PipelineBenchmarks
     public ValueTask<BenchmarkResponse> WithPipeline_ImmediateHandlers()
     {
         if (_immediateHandler is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         return _immediateHandler.HandleAsync(_immediateCommand, CancellationToken.None);
     }

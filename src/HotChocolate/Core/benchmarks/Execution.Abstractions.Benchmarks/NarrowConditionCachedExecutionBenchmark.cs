@@ -1,15 +1,10 @@
-using System.Collections.Generic;
 using System.Text;
-using System.Threading;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,5 +1,4 @@
 using MassTransit;
-using MassTransit.Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Wolverine;

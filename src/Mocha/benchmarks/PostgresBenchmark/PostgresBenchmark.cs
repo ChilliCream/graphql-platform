@@ -144,10 +144,9 @@ var sw = Stopwatch.StartNew();
     await Parallel.ForEachAsync(
         Enumerable.Range(0, messageCount),
         new ParallelOptions { MaxDegreeOfParallelism = producerConcurrency },
-        async (i, ct) =>
-        {
-            await bus.PublishAsync(new BenchmarkEvent { SentTicks = Stopwatch.GetTimestamp(), Sequence = i }, ct);
-        });
+        async (i, ct) => await bus.PublishAsync(
+            new BenchmarkEvent { SentTicks = Stopwatch.GetTimestamp(), Sequence = i },
+            ct));
 }
 
 await collector.WaitAsync(timeout);
@@ -167,10 +166,9 @@ sw = Stopwatch.StartNew();
     await Parallel.ForEachAsync(
         Enumerable.Range(0, messageCount),
         new ParallelOptions { MaxDegreeOfParallelism = producerConcurrency },
-        async (i, ct) =>
-        {
-            await bus.SendAsync(new BenchmarkCommand { SentTicks = Stopwatch.GetTimestamp(), Sequence = i }, ct);
-        });
+        async (i, ct) => await bus.SendAsync(
+            new BenchmarkCommand { SentTicks = Stopwatch.GetTimestamp(), Sequence = i },
+            ct));
 }
 
 await collector.WaitAsync(timeout);

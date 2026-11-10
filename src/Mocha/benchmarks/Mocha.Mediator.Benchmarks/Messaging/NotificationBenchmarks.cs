@@ -118,7 +118,9 @@ public class NotificationBenchmarks
     public ValueTask PublishNotification_MediatorSg()
     {
         if (_mediatorSgProvider is null)
+        {
             return default;
+        }
 
         var scope = _mediatorSgProvider.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<global::Mediator.IMediator>();
@@ -140,7 +142,9 @@ public class NotificationBenchmarks
     public ValueTask PublishNotification_SwitchMediator()
     {
         if (_switchMediatorProvider is null)
+        {
             return default;
+        }
 
         var scope = _switchMediatorProvider.CreateScope();
         var publisher = scope.ServiceProvider.GetRequiredService<global::Mediator.Switch.IValuePublisher>();

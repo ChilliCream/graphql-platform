@@ -18,24 +18,23 @@ public sealed class BenchmarkCommandHandler
     : Mocha.Mediator.ICommandHandler<BenchmarkCommand, BenchmarkResponse>,
       MediatR.IRequestHandler<BenchmarkCommand, BenchmarkResponse>
 {
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
-    private static readonly Task<BenchmarkResponse> _taskResponse = Task.FromResult(_response);
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
     public async ValueTask<BenchmarkResponse> HandleAsync(
         BenchmarkCommand command,
         CancellationToken cancellationToken)
-        {
-            await Task.Yield();
-            return _response;
-        }
+    {
+        await Task.Yield();
+        return s_response;
+    }
 
     async Task<BenchmarkResponse> MediatR.IRequestHandler<BenchmarkCommand, BenchmarkResponse>.Handle(
         BenchmarkCommand request,
         CancellationToken cancellationToken)
-        {
-            await Task.Yield();
-            return _response;
-        }
+    {
+        await Task.Yield();
+        return s_response;
+    }
 }
 
 // Notification handler implementing both interfaces
