@@ -22,7 +22,7 @@ internal static class InputCost
         }
 
         return definition.Weight + (staticShape
-            ? ComputeStaticShape(schemaIndex, definition.TypeName, [])
+            ? ComputeStaticShape(schemaIndex, definition.TypeName)
             : ComputeValue(schemaIndex, definition.TypeName, value!, variableValues));
     }
 
@@ -67,7 +67,7 @@ internal static class InputCost
         {
             if (variableValues is null)
             {
-                return ComputeStaticShape(schemaIndex, typeName, []);
+                return ComputeStaticShape(schemaIndex, typeName);
             }
 
             return variableValues.TryGetValue(variable.Name.Value, out var variableValue)
@@ -109,26 +109,14 @@ internal static class InputCost
         return 0.0;
     }
 
-    private static double ComputeStaticShape(
-        CostSchemaIndex schemaIndex,
-        string typeName,
-        HashSet<string> ancestors)
-    {
-        if (!schemaIndex.TryGetInputObjectFields(typeName, out var fields) || !ancestors.Add(typeName))
-        {
-            return 0.0;
-        }
-
-        var cost = 0.0;
-
-        foreach (var field in fields)
-        {
-            cost += field.Weight + ComputeStaticShape(schemaIndex, field.TypeName, ancestors);
-        }
-
-        ancestors.Remove(typeName);
-        return cost;
-    }
+    /// <summary>
+    /// The cost of an input value whose shape is only known from the schema: a variable without a value.
+    /// Every input field reachable from the type counts once, however many paths lead to it, so recursive
+    /// input types cost a fixed amount instead of one expansion per path. See
+    /// <see cref="CostSchemaIndex.TryGetInputObjectStaticShape"/>.
+    /// </summary>
+    private static double ComputeStaticShape(CostSchemaIndex schemaIndex, string typeName)
+        => schemaIndex.TryGetInputObjectStaticShape(typeName, out var shape) ? shape : 0.0;
 
     private static IValueNode? FindFieldValue(ObjectValueNode inputObject, string fieldName)
     {

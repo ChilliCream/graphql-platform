@@ -230,6 +230,86 @@ public class InputCostTests
         Assert.Equal(7.0, cost);
     }
 
+    [Fact]
+    public void Compute_Should_CountSharedNestedTypeOnce_When_VariableUsesStaticShape()
+    {
+        // arrange
+        var schemaIndex = BuildSchemaIndex(
+            """
+            type Query { search(filter: Filter): String }
+            input Filter {
+                a: Nested @cost(weight: "1")
+                b: Nested @cost(weight: "1")
+            }
+            input Nested { term: String @cost(weight: "3") }
+            """);
+        var argument = schemaIndex.GetFieldArguments("Query", "search")[0];
+
+        // act
+        var cost = InputCost.Compute(schemaIndex, argument, new VariableNode("filter"), variableValues: null);
+
+        // assert
+        Assert.Equal(6.0, cost);
+    }
+
+    [Fact]
+    public void Compute_Should_CountEveryReachableFieldOnce_When_InputTypesAreMutuallyRecursive()
+    {
+        // arrange
+        var schemaIndex = BuildSchemaIndex(
+            """
+            type Query { search(filter: Filter): String }
+            input Filter {
+                and: [Filter] @cost(weight: "1")
+                or: [Filter] @cost(weight: "1")
+                item: ItemFilter @cost(weight: "2")
+            }
+            input ItemFilter {
+                filter: Filter @cost(weight: "1")
+                name: String @cost(weight: "3")
+            }
+            """);
+        var argument = schemaIndex.GetFieldArguments("Query", "search")[0];
+
+        // act
+        var cost = InputCost.Compute(schemaIndex, argument, new VariableNode("filter"), variableValues: null);
+
+        // assert
+        Assert.Equal(9.0, cost);
+    }
+
+    [Fact]
+    public void Compute_Should_StayLinear_When_ManyInputTypesReferenceEachOther()
+    {
+        // arrange
+        // 24 input types that each reference all 24 (themselves included). Expanding every path through
+        // this graph, which the static shape used to do, takes factorial time and never finishes here.
+        const int typeCount = 24;
+        var sdl = new System.Text.StringBuilder();
+        sdl.AppendLine("type Query { search(filter: Filter0): String }");
+
+        for (var i = 0; i < typeCount; i++)
+        {
+            sdl.AppendLine($"input Filter{i} {{");
+
+            for (var j = 0; j < typeCount; j++)
+            {
+                sdl.AppendLine($"  field{j}: Filter{j} @cost(weight: \"1\")");
+            }
+
+            sdl.AppendLine("}");
+        }
+
+        var schemaIndex = BuildSchemaIndex(sdl.ToString());
+        var argument = schemaIndex.GetFieldArguments("Query", "search")[0];
+
+        // act
+        var cost = InputCost.Compute(schemaIndex, argument, new VariableNode("filter"), variableValues: null);
+
+        // assert
+        Assert.Equal(1.0 + typeCount * typeCount, cost);
+    }
+
     private static (CostSchemaIndex SchemaIndex, InputValueMetadata Argument) BuildListFilterArgument()
     {
         var schemaIndex = BuildSchemaIndex(

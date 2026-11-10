@@ -177,8 +177,48 @@ internal static class CostSchemaIndexBuilder
             fieldArguments.ToFrozenDictionary(),
             fieldSemanticIds.ToFrozenDictionary(ReferenceEqualityComparer.Instance),
             inputObjectFields.ToFrozenDictionary(),
+            ComputeInputObjectStaticShapes(inputObjectFields),
             directiveArguments.ToFrozenDictionary(),
             directiveArgumentMetadata.ToFrozenDictionary());
+    }
+
+    /// <summary>
+    /// Computes every input object's static shape: the summed weight of the input fields reachable from
+    /// it, with each field counted once. One walk per type over the input type graph is linear in the
+    /// schema, where expanding every path is exponential for mutually recursive input objects.
+    /// </summary>
+    private static FrozenDictionary<string, double> ComputeInputObjectStaticShapes(
+        Dictionary<string, ImmutableArray<InputValueMetadata>> inputObjectFields)
+    {
+        var shapes = new Dictionary<string, double>(inputObjectFields.Count);
+        var visited = new HashSet<string>();
+        var pending = new Stack<string>();
+
+        foreach (var typeName in inputObjectFields.Keys)
+        {
+            visited.Clear();
+            visited.Add(typeName);
+            pending.Push(typeName);
+
+            var shape = 0.0;
+
+            while (pending.TryPop(out var current))
+            {
+                foreach (var field in inputObjectFields[current])
+                {
+                    shape += field.Weight;
+
+                    if (inputObjectFields.ContainsKey(field.TypeName) && visited.Add(field.TypeName))
+                    {
+                        pending.Push(field.TypeName);
+                    }
+                }
+            }
+
+            shapes.Add(typeName, shape);
+        }
+
+        return shapes.ToFrozenDictionary();
     }
 
     private static FrozenDictionary<string, int> IndexObjectTypes(
