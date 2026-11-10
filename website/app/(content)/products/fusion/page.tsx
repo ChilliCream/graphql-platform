@@ -66,7 +66,11 @@ export default function FusionProductPage() {
         description={PAGE.description}
         path={PAGE.path}
         pageType="ItemPage"
-        breadcrumbs={[{ name: "Home", path: "/" }, { name: "Fusion" }]}
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "GraphQL Federation", path: "/platform/graphql-federation" },
+          { name: "Fusion" },
+        ]}
         mainEntity={schemaRef(SOFTWARE_ID)}
         about={schemaRef(SOFTWARE_ID)}
         additionalNodes={[SOFTWARE]}
