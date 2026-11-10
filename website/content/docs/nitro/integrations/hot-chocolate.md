@@ -38,12 +38,10 @@ endpoints
 
 # Serve Modes
 
-The `ServeMode` property controls which version of Nitro to serve. The default mode is `Latest`, serving the most recent version of Nitro from a CDN.
-You can also serve the embedded version (`Embedded`) of Nitro, which is included in the package.
+The `ServeMode` property controls which version of Nitro to serve from the Nitro CDN. The default mode is `Latest`, serving the most recent version of Nitro.
 
-- `Latest`: Serves the latest version of Nitro from a CDN.
-- `Insider`: Serves the insider version of Nitro from a CDN, allowing preview of upcoming features.
-- `Embedded`: Serves the embedded version of Nitro that comes with the package.
+- `Latest`: Serves the latest version of Nitro from the CDN.
+- `Insider`: Serves the insider version of Nitro from the CDN, allowing preview of upcoming features.
 - `Version(string version)`: Serves a specific version of Nitro from the CDN.
 
 Depending on your environment or preferences, you can choose the appropriate mode:
@@ -51,8 +49,32 @@ Depending on your environment or preferences, you can choose the appropriate mod
 ```csharp
 endpoints
   .MapNitroApp()
-  .WithOptions(o => o.ServeMode = ServeMode.Embedded);
+  .WithOptions(o => o.ServeMode = ServeMode.Insider);
 ```
+
+# Serve the Embedded Nitro App
+
+Instead of serving Nitro from the CDN, you can serve the version of Nitro that ships in the `ChilliCream.Nitro.App.Embed` package. Call `WithEmbeddedNitroAssets()` on the endpoint:
+
+```csharp
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQL().WithEmbeddedNitroAssets();
+    endpoints.MapNitroApp("/my-graphql-ui").WithEmbeddedNitroAssets();
+});
+```
+
+On `MapGraphQL()`, Nitro stays on the same path as the GraphQL endpoint. Call `WithEmbeddedNitroAssets()` on a route group to serve the embedded Nitro app on every endpoint in the group:
+
+```csharp
+var api = app.MapGroup("/api").WithEmbeddedNitroAssets();
+api.MapGraphQL();
+```
+
+All other Nitro options work the same way for the embedded Nitro app. As with other options that set the serve mode, the last call wins: calling `WithOptions(o => o.ServeMode = ServeMode.Version("..."))` after `WithEmbeddedNitroAssets()` serves that version from the CDN.
+
+> [!NOTE]
+> Setting `ServeMode.Embedded` still serves the embedded Nitro app, but it will be removed in Hot Chocolate 17. From Hot Chocolate 17, reference the `ChilliCream.Nitro.App.Embed` package and call `WithEmbeddedNitroAssets()`.
 
 # Configuration Options
 
@@ -61,7 +83,7 @@ You can tailor Nitro to your needs by setting various options via `NitroAppOptio
 | Property                       | Type                | Description                                                                                                                                       |
 | ------------------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Enable                         | `bool`              | If `false`, disables the Nitro tool.                                                                                                              |
-| ServeMode                      | `ServeMode`         | Defines how Nitro is served. Options include `Latest` (default), `Insider`, `Embedded`, and `Version(string version)`.                            |
+| ServeMode                      | `ServeMode`         | Defines which version of Nitro is served from the CDN: `Latest` (default), `Insider`, or `Version(string version)`. See `WithEmbeddedNitroAssets()`. |
 | Title                          | `string`            | Specifies the title of the Nitro page.                                                                                                            |
 | Document                       | `string`            | Specifies the default document content.                                                                                                           |
 | IncludeCookies                 | `bool?`             | If `true`, includes cookies in the HTTP call to the GraphQL backend.                                                                              |
