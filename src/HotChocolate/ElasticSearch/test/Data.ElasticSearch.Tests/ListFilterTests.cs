@@ -29,7 +29,8 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         ("9", Items((null!, "N"))),
         ("10", [new Item { Bar = "D1", Qux = "D1" }]),
         ("11", [new Item { Bar = "D2", Qux = "D2", Details = new ItemDetails { Code = "a", Kind = "k" } }]),
-        ("12", [new Item { Bar = "D3", Qux = "D3", Details = new ItemDetails { Kind = "k" } }])
+        ("12", [new Item { Bar = "D3", Qux = "D3", Details = new ItemDetails { Kind = "k" } }]),
+        ("13", [new Item { Bar = "D4", Qux = "D4", Details = new ItemDetails { Shipping = new() { City = "c" } } }])
     ];
 
     private static readonly StringDocument[] s_strings =
@@ -429,6 +430,15 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         public string? Code { get; set; }
 
         public string? Kind { get; set; }
+
+        public Address? Billing { get; set; }
+
+        public Address? Shipping { get; set; }
+    }
+
+    public class Address
+    {
+        public string? City { get; set; }
     }
 
     public class NestedDocument

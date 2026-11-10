@@ -439,12 +439,15 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
             {
                 yield return name;
             }
+            // a type is left out only below itself, so that two properties of one type both count.
             else if (seen.Add(propertyType))
             {
                 foreach (var leaf in Leaves(propertyType, name, seen))
                 {
                     yield return leaf;
                 }
+
+                seen.Remove(propertyType);
             }
         }
     }
