@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Elastic.Esql.Core;
 using Elastic.Esql.Extensions;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -9,6 +10,7 @@ namespace HotChocolate.Data.ElasticSearch.Pagination;
 
 /// <summary>
 /// An offset paging provider that reads the first page of an ES|QL query.
+/// Other sources are paged by <see cref="QueryableOffsetPagingProvider"/>.
 /// </summary>
 [Experimental(ElasticSearchExperiments.Provider)]
 public sealed class ElasticSearchOffsetPagingProvider : OffsetPagingProvider
@@ -17,6 +19,8 @@ public sealed class ElasticSearchOffsetPagingProvider : OffsetPagingProvider
         typeof(ElasticSearchOffsetPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
+
+    private static readonly IPagingProvider s_fallback = new QueryableOffsetPagingProvider();
 
     /// <inheritdoc />
     public override bool CanHandle(IExtendedType source) => true;
@@ -28,13 +32,16 @@ public sealed class ElasticSearchOffsetPagingProvider : OffsetPagingProvider
 
         return (OffsetPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-            .Invoke(null, [options])!;
+            .Invoke(null, [options, s_fallback.CreateHandler(source, options)])!;
     }
 
-    private static ElasticSearchOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(PagingOptions options)
-        => new(options);
+    private static ElasticSearchOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
+        PagingOptions options,
+        IPagingHandler fallback)
+        => new(options, fallback);
 
-    private sealed class ElasticSearchOffsetPagingHandler<TEntity>(PagingOptions options) : OffsetPagingHandler(options)
+    private sealed class ElasticSearchOffsetPagingHandler<TEntity>(PagingOptions options, IPagingHandler fallback)
+        : OffsetPagingHandler(options)
     {
         private readonly ElasticSearchOffsetPagination<TEntity> _pagination = new();
 
@@ -47,8 +54,13 @@ public sealed class ElasticSearchOffsetPagingProvider : OffsetPagingProvider
             {
                 IQueryableExecutable<TEntity> executable => executable.Source,
                 IQueryable<TEntity> queryable => queryable,
-                _ => throw new GraphQLException("Cannot handle the specified data source.")
+                _ => null
             };
+
+            if (query?.Provider is not EsqlQueryProvider)
+            {
+                return (CollectionSegment)await fallback.SliceAsync(context, source).ConfigureAwait(false);
+            }
 
             var requireTotalCount = IncludeTotalCount && context.IsSelected("totalCount");
 
