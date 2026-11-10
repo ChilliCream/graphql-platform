@@ -1720,7 +1720,7 @@ public class ConditionalTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Lookup_Should_SendBatchedRequest_When_AliasedEntitiesHaveSkipsOnDifferentVariables()
+    public async Task Lookup_Should_NotSendBatchedRequest_When_AliasedEntitiesHaveSkipsOnDifferentVariablesThatAreTrue()
     {
         // arrange
         using var server1 = CreateSourceSchema(

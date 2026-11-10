@@ -1,4 +1,4 @@
-title: Lookup_Should_SendBatchedRequest_When_AliasedEntitiesHaveSkipsOnDifferentVariables
+title: Lookup_Should_NotSendBatchedRequest_When_AliasedEntitiesHaveSkipsOnDifferentVariablesThatAreTrue
 request:
   document: |
     query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {

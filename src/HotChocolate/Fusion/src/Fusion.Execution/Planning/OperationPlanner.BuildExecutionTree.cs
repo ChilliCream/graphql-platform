@@ -3727,12 +3727,22 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Builds the condition alternatives from the conditions that gate each leaf selection
     /// without the common conditions. Returns an empty array when a leaf selection has no
-    /// remaining condition, because the step then always has something to resolve.
+    /// remaining condition.
     /// </summary>
     private static ExecutionNodeCondition[][] BuildConditionAlternatives(
         List<HashSet<ExecutionNodeCondition>> leafConditions,
         HashSet<ExecutionNodeCondition> commonConditions)
     {
+        // The common conditions are a subset of every leaf set, so a leaf has no remaining
+        // condition exactly when its set is as large as the common set.
+        foreach (var leaf in leafConditions)
+        {
+            if (leaf.Count == commonConditions.Count)
+            {
+                return [];
+            }
+        }
+
         var residuals = new List<(string Key, ExecutionNodeCondition[] Conditions)>();
         var keys = new HashSet<string>(StringComparer.Ordinal);
 
@@ -3740,11 +3750,6 @@ public sealed partial class OperationPlanner
         {
             var residual = new HashSet<ExecutionNodeCondition>(leaf);
             residual.ExceptWith(commonConditions);
-
-            if (residual.Count == 0)
-            {
-                return [];
-            }
 
             var sorted = SortConditions(residual);
             var key = FormatCanonicalConditions(sorted);
