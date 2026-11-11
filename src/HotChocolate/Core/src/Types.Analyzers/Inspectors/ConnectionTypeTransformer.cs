@@ -63,6 +63,31 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                 var owner = item.Value;
 #endif
                 var connectionType = GetConnectionType(compilation, connectionResolver.Member.GetReturnType());
+
+                // Connection<T>/IConnection<T> use the shared runtime connection type, so no
+                // connection or edge types are generated here. The name is left out of
+                // connectionNameLookup on purpose; a clash with a generated connection type
+                // surfaces later as a duplicate type name error at schema build time.
+                if (IsRuntimeConnectionType(compilation, connectionType))
+                {
+                    if (!compilation.TryGetConnectionNameFromResolver(
+                        connectionResolver.Member,
+                        out var runtimeConnectionName))
+                    {
+                        runtimeConnectionName = connectionType.TypeArguments[0].Name;
+                    }
+
+                    owner.ReplaceResolver(
+                        connectionResolver,
+                        connectionResolver.WithSchemaTypeName(
+                            new SchemaTypeReference(
+                                SchemaTypeReferenceKind.ConnectionTypeReference,
+                                connectionType.TypeArguments[0].ToFullyQualified(),
+                                typeStructure: runtimeConnectionName,
+                                nonNull: !connectionResolver.ReturnType.IsNullableType())));
+                    continue;
+                }
+
                 ConnectionTypeInfo connectionTypeInfo;
                 ConnectionClassInfo? connectionClass;
                 EdgeTypeInfo? edgeTypeInfo;
@@ -301,6 +326,21 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
 
         [DoesNotReturn]
         static void Throw() => throw new InvalidOperationException("Could not resolve connection base type.");
+    }
+
+    private static bool IsRuntimeConnectionType(
+        Compilation compilation,
+        INamedTypeSymbol connectionType)
+    {
+        if (!connectionType.IsGenericType || connectionType.TypeArguments.Length != 1)
+        {
+            return false;
+        }
+
+        var definition = connectionType.OriginalDefinition;
+
+        return SymbolEqualityComparer.Default.Equals(definition, compilation.GetConnectionClassSymbol())
+            || SymbolEqualityComparer.Default.Equals(definition, compilation.GetConnectionInterfaceSymbol());
     }
 
     private static string GetTypeLookupKey(IOutputTypeInfo typeInfo)

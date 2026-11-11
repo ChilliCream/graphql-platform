@@ -39,6 +39,7 @@ namespace TestNamespace
 
             descriptor
                 .Field(naming.GetMemberName("Authors", global::HotChocolate.Types.MemberKind.ObjectField))
+                .AddPagingArguments()
                 .ExtendWith(static (field, context) =>
                 {
                     var configuration = field.Configuration;
@@ -46,13 +47,36 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                    configuration.Type = global::HotChocolate.Types.Pagination.ConnectionTypeHelper.CreateConnectionTypeReference(
+                        field.Context,
+                        "Author",
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output),
-                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Author")))));
+                        nonNull: true);
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.Connection<global::TestNamespace.Author>);
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
+                    configuration.SetConnectionFlags();
+                    var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
+                    configuration.Features.Set(pagingOptions);
+
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorsAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UseConnectionAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                     configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
