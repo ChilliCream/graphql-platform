@@ -67,6 +67,22 @@ public class Product
 
 Without the attribute, a list of objects answers `some`, `none` and `any` with a single condition on a single field, and any other filter returns an error that names the field. It does not see an element whose fields are all null, so `any` counts only the elements with a value.
 
+A filter on a list is sent as KQL or as a query string, which match the analyzed words of a `text` field and ignore their case, where ES|QL compares the whole value. Map the strings of a list as `keyword`, or, for a `text` field with a `keyword` subfield, mark the property with `ElasticSearchKeyword`, so that the filter reads the subfield. This holds for a string property of a list element and for a list of strings:
+
+```csharp
+public class Review
+{
+    [ElasticSearchKeyword]
+    public string Author { get; set; } = "";
+}
+
+public class Product
+{
+    [ElasticSearchKeyword("raw")]
+    public List<string> Tags { get; set; } = [];
+}
+```
+
 In a list of objects, an enum is compared as it is stored. Pass the serializer options of the ES|QL client to `AddElasticSearchFiltering(options)`, and the value is written as those options write it, so a `JsonStringEnumConverter` in the options is applied too. A `JsonStringEnumConverter` attribute on the property takes precedence. Without the options, an enum is compared by name when the property or the enum has a `JsonStringEnumConverter` attribute, and by number otherwise.
 
 Filters on a `nested` field are tested on Elasticsearch 9.5. On 9.1, the KQL function behind them ignores the case of the value. A `startsWith` on a `nested` field cannot contain a character that is reserved in KQL.

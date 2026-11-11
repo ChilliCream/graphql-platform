@@ -295,16 +295,31 @@ internal sealed class ElasticSearchFilterRewriter(
         var negated = body is UnaryExpression { NodeType: ExpressionType.Not };
         var pattern = negated ? ((UnaryExpression)body).Operand : body;
 
-        // the remaining forms are answered on the field by the ES|QL translation.
-        if (pattern is not MethodCallExpression call || (any && !negated))
+        // the remaining forms are answered on the field by the ES|QL translation,
+        // except on a keyword subfield, which the translation does not know.
+        var subfield = KeywordSubfield(list.Member);
+        string regex;
+
+        if (subfield.Length > 0
+            && pattern is BinaryExpression { NodeType: ExpressionType.Equal or ExpressionType.NotEqual } comparison
+            && comparison.Left == item
+            && Evaluate(comparison.Right) is string value)
+        {
+            negated ^= comparison.NodeType == ExpressionType.NotEqual;
+            regex = EscapeRegex(value);
+        }
+        else if (pattern is MethodCallExpression call && (!any || negated || subfield.Length > 0))
+        {
+            regex = StringRegex(call, item);
+        }
+        else
         {
             return null;
         }
 
-        var regex = StringRegex(call, item);
-        var field = QueryStringName(FieldPath(list));
+        var field = QueryStringName(FieldPath(list) + subfield);
         return any
-            ? QueryString($"{field}:/~({regex})/")
+            ? QueryString(negated ? $"{field}:/~({regex})/" : $"{field}:/{regex}/")
             : Expression.Not(QueryString(negated ? $"{field}:/{regex}/" : $"{field}:/~({regex})/"));
     }
 
@@ -384,6 +399,11 @@ internal sealed class ElasticSearchFilterRewriter(
 
         return JsonSerializer.SerializeToElement(value, typeInfo);
     }
+
+    // KQL and query strings match the analyzed terms of a text field,
+    // so the exact value is read from its keyword subfield.
+    private static string KeywordSubfield(MemberInfo member)
+        => member.GetCustomAttribute<ElasticSearchKeywordAttribute>() is { } keyword ? "." + keyword.Subfield : "";
 
     private string FieldPath(MemberExpression member)
         => member.Expression is MemberExpression parent
@@ -717,7 +737,7 @@ internal sealed class ElasticSearchFilterRewriter(
             }
 
             var path = parts.ToList();
-            var name = string.Join(".", path);
+            var name = string.Join(".", path) + KeywordSubfield(member.Member);
             Fields.Add(name);
 
             // the owner comes from the members, since a serialized name can hold a dot of its own.

@@ -387,6 +387,62 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         Assert.Equal(Names(expected), Names(actual));
     }
 
+    [Theory]
+    [InlineData(false, "items", """some: { bar: { eq: "Mario" } }""")]
+    [InlineData(false, "items", """some: { bar: { eq: "mario" } }""")]
+    [InlineData(false, "items", """some: { bar: { in: ["Mario", "Luigi"] } }""")]
+    [InlineData(false, "items", """some: { bar: { contains: "Ros" } }""")]
+    [InlineData(false, "items", """some: { bar: { startsWith: "Mario R" } }""")]
+    [InlineData(false, "items", """some: { bar: { endsWith: "rossi" } }""")]
+    [InlineData(false, "values", """some: { eq: "Mario" }""")]
+    [InlineData(false, "values", """some: { neq: "Mario" }""")]
+    [InlineData(false, "values", """all: { eq: "Mario" }""")]
+    [InlineData(false, "values", """none: { eq: "mario rossi" }""")]
+    [InlineData(false, "values", """some: { in: ["mario", "Luigi"] }""")]
+    [InlineData(false, "values", """some: { startsWith: "Mario R" }""")]
+    [InlineData(false, "values", """some: { ncontains: "Ros" }""")]
+    [InlineData(false, "values", """none: { contains: "Ros" }""")]
+    [InlineData(false, "values", """all: { endsWith: "i" }""")]
+    [InlineData(true, "items", """some: { bar: { eq: "Mario" } }""")]
+    [InlineData(true, "items", """some: { bar: { neq: "Mario" } }""")]
+    [InlineData(true, "items", """some: { bar: { in: ["Mario", "Luigi"] } }""")]
+    [InlineData(true, "items", """some: { bar: { contains: "Ros" } }""")]
+    [InlineData(true, "items", """all: { bar: { endsWith: "rossi" } }""")]
+    [InlineData(true, "items", """none: { bar: { eq: null } }""")]
+    public async Task Filter_Should_MatchLinq_When_TextFieldHasKeywordSubfield(bool nested, string field, string filter)
+    {
+        // arrange
+        string[] values = ["Mario", "mario rossi", "Mario Rossi", "Luigi"];
+        var items = values.Select(v => new List<TextItem> { new() { Bar = v } }).Append(new List<TextItem> { new() }).ToArray();
+
+        // act
+        JsonNode expected;
+        JsonNode actual;
+
+        if (nested)
+        {
+            var data = items.Select((i, n) => new TextNestedDocument { Name = $"{n + 1}", Items = i }).ToArray();
+            await IndexDocuments(data);
+            expected = await ExecuteAsync(() => data.AsQueryable(), false, field, filter);
+            actual = await ExecuteAsync(Query<TextNestedDocument>, true, field, filter);
+        }
+        else
+        {
+            var data = items.Select((i, n) => new TextObjectDocument
+            {
+                Name = $"{n + 1}",
+                Items = i,
+                Values = [.. i.Select(x => x.Bar).OfType<string>()]
+            }).ToArray();
+            await IndexDocuments(data);
+            expected = await ExecuteAsync(() => data.AsQueryable(), false, field, filter);
+            actual = await ExecuteAsync(Query<TextObjectDocument>, true, field, filter);
+        }
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
     private async Task<(JsonNode Expected, JsonNode Actual)> ExecuteWithOptionsAsync(
         bool nested,
         string filter,
@@ -548,5 +604,29 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         public string Name { get; set; } = "";
 
         public List<string?> Values { get; set; } = [];
+    }
+
+    public class TextItem
+    {
+        [ElasticSearchKeyword]
+        public string? Bar { get; set; }
+    }
+
+    public class TextObjectDocument
+    {
+        public string Name { get; set; } = "";
+
+        public List<TextItem> Items { get; set; } = [];
+
+        [ElasticSearchKeyword("raw")]
+        public List<string> Values { get; set; } = [];
+    }
+
+    public class TextNestedDocument
+    {
+        public string Name { get; set; } = "";
+
+        [ElasticSearchNested]
+        public List<TextItem> Items { get; set; } = [];
     }
 }

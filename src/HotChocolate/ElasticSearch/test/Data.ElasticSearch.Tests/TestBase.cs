@@ -102,6 +102,16 @@ public class TestBase
             };
         }
 
+        if (type == typeof(string)
+            && property.GetCustomAttribute<ElasticSearchKeywordAttribute>() is { } keyword)
+        {
+            return new JsonObject
+            {
+                ["type"] = "text",
+                ["fields"] = new JsonObject { [keyword.Subfield] = new JsonObject { ["type"] = "keyword" } }
+            };
+        }
+
         if (type == typeof(string) || type == typeof(Guid) || type == typeof(Uri))
         {
             return new JsonObject { ["type"] = "keyword" };
