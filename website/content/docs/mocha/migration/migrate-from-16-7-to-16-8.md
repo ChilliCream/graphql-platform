@@ -32,6 +32,33 @@ Assemblies that call or implement these methods must be recompiled against 16.8.
 
 # Behavioral breaking changes
 
+## RabbitMQ receive endpoints attach again on their own
+
+In 16.7 a receive endpoint whose channel was closed while the connection stayed open did not consume again until the connection was replaced or the application restarted. This can happen when a handler exceeds the broker's [delivery acknowledgement timeout](https://www.rabbitmq.com/docs/consumers#acknowledgement-timeout) or when the queue is deleted.
+
+In 16.8 every receive endpoint attaches again on its own, with delays of about 1 to 30 seconds between attempts. With auto-provisioning enabled it declares its queue and bindings again first. Mocha also reconnects a lost connection itself and keeps trying until the application stops, whatever the `AutomaticRecoveryEnabled` setting of the connection factory is.
+
+What you will observe:
+
+- The log shows `ConsumerChannelLost` or `ConsumerCancelled` (Warning) and then `ConsumerAttached` (Information). For a lost connection it shows `ConnectionLost` (Warning) and then `ConnectionReady` (Information).
+- A queue that is deleted while its consuming application runs is created again when auto-provisioning is enabled.
+- The health check reports an endpoint that is not attached. See [The message bus health check reports transport health](#the-message-bus-health-check-reports-transport-health).
+- When the broker refuses the connection, a declaration, or the consumer the same way on every attempt, the attempts continue and are logged at Error (`ConnectionAttemptFailed`, `ConsumerAttachFailed`). This can happen when credentials changed or when the configuration of a queue differs from the existing queue. Sends and publishes wait while the dispatcher connection is not ready.
+- A network path that fails without closing the connection is detected through heartbeats, after two to three minutes with the client's default interval of 60 seconds. Sends and publishes wait during that time. See [Heartbeats](../transports/rabbitmq.md#heartbeats) for a shorter interval.
+
+See [Connection recovery](../transports/rabbitmq.md#connection-recovery).
+
+## RabbitMQ handlers are cancelled when their connection or channel is lost
+
+When a connection or channel is lost, Mocha cancels the `CancellationToken` of every handler that runs for a message of that channel. RabbitMQ delivers these messages again. This includes a message whose handler had finished its work but whose acknowledgement could no longer be sent. In 16.7 the token was cancelled only when the endpoint stopped.
+
+What you will observe:
+
+- A handler that passes its token on ends with an `OperationCanceledException` when the channel is lost, and runs again for the redelivered message. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](../reliability.md#deduplicate-messages-with-the-transactional-inbox).
+- A handler that ignores its token keeps its `MaxConcurrency` slot until it returns. When such handlers hold every slot, the endpoint cannot attach again. The health check reports `The consumer waits for a handler of a lost channel to return.` for its queue, and after 30 seconds the log shows `ConsumerBlockedByHandlers` at Error. Pass the token to database queries, HTTP requests, and other asynchronous operations.
+
+See [Message handling after a connection loss](../transports/rabbitmq.md#message-handling-after-a-connection-loss).
+
 ## The Postgres outbox no longer counts an unavailable transport as an attempt
 
 In 16.7 every dispatch that threw an exception counted as one of the 10 attempts of an outbox message, so a broker outage could use up all attempts. In 16.8 the way a dispatch ends decides whether it counts:
@@ -72,6 +99,39 @@ Only the RabbitMQ transport throws `TransportUnavailableException`. See [Retry b
 
 The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).
 
+## The generated RabbitMQ reply queue expires instead of being auto-delete
+
+The reply queue that the transport generates per service instance (`response-<instance id>`) is declared differently:
+
+| Property                                        | 16.7                                    | 16.8                                                                           |
+| ----------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------ |
+| Auto-delete                                     | Yes                                     | No                                                                             |
+| Expiry without consumers (`x-expires`)          | 30 minutes                              | One minute                                                                     |
+| Queue type when the transport default is quorum | Chosen by the broker                    | Quorum, with `x-quorum-initial-group-size` if configured                       |
+| Removed                                         | By RabbitMQ when its consumer goes away | By Mocha when the reply endpoint stops, otherwise by RabbitMQ after the expiry |
+
+What you will observe:
+
+- The queue stays during a short disconnection, and replies wait in it until Mocha has reconnected. In 16.7 RabbitMQ deleted the queue when the connection was lost.
+- After a process that ended without stopping the bus, the queue remains on the broker for one minute.
+- With auto-provisioning enabled, Mocha deletes the queue when the reply endpoint stops, also when the runtime is disposed without a stop. It waits at most 5 seconds for the deletion.
+- Queue policies, dashboards, and alerts that select auto-delete queues no longer match the reply queue.
+
+See [Temporary receive endpoints](../transports/rabbitmq.md#temporary-receive-endpoints).
+
+## RabbitMQ receive endpoints wait for running handlers on shutdown
+
+When the host stops, every receive endpoint stops taking new messages and waits for its running handlers until the shutdown timeout of the host elapses. Only then does Mocha cancel the `CancellationToken` of the handlers that still run, and RabbitMQ delivers their messages again. In 16.7 the token of every handler was cancelled as soon as its endpoint stopped.
+
+What you will observe:
+
+- A shutdown takes as long as the longest running handler, up to the shutdown timeout (`HostOptions.ShutdownTimeout`, 30 seconds by default). Closing channels and deleting the reply queue can take a few seconds longer.
+- A handler that relied on its token being cancelled at the start of a shutdown now runs until it finishes or the shutdown timeout elapses.
+- Set `HostOptions.ShutdownTimeout` to the time handlers may take, and keep the termination grace period of the platform, such as `terminationGracePeriodSeconds` in Kubernetes, above it.
+- The log shows `ConsumerDrainStarted` (Information), `ConsumerDrainTimedOut` (Warning, when the timeout elapsed first), and `ConsumerStopped` (Information) for each endpoint.
+
+See [Graceful shutdown](../transports/rabbitmq.md#graceful-shutdown).
+
 ## Receive endpoints start and stop in a different order
 
 This entry applies to every transport, including custom transports. 16.7 started and stopped the receive endpoints of a transport one after the other, without regard to their kind.
@@ -94,6 +154,7 @@ Cleanup still runs, each step with its own time limit:
 
 | Transport         | Cleanup                                                             | Limit          |
 | ----------------- | ------------------------------------------------------------------- | -------------- |
+| RabbitMQ          | Deletes the generated reply queue.                                  | 5 seconds      |
 | Postgres          | Releases its leased messages and removes its consumer registration. | 5 seconds each |
 | Azure Service Bus | Removes the resources of temporary endpoints.                       | 30 seconds     |
 
