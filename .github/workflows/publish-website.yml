@@ -117,6 +117,15 @@ jobs:
           cache-from: type=gha,scope=website
           cache-to: type=gha,scope=website,mode=max
 
+      - name: Fetch Previous IndexNow Manifest
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        timeout-minutes: 3
+        run: npm run indexnow:fetch-previous
+        working-directory: website
+        env:
+          INDEXNOW_PREVIOUS_STATE: ${{ runner.temp }}/indexnow-previous-state.json
+
       - name: Deploy to Azure WebApp
         uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3.0.8
         with:
@@ -131,3 +140,12 @@ jobs:
             --header 'Content-Type: application/json' \
             --header 'Authorization: Bearer ${{ secrets.CLOUDFLARE_AUTH_TOKEN }}' \
             --data '{ "purge_everything": true }'
+
+      - name: Submit Changed Pages to IndexNow
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        timeout-minutes: 15
+        run: npm run indexnow:submit
+        working-directory: website
+        env:
+          INDEXNOW_PREVIOUS_STATE: ${{ runner.temp }}/indexnow-previous-state.json
