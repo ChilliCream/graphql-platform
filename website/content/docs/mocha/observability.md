@@ -25,9 +25,15 @@ builder.Services
 
 `.AddInstrumentation()` registers the `OpenTelemetryDiagnosticObserver` as a singleton `IBusDiagnosticObserver`. This observer creates `Activity` spans for dispatch, receive, and consume operations, and records metrics via the `Mocha` meter.
 
-## Subscribe to the Mocha activity source
+## Subscribe to Mocha spans and metrics
 
-The .NET OpenTelemetry SDK only collects spans from activity sources you explicitly subscribe to. Add the `"Mocha"` source to your tracing configuration:
+The .NET OpenTelemetry SDK only collects spans from activity sources you explicitly subscribe to. Install the `Mocha.OpenTelemetry` package:
+
+```shell
+dotnet add package Mocha.OpenTelemetry
+```
+
+Call `AddMochaInstrumentation()` on the tracing builder to subscribe to the `Mocha` activity source, and on the metrics builder to subscribe to the `Mocha` meter:
 
 ```csharp
 builder.Services
@@ -35,17 +41,19 @@ builder.Services
     .WithTracing(tracing =>
     {
         tracing
-            .AddSource("Mocha") // Subscribe to Mocha spans
+            .AddMochaInstrumentation() // Subscribe to Mocha spans
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation();
     })
     .WithMetrics(metrics =>
     {
         metrics
-            .AddMeter("Mocha") // Subscribe to Mocha metrics
+            .AddMochaInstrumentation() // Subscribe to Mocha metrics
             .AddAspNetCoreInstrumentation();
     });
 ```
+
+`AddMochaInstrumentation()` subscribes to the message bus spans and metrics. Mediator spans come from a separate activity source, which the `Mocha.Mediator.OpenTelemetry` package subscribes to with `AddMochaMediatorInstrumentation()`. See [Instrumentation and observability](./mediator/pipeline-and-middleware.md#instrumentation-and-observability).
 
 > [!NOTE]
 > Mocha follows the [OpenTelemetry messaging semantic conventions](https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/), which are currently in development status. Attribute names may change in future OTel releases.
@@ -154,11 +162,11 @@ builder.Services
     .AddOpenTelemetry()
     .WithTracing(tracing =>
     {
-        tracing.AddSource("Mocha");
+        tracing.AddMochaInstrumentation();
     })
     .WithMetrics(metrics =>
     {
-        metrics.AddMeter("Mocha");
+        metrics.AddMochaInstrumentation();
     });
 
 builder.Logging.AddOpenTelemetry(logging =>

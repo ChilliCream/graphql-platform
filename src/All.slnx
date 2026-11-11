@@ -440,7 +440,9 @@
     <Project Path="Mocha/src/Mocha.Hosting/Mocha.Hosting.csproj" />
     <Project Path="Mocha/src/Mocha.Inbox/Mocha.Inbox.csproj" />
     <Project Path="Mocha/src/Mocha.Mediator.Abstractions/Mocha.Mediator.Abstractions.csproj" />
+    <Project Path="Mocha/src/Mocha.Mediator.OpenTelemetry/Mocha.Mediator.OpenTelemetry.csproj" />
     <Project Path="Mocha/src/Mocha.Mediator/Mocha.Mediator.csproj" />
+    <Project Path="Mocha/src/Mocha.OpenTelemetry/Mocha.OpenTelemetry.csproj" />
     <Project Path="Mocha/src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="Mocha/src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.AzureServiceBus/Mocha.Transport.AzureServiceBus.csproj" />
