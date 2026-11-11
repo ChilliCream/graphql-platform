@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -8,10 +8,12 @@ import { hashPageContent } from "./generate-indexnow-manifest.mjs";
 import {
   batchUrls,
   diffManifests,
+  fetchPreviousState,
   INDEXNOW_HOST,
   MAX_URLS_PER_REQUEST,
   parseManifest,
   run,
+  runFetchPrevious,
   waitForLiveManifest,
 } from "./indexnow-submit.mjs";
 
@@ -175,39 +177,81 @@ async function withMock(status, body) {
   };
 }
 
-async function runAgainstMock({ status = 200, previous, current }) {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "indexnow-"));
-  const mock = await withMock(status, "");
+async function captureLogs(action) {
   const originalLog = console.log;
   const logs = [];
   console.log = (...args) => logs.push(args.join(" "));
   try {
+    await action();
+  } finally {
+    console.log = originalLog;
+  }
+  return logs;
+}
+
+async function runAgainstMock({
+  status = 200,
+  state,
+  previous,
+  current,
+  fetchImpl,
+}) {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "indexnow-"));
+  const mock = await withMock(status, "");
+  try {
     const manifestPath = path.join(directory, "new.json");
+    const statePath = path.join(directory, "state.json");
+    const summaryPath = path.join(directory, "summary.md");
     await writeFile(manifestPath, JSON.stringify(current));
+    if (previous) {
+      await writeFile(
+        statePath,
+        JSON.stringify({ kind: "manifest", manifest: previous }),
+      );
+    } else if (state !== null) {
+      await writeFile(
+        statePath,
+        JSON.stringify(state ?? { kind: "first-run" }),
+      );
+    }
     const env = {
       INDEXNOW_MANIFEST: manifestPath,
+      INDEXNOW_PREVIOUS_STATE: statePath,
+      GITHUB_STEP_SUMMARY: summaryPath,
       INDEXNOW_ENDPOINT: `${mock.origin}/indexnow`,
       INDEXNOW_LIVE_MANIFEST_URL: `${mock.origin}/indexnow-manifest.json`,
       INDEXNOW_POLL_INTERVAL_SECONDS: "0.01",
       INDEXNOW_POLL_TIMEOUT_SECONDS: "1",
     };
-    if (previous) {
-      const previousPath = path.join(directory, "previous.json");
-      await writeFile(previousPath, JSON.stringify(previous));
-      env.INDEXNOW_PREVIOUS_MANIFEST = previousPath;
-    }
     mock.liveBody.current = JSON.stringify(current);
-    await run(env);
+    const logs = await captureLogs(() => run(env, { fetchImpl }));
+    const summary = await readFile(summaryPath, "utf8").catch(() => "");
     return {
       posts: mock.requests
         .filter((request) => request.method === "POST")
         .map((request) => JSON.parse(request.body)),
       logs,
+      summary,
     };
   } finally {
-    console.log = originalLog;
     await mock.close();
     await rm(directory, { recursive: true, force: true });
+  }
+}
+
+async function fetchStateFromMock(status, body) {
+  const server = createServer((request, response) => {
+    response.writeHead(status).end(body);
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    return await fetchPreviousState({
+      manifestUrl: `http://127.0.0.1:${server.address().port}/indexnow-manifest.json`,
+      attempts: 2,
+      retryDelayMs: 0,
+    });
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
   }
 }
 
@@ -259,4 +303,172 @@ test("run_Should_WarnAndNotThrow_When_EndpointRejects", async () => {
 
   assert.equal(posts.length, 1);
   assert.ok(logs.some((line) => line.startsWith("::warning::IndexNow:")));
+});
+
+test("run_Should_ReportCountsInSummary_When_EndpointRejects", async () => {
+  const { summary } = await runAgainstMock({
+    status: 403,
+    previous: { [url("edit")]: "1", [url("gone")]: "1" },
+    current: { [url("edit")]: "2", [url("new")]: "1" },
+  });
+
+  assert.equal(
+    summary,
+    "IndexNow failed: HTTP 403 (1 added, 1 changed, 1 removed).\n",
+  );
+});
+
+test("run_Should_ReportCountsInWarningAndSummary_When_ErrorIsThrown", async () => {
+  const { logs, summary } = await runAgainstMock({
+    previous: { [url("gone")]: "1" },
+    current: { [url("new")]: "1" },
+    fetchImpl: (input, init) => {
+      if (init?.method === "POST") {
+        throw new Error("boom");
+      }
+      return fetch(input, init);
+    },
+  });
+
+  assert.deepEqual(
+    logs.filter((line) => line.startsWith("::warning::")),
+    [
+      "::warning::IndexNow: Submission failed (boom) (1 added, 0 changed, 1 removed).",
+    ],
+  );
+  assert.equal(
+    summary,
+    "IndexNow failed: boom (1 added, 0 changed, 1 removed).\n",
+  );
+});
+
+test("run_Should_PostEveryUrl_When_StateIsFirstRun", async () => {
+  const { posts, summary } = await runAgainstMock({
+    state: { kind: "first-run" },
+    current: { [url("a")]: "1", [url("b")]: "1" },
+  });
+
+  assert.deepEqual(posts[0].urlList, [url("a"), url("b")]);
+  assert.equal(
+    summary,
+    "IndexNow submitted 2 added, 0 changed, 0 removed (first run), 1 request, HTTP 200.\n",
+  );
+});
+
+test("run_Should_SkipWithWarning_When_StateFileIsMissing", async () => {
+  const { posts, logs, summary } = await runAgainstMock({
+    state: null,
+    current: { [url("a")]: "1" },
+  });
+
+  assert.deepEqual(posts, []);
+  assert.equal(logs.filter((line) => line.startsWith("::warning::")).length, 1);
+  assert.ok(
+    logs[0].startsWith(
+      "::warning::IndexNow: Skipping submission, no diff computed: the previous state is missing or invalid",
+    ),
+  );
+  assert.ok(
+    summary.startsWith(
+      "IndexNow skipped: no diff computed, the previous state is missing or invalid",
+    ),
+  );
+});
+
+test("run_Should_SkipWithRecordedReason_When_StateIsSkip", async () => {
+  const { posts, summary } = await runAgainstMock({
+    state: {
+      kind: "skip",
+      reason: "the previous manifest request returned HTTP 503",
+    },
+    current: { [url("a")]: "1" },
+  });
+
+  assert.deepEqual(posts, []);
+  assert.equal(
+    summary,
+    "IndexNow skipped: no diff computed, the previous manifest request returned HTTP 503.\n",
+  );
+});
+
+test("fetchPreviousState_Should_ReturnFirstRun_When_Status404", async () => {
+  assert.deepEqual(await fetchStateFromMock(404, "not found"), {
+    kind: "first-run",
+  });
+});
+
+test("fetchPreviousState_Should_ReturnSkip_When_ServerErrors", async () => {
+  assert.deepEqual(await fetchStateFromMock(500, ""), {
+    kind: "skip",
+    reason: "the previous manifest request returned HTTP 500",
+  });
+  assert.deepEqual(await fetchStateFromMock(503, ""), {
+    kind: "skip",
+    reason: "the previous manifest request returned HTTP 503",
+  });
+});
+
+test("fetchPreviousState_Should_ReturnSkip_When_ConnectionIsRefused", async () => {
+  const server = createServer();
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address();
+  await new Promise((resolve) => server.close(resolve));
+
+  const state = await fetchPreviousState({
+    manifestUrl: `http://127.0.0.1:${port}/indexnow-manifest.json`,
+    attempts: 2,
+    retryDelayMs: 0,
+  });
+
+  assert.deepEqual(state, {
+    kind: "skip",
+    reason: "the previous manifest request failed (fetch failed, ECONNREFUSED)",
+  });
+});
+
+test("fetchPreviousState_Should_ReturnSkip_When_BodyIsNotAManifest", async () => {
+  assert.deepEqual(await fetchStateFromMock(200, "not json"), {
+    kind: "skip",
+    reason:
+      "the previous manifest is invalid (Unexpected token 'o', \"not json\" is not valid JSON)",
+  });
+});
+
+test("fetchPreviousState_Should_ReturnManifest_When_Status200", async () => {
+  assert.deepEqual(await fetchStateFromMock(200, '{"a":"1"}'), {
+    kind: "manifest",
+    manifest: { a: "1" },
+  });
+});
+
+test("fetchPreviousState_Should_Retry_When_FirstAttemptFails", async () => {
+  const responses = [
+    new Response("", { status: 502 }),
+    new Response('{"a":"1"}'),
+  ];
+
+  const state = await fetchPreviousState({
+    manifestUrl: url("indexnow-manifest.json"),
+    fetchImpl: async () => responses.shift(),
+    sleep: async () => {},
+  });
+
+  assert.deepEqual(state, { kind: "manifest", manifest: { a: "1" } });
+});
+
+test("runFetchPrevious_Should_PersistTheOutcome_When_ManifestIsFirstRun", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "indexnow-"));
+  const statePath = path.join(directory, "state.json");
+  try {
+    await runFetchPrevious(
+      { INDEXNOW_PREVIOUS_STATE: statePath },
+      { fetchImpl: async () => new Response("", { status: 404 }) },
+    );
+
+    assert.deepEqual(JSON.parse(await readFile(statePath, "utf8")), {
+      kind: "first-run",
+    });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

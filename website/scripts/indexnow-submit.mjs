@@ -159,19 +159,114 @@ async function writeSummary(env, line) {
   }
 }
 
-async function readPreviousManifest(env) {
-  const previousPath = env.INDEXNOW_PREVIOUS_MANIFEST;
-  if (!previousPath) {
-    warn("No previous manifest configured, treating this as a first run.");
-    return null;
+/**
+ * Fetches the manifest of the live site before a deploy and classifies the
+ * outcome. Only an HTTP 404 is a first run. A network error, any other
+ * non-200 status or an invalid manifest is a skip with the reason.
+ */
+export async function fetchPreviousState({
+  manifestUrl,
+  fetchImpl = fetch,
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  attempts = 3,
+  retryDelayMs = 5_000,
+}) {
+  let reason = "the previous manifest was never fetched";
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    if (attempt > 1) {
+      await sleep(retryDelayMs);
+    }
+    try {
+      const url = new URL(manifestUrl);
+      url.searchParams.set("cache-bust", `${Date.now()}-${attempt}`);
+      const response = await fetchImpl(url, {
+        headers: { "cache-control": "no-cache" },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      if (response.status === 404) {
+        return { kind: "first-run" };
+      }
+      if (response.status !== 200) {
+        reason = `the previous manifest request returned HTTP ${response.status}`;
+        continue;
+      }
+      try {
+        return {
+          kind: "manifest",
+          manifest: parseManifest(await response.text()),
+        };
+      } catch (error) {
+        return {
+          kind: "skip",
+          reason: `the previous manifest is invalid (${error.message})`,
+        };
+      }
+    } catch (error) {
+      reason = `the previous manifest request failed (${describeError(error)})`;
+    }
+  }
+
+  return { kind: "skip", reason };
+}
+
+/**
+ * Fetches the previous manifest and persists the outcome to
+ * `INDEXNOW_PREVIOUS_STATE` for the submit step. Never throws.
+ */
+export async function runFetchPrevious(env = process.env, options = {}) {
+  const statePath = env.INDEXNOW_PREVIOUS_STATE;
+  try {
+    if (!statePath) {
+      throw new Error("INDEXNOW_PREVIOUS_STATE is not set");
+    }
+    await fs.rm(statePath, { force: true });
+    const retryDelay = Number(env.INDEXNOW_FETCH_RETRY_DELAY_SECONDS);
+    const state = await fetchPreviousState({
+      manifestUrl: env.INDEXNOW_LIVE_MANIFEST_URL || DEFAULT_LIVE_MANIFEST_URL,
+      ...(Number.isFinite(retryDelay) && retryDelay >= 0
+        ? { retryDelayMs: retryDelay * 1000 }
+        : {}),
+      ...options,
+    });
+    await fs.writeFile(statePath, JSON.stringify(state), "utf8");
+    if (state.kind === "skip") {
+      warn(`The next submit will be skipped, ${state.reason}.`);
+    } else {
+      console.log(
+        `::notice::IndexNow: previous state is ${state.kind === "first-run" ? "a first run (HTTP 404)" : `a manifest with ${Object.keys(state.manifest).length} URLs`}.`,
+      );
+    }
+  } catch (error) {
+    warn(`Could not record the previous manifest (${describeError(error)}).`);
+  }
+}
+
+async function readPreviousState(env) {
+  const statePath = env.INDEXNOW_PREVIOUS_STATE;
+  if (!statePath) {
+    return { kind: "skip", reason: "no previous state file is configured" };
   }
   try {
-    return parseManifest(await fs.readFile(previousPath, "utf8"));
+    const state = JSON.parse(await fs.readFile(statePath, "utf8"));
+    if (state?.kind === "first-run") {
+      return { kind: "first-run" };
+    }
+    if (state?.kind === "manifest") {
+      return {
+        kind: "manifest",
+        manifest: parseManifest(JSON.stringify(state.manifest)),
+      };
+    }
+    if (state?.kind === "skip" && typeof state.reason === "string") {
+      return state;
+    }
+    throw new Error("unknown state");
   } catch (error) {
-    warn(
-      `Previous manifest is missing or invalid (${error.message}), treating this as a first run.`,
-    );
-    return null;
+    return {
+      kind: "skip",
+      reason: `the previous state is missing or invalid, the pre-deploy fetch did not complete (${error.message})`,
+    };
   }
 }
 
@@ -186,15 +281,26 @@ function positiveSeconds(value, fallback) {
  */
 export async function run(env = process.env, options = {}) {
   const { fetchImpl = fetch, sleep, now } = options;
+  let counts = "no diff computed";
   try {
     const dryRun = /^(1|true)$/i.test(env.INDEXNOW_DRY_RUN ?? "");
     const endpoint = env.INDEXNOW_ENDPOINT || DEFAULT_ENDPOINT;
     const manifestPath = env.INDEXNOW_MANIFEST || DEFAULT_MANIFEST_PATH;
 
+    const state = await readPreviousState(env);
+    if (state.kind === "skip") {
+      warn(`Skipping submission, no diff computed: ${state.reason}.`);
+      await writeSummary(
+        env,
+        `IndexNow skipped: no diff computed, ${state.reason}.`,
+      );
+      return;
+    }
+
     const current = parseManifest(await fs.readFile(manifestPath, "utf8"));
-    const previous = await readPreviousManifest(env);
+    const previous = state.kind === "manifest" ? state.manifest : null;
     const { added, changed, removed } = diffManifests(previous, current);
-    const counts = `${added.length} added, ${changed.length} changed, ${removed.length} removed${previous ? "" : " (first run)"}`;
+    counts = `${added.length} added, ${changed.length} changed, ${removed.length} removed${previous ? "" : " (first run)"}`;
 
     const urlList = [...added, ...changed, ...removed].filter((url) => {
       try {
@@ -281,8 +387,11 @@ export async function run(env = process.env, options = {}) {
     console.log(`::notice::IndexNow submitted ${outcome}.`);
     await writeSummary(env, `IndexNow submitted ${outcome}.`);
   } catch (error) {
-    warn(`Submission failed (${describeError(error)}).`);
-    await writeSummary(env, "IndexNow failed, see the step log.");
+    warn(`Submission failed (${describeError(error)}) (${counts}).`);
+    await writeSummary(
+      env,
+      `IndexNow failed: ${oneLine(describeError(error))} (${counts}).`,
+    );
   }
 }
 
@@ -290,5 +399,9 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
 ) {
-  await run();
+  if (process.argv[2] === "fetch-previous") {
+    await runFetchPrevious();
+  } else {
+    await run();
+  }
 }

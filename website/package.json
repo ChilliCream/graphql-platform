@@ -12,6 +12,7 @@
     "generate:llms": "node scripts/generate-llms-files.mjs",
     "validate:llms": "node scripts/validate-llms-files.mjs",
     "generate:indexnow-manifest": "node scripts/generate-indexnow-manifest.mjs",
+    "indexnow:fetch-previous": "node scripts/indexnow-submit.mjs fetch-previous",
     "indexnow:submit": "node scripts/indexnow-submit.mjs",
     "validate:structured-data": "node scripts/validate-structured-data.mjs",
     "validate:benchmarks": "node scripts/validate-benchmark-report.mjs",

@@ -110,14 +110,10 @@ jobs:
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
         timeout-minutes: 3
-        run: |
-          rm -f "$RUNNER_TEMP/indexnow-previous-manifest.json"
-          curl --fail --silent --show-error --location --max-time 60 --retry 2 \
-            --header 'Cache-Control: no-cache' \
-            --output "$RUNNER_TEMP/indexnow-previous-manifest.json" \
-            "https://chillicream.com/indexnow-manifest.json?cache-bust=${GITHUB_RUN_ID}" \
-            || echo "::warning::IndexNow: could not fetch the previous manifest, this deploy is treated as a first run."
-          exit 0
+        run: npm run indexnow:fetch-previous
+        working-directory: website
+        env:
+          INDEXNOW_PREVIOUS_STATE: ${{ runner.temp }}/indexnow-previous-state.json
 
       - name: Deploy to Azure WebApp
         uses: azure/webapps-deploy@02a81bead70021f5284939794bcec79c271ab383 # v3.0.8
@@ -141,4 +137,4 @@ jobs:
         run: npm run indexnow:submit
         working-directory: website
         env:
-          INDEXNOW_PREVIOUS_MANIFEST: ${{ runner.temp }}/indexnow-previous-manifest.json
+          INDEXNOW_PREVIOUS_STATE: ${{ runner.temp }}/indexnow-previous-state.json
