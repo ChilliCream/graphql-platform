@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mocha.Mediator\Mocha.Mediator.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Mediator.Abstractions\Mocha.Mediator.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Mediator.OpenTelemetry\Mocha.Mediator.OpenTelemetry.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Xunit3\CookieCrumble.Xunit3.csproj" />
     <ProjectReference
@@ -16,5 +17,7 @@
       OutputItemType="Analyzer"
     />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
   </ItemGroup>
 </Project>
