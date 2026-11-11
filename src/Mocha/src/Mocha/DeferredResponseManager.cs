@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Mocha.Events;
 using static System.Threading.Tasks.TaskCreationOptions;
 
 namespace Mocha;
@@ -20,21 +19,54 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
     /// <returns>A <see cref="TaskCompletionSource{T}"/> that completes when the correlated response arrives or the timeout elapses.</returns>
     public TaskCompletionSource<object?> AddPromise(string correlationId, TimeSpan? timeout = null)
     {
-        timeout ??= _defaultTimeout;
-        var tcs = new TaskCompletionSource<object?>(RunContinuationsAsynchronously);
-        var cts = new CancellationTokenSource(timeout.Value, timeProvider);
-        var promise = new Promise(tcs, cts, timeout.Value);
+        var duration = timeout ?? _defaultTimeout;
+        var timeoutSource = new CancellationTokenSource(duration, timeProvider);
+        return AddPromise(correlationId, duration, timeoutSource.Token, timeoutSource);
+    }
 
-        cts.Token.Register(() =>
+    internal CancellationTokenSource CreateRequestTimeout() => new(_defaultTimeout, timeProvider);
+
+    internal TaskCompletionSource<object?> AddPromise(string correlationId, CancellationToken timeoutToken)
+        => AddPromise(correlationId, _defaultTimeout, timeoutToken, ownedTimeout: null);
+
+    private TaskCompletionSource<object?> AddPromise(
+        string correlationId,
+        TimeSpan timeout,
+        CancellationToken timeoutToken,
+        CancellationTokenSource? ownedTimeout)
+    {
+        var tcs = new TaskCompletionSource<object?>(RunContinuationsAsynchronously);
+        var promise = new Promise(tcs, ownedTimeout, timeout);
+        _matches.TryAdd(correlationId, promise);
+
+        timeoutToken.Register(() =>
         {
             if (_matches.TryRemove(correlationId, out var p))
             {
-                p.TaskCompletionSource.TrySetException(new ResponseTimeoutException(correlationId, p.Timeout));
+                p.TaskCompletionSource.TrySetException(ThrowHelper.ResponseTimedOut(correlationId, p.Timeout));
+                p.OwnedTimeout?.Dispose();
             }
         });
 
-        _matches.TryAdd(correlationId, promise);
         return tcs;
+    }
+
+    internal async ValueTask ReleasePromiseAsync(string correlationId, Task completion)
+    {
+        if (_matches.TryRemove(correlationId, out var promise))
+        {
+            promise.OwnedTimeout?.Dispose();
+            promise.TaskCompletionSource.TrySetCanceled();
+        }
+
+        try
+        {
+            await completion;
+        }
+        catch
+        {
+            // The request has already reported its response or dispatch failure.
+        }
     }
 
     /// <summary>
@@ -62,8 +94,7 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
     {
         if (_matches.TryRemove(correlationId, out var promise))
         {
-            promise.Cts.Cancel();
-            promise.Cts.Dispose();
+            promise.OwnedTimeout?.Dispose();
             promise.TaskCompletionSource.SetException(exception);
         }
     }
@@ -78,8 +109,7 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
     {
         if (_matches.TryRemove(correlationId, out var promise))
         {
-            promise.Cts.Cancel();
-            promise.Cts.Dispose();
+            promise.OwnedTimeout?.Dispose();
             promise.TaskCompletionSource.SetResult(response);
             return true;
         }
@@ -89,6 +119,6 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
 
     private sealed record Promise(
         TaskCompletionSource<object?> TaskCompletionSource,
-        CancellationTokenSource Cts,
+        CancellationTokenSource? OwnedTimeout,
         TimeSpan Timeout);
 }

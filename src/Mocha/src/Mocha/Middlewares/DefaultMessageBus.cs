@@ -154,9 +154,8 @@ public sealed class DefaultMessageBus(
     /// Sends a typed request and asynchronously waits for the corresponding response using the specified send options.
     /// </summary>
     /// <remarks>
-    /// A correlation ID is generated for the request, and a deferred response promise is registered
-    /// so the bus can match the incoming reply. The caller blocks until the response arrives or the
-    /// <paramref name="cancellationToken"/> is triggered.
+    /// The two-minute response timeout includes time spent dispatching the request.
+    /// The <paramref name="cancellationToken"/> cancels both dispatch and waiting for the response.
     /// </remarks>
     /// <typeparam name="TResponse">The expected response event type.</typeparam>
     /// <param name="message">The request message that defines the expected response contract.</param>
@@ -262,42 +261,55 @@ public sealed class DefaultMessageBus(
 
         var replyEndpoint = options.ReplyEndpoint;
         var faultEndpoint = options.FaultEndpoint;
-        // var operationName = $"send {endpoint}";
         var correlationId = Guid.NewGuid().ToString();
 
         var headers = options.Headers;
 
-        var waitHandle = _deferredResponseManager.AddPromise(correlationId);
+        using var timeoutSource = _deferredResponseManager.CreateRequestTimeout();
+        var timeoutToken = timeoutSource.Token;
+        var waitHandle = _deferredResponseManager.AddPromise(correlationId, timeoutToken);
+        using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutToken);
 
-        var context = _contextPool.Get();
         try
         {
-            PropagateCorrelationIds(context);
-            context.CorrelationId = correlationId;
-            context.Initialize(services, endpoint, runtime, requestType, cancellationToken);
+            var context = _contextPool.Get();
+            try
+            {
+                PropagateCorrelationIds(context);
+                context.CorrelationId = correlationId;
+                context.Initialize(services, endpoint, runtime, requestType, requestCts.Token);
 
-            context.Message = message;
-            context.AddHeaders(headers);
-            context.Headers.SetMessageKind(MessageKind.Request);
-            context.ResponseAddress = replyEndpoint ?? endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
-            context.FaultAddress = faultEndpoint;
-            context.ScheduledTime = options.ScheduledTime;
-            context.DeliverBy = options.ExpirationTime;
+                context.Message = message;
+                context.AddHeaders(headers);
+                context.Headers.SetMessageKind(MessageKind.Request);
+                context.ResponseAddress = replyEndpoint ?? endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+                context.FaultAddress = faultEndpoint;
+                context.ScheduledTime = options.ScheduledTime;
+                context.DeliverBy = options.ExpirationTime;
 
-            await endpoint.ExecuteAsync(context);
+                await endpoint.ExecuteAsync(context);
+            }
+            catch (OperationCanceledException)
+                when (timeoutToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                await waitHandle.Task;
+            }
+            finally
+            {
+                _contextPool.Return(context);
+            }
+
+            if (await waitHandle.Task.WaitAsync(cancellationToken) is TResponse response)
+            {
+                return response;
+            }
+
+            throw ThrowHelper.UnexpectedResponseType();
         }
         finally
         {
-            _contextPool.Return(context);
+            await _deferredResponseManager.ReleasePromiseAsync(correlationId, waitHandle.Task);
         }
-
-        var result = await waitHandle.Task.WaitAsync(cancellationToken);
-        if (result is TResponse response)
-        {
-            return response;
-        }
-
-        throw ThrowHelper.UnexpectedResponseType();
     }
 
     /// <summary>

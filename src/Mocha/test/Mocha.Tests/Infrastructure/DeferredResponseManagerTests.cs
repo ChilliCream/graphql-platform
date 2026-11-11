@@ -6,6 +6,45 @@ namespace Mocha.Tests;
 public class DeferredResponseManagerTests
 {
     [Fact]
+    public async Task AddPromise_Should_CancelDispatch_When_DefaultTimeoutExpires()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider();
+        var manager = new DeferredResponseManager(timeProvider);
+        using var timeout = manager.CreateRequestTimeout();
+        var promise = manager.AddPromise("request", timeout.Token);
+
+        // act
+        timeProvider.Advance(TimeSpan.FromMinutes(2));
+
+        // assert
+        Assert.True(timeout.IsCancellationRequested);
+        var exception = await Assert.ThrowsAsync<ResponseTimeoutException>(() => promise.Task);
+        Assert.Equal("request", exception.CorrelationId);
+        Assert.Equal(TimeSpan.FromMinutes(2), exception.Timeout);
+    }
+
+    [Fact]
+    public async Task CompletePromise_Should_PreserveRequestDeadline_When_ResponseArrivesBeforeDispatchCompletes()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider();
+        var manager = new DeferredResponseManager(timeProvider);
+        using var timeout = manager.CreateRequestTimeout();
+        var promise = manager.AddPromise("request", timeout.Token);
+
+        // act
+        manager.CompletePromise("request", "response");
+        var cancelledBeforeDeadline = timeout.IsCancellationRequested;
+        timeProvider.Advance(TimeSpan.FromMinutes(2));
+
+        // assert
+        Assert.Equal("response", await promise.Task);
+        Assert.False(cancelledBeforeDeadline);
+        Assert.True(timeout.IsCancellationRequested);
+    }
+
+    [Fact]
     public async Task AddPromise_Should_CompletePromiseAndReturnResult_When_PromiseCompleted()
     {
         // arrange

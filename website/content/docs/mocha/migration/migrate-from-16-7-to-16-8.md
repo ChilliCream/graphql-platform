@@ -7,6 +7,12 @@ Update every `Mocha.*` package in the application to version 16.8 before applyin
 
 Entries that name RabbitMQ, the Postgres outbox, or Azure Service Bus apply to applications that use them. All other entries apply to every transport.
 
+# Behavioral breaking changes
+
+## RequestAsync cancels a dispatch that outlasts the response timeout
+
+The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).
+
 # Health check, log, and trace changes
 
 ## The receive path logs faults, retries, and redeliveries
