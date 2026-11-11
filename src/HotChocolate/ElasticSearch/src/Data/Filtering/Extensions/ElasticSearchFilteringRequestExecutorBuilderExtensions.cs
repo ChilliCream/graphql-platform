@@ -33,7 +33,7 @@ public static class ElasticSearchFilteringRequestExecutorBuilderExtensions
 
     /// <summary>
     /// Adds filtering over ES|QL to the schema, with the serializer options of the ES|QL client,
-    /// which write the values that a filter on a list of objects compares.
+    /// which give the field names and the values that a filter on a list of objects compares.
     /// </summary>
     /// <param name="builder">The request executor builder.</param>
     /// <param name="options">The serializer options of the ES|QL client.</param>

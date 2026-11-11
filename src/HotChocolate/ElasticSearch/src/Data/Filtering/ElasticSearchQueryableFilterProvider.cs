@@ -29,6 +29,7 @@ internal sealed class ElasticSearchQueryableFilterProvider : QueryableFilterProv
 
     public ElasticSearchQueryableFilterProvider(JsonSerializerOptions options)
     {
+        _namingPolicy = options.PropertyNamingPolicy;
         _options = options;
     }
 

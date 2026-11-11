@@ -45,7 +45,7 @@ builder
     .AddElasticSearchFiltering();
 ```
 
-Field names are camel case by default. If the client uses another naming policy, pass it to `AddElasticSearchFiltering(namingPolicy)`. A `JsonPropertyName` attribute on a property takes precedence.
+Field names are camel case by default. If the client uses another naming policy, pass it to `AddElasticSearchFiltering(namingPolicy)`, or pass the serializer options of the client to `AddElasticSearchFiltering(options)`, which reads the naming policy from them. A `JsonPropertyName` attribute on a property takes precedence.
 
 A field whose resolver does not return an ES|QL query, such as a list in memory or an Entity Framework query, is filtered as with `AddFiltering`.
 

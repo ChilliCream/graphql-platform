@@ -41,9 +41,10 @@ public class TestBase
         await _http.DeleteAsync("/_all", TestContext.Current.CancellationToken);
 
         var enumsAsText = options?.Converters.Any(c => c is JsonStringEnumConverter) == true;
+        var naming = (options ?? s_options).PropertyNamingPolicy;
         var mapping = new JsonObject
         {
-            ["mappings"] = new JsonObject { ["properties"] = Properties(typeof(T), enumsAsText) }
+            ["mappings"] = new JsonObject { ["properties"] = Properties(typeof(T), naming, enumsAsText) }
         };
         using var created = await _http.PutAsync(
             "/" + DefaultIndexName,
@@ -74,21 +75,22 @@ public class TestBase
         }
     }
 
-    private static JsonObject Properties(Type type, bool enumsAsText)
+    private static JsonObject Properties(Type type, JsonNamingPolicy? naming, bool enumsAsText)
     {
         var properties = new JsonObject();
 
         foreach (var property in type.GetProperties())
         {
             var name = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name
-                ?? JsonNamingPolicy.CamelCase.ConvertName(property.Name);
-            properties[name] = Mapping(property.PropertyType, property, enumsAsText);
+                ?? naming?.ConvertName(property.Name)
+                ?? property.Name;
+            properties[name] = Mapping(property.PropertyType, property, naming, enumsAsText);
         }
 
         return properties;
     }
 
-    private static JsonObject Mapping(Type type, PropertyInfo property, bool enumsAsText)
+    private static JsonObject Mapping(Type type, PropertyInfo property, JsonNamingPolicy? naming, bool enumsAsText)
     {
         type = Nullable.GetUnderlyingType(type) ?? type;
 
@@ -141,10 +143,10 @@ public class TestBase
 
         if (element is not null)
         {
-            return Mapping(element, property, enumsAsText);
+            return Mapping(element, property, naming, enumsAsText);
         }
 
-        var mapping = new JsonObject { ["properties"] = Properties(type, enumsAsText) };
+        var mapping = new JsonObject { ["properties"] = Properties(type, naming, enumsAsText) };
 
         if (property.IsDefined(typeof(ElasticSearchNestedAttribute)))
         {

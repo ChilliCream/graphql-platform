@@ -357,9 +357,42 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
             TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
             Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
         };
-        var client = CreateClient(options);
 
         // act
+        var (expected, actual) = await ExecuteWithOptionsAsync(nested, filter, options);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
+    [Theory]
+    [InlineData(false, """some: { bar: { eq: "B1" } }""")]
+    [InlineData(false, """some: { details: { code: { eq: "a" } } }""")]
+    [InlineData(true, """some: { bar: { eq: "A1" }, qux: { eq: "Z" } }""")]
+    [InlineData(true, """some: { details: { shipping: { city: { eq: "c" } } } }""")]
+    [InlineData(true, """none: { note: { eq: null } }""")]
+    public async Task Filter_Should_MatchLinq_When_OptionsNameFieldsWithAnotherPolicy(bool nested, string filter)
+    {
+        // arrange
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseUpper,
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+        };
+
+        // act
+        var (expected, actual) = await ExecuteWithOptionsAsync(nested, filter, options);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
+    private async Task<(JsonNode Expected, JsonNode Actual)> ExecuteWithOptionsAsync(
+        bool nested,
+        string filter,
+        JsonSerializerOptions options)
+    {
+        var client = CreateClient(options);
         JsonNode expected;
         JsonNode actual;
 
@@ -380,8 +413,7 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
                 () => client.CreateQuery<ObjectDocument>().From(Client.Index), true, "items", filter, options);
         }
 
-        // assert
-        Assert.Equal(Names(expected), Names(actual));
+        return (expected, actual);
     }
 
     private IQueryable<T> Query<T>() where T : class => Client.Esql.CreateQuery<T>().From(Client.Index);
