@@ -4,10 +4,9 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Messaging)]
 public class RequestReplyTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public RequestReplyTests(RabbitMQFixture fixture)
@@ -95,7 +94,7 @@ public class RequestReplyTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the request within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the request within timeout");
     }
 
     [Fact]
