@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -16,6 +17,12 @@ public sealed class BrokerFaults
         _fixture = fixture;
         _resource = resource;
     }
+
+    /// <summary>
+    /// Gets whether the node is in maintenance mode, in which neither the management API nor a new connection
+    /// reaches it.
+    /// </summary>
+    internal bool IsNodeDrained { get; private set; }
 
     /// <summary>
     /// Makes the broker close consumer channels that hold a delivery longer than <paramref name="timeout"/>,
@@ -98,6 +105,7 @@ public sealed class BrokerFaults
     /// </summary>
     public async Task<IAsyncDisposable> DrainNodeAsync()
     {
+        IsNodeDrained = true;
         try
         {
             await _fixture.InvokeCommandAsync(["rabbitmq-upgrade", "drain"]);
@@ -108,7 +116,11 @@ public sealed class BrokerFaults
             // mode anyway, so the returned handle must still revive it.
         }
 
-        return new AsyncDisposable(() => _fixture.InvokeCommandAsync(["rabbitmq-upgrade", "revive"]));
+        return new AsyncDisposable(async () =>
+        {
+            await _fixture.InvokeCommandAsync(["rabbitmq-upgrade", "revive"]);
+            IsNodeDrained = false;
+        });
     }
 }
 
@@ -117,6 +129,10 @@ public sealed class BrokerFaults
 /// </summary>
 public sealed class VhostFaults
 {
+    // The transport takes a consumer that is lost within a second of attaching for one that keeps failing, and
+    // backs off before it attaches it again.
+    private static readonly TimeSpan s_consumerSettleTime = TimeSpan.FromSeconds(1);
+
     private readonly RabbitMQFixture _fixture;
     private readonly string _vhostName;
     private readonly BrokerView _broker;
@@ -130,17 +146,24 @@ public sealed class VhostFaults
 
     /// <summary>
     /// Force-closes every connection to the vhost, and returns the broker's identifiers of the closed connections
-    /// once the broker no longer lists them. Throws when the vhost has no connection.
+    /// once the broker no longer lists them. Throws when the vhost has no connection. The connections are closed
+    /// one second after the call at the earliest.
     /// </summary>
     public async Task<IReadOnlyList<string>> CloseConnectionsAsync()
     {
-        var connections = (await _broker.GetConnectionsAsync()).Select(connection => connection.Pid).ToArray();
-        if (connections.Length == 0)
+        var requestedAt = Stopwatch.GetTimestamp();
+        var connections = await _broker.GetConnectionsAsync();
+        if (connections.Count == 0)
         {
             throw new InvalidOperationException($"Vhost '{_vhostName}' has no connection to close.");
         }
 
-        await _fixture.InvokeCommandAsync(["rabbitmqctl", "close_all_connections", "-p", _vhostName, "test"]);
+        await WaitForConsumersToSettleAsync(requestedAt);
+        foreach (var connection in connections)
+        {
+            await _fixture.CloseConnectionAsync(connection);
+        }
+
         await WaitForClosedAsync(connections);
 
         return connections;
@@ -149,15 +172,15 @@ public sealed class VhostFaults
     /// <summary>
     /// Force-closes the connection that consumes <paramref name="queueName"/>, leaves the others open, and returns
     /// the broker's identifier of the closed connection once the broker no longer lists it. Throws when the queue
-    /// does not have exactly one consumer.
+    /// does not have exactly one consumer. The connection is closed one second after the call at the earliest.
     /// </summary>
     public async Task<IReadOnlyList<string>> CloseConsumerConnectionAsync(string queueName)
     {
-        var consumer = await _broker.GetConsumerAsync(queueName);
-        var channels = await _fixture.ListAsync("list_channels", "pid", "connection");
-        var connection = channels.Single(row => row["pid"] == consumer.ChannelPid)["connection"];
+        var requestedAt = Stopwatch.GetTimestamp();
+        var connection = await _broker.GetConsumerConnectionAsync(queueName);
 
-        await _fixture.InvokeCommandAsync(["rabbitmqctl", "close_connection", connection, "test"]);
+        await WaitForConsumersToSettleAsync(requestedAt);
+        await _fixture.CloseConnectionAsync(connection);
         await WaitForClosedAsync([connection]);
 
         return [connection];
@@ -191,7 +214,9 @@ public sealed class VhostFaults
                 end
             end,
             Readers = [R || R <- rabbit_networking:connections(),
-                            (catch rabbit_reader:info(R, [vhost])) =:= [{vhost, <<"{{_vhostName}}">>}]],
+                            Info <- [catch rabbit_reader:info(R, [vhost, user])],
+                            is_list(Info), proplists:get_value(vhost, Info) =:= <<"{{_vhostName}}">>,
+                            proplists:get_value(user, Info) =/= <<"{{RabbitMQFixture.ManagementUser}}">>],
             Sups = [Sup || R <- Readers,
                            {dictionary, Dictionary} <- [process_info(R, dictionary)],
                            [Sup | _] <- [proplists:get_value('$ancestors', Dictionary, [])]],
@@ -247,6 +272,7 @@ public sealed class VhostFaults
     {
         await _fixture.PutAsync($"users/{Uri.EscapeDataString(userName)}", new { password, tags = "" });
         await SetPermissionsAsync(userName, ".*", ".*", ".*");
+        _broker.IncludeUser(userName);
 
         return new AsyncDisposable(async () =>
         {
@@ -292,13 +318,19 @@ public sealed class VhostFaults
         await SetReadPermissionAsync(pattern);
     }
 
-    private Task WaitForClosedAsync(string[] connections)
+    // Completes once a consumer that was attached at the given time has been attached for the settle time.
+    private static Task WaitForConsumersToSettleAsync(long attachedBefore)
+    {
+        var remaining = s_consumerSettleTime - Stopwatch.GetElapsedTime(attachedBefore);
+
+        return remaining > TimeSpan.Zero
+            ? Task.Delay(remaining, TestContext.Current.CancellationToken)
+            : Task.CompletedTask;
+    }
+
+    private Task WaitForClosedAsync(IReadOnlyList<string> connections)
         => Wait.UntilAsync(
-            async () =>
-            {
-                var open = await _fixture.ListAsync("list_connections", "pid");
-                return open.Select(row => row["pid"]).Intersect(connections).ToArray();
-            },
+            async () => (await _broker.GetConnectionsAsync()).Intersect(connections).ToArray(),
             remaining => remaining.Length == 0,
             $"the broker to close the connections [{string.Join(", ", connections)}] to vhost '{_vhostName}'");
 }

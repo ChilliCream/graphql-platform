@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -12,11 +13,23 @@ public sealed partial class BrokerView
     private readonly RabbitMQFixture _fixture;
     private readonly string _vhostName;
 
+    // The users whose connections to the vhost are connections of the test.
+    private ImmutableArray<string> _userNames = ["guest"];
+
     internal BrokerView(RabbitMQFixture fixture, string vhostName)
     {
         _fixture = fixture;
         _vhostName = vhostName;
     }
+
+    /// <summary>
+    /// Counts the connections of <paramref name="userName"/> to the vhost as connections of the test.
+    /// </summary>
+    internal void IncludeUser(string userName)
+        => ImmutableInterlocked.Update(
+            ref _userNames,
+            static (userNames, added) => userNames.Contains(added) ? userNames : userNames.Add(added),
+            userName);
 
     /// <summary>
     /// Gets the queues of the vhost by name.
@@ -72,17 +85,9 @@ public sealed partial class BrokerView
     }
 
     /// <summary>
-    /// Gets the connections to the vhost.
+    /// Gets the broker's names of the open connections to the vhost.
     /// </summary>
-    public async Task<IReadOnlyList<ConnectionInfo>> GetConnectionsAsync()
-    {
-        var connections = await _fixture.ListAsync("list_connections", "pid", "vhost", "state");
-
-        return connections
-            .Where(row => row["vhost"] == _vhostName)
-            .Select(row => new ConnectionInfo(row["pid"], row["state"]))
-            .ToArray();
-    }
+    public Task<IReadOnlyList<string>> GetConnectionsAsync() => _fixture.GetConnectionsAsync(_vhostName, _userNames);
 
     /// <summary>
     /// Gets the number of open connections to the vhost.
@@ -94,10 +99,10 @@ public sealed partial class BrokerView
     /// </summary>
     public async Task<IReadOnlyList<string>> GetConnectionNamesAsync()
     {
-        var connections = await _fixture.ListAsync("list_connections", "vhost", "client_properties");
+        var connections = await _fixture.ListAsync("list_connections", "vhost", "user", "client_properties");
 
         return connections
-            .Where(row => row["vhost"] == _vhostName)
+            .Where(row => row["vhost"] == _vhostName && row["user"] != RabbitMQFixture.ManagementUser)
             .Select(row => ConnectionNameProperty().Match(row["client_properties"]))
             .Where(match => match.Success)
             .Select(match => match.Groups["name"].Value)
@@ -116,12 +121,16 @@ public sealed partial class BrokerView
             QueueCounts = [proplists:get_value(consumers, Info, 0)
                            || Q <- rabbit_amqqueue:list(VHost),
                               Info <- [catch rabbit_amqqueue:info(Q, [consumers])], is_list(Info)],
+            Observer = <<"{{RabbitMQFixture.ManagementUser}}">>,
             Connections = [C || C <- rabbit_networking:connections(),
-                                (catch rabbit_reader:info(C, [vhost])) =:= [{vhost, VHost}]],
+                                Info <- [catch rabbit_reader:info(C, [vhost, user])],
+                                is_list(Info), proplists:get_value(vhost, Info) =:= VHost,
+                                proplists:get_value(user, Info) =/= Observer],
             ChannelCounts = [proplists:get_value(consumer_count, Info, 0)
                              || C <- rabbit_channel:list(),
-                                Info <- [catch rabbit_channel:info(C, [vhost, consumer_count])],
-                                is_list(Info), proplists:get_value(vhost, Info) =:= VHost],
+                                Info <- [catch rabbit_channel:info(C, [vhost, user, consumer_count])],
+                                is_list(Info), proplists:get_value(vhost, Info) =:= VHost,
+                                proplists:get_value(user, Info) =/= Observer],
             [length(Connections),
              length([N || N <- ChannelCounts, N > 0]),
              length([N || N <- ChannelCounts, N =:= 0]),
@@ -158,7 +167,7 @@ public sealed partial class BrokerView
     public async Task<ConsumerInfo> WaitForConsumerAsync(string queueName)
     {
         var consumers = await Wait.UntilAsync(
-            () => GetConsumersOfAsync(queueName),
+            () => PollConsumersOfAsync(queueName),
             found => found.Count == 1,
             $"queue '{queueName}' to have one consumer");
 
@@ -172,7 +181,7 @@ public sealed partial class BrokerView
     public async Task<ConsumerInfo> WaitForConsumerAsync(string queueName, ConsumerInfo otherThan)
     {
         var consumers = await Wait.UntilAsync(
-            () => GetConsumersOfAsync(queueName),
+            () => PollConsumersOfAsync(queueName),
             found => found is [var consumer] && consumer.ConsumerTag != otherThan.ConsumerTag,
             $"queue '{queueName}' to have one consumer other than {otherThan.ConsumerTag}");
 
@@ -184,8 +193,8 @@ public sealed partial class BrokerView
     /// </summary>
     public Task WaitForNoConsumerAsync(string queueName)
         => Wait.UntilAsync(
-            () => GetQueueAsync(queueName),
-            queue => queue is null or { Consumers: 0 },
+            () => ProbeQueueAsync(queueName),
+            queue => queue is { Exists: false } or { Consumers: 0 },
             $"queue '{queueName}' to have no consumer");
 
     /// <summary>
@@ -193,8 +202,8 @@ public sealed partial class BrokerView
     /// </summary>
     public Task WaitForQueueAsync(string queueName)
         => Wait.UntilAsync(
-            () => GetQueueAsync(queueName),
-            queue => queue is not null,
+            () => ProbeQueueAsync(queueName),
+            queue => queue.Exists,
             $"queue '{queueName}' to exist");
 
     /// <summary>
@@ -202,8 +211,8 @@ public sealed partial class BrokerView
     /// </summary>
     public Task WaitForQueueDeletionAsync(string queueName)
         => Wait.UntilAsync(
-            () => GetQueueAsync(queueName),
-            queue => queue is null,
+            () => ProbeQueueAsync(queueName),
+            queue => !queue.Exists,
             $"queue '{queueName}' to be deleted");
 
     /// <summary>
@@ -211,18 +220,8 @@ public sealed partial class BrokerView
     /// </summary>
     public Task WaitForNoBindingsAsync(string queueName)
         => Wait.UntilAsync(
-            async () =>
-            {
-                var bindings = await _fixture.ListAsync(
-                    "list_bindings", "-p", _vhostName, "source_name", "destination_name");
-
-                // every queue has a binding to the default exchange, whose name is empty
-                return bindings
-                    .Where(row => row["source_name"].Length > 0 && row["destination_name"] == queueName)
-                    .Select(row => row["source_name"])
-                    .ToArray();
-            },
-            sources => sources.Length == 0,
+            () => _fixture.GetBindingSourcesAsync(_vhostName, queueName),
+            sources => sources.Count == 0,
             $"no exchange to be bound to queue '{queueName}'");
 
     /// <summary>
@@ -231,8 +230,8 @@ public sealed partial class BrokerView
     /// </summary>
     public Task WaitForMessagesAsync(string queueName, int count)
         => Wait.UntilAsync(
-            () => GetQueueAsync(queueName),
-            queue => queue?.Ready == count,
+            () => ProbeQueueAsync(queueName),
+            queue => queue.Exists && queue.Ready == count,
             $"queue '{queueName}' to hold {count} ready messages");
 
     /// <summary>
@@ -250,8 +249,8 @@ public sealed partial class BrokerView
     /// </summary>
     public Task WaitForBlockedPublisherAsync()
         => Wait.UntilAsync(
-            GetConnectionsAsync,
-            connections => connections.Any(connection => connection.State == "blocked"),
+            GetConnectionStatesAsync,
+            states => states.Contains("blocked"),
             $"a blocked connection to vhost '{_vhostName}'");
 
     /// <summary>
@@ -260,8 +259,8 @@ public sealed partial class BrokerView
     /// </summary>
     public Task WaitForAlarmAsync()
         => Wait.UntilAsync(
-            GetConnectionsAsync,
-            connections => connections.Any(connection => connection.State is "blocking" or "blocked"),
+            GetConnectionStatesAsync,
+            states => states.Contains("blocking") || states.Contains("blocked"),
             $"a resource alarm to apply to a connection to vhost '{_vhostName}'");
 
     /// <summary>
@@ -279,13 +278,75 @@ public sealed partial class BrokerView
             $"no connection to vhost '{_vhostName}'",
             within);
 
+    /// <summary>
+    /// Gets the broker's name of the connection that consumes <paramref name="queueName"/>, and throws when the
+    /// queue does not have exactly one consumer.
+    /// </summary>
+    internal async Task<string> GetConsumerConnectionAsync(string queueName)
+    {
+        var output = await _fixture.EvalAsync(
+            $$"""
+            VHost = <<"{{_vhostName}}">>,
+            Queue = rabbit_misc:r(VHost, queue, <<"{{queueName}}">>),
+            [proplists:get_value(name, rabbit_reader:info(Connection, [name]))
+             || Consumer <- rabbit_amqqueue:consumers_all(VHost),
+                proplists:get_value(queue_name, Consumer) =:= Queue,
+                {connection, Connection} <- rabbit_channel:info(
+                    proplists:get_value(channel_pid, Consumer), [connection])].
+            """);
+        var connections = BinaryLiteral().Matches(output).Select(match => match.Groups["text"].Value).ToArray();
+
+        return connections is [var connection]
+            ? connection
+            : throw new InvalidOperationException(
+                $"Expected queue '{queueName}' to have one consumer, but observed the consumer connections "
+                + $"[{string.Join(", ", connections)}].");
+    }
+
+    /// <summary>
+    /// Gets the consumers and the ready messages of a queue. A passive declare reads them without
+    /// <c>rabbitmqctl</c>, and <c>rabbitmqctl</c> reads them where a passive declare cannot.
+    /// </summary>
+    private async Task<QueueProbe> ProbeQueueAsync(string queueName)
+    {
+        if (await _fixture.ProbeQueueAsync(_vhostName, queueName) is { } probe)
+        {
+            return probe;
+        }
+
+        return await GetQueueAsync(queueName) is { } queue
+            ? new QueueProbe(Exists: true, queue.Consumers, queue.Ready)
+            : new QueueProbe(Exists: false, Consumers: 0, Ready: 0);
+    }
+
+    // The states of the connections to the vhost, such as running, blocking or blocked.
+    private async Task<IReadOnlyList<string>> GetConnectionStatesAsync()
+    {
+        var connections = await _fixture.ListAsync("list_connections", "vhost", "user", "state");
+
+        return connections
+            .Where(row => row["vhost"] == _vhostName && row["user"] != RabbitMQFixture.ManagementUser)
+            .Select(row => row["state"])
+            .ToArray();
+    }
+
     private async Task<IReadOnlyList<ConsumerInfo>> GetConsumersOfAsync(string queueName)
         => (await GetConsumersAsync()).Where(consumer => consumer.Queue == queueName).ToArray();
+
+    // The consumers of a queue for a wait, which polls without rabbitmqctl while a passive declare counts none.
+    private async Task<IReadOnlyList<ConsumerInfo>> PollConsumersOfAsync(string queueName)
+        => await _fixture.ProbeQueueAsync(_vhostName, queueName) is { Consumers: 0 }
+            ? []
+            : await GetConsumersOfAsync(queueName);
 
     private static int ParseCount(string value) => int.Parse(value, CultureInfo.InvariantCulture);
 
     [GeneratedRegex("\\{\"connection_name\",\"(?<name>[^\"]*)\"\\}")]
     private static partial Regex ConnectionNameProperty();
+
+    // An Erlang binary in the output of an eval, such as <<"text">>.
+    [GeneratedRegex("<<\"(?<text>[^\"]*)\">>")]
+    private static partial Regex BinaryLiteral();
 }
 
 /// <summary>
@@ -310,13 +371,6 @@ public sealed record QueueInfo(int Consumers, int Ready, int Unacknowledged)
 /// <param name="ChannelPid">The broker's identifier of the channel the consumer is on.</param>
 /// <param name="Prefetch">The prefetch count of the consumer.</param>
 public sealed record ConsumerInfo(string Queue, string ConsumerTag, string ChannelPid, int Prefetch);
-
-/// <summary>
-/// A connection as the broker reports it.
-/// </summary>
-/// <param name="Pid">The broker's identifier of the connection.</param>
-/// <param name="State">The state of the connection, such as <c>running</c> or <c>blocked</c>.</param>
-public sealed record ConnectionInfo(string Pid, string State);
 
 /// <summary>
 /// The connections, channels and consumers the broker holds for one vhost.

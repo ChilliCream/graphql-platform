@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 #if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
@@ -5,9 +6,11 @@ using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using CookieCrumble.Resources;
 using DotNet.Testcontainers.Containers;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 using Testcontainers.RabbitMq;
 using ContainerWait = DotNet.Testcontainers.Builders.Wait;
 
@@ -15,7 +18,11 @@ namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 public sealed class RabbitMQFixture : IAsyncLifetime
 {
-    private const string ManagementUser = "mocha-tests";
+    /// <summary>
+    /// The user the helpers observe the broker with. Its connections are not connections of a test.
+    /// </summary>
+    internal const string ManagementUser = "mocha-tests";
+
     private const string ManagementPassword = "mocha-tests";
 
 #if RABBITMQ_3
@@ -114,6 +121,128 @@ public sealed class RabbitMQFixture : IAsyncLifetime
         return rows;
     }
 
+    /// <summary>
+    /// Gets the names of the connections the given users hold to a vhost. The broker lists a connection from
+    /// the moment it is open.
+    /// </summary>
+    internal async Task<IReadOnlyList<string>> GetConnectionsAsync(
+        string vhostName,
+        IReadOnlyCollection<string> userNames)
+    {
+        if (Faults.IsNodeDrained)
+        {
+            // the management API does not answer while the node is in maintenance mode
+            var connections = await ListAsync("list_connections", "name", "vhost", "user");
+
+            return connections
+                .Where(row => row["vhost"] == vhostName && userNames.Contains(row["user"]))
+                .Select(row => row["name"])
+                .ToArray();
+        }
+
+        var names = new List<string>();
+        foreach (var userName in userNames)
+        {
+            using var response = await _management.GetAsync(
+                $"connections/username/{Uri.EscapeDataString(userName)}",
+                TestContext.Current.CancellationToken);
+            response.EnsureSuccessStatusCode();
+            await using var content = await response.Content.ReadAsStreamAsync(TestContext.Current.CancellationToken);
+            using var document = await JsonDocument.ParseAsync(
+                content,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            foreach (var connection in document.RootElement.EnumerateArray())
+            {
+                if (connection.GetProperty("vhost").GetString() == vhostName)
+                {
+                    names.Add(connection.GetProperty("name").GetString()!);
+                }
+            }
+        }
+
+        return names;
+    }
+
+    /// <summary>
+    /// Force-closes a connection the way an operator would. A connection that is closed already is ignored.
+    /// </summary>
+    internal async Task CloseConnectionAsync(string connectionName)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Delete,
+            $"connections/{Uri.EscapeDataString(connectionName)}");
+        request.Headers.Add("X-Reason", "test");
+        using var response = await _management.SendAsync(request, TestContext.Current.CancellationToken);
+        if (response.StatusCode != HttpStatusCode.NotFound)
+        {
+            response.EnsureSuccessStatusCode();
+        }
+    }
+
+    /// <summary>
+    /// Gets the names of the exchanges that are bound to a destination of the given name.
+    /// </summary>
+    internal async Task<IReadOnlyList<string>> GetBindingSourcesAsync(string vhostName, string destinationName)
+    {
+        using var response = await _management.GetAsync(
+            $"bindings/{Uri.EscapeDataString(vhostName)}",
+            TestContext.Current.CancellationToken);
+        response.EnsureSuccessStatusCode();
+        await using var content = await response.Content.ReadAsStreamAsync(TestContext.Current.CancellationToken);
+        using var document = await JsonDocument.ParseAsync(
+            content,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // every queue has a binding to the default exchange, whose name is empty
+        return document.RootElement.EnumerateArray()
+            .Where(binding => binding.GetProperty("destination").GetString() == destinationName)
+            .Select(binding => binding.GetProperty("source").GetString()!)
+            .Where(source => source.Length > 0)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Reads the consumers and the ready messages of a queue with a passive declare on a connection of its own.
+    /// Returns <see langword="null"/> when the node is in maintenance mode, or when the queue is exclusive to
+    /// another connection.
+    /// </summary>
+    internal async Task<QueueProbe?> ProbeQueueAsync(string vhostName, string queueName)
+    {
+        if (Faults.IsNodeDrained)
+        {
+            return null;
+        }
+
+        var factory = new ConnectionFactory
+        {
+            Uri = new Uri(ConnectionString),
+            VirtualHost = vhostName,
+            UserName = ManagementUser,
+            Password = ManagementPassword,
+            AutomaticRecoveryEnabled = false,
+            ClientProvidedName = $"{ManagementUser} queue probe"
+        };
+
+        await using var connection = await factory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        try
+        {
+            var queue = await channel.QueueDeclarePassiveAsync(queueName, TestContext.Current.CancellationToken);
+
+            return new QueueProbe(Exists: true, (int)queue.ConsumerCount, (int)queue.MessageCount);
+        }
+        catch (OperationInterruptedException ex) when (ex.ShutdownReason?.ReplyCode == Constants.NotFound)
+        {
+            return new QueueProbe(Exists: false, Consumers: 0, Ready: 0);
+        }
+        catch (OperationInterruptedException ex) when (ex.ShutdownReason?.ReplyCode == Constants.ResourceLocked)
+        {
+            return null;
+        }
+    }
+
     internal async Task DeleteVhostAsync(string vhostName)
     {
         await DeleteAsync($"vhosts/{Uri.EscapeDataString(vhostName)}");
@@ -178,6 +307,14 @@ public sealed class VhostContext : IAsyncDisposable
 
     public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);
 }
+
+/// <summary>
+/// What a passive declare tells about a queue.
+/// </summary>
+/// <param name="Exists">Whether the queue exists.</param>
+/// <param name="Consumers">The number of consumers on the queue.</param>
+/// <param name="Ready">The number of messages that are ready for delivery.</param>
+internal sealed record QueueProbe(bool Exists, int Consumers, int Ready);
 
 /// <summary>
 /// The collections of the tests that need a broker. Every collection has a broker of its own and runs its tests
