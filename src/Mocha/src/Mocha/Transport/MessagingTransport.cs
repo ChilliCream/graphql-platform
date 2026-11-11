@@ -204,6 +204,36 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     public bool IsStarted { get; private set; }
 
     /// <summary>
+    /// Gets whether the transport is ready to send and receive messages.
+    /// </summary>
+    public bool IsHealthy => HealthFailureReason is null;
+
+    /// <summary>
+    /// Gets the reason the transport is unhealthy, or <c>null</c> when it is healthy.
+    /// By default, the transport and all receive endpoints must be started.
+    /// </summary>
+    public virtual string? HealthFailureReason
+    {
+        get
+        {
+            if (!IsStarted)
+            {
+                return "The transport is not started.";
+            }
+
+            foreach (var endpoint in _receiveEndpoints)
+            {
+                if (!endpoint.IsStarted)
+                {
+                    return $"Receive endpoint '{endpoint.Name}' is not started.";
+                }
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Starts the transport by invoking pre-start hooks and activating all receive endpoints.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
