@@ -143,7 +143,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         // Arrange
         var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql("Host=localhost;Database=test").Options;
         using var context = new TestDbContext(options);
-        var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
+        var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo(), new PostgresOutboxOptions());
         var signal = new StubOutboxSignal();
         var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope, requireTransaction: false);
 
@@ -161,7 +161,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql(connectionString).Options;
         var context = new TestDbContext(options);
         await context.Database.EnsureCreatedAsync();
-        var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
+        var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo(), new PostgresOutboxOptions());
         var signal = new StubOutboxSignal();
         var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope, requireTransaction: false);
         return (context, outbox, signal);

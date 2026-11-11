@@ -9,6 +9,34 @@ Entries that name RabbitMQ, the Postgres outbox, or Azure Service Bus apply to a
 
 # Behavioral breaking changes
 
+## The Postgres outbox no longer counts an unavailable transport as an attempt
+
+In 16.7 every dispatch that threw an exception counted as one of the 10 attempts of an outbox message, so a broker outage could use up all attempts. In 16.8 the way a dispatch ends decides whether it counts:
+
+| The dispatch ends with                                                                               | Counted | What the processor does                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TransportUnavailableException`, a dispatch that takes longer than `DispatchTimeout`, or a host stop | No      | Releases the message unchanged, pauses, and dispatches the message again. The pause is about 100 milliseconds at first and at most 10 seconds after repeated releases. |
+| Any other exception, for example for a message that the broker refuses                               | Yes     | Dispatches the message again after 1, 2, 4, 8 seconds and so on, up to `MaxRetryDelay`.                                                                                |
+| A message that cannot be read, has an unknown message type, or matches no endpoint                   | Yes     | Dispatches the message again after the same delays.                                                                                                                    |
+
+Four new options on `PostgresOutboxOptions` control the processor:
+
+| Option                  | Default    | Description                                                                                                                              |
+| ----------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `MaxConcurrentMessages` | 1          | Number of messages that one outbox processor dispatches at the same time. A value above 1 can change the order in which messages arrive. |
+| `DispatchTimeout`       | 30 seconds | Longest time one dispatch may take before it is cancelled and the message is released.                                                   |
+| `MaxAttempts`           | 10         | Number of counted attempts after which a message is no longer dispatched.                                                                |
+| `MaxRetryDelay`         | 10 minutes | Upper bound of the delay after a counted attempt.                                                                                        |
+
+What you will observe:
+
+- During a RabbitMQ outage the attempt count (`TimesSent`) of the waiting messages does not change. With the default settings `DispatchTimeout` elapses before the `PublishTimeout` of the transport, so the log shows a Warning that ends with `did not complete within the dispatch timeout of 00:00:30. The attempt is not counted and the message is dispatched again.` for every dispatch.
+- A released message keeps its position in the outbox. With `MaxConcurrentMessages` set to 1, the messages behind it wait until it is dispatched, also messages for other destinations. This can last when a queue keeps rejecting a sent message at its length limit. A higher `MaxConcurrentMessages` lets other messages pass. In 16.7 a failed message was delayed and later messages passed it.
+- When a message reaches `MaxAttempts`, the processor writes a Critical entry with the text `Outbox message <id> (message ID <message id>, type <type>) to <destination> exhausted all 10 attempts and will not be retried.` In 16.7 the text was `Message with ID <id> exhausted all 10 attempts and will not be retried.` The row stays in the outbox table and is not dispatched again. 16.7 wrote this entry only for a message that it could not read or route. Alert on this entry. [Configure outbox retries](../reliability.md#configure-outbox-retries) describes how to dispatch the message again.
+- An idle processor looks for due messages at least every 30 seconds.
+
+Only the RabbitMQ transport throws `TransportUnavailableException`. With the Azure Service Bus and Postgres transports, a dispatch that fails during an outage still counts as an attempt, unless it takes longer than `DispatchTimeout`.
+
 ## RequestAsync cancels a dispatch that outlasts the response timeout
 
 The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).
@@ -137,6 +165,18 @@ Both circuit breakers of the receive pipeline now log when they open (`CircuitOp
 | Transport-level | `Mocha.TransportCircuitBreakerMiddleware` | `Transport circuit for endpoint` |
 
 An open circuit pauses the processing of its endpoint. Alert on `CircuitOpen`. See [Configure the circuit breaker](../reliability.md#configure-the-circuit-breaker).
+
+## Postgres outbox log entries changed
+
+The category `Mocha.Outbox.PostgresOutboxProcessor` is unchanged. These entries changed:
+
+- A failed dispatch is logged at Error with the text `The dispatch of outbox message <id> (message ID <message id>, type <type>) to <destination> failed on attempt <n> of <max>.` The entry carries the properties `Id`, `MessageId`, `MessageType`, and `DestinationAddress`. In 16.7 a failed dispatch was logged as `An unexpected error occurred while processing outbox event`, without these properties. That text now reports a failure outside a dispatch, such as a lost database connection.
+- A released dispatch is logged at Warning, or at Debug when the host stops.
+- `Outbox processor is sleeping for ...` moved from Information to Debug.
+- The Critical entry for an exhausted message is now also written for a message whose dispatch kept failing. Its text now starts with `Outbox message <id>` and names the message ID, the type, and the destination. Change alert rules that match the 16.7 text `Message with ID <id> exhausted all`.
+- When the row of a message that the transport accepted cannot be removed, for example because the database ended the session, the log shows an Error entry that ends with `was accepted by the transport, but removing its outbox row failed. The message is dispatched again unless the removal took effect.`
+
+See [Configure outbox retries](../reliability.md#configure-outbox-retries).
 
 ## The receive span carries the conversation ID
 

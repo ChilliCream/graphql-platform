@@ -1,3 +1,4 @@
+using System.Globalization;
 using Mocha.EntityFrameworkCore.Postgres;
 
 namespace Mocha.Outbox;
@@ -8,10 +9,9 @@ namespace Mocha.Outbox;
 /// </summary>
 internal sealed class PostgresMessageOutboxQueries
 {
-    /// <summary>
-    /// The number of dispatch attempts after which a message is no longer retried.
-    /// </summary>
-    public const int MaxAttempts = 10;
+    // Two to the power of 30 seconds is about 34 years, and a larger exponent would overflow for a high
+    // attempt count.
+    private const int MaxBackoffExponent = 30;
 
     /// <summary>
     /// Gets or sets the SQL statement to insert a new message envelope into the outbox table.
@@ -19,7 +19,8 @@ internal sealed class PostgresMessageOutboxQueries
     public string InsertEnvelope { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the SQL query to compute the next polling interval based on the earliest eligible message.
+    /// Gets or sets the SQL query that returns the seconds until the earliest pending message is due. The
+    /// result is not positive when a message is due, and null when no message is pending.
     /// </summary>
     public string NextPollingInterval { get; set; } = null!;
 
@@ -38,9 +39,17 @@ internal sealed class PostgresMessageOutboxQueries
     /// Creates a new <see cref="PostgresMessageOutboxQueries"/> instance with SQL queries built from the provided table metadata.
     /// </summary>
     /// <param name="t">The outbox table info containing column and table names.</param>
+    /// <param name="options">The outbox options that supply the attempt limit and the retry delay cap.</param>
     /// <returns>A fully initialized <see cref="PostgresMessageOutboxQueries"/> instance.</returns>
-    public static PostgresMessageOutboxQueries From(OutboxTableInfo t)
+    public static PostgresMessageOutboxQueries From(OutboxTableInfo t, PostgresOutboxOptions options)
     {
+        var maxAttempts = options.MaxAttempts.ToString(CultureInfo.InvariantCulture);
+        var maxRetryDelay = options.MaxRetryDelay.TotalSeconds.ToString("R", CultureInfo.InvariantCulture);
+        var retryDelay =
+            $"""
+            INTERVAL '1 second' * LEAST(POWER(2, LEAST("{t.TimesSent}", {MaxBackoffExponent})), {maxRetryDelay})
+            """;
+
         return new PostgresMessageOutboxQueries
         {
             InsertEnvelope = $"""
@@ -49,20 +58,19 @@ internal sealed class PostgresMessageOutboxQueries
                 """,
 
             NextPollingInterval = $"""
-                SELECT MIN(
-                    "{t.CreatedAt}" + INTERVAL '1 seconds' * POWER(2, "{t.TimesSent}")
-                ) AS "NextWakeUpTime"
+                SELECT (EXTRACT(EPOCH FROM MIN("{t.CreatedAt}")) - EXTRACT(EPOCH FROM NOW()))::double precision
+                    AS "SecondsUntilDue"
                 FROM {t.QualifiedTableName}
-                WHERE "{t.TimesSent}" < {MaxAttempts};
+                WHERE "{t.TimesSent}" < {maxAttempts};
                 """,
 
             ProcessEvent = $"""
                 UPDATE {t.QualifiedTableName}
                 SET "{t.TimesSent}" = "{t.TimesSent}" + 1,
-                    "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
+                    "{t.CreatedAt}" = NOW() + {retryDelay}
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < {MaxAttempts} AND "{t.CreatedAt}" <= NOW()
+                    WHERE "{t.TimesSent}" < {maxAttempts} AND "{t.CreatedAt}" <= NOW()
                     ORDER BY "{t.CreatedAt}", "{t.Id}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1
