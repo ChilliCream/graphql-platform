@@ -190,12 +190,21 @@ public sealed partial class BrokerView
 
     /// <summary>
     /// Waits until the queue <paramref name="queueName"/> has no consumer. A queue that does not exist has none.
+    /// A read of the queue after this wait sees no consumer either.
     /// </summary>
-    public Task WaitForNoConsumerAsync(string queueName)
-        => Wait.UntilAsync(
+    public async Task WaitForNoConsumerAsync(string queueName)
+    {
+        await Wait.UntilAsync(
             () => ProbeQueueAsync(queueName),
             queue => queue is { Exists: false } or { Consumers: 0 },
             $"queue '{queueName}' to have no consumer");
+
+        // The broker lists the counts of a quorum queue with a delay of up to one tick.
+        await Wait.UntilAsync(
+            () => GetQueueAsync(queueName),
+            queue => queue is null or { Consumers: 0 },
+            $"queue '{queueName}' to be listed without a consumer");
+    }
 
     /// <summary>
     /// Waits until the queue <paramref name="queueName"/> exists.
@@ -226,13 +235,21 @@ public sealed partial class BrokerView
 
     /// <summary>
     /// Waits until the queue <paramref name="queueName"/> holds <paramref name="count"/> messages that are
-    /// ready for delivery.
+    /// ready for delivery. A read of the queue after this wait sees the same count.
     /// </summary>
-    public Task WaitForMessagesAsync(string queueName, int count)
-        => Wait.UntilAsync(
+    public async Task WaitForMessagesAsync(string queueName, int count)
+    {
+        await Wait.UntilAsync(
             () => ProbeQueueAsync(queueName),
             queue => queue.Exists && queue.Ready == count,
             $"queue '{queueName}' to hold {count} ready messages");
+
+        // The broker lists the counts of a quorum queue with a delay of up to one tick.
+        await Wait.UntilAsync(
+            () => GetQueueAsync(queueName),
+            queue => queue is not null && queue.Ready == count,
+            $"queue '{queueName}' to be listed with {count} ready messages");
+    }
 
     /// <summary>
     /// Waits until the queue <paramref name="queueName"/> holds no message, neither ready nor delivered but
