@@ -34,7 +34,7 @@ jobs:
       - name: Check for changes in website directory
         id: check-website
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ./website ./src/Mocha/src/mocha-visualizer)
+          changes=$(git diff --name-only HEAD~1 HEAD -- ./website ./src/Mocha/src/mocha-visualizer ./.github/workflows/ci.yml ./.github/workflows/publish-website.yml)
           if [[ -n "$changes" ]]; then
             echo "website_changes=true" >> $GITHUB_OUTPUT
           else
