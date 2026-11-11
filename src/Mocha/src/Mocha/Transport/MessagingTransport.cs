@@ -204,7 +204,9 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     public bool IsStarted { get; private set; }
 
     /// <summary>
-    /// Starts the transport by invoking pre-start hooks and activating all receive endpoints.
+    /// Starts the transport by invoking pre-start hooks and starting the reply endpoints, then all other
+    /// receive endpoints. When a pre-start hook or an endpoint fails, the transport is stopped again without
+    /// waiting for running handlers, and the failure is rethrown.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
     /// <param name="cancellationToken">A token to cancel the startup sequence.</param>
@@ -217,20 +219,39 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             throw ThrowHelper.TransportAlreadyStarted();
         }
 
-        await OnBeforeStartAsync(context, cancellationToken);
-
-        foreach (var endpoint in ReceiveEndpoints)
+        try
         {
-            await endpoint.StartAsync(context, cancellationToken);
+            await OnBeforeStartAsync(context, cancellationToken);
+
+            foreach (var endpoint in ReceiveEndpoints)
+            {
+                if (endpoint.Kind == ReceiveEndpointKind.Reply)
+                {
+                    await endpoint.StartAsync(context, cancellationToken);
+                }
+            }
+
+            foreach (var endpoint in ReceiveEndpoints)
+            {
+                if (endpoint.Kind != ReceiveEndpointKind.Reply)
+                {
+                    await endpoint.StartAsync(context, cancellationToken);
+                }
+            }
+        }
+        catch
+        {
+            // A failure while stopping is dropped, so that the caller sees why the start failed.
+            await StopCoreAsync(context, new CancellationToken(canceled: true));
+            throw;
         }
 
         IsStarted = true;
     }
 
     /// <summary>
-    /// Stops the transport by invoking pre-stop hooks and deactivating all receive endpoints. A failing
-    /// step does not prevent the remaining steps from running; the first failure is rethrown and the
-    /// transport stays started.
+    /// Stops application endpoints concurrently, then reply endpoints, between the pre-stop and post-stop hooks.
+    /// All steps are attempted; the first failure is rethrown and the transport stays started.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
     /// <param name="cancellationToken">A token to cancel the shutdown sequence.</param>
@@ -242,6 +263,16 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             throw ThrowHelper.TransportNotStarted();
         }
 
+        var failure = await StopCoreAsync(context, cancellationToken);
+        failure?.Throw();
+
+        IsStarted = false;
+    }
+
+    private async ValueTask<ExceptionDispatchInfo?> StopCoreAsync(
+        IMessagingRuntimeContext context,
+        CancellationToken cancellationToken)
+    {
         ExceptionDispatchInfo? failure = null;
 
         try
@@ -253,17 +284,13 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             failure = ExceptionDispatchInfo.Capture(ex);
         }
 
-        foreach (var endpoint in ReceiveEndpoints)
-        {
-            try
-            {
-                await endpoint.StopAsync(context, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                failure ??= ExceptionDispatchInfo.Capture(ex);
-            }
-        }
+        await Task.WhenAll(ReceiveEndpoints
+            .Where(static endpoint => endpoint.Kind != ReceiveEndpointKind.Reply)
+            .Select(StopEndpointAsync));
+
+        await Task.WhenAll(ReceiveEndpoints
+            .Where(static endpoint => endpoint.Kind == ReceiveEndpointKind.Reply)
+            .Select(StopEndpointAsync));
 
         try
         {
@@ -274,9 +301,19 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             failure ??= ExceptionDispatchInfo.Capture(ex);
         }
 
-        failure?.Throw();
+        return failure;
 
-        IsStarted = false;
+        async Task StopEndpointAsync(ReceiveEndpoint endpoint)
+        {
+            try
+            {
+                await endpoint.StopAsync(context, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Interlocked.CompareExchange(ref failure, ExceptionDispatchInfo.Capture(ex), null);
+            }
+        }
     }
 
     /// <summary>
@@ -299,9 +336,12 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
     /// <summary>
     /// Called after receive endpoints are stopped, allowing derived transports to release resources
-    /// that the endpoints use while stopping.
+    /// that the endpoints use while stopping. Releasing them must not depend on
+    /// <paramref name="cancellationToken"/>.
     /// </summary>
-    /// <param name="cancellationToken">A token to cancel the post-stop operation.</param>
+    /// <param name="cancellationToken">
+    /// A token that bounds the wait for running handlers. It can already be canceled.
+    /// </param>
     protected virtual ValueTask OnAfterStopAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
     /// <summary>
