@@ -20,9 +20,9 @@ internal static class MediatorSgFactory
         MediatorSgHelper.Register(services);
         services.AddSingleton<
             global::Mediator.IPipelineBehavior<
-                global::Mocha.Mediator.Benchmarks.Messaging.MediatorSgCommand,
-                global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkResponse>,
-            global::Mocha.Mediator.Benchmarks.Messaging.MediatorSgPipelineBehavior>();
+                MediatorSgCommand,
+                BenchmarkResponse>,
+            MediatorSgPipelineBehavior>();
         return services.BuildServiceProvider().CreateScope().ServiceProvider;
     }
 
@@ -33,39 +33,39 @@ internal static class MediatorSgFactory
         // Native pre-processor (MessagePreProcessor<,> implements IPipelineBehavior<,>)
         services.AddSingleton<
             global::Mediator.IPipelineBehavior<
-                global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineMediatorSgCommand,
-                global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkResponse>,
-            global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineMediatorSgPreProcessor>();
+                FullPipelineMediatorSgCommand,
+                BenchmarkResponse>,
+            FullPipelineMediatorSgPreProcessor>();
         // Pipeline behavior
         services.AddSingleton<
             global::Mediator.IPipelineBehavior<
-                global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineMediatorSgCommand,
-                global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkResponse>,
-            global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineMediatorSgBehavior>();
+                FullPipelineMediatorSgCommand,
+                BenchmarkResponse>,
+            FullPipelineMediatorSgBehavior>();
         // Native post-processor (MessagePostProcessor<,> implements IPipelineBehavior<,>)
         services.AddSingleton<
             global::Mediator.IPipelineBehavior<
-                global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineMediatorSgCommand,
-                global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkResponse>,
-            global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineMediatorSgPostProcessor>();
+                FullPipelineMediatorSgCommand,
+                BenchmarkResponse>,
+            FullPipelineMediatorSgPostProcessor>();
         return services.BuildServiceProvider().CreateScope().ServiceProvider;
     }
 }
 
 internal static class WolverineFactory
 {
-    public static (IHost Host, Wolverine.IMessageBus Bus) Create()
+    public static (IHost Host, IMessageBus Bus) Create()
     {
         var builder = Host.CreateApplicationBuilder();
         builder.UseWolverine(opts =>
         {
             opts.Discovery.DisableConventionalDiscovery();
-            opts.Discovery.IncludeType(typeof(global::Mocha.Mediator.Benchmarks.Messaging.WolverineCommandHandler));
-            opts.Discovery.IncludeType(typeof(global::Mocha.Mediator.Benchmarks.Messaging.WolverineNotificationHandler));
+            opts.Discovery.IncludeType(typeof(WolverineCommandHandler));
+            opts.Discovery.IncludeType(typeof(WolverineNotificationHandler));
         });
         var host = builder.Build();
         host.StartAsync().GetAwaiter().GetResult();
-        var bus = host.Services.GetRequiredService<Wolverine.IMessageBus>();
+        var bus = host.Services.GetRequiredService<IMessageBus>();
         return (host, bus);
     }
 }
@@ -75,11 +75,11 @@ internal static class SwitchMediatorFactory
     private static void AddSwitchMediator(ServiceCollection services)
     {
         global::Mediator.Switch.Extensions.Microsoft.DependencyInjection.ServiceCollectionExtensions
-            .AddMediator<global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkSwitchMediator>(services, _ => { });
+            .AddMediator<BenchmarkSwitchMediator>(services, _ => { });
         // SwitchMediator DI extension may not register concrete handler types;
         // ensure they are available for the generated mediator to resolve.
-        services.AddScoped<global::Mocha.Mediator.Benchmarks.Messaging.SwitchMediatorCommandHandler>();
-        services.AddScoped<global::Mocha.Mediator.Benchmarks.Messaging.SwitchMediatorNotificationHandler>();
+        services.AddScoped<SwitchMediatorCommandHandler>();
+        services.AddScoped<SwitchMediatorNotificationHandler>();
     }
 
     public static IServiceProvider CreateServiceProvider()
@@ -95,9 +95,9 @@ internal static class SwitchMediatorFactory
         AddSwitchMediator(services);
         services.AddSingleton<
             global::Mediator.Switch.IValuePipelineBehavior<
-                global::Mocha.Mediator.Benchmarks.Messaging.SwitchMediatorCommand,
-                global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkResponse>,
-            global::Mocha.Mediator.Benchmarks.Messaging.SwitchMediatorPipelineBehavior>();
+                SwitchMediatorCommand,
+                BenchmarkResponse>,
+            SwitchMediatorPipelineBehavior>();
         return services.BuildServiceProvider().CreateScope().ServiceProvider;
     }
 
@@ -105,22 +105,22 @@ internal static class SwitchMediatorFactory
     {
         var services = new ServiceCollection();
         AddSwitchMediator(services);
-        services.AddScoped<global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineSwitchMediatorCommandHandler>();
+        services.AddScoped<FullPipelineSwitchMediatorCommandHandler>();
         services.AddSingleton<
             global::Mediator.Switch.IValuePipelineBehavior<
-                global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineSwitchMediatorCommand,
-                global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkResponse>,
-            global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineSwitchMediatorPreBehavior>();
+                FullPipelineSwitchMediatorCommand,
+                BenchmarkResponse>,
+            FullPipelineSwitchMediatorPreBehavior>();
         services.AddSingleton<
             global::Mediator.Switch.IValuePipelineBehavior<
-                global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineSwitchMediatorCommand,
-                global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkResponse>,
-            global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineSwitchMediatorMainBehavior>();
+                FullPipelineSwitchMediatorCommand,
+                BenchmarkResponse>,
+            FullPipelineSwitchMediatorMainBehavior>();
         services.AddSingleton<
             global::Mediator.Switch.IValuePipelineBehavior<
-                global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineSwitchMediatorCommand,
-                global::Mocha.Mediator.Benchmarks.Messaging.BenchmarkResponse>,
-            global::Mocha.Mediator.Benchmarks.Messaging.FullPipelineSwitchMediatorPostBehavior>();
+                FullPipelineSwitchMediatorCommand,
+                BenchmarkResponse>,
+            FullPipelineSwitchMediatorPostBehavior>();
         return services.BuildServiceProvider().CreateScope().ServiceProvider;
     }
 }
@@ -132,8 +132,8 @@ internal static class MassTransitFactory
         var services = new ServiceCollection();
         services.AddMediator(cfg =>
         {
-            cfg.AddConsumer<global::Mocha.Mediator.Benchmarks.Messaging.MassTransitCommandConsumer>();
-            cfg.AddConsumer<global::Mocha.Mediator.Benchmarks.Messaging.MassTransitNotificationConsumer>();
+            cfg.AddConsumer<MassTransitCommandConsumer>();
+            cfg.AddConsumer<MassTransitNotificationConsumer>();
         });
         return services.BuildServiceProvider().CreateScope().ServiceProvider;
     }

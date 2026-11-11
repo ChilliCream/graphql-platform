@@ -15,7 +15,7 @@ namespace Mocha.Mediator.Benchmarks.Messaging;
 public class ConcurrentPipelineBenchmarks
 {
     private MediatR.IMediator _mediatr = null!;
-    private Mocha.Mediator.IMediator _mocha = null!;
+    private IMediator _mocha = null!;
     private global::Mediator.IMediator? _mediatorSg;
     private BenchmarkCommand _command = null!;
     private MediatorSgCommand _mediatorSgCommand = null!;
@@ -36,7 +36,7 @@ public class ConcurrentPipelineBenchmarks
         });
         var rootProvider = services.BuildServiceProvider();
         _mediatr = rootProvider.GetRequiredService<MediatR.IMediator>();
-        _mocha = rootProvider.GetRequiredService<Mocha.Mediator.IMediator>();
+        _mocha = rootProvider.GetRequiredService<IMediator>();
 
         // martinothamar Mediator with pipeline behavior
         try
@@ -73,7 +73,7 @@ public class ConcurrentPipelineBenchmarks
         var tasks = new ValueTask<BenchmarkResponse>[10];
         for (var i = 0; i < tasks.Length; i++)
         {
-            tasks[i] = _mocha.SendAsync<BenchmarkResponse>(_command, CancellationToken.None);
+            tasks[i] = _mocha.SendAsync(_command, CancellationToken.None);
         }
 
         for (var i = 0; i < tasks.Length; i++)

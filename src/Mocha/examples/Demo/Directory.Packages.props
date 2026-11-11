@@ -23,7 +23,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
-    <PackageVersion Include="ChilliCream.AnalyzerConfig.Libraries" Version="1.0.1" />
+    <PackageVersion Include="ChilliCream.AnalyzerConfig.Libraries" Version="1.1.0" />
     <PackageVersion Include="Roslynator.Analyzers" Version="5.0.1" />
     <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="5.0.1" />
     <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="5.0.1" />

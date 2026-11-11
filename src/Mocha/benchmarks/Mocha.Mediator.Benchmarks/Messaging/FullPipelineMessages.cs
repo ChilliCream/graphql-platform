@@ -5,11 +5,11 @@ namespace Mocha.Mediator.Benchmarks.Messaging;
 // ─── Full Pipeline Command (Mocha + MediatR shared) ───
 
 public sealed record FullPipelineCommand(Guid Id)
-    : Mocha.Mediator.ICommand<BenchmarkResponse>,
+    : ICommand<BenchmarkResponse>,
       MediatR.IRequest<BenchmarkResponse>;
 
 public sealed class FullPipelineCommandHandler
-    : Mocha.Mediator.ICommandHandler<FullPipelineCommand, BenchmarkResponse>,
+    : ICommandHandler<FullPipelineCommand, BenchmarkResponse>,
       MediatR.IRequestHandler<FullPipelineCommand, BenchmarkResponse>
 {
     private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
@@ -29,13 +29,13 @@ public sealed class FullPipelineCommandHandler
 // Mocha pre-processing middleware
 public sealed class FullPipelineMochaPreMiddleware
 {
-    public async ValueTask InvokeAsync(Mocha.Mediator.IMediatorContext context, Mocha.Mediator.MediatorDelegate next)
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
     {
         // Pre-processing (no-op)
         await next(context);
     }
 
-    public static Mocha.Mediator.MediatorMiddlewareConfiguration Create()
+    public static MediatorMiddlewareConfiguration Create()
         => new(static (_, next) =>
         {
             var mw = new FullPipelineMochaPreMiddleware();
@@ -46,12 +46,12 @@ public sealed class FullPipelineMochaPreMiddleware
 // Mocha pipeline behavior middleware
 public sealed class FullPipelineMochaBehaviorMiddleware
 {
-    public async ValueTask InvokeAsync(Mocha.Mediator.IMediatorContext context, Mocha.Mediator.MediatorDelegate next)
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
     {
         await next(context);
     }
 
-    public static Mocha.Mediator.MediatorMiddlewareConfiguration Create()
+    public static MediatorMiddlewareConfiguration Create()
         => new(static (_, next) =>
         {
             var mw = new FullPipelineMochaBehaviorMiddleware();
@@ -62,13 +62,13 @@ public sealed class FullPipelineMochaBehaviorMiddleware
 // Mocha post-processing middleware
 public sealed class FullPipelineMochaPostMiddleware
 {
-    public async ValueTask InvokeAsync(Mocha.Mediator.IMediatorContext context, Mocha.Mediator.MediatorDelegate next)
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
     {
         await next(context);
         // Post-processing (no-op)
     }
 
-    public static Mocha.Mediator.MediatorMiddlewareConfiguration Create()
+    public static MediatorMiddlewareConfiguration Create()
         => new(static (_, next) =>
         {
             var mw = new FullPipelineMochaPostMiddleware();
