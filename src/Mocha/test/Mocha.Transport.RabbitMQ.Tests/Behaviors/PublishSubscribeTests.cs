@@ -3,10 +3,9 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Messaging)]
 public class PublishSubscribeTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public PublishSubscribeTests(RabbitMQFixture fixture)
@@ -35,7 +34,7 @@ public class PublishSubscribeTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the event within timeout");
 
         var message = Assert.Single(recorder.Messages);
         var order = Assert.IsType<OrderCreated>(message);
@@ -66,8 +65,8 @@ public class PublishSubscribeTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder1.WaitAsync(s_timeout), "First handler did not receive the event");
-        Assert.True(await recorder2.WaitAsync(s_timeout), "Second handler did not receive the event");
+        Assert.True(await recorder1.WaitAsync(TestTimeouts.Signal), "First handler did not receive the event");
+        Assert.True(await recorder2.WaitAsync(TestTimeouts.Signal), "Second handler did not receive the event");
 
         Assert.Single(recorder1.Messages);
         Assert.Single(recorder2.Messages);
@@ -97,7 +96,7 @@ public class PublishSubscribeTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: 3),
+            await recorder.WaitAsync(TestTimeouts.Signal, expectedCount: 3),
             "Handler did not receive all 3 events within timeout");
 
         Assert.Equal(3, recorder.Messages.Count);
@@ -133,7 +132,7 @@ public class PublishSubscribeTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(TestTimeouts.Signal, expectedCount: messageCount),
             $"Handler did not receive all {messageCount} events within timeout");
 
         Assert.Equal(messageCount, recorder.Messages.Count);

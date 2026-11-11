@@ -144,7 +144,7 @@ jobs:
       - name: Submit Changed Pages to IndexNow
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 30
         run: npm run indexnow:submit
         working-directory: website
         env:

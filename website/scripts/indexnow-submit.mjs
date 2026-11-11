@@ -18,7 +18,13 @@ const DEFAULT_MANIFEST_PATH = path.join(
   "indexnow-manifest.json",
 );
 const KEY_FILE_PATTERN = /^([0-9a-f]{32})\.txt$/;
+const DEFAULT_SITEMAP_URL = `https://${INDEXNOW_HOST}/sitemap.xml`;
 const REQUEST_TIMEOUT_MS = 30_000;
+const MAX_RETRIES = 4;
+const DEFAULT_RETRY_BASE_DELAY_SECONDS = 30;
+const MAX_RETRY_AFTER_MS = 240_000;
+
+const defaultSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Parses a manifest document and throws when it is not a URL to hash map. */
 export function parseManifest(text) {
@@ -275,6 +281,181 @@ function positiveSeconds(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function plural(count, noun) {
+  if (count === 1) {
+    return `${count} ${noun}`;
+  }
+  return `${count} ${noun.endsWith("y") ? `${noun.slice(0, -1)}ies` : `${noun}s`}`;
+}
+
+function parseRetryAfterMs(value, now) {
+  const text = value?.trim();
+  if (!text) {
+    return null;
+  }
+  if (/^\d+$/.test(text)) {
+    return Number(text) * 1000;
+  }
+  const date = Date.parse(text);
+  return Number.isNaN(date) ? null : Math.max(0, date - now());
+}
+
+function isSiteVerificationPending(body) {
+  try {
+    return JSON.parse(body)?.errorCode === "SiteVerificationNotCompleted";
+  } catch {
+    return false;
+  }
+}
+
+function isRetryable(status, body) {
+  return (
+    status === 429 ||
+    status >= 500 ||
+    (status === 403 && isSiteVerificationPending(body))
+  );
+}
+
+/**
+ * Posts one batch, retrying on 403 SiteVerificationNotCompleted, 429, 5xx and
+ * network errors with a doubling backoff. Returns the final status or error,
+ * the response body and the number of retries used.
+ */
+async function postBatch({
+  endpoint,
+  payload,
+  fetchImpl,
+  sleep,
+  now,
+  baseDelayMs,
+}) {
+  let retries = 0;
+  for (;;) {
+    let outcome;
+    try {
+      const response = await fetchImpl(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json; charset=utf-8" },
+        body: payload,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      const body = response.ok
+        ? ""
+        : (await response.text().catch(() => "")).trim();
+      outcome = {
+        status: response.status,
+        ok: response.ok,
+        body,
+        retryable: !response.ok && isRetryable(response.status, body),
+        retryAfterMs: parseRetryAfterMs(
+          response.headers.get("retry-after"),
+          now,
+        ),
+      };
+    } catch (error) {
+      outcome = {
+        ok: false,
+        error: describeError(error),
+        retryable: true,
+        retryAfterMs: null,
+      };
+    }
+
+    if (outcome.ok || !outcome.retryable || retries >= MAX_RETRIES) {
+      return { ...outcome, retries };
+    }
+    const backoffMs = baseDelayMs * 2 ** retries;
+    await sleep(
+      outcome.retryAfterMs === null
+        ? backoffMs
+        : Math.min(outcome.retryAfterMs, MAX_RETRY_AFTER_MS),
+    );
+    retries++;
+  }
+}
+
+/**
+ * Submits `urlList` to IndexNow in batches and reports the outcome as workflow
+ * annotations and a summary line. `beforeSend` returns false to skip sending.
+ * Never throws on an IndexNow failure.
+ */
+async function deliver({
+  urlList,
+  counts,
+  env,
+  fetchImpl,
+  sleep = defaultSleep,
+  now = Date.now,
+  beforeSend,
+}) {
+  const dryRun = /^(1|true)$/i.test(env.INDEXNOW_DRY_RUN ?? "");
+  const endpoint = env.INDEXNOW_ENDPOINT || DEFAULT_ENDPOINT;
+  const key = await readKey(path.join(PROJECT_ROOT, "public"));
+  const keyLocation = `https://${INDEXNOW_HOST}/${key}.txt`;
+  const batches = batchUrls(urlList);
+  const requests = plural(batches.length, "request");
+
+  if (dryRun) {
+    console.log(`[indexnow] Dry run, not polling or POSTing to ${endpoint}.`);
+    for (const [index, batch] of batches.entries()) {
+      console.log(
+        `[indexnow] Batch ${index + 1} of ${batches.length}:\n${JSON.stringify({ host: INDEXNOW_HOST, key, keyLocation, urlList: batch }, null, 2)}`,
+      );
+    }
+    console.log(`::notice::IndexNow dry run: ${counts}, ${requests}.`);
+    await writeSummary(env, `IndexNow dry run: ${counts}, ${requests}.`);
+    return;
+  }
+
+  if (beforeSend && !(await beforeSend())) {
+    return;
+  }
+
+  const baseDelayMs =
+    positiveSeconds(
+      env.INDEXNOW_RETRY_BASE_DELAY_SECONDS,
+      DEFAULT_RETRY_BASE_DELAY_SECONDS,
+    ) * 1000;
+  const statuses = [];
+  let retries = 0;
+  for (const [index, batch] of batches.entries()) {
+    const result = await postBatch({
+      endpoint,
+      payload: JSON.stringify({
+        host: INDEXNOW_HOST,
+        key,
+        keyLocation,
+        urlList: batch,
+      }),
+      fetchImpl,
+      sleep,
+      now,
+      baseDelayMs,
+    });
+    retries += result.retries;
+    if (!result.ok) {
+      const batchRetries = result.retries;
+      const failure = result.error
+        ? `a network error (${result.error})`
+        : `HTTP ${result.status}`;
+      const detail = result.body ? ` ${result.body}` : "";
+      warn(
+        `Batch ${index + 1} of ${batches.length} failed with ${failure}${detail}${batchRetries > 0 ? ` after ${plural(batchRetries, "retry")}` : ""}. Skipping the remaining batches (${counts}).`,
+      );
+      await writeSummary(
+        env,
+        `IndexNow failed: ${failure} at batch ${index + 1} of ${batches.length} (${counts}), ${plural(retries, "retry")}.`,
+      );
+      return;
+    }
+    statuses.push(result.status);
+  }
+
+  const outcome = `${counts}, ${requests}, HTTP ${[...new Set(statuses)].join(", ")}, ${plural(retries, "retry")}`;
+  console.log(`::notice::IndexNow submitted ${outcome}.`);
+  await writeSummary(env, `IndexNow submitted ${outcome}.`);
+}
+
 /**
  * Diffs the previous and new manifests and submits the changed URLs to
  * IndexNow. Reports every failure as a workflow warning and never throws.
@@ -283,8 +464,6 @@ export async function run(env = process.env, options = {}) {
   const { fetchImpl = fetch, sleep, now } = options;
   let counts = "no diff computed";
   try {
-    const dryRun = /^(1|true)$/i.test(env.INDEXNOW_DRY_RUN ?? "");
-    const endpoint = env.INDEXNOW_ENDPOINT || DEFAULT_ENDPOINT;
     const manifestPath = env.INDEXNOW_MANIFEST || DEFAULT_MANIFEST_PATH;
 
     const state = await readPreviousState(env);
@@ -319,74 +498,38 @@ export async function run(env = process.env, options = {}) {
       return;
     }
 
-    const key = await readKey(path.join(PROJECT_ROOT, "public"));
-    const keyLocation = `https://${INDEXNOW_HOST}/${key}.txt`;
-    const batches = batchUrls(urlList);
-
-    if (dryRun) {
-      console.log(`[indexnow] Dry run, not polling or POSTing to ${endpoint}.`);
-      for (const [index, batch] of batches.entries()) {
-        console.log(
-          `[indexnow] Batch ${index + 1} of ${batches.length}:\n${JSON.stringify({ host: INDEXNOW_HOST, key, keyLocation, urlList: batch }, null, 2)}`,
-        );
-      }
-      console.log(`::notice::IndexNow dry run: ${counts}.`);
-      await writeSummary(env, `IndexNow dry run: ${counts}.`);
-      return;
-    }
-
-    const live = await waitForLiveManifest({
-      manifestUrl: env.INDEXNOW_LIVE_MANIFEST_URL || DEFAULT_LIVE_MANIFEST_URL,
-      expected: current,
-      intervalMs:
-        positiveSeconds(env.INDEXNOW_POLL_INTERVAL_SECONDS, 20) * 1000,
-      timeoutMs: positiveSeconds(env.INDEXNOW_POLL_TIMEOUT_SECONDS, 600) * 1000,
+    await deliver({
+      urlList,
+      counts,
+      env,
       fetchImpl,
       sleep,
+      beforeSend: async () => {
+        const live = await waitForLiveManifest({
+          manifestUrl:
+            env.INDEXNOW_LIVE_MANIFEST_URL || DEFAULT_LIVE_MANIFEST_URL,
+          expected: current,
+          intervalMs:
+            positiveSeconds(env.INDEXNOW_POLL_INTERVAL_SECONDS, 20) * 1000,
+          timeoutMs:
+            positiveSeconds(env.INDEXNOW_POLL_TIMEOUT_SECONDS, 600) * 1000,
+          fetchImpl,
+          sleep,
+          now,
+        });
+        if (!live) {
+          warn(
+            `The live manifest did not match the new build in time, skipping submission (${counts}).`,
+          );
+          await writeSummary(
+            env,
+            `IndexNow skipped: live manifest never matched (${counts}).`,
+          );
+        }
+        return live;
+      },
       now,
     });
-    if (!live) {
-      warn(
-        `The live manifest did not match the new build in time, skipping submission (${counts}).`,
-      );
-      await writeSummary(
-        env,
-        `IndexNow skipped: live manifest never matched (${counts}).`,
-      );
-      return;
-    }
-
-    const statuses = [];
-    for (const [index, batch] of batches.entries()) {
-      const response = await fetchImpl(endpoint, {
-        method: "POST",
-        headers: { "content-type": "application/json; charset=utf-8" },
-        body: JSON.stringify({
-          host: INDEXNOW_HOST,
-          key,
-          keyLocation,
-          urlList: batch,
-        }),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-      statuses.push(response.status);
-      if (!response.ok) {
-        const body = (await response.text().catch(() => "")).trim();
-        const detail = body ? ` ${body}` : "";
-        warn(
-          `Batch ${index + 1} of ${batches.length} failed with HTTP ${response.status}${detail}. Skipping the remaining batches (${counts}).`,
-        );
-        await writeSummary(
-          env,
-          `IndexNow failed: HTTP ${response.status} (${counts}).`,
-        );
-        return;
-      }
-    }
-
-    const outcome = `${counts}, ${batches.length} request${batches.length === 1 ? "" : "s"}, HTTP ${[...new Set(statuses)].join(", ")}`;
-    console.log(`::notice::IndexNow submitted ${outcome}.`);
-    await writeSummary(env, `IndexNow submitted ${outcome}.`);
   } catch (error) {
     warn(`Submission failed (${describeError(error)}) (${counts}).`);
     await writeSummary(
@@ -396,12 +539,93 @@ export async function run(env = process.env, options = {}) {
   }
 }
 
+/** Extracts the unique `<loc>` URLs of a sitemap document in document order. */
+export function extractSitemapUrls(xml) {
+  const urls = new Set();
+  for (const match of xml.matchAll(/<loc>\s*([^<]*?)\s*<\/loc>/g)) {
+    const url = match[1]
+      .replaceAll("&lt;", "<")
+      .replaceAll("&gt;", ">")
+      .replaceAll("&quot;", '"')
+      .replaceAll("&apos;", "'")
+      .replaceAll("&amp;", "&");
+    if (url) {
+      urls.add(url);
+    }
+  }
+  return [...urls];
+}
+
+/**
+ * Submits every URL of the live sitemap to IndexNow. Returns false, after an
+ * error annotation, when the sitemap cannot be fetched or has no URLs. An
+ * IndexNow failure is a warning and still returns true.
+ */
+export async function runSubmitAll(env = process.env, options = {}) {
+  const { fetchImpl = fetch, sleep, now } = options;
+  let urls;
+  try {
+    const sitemapUrl = env.INDEXNOW_SITEMAP_URL || DEFAULT_SITEMAP_URL;
+    const response = await fetchImpl(sitemapUrl, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      throw new Error(`the sitemap request returned HTTP ${response.status}`);
+    }
+    urls = extractSitemapUrls(await response.text());
+    if (urls.length === 0) {
+      throw new Error("the sitemap contains no URLs");
+    }
+  } catch (error) {
+    const message = `Could not read the sitemap (${describeError(error)}).`;
+    console.log(`::error::IndexNow: ${oneLine(message)}`);
+    await writeSummary(env, `IndexNow failed: ${oneLine(message)}`);
+    return false;
+  }
+
+  const counts = plural(urls.length, "URL");
+  try {
+    const urlList = urls.filter((url) => {
+      try {
+        return new URL(url).hostname === INDEXNOW_HOST;
+      } catch {
+        return false;
+      }
+    });
+    if (urlList.length !== urls.length) {
+      warn(`Skipping URLs that are not on ${INDEXNOW_HOST}.`);
+    }
+    if (urlList.length === 0) {
+      warn(`No sitemap URLs are on ${INDEXNOW_HOST}, nothing to submit.`);
+      await writeSummary(env, `IndexNow: nothing to submit (${counts}).`);
+      return true;
+    }
+    await deliver({
+      urlList,
+      counts: plural(urlList.length, "URL"),
+      env,
+      fetchImpl,
+      sleep,
+      now,
+    });
+  } catch (error) {
+    warn(`Submission failed (${describeError(error)}) (${counts}).`);
+    await writeSummary(
+      env,
+      `IndexNow failed: ${oneLine(describeError(error))} (${counts}).`,
+    );
+  }
+  return true;
+}
+
 if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
 ) {
   if (process.argv[2] === "fetch-previous") {
     await runFetchPrevious();
+  } else if (process.argv[2] === "submit-all") {
+    process.exitCode = (await runSubmitAll()) ? 0 : 1;
   } else {
     await run();
   }

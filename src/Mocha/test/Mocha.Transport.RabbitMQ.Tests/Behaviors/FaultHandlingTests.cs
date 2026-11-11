@@ -4,10 +4,9 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class FaultHandlingTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public FaultHandlingTests(RabbitMQFixture fixture)
@@ -71,7 +70,7 @@ public class FaultHandlingTests
 
         // assert - the second handler still works
         Assert.True(
-            await normalRecorder.WaitAsync(s_timeout),
+            await normalRecorder.WaitAsync(TestTimeouts.Signal),
             "Normal handler did not receive event after a previous handler threw");
     }
 
