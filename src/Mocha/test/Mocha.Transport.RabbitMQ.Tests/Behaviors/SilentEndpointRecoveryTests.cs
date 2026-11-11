@@ -35,6 +35,9 @@ public sealed class SilentEndpointRecoveryTests(RabbitMQFixture fixture)
         await PublishAsync(bus, "ORD-1");
         await Wait.UntilAsync(() => recorder.Messages.Count == 1);
 
+        // the broker delivers an event again whose acknowledgement it did not receive before the connection was lost
+        await vhost.Broker.WaitForEmptyQueueAsync("orders");
+
         // act
         // both connections are lost, and the first attempt of each to reconnect gets no answer
         proxy.IsSilent = true;
