@@ -525,6 +525,49 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         Assert.Equal(Names(expected), Names(actual));
     }
 
+    // a date without an offset fails here only when the server is not on UTC, as with TZ=Europe/Rome.
+    [Theory]
+    [InlineData("""some: { at: { eq: "2024-01-01T00:00:00" } }""")]
+    [InlineData("""some: { at: { gt: "2024-01-02T00:00:00" } }""")]
+    [InlineData("""some: { at: { lt: "2024-01-03T00:30:00" } }""")]
+    public async Task Filter_Should_MatchLinq_When_ListDateHasNoOffset(string filter)
+    {
+        // arrange
+        DateTime[] dates = [new(2024, 1, 1), new(2024, 1, 3), new(2024, 1, 5)];
+        var data = dates.Select((d, n) => new LocalDocument { Name = $"{n + 1}", Items = [new() { At = d }] }).ToArray();
+        await IndexDocuments(data);
+
+        // act
+        var expected = await ExecuteLocalAsync(() => data.AsQueryable(), false, filter);
+        var actual = await ExecuteLocalAsync(Query<LocalDocument>, true, filter);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
+    private static async Task<JsonNode> ExecuteLocalAsync(
+        Func<IQueryable<LocalDocument>> source,
+        bool elasticSearch,
+        string filter)
+    {
+        var builder = new ServiceCollection().AddGraphQL();
+        builder = elasticSearch ? builder.AddElasticSearchFiltering() : builder.AddFiltering();
+
+        var executor = await builder
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<LocalDocument>>>()
+                .Resolve(_ => elasticSearch ? source().AsElasticSearchExecutable() : source())
+                .UseFiltering<LocalDocumentFilter>())
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var query = $$"""{ test(where: { items: { {{filter}} } }) { name } }""";
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+        return JsonNode.Parse(result.ToJson())!;
+    }
+
     private async Task<(JsonNode Expected, JsonNode Actual)> ExecuteWithOptionsAsync(
         bool nested,
         string filter,
@@ -714,6 +757,37 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
 
         [ElasticSearchNested]
         public List<NumberItem> Items { get; set; } = [];
+    }
+
+    public class LocalItem
+    {
+        public DateTime At { get; set; }
+    }
+
+    public class LocalDocument
+    {
+        public string Name { get; set; } = "";
+
+        public List<LocalItem> Items { get; set; } = [];
+    }
+
+    public class LocalItemFilter : FilterInputType<LocalItem>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<LocalItem> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.At).Type<ComparableOperationFilterInputType<LocalDateTimeType>>();
+        }
+    }
+
+    public class LocalDocumentFilter : FilterInputType<LocalDocument>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<LocalDocument> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Name);
+            descriptor.Field(x => x.Items).Type<ListFilterInputType<LocalItemFilter>>();
+        }
     }
 
     public class TextItem

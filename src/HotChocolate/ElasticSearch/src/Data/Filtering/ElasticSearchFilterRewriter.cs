@@ -847,6 +847,9 @@ internal sealed class ElasticSearchFilterRewriter(
             {
                 string s => s,
                 bool b => b ? "true" : "false",
+                // Elasticsearch reads a date without an offset as UTC, so the server's time zone does not apply.
+                DateTime { Kind: DateTimeKind.Unspecified } d
+                    => DateTime.SpecifyKind(d, DateTimeKind.Utc).ToString("O", CultureInfo.InvariantCulture),
                 DateTime d => d.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
                 DateTimeOffset d => d.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
                 IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
