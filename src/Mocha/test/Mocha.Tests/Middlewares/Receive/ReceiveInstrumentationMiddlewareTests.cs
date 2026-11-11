@@ -17,13 +17,14 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     public void Receive_Should_RecordConversationId_When_CorrelationIdDiffers()
     {
         // arrange
+        var messageId = Guid.NewGuid().ToString();
         var activities = new ConcurrentBag<Activity>();
         using var listener = CreateActivityListener(activities);
         var observer = new ActivityMessagingDiagnosticListener();
         var context = new StubReceiveContext
         {
             Endpoint = new InMemoryReceiveEndpoint(new InMemoryMessagingTransport(_ => { })),
-            MessageId = "message-1",
+            MessageId = messageId,
             CorrelationId = "request-1",
             ConversationId = "conversation-1"
         };
@@ -33,8 +34,8 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         activityScope.Dispose();
 
         // assert
-        var activity = Assert.Single(activities);
-        Assert.Equal("message-1", activity.GetTagItem("messaging.message.id"));
+        // the listener also receives the activities of tests that run in parallel
+        var activity = Assert.Single(activities, a => messageId.Equals(a.GetTagItem("messaging.message.id")));
         Assert.Equal("conversation-1", activity.GetTagItem("messaging.message.conversation_id"));
     }
 
