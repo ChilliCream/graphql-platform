@@ -1,0 +1,28 @@
+{
+  "sources": [
+    "Mocha.Mediator"
+  ],
+  "activities": [
+    {
+      "OperationName": "TracedQuery send",
+      "DisplayName": "TracedQuery send",
+      "Kind": "Internal",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "messaging.system",
+          "Value": "mocha.mediator"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.type",
+          "Value": "TracedQuery"
+        }
+      ],
+      "events": []
+    }
+  ]
+}

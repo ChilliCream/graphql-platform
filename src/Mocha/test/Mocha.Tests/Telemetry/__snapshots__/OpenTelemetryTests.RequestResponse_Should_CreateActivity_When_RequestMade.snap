@@ -1,0 +1,171 @@
+{
+  "sources": [
+    "Mocha"
+  ],
+  "activities": [
+    {
+      "OperationName": "memory://localhost/q/open-telemetry-tests.traced-request publish",
+      "DisplayName": "memory://localhost/q/open-telemetry-tests.traced-request publish",
+      "Kind": "Producer",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "messaging.operation.name",
+          "Value": "memory://localhost/q/open-telemetry-tests.traced-request publish"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.message.conversation_id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.instance.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.destination.temporary",
+          "Value": false
+        },
+        {
+          "Key": "messaging.destination.address",
+          "Value": "memory://localhost/q/open-telemetry-tests.traced-request"
+        }
+      ],
+      "events": [],
+      "links": [],
+      "activities": [
+        {
+          "OperationName": "memory://localhost/Replies receive",
+          "DisplayName": "memory://localhost/Replies receive",
+          "Kind": "Client",
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "messaging.message.id",
+              "Value": "<id>"
+            },
+            {
+              "Key": "messaging.message.conversation_id",
+              "Value": "<id>"
+            }
+          ],
+          "events": [],
+          "links": [],
+          "activities": [
+            {
+              "OperationName": "Reply consume",
+              "DisplayName": "Reply consume",
+              "Kind": "Consumer",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "messaging.message.id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.message.conversation_id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-response"
+                }
+              ],
+              "events": [],
+              "links": []
+            }
+          ]
+        },
+        {
+          "OperationName": "memory://localhost/open-telemetry-tests.traced-request receive",
+          "DisplayName": "memory://localhost/open-telemetry-tests.traced-request receive",
+          "Kind": "Client",
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "messaging.message.id",
+              "Value": "<id>"
+            },
+            {
+              "Key": "messaging.message.conversation_id",
+              "Value": "<id>"
+            }
+          ],
+          "events": [],
+          "links": [],
+          "activities": [
+            {
+              "OperationName": "TracedRequestHandler consume",
+              "DisplayName": "TracedRequestHandler consume",
+              "Kind": "Consumer",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "messaging.message.id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.message.conversation_id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-request"
+                }
+              ],
+              "events": [],
+              "links": [],
+              "activities": [
+                {
+                  "OperationName": "memory://mocha.tests/q/response-<id> publish",
+                  "DisplayName": "memory://mocha.tests/q/response-<id> publish",
+                  "Kind": "Producer",
+                  "Status": "Unset",
+                  "tags": [
+                    {
+                      "Key": "messaging.operation.name",
+                      "Value": "memory://mocha.tests/q/response-<id> publish"
+                    },
+                    {
+                      "Key": "messaging.operation.type",
+                      "Value": "send"
+                    },
+                    {
+                      "Key": "messaging.message.id",
+                      "Value": "<id>"
+                    },
+                    {
+                      "Key": "messaging.message.conversation_id",
+                      "Value": "<id>"
+                    },
+                    {
+                      "Key": "messaging.instance.id",
+                      "Value": "<id>"
+                    },
+                    {
+                      "Key": "messaging.destination.temporary",
+                      "Value": false
+                    },
+                    {
+                      "Key": "messaging.destination.address",
+                      "Value": "memory://mocha.tests/q/response-<id>"
+                    }
+                  ],
+                  "events": [],
+                  "links": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

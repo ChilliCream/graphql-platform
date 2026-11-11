@@ -1,0 +1,148 @@
+{
+  "sources": [
+    "Mocha"
+  ],
+  "activities": [
+    {
+      "OperationName": "TracedBatchHandler consume",
+      "DisplayName": "TracedBatchHandler consume",
+      "Kind": "Consumer",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "messaging.handler.name",
+          "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-batch-event"
+        },
+        {
+          "Key": "messaging.batch.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.batch.message_count",
+          "Value": 2
+        }
+      ],
+      "events": [],
+      "links": [
+        "memory://localhost/batch-ep receive",
+        "memory://localhost/batch-ep receive"
+      ]
+    },
+    {
+      "OperationName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish",
+      "DisplayName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish",
+      "Kind": "Producer",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "messaging.operation.name",
+          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.message.conversation_id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.instance.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.destination.temporary",
+          "Value": false
+        },
+        {
+          "Key": "messaging.destination.address",
+          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch"
+        }
+      ],
+      "events": [],
+      "links": [],
+      "activities": [
+        {
+          "OperationName": "memory://localhost/batch-ep receive",
+          "DisplayName": "memory://localhost/batch-ep receive",
+          "Kind": "Client",
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "messaging.message.id",
+              "Value": "<id>"
+            },
+            {
+              "Key": "messaging.message.conversation_id",
+              "Value": "<id>"
+            }
+          ],
+          "events": [],
+          "links": []
+        }
+      ]
+    },
+    {
+      "OperationName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish",
+      "DisplayName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish",
+      "Kind": "Producer",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "messaging.operation.name",
+          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.message.conversation_id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.instance.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.destination.temporary",
+          "Value": false
+        },
+        {
+          "Key": "messaging.destination.address",
+          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch"
+        }
+      ],
+      "events": [],
+      "links": [],
+      "activities": [
+        {
+          "OperationName": "memory://localhost/batch-ep receive",
+          "DisplayName": "memory://localhost/batch-ep receive",
+          "Kind": "Client",
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "messaging.message.id",
+              "Value": "<id>"
+            },
+            {
+              "Key": "messaging.message.conversation_id",
+              "Value": "<id>"
+            }
+          ],
+          "events": [],
+          "links": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "sources": [
+    "Mocha.Mediator"
+  ],
+  "activities": [
+    {
+      "OperationName": "OuterCommand send",
+      "DisplayName": "OuterCommand send",
+      "Kind": "Internal",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "messaging.system",
+          "Value": "mocha.mediator"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.type",
+          "Value": "OuterCommand"
+        }
+      ],
+      "events": [],
+      "activities": [
+        {
+          "OperationName": "TracedCommand send",
+          "DisplayName": "TracedCommand send",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "messaging.system",
+              "Value": "mocha.mediator"
+            },
+            {
+              "Key": "messaging.operation.type",
+              "Value": "send"
+            },
+            {
+              "Key": "messaging.message.type",
+              "Value": "TracedCommand"
+            }
+          ],
+          "events": []
+        },
+        {
+          "OperationName": "TracedNotification publish",
+          "DisplayName": "TracedNotification publish",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "messaging.system",
+              "Value": "mocha.mediator"
+            },
+            {
+              "Key": "messaging.operation.type",
+              "Value": "publish"
+            },
+            {
+              "Key": "messaging.message.type",
+              "Value": "TracedNotification"
+            }
+          ],
+          "events": []
+        }
+      ]
+    }
+  ]
+}

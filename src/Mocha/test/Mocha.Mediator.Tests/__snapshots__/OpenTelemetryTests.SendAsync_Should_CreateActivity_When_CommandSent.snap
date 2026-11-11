@@ -1,0 +1,28 @@
+{
+  "sources": [
+    "Mocha.Mediator"
+  ],
+  "activities": [
+    {
+      "OperationName": "TracedCommand send",
+      "DisplayName": "TracedCommand send",
+      "Kind": "Internal",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "messaging.system",
+          "Value": "mocha.mediator"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.type",
+          "Value": "TracedCommand"
+        }
+      ],
+      "events": []
+    }
+  ]
+}
