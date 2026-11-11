@@ -80,6 +80,50 @@ public sealed class HealthCheckTests(RabbitMQFixture fixture)
         }
     }
 
+    [Fact]
+    public async Task CheckHealthAsync_Should_ReportBlockedDispatcherConnection_When_BrokerBlocksPublishing()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        var services = new ServiceCollection();
+        services.AddSingleton(vhost.ConnectionFactory);
+        services.AddHealthChecks().AddMessageBus();
+        await using var bus = await services.AddMessageBus()
+            .AddHealthCheck()
+            .AddRabbitMQ(_ => { })
+            .BuildTestBusAsync();
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var healthChecks = bus.Provider.GetRequiredService<HealthCheckService>();
+        var transport = bus.Transport;
+        HealthReport blocked;
+        Task publish;
+
+        // act
+        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
+        {
+            // the broker blocks a connection once it publishes during the alarm
+            await vhost.Broker.WaitForAlarmAsync();
+            publish = messageBus
+                .PublishAsync(new OrderCreated { OrderId = "blocked" }, TestContext.Current.CancellationToken)
+                .AsTask();
+            await vhost.Broker.WaitForBlockedPublisherAsync();
+            await Wait.UntilAsync(() => transport.Dispatcher.Connection.IsBlocked);
+            blocked = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken);
+        }
+
+        await publish.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        await Wait.UntilAsync(() => transport.HealthFailureReason is null);
+        var recovered = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HealthStatus.Unhealthy, blocked.Status);
+        Assert.Equal(
+            $"Transport '{transport.Name}' is unhealthy. The broker blocks the dispatcher connection.",
+            blocked.Entries["MessageBus"].Description);
+        Assert.Equal(HealthStatus.Healthy, recovered.Status);
+    }
+
     public sealed class HandlerGate
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

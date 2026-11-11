@@ -7,15 +7,15 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 public class RabbitMQDescriptorTests
 {
     [Theory]
-    [InlineData(-1L)]
+    [InlineData(-2L)]
     [InlineData(4_294_967_295L)]
-    public void ConnectTimeout_Should_Throw_When_TimeoutOutsideSupportedRange(long milliseconds)
+    public void StartTimeout_Should_Throw_When_TimeoutOutsideSupportedRange(long milliseconds)
     {
         // arrange
         var timeout = TimeSpan.FromMilliseconds(milliseconds);
 
         // act
-        var exception = Record.Exception(() => CreateRuntime(t => t.ConnectTimeout(timeout)));
+        var exception = Record.Exception(() => CreateRuntime(t => t.StartTimeout(timeout)));
 
         // assert
         var error = Assert.IsType<ArgumentOutOfRangeException>(exception);
@@ -23,33 +23,60 @@ public class RabbitMQDescriptorTests
     }
 
     [Theory]
-    [InlineData(0L)]
-    [InlineData(30_000L)]
-    [InlineData(4_294_967_294L)]
-    public void ConnectTimeout_Should_ConfigureBothConnections_When_TimeoutWithinSupportedRange(long milliseconds)
+    [InlineData(-2L)]
+    [InlineData(4_294_967_295L)]
+    public void StartTimeout_Should_Throw_When_ConfigurationValueOutsideSupportedRange(long milliseconds)
     {
         // arrange
         var timeout = TimeSpan.FromMilliseconds(milliseconds);
 
         // act
-        var runtime = CreateRuntime(t => t.ConnectTimeout(timeout));
+        var exception = Record.Exception(
+            () => CreateRuntime(t => GetConfiguration(t).StartTimeout = timeout));
+
+        // assert
+        var error = Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Equal("StartTimeout", error.ParamName);
+        Assert.Equal(timeout, error.ActualValue);
+    }
+
+    [Theory]
+    [InlineData(0L, false)]
+    [InlineData(30_000L, false)]
+    [InlineData(4_294_967_294L, false)]
+    [InlineData(-1L, false)]
+    [InlineData(0L, true)]
+    [InlineData(30_000L, true)]
+    [InlineData(4_294_967_294L, true)]
+    [InlineData(-1L, true)]
+    public void StartTimeout_Should_ConfigureBothConnections_When_TimeoutWithinSupportedRangeOrInfinite(
+        long milliseconds,
+        bool setOnConfiguration)
+    {
+        // arrange
+        var timeout = TimeSpan.FromMilliseconds(milliseconds);
+
+        // act
+        var runtime = setOnConfiguration
+            ? CreateRuntime(t => GetConfiguration(t).StartTimeout = timeout)
+            : CreateRuntime(t => t.StartTimeout(timeout));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
-        Assert.Equal(timeout, transport.Dispatcher.Connection.ConnectTimeout);
-        Assert.Equal(timeout, transport.ConsumerManager.Connection.ConnectTimeout);
+        Assert.Equal(timeout, transport.Dispatcher.Connection.StartTimeout);
+        Assert.Equal(timeout, transport.ConsumerManager.Connection.StartTimeout);
     }
 
     [Fact]
-    public void ConnectTimeout_Should_BeTwoMinutes_When_NotConfigured()
+    public void StartTimeout_Should_BeTwoMinutes_When_NotConfigured()
     {
         // act
         var runtime = CreateRuntime(_ => { });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
-        Assert.Equal(TimeSpan.FromMinutes(2), transport.Dispatcher.Connection.ConnectTimeout);
-        Assert.Equal(TimeSpan.FromMinutes(2), transport.ConsumerManager.Connection.ConnectTimeout);
+        Assert.Equal(TimeSpan.FromMinutes(2), transport.Dispatcher.Connection.StartTimeout);
+        Assert.Equal(TimeSpan.FromMinutes(2), transport.ConsumerManager.Connection.StartTimeout);
     }
 
     [Theory]
@@ -70,17 +97,44 @@ public class RabbitMQDescriptorTests
     }
 
     [Theory]
-    [InlineData(1L)]
-    [InlineData(30_000L)]
-    [InlineData(4_294_967_294L)]
-    [InlineData(-1L)]
-    public void PublishTimeout_Should_ConfigureDispatcher_When_TimeoutWithinSupportedRangeOrInfinite(long milliseconds)
+    [InlineData(0L)]
+    [InlineData(-2L)]
+    [InlineData(4_294_967_295L)]
+    public void PublishTimeout_Should_Throw_When_ConfigurationValueOutsideSupportedRange(long milliseconds)
     {
         // arrange
         var timeout = TimeSpan.FromMilliseconds(milliseconds);
 
         // act
-        var runtime = CreateRuntime(t => t.PublishTimeout(timeout));
+        var exception = Record.Exception(
+            () => CreateRuntime(t => GetConfiguration(t).PublishTimeout = timeout));
+
+        // assert
+        var error = Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Equal("PublishTimeout", error.ParamName);
+        Assert.Equal(timeout, error.ActualValue);
+    }
+
+    [Theory]
+    [InlineData(1L, false)]
+    [InlineData(30_000L, false)]
+    [InlineData(4_294_967_294L, false)]
+    [InlineData(-1L, false)]
+    [InlineData(1L, true)]
+    [InlineData(30_000L, true)]
+    [InlineData(4_294_967_294L, true)]
+    [InlineData(-1L, true)]
+    public void PublishTimeout_Should_ConfigureDispatcher_When_TimeoutWithinSupportedRangeOrInfinite(
+        long milliseconds,
+        bool setOnConfiguration)
+    {
+        // arrange
+        var timeout = TimeSpan.FromMilliseconds(milliseconds);
+
+        // act
+        var runtime = setOnConfiguration
+            ? CreateRuntime(t => GetConfiguration(t).PublishTimeout = timeout)
+            : CreateRuntime(t => t.PublishTimeout(timeout));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
@@ -403,6 +457,9 @@ public class RabbitMQDescriptorTests
         // assert
         Assert.Equal(MessagingBindMode.Explicit, transport.BindMode);
     }
+
+    private static RabbitMQTransportConfiguration GetConfiguration(IRabbitMQMessagingTransportDescriptor descriptor)
+        => ((IMessagingDescriptor<RabbitMQTransportConfiguration>)descriptor).Extend().Configuration;
 
     private static MessagingRuntime CreateRuntime(
         Action<IRabbitMQMessagingTransportDescriptor> configure,

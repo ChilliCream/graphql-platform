@@ -33,6 +33,34 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         Assert.Null(afterStop);
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_DeleteReplyQueue_When_RuntimeIsNotStopped()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddRabbitMQ()
+            .BuildTestBusAsync();
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var queue = bus.Transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>()
+            .Single(endpoint => endpoint.Kind == ReceiveEndpointKind.Reply).Queue;
+        var beforeDispose = (await vhost.Broker.GetQueueAsync(queue.Name))?.Consumers;
+
+        // act
+        await runtime.DisposeAsync();
+
+        // the wait ends before the queue would expire by itself
+        await vhost.Broker.WaitForQueueDeletionAsync(queue.Name);
+        var afterDispose = await vhost.Broker.GetQueueAsync(queue.Name);
+
+        // assert
+        Assert.Equal(1, beforeDispose);
+        Assert.Null(afterDispose);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

@@ -64,11 +64,12 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
     /// <summary>
     /// Gets the reason the transport is unhealthy, or <c>null</c> when it is started, both broker connections
-    /// are ready, and every receive endpoint is healthy.
+    /// are ready, the broker does not block the dispatcher connection, and every receive endpoint is healthy.
     /// </summary>
     public override string? HealthFailureReason
         => !IsStarted ? "The transport is not started."
             : !Dispatcher.IsConnected ? "The dispatcher connection is unavailable."
+            : Dispatcher.Connection.IsBlocked ? "The broker blocks the dispatcher connection."
             : ConsumerManager.HealthFailureReason ?? base.HealthFailureReason;
 
     /// <summary>
@@ -86,6 +87,9 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     protected override void OnAfterInitialized(IMessagingSetupContext context)
     {
         var configuration = (RabbitMQTransportConfiguration)Configuration;
+
+        // The descriptor and the configuration can both set the timeouts, and both end here.
+        configuration.ValidateTimeouts();
 
         Connection =
             configuration.ConnectionProvider?.Invoke(context.Services)
@@ -140,10 +144,10 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                 ConsumerRole,
                 RabbitMQConsumerManager.SetUpConnectionAsync));
 
-        if (configuration.ConnectTimeout is { } connectTimeout)
+        if (configuration.StartTimeout is { } startTimeout)
         {
-            Dispatcher.Connection.ConnectTimeout = connectTimeout;
-            ConsumerManager.Connection.ConnectTimeout = connectTimeout;
+            Dispatcher.Connection.StartTimeout = startTimeout;
+            ConsumerManager.Connection.StartTimeout = startTimeout;
         }
 
         if (configuration.PublishTimeout is { } publishTimeout)
@@ -361,7 +365,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     /// Connects the consumer and dispatcher RabbitMQ connections before the transport's endpoints start.
     /// </summary>
     /// <remarks>
-    /// While the broker cannot be reached, both connections keep retrying for up to the connect timeout, two minutes
+    /// While the broker cannot be reached, both connections keep retrying for up to the start timeout, two minutes
     /// by default, before the start fails. Refused credentials, refused virtual host access, and topology the broker
     /// rejects fail the start at once.
     /// </remarks>

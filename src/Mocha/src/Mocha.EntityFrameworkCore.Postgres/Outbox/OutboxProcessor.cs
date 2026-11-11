@@ -18,8 +18,11 @@ public sealed class PostgresOutboxProcessor
     private static readonly TimeSpan s_pauseDelay = TimeSpan.FromMilliseconds(100);
     private static readonly TimeSpan s_maxPauseDelay = TimeSpan.FromSeconds(10);
 
-    // Stays below the longest delay a timer accepts, which is about 24.8 days.
-    private static readonly TimeSpan s_maxPollingInterval = TimeSpan.FromDays(24);
+    // An idle worker reads the outbox again after this time, which finds a message that nobody signalled.
+    private static readonly TimeSpan s_idlePollingInterval = TimeSpan.FromSeconds(30);
+
+    // The pause before a worker looks again for a due message that another worker holds.
+    private static readonly TimeSpan s_heldMessagePollingInterval = TimeSpan.FromSeconds(1);
 
     private readonly ILogger<PostgresOutboxProcessor> _logger;
     private readonly IServiceProvider _services;
@@ -68,6 +71,11 @@ public sealed class PostgresOutboxProcessor
     }
 
     /// <summary>
+    /// Gets or sets the longest time a worker waits before it reads the outbox again.
+    /// </summary>
+    internal TimeSpan IdlePollingInterval { get; set; } = s_idlePollingInterval;
+
+    /// <summary>
     /// Runs the outbox processing loop, dispatching pending messages and waiting
     /// until the next message is due or a signal is received.
     /// </summary>
@@ -103,22 +111,15 @@ public sealed class PostgresOutboxProcessor
                     continue;
                 }
 
-                if (pass.NextPollingInterval is { } nextPollingInterval)
-                {
-                    _logger.OutboxProcessorSleeping(nextPollingInterval);
+                _logger.OutboxProcessorSleeping(pass.PollingInterval);
 
-                    try
-                    {
-                        await signaled.WaitAsync(nextPollingInterval, cancellationToken);
-                    }
-                    catch (TimeoutException)
-                    {
-                        continue;
-                    }
-                }
-                else
+                try
                 {
-                    await signaled;
+                    await signaled.WaitAsync(pass.PollingInterval, cancellationToken);
+                }
+                catch (TimeoutException)
+                {
+                    continue;
                 }
 
                 signaled = null;
@@ -151,50 +152,61 @@ public sealed class PostgresOutboxProcessor
         await using var connection = _options.CreateConnection(scope.ServiceProvider);
         await connection.OpenAsync(cancellationToken);
 
-        while (!cancellationToken.IsCancellationRequested)
+        while (true)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var activity = OpenTelemetry.Source.StartActivity(
                 "Process Message Outbox",
                 ActivityKind.Consumer,
                 new ActivityContext());
 
-            switch (await ProcessEventAsync(connection, worker, cancellationToken))
+            // An exception before the commit rolls the claim back when the transaction is disposed.
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+            switch (await ProcessEventAsync(connection, transaction, worker, cancellationToken))
             {
                 case ClaimResult.Empty:
+                    // The interval is read in the transaction of the claim, so that both see the same time.
                     return new PassResult(
                         IsPaused: false,
-                        await GetNextPollingIntervalAsync(connection, cancellationToken));
+                        await GetNextPollingIntervalAsync(connection, transaction, cancellationToken));
 
                 case ClaimResult.Released:
-                    return new PassResult(IsPaused: true, NextPollingInterval: null);
+                    return new PassResult(IsPaused: true, PollingInterval: TimeSpan.Zero);
             }
         }
-
-        return default;
     }
 
-    private async Task<TimeSpan?> GetNextPollingIntervalAsync(
+    private async Task<TimeSpan> GetNextPollingIntervalAsync(
         NpgsqlConnection connection,
+        NpgsqlTransaction transaction,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = _options.Queries.NextPollingInterval;
         await command.PrepareAsync(cancellationToken);
 
-        var result = await command.ExecuteScalarAsync(cancellationToken);
-
-        if (result is null or DBNull)
+        if (await command.ExecuteScalarAsync(cancellationToken) is not double secondsUntilDue)
         {
-            return null;
+            return IdlePollingInterval;
         }
 
-        var interval = ((DateTime)result - DateTimeOffset.UtcNow).Duration();
+        if (secondsUntilDue <= 0)
+        {
+            // The claim did not return the message that is due, so another worker holds it.
+            return s_heldMessagePollingInterval;
+        }
 
-        return interval < s_maxPollingInterval ? interval : s_maxPollingInterval;
+        return secondsUntilDue < IdlePollingInterval.TotalSeconds
+            ? TimeSpan.FromSeconds(secondsUntilDue)
+            : IdlePollingInterval;
     }
 
     private async Task<ClaimResult> ProcessEventAsync(
         NpgsqlConnection connection,
+        NpgsqlTransaction transaction,
         WorkerState worker,
         CancellationToken cancellationToken)
     {
@@ -203,10 +215,8 @@ public sealed class PostgresOutboxProcessor
             ActivityKind.Producer,
             new ActivityContext());
 
-        // An exception before the commit rolls the claim back when the transaction is disposed.
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
         Guid id;
+        MessageEnvelope? envelope;
         int timesSent;
         DispatchOutcome outcome;
 
@@ -226,7 +236,7 @@ public sealed class PostgresOutboxProcessor
             }
 
             id = reader.GetGuid(0);
-            var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
+            envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
             timesSent = reader.GetInt32(2);
 
             if (TryResolve(id, envelope, out var messageType, out var endpoint, out outcome))
@@ -237,7 +247,6 @@ public sealed class PostgresOutboxProcessor
                 {
                     await SendAsync(envelope, endpoint, messageType, dispatchToken);
 
-                    worker.Backoff.Reset();
                     outcome = DispatchOutcome.Sent;
                 }
                 catch (Exception ex)
@@ -254,9 +263,26 @@ public sealed class PostgresOutboxProcessor
         switch (outcome)
         {
             case DispatchOutcome.Sent:
-                // The transport has the message, so its row is removed whatever the token says.
-                await DeleteEventAsync(connection, id, transaction, CancellationToken.None);
-                await transaction.CommitAsync(CancellationToken.None);
+                try
+                {
+                    // The transport has the message, so its row is removed whatever the token says.
+                    await DeleteEventAsync(connection, id, transaction, CancellationToken.None);
+                    await transaction.CommitAsync(CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    _logger.OutboxMessageNotRemoved(
+                        ex,
+                        id,
+                        envelope?.MessageId,
+                        envelope?.MessageType,
+                        envelope?.DestinationAddress);
+
+                    // The worker pauses before it claims the message again.
+                    return ClaimResult.Released;
+                }
+
+                worker.Backoff.Reset();
                 return ClaimResult.Processed;
 
             case DispatchOutcome.Expired:
@@ -273,7 +299,7 @@ public sealed class PostgresOutboxProcessor
             default:
                 // The commit stores the incremented attempt count and the backoff of the row.
                 await transaction.CommitAsync(CancellationToken.None);
-                LogIfExhausted(id, timesSent);
+                LogIfExhausted(id, envelope, timesSent);
                 return ClaimResult.Processed;
         }
     }
@@ -386,11 +412,17 @@ public sealed class PostgresOutboxProcessor
         return DispatchOutcome.Failed;
     }
 
-    private void LogIfExhausted(Guid id, int timesSent)
+    private void LogIfExhausted(Guid id, MessageEnvelope? envelope, int timesSent)
     {
         if (timesSent >= _options.MaxAttempts)
         {
-            _logger.OutboxMessageExhausted(id, _options.MaxAttempts);
+            // An envelope that could not be read leaves only the id of the row.
+            _logger.OutboxMessageExhausted(
+                id,
+                envelope?.MessageId,
+                envelope?.MessageType,
+                envelope?.DestinationAddress,
+                _options.MaxAttempts);
         }
     }
 
@@ -542,7 +574,8 @@ public sealed class PostgresOutboxProcessor
         Released
     }
 
-    private readonly record struct PassResult(bool IsPaused, TimeSpan? NextPollingInterval);
+    // What a worker does after a pass: it pauses after a released claim and waits for a signal otherwise.
+    private readonly record struct PassResult(bool IsPaused, TimeSpan PollingInterval);
 
     // The state one worker keeps across the messages it dispatches.
     private sealed class WorkerState(TimeSpan dispatchTimeout, CancellationToken stopToken) : IDisposable
@@ -588,9 +621,6 @@ internal static partial class Logs
         "Could not deserialize message body for message with ID {Id}. The message will be retried.")]
     public static partial void CouldNotDeserializeMessageBody(this ILogger logger, Guid id);
 
-    [LoggerMessage(2, LogLevel.Error, "Message with ID {Id} was not an event request.")]
-    public static partial void SendMessageWasNotAnEventRequest(this ILogger logger, Guid id);
-
     [LoggerMessage(
         3,
         LogLevel.Warning,
@@ -612,8 +642,14 @@ internal static partial class Logs
     [LoggerMessage(
         7,
         LogLevel.Critical,
-        "Message with ID {Id} exhausted all {MaxAttempts} attempts and will not be retried.")]
-    public static partial void OutboxMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
+        "Outbox message {Id} (message ID {MessageId}, type {MessageType}) to {DestinationAddress} exhausted all {MaxAttempts} attempts and will not be retried.")]
+    public static partial void OutboxMessageExhausted(
+        this ILogger logger,
+        Guid id,
+        string? messageId,
+        string? messageType,
+        string? destinationAddress,
+        int maxAttempts);
 
     [LoggerMessage(8, LogLevel.Information, "Expired outbox message with ID {Id} was discarded.")]
     public static partial void OutboxMessageExpired(this ILogger logger, Guid id);
@@ -668,6 +704,18 @@ internal static partial class Logs
         string? destinationAddress,
         int attempt,
         int maxAttempts);
+
+    [LoggerMessage(
+        13,
+        LogLevel.Error,
+        "Outbox message {Id} (message ID {MessageId}, type {MessageType}) to {DestinationAddress} was accepted by the transport, but removing its outbox row failed. The message is dispatched again unless the removal took effect.")]
+    public static partial void OutboxMessageNotRemoved(
+        this ILogger logger,
+        Exception exception,
+        Guid id,
+        string? messageId,
+        string? messageType,
+        string? destinationAddress);
 }
 
 file static class Serializer

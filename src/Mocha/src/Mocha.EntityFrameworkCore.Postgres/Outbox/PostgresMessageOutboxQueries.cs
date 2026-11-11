@@ -19,7 +19,8 @@ internal sealed class PostgresMessageOutboxQueries
     public string InsertEnvelope { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the SQL query to compute the next polling interval based on the earliest eligible message.
+    /// Gets or sets the SQL query that returns the seconds until the earliest pending message is due. The
+    /// result is not positive when a message is due, and null when no message is pending.
     /// </summary>
     public string NextPollingInterval { get; set; } = null!;
 
@@ -57,9 +58,8 @@ internal sealed class PostgresMessageOutboxQueries
                 """,
 
             NextPollingInterval = $"""
-                SELECT MIN(
-                    "{t.CreatedAt}" + {retryDelay}
-                ) AS "NextWakeUpTime"
+                SELECT (EXTRACT(EPOCH FROM MIN("{t.CreatedAt}")) - EXTRACT(EPOCH FROM NOW()))::double precision
+                    AS "SecondsUntilDue"
                 FROM {t.QualifiedTableName}
                 WHERE "{t.TimesSent}" < {maxAttempts};
                 """,

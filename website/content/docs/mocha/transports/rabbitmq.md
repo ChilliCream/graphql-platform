@@ -138,9 +138,11 @@ Mocha reconnects automatically when it loses a connection to RabbitMQ. It retrie
 
 RabbitMQ can also stop delivering messages to an individual receive endpoint while the connection remains open, for example if its queue is deleted or processing exceeds a broker timeout. Mocha retries that endpoint independently, with increasing delays of about 1 to 30 seconds between attempts.
 
-Every receive endpoint recovers on its own. A slow or unavailable queue, including the reply queue, does not prevent other endpoints from recovering. An attempt to resume an endpoint that RabbitMQ does not answer within 60 seconds is abandoned and retried.
+Every receive endpoint recovers on its own. A slow or unavailable queue, including the reply queue, does not prevent other endpoints from recovering. An attempt to resume an endpoint is abandoned and retried when RabbitMQ leaves one of its requests unanswered for the connection factory's `ContinuationTimeout`, 20 seconds by default, or when the attempt as a whole takes longer than 60 seconds.
 
-If RabbitMQ does not answer a request to open a channel within 60 seconds, Mocha replaces the connection.
+If RabbitMQ does not answer a request to open a channel within the connection factory's `ContinuationTimeout`, Mocha replaces the connection. Sends and publishes that were waiting for their confirmation on that connection are sent again, which can produce duplicates.
+
+After a reconnect, Mocha declares the topology it manages again before it uses the dispatcher connection. While RabbitMQ refuses one of these declarations, for example because a queue was recreated with different arguments, the dispatcher connection stays unavailable and sends and publishes wait. The log shows `ConnectionAttemptFailed` at Error with the broker's reason.
 
 Mocha manages this recovery regardless of the connection factory's `AutomaticRecoveryEnabled` setting.
 
@@ -196,75 +198,80 @@ Every entry has an event name, such as `ConnectionLost`. The tables below list e
 
 ### A receive endpoint stops consuming
 
-| Level            | Entry                                                                                                                                             | Event name                  | What it means                                                                                                                                                                            |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Warning          | `RabbitMQ consumer of <queue> lost its channel: <code> <text> (initiator ...); <n> handlers cancelled, their messages are delivered again`        | `ConsumerChannelLost`       | The channel of one endpoint closed. It is a Debug entry when the whole connection was lost and no handler was running.                                                                   |
-| Warning          | `RabbitMQ consumer of <queue> cancelled by the broker; <n> handlers cancelled, attaching again`                                                   | `ConsumerCancelled`         | RabbitMQ ended the consumer while its channel stayed open. This can happen when the queue is deleted. Mocha attaches the consumer again.                                                 |
-| Warning or Error | `RabbitMQ consumer of <queue> detached for <time>, attempt <n> failed; retrying in <delay>`                                                       | `ConsumerAttachFailed`      | An attempt to consume again failed. It is an error when the broker refuses it the same way on every attempt, for example when the queue's configuration differs from the existing queue. |
-| Error            | `RabbitMQ consumer of <queue> blocked: all <n> handlers of the lost channel still run <time> after their cancellation; waiting for one to return` | `ConsumerBlockedByHandlers` | Every handler of the lost channel is still running 30 seconds after it was cancelled, so the endpoint has no free capacity and reports unhealthy. Find the handler that does not return. |
-| Information      | `RabbitMQ consumer of <queue> unblocked after <time>; attaching again`                                                                            | `ConsumerUnblocked`         | The endpoint has capacity again.                                                                                                                                                         |
-| Information      | `RabbitMQ consumer of <queue> attached after <time> (tag ..., prefetch ..., concurrency ...)`                                                     | `ConsumerAttached`          | The endpoint consumes.                                                                                                                                                                   |
-| Error            | `RabbitMQ consumer of <queue>: handling message <id> failed (tag ..., delivery ..., correlation ...)`                                             | `DeliveryFailed`            | An exception left the receive pipeline. Mocha returned the message to the queue, and RabbitMQ delivers it again.                                                                         |
-| Critical         | `RabbitMQ consumer of <queue> failed unexpectedly; it no longer consumes`                                                                         | `ConsumerFailed`            | The endpoint stopped for good. Restart the application and report the logged exception.                                                                                                  |
+| Level            | Entry                                                                                                                                                                     | Event name                  | What it means                                                                                                                                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Warning          | `RabbitMQ consumer of <queue> lost its channel: <code> <text> (initiator ...); <n> handlers cancelled, their messages can be delivered again, attaching again in <delay>` | `ConsumerChannelLost`       | The channel of one endpoint closed. It is a Debug entry when the whole connection was lost and no handler was running. The delay is zero unless the endpoint lost its channel within a second of attaching. |
+| Warning          | `RabbitMQ consumer of <queue> cancelled by the broker; <n> handlers cancelled, attaching again in <delay>`                                                                | `ConsumerCancelled`         | RabbitMQ ended the consumer while its channel stayed open. This can happen when the queue is deleted. Mocha attaches the consumer again.                                                                    |
+| Warning or Error | `RabbitMQ consumer of <queue> detached for <time>, attempt <n> failed; retrying in <delay>`                                                                               | `ConsumerAttachFailed`      | An attempt to consume again failed. It is an error when the broker refuses it the same way on every attempt, for example when the queue's configuration differs from the existing queue.                    |
+| Error            | `RabbitMQ consumer of <queue> blocked: all <n> handlers of the lost channel still run after <time>; waiting for one to return`                                            | `ConsumerBlockedByHandlers` | Every handler of the lost channel is still running after 30 seconds, so the endpoint has no free capacity. It has reported unhealthy since the channel was lost. Find the handler that does not return.     |
+| Information      | `RabbitMQ consumer of <queue> unblocked after <time>; attaching again`                                                                                                    | `ConsumerUnblocked`         | The endpoint has capacity again.                                                                                                                                                                            |
+| Information      | `RabbitMQ consumer of <queue> attached after <time> (tag ..., prefetch ..., concurrency ...)`                                                                             | `ConsumerAttached`          | The endpoint consumes.                                                                                                                                                                                      |
+| Error            | `RabbitMQ consumer of <queue>: handling message <id> failed (tag ..., delivery ..., correlation ...)`                                                                     | `DeliveryFailed`            | An exception escaped the receive endpoint, which is not expected. Include the logged exception when you report it.                                                                                          |
+| Critical         | `RabbitMQ consumer of <queue> failed unexpectedly; it no longer consumes`                                                                                                 | `ConsumerFailed`            | The endpoint stopped for good. Restart the application and report the logged exception.                                                                                                                     |
 
 ### Sends and publishes wait or fail
 
-| Level       | Entry                                                                                                                    | Event name               | What it means                                                                                                                                                            |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Warning     | `RabbitMQ <role> connection blocked by the broker: <reason>; publishes wait`                                             | `ConnectionBlocked`      | RabbitMQ blocks the connection, which it does during a memory or disk alarm. The entry carries the broker's reason. Sends and publishes wait, up to the publish timeout. |
-| Information | `RabbitMQ <role> connection unblocked after <time>`                                                                      | `ConnectionUnblocked`    | Sends and publishes continue.                                                                                                                                            |
-| Warning     | `RabbitMQ dispatcher connection <status>: <n> publishes waiting for 00:00:30 or longer`                                  | `PublishesStalled`       | Written every 30 seconds while sends wait that long. The status is `ready`, `blocked by the broker` or `unavailable`.                                                    |
-| Warning     | `RabbitMQ publish of <id> to <endpoint> confirmed slowly after <time> (attempt <n>, threshold 00:00:10)`                 | `PublishConfirmedSlowly` | A send took 10 seconds or longer.                                                                                                                                        |
-| Information | `RabbitMQ publish of <id> to <endpoint> failed (attempt <n>): <reason>; retrying in <delay>, which can deliver it twice` | `PublishRetryScheduled`  | A send failed in a way that can pass, such as a lost connection or a rejection by the broker, and is sent again.                                                         |
-| Warning     | `RabbitMQ publish of <id> returned: queue <queue> does not exist; declaring it again`                                    | `MessageReturned`        | The target queue of a send is missing. Mocha declares the queue and its bindings again, logs `QueueRedeclared` at Information, and sends once more.                      |
-| Error       | `RabbitMQ publish of <id> to <endpoint> failed after <time> (attempt <n>)`                                               | `PublishFailed`          | The send or publish threw. The logged exception says why: the broker refused the message, or the publish timeout elapsed.                                                |
+| Level       | Entry                                                                                                                    | Event name               | What it means                                                                                                                                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Warning     | `RabbitMQ <role> connection blocked by the broker: <reason>; publishes wait`                                             | `ConnectionBlocked`      | RabbitMQ blocks the connection, which it does during a memory or disk alarm. The entry carries the broker's reason. Sends and publishes wait, up to the publish timeout.                                                      |
+| Information | `RabbitMQ <role> connection unblocked after <time>`                                                                      | `ConnectionUnblocked`    | Sends and publishes continue.                                                                                                                                                                                                 |
+| Warning     | `RabbitMQ dispatcher connection <status>: <n> publishes waiting for 00:00:30 or longer`                                  | `PublishesStalled`       | Written every 30 seconds while sends wait and none completed in that time. A single send that waits among sends that complete is not reported by this entry. The status is `ready`, `blocked by the broker` or `unavailable`. |
+| Information | `RabbitMQ publish of <id> to <endpoint> confirmed slowly after <time> (attempt <n>, threshold 00:00:10)`                 | `PublishConfirmedSlowly` | A send took 10 seconds or longer.                                                                                                                                                                                             |
+| Information | `RabbitMQ publish of <id> to <endpoint> failed (attempt <n>): <reason>; retrying in <delay>, which can deliver it twice` | `PublishRetryScheduled`  | A send failed in a way that can pass, such as a lost connection or the rejection of a sent message, and is sent again. The first retry of a send is logged at Information, further retries at Debug.                          |
+| Warning     | `RabbitMQ publish of <id> returned: queue <queue> does not exist; declaring it again`                                    | `MessageReturned`        | The target queue of a send is missing. Mocha declares the queue and its bindings again, logs `QueueRedeclared` at Information, and sends once more.                                                                           |
+| Error       | `RabbitMQ publish of <id> to <endpoint> failed after <time> (attempt <n>)`                                               | `PublishFailed`          | The send or publish threw. The logged exception says why: the broker refused the message, or the publish timeout elapsed.                                                                                                     |
 
 ### Startup fails
 
-| Level | Entry                                                                                       | Event name                   | What it means                                                                                       |
-| ----- | ------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
-| Error | `RabbitMQ <role> connection not established after <time> and <n> attempts; the start fails` | `ConnectionFailed`           | The connect timeout elapsed, or the broker refused the connection. The logged exception says which. |
-| Error | `RabbitMQ consumer of <queue> refused by the broker; its endpoint does not start`           | `ConsumerRegistrationFailed` | RabbitMQ refused a queue or its consumer. The logged exception carries the broker's reason.         |
+| Level | Entry                                                                                 | Event name                   | What it means                                                                                                                                                 |
+| ----- | ------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Error | `RabbitMQ <role> connection not ready after <time> and <n> attempts; the start fails` | `ConnectionFailed`           | The start timeout elapsed, or the broker refused the connection or a queue, exchange or binding of the topology. The logged exception says which.             |
+| Error | `RabbitMQ consumer of <queue> could not attach; its endpoint does not start`          | `ConsumerRegistrationFailed` | The first attempt to consume failed in a way that repeats on every attempt, for example because RabbitMQ refused the consumer. The logged exception says why. |
 
 ### The application shuts down
 
-| Level       | Entry                                                                                                                   | Event name              | What it means                                                                                      |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------- |
-| Information | `RabbitMQ consumer of <queue> stopping; waiting for <n> handlers`                                                       | `ConsumerDrainStarted`  | The endpoint takes no new messages and waits for its handlers.                                     |
-| Warning     | `RabbitMQ consumer of <queue> stopped waiting after <time>; <n> handlers cancelled, their messages return to the queue` | `ConsumerDrainTimedOut` | The shutdown timeout elapsed before the handlers finished. RabbitMQ delivers their messages again. |
-| Information | `RabbitMQ consumer of <queue> stopped after <time> (<n> handlers still running)`                                        | `ConsumerStopped`       | The endpoint is stopped.                                                                           |
-| Information | `RabbitMQ <role> connection closed`                                                                                     | `ConnectionStopped`     | The connection is closed.                                                                          |
+| Level       | Entry                                                                                                                                                        | Event name                         | What it means                                                                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Information | `RabbitMQ consumer of <queue> stopping; waiting for <n> handlers`                                                                                            | `ConsumerDrainStarted`             | The endpoint takes no new messages and waits for its handlers.                                                                            |
+| Warning     | `RabbitMQ consumer of <queue> stopped waiting after <time>; <n> handlers cancelled, their messages return to the queue`                                      | `ConsumerDrainTimedOut`            | The shutdown timeout elapsed before the handlers finished. RabbitMQ delivers their messages again.                                        |
+| Warning     | `RabbitMQ consumer of <queue> lost its channel while stopping: <code> <text> (initiator ...); <n> handlers cancelled, their messages can be delivered again` | `ConsumerChannelLostWhileStopping` | The channel closed while the endpoint waited for its handlers. Mocha cancels them, because they can no longer acknowledge their messages. |
+| Information | `RabbitMQ consumer of <queue> stopping without waiting; <n> handlers cancelled, their messages return to the queue`                                          | `ConsumerHandlersCancelled`        | The runtime was disposed without a stop, so the running handlers were cancelled at once.                                                  |
+| Information | `RabbitMQ consumer of <queue> stopped after <time> (<n> handlers still running)`                                                                             | `ConsumerStopped`                  | The endpoint is stopped.                                                                                                                  |
+| Information | `RabbitMQ <role> connection closed`                                                                                                                          | `ConnectionStopped`                | The connection is closed.                                                                                                                 |
 
 ### A message is handled twice
 
-Two Information entries explain a duplicate. `PublishRetryScheduled` names a message that was sent again after a failure. `SettlementSkipped`, with the text `RabbitMQ message <id>: ack skipped, channel closed (...); the broker delivers it again`, names a handled message whose acknowledgement could not be sent.
+Two Information entries explain a duplicate. `PublishRetryScheduled` names a message that was sent again after a failure. `SettlementSkipped`, with the text `RabbitMQ consumer of <queue>: ack of message <id> skipped, channel closed (...); the message stays unacknowledged and can be delivered again`, names a handled message whose acknowledgement could not be sent. With `nack` in place of `ack` it names a message whose handler was cancelled or failed after its channel closed.
 
 ### What to alert on
 
 - Every Error and Critical entry under `Mocha.Transport.RabbitMQ`.
-- `PublishesStalled`, which means that sends have waited for at least 30 seconds.
+- The Critical entry `Error processing message` under `Mocha.ReceiveEndpoint`. A failed message could not be moved to its error queue or its skipped queue, and returned to its source queue.
+- `PublishesStalled`, which means that sends were waiting and none completed for at least 30 seconds.
 - `ConnectionAttemptFailed` and `ConsumerAttachFailed` that repeat for longer than an outage you accept. Their `Elapsed` property holds the time since the loss.
 
 `ConnectionLost` and `ConsumerChannelLost` are expected when a broker node restarts, and are followed by `ConnectionReady` and `ConsumerAttached`.
 
-The Error entries `ConsumerStopFailed`, `HandlerCancellationFailed` and `ConnectionCallbackFailed` and the Warning entry `QueueDeleteFailed` report an unexpected failure during cleanup. Include the logged exception when you report one.
+The Error entries `ConsumerStopFailed` and `ConnectionCallbackFailed` and the Warning entry `QueueDeleteFailed` report an unexpected failure during cleanup. Include the logged exception when you report one. The Error entry `HandlerCancellationFailed` reports that a cancellation callback registered by a handler threw.
 
 At Debug level the transport also logs every connection attempt, every confirmed and every cancelled publish, and every publisher channel it opens.
 
 ## Startup connection timeout
 
-If RabbitMQ is unavailable when the application starts, Mocha retries the connection for up to two minutes by default. Startup fails if it cannot connect within that time. Invalid credentials, a failed TLS handshake, denied access to the configured virtual host, or queue and exchange declarations rejected by the broker cause startup to fail without waiting for the timeout.
+If RabbitMQ is unavailable when the application starts, Mocha retries the connection for up to two minutes by default. Startup fails if it cannot connect within that time. Invalid credentials, a failed TLS handshake, denied access to the configured virtual host, or queue and exchange declarations rejected by the broker cause startup to fail without waiting for the timeout. A virtual host that has reached its connection limit refuses the connection in the same way, so startup also fails at once in that case.
 
-`ConnectTimeout` applies to startup only. After startup, Mocha keeps reconnecting until the application stops.
+`StartTimeout` applies to startup only. After startup, Mocha keeps reconnecting until the application stops.
 
-Set `ConnectTimeout` to change how long startup can wait for RabbitMQ:
+Set `StartTimeout` to change how long startup can wait for RabbitMQ:
 
 ```csharp
 builder.Services
     .AddMessageBus()
     .AddEventHandler<OrderPlacedEventHandler>()
-    .AddRabbitMQ(transport => transport.ConnectTimeout(TimeSpan.FromSeconds(30)));
+    .AddRabbitMQ(transport => transport.StartTimeout(TimeSpan.FromSeconds(30)));
 ```
+
+`TimeSpan.Zero` makes one attempt, which can take up to 30 seconds. `Timeout.InfiniteTimeSpan` retries until the host cancels the start.
 
 ## Message handling after a connection loss
 
@@ -278,7 +285,7 @@ If handlers ignore cancellation and continue running at the concurrency limit, t
 
 ## Graceful shutdown
 
-When the application shuts down, Mocha stops receiving new messages and waits for running handlers to finish. If the host's shutdown timeout expires, Mocha requests cancellation through the handlers' `CancellationToken`.
+When the application shuts down, Mocha stops receiving new messages and waits for running handlers to finish. If the host's shutdown timeout expires, Mocha requests cancellation through the handlers' `CancellationToken`. If the channel of an endpoint is lost while it waits, Mocha cancels the handlers of that endpoint at once, because they can no longer acknowledge their messages.
 
 RabbitMQ returns messages that have not been acknowledged to their queues when Mocha closes their channel. Closing RabbitMQ resources can continue after the shutdown timeout, so the transport may take longer than that timeout to stop.
 
@@ -310,11 +317,18 @@ A publisher confirmation is RabbitMQ's acknowledgement that it accepted a messag
 
 If the connection is unavailable or fails before the confirmation arrives, Mocha waits for the next connection and sends the message again, with delays of about 250 milliseconds to 5 seconds between attempts. The message may already have reached RabbitMQ before the failure, so this retry can produce a duplicate.
 
-If RabbitMQ rejects a message, Mocha sends it again with the same delays. This can happen when a queue is full and configured to reject new messages with `x-overflow: reject-publish`. If the message is routed to several queues, the queues that accepted it receive it again.
+RabbitMQ rejects a message with a negative acknowledgement when a queue does not take it. This can happen when a queue is full and configured to reject new messages with `x-overflow: reject-publish`. What follows depends on whether the message was sent or published:
 
-A message that exceeds a broker limit or targets a missing exchange fails with the broker's reason, without a retry.
+- A sent message, such as a command, a request or a reply, is sent again with the same delays until the queue accepts it or the publish timeout elapses.
+- A published event fails at once with an `InvalidOperationException` and is not published again. RabbitMQ rejects an event when one of the queues that are bound to its exchange rejects it, and the other queues keep their copy, so every further attempt would deliver the event to them once more.
 
-A send or publish waits for its confirmation for up to two minutes by default, including the wait for a connection and every retry. After that it throws `TransportUnavailableException`. Set `PublishTimeout` to change the limit, or pass `Timeout.InfiniteTimeSpan` to wait until the caller cancels:
+For a subscriber queue that must not miss events, use `x-overflow: drop-head` or a dead-letter exchange instead of `reject-publish`.
+
+A message that exceeds a broker limit or targets a missing exchange fails with the broker's reason, without a retry. When auto-provisioning is enabled for a missing exchange, Mocha declares the exchange and its bindings again before the next publish.
+
+A message whose headers do not fit into one frame of the connection fails with an `InvalidOperationException` before it is sent. Mocha keeps 1,024 bytes of the frame for the headers that the RabbitMQ client adds.
+
+A send or publish waits for its confirmation for up to two minutes by default, including the wait for a connection, the wait for a free channel and every retry. After that it throws `TransportUnavailableException`. The text of the exception says when the message was not written to RabbitMQ. In that case sending it again cannot produce a duplicate. Set `PublishTimeout` to change the limit, or pass `Timeout.InfiniteTimeSpan` to wait until the caller cancels:
 
 ```csharp
 builder.Services
@@ -323,7 +337,7 @@ builder.Services
     .AddRabbitMQ(transport => transport.PublishTimeout(TimeSpan.FromSeconds(30)));
 ```
 
-RabbitMQ blocks publishing connections while a memory or disk alarm is active. Sends and publishes then wait for their confirmation, up to the publish timeout. Mocha keeps the connection during the alarm and does not send the waiting messages again.
+RabbitMQ blocks publishing connections while a memory or disk alarm is active. Sends and publishes then wait, up to the publish timeout. Mocha keeps the connection during the alarm and writes no new message to it. A message that was written before RabbitMQ blocked the connection is accepted when the alarm ends, also when its send has timed out or was cancelled by then. Sending that message again can deliver it twice.
 
 Each send or publish uses its own channel until RabbitMQ answered, so a message that makes RabbitMQ close its channel does not affect other messages. The transport allows up to 100 sends and publishes in flight per transport instance, or fewer if the broker allows fewer channels per connection. Additional calls wait until one completes. Awaiting each call before starting the next sends messages one at a time. The Postgres outbox has a separate setting for [dispatching messages concurrently](../reliability.md#configure-outbox-dispatch-concurrency).
 
@@ -335,7 +349,7 @@ When you send directly to a queue that no longer exists, Mocha restores the queu
 
 Publishing to an exchange behaves differently: if no queue binding matches the message, RabbitMQ drops it and the publish can still complete successfully. Publisher confirmations do not detect missing subscribers.
 
-If Mocha cannot forward a failed message to its error queue, it returns the original message to its source queue for redelivery.
+If Mocha cannot forward a failed message to its error queue, it moves the message to the skipped queue of the endpoint. If that fails as well, the message returns to its source queue for redelivery.
 
 See the [RabbitMQ Reliability Guide](https://www.rabbitmq.com/docs/reliability) for a full treatment of delivery guarantees.
 

@@ -150,12 +150,11 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public IRabbitMQMessagingTransportDescriptor ConnectTimeout(TimeSpan timeout)
+    public IRabbitMQMessagingTransportDescriptor StartTimeout(TimeSpan timeout)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(timeout, TimeSpan.FromMilliseconds(uint.MaxValue - 1));
+        RabbitMQTransportConfiguration.ValidateStartTimeout(timeout, nameof(timeout));
 
-        Configuration.ConnectTimeout = timeout;
+        Configuration.StartTimeout = timeout;
 
         return this;
     }
@@ -163,11 +162,7 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <inheritdoc />
     public IRabbitMQMessagingTransportDescriptor PublishTimeout(TimeSpan timeout)
     {
-        if (timeout != Timeout.InfiniteTimeSpan)
-        {
-            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(timeout, TimeSpan.Zero);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(timeout, TimeSpan.FromMilliseconds(uint.MaxValue - 1));
-        }
+        RabbitMQTransportConfiguration.ValidatePublishTimeout(timeout, nameof(timeout));
 
         Configuration.PublishTimeout = timeout;
 

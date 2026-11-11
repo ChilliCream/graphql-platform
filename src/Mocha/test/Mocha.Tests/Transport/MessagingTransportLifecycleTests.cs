@@ -201,6 +201,27 @@ public sealed class MessagingTransportLifecycleTests
         Assert.False(transport.IsStarted);
     }
 
+    [Fact]
+    public async Task StartAsync_Should_RunStopHooksAndRethrow_When_BeforeStartHookFails()
+    {
+        // arrange
+        var failure = new InvalidOperationException("Before start failed.");
+        var transport = new TestTransport { BeforeStartFailure = failure };
+        await using var provider = CreateProvider(transport);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => transport.StartAsync(runtime, TestContext.Current.CancellationToken).AsTask());
+
+        // assert
+        // no endpoint started, so only the hooks of the transport run
+        Assert.Same(failure, exception);
+        Assert.Empty(transport.Starts);
+        Assert.Equal(["before", "after"], transport.Stops);
+        Assert.False(transport.IsStarted);
+    }
+
     private static ServiceProvider CreateProvider(TestTransport transport)
     {
         var builder = new ServiceCollection().AddMessageBus();
@@ -217,6 +238,8 @@ public sealed class MessagingTransportLifecycleTests
         public (int Position, Exception Exception)? StartFailure { get; set; }
 
         public bool IsDisposed { get; private set; }
+
+        public Exception? BeforeStartFailure { get; set; }
 
         public Exception? BeforeStopFailure { get; set; }
 
@@ -261,6 +284,11 @@ public sealed class MessagingTransportLifecycleTests
         protected override ReceiveEndpoint CreateReceiveEndpoint() => new TestReceiveEndpoint(this);
 
         protected override DispatchEndpoint CreateDispatchEndpoint() => throw new NotSupportedException();
+
+        protected override ValueTask OnBeforeStartAsync(
+            IMessagingConfigurationContext context,
+            CancellationToken cancellationToken)
+            => BeforeStartFailure is { } failure ? ValueTask.FromException(failure) : ValueTask.CompletedTask;
 
         protected override ValueTask OnBeforeStopAsync(CancellationToken cancellationToken)
         {

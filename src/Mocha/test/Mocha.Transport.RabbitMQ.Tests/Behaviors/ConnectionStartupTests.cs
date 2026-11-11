@@ -45,21 +45,27 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         await using var revoked = await vhost.Faults.RevokeAccessAsync();
 
         // act
-        var exception = await Assert.ThrowsAsync<OperationInterruptedException>(
+        // the refusal arrives after the handshake, while or before the first request on the connection is sent
+        var exception = await Assert.ThrowsAnyAsync<OperationInterruptedException>(
             () => StartAndDisposeAsync(CreateServices(vhost, recorder)));
 
         // assert
         Assert.Equal<ushort?>(Constants.NotAllowed, exception.ShutdownReason?.ReplyCode);
     }
 
-    [Fact]
-    public async Task StartAsync_Should_FailFast_When_CredentialsRefused()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StartAsync_Should_FailFast_When_CredentialsRefused(bool infiniteStartTimeout)
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
         vhost.ConnectionSettings.Password = "wrong-password";
         var recorder = new MessageRecorder();
-        var builder = CreateServices(vhost, recorder);
+        var builder = CreateServices(
+            vhost,
+            recorder,
+            startTimeout: infiniteStartTimeout ? Timeout.InfiniteTimeSpan : null);
 
         // act
         var exception = await Assert.ThrowsAsync<BrokerUnreachableException>(
@@ -89,7 +95,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
     }
 
     [Fact]
-    public async Task StartAsync_Should_Fail_When_BrokerUnreachableForConnectTimeout()
+    public async Task StartAsync_Should_Fail_When_BrokerUnreachableForStartTimeout()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -101,7 +107,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
             .AddEventHandler<OrderCreatedHandler>()
             .AddRabbitMQ(t =>
             {
-                t.ConnectTimeout(TimeSpan.FromSeconds(3));
+                t.StartTimeout(TimeSpan.FromSeconds(3));
                 t.Endpoint("orders").Handler<OrderCreatedHandler>();
             })
             .Services
@@ -119,7 +125,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
     }
 
     [Fact]
-    public async Task StartAsync_Should_Complete_When_ConnectTimeoutIsZero()
+    public async Task StartAsync_Should_Complete_When_StartTimeoutIsZero()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -127,9 +133,41 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
 
         // act
         // a timeout of zero allows one attempt and no retry
-        await using var bus = await CreateServices(vhost, recorder, connectTimeout: TimeSpan.Zero).BuildTestBusAsync();
+        await using var bus = await CreateServices(vhost, recorder, startTimeout: TimeSpan.Zero).BuildTestBusAsync();
 
         // assert
+        await AssertRoundTripAsync(bus, recorder, "ORD-1");
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_KeepRetryingUntilBrokerReturns_When_StartTimeoutIsInfinite()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        var recorder = new MessageRecorder();
+        var connectionProvider = new CountingConnectionProvider(vhost);
+        var broker = await fixture.Faults.StopBrokerAsync();
+        Task<TestBus> start;
+        bool pendingAfterFailedAttempts;
+
+        // act
+        try
+        {
+            start = CreateServices(vhost, recorder, connectionProvider, Timeout.InfiniteTimeSpan).BuildTestBusAsync();
+
+            // the two connections fail six attempts between them while the broker is stopped
+            await Wait.UntilAsync(() => connectionProvider.FailedAttempts >= 6 || start.IsCompleted);
+            pendingAfterFailedAttempts = !start.IsCompleted;
+        }
+        finally
+        {
+            await broker.DisposeAsync();
+        }
+
+        await using var bus = await start.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(pendingAfterFailedAttempts);
         await AssertRoundTripAsync(bus, recorder, "ORD-1");
     }
 
@@ -199,7 +237,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         VhostContext vhost,
         MessageRecorder recorder,
         IRabbitMQConnectionProvider? connectionProvider = null,
-        TimeSpan? connectTimeout = null)
+        TimeSpan? startTimeout = null)
         => new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
@@ -213,9 +251,9 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
                     t.ConnectionProvider(_ => connectionProvider);
                 }
 
-                if (connectTimeout is { } timeout)
+                if (startTimeout is { } timeout)
                 {
-                    t.ConnectTimeout(timeout);
+                    t.StartTimeout(timeout);
                 }
 
                 t.Endpoint("orders").Handler<OrderCreatedHandler>();
@@ -274,6 +312,32 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
             var connection = await factory.CreateConnectionAsync(resolver, null, cancellationToken);
             ConnectionAttempts.Enqueue(resolver.AttemptedHosts.ToArray());
             return connection;
+        }
+    }
+
+    private sealed class CountingConnectionProvider(VhostContext vhost) : IRabbitMQConnectionProvider
+    {
+        private int _failedAttempts;
+
+        public int FailedAttempts => Volatile.Read(ref _failedAttempts);
+
+        public string Host => vhost.ConnectionSettings.HostName;
+
+        public string VirtualHost => vhost.VhostName;
+
+        public int Port => vhost.ConnectionSettings.Port;
+
+        public async ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await vhost.ConnectionFactory.CreateConnectionAsync(cancellationToken);
+            }
+            catch
+            {
+                Interlocked.Increment(ref _failedAttempts);
+                throw;
+            }
         }
     }
 

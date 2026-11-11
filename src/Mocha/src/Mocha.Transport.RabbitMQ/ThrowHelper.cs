@@ -40,6 +40,25 @@ internal static class ThrowHelper
             + "This can happen when a queue is at its length limit.",
             innerException);
 
+    public static InvalidOperationException PublishRejectedByExchange(string exchangeName, Exception innerException)
+        => new(
+            $"The broker rejected the message that was published to exchange '{exchangeName}'. "
+            + "The queues that accepted it have received it, so it is not published again. "
+            + "This can happen when a queue that is bound to the exchange is at its length limit.",
+            innerException);
+
+    public static TransportUnavailableException PublishNotSent(TimeSpan timeout, Exception? innerException)
+        => new(
+            $"The message could not be sent within the publish timeout of {timeout}. "
+            + "It was not written to the broker.",
+            innerException);
+
+    public static InvalidOperationException MessageHeadersTooLarge(int size, int reserve, uint frameMax)
+        => new(
+            $"The headers of the message need {size} bytes. The connection allows frames of at most "
+            + $"{frameMax} bytes, of which {reserve} bytes are kept for what the client adds. "
+            + "The message was not sent.");
+
     public static InvalidOperationException ReplyEndpointNotStarted()
         => new("The RabbitMQ reply endpoint is not started.");
 
@@ -73,4 +92,20 @@ internal static class ThrowHelper
         => new(
             $"The broker returned the message because no queue named '{queueName}' exists.",
             innerException);
+
+    public static TimeoutException QueueDeleteTimedOut(string queueName, TimeSpan timeout, Exception innerException)
+        => new($"Deleting queue '{queueName}' did not complete within {timeout}.", innerException);
+
+    public static ArgumentOutOfRangeException StartTimeoutOutOfRange(TimeSpan timeout, string paramName)
+        => new(
+            paramName,
+            timeout,
+            "The start timeout must be between zero and 4,294,967,294 milliseconds, or Timeout.InfiniteTimeSpan.");
+
+    public static ArgumentOutOfRangeException PublishTimeoutOutOfRange(TimeSpan timeout, string paramName)
+        => new(
+            paramName,
+            timeout,
+            "The publish timeout must be more than zero and at most 4,294,967,294 milliseconds, or "
+            + "Timeout.InfiniteTimeSpan.");
 }

@@ -231,7 +231,9 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     /// processor resources. Disposal is best-effort: a failure while releasing either resource is
     /// logged as a warning and does not fail the stop. For a temporary endpoint, also removes the
     /// Mocha-owned, auto-provisioned forwarding subscriptions that route to this endpoint's queue,
-    /// whether or not <paramref name="cancellationToken"/> is canceled.
+    /// whether or not <paramref name="cancellationToken"/> is canceled and whether or not stopping the
+    /// processor fails. Disposing the processor waits for running handlers, also for a handler that
+    /// ignores cancellation.
     /// </summary>
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
@@ -277,11 +279,11 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
                 _processor = null;
             }
-        }
 
-        if (Configuration.IsTemporary)
-        {
-            await CleanupTemporaryResourcesAsync();
+            if (Configuration.IsTemporary)
+            {
+                await CleanupTemporaryResourcesAsync();
+            }
         }
     }
 

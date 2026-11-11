@@ -18,6 +18,13 @@ internal static class RabbitMQFailure
     /// </summary>
     public static RabbitMQFailureKind Classify(Exception exception)
     {
+        // A returned message has no route and fails. A rejected message is attempted again. An exception
+        // that wraps one of the two has decided what the broker's answer means, and is classified by itself.
+        if (exception is PublishException publish)
+        {
+            return publish.IsReturn ? RabbitMQFailureKind.Permanent : RabbitMQFailureKind.Transient;
+        }
+
         for (var current = exception; current is not null; current = current.InnerException)
         {
             switch (current)
@@ -36,10 +43,6 @@ internal static class RabbitMQFailure
 
                 case AuthenticationFailureException or AuthenticationException:
                     return RabbitMQFailureKind.Permanent;
-
-                // A returned message has no route and fails. A rejected message is attempted again.
-                case PublishException publish:
-                    return publish.IsReturn ? RabbitMQFailureKind.Permanent : RabbitMQFailureKind.Transient;
 
                 // The broker closed the channel or the connection and said why.
                 case OperationInterruptedException { ShutdownReason: { Initiator: ShutdownInitiator.Peer } reason }:
@@ -60,6 +63,26 @@ internal static class RabbitMQFailure
                 or ConnectFailureException
             ? RabbitMQFailureKind.Transient
             : RabbitMQFailureKind.Permanent;
+    }
+
+    /// <summary>
+    /// Gets one line that names a failure in a log message: the reason the channel or the connection was
+    /// closed with when the failure has one, otherwise the type and the message of its innermost exception.
+    /// </summary>
+    public static string Describe(Exception exception)
+    {
+        var innermost = exception;
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is OperationInterruptedException { ShutdownReason: { } reason })
+            {
+                return $"{reason.ReplyCode} {reason.ReplyText} (initiator {reason.Initiator})";
+            }
+
+            innermost = current;
+        }
+
+        return $"{innermost.GetType().Name}: {innermost.Message.TrimEnd('.')}";
     }
 
     /// <summary>

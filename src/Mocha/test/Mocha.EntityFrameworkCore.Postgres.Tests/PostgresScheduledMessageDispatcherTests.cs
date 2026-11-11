@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -76,6 +78,114 @@ public sealed class PostgresScheduledMessageDispatcherTests(PostgresFixture fixt
         Assert.False(stoppedBeforeDispatchReturned);
         Assert.Equal(0, remaining);
         Assert.Equal(["A"], dispatch.Accepted);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_Should_DispatchAgainAfterOneAndTwoSeconds_When_AttemptsKeepFailing()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var watch = new Stopwatch();
+        var attempts = new ConcurrentQueue<TimeSpan>();
+        var dispatch = new ScriptedDispatch(attempt =>
+        {
+            attempts.Enqueue(watch.Elapsed);
+
+            return attempt.Number <= 2
+                ? throw new InvalidOperationException("The broker refused the message.")
+                : attempt.SendAsync();
+        });
+        await using var provider = await CreateProviderAsync(connectionString, dispatch);
+        await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+
+        // act
+        watch.Start();
+        var processing = provider.GetRequiredService<ScheduledMessageDispatcher>().ProcessAsync(cancellation.Token);
+        var remaining = await MessageRows.WaitForScheduledCountAsync(connectionString, 0, s_timeout, TestToken);
+        await cancellation.CancelAsync();
+        await processing.WaitAsync(s_timeout, TestToken);
+
+        // assert
+        // A message is due one second after its first counted attempt and two seconds after its second one.
+        TimeSpan[] times = [.. attempts];
+        Assert.Equal(0, remaining);
+        Assert.Equal(3, times.Length);
+        Assert.InRange(times[1] - times[0], TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(2.5));
+        Assert.InRange(times[2] - times[1], TimeSpan.FromSeconds(1.5), TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task ProcessAsync_Should_NotCountAttempts_When_TransportIsUnavailable()
+    {
+        // arrange
+        const int unavailableAttempts = 3;
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var watch = new Stopwatch();
+        var attempts = new ConcurrentQueue<TimeSpan>();
+        var available = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var dispatch = new ScriptedDispatch(async attempt =>
+        {
+            attempts.Enqueue(watch.Elapsed);
+
+            if (attempt.Number <= unavailableAttempts)
+            {
+                throw new TransportUnavailableException("The broker is unreachable.", null);
+            }
+
+            available.TrySetResult();
+            await resume.Task.WaitAsync(attempt.CancellationToken);
+            await attempt.SendAsync();
+        });
+        await using var provider = await CreateProviderAsync(connectionString, dispatch);
+        var id = await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+
+        // act
+        watch.Start();
+        var processing = provider.GetRequiredService<ScheduledMessageDispatcher>().ProcessAsync(cancellation.Token);
+        await available.Task.WaitAsync(s_timeout, TestToken);
+        var timesSentAfterOutage = await MessageRows.GetScheduledTimesSentAsync(connectionString, id, TestToken);
+        resume.TrySetResult();
+        var remaining = await MessageRows.WaitForScheduledCountAsync(connectionString, 0, s_timeout, TestToken);
+        await cancellation.CancelAsync();
+        await processing.WaitAsync(s_timeout, TestToken);
+
+        // assert
+        // The three pauses double from at least 100 milliseconds, which adds up to at least 0.7 seconds.
+        TimeSpan[] times = [.. attempts];
+        Assert.Equal(0, timesSentAfterOutage);
+        Assert.Equal(0, remaining);
+        Assert.Equal(["A"], dispatch.Accepted);
+        Assert.InRange(times[unavailableAttempts] - times[0], TimeSpan.FromSeconds(0.5), s_timeout);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_Should_NotCountAttempt_When_HostStopsDuringDispatch()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var dispatching = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var dispatch = new ScriptedDispatch(async attempt =>
+        {
+            dispatching.TrySetResult();
+            await Task.Delay(Timeout.InfiniteTimeSpan, attempt.CancellationToken);
+        });
+        await using var provider = await CreateProviderAsync(connectionString, dispatch);
+        var id = await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+        var processing = provider.GetRequiredService<ScheduledMessageDispatcher>().ProcessAsync(cancellation.Token);
+        await dispatching.Task.WaitAsync(s_timeout, TestToken);
+
+        // act
+        await cancellation.CancelAsync();
+        await processing.WaitAsync(s_timeout, TestToken);
+        var timesSent = await MessageRows.GetScheduledTimesSentAsync(connectionString, id, TestToken);
+
+        // assert
+        Assert.Equal(0, timesSent);
+        Assert.Equal(1, dispatch.AttemptsOf("A"));
     }
 
     private static MessageEnvelope CreateEnvelope(IServiceProvider provider, string messageId)

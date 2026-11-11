@@ -29,7 +29,7 @@ internal static partial class Logs
         TimeSpan elapsed,
         TimeSpan delay);
 
-    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue} refused by the broker; its endpoint does not start")]
+    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue} could not attach; its endpoint does not start")]
     public static partial void ConsumerRegistrationFailed(
         this ILogger logger,
         Exception exception,
@@ -37,10 +37,24 @@ internal static partial class Logs
 
     [LoggerMessage(
         Message = "RabbitMQ consumer of {Queue} lost its channel: {ReplyCode} {ReplyText} (initiator {Initiator}); "
-            + "{CancelledHandlers} handlers cancelled, their messages are delivered again")]
+            + "{CancelledHandlers} handlers cancelled, their messages can be delivered again, attaching again in "
+            + "{Delay}")]
     public static partial void ConsumerChannelLost(
         this ILogger logger,
         LogLevel level,
+        string queue,
+        ushort replyCode,
+        string replyText,
+        ShutdownInitiator initiator,
+        int cancelledHandlers,
+        TimeSpan delay);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "RabbitMQ consumer of {Queue} lost its channel while stopping: {ReplyCode} {ReplyText} (initiator "
+            + "{Initiator}); {CancelledHandlers} handlers cancelled, their messages can be delivered again")]
+    public static partial void ConsumerChannelLostWhileStopping(
+        this ILogger logger,
         string queue,
         ushort replyCode,
         string replyText,
@@ -50,16 +64,17 @@ internal static partial class Logs
     [LoggerMessage(
         LogLevel.Warning,
         "RabbitMQ consumer of {Queue} cancelled by the broker; {CancelledHandlers} handlers cancelled, "
-            + "attaching again")]
+            + "attaching again in {Delay}")]
     public static partial void ConsumerCancelled(
         this ILogger logger,
         string queue,
-        int cancelledHandlers);
+        int cancelledHandlers,
+        TimeSpan delay);
 
     [LoggerMessage(
         LogLevel.Error,
         "RabbitMQ consumer of {Queue} blocked: all {MaxConcurrency} handlers of the lost channel still "
-            + "run {GracePeriod} after their cancellation; waiting for one to return")]
+            + "run after {GracePeriod}; waiting for one to return")]
     public static partial void ConsumerBlockedByHandlers(
         this ILogger logger,
         string queue,
@@ -89,6 +104,15 @@ internal static partial class Logs
         string queue,
         int runningHandlers,
         TimeSpan elapsed);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "RabbitMQ consumer of {Queue} stopping without waiting; {RunningHandlers} handlers cancelled, their "
+            + "messages return to the queue")]
+    public static partial void ConsumerHandlersCancelled(
+        this ILogger logger,
+        string queue,
+        int runningHandlers);
 
     [LoggerMessage(
         LogLevel.Information,
@@ -124,7 +148,7 @@ internal static partial class Logs
         ulong deliveryTag,
         string? correlationId);
 
-    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue}: cancelling its handlers failed")]
+    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue}: a cancellation callback of a handler threw")]
     public static partial void HandlerCancellationFailed(
         this ILogger logger,
         Exception exception,
@@ -138,16 +162,15 @@ internal static partial class Logs
 
     [LoggerMessage(
         LogLevel.Information,
-        "RabbitMQ message {MessageId}: {Settlement} skipped, channel closed (tag {ConsumerTag}, delivery "
-            + "{DeliveryTag}, exchange {Exchange}, routing key {RoutingKey}, redelivered {Redelivered}); the "
-            + "broker delivers it again")]
+        "RabbitMQ consumer of {Queue}: {Settlement} of message {MessageId} skipped, channel closed (tag "
+            + "{ConsumerTag}, delivery {DeliveryTag}, redelivered {Redelivered}); the message stays "
+            + "unacknowledged and can be delivered again")]
     public static partial void SettlementSkipped(
         this ILogger logger,
+        string? queue,
         string settlement,
         string? messageId,
         string consumerTag,
         ulong deliveryTag,
-        string exchange,
-        string routingKey,
         bool redelivered);
 }

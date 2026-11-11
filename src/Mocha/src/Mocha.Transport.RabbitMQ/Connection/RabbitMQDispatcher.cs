@@ -72,8 +72,9 @@ internal sealed partial class RabbitMQDispatcher : IAsyncDisposable
     }
 
     /// <summary>
-    /// Leases a channel of the ready connection to one publish, waiting while there is no connection or all
-    /// channels are leased. The caller gives the lease back with <see cref="Return"/>.
+    /// Leases a channel of the ready connection to one publish, waiting while there is no connection, while
+    /// the broker blocks the connection and while all channels are leased. The caller gives the lease back
+    /// with <see cref="Return"/>.
     /// </summary>
     public async ValueTask<PublisherLease> RentChannelAsync(CancellationToken cancellationToken)
     {
@@ -100,28 +101,31 @@ internal sealed partial class RabbitMQDispatcher : IAsyncDisposable
             {
                 while (true)
                 {
-                    while (pool.TryTakeIdle(out var idle))
+                    if (_connection.IsBlocked)
                     {
-                        if (idle.IsOpen)
+                        // The broker does not read from a blocked connection. A message written to it is
+                        // accepted when the broker reads again, also when its publish has given up by then.
+                        // So the publish waits before it takes a channel, and has written nothing meanwhile.
+                        await _connection.WaitWhileBlockedAsync(cancellationToken);
+                        if (pool.IsRetired || !ReferenceEquals(_connection.Connection, connection))
                         {
-                            return new PublisherLease(pool, idle);
+                            break;
                         }
 
-                        _ = RabbitMQConnectionManager.CloseChannelAsync(idle);
+                        continue;
                     }
 
-                    if (!_connection.IsBlocked)
+                    if (!pool.TryTakeIdle(out var idle))
                     {
                         break;
                     }
 
-                    // The broker does not read from a blocked connection, so it would not answer a request to
-                    // open a channel. The publish waits here and takes a channel that became idle meanwhile.
-                    await _connection.WaitWhileBlockedAsync(cancellationToken);
-                    if (pool.IsRetired || !ReferenceEquals(_connection.Connection, connection))
+                    if (idle.IsOpen)
                     {
-                        break;
+                        return new PublisherLease(pool, idle);
                     }
+
+                    _ = RabbitMQConnectionManager.CloseChannelAsync(idle);
                 }
 
                 if (pool.IsRetired || !ReferenceEquals(_connection.Connection, connection))

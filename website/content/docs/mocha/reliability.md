@@ -827,6 +827,10 @@ The processor deletes a message from the outbox table after the transport has ac
 
 When the host stops, a dispatch that is in progress is cancelled. If the transport has already accepted the message, the processor deletes the row before it stops.
 
+The processor keeps a database transaction open while it dispatches a message, for up to `DispatchTimeout` per concurrent dispatch. Keep `idle_in_transaction_session_timeout` in PostgreSQL, and the idle transaction timeout of a connection pooler, above `DispatchTimeout`. When the database ends the session after the transport accepted the message, the row cannot be removed. The processor then writes an `Error` entry that ends with `was accepted by the transport, but removing its outbox row failed`, pauses, and dispatches the message again, so it can arrive twice.
+
+An idle processor reads the outbox at least every 30 seconds. It finds a message that another process wrote to the outbox table without a signal.
+
 ## Configure outbox retries
 
 Three options on `PostgresOutboxOptions` control what the processor does when a dispatch does not succeed:
@@ -858,19 +862,27 @@ The `TimesSent` column holds the number of counted attempts of a message. How a 
 | The dispatch threw any other exception.                                                                                | Yes     | Increments `TimesSent` and delays the next attempt.                       | Error                                  |
 | The message cannot be read, its message type is unknown, or no endpoint matches its destination.                       | Yes     | Increments `TimesSent` and delays the next attempt.                       | Warning                                |
 
+A message that cannot be read also produces an `Error` entry with the text `Error reading message envelope`.
+
 A message is eligible again one second after its first counted attempt. The delay doubles with every further counted attempt, up to `MaxRetryDelay`.
 
 A released message keeps its attempt count and its position in the outbox. After a release, the worker that dispatched the message pauses before it dispatches again. The pause starts at about 100 milliseconds, doubles with every further release up to 10 seconds, and starts over after a successful dispatch.
+
+With `MaxConcurrentMessages` set to 1, the messages behind a released message wait until it is dispatched, also messages for other destinations. This can last, for example while a RabbitMQ queue keeps rejecting a sent message at its length limit. A higher `MaxConcurrentMessages` lets other messages pass.
+
+Only the RabbitMQ transport throws `TransportUnavailableException`. With the Postgres and Azure Service Bus transports, a dispatch that fails during an outage counts as an attempt, unless it exceeds `DispatchTimeout`.
+
+A dispatch that is cancelled after `DispatchTimeout` can still arrive when the transport had already written the message. This can happen during a memory or disk alarm of RabbitMQ, or when a confirmation takes longer than `DispatchTimeout`. The next dispatch then delivers the message a second time. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](#deduplicate-messages-with-the-transactional-inbox).
 
 The log entry of a dispatch that was released or threw carries the row ID (`Id`), the message ID (`MessageId`), the message type (`MessageType`), and the destination (`DestinationAddress`) as structured properties.
 
 When a message reaches `MaxAttempts` counted attempts, the processor writes a log entry at `Critical` level:
 
 ```text
-Message with ID 0197f3c2-5b7e-7000-8a1c-3d2e9f4b6a10 exhausted all 10 attempts and will not be retried.
+Outbox message 0197f3c2-5b7e-7000-8a1c-3d2e9f4b6a10 (message ID <message id>, type <message type>) to <destination> exhausted all 10 attempts and will not be retried.
 ```
 
-The ID is the `Id` of the row. The row stays in the outbox table and is not dispatched again. To dispatch it again, set its `TimesSent` to a value below `MaxAttempts`. The processor picks the row up the next time it reads the outbox, for example when another message is written to it.
+The first ID is the `Id` of the row. The message ID, the type and the destination are `(null)` when the message cannot be read. The row stays in the outbox table and is not dispatched again. To dispatch it again, set its `TimesSent` to a value below `MaxAttempts`. The processor reads the outbox at least every 30 seconds and dispatches the message once the delay of its last attempt has passed.
 
 ## Configure outbox dispatch concurrency
 

@@ -79,12 +79,11 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger logger)
         using (logger.BeginMessageScope(context))
         {
             logger.SettlementSkipped(
+                (context.Endpoint as RabbitMQReceiveEndpoint)?.Queue.Name,
                 settlement,
                 delivery.BasicProperties.MessageId ?? context.MessageId,
                 delivery.ConsumerTag,
                 delivery.DeliveryTag,
-                delivery.Exchange,
-                delivery.RoutingKey,
                 delivery.Redelivered);
         }
     }

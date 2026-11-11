@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
+using Moq;
 using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
@@ -30,6 +31,7 @@ public sealed class RabbitMQLifecycleTests
                 throw new UnreachableException();
             },
             static (_, _) => Task.CompletedTask);
+        var starting = dispatcher.StartAsync(TestContext.Current.CancellationToken);
         var first = dispatcher.RentChannelAsync(CancellationToken.None).AsTask();
         await entered.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         var second = dispatcher.RentChannelAsync(CancellationToken.None).AsTask();
@@ -52,6 +54,7 @@ public sealed class RabbitMQLifecycleTests
         // assert
         Assert.True(disposeWaitedForAttempt);
         await Assert.ThrowsAsync<ObjectDisposedException>(() => first);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => starting);
         Assert.False(dispatcher.IsConnected);
     }
 
@@ -125,6 +128,46 @@ public sealed class RabbitMQLifecycleTests
         // assert
         Assert.False(consumer.IsAttached);
         Assert.Equal("The consumer is not attached.", consumer.HealthFailureReason);
+    }
+
+    [Fact]
+    public async Task RegisterConsumerAsync_Should_FailTheFirstAttempt_When_ItsRequestsTogetherExceedAttachTimeout()
+    {
+        // arrange
+        // the preparation and the request that follows each take less than the timeout, and together more
+        var requestDuration = TimeSpan.FromSeconds(2);
+        var channel = new Mock<IChannel>();
+        channel.SetupGet(c => c.IsOpen).Returns(true);
+        channel
+            .Setup(c => c.BasicQosAsync(
+                It.IsAny<uint>(),
+                It.IsAny<ushort>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(() => Task.Delay(requestDuration));
+        var connection = new Mock<IConnection>();
+        connection.SetupGet(c => c.IsOpen).Returns(true);
+        connection
+            .Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(channel.Object);
+        await using var manager = TestManagers.CreateConsumerManager(
+            _ => new ValueTask<IConnection>(connection.Object));
+        manager.AttachTimeout = TimeSpan.FromSeconds(3);
+        await manager.StartAsync(TestContext.Current.CancellationToken);
+
+        // act
+        var consumer = await manager.RegisterConsumerAsync(
+            "orders",
+            (_, _, ct) => Task.Delay(requestDuration, ct),
+            static (_, _, _) => default,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        var failure = await consumer.FirstAttempt;
+
+        // assert
+        var timeout = Assert.IsType<TimeoutException>(failure);
+        Assert.Equal("Attaching the consumer for queue 'orders' did not complete within 00:00:03.", timeout.Message);
     }
 
     [Fact]

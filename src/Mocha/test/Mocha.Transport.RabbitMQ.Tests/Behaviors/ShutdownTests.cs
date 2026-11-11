@@ -205,7 +205,7 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
     }
 
     [Fact]
-    public async Task StopAsync_Should_Complete_When_ConnectionClosedDuringStop()
+    public async Task StopAsync_Should_CancelHandler_When_ConnectionClosedDuringDrain()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -216,24 +216,33 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
-        using var stopTimeout = new CancellationTokenSource(TestTimeouts.Signal);
-        var stop = runtime.StopAsync(stopTimeout.Token).AsTask();
-        await vhost.Faults.CloseConnectionsAsync();
-        await gate.CancellationObserved.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-        gate.Release.TrySetResult();
-        await stop.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-        await bus.DisposeAsync();
-        var closed = await Condition.WaitAsync(
-            async () => await vhost.Broker.GetConnectionCountAsync() == 0,
-            TestTimeouts.Signal);
+        // the stop token is never cancelled, so only the loss of the channel can cancel the handler
+        var stop = runtime.StopAsync(CancellationToken.None).AsTask();
+        bool cancelledBeforeClose;
+        try
+        {
+            // the consumer is gone once the stop waits for the handler
+            await vhost.Broker.WaitForNoConsumerAsync("shutdown");
+            cancelledBeforeClose = gate.Cancelled;
+            await vhost.Faults.CloseConnectionsAsync();
+            await gate.CancellationObserved.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+            await stop.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            gate.Release.TrySetResult();
+        }
 
-        // the handler completed, but its delivery could not be acked on the closed channel
+        await bus.DisposeAsync();
+        await vhost.Broker.WaitForNoConnectionAsync();
+
+        // the delivery could not be settled on the closed channel
         var requeued = (await vhost.Broker.GetQueueAsync("shutdown"))?.Messages;
 
         // assert
-        Assert.False(gate.Completed);
+        Assert.False(cancelledBeforeClose);
         Assert.True(gate.Cancelled);
-        Assert.True(closed);
+        Assert.False(gate.Completed);
         Assert.Equal(1, requeued);
     }
 

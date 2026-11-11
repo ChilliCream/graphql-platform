@@ -124,13 +124,14 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
 
         _consumer = null;
 
-        // A generated temporary reply queue is deleted on graceful stop when auto-provisioning is enabled.
+        // A generated temporary reply queue is deleted when auto-provisioning is enabled, also when the token
+        // is cancelled.
         if (Kind == ReceiveEndpointKind.Reply
             && Configuration.IsTemporary
             && Queue.Origin is not TopologyOrigin.Declared
             && transport.Topology.ShouldProvision(Queue))
         {
-            await transport.ConsumerManager.DeleteQueueAsync(Queue.Name, cancellationToken);
+            await transport.ConsumerManager.DeleteQueueAsync(Queue.Name);
         }
     }
 }

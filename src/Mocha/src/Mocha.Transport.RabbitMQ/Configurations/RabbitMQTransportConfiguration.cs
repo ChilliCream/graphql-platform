@@ -18,6 +18,9 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     /// </summary>
     public const string DefaultSchema = "rabbitmq";
 
+    // The longest time a timer waits.
+    private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(uint.MaxValue - 1);
+
     /// <summary>
     /// Creates a new configuration instance with the default name and schema.
     /// </summary>
@@ -65,10 +68,11 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     public RabbitMQBusDefaults Defaults { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets how long the transport keeps retrying while the broker cannot be reached before its start fails,
-    /// or <c>null</c> for two minutes.
+    /// Gets or sets how long the start of the transport keeps retrying while the broker cannot be reached before
+    /// it fails, or <c>null</c> for two minutes. <see cref="Timeout.InfiniteTimeSpan"/> keeps retrying until the
+    /// start is cancelled.
     /// </summary>
-    public TimeSpan? ConnectTimeout { get; set; }
+    public TimeSpan? StartTimeout { get; set; }
 
     /// <summary>
     /// Gets or sets how long a publish waits for the broker's confirmation before it fails with
@@ -76,6 +80,46 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     /// <see cref="Timeout.InfiniteTimeSpan"/> waits until the caller cancels.
     /// </summary>
     public TimeSpan? PublishTimeout { get; set; }
+
+    /// <summary>
+    /// Throws when <see cref="StartTimeout"/> or <see cref="PublishTimeout"/> is outside its supported range.
+    /// </summary>
+    internal void ValidateTimeouts()
+    {
+        if (StartTimeout is { } startTimeout)
+        {
+            ValidateStartTimeout(startTimeout, nameof(StartTimeout));
+        }
+
+        if (PublishTimeout is { } publishTimeout)
+        {
+            ValidatePublishTimeout(publishTimeout, nameof(PublishTimeout));
+        }
+    }
+
+    /// <summary>
+    /// Throws when <paramref name="timeout"/> is neither between zero and 4,294,967,294 milliseconds nor
+    /// <see cref="Timeout.InfiniteTimeSpan"/>.
+    /// </summary>
+    internal static void ValidateStartTimeout(TimeSpan timeout, string paramName)
+    {
+        if (timeout != Timeout.InfiniteTimeSpan && (timeout < TimeSpan.Zero || timeout > s_maxTimeout))
+        {
+            throw ThrowHelper.StartTimeoutOutOfRange(timeout, paramName);
+        }
+    }
+
+    /// <summary>
+    /// Throws when <paramref name="timeout"/> is neither more than zero and at most 4,294,967,294 milliseconds
+    /// nor <see cref="Timeout.InfiniteTimeSpan"/>.
+    /// </summary>
+    internal static void ValidatePublishTimeout(TimeSpan timeout, string paramName)
+    {
+        if (timeout != Timeout.InfiniteTimeSpan && (timeout <= TimeSpan.Zero || timeout > s_maxTimeout))
+        {
+            throw ThrowHelper.PublishTimeoutOutOfRange(timeout, paramName);
+        }
+    }
 }
 
 /// <summary>

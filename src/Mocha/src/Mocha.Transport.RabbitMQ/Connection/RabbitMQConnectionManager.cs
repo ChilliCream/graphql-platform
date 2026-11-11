@@ -14,8 +14,12 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
 {
     private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan s_maxRetryDelay = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan s_closeTimeout = TimeSpan.FromSeconds(5);
     private static readonly CancellationToken s_cancelled = new(canceled: true);
+
+    /// <summary>
+    /// The longest wait for the broker while a connection, a channel or a temporary queue is released.
+    /// </summary>
+    public static readonly TimeSpan CloseTimeout = TimeSpan.FromSeconds(5);
 
     private readonly ILogger _logger;
     private readonly Func<CancellationToken, ValueTask<IConnection>> _connectionFactory;
@@ -87,8 +91,9 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
 
     /// <summary>
     /// Gets or sets how long <see cref="StartAsync"/> keeps retrying while the broker cannot be reached.
+    /// <see cref="Timeout.InfiniteTimeSpan"/> keeps retrying until the caller cancels.
     /// </summary>
-    public TimeSpan ConnectTimeout { get; set; } = TimeSpan.FromMinutes(2);
+    public TimeSpan StartTimeout { get; set; } = TimeSpan.FromMinutes(2);
 
     /// <summary>
     /// Gets or sets how long one connection attempt may take before it is abandoned and retried.
@@ -126,7 +131,8 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
     public bool IsDisposed => Volatile.Read(ref _isDisposed);
 
     /// <summary>
-    /// Gets the ready connection, waiting while there is none. The wait ends when a connection becomes
+    /// Gets the ready connection, waiting while there is none, without connecting: only
+    /// <see cref="StartAsync"/> and the loss of a connection connect. The wait ends when a connection becomes
     /// ready, when <paramref name="cancellationToken"/> is cancelled, or when the manager is disposed.
     /// </summary>
     public ValueTask<IConnection> GetConnectionAsync(CancellationToken cancellationToken)
@@ -139,7 +145,6 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
         while (true)
         {
             Task<IConnection>? ready = null;
-            Task? connecting = null;
             IConnection? closed = null;
             lock (_sync)
             {
@@ -155,15 +160,8 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
                 }
                 else
                 {
-                    if (_connecting.IsCompleted)
-                    {
-                        // The manager was not started, or its start failed.
-                        _unavailableSince = TimeProvider.GetTimestamp();
-                        _connecting = Task.Run(() => ConnectWithRetryAsync(deadline: null, CancellationToken.None));
-                    }
-
+                    // The wait does not connect. Before a start succeeded it lasts until one does.
                     ready = _ready.Task;
-                    connecting = _connecting;
                 }
             }
 
@@ -174,21 +172,16 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
                 continue;
             }
 
-            // A start that fails ends its routine without a connection. The wait then starts the next one.
-            await Task.WhenAny(ready!, connecting!).WaitAsync(cancellationToken);
-            if (ready!.IsCompleted)
+            var connection = await ready!.WaitAsync(cancellationToken);
+            if (connection.IsOpen)
             {
-                var connection = await ready;
-                if (connection.IsOpen)
-                {
-                    return connection;
-                }
+                return connection;
             }
         }
     }
 
     /// <summary>
-    /// Connects, retrying with exponential backoff until <see cref="ConnectTimeout"/> elapsed. A failure that
+    /// Connects, retrying with exponential backoff until <see cref="StartTimeout"/> elapsed. A failure that
     /// repeats on every attempt, such as refused credentials, fails at once.
     /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -212,7 +205,7 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
                 }
                 else if (_connecting.IsCompleted)
                 {
-                    var timeout = ConnectTimeout;
+                    var timeout = StartTimeout;
                     _unavailableSince = TimeProvider.GetTimestamp();
                     _connecting = connecting = Task.Run(() => ConnectWithRetryAsync(timeout, cancellationToken));
                 }
@@ -243,32 +236,41 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
             }
 
             // A recovery already runs in the background. The start waits for it as long as it would have
-            // kept trying itself.
+            // kept trying itself, which is without a limit for an infinite timeout.
+            var startTimeout = StartTimeout;
             try
             {
-                await ready!.WaitAsync(ConnectTimeout, TimeProvider, cancellationToken);
+                await ready!.WaitAsync(startTimeout, TimeProvider, cancellationToken);
                 return;
             }
             catch (TimeoutException ex)
             {
-                throw ThrowHelper.ConnectionTimedOut(ConnectTimeout, ex);
+                throw ThrowHelper.ConnectionTimedOut(startTimeout, ex);
             }
         }
     }
 
-    private async Task ConnectWithRetryAsync(TimeSpan? deadline, CancellationToken cancellationToken)
+    /// <summary>
+    /// Connects until an attempt succeeds. With a <paramref name="startTimeout"/> the routine fails when that
+    /// time elapsed or a failure repeats on every attempt, and with <c>null</c>, for a recovery, it never
+    /// gives up.
+    /// </summary>
+    private async Task ConnectWithRetryAsync(TimeSpan? startTimeout, CancellationToken cancellationToken)
     {
         using var loopCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposeCts.Token);
         var loopToken = loopCts.Token;
         var started = TimeProvider.GetTimestamp();
 
+        // Every log call below has its own scope: a scope around the routine would be captured by the reader
+        // loop of the connection that is created inside it.
         for (var attempt = 1; ; attempt++)
         {
             loopToken.ThrowIfCancellationRequested();
 
-            // The last attempt before the deadline ends with the deadline.
+            // The last attempt before the start timeout ends with it. A timeout of zero allows one whole
+            // attempt, and an infinite one, which is negative, sets no end.
             var attemptTimeout = AttemptTimeout;
-            if (deadline is { } limit && limit > TimeSpan.Zero)
+            if (startTimeout is { } limit && limit > TimeSpan.Zero)
             {
                 var remaining = limit - TimeProvider.GetElapsedTime(started);
                 if (remaining < attemptTimeout)
@@ -309,9 +311,12 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
                 var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
                 var elapsed = TimeProvider.GetElapsedTime(Volatile.Read(ref _unavailableSince));
 
-                if (deadline is { } connectTimeout
+                // A start gives up when the failure repeats on every attempt, or when the next attempt would
+                // begin after a timeout that is not infinite.
+                if (startTimeout is { } timeout
                     && (RabbitMQFailure.IsPermanent(failure)
-                        || TimeProvider.GetElapsedTime(started) + delay > connectTimeout))
+                        || (timeout != Timeout.InfiniteTimeSpan
+                            && TimeProvider.GetElapsedTime(started) + delay > timeout)))
                 {
                     using (BeginLogScope())
                     {
@@ -320,7 +325,7 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
 
                     if (timedOut)
                     {
-                        throw ThrowHelper.ConnectionTimedOut(connectTimeout, ex);
+                        throw ThrowHelper.ConnectionTimedOut(timeout, ex);
                     }
 
                     throw;
@@ -420,15 +425,15 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
             return;
         }
 
-        using (BeginLogScope())
-        {
-            _logger.ConnectionLost(
-                ConnectionRole,
-                reason?.ReplyCode ?? 0,
-                reason?.ReplyText,
-                reason?.Initiator ?? ShutdownInitiator.Library,
-                reason?.Exception?.Message);
-        }
+        // The client repeats the reply text as the cause when the socket failed.
+        var cause = reason?.Exception?.Message;
+        using var _ = BeginLogScope();
+        _logger.ConnectionLost(
+            ConnectionRole,
+            reason?.ReplyCode ?? 0,
+            reason?.ReplyText,
+            reason?.Initiator ?? ShutdownInitiator.Library,
+            cause is null || cause == reason?.ReplyText ? "none" : cause);
     }
 
     /// <summary>
@@ -463,16 +468,13 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
         // The lost connection is closed first, so the broker has released what belongs to it, such as an
         // exclusive queue. Disposing it also stops the client's own automatic recovery.
         await CloseConnectionAsync(lostConnection);
-        await ConnectWithRetryAsync(deadline: null, CancellationToken.None);
+        await ConnectWithRetryAsync(startTimeout: null, CancellationToken.None);
     }
 
     private Task OnCallbackExceptionAsync(object? sender, CallbackExceptionEventArgs e)
     {
-        using (BeginLogScope())
-        {
-            _logger.ConnectionCallbackFailed(e.Exception, ConnectionRole, Print(e.Detail));
-        }
-
+        using var _ = BeginLogScope();
+        _logger.ConnectionCallbackFailed(e.Exception, ConnectionRole, Print(e.Detail));
         return Task.CompletedTask;
     }
 
@@ -492,10 +494,8 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
             }
         }
 
-        using (BeginLogScope())
-        {
-            _logger.ConnectionBlocked(ConnectionRole, reason);
-        }
+        using var _ = BeginLogScope();
+        _logger.ConnectionBlocked(ConnectionRole, reason);
     }
 
     private void OnConnectionUnblocked(IConnection connection)
@@ -513,12 +513,10 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
             _unblocked.TrySetResult();
         }
 
-        using (BeginLogScope())
-        {
-            _logger.ConnectionUnblocked(
-                ConnectionRole,
-                blockedSince == 0 ? TimeSpan.Zero : TimeProvider.GetElapsedTime(blockedSince));
-        }
+        using var _ = BeginLogScope();
+        _logger.ConnectionUnblocked(
+            ConnectionRole,
+            blockedSince == 0 ? TimeSpan.Zero : TimeProvider.GetElapsedTime(blockedSince));
     }
 
     // A disposed connection of the client throws instead of giving its close reason.
@@ -600,10 +598,8 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
             return;
         }
 
-        using (BeginLogScope())
-        {
-            _logger.ConnectionAborted(ConnectionRole, reason);
-        }
+        using var _ = BeginLogScope();
+        _logger.ConnectionAborted(ConnectionRole, reason);
     }
 
     /// <summary>
@@ -615,7 +611,7 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
         {
             if (connection.IsOpen)
             {
-                await connection.AbortAsync(s_closeTimeout);
+                await connection.AbortAsync(CloseTimeout);
             }
         }
         catch (Exception ex)
@@ -626,7 +622,7 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
         try
         {
             // Disposing a connection whose broker stopped answering can take as long as the client's own timeouts.
-            await connection.DisposeAsync().AsTask().WaitAsync(s_closeTimeout);
+            await connection.DisposeAsync().AsTask().WaitAsync(CloseTimeout);
         }
         catch (Exception ex)
         {
@@ -636,10 +632,8 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
 
     private void LogCloseFailed(Exception exception)
     {
-        using (BeginLogScope())
-        {
-            _logger.ConnectionCloseFailed(exception, ConnectionRole);
-        }
+        using var _ = BeginLogScope();
+        _logger.ConnectionCloseFailed(exception, ConnectionRole);
     }
 
     /// <summary>
@@ -656,7 +650,7 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
 
         try
         {
-            await closing.WaitAsync(s_closeTimeout);
+            await closing.WaitAsync(CloseTimeout);
         }
         catch (TimeoutException)
         {
@@ -749,10 +743,9 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
             await CloseConnectionAsync(connection);
         }
 
-        using (BeginLogScope())
-        {
-            _logger.ConnectionStopped(ConnectionRole);
-        }
+        // The discard name is taken by the read of the exception above.
+        using var scope = BeginLogScope();
+        _logger.ConnectionStopped(ConnectionRole);
     }
 
     private static string Print(IDictionary<string, object>? detail)

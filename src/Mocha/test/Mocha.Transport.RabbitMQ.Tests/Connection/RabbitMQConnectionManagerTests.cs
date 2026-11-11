@@ -51,7 +51,7 @@ public sealed class RabbitMQConnectionManagerTests
     {
         // arrange
         await using var manager = CreateManager(NeverConnectAsync);
-        manager.ConnectTimeout = TimeSpan.FromMilliseconds(100);
+        manager.StartTimeout = TimeSpan.FromMilliseconds(100);
 
         // act
         var exception = await Assert.ThrowsAsync<TimeoutException>(
@@ -71,7 +71,7 @@ public sealed class RabbitMQConnectionManagerTests
         await using var manager = CreateManager(
             _ => new ValueTask<IConnection>(connection.Object),
             static (_, ct) => Task.Delay(Timeout.InfiniteTimeSpan, ct));
-        manager.ConnectTimeout = TimeSpan.FromMilliseconds(100);
+        manager.StartTimeout = TimeSpan.FromMilliseconds(100);
 
         // act
         await Assert.ThrowsAsync<TimeoutException>(

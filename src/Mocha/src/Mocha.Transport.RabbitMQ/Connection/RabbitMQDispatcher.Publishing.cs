@@ -156,7 +156,7 @@ internal sealed partial class RabbitMQDispatcher
     {
         var elapsed = Stopwatch.GetElapsedTime(started);
         var isSlow = elapsed >= s_slowPublishThreshold;
-        if (!_logger.IsEnabled(isSlow ? LogLevel.Warning : LogLevel.Debug))
+        if (!_logger.IsEnabled(isSlow ? LogLevel.Information : LogLevel.Debug))
         {
             return;
         }
@@ -219,9 +219,15 @@ internal sealed partial class RabbitMQDispatcher
         }
     }
 
+    /// <summary>
+    /// Logs that the attempt <paramref name="attempt"/> of a publish failed and is followed by another one:
+    /// at <see cref="LogLevel.Information"/> for the first attempt of the publish, and at
+    /// <see cref="LogLevel.Debug"/> for every later one.
+    /// </summary>
     public void LogPublishRetry(IDispatchContext context, Exception exception, int attempt, TimeSpan delay)
     {
-        if (!_logger.IsEnabled(LogLevel.Information))
+        var level = attempt == 1 ? LogLevel.Information : LogLevel.Debug;
+        if (!_logger.IsEnabled(level))
         {
             return;
         }
@@ -230,11 +236,12 @@ internal sealed partial class RabbitMQDispatcher
         using (_logger.BeginMessageScope(context))
         {
             _logger.PublishRetryScheduled(
+                level,
                 context.Envelope?.MessageId,
                 context.Endpoint.Name,
                 attempt,
                 delay,
-                $"{exception.GetType().Name}: {exception.Message}");
+                RabbitMQFailure.Describe(exception));
         }
     }
 

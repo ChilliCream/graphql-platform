@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
@@ -40,5 +41,35 @@ public sealed class RabbitMQConnectionManagerIntegrationTests(RabbitMQFixture fi
         Assert.Equal(0, connectionsBeforeRelease);
         await Assert.ThrowsAsync<ObjectDisposedException>(() => starting);
         await vhost.Broker.WaitForNoConnectionAsync();
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_FailFast_When_CredentialsAreRefusedAfterAConnectionWasRequested()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.Password = "wrong-password";
+        await using var manager = new RabbitMQConnectionManager(
+            NullLogger.Instance,
+            RabbitMQMessagingTransport.DispatcherRole,
+            TimeProvider.System,
+            async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct),
+            static (_, _) => Task.CompletedTask);
+        using var requestCancellation = new CancellationTokenSource();
+        var requested = manager.GetConnectionAsync(requestCancellation.Token).AsTask();
+
+        // act
+        // the start timeout of two minutes is far above the ceiling of this wait
+        var exception = await Assert.ThrowsAsync<BrokerUnreachableException>(
+            () => manager.StartAsync(TestContext.Current.CancellationToken)
+                .WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
+        var requestPendingAfterStart = !requested.IsCompleted;
+        await requestCancellation.CancelAsync();
+
+        // assert
+        Assert.IsType<AuthenticationFailureException>(exception.InnerException);
+        Assert.True(requestPendingAfterStart);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => requested);
+        Assert.Equal(0, await vhost.Broker.GetConnectionCountAsync());
     }
 }

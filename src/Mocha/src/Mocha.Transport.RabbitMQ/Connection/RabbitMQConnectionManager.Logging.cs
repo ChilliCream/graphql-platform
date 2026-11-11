@@ -31,8 +31,7 @@ internal static partial class Logs
 
     [LoggerMessage(
         LogLevel.Error,
-        "RabbitMQ {ConnectionRole} connection not established after {Elapsed} and {Attempt} attempts; the "
-            + "start fails")]
+        "RabbitMQ {ConnectionRole} connection not ready after {Elapsed} and {Attempt} attempts; the start fails")]
     public static partial void ConnectionFailed(
         this ILogger logger,
         Exception exception,
@@ -50,7 +49,7 @@ internal static partial class Logs
         ushort replyCode,
         string? replyText,
         ShutdownInitiator initiator,
-        string? cause);
+        string cause);
 
     [LoggerMessage(LogLevel.Warning, "RabbitMQ {ConnectionRole} connection closed by Mocha: {Reason}; reconnecting")]
     public static partial void ConnectionAborted(this ILogger logger, string connectionRole, string reason);

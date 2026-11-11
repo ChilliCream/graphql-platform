@@ -235,8 +235,8 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
     /// <summary>
     /// Starts the transport by invoking pre-start hooks and starting the reply endpoints, then all other
-    /// receive endpoints. When an endpoint fails to start, the transport is stopped again without waiting
-    /// for running handlers, and the failure is rethrown.
+    /// receive endpoints. When a pre-start hook or an endpoint fails, the transport is stopped again without
+    /// waiting for running handlers, and the failure is rethrown.
     /// </summary>
     /// <param name="context">The runtime context providing access to services and configuration.</param>
     /// <param name="cancellationToken">A token to cancel the startup sequence.</param>
@@ -249,10 +249,10 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             throw ThrowHelper.TransportAlreadyStarted();
         }
 
-        await OnBeforeStartAsync(context, cancellationToken);
-
         try
         {
+            await OnBeforeStartAsync(context, cancellationToken);
+
             foreach (var endpoint in ReceiveEndpoints)
             {
                 if (endpoint.Kind == ReceiveEndpointKind.Reply)

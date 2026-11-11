@@ -44,6 +44,7 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
 
     /// <summary>
     /// Gets or sets how long one attempt to attach a consumer may take before it is abandoned and retried.
+    /// The wait for a handler of a lost channel to return does not count.
     /// </summary>
     public TimeSpan AttachTimeout { get; set; } = TimeSpan.FromSeconds(60);
 
@@ -119,7 +120,9 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
     /// The consumer. It is not attached when no connection was ready or the first attempt failed for a
     /// reason that a later attempt can overcome.
     /// </returns>
-    /// <exception cref="Exception">The broker refused the first attempt. The consumer is stopped.</exception>
+    /// <exception cref="Exception">
+    /// The first attempt failed for a reason that repeats on every attempt. The consumer is stopped.
+    /// </exception>
     public async Task<RabbitMQConsumer> RegisterConsumerAsync(
         string queueName,
         Func<IConnection, IChannel, CancellationToken, Task>? prepareAsync,
@@ -162,7 +165,7 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
                 Logger.ConsumerRegistrationFailed(failure, queueName);
             }
 
-            // A consumer the broker refuses does not keep attaching in the background.
+            // A consumer whose attempts all fail the same way does not keep attaching in the background.
             await consumer.DisposeAsync();
             ExceptionDispatchInfo.Throw(failure);
         }
@@ -171,44 +174,57 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Deletes a queue on the ready connection. Does nothing when there is no ready connection, and logs
-    /// a failure instead of throwing it.
+    /// Deletes a queue on the ready connection, waiting no longer than
+    /// <see cref="RabbitMQConnectionManager.CloseTimeout"/> for the broker. Does nothing when there is no
+    /// ready connection, and logs a failure instead of throwing it.
     /// </summary>
-    public async Task DeleteQueueAsync(string queueName, CancellationToken cancellationToken)
+    public async Task DeleteQueueAsync(string queueName)
     {
-        if (_connection.Connection is not { } connection || cancellationToken.IsCancellationRequested)
+        if (_connection.Connection is not { } connection)
         {
             return;
         }
+
+        var timeout = RabbitMQConnectionManager.CloseTimeout;
+        using var deadline = new CancellationTokenSource(timeout, _connection.TimeProvider);
+        var deadlineToken = deadline.Token;
 
         // A cancelled open would cost the connection a channel number, so the open runs to its end.
         var opening = _connection.OpenChannelAsync(connection, s_probeChannelOptions, AttachTimeout);
         try
         {
-            var channel = await opening.WaitOrAbandonAsync(cancellationToken);
+            var channel = await opening.WaitOrAbandonAsync(deadlineToken);
             try
             {
                 await channel
-                    .QueueDeleteAsync(queueName, cancellationToken: cancellationToken)
-                    .WaitOrAbandonAsync(cancellationToken);
+                    .QueueDeleteAsync(queueName, cancellationToken: deadlineToken)
+                    .WaitOrAbandonAsync(deadlineToken);
             }
             finally
             {
                 _ = RabbitMQConnectionManager.CloseChannelAsync(channel);
             }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException ex) when (deadlineToken.IsCancellationRequested)
         {
-            // The caller cancelled the cleanup. A channel that still opens is closed.
-            _ = CloseWhenOpenedAsync(opening);
+            if (!opening.IsCompleted)
+            {
+                // A channel that still opens is closed.
+                _ = CloseWhenOpenedAsync(opening);
+            }
+
+            LogQueueDeleteFailed(ThrowHelper.QueueDeleteTimedOut(queueName, timeout, ex), queueName);
         }
         catch (Exception ex)
         {
-            using (_connection.BeginLogScope())
-            {
-                Logger.QueueDeleteFailed(ex, queueName);
-            }
+            LogQueueDeleteFailed(ex, queueName);
         }
+    }
+
+    private void LogQueueDeleteFailed(Exception exception, string queueName)
+    {
+        using var _ = _connection.BeginLogScope();
+        Logger.QueueDeleteFailed(exception, queueName);
     }
 
     private static async Task CloseWhenOpenedAsync(Task<IChannel> opening)
@@ -256,10 +272,8 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            using (_connection.BeginLogScope())
-            {
-                Logger.ConsumerStopFailed(ex, consumer.QueueName);
-            }
+            using var _ = _connection.BeginLogScope();
+            Logger.ConsumerStopFailed(ex, consumer.QueueName);
         }
     }
 }

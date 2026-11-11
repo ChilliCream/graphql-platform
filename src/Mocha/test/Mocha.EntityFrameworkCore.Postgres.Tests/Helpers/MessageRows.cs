@@ -186,6 +186,45 @@ internal static class MessageRows
         return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
     }
 
+    /// <summary>
+    /// Waits until the schedule holds the expected number of rows and returns the last count that was read.
+    /// </summary>
+    public static async Task<long> WaitForScheduledCountAsync(
+        string connectionString,
+        long expected,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        var count = await CountScheduledAsync(connectionString, cancellationToken);
+
+        while (count != expected && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(20, cancellationToken);
+            count = await CountScheduledAsync(connectionString, cancellationToken);
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Returns the attempt count of the scheduled row, or <c>null</c> when the row is gone.
+    /// </summary>
+    public static async Task<int?> GetScheduledTimesSentAsync(
+        string connectionString,
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"""SELECT "times_sent" FROM "{ScheduledTable}" WHERE "id" = @id;""";
+        command.Parameters.AddWithValue("@id", id);
+
+        return (int?)await command.ExecuteScalarAsync(cancellationToken);
+    }
+
     public static async Task<Guid> InsertScheduledAsync(
         string connectionString,
         MessageEnvelope envelope,

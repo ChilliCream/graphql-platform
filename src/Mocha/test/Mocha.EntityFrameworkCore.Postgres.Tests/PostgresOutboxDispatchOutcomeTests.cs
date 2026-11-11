@@ -235,7 +235,8 @@ public sealed class PostgresOutboxDispatchOutcomeTests(PostgresFixture fixture) 
                 new LogEntry(LogLevel.Error, $"The dispatch of {Describe(id, envelope)} failed on attempt 1 of 1."),
                 new LogEntry(
                     LogLevel.Critical,
-                    $"Message with ID {id} exhausted all 1 attempts and will not be retried.")
+                    $"Outbox message {id} (message ID A, type {envelope.MessageType}) to "
+                    + $"{envelope.DestinationAddress} exhausted all 1 attempts and will not be retried.")
             ],
             logs.Entries);
     }
@@ -268,7 +269,8 @@ public sealed class PostgresOutboxDispatchOutcomeTests(PostgresFixture fixture) 
                     $"Could not deserialize message body for message with ID {id}. The message will be retried."),
                 new LogEntry(
                     LogLevel.Critical,
-                    $"Message with ID {id} exhausted all 1 attempts and will not be retried.")
+                    $"Outbox message {id} (message ID (null), type (null)) to (null) exhausted all 1 attempts "
+                    + "and will not be retried.")
             ],
             logs.Entries);
     }
@@ -305,7 +307,8 @@ public sealed class PostgresOutboxDispatchOutcomeTests(PostgresFixture fixture) 
                     + $"{id}. The message will be retried."),
                 new LogEntry(
                     LogLevel.Critical,
-                    $"Message with ID {id} exhausted all 1 attempts and will not be retried.")
+                    $"Outbox message {id} (message ID A, type {envelope.MessageType}) to "
+                    + $"{envelope.DestinationAddress} exhausted all 1 attempts and will not be retried.")
             ],
             logs.Entries);
     }
@@ -342,7 +345,8 @@ public sealed class PostgresOutboxDispatchOutcomeTests(PostgresFixture fixture) 
                     + $"{id}. The message will be retried."),
                 new LogEntry(
                     LogLevel.Critical,
-                    $"Message with ID {id} exhausted all 1 attempts and will not be retried.")
+                    $"Outbox message {id} (message ID A, type {envelope.MessageType}) to "
+                    + $"{envelope.DestinationAddress} exhausted all 1 attempts and will not be retried.")
             ],
             logs.Entries);
     }
@@ -389,7 +393,8 @@ public sealed class PostgresOutboxDispatchOutcomeTests(PostgresFixture fixture) 
                 new LogEntry(LogLevel.Error, $"The dispatch of {Describe(id, envelope)} failed on attempt 3 of 3."),
                 new LogEntry(
                     LogLevel.Critical,
-                    $"Message with ID {id} exhausted all 3 attempts and will not be retried.")
+                    $"Outbox message {id} (message ID A, type {envelope.MessageType}) to "
+                    + $"{envelope.DestinationAddress} exhausted all 3 attempts and will not be retried.")
             ],
             logs.Entries);
     }
@@ -444,40 +449,6 @@ public sealed class PostgresOutboxDispatchOutcomeTests(PostgresFixture fixture) 
         Assert.Equal(0, remaining);
         Assert.Equal(["A"], dispatch.Accepted);
         Assert.Empty(logs.Entries);
-    }
-
-    [Fact]
-    public async Task ProcessAsync_Should_LimitPollingInterval_When_ClaimedMessageHasBeenDueForMonths()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var dispatch = new ScriptedDispatch(async attempt =>
-        {
-            await release.Task.WaitAsync(attempt.CancellationToken);
-            await attempt.SendAsync();
-        });
-        var logs = RecordingLoggerProvider.For<PostgresOutboxProcessor>(LogLevel.Debug);
-        await using var provider = await CreateProviderAsync(
-            connectionString, dispatch, logs, static o => o.MaxConcurrentMessages = 2);
-        await MessageRows.InsertOutboxAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
-        await MessageRows.MakeOutboxDueAsync(connectionString, TimeSpan.FromDays(60), TestToken);
-        long remaining;
-
-        // act
-        await using (StartProcessor(provider))
-        {
-            // The worker without a message computes its polling interval while the other worker holds the claim.
-            await logs.WaitForEntriesAsync(1, s_timeout, TestToken);
-            release.TrySetResult();
-            remaining = await MessageRows.WaitForOutboxCountAsync(connectionString, 0, s_timeout, TestToken);
-        }
-
-        // assert
-        Assert.Equal(0, remaining);
-        Assert.Equal(
-            [new LogEntry(LogLevel.Debug, "Outbox processor is sleeping for 24.00:00:00.")],
-            logs.Entries);
     }
 
     [Fact]

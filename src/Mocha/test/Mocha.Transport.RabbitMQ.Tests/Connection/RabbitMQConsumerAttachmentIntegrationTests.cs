@@ -27,6 +27,7 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         await channel.BasicPublishAsync("", "orders", "retained"u8.ToArray(), TestContext.Current.CancellationToken);
         var received = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var manager = CreateManager(vhost);
+        await manager.StartAsync(TestContext.Current.CancellationToken);
         var original = await manager.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
 
         // act
@@ -126,6 +127,7 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         await DeclareQueueAsync(channel, "orders");
         var received = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var manager = CreateManager(vhost);
+        await manager.StartAsync(TestContext.Current.CancellationToken);
         var original = await manager.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
         await manager.RegisterConsumerAsync(
             "orders",

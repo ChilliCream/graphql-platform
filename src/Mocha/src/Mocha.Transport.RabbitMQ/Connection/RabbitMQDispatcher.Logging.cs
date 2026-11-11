@@ -15,7 +15,7 @@ internal static partial class Logs
         TimeSpan elapsed);
 
     [LoggerMessage(
-        LogLevel.Warning,
+        LogLevel.Information,
         "RabbitMQ publish of {MessageId} to {Endpoint} confirmed slowly after {Elapsed} (attempt "
             + "{Attempt}, threshold {Threshold})")]
     public static partial void PublishConfirmedSlowly(
@@ -49,11 +49,11 @@ internal static partial class Logs
         TimeSpan elapsed);
 
     [LoggerMessage(
-        LogLevel.Information,
-        "RabbitMQ publish of {MessageId} to {Endpoint} failed (attempt {Attempt}): {Reason}; retrying in "
-            + "{Delay}, which can deliver it twice")]
+        Message = "RabbitMQ publish of {MessageId} to {Endpoint} failed (attempt {Attempt}): {Reason}; "
+            + "retrying in {Delay}, which can deliver it twice")]
     public static partial void PublishRetryScheduled(
         this ILogger logger,
+        LogLevel level,
         string? messageId,
         string endpoint,
         int attempt,

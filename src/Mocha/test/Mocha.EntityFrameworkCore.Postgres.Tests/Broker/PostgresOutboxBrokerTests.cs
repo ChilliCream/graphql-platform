@@ -47,15 +47,62 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
             (rowsWhileBlocked, timesSentWhileBlocked) = await ReadOutboxAsync(connectionString);
         }
 
-        var delivered = await deliveries.WaitForAsync(["ORD-0", "ORD-1"], s_timeout, TestToken);
+        await deliveries.WaitForAsync(["ORD-1"], s_timeout, TestToken);
         var remaining = await MessageRows.WaitForOutboxCountAsync(connectionString, 0, s_timeout, TestToken);
 
         // assert
+        // a dispatch that was written before the broker blocked the connection can arrive besides the one
+        // that is confirmed after the alarm
         Assert.Equal(0, openTransactionsWhileBlocked);
         Assert.Equal(1, rowsWhileBlocked);
         Assert.Equal(0, timesSentWhileBlocked);
-        Assert.Equal(["ORD-0", "ORD-1"], delivered);
+        Assert.InRange(deliveries.CountOf("ORD-1"), 1, 2);
         Assert.Equal(0, remaining);
+    }
+
+    [Fact]
+    public async Task Outbox_Should_DeliverMessageAtMostTwice_When_AlarmOutlastsSeveralDispatchTimeouts()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var deliveries = new DeliveryRecorder();
+        var logs = RecordingLoggerProvider.For<PostgresOutboxProcessor>(LogLevel.Warning);
+        await using var host = await StartHostAsync(
+            connectionString,
+            deliveries,
+            logs,
+            static o =>
+            {
+                o.MaxConcurrentMessages = 4;
+                o.DispatchTimeout = TimeSpan.FromSeconds(2);
+            },
+            ConsumeOrders);
+
+        // dispatches side by side leave idle publisher channels, which a later dispatch could write on
+        string[] warmUps = [.. Enumerable.Range(0, 8).Select(i => $"WARM-{i}")];
+        await Task.WhenAll(warmUps.Select(orderId => PublishAsync(host, orderId)));
+        await deliveries.WaitForAsync(warmUps, s_timeout, TestToken);
+        await MessageRows.WaitForOutboxCountAsync(connectionString, 0, s_timeout, TestToken);
+
+        // act
+        await using (await fixture.BlockPublishersAsync())
+        {
+            await PublishAsync(host, "ORD-1");
+
+            // the alarm outlasts four dispatch timeouts
+            await logs.WaitForEntriesAsync(4, s_timeout, TestToken);
+        }
+
+        await MessageRows.WaitForOutboxCountAsync(connectionString, 0, s_timeout, TestToken);
+
+        // a later message arrives after everything the connection wrote for the first one
+        await PublishAsync(host, "ORD-2");
+        await deliveries.WaitForAsync(["ORD-2"], s_timeout, TestToken);
+
+        // assert
+        // only a dispatch that was written before the broker blocked the connection can arrive besides the
+        // one that is confirmed after the alarm
+        Assert.InRange(deliveries.CountOf("ORD-1"), 1, 2);
     }
 
     [Fact]
@@ -228,8 +275,13 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
         public void Record(string orderId) => _orderIds.Enqueue(orderId);
 
         /// <summary>
-        /// Waits until every expected order was delivered at least once and returns the distinct orders
-        /// delivered so far, in order.
+        /// Gets how often an order was delivered.
+        /// </summary>
+        public int CountOf(string orderId) => _orderIds.Count(id => id == orderId);
+
+        /// <summary>
+        /// Waits until every expected order was delivered at least once and returns every delivery so far,
+        /// in order, so an order that was delivered twice appears twice.
         /// </summary>
         public async Task<string[]> WaitForAsync(
             string[] expected,
@@ -243,7 +295,7 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
                 await Task.Delay(20, cancellationToken);
             }
 
-            return [.. _orderIds.Distinct().Order()];
+            return [.. _orderIds.Order()];
         }
     }
 

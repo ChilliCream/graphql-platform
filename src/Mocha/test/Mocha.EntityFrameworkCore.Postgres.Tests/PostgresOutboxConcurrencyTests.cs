@@ -74,16 +74,6 @@ public sealed class PostgresOutboxConcurrencyTests(PostgresFixture fixture) : IC
         };
         await using var provider = await CreateProviderAsync(connectionString, 4, probe);
         await InsertMessagesAsync(provider, connectionString, 0, 1);
-        if (signal)
-        {
-            await using var connection = new NpgsqlConnection(connectionString);
-            await connection.OpenAsync(TestToken);
-            await using var command = connection.CreateCommand();
-            // The blocked row must not schedule a poll within the test's timeout.
-            command.CommandText = "UPDATE outbox_messages SET created_at = NOW() - INTERVAL '1 hour'";
-            await command.ExecuteNonQueryAsync(TestToken);
-        }
-
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
         var processor = provider.GetRequiredService<PostgresOutboxProcessor>();
         var processing = processor.ProcessAsync(cancellation.Token);
