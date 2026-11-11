@@ -328,6 +328,34 @@ public class RabbitMQMessageEnvelopeFormatterTests
     }
 
     [Fact]
+    public void Format_Should_LeaveRoomForOneMoreHeader_When_ClientAddsItsSequenceNumber()
+    {
+        // arrange
+        // the client adds a header to every message that it publishes with confirmation tracking
+        var grown = new List<int>();
+
+        // act
+        for (var count = 0; count <= 32; count++)
+        {
+            var envelope = new MessageEnvelope
+            {
+                Headers = new Headers(Enumerable.Range(0, count).Select(i => new HeaderValue { Key = $"x-{i}", Value = i }))
+            };
+            var headers = Assert.IsType<Dictionary<string, object?>>(
+                RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers);
+            var capacity = headers.EnsureCapacity(0);
+            headers["x-dotnet-pub-seq-no"] = 1L;
+            if (headers.EnsureCapacity(0) != capacity)
+            {
+                grown.Add(count);
+            }
+        }
+
+        // assert
+        Assert.Empty(grown);
+    }
+
+    [Fact]
     public void Format_Should_IgnoreTimeHeaders_When_EnvelopeHeadersContainThem()
     {
         // arrange

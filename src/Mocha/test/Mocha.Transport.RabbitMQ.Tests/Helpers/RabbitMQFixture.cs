@@ -243,11 +243,6 @@ public sealed class RabbitMQFixture : IAsyncLifetime
         }
     }
 
-    internal async Task CloseAllConnectionsAsync(string reason = "test")
-    {
-        await _resource.ExecAsync(["rabbitmqctl", "close_all_connections", reason]);
-    }
-
     internal async Task DeleteVhostAsync(string vhostName)
     {
         await DeleteAsync($"vhosts/{Uri.EscapeDataString(vhostName)}");

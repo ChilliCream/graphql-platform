@@ -20,6 +20,18 @@ internal static class TestManagers
                 connectionFactory,
                 RabbitMQConsumerManager.SetUpConnectionAsync));
 
+    public static RabbitMQDispatcher CreateDispatcher(
+        Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
+        Func<IConnection, CancellationToken, Task> setUpConnectionAsync)
+        => new(
+            NullLogger.Instance,
+            new RabbitMQConnectionManager(
+                NullLogger.Instance,
+                RabbitMQMessagingTransport.DispatcherRole,
+                TimeProvider.System,
+                connectionFactory,
+                setUpConnectionAsync));
+
     /// <summary>
     /// Registers a consumer that consumes at once, without preparing its channel.
     /// </summary>

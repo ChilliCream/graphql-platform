@@ -52,6 +52,8 @@ app.Run();
 
 A `GET /health` request includes the message bus status. The check fails if any local transport is unhealthy or the bus does not answer the health request within the timeout. The `Data` of the health check entry lists each unhealthy transport by name with its reason. RabbitMQ transport health includes broker connectivity, a connection that the broker blocks during a memory or disk alarm, consumer attachment, and capacity occupied by canceled handlers that have not exited. Normally busy handlers do not make the transport unhealthy.
 
+A RabbitMQ receive endpoint is unhealthy from the moment it loses its channel until it consumes again, which includes the short time of every reconnect. A readiness probe with a failure threshold of 1 fails during that time. Use a failure threshold of 2 or more.
+
 ## Configure the health check
 
 `AddMessageBus()` takes optional parameters:

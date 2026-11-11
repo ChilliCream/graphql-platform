@@ -28,8 +28,11 @@ internal static class RabbitMQMessageEnvelopeFormatter
 
     private static IDictionary<string, object?> FormatHeaders(MessageEnvelope envelope, DateTimeOffset sentAt)
     {
+        // The client adds the sequence number of the publish as one more header, which must not make the
+        // dictionary grow.
         var headerCount =
-            1 // x-sent-at
+            1 // x-dotnet-pub-seq-no
+            + 1 // x-sent-at
             + (envelope.DeliverBy is not null ? 1 : 0)
             + (envelope.ConversationId is not null ? 1 : 0)
             + (envelope.CausationId is not null ? 1 : 0)

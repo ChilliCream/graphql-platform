@@ -62,8 +62,8 @@ public class FaultHandlingTests
         // act - publish event that triggers a throw
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-FAIL" }, CancellationToken.None);
 
-        // wait a bit for the throwing handler to process
-        await throwingRecorder.WaitAsync(TimeSpan.FromSeconds(2));
+        // the throwing handler has processed the event
+        Assert.True(await throwingRecorder.WaitAsync(TestTimeouts.Signal), "Throwing handler did not receive the event");
 
         // now publish a normal event
         await messageBus.PublishAsync(new ItemShipped { TrackingNumber = "TRK-1" }, CancellationToken.None);
