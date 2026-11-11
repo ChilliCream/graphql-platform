@@ -51,17 +51,21 @@ internal sealed class RabbitMQConnectionScopedLogger : ILogger
     /// <param name="context">The setup context of the transport.</param>
     /// <param name="transportName">The name of the transport.</param>
     /// <param name="connection">The provider of the connection.</param>
+    /// <param name="role">The role of the connection, a value of <see cref="RabbitMQConnectionRole"/>.</param>
     public static RabbitMQConnectionScopedLogger Create(
         IMessagingSetupContext context,
         string transportName,
-        IRabbitMQConnectionProvider connection)
+        IRabbitMQConnectionProvider connection,
+        string role)
     {
-        const string role = RabbitMQConnectionRole.Consumer;
+        var category = role == RabbitMQConnectionRole.Dispatcher
+            ? RabbitMQLogCategory.Dispatcher
+            : RabbitMQLogCategory.Consumer;
         var serviceName = context.Host.ServiceName ?? context.Host.ProcessName;
         var connectionName = $"{serviceName} {transportName} {role}";
 
         return new RabbitMQConnectionScopedLogger(
-            context.Services.GetRequiredService<ILoggerFactory>().CreateLogger(RabbitMQLogCategory.Consumer),
+            context.Services.GetRequiredService<ILoggerFactory>().CreateLogger(category),
             new RabbitMQConnectionLogScope(
                 serviceName,
                 context.Host.InstanceId,

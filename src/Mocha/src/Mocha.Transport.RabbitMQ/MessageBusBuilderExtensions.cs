@@ -39,6 +39,7 @@ public static class MessageBusBuilderExtensions
     private static void ConfigureServices(IServiceCollection services, RabbitMQMessagingTransport transport)
     {
         services.AddSingleton<IMessageBusHealthCheck>(new TransportStartedHealthCheck(transport));
+        services.AddSingleton<IMessageBusHealthCheck>(new RabbitMQDispatcherHealthCheck(transport));
         services.AddSingleton<IMessageBusHealthCheck>(new RabbitMQConsumerHealthCheck(transport));
     }
 }

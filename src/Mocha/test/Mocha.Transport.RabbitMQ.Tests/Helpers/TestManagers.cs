@@ -66,6 +66,47 @@ internal static class TestManagers
         return [.. context.Failures.Select(failure => failure.Reason)];
     }
 
+    public static RabbitMQDispatcher CreateDispatcher(
+        Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
+        Func<IConnection, CancellationToken, Task> setUpConnectionAsync)
+        => new(
+            NullLogger.Instance,
+            TimeProvider.System,
+            new RabbitMQConnectionManager(
+                new RabbitMQConnectionLogger(NullLogger.Instance, RabbitMQConnectionRole.Dispatcher),
+                TimeProvider.System,
+                new RabbitMQConnectionManagerOptions(),
+                connectionFactory,
+                setUpConnectionAsync));
+
+    /// <summary>
+    /// Runs the health checks of a transport and returns the reported reasons.
+    /// </summary>
+    public static string[] GetHealthFailureReasons(this RabbitMQMessagingTransport transport)
+    {
+        var context = new MessageBusHealthContext();
+        IMessageBusHealthCheck[] checks =
+        [
+            new TransportStartedHealthCheck(transport),
+            new RabbitMQDispatcherHealthCheck(transport),
+            new RabbitMQConsumerHealthCheck(transport)
+        ];
+
+        // The checks complete synchronously.
+        foreach (var check in checks)
+        {
+            check.CheckAsync(context, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        return [.. context.Failures.Select(failure => failure.Reason)];
+    }
+
+    /// <summary>
+    /// Gets whether no health check of a transport reports a failure.
+    /// </summary>
+    public static bool IsHealthy(this RabbitMQMessagingTransport transport)
+        => transport.GetHealthFailureReasons().Length == 0;
+
     /// <summary>
     /// Registers a consumer that consumes at once, without preparing its channel.
     /// </summary>

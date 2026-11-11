@@ -48,6 +48,11 @@ internal sealed class RabbitMQConnectionManager(
     public bool IsConnected => Connection is not null;
 
     /// <summary>
+    /// Gets the timeouts and the retry delays of the manager.
+    /// </summary>
+    public RabbitMQConnectionManagerOptions Options => _options;
+
+    /// <summary>
     /// Gets whether the broker blocked the ready connection. The broker does not read from a blocked
     /// connection, so publishes and requests on it stay unanswered until the broker unblocks it.
     /// </summary>
