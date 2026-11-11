@@ -112,7 +112,7 @@ public class TestBase
             };
         }
 
-        if (type == typeof(string) || type == typeof(Guid) || type == typeof(Uri))
+        if (type == typeof(string) || type == typeof(Guid) || type == typeof(Uri) || type == typeof(TimeSpan))
         {
             return new JsonObject { ["type"] = "keyword" };
         }

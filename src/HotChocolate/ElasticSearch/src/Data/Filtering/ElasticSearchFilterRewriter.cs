@@ -673,10 +673,14 @@ internal sealed class ElasticSearchFilterRewriter(
                 && b.Right is MethodCallExpression { Object: { } target }
                 && target.ToString() == guard.Left.ToString();
 
+        // a query string reads no quoted value in a range, so there the reserved characters are escaped.
         private string Compare(BinaryExpression b, string op)
-            => IsQueryString
-                ? $"{Field(b.Left)}:{op}{Literal(b.Left, Evaluate(b.Right))}"
-                : $"{Field(b.Left)} {op} {Literal(b.Left, Evaluate(b.Right))}";
+        {
+            var value = Evaluate(b.Right);
+            return IsQueryString
+                ? $"{Field(b.Left)}:{op}{(value is Enum ? Literal(b.Left, value) : QueryStringName(Text(value)))}"
+                : $"{Field(b.Left)} {op} {Literal(b.Left, value)}";
+        }
 
         private string StartsWith(string field, string value)
         {
@@ -828,13 +832,23 @@ internal sealed class ElasticSearchFilterRewriter(
                     || (converter.IsGenericType
                         && converter.GetGenericTypeDefinition() == typeof(JsonStringEnumConverter<>)));
 
+        // a minus sign, a colon or an exponent is syntax in KQL or a query string, so only digits stay unquoted.
         private static string Literal(object? value)
             => value switch
             {
-                string s => Quote(s),
+                bool => Text(value),
+                IFormattable and not (DateTime or DateTimeOffset)
+                    when Text(value).All(c => char.IsAsciiDigit(c) || c == '.') => Text(value),
+                _ => Quote(Text(value))
+            };
+
+        private static string Text(object? value)
+            => value switch
+            {
+                string s => s,
                 bool b => b ? "true" : "false",
-                DateTime d => Quote(d.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)),
-                DateTimeOffset d => Quote(d.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)),
+                DateTime d => d.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
+                DateTimeOffset d => d.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
                 IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
                 _ => throw ThrowHelper.ListFilter_NotSupported(value?.ToString() ?? "null")
             };

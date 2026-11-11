@@ -443,6 +443,88 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         Assert.Equal(Names(expected), Names(actual));
     }
 
+    public static TheoryData<string> Numbers =>
+    [
+        "some: { count: { eq: -5 } }",
+        "some: { count: { gt: -6 } }",
+        "some: { count: { lte: -5 } }",
+        "some: { count: { in: [-5, 3] } }",
+        "some: { price: { eq: -1.5 } }",
+        "some: { price: { lt: -1 } }",
+        "some: { duration: { eq: \"PT5M\" } }",
+        "some: { duration: { gt: \"PT2M\" } }",
+        "some: { duration: { in: [\"PT5M\", \"PT1H\"] } }",
+        "some: { at: { gt: \"2024-01-02T00:00:00Z\" } }",
+        "some: { at: { eq: \"2024-01-01T00:00:00Z\" } }",
+        "some: { key: { eq: \"00000000-0000-0000-0000-000000000001\" } }"
+    ];
+
+    private static readonly List<NumberItem>[] s_numbers =
+    [
+        [
+            new NumberItem
+            {
+                Count = -5,
+                Price = -1.5,
+                Duration = TimeSpan.FromMinutes(5),
+                At = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                Key = new Guid("00000000-0000-0000-0000-000000000001")
+            }
+        ],
+        [
+            new NumberItem
+            {
+                Count = 3,
+                Price = 2,
+                Duration = TimeSpan.FromMinutes(1),
+                At = new DateTime(2024, 1, 3, 0, 0, 0, DateTimeKind.Utc)
+            }
+        ],
+        [
+            new NumberItem
+            {
+                Count = -10,
+                Price = -3,
+                Duration = TimeSpan.FromHours(1),
+                At = new DateTime(2024, 1, 5, 0, 0, 0, DateTimeKind.Utc)
+            }
+        ]
+    ];
+
+    [Theory]
+    [MemberData(nameof(Numbers))]
+    public async Task Filter_Should_MatchLinq_When_ObjectListValueIsNegativeOrHasColon(string filter)
+    {
+        // arrange
+        var data = s_numbers.Select((i, n) => new NumberObjectDocument { Name = $"{n + 1}", Items = i }).ToArray();
+        await IndexDocuments(data);
+
+        // act
+        var expected = await ExecuteAsync(() => data.AsQueryable(), false, "items", filter);
+        var actual = await ExecuteAsync(Query<NumberObjectDocument>, true, "items", filter);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
+    [Theory]
+    [MemberData(nameof(Numbers))]
+    [InlineData("some: { count: { neq: -5 } }")]
+    [InlineData("some: { price: { nin: [-1.5, 2] } }")]
+    public async Task Filter_Should_MatchLinq_When_NestedListValueIsNegativeOrHasColon(string filter)
+    {
+        // arrange
+        var data = s_numbers.Select((i, n) => new NumberNestedDocument { Name = $"{n + 1}", Items = i }).ToArray();
+        await IndexDocuments(data);
+
+        // act
+        var expected = await ExecuteAsync(() => data.AsQueryable(), false, "items", filter);
+        var actual = await ExecuteAsync(Query<NumberNestedDocument>, true, "items", filter);
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
     private async Task<(JsonNode Expected, JsonNode Actual)> ExecuteWithOptionsAsync(
         bool nested,
         string filter,
@@ -604,6 +686,34 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         public string Name { get; set; } = "";
 
         public List<string?> Values { get; set; } = [];
+    }
+
+    public class NumberItem
+    {
+        public int Count { get; set; }
+
+        public double Price { get; set; }
+
+        public TimeSpan Duration { get; set; }
+
+        public DateTime At { get; set; }
+
+        public Guid Key { get; set; }
+    }
+
+    public class NumberObjectDocument
+    {
+        public string Name { get; set; } = "";
+
+        public List<NumberItem> Items { get; set; } = [];
+    }
+
+    public class NumberNestedDocument
+    {
+        public string Name { get; set; } = "";
+
+        [ElasticSearchNested]
+        public List<NumberItem> Items { get; set; } = [];
     }
 
     public class TextItem
