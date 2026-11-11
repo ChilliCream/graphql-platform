@@ -218,6 +218,7 @@ Every entry has an event name, such as `ConnectionLost`. The tables below list e
 | Warning     | `RabbitMQ dispatcher connection <status>: <n> publishes waiting for 00:00:30 or longer`                                  | `PublishesStalled`       | Written every 30 seconds while sends wait and none completed in that time. A single send that waits among sends that complete is not reported by this entry. The status is `ready`, `blocked by the broker` or `unavailable`. |
 | Information | `RabbitMQ publish of <id> to <endpoint> confirmed slowly after <time> (attempt <n>, threshold 00:00:10)`                 | `PublishConfirmedSlowly` | A send took 10 seconds or longer.                                                                                                                                                                                             |
 | Information | `RabbitMQ publish of <id> to <endpoint> failed (attempt <n>): <reason>; retrying in <delay>, which can deliver it twice` | `PublishRetryScheduled`  | A send failed in a way that can pass, such as a lost connection or the rejection of a sent message, and is sent again. The first retry of a send is logged at Information, further retries at Debug.                          |
+| Warning     | `RabbitMQ publish of <id> returned: queue <queue> does not exist; declaring it again`                                    | `MessageReturned`        | The target queue of a send is missing. Mocha declares the queue and its bindings again, logs `QueueRedeclared` at Information, and sends once more.                                                                           |
 | Error       | `RabbitMQ publish of <id> to <endpoint> failed after <time> (attempt <n>)`                                               | `PublishFailed`          | The send or publish threw. The logged exception says why: the broker refused the message, or the publish timeout elapsed.                                                                                                     |
 
 ### Startup fails
@@ -339,6 +340,16 @@ builder.Services
 RabbitMQ blocks publishing connections while a memory or disk alarm is active. Sends and publishes then wait, up to the publish timeout. Mocha keeps the connection during the alarm and writes no new message to it. A message that was written before RabbitMQ blocked the connection is accepted when the alarm ends, also when its send has timed out or was cancelled by then. Sending that message again can deliver it twice.
 
 Each send or publish uses its own channel until RabbitMQ answered, so a message that makes RabbitMQ close its channel does not affect other messages. The transport allows up to 100 sends and publishes in flight per transport instance, or fewer if the broker allows fewer channels per connection. Additional calls wait until one completes. Awaiting each call before starting the next sends messages one at a time. The Postgres outbox has a separate setting for [dispatching messages concurrently](../reliability.md#configure-outbox-dispatch-concurrency).
+
+### Missing queues and bindings
+
+When you send directly to a queue that no longer exists, Mocha restores the queue and its configured bindings and retries once if auto-provisioning is enabled and the queue is not exclusive. Otherwise, or if the queue is still missing after the retry, the send throws `InvalidOperationException`. If RabbitMQ refuses to declare the queue, the send fails with the broker's reason.
+
+Publishing to an exchange behaves differently: if no queue binding matches the message, RabbitMQ drops it and the publish can still complete successfully. Publisher confirmations do not detect missing subscribers.
+
+If Mocha cannot forward a failed message to its error queue, it moves the message to the skipped queue of the endpoint. If that fails as well, the message returns to its source queue for redelivery.
+
+See the [RabbitMQ Reliability Guide](https://www.rabbitmq.com/docs/reliability) for a full treatment of delivery guarantees.
 
 ## Default topology for event handlers
 

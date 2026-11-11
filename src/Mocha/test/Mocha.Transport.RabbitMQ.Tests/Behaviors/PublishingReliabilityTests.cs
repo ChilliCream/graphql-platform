@@ -172,6 +172,40 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
     }
 
     [Fact]
+    public async Task PublishAsync_Should_DeclareExchangeAndBindingsAgain_When_PreviousPublishFoundExchangeDeleted()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRabbitMQ(t =>
+            {
+                t.DeclareExchange("orders");
+                t.DeclareQueue("audit");
+                t.DeclareBinding("orders", "audit");
+                t.DispatchEndpoint("orders-publish").ToExchange("orders").Publish<OrderCreated>();
+            })
+            .BuildTestBusAsync();
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
+        var dispatcher = bus.Transport.Dispatcher;
+        var original = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        await DeleteExchangeAsync(vhost, "orders");
+
+        // act
+        // the broker deletes the bindings of an exchange together with it
+        var exception = await Assert.ThrowsAsync<AlreadyClosedException>(
+            () => PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }));
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-3" });
+        var current = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal<ushort?>(Constants.NotFound, exception.ShutdownReason?.ReplyCode);
+        Assert.Same(original, current);
+        Assert.Equal(["ORD-1", "ORD-3"], await ReadOrderIdsAsync(vhost, "audit"));
+    }
+
+    [Fact]
     public async Task PublishAsync_Should_FailFast_When_MessageLargerThanMaxMessageSize()
     {
         // arrange
@@ -190,6 +224,36 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
         Assert.Equal<ushort?>(Constants.PreconditionFailed, exception.ShutdownReason?.ReplyCode);
         Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
         Assert.Equal("ORD-2", Assert.Single(orders.Messages.Cast<OrderCreated>()).OrderId);
+    }
+
+    [Fact]
+    public async Task Fault_Should_ReachErrorQueue_When_ErrorQueueDeletedByOperator()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddEventHandler<FailingOrderHandler>()
+            .AddRabbitMQ(t => t.Endpoint("orders").Handler<FailingOrderHandler>())
+            .BuildTestBusAsync();
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
+        Assert.True(await Condition.WaitAsync(
+            async () => (await vhost.Broker.GetQueueAsync("orders_error"))?.Messages == 1,
+            TestTimeouts.Signal));
+
+        // act
+        // without mandatory, the broker confirms a message it cannot route and drops it
+        await vhost.Faults.DeleteQueueAsync("orders_error");
+        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
+        var deadLettered = await Condition.WaitAsync(
+            async () => (await vhost.Broker.GetQueueAsync("orders_error"))?.Messages == 1,
+            TestTimeouts.Signal);
+        var pending = (await vhost.Broker.GetQueueAsync("orders"))?.Messages;
+
+        // assert
+        Assert.True(deadLettered);
+        Assert.Equal(0, pending);
     }
 
     [Fact]
