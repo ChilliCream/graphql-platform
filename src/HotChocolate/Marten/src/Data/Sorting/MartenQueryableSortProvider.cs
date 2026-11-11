@@ -28,6 +28,9 @@ public class MartenQueryableSortProvider : QueryableSortProvider
     {
     }
 
+    public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+        => new MartenQueryBuilder<TEntityType>(base.CreateBuilder<TEntityType>(argumentName));
+
     /// <inheritdoc cref="SortProvider{TContext}"/>
     protected override void Configure(ISortProviderDescriptor<QueryableSortContext> descriptor)
         => descriptor.AddDefaultFieldHandlers();
