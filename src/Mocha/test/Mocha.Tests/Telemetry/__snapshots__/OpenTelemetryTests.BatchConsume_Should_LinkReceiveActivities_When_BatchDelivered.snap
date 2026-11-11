@@ -4,14 +4,18 @@
   ],
   "activities": [
     {
-      "OperationName": "TracedBatchHandler consume",
-      "DisplayName": "TracedBatchHandler consume",
+      "OperationName": "consume TracedBatchHandler",
+      "DisplayName": "consume TracedBatchHandler",
       "Kind": "Consumer",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
-          "Key": "messaging.handler.name",
+          "Key": "messaging.message.type",
           "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-batch-event"
+        },
+        {
+          "Key": "messaging.handler.name",
+          "Value": "TracedBatchHandler"
         },
         {
           "Key": "messaging.batch.id",
@@ -24,19 +28,19 @@
       ],
       "events": [],
       "links": [
-        "memory://localhost/batch-ep receive",
-        "memory://localhost/batch-ep receive"
+        "receive batch-ep",
+        "receive batch-ep"
       ]
     },
     {
-      "OperationName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish",
-      "DisplayName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish",
+      "OperationName": "publish t/mocha.tests.open-telemetry-tests.traced-batch",
+      "DisplayName": "publish t/mocha.tests.open-telemetry-tests.traced-batch",
       "Kind": "Producer",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "messaging.operation.name",
-          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish"
+          "Value": "publish"
         },
         {
           "Key": "messaging.operation.type",
@@ -67,10 +71,10 @@
       "links": [],
       "activities": [
         {
-          "OperationName": "memory://localhost/batch-ep receive",
-          "DisplayName": "memory://localhost/batch-ep receive",
+          "OperationName": "receive batch-ep",
+          "DisplayName": "receive batch-ep",
           "Kind": "Client",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "messaging.message.id",
@@ -87,14 +91,14 @@
       ]
     },
     {
-      "OperationName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish",
-      "DisplayName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish",
+      "OperationName": "publish t/mocha.tests.open-telemetry-tests.traced-batch",
+      "DisplayName": "publish t/mocha.tests.open-telemetry-tests.traced-batch",
       "Kind": "Producer",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "messaging.operation.name",
-          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced-batch publish"
+          "Value": "publish"
         },
         {
           "Key": "messaging.operation.type",
@@ -125,10 +129,10 @@
       "links": [],
       "activities": [
         {
-          "OperationName": "memory://localhost/batch-ep receive",
-          "DisplayName": "memory://localhost/batch-ep receive",
+          "OperationName": "receive batch-ep",
+          "DisplayName": "receive batch-ep",
           "Kind": "Client",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "messaging.message.id",

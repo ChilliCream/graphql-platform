@@ -4,14 +4,14 @@
   ],
   "activities": [
     {
-      "OperationName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish",
-      "DisplayName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish",
+      "OperationName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "DisplayName": "publish t/mocha.tests.open-telemetry-tests.traced",
       "Kind": "Producer",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "messaging.operation.name",
-          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish"
+          "Value": "publish"
         },
         {
           "Key": "messaging.operation.type",
@@ -42,10 +42,10 @@
       "links": [],
       "activities": [
         {
-          "OperationName": "memory://localhost/mocha.tests.traced-event receive",
-          "DisplayName": "memory://localhost/mocha.tests.traced-event receive",
+          "OperationName": "receive mocha.tests.traced-event",
+          "DisplayName": "receive mocha.tests.traced-event",
           "Kind": "Client",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "messaging.message.id",
@@ -60,10 +60,10 @@
           "links": [],
           "activities": [
             {
-              "OperationName": "TracedEventHandler consume",
-              "DisplayName": "TracedEventHandler consume",
+              "OperationName": "consume TracedEventHandler",
+              "DisplayName": "consume TracedEventHandler",
               "Kind": "Consumer",
-              "Status": "Unset",
+              "Status": "Ok",
               "tags": [
                 {
                   "Key": "messaging.message.id",
@@ -74,8 +74,12 @@
                   "Value": "<id>"
                 },
                 {
-                  "Key": "messaging.handler.name",
+                  "Key": "messaging.message.type",
                   "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-event"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "TracedEventHandler"
                 }
               ],
               "events": [],
@@ -86,14 +90,14 @@
       ]
     },
     {
-      "OperationName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish",
-      "DisplayName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish",
+      "OperationName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "DisplayName": "publish t/mocha.tests.open-telemetry-tests.traced",
       "Kind": "Producer",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "messaging.operation.name",
-          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish"
+          "Value": "publish"
         },
         {
           "Key": "messaging.operation.type",
@@ -124,10 +128,10 @@
       "links": [],
       "activities": [
         {
-          "OperationName": "memory://localhost/mocha.tests.traced-event receive",
-          "DisplayName": "memory://localhost/mocha.tests.traced-event receive",
+          "OperationName": "receive mocha.tests.traced-event",
+          "DisplayName": "receive mocha.tests.traced-event",
           "Kind": "Client",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "messaging.message.id",
@@ -142,10 +146,10 @@
           "links": [],
           "activities": [
             {
-              "OperationName": "TracedEventHandler consume",
-              "DisplayName": "TracedEventHandler consume",
+              "OperationName": "consume TracedEventHandler",
+              "DisplayName": "consume TracedEventHandler",
               "Kind": "Consumer",
-              "Status": "Unset",
+              "Status": "Ok",
               "tags": [
                 {
                   "Key": "messaging.message.id",
@@ -156,8 +160,12 @@
                   "Value": "<id>"
                 },
                 {
-                  "Key": "messaging.handler.name",
+                  "Key": "messaging.message.type",
                   "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-event"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "TracedEventHandler"
                 }
               ],
               "events": [],
@@ -168,14 +176,14 @@
       ]
     },
     {
-      "OperationName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish",
-      "DisplayName": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish",
+      "OperationName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "DisplayName": "publish t/mocha.tests.open-telemetry-tests.traced",
       "Kind": "Producer",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "messaging.operation.name",
-          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced publish"
+          "Value": "publish"
         },
         {
           "Key": "messaging.operation.type",
@@ -206,10 +214,10 @@
       "links": [],
       "activities": [
         {
-          "OperationName": "memory://localhost/mocha.tests.traced-event receive",
-          "DisplayName": "memory://localhost/mocha.tests.traced-event receive",
+          "OperationName": "receive mocha.tests.traced-event",
+          "DisplayName": "receive mocha.tests.traced-event",
           "Kind": "Client",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "messaging.message.id",
@@ -224,10 +232,10 @@
           "links": [],
           "activities": [
             {
-              "OperationName": "TracedEventHandler consume",
-              "DisplayName": "TracedEventHandler consume",
+              "OperationName": "consume TracedEventHandler",
+              "DisplayName": "consume TracedEventHandler",
               "Kind": "Consumer",
-              "Status": "Unset",
+              "Status": "Ok",
               "tags": [
                 {
                   "Key": "messaging.message.id",
@@ -238,8 +246,12 @@
                   "Value": "<id>"
                 },
                 {
-                  "Key": "messaging.handler.name",
+                  "Key": "messaging.message.type",
                   "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-event"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "TracedEventHandler"
                 }
               ],
               "events": [],

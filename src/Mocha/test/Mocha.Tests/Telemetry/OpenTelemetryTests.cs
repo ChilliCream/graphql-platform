@@ -263,6 +263,31 @@ public class OpenTelemetryTests
     }
 
     [Fact]
+    public void OverrideActivity_Should_ReplaceTraceparent_When_HeaderAlreadySet()
+    {
+        // arrange
+        using var source = new ActivitySource("test-source");
+        using var listener = new ActivityListener();
+        listener.ShouldListenTo = _ => true;
+        listener.Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded;
+        ActivitySource.AddActivityListener(listener);
+
+        using var activity = source.StartActivity("test-operation");
+        Assert.NotNull(activity);
+
+        var headers = new Headers();
+        headers.Set(MessageHeaders.Traceparent.Key, "00-existing-trace-id-span-01");
+
+        // act
+        headers.OverrideActivity();
+
+        // assert
+        var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
+        var flags = (int)activity.ActivityTraceFlags;
+        Assert.Equal($"00-{activity.TraceId}-{activity.SpanId}-{flags:x2}", traceparent);
+    }
+
+    [Fact]
     public void WithActivity_Sets_Unsampled_TraceFlags_When_Activity_Not_Recorded()
     {
         // arrange

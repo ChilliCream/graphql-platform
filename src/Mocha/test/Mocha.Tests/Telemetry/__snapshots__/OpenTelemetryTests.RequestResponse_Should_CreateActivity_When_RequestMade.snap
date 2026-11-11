@@ -4,14 +4,14 @@
   ],
   "activities": [
     {
-      "OperationName": "memory://localhost/q/open-telemetry-tests.traced-request publish",
-      "DisplayName": "memory://localhost/q/open-telemetry-tests.traced-request publish",
+      "OperationName": "publish q/open-telemetry-tests.traced-request",
+      "DisplayName": "publish q/open-telemetry-tests.traced-request",
       "Kind": "Producer",
-      "Status": "Unset",
+      "Status": "Ok",
       "tags": [
         {
           "Key": "messaging.operation.name",
-          "Value": "memory://localhost/q/open-telemetry-tests.traced-request publish"
+          "Value": "publish"
         },
         {
           "Key": "messaging.operation.type",
@@ -42,10 +42,10 @@
       "links": [],
       "activities": [
         {
-          "OperationName": "memory://localhost/Replies receive",
-          "DisplayName": "memory://localhost/Replies receive",
+          "OperationName": "receive open-telemetry-tests.traced-request",
+          "DisplayName": "receive open-telemetry-tests.traced-request",
           "Kind": "Client",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "messaging.message.id",
@@ -60,10 +60,10 @@
           "links": [],
           "activities": [
             {
-              "OperationName": "Reply consume",
-              "DisplayName": "Reply consume",
+              "OperationName": "consume TracedRequestHandler",
+              "DisplayName": "consume TracedRequestHandler",
               "Kind": "Consumer",
-              "Status": "Unset",
+              "Status": "Ok",
               "tags": [
                 {
                   "Key": "messaging.message.id",
@@ -74,64 +74,26 @@
                   "Value": "<id>"
                 },
                 {
-                  "Key": "messaging.handler.name",
-                  "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-response"
-                }
-              ],
-              "events": [],
-              "links": []
-            }
-          ]
-        },
-        {
-          "OperationName": "memory://localhost/open-telemetry-tests.traced-request receive",
-          "DisplayName": "memory://localhost/open-telemetry-tests.traced-request receive",
-          "Kind": "Client",
-          "Status": "Unset",
-          "tags": [
-            {
-              "Key": "messaging.message.id",
-              "Value": "<id>"
-            },
-            {
-              "Key": "messaging.message.conversation_id",
-              "Value": "<id>"
-            }
-          ],
-          "events": [],
-          "links": [],
-          "activities": [
-            {
-              "OperationName": "TracedRequestHandler consume",
-              "DisplayName": "TracedRequestHandler consume",
-              "Kind": "Consumer",
-              "Status": "Unset",
-              "tags": [
-                {
-                  "Key": "messaging.message.id",
-                  "Value": "<id>"
-                },
-                {
-                  "Key": "messaging.message.conversation_id",
-                  "Value": "<id>"
-                },
-                {
-                  "Key": "messaging.handler.name",
+                  "Key": "messaging.message.type",
                   "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-request"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "TracedRequestHandler"
                 }
               ],
               "events": [],
               "links": [],
               "activities": [
                 {
-                  "OperationName": "memory://mocha.tests/q/response-<id> publish",
-                  "DisplayName": "memory://mocha.tests/q/response-<id> publish",
+                  "OperationName": "publish Replies",
+                  "DisplayName": "publish Replies",
                   "Kind": "Producer",
-                  "Status": "Unset",
+                  "Status": "Ok",
                   "tags": [
                     {
                       "Key": "messaging.operation.name",
-                      "Value": "memory://mocha.tests/q/response-<id> publish"
+                      "Value": "publish"
                     },
                     {
                       "Key": "messaging.operation.type",
@@ -159,7 +121,55 @@
                     }
                   ],
                   "events": [],
-                  "links": []
+                  "links": [],
+                  "activities": [
+                    {
+                      "OperationName": "receive Replies",
+                      "DisplayName": "receive Replies",
+                      "Kind": "Client",
+                      "Status": "Ok",
+                      "tags": [
+                        {
+                          "Key": "messaging.message.id",
+                          "Value": "<id>"
+                        },
+                        {
+                          "Key": "messaging.message.conversation_id",
+                          "Value": "<id>"
+                        }
+                      ],
+                      "events": [],
+                      "links": [],
+                      "activities": [
+                        {
+                          "OperationName": "consume Reply",
+                          "DisplayName": "consume Reply",
+                          "Kind": "Consumer",
+                          "Status": "Ok",
+                          "tags": [
+                            {
+                              "Key": "messaging.message.id",
+                              "Value": "<id>"
+                            },
+                            {
+                              "Key": "messaging.message.conversation_id",
+                              "Value": "<id>"
+                            },
+                            {
+                              "Key": "messaging.message.type",
+                              "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-response"
+                            },
+                            {
+                              "Key": "messaging.handler.name",
+                              "Value": "Reply"
+                            }
+                          ],
+                          "events": [],
+                          "links": []
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }

@@ -64,9 +64,9 @@ After publishing a message, open your tracing backend (Aspire Dashboard, Jaeger,
 
 1. **`publish {destination}`** - Created by the dispatch pipeline when the message is sent. This span belongs to the publishing service.
 2. **`receive {endpoint}`** - Created by the receive pipeline when the message arrives at an endpoint. This span belongs to the consuming service and links back to the publish span.
-3. **`consumer {handler}`** - Created as a child of the receive span when your handler processes the message.
+3. **`consume {handler}`** - Created as a child of the receive span when your handler processes the message.
 
-In the Aspire Dashboard, you will see the `publish` span from the publishing service linked to the `receive` span in the consumer service, with a child `consumer` span for the handler execution. The three spans appear as a single distributed trace that crosses service boundaries.
+In the Aspire Dashboard, you will see the `publish` span from the publishing service linked to the `receive` span in the consumer service, with a child `consume` span for the handler execution. The three spans appear as a single distributed trace that crosses service boundaries.
 
 # How trace context propagates
 
@@ -83,7 +83,7 @@ sequenceDiagram
     A->>Broker: Message + W3C trace headers
     Broker->>B: Deliver message
     B->>B: receive span (Client, linked to parent)
-    B->>B: consumer span (Consumer)
+    B->>B: consume span (Consumer)
 ```
 
 Tracing and metrics are injected by middleware in all three pipelines: `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation`. See [Middleware and Pipelines](./middleware-and-pipelines.md) for how these fit into the pipeline architecture and how to reorder or replace them.
