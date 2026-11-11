@@ -3,7 +3,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection(RabbitMQCollections.ConnectionRecovery)]
+[Collection(RabbitMQCollections.PublisherRecovery)]
 public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
 {
     [Fact]

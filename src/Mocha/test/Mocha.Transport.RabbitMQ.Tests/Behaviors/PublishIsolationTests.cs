@@ -8,7 +8,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection(RabbitMQCollections.ConnectionRecovery)]
+[Collection(RabbitMQCollections.PublisherRecovery)]
 public sealed class PublishIsolationTests(RabbitMQFixture fixture)
 {
     [Fact]

@@ -5,7 +5,7 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection(RabbitMQCollections.ConsumerRecovery)]
+[Collection(RabbitMQCollections.ConsumerAttachment)]
 public sealed class RequestReadinessTests(RabbitMQFixture fixture)
 {
     [Theory]

@@ -4,7 +4,7 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection(RabbitMQCollections.ConnectionRecovery)]
+[Collection(RabbitMQCollections.BrokerRecovery)]
 public sealed class BrokerRecoveryTests(RabbitMQFixture fixture)
 {
     [Theory]

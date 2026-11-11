@@ -179,19 +179,39 @@ public sealed class VhostContext : IAsyncDisposable
     public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);
 }
 
+/// <summary>
+/// The collections of the tests that need a broker. Every collection has a broker of its own and runs its tests
+/// one after another, the collections run in parallel, and the longest one decides how long a run takes.
+/// </summary>
 public static class RabbitMQCollections
 {
+    public const string BrokerRecovery = "RabbitMQ Broker Recovery";
     public const string ConnectionRecovery = "RabbitMQ Connection Recovery";
+    public const string PublisherRecovery = "RabbitMQ Publisher Recovery";
+    public const string Dispatcher = "RabbitMQ Dispatcher";
     public const string ConsumerRecovery = "RabbitMQ Consumer Recovery";
+    public const string ConsumerAttachment = "RabbitMQ Consumer Attachment";
     public const string Messaging = "RabbitMQ Messaging";
     public const string Topology = "RabbitMQ Topology";
 }
 
+[CollectionDefinition(RabbitMQCollections.BrokerRecovery)]
+public sealed class RabbitMQBrokerRecoveryCollection : ICollectionFixture<RabbitMQFixture>;
+
 [CollectionDefinition(RabbitMQCollections.ConnectionRecovery)]
 public sealed class RabbitMQConnectionRecoveryCollection : ICollectionFixture<RabbitMQFixture>;
 
+[CollectionDefinition(RabbitMQCollections.PublisherRecovery)]
+public sealed class RabbitMQPublisherRecoveryCollection : ICollectionFixture<RabbitMQFixture>;
+
+[CollectionDefinition(RabbitMQCollections.Dispatcher)]
+public sealed class RabbitMQDispatcherCollection : ICollectionFixture<RabbitMQFixture>;
+
 [CollectionDefinition(RabbitMQCollections.ConsumerRecovery)]
 public sealed class RabbitMQConsumerRecoveryCollection : ICollectionFixture<RabbitMQFixture>;
+
+[CollectionDefinition(RabbitMQCollections.ConsumerAttachment)]
+public sealed class RabbitMQConsumerAttachmentCollection : ICollectionFixture<RabbitMQFixture>;
 
 [CollectionDefinition(RabbitMQCollections.Messaging)]
 public sealed class RabbitMQMessagingCollection : ICollectionFixture<RabbitMQFixture>;

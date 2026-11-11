@@ -6,7 +6,7 @@ using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
-[Collection(RabbitMQCollections.ConsumerRecovery)]
+[Collection(RabbitMQCollections.ConsumerAttachment)]
 public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture fixture)
 {
     [Theory]
