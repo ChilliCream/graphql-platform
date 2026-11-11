@@ -253,6 +253,24 @@ jobs:
         with:
           show-progress: false
 
+      - name: Pull RabbitMQ images in the background
+        # The pulls overlap with the .NET installation and the build. Their result is ignored, because the tests
+        # pull every image that is missing.
+        if: >
+          matrix.name == 'Mocha.Transport.RabbitMQ.Tests' ||
+          matrix.name == 'Mocha.Transport.RabbitMQ3.Tests' ||
+          matrix.name == 'Mocha.EntityFrameworkCore.Postgres.Tests'
+        continue-on-error: true
+        env:
+          # Testcontainers 4.15.0 starts this version of its resource reaper.
+          IMAGES: >-
+            ${{ matrix.name == 'Mocha.Transport.RabbitMQ3.Tests' && 'rabbitmq:3.13' || 'rabbitmq:4.3' }}
+            testcontainers/ryuk:0.14.0
+        run: |
+          for image in $IMAGES; do
+            nohup docker pull --quiet "$image" > /dev/null 2>&1 &
+          done
+
       - name: Install .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:

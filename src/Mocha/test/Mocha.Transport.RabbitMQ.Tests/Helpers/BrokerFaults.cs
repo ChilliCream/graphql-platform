@@ -52,11 +52,8 @@ public sealed class BrokerFaults
     {
         await _fixture.InvokeCommandAsync(["rabbitmqctl", "stop_app"]);
 
-        return new AsyncDisposable(async () =>
-        {
-            await _fixture.InvokeCommandAsync(["rabbitmqctl", "start_app"]);
-            await _fixture.InvokeCommandAsync(["rabbitmqctl", "await_startup"]);
-        });
+        // start_app returns once the broker has started
+        return new AsyncDisposable(() => _fixture.InvokeCommandAsync(["rabbitmqctl", "start_app"]));
     }
 
     /// <summary>
