@@ -26,6 +26,14 @@ Outbox message <id> (message ID <message id>, type <type>) to <destination> fail
 - A message that cannot be read, has an unknown message type, or matches no endpoint is retried in the same way. Its Critical entry shows `(null)` for the message ID, the type, and the destination when the stored envelope cannot be read.
 - A failed dispatch no longer ends the processing run. The processor logs the exception at Error with the text `The dispatch of outbox message <id> (message ID <message id>, type <type>) to <destination> failed on attempt <n>. The message is retried.` and continues with the next message. In 16.7 the failure was logged as `An unexpected error occurred while processing outbox event`. Change alert rules that match that text for a failed dispatch.
 
+## Scheduled messages and redeliveries keep their attempts during a RabbitMQ outage
+
+This entry applies to the Postgres-backed scheduled message store that `UsePostgresScheduling()` registers. With RabbitMQ it stores scheduled messages and [redeliveries](../reliability.md#redeliver-failed-messages).
+
+A dispatch that fails with `TransportUnavailableException`, or that a host stop interrupts, no longer counts towards the 10 attempts of a scheduled message. In 16.7 every dispatch that failed with an exception counted, so a broker outage could use up all attempts of the scheduled messages and redeliveries that came due. Every other failure still counts and is recorded in the `last_error` column.
+
+Only the RabbitMQ transport throws `TransportUnavailableException`. See [Retry behavior](../scheduling.md#retry-behavior).
+
 ## RequestAsync cancels a dispatch that outlasts the response timeout
 
 The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).

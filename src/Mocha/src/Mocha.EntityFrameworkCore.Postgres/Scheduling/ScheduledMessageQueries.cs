@@ -14,9 +14,10 @@ internal sealed class ScheduledMessageQueries
     public string InsertMessage { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the SQL query to retrieve the earliest scheduled time that is due for dispatch.
+    /// Gets or sets the SQL query that returns the seconds until the earliest pending message is due. The
+    /// result is not positive when a message is due, and null when no message is pending.
     /// </summary>
-    public string NextWakeTime { get; set; } = null!;
+    public string NextWakeInterval { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the SQL statement that locks a single scheduled message row for processing,
@@ -54,8 +55,9 @@ internal sealed class ScheduledMessageQueries
                 VALUES (@id, @envelope, @scheduled_time, 0, 10, NOW());
                 """,
 
-            NextWakeTime = $"""
-                SELECT MIN("{t.ScheduledTime}" + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")) AS "NextWakeTime"
+            NextWakeInterval = $"""
+                SELECT (EXTRACT(EPOCH FROM MIN("{t.ScheduledTime}")) - EXTRACT(EPOCH FROM NOW()))::double precision
+                    AS "SecondsUntilDue"
                 FROM {t.QualifiedTableName}
                 WHERE "{t.TimesSent}" < "{t.MaxAttempts}";
                 """,
