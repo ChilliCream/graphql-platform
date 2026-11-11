@@ -13,8 +13,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Topology)]
 public class ExternalDestinationTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
-
     [Fact]
     public async Task SendAsync_Should_DeliverToForeignQueue_When_QueueNotDeclaredUnderExplicitBinding()
     {
@@ -42,17 +40,12 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await vhost.SetConfigurePermissionAsync("^$");
-        try
+        await using (await vhost.Faults.DenyDeclaresAsync())
         {
             await messageBus.SendAsync(
                 new OrderCreated { OrderId = "EXTERNAL-1" },
                 new SendOptions { Endpoint = new Uri($"rabbitmq:q/{queueName}") },
                 cancellationToken);
-        }
-        finally
-        {
-            await vhost.SetConfigurePermissionAsync(".*");
         }
 
         // assert
@@ -125,17 +118,12 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await vhost.SetConfigurePermissionAsync("^$");
-        try
+        await using (await vhost.Faults.DenyDeclaresAsync())
         {
             await messageBus.SendAsync(
                 new OrderCreated { OrderId = "EXTERNAL-3" },
                 new SendOptions { Endpoint = new Uri("rabbitmq:e/reporting") },
                 cancellationToken);
-        }
-        finally
-        {
-            await vhost.SetConfigurePermissionAsync(".*");
         }
 
         // assert
@@ -153,7 +141,7 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         string queueName,
         CancellationToken cancellationToken)
     {
-        var deadline = DateTime.UtcNow + s_timeout;
+        var deadline = DateTime.UtcNow + TestTimeouts.Signal;
 
         while (true)
         {

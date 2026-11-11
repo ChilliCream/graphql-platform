@@ -9,16 +9,13 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.ConnectionRecovery)]
 public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan s_recoveryTimeout = TimeSpan.FromSeconds(20);
-
     [Fact]
     public async Task StartAsync_Should_Complete_When_BrokerBecomesReachableDuringStart()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
         var recorder = new MessageRecorder();
-        var broker = await fixture.StopBrokerAsync();
+        var broker = await fixture.Faults.StopBrokerAsync();
         Task<TestBus> start;
 
         // act
@@ -33,7 +30,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
             await broker.DisposeAsync();
         }
 
-        await using var bus = await start.WaitAsync(s_recoveryTimeout, TestContext.Current.CancellationToken);
+        await using var bus = await start.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // assert
         await AssertRoundTripAsync(bus, recorder, "ORD-1");
@@ -45,7 +42,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
         var recorder = new MessageRecorder();
-        await using var revoked = await vhost.RevokeAccessAsync();
+        await using var revoked = await vhost.Faults.RevokeAccessAsync();
 
         // act
         var exception = await Assert.ThrowsAsync<OperationInterruptedException>(
@@ -70,7 +67,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
 
         // assert
         Assert.IsType<AuthenticationFailureException>(exception.InnerException);
-        Assert.Equal(0, await vhost.GetConnectionCountAsync());
+        Assert.Equal(0, await vhost.Broker.GetConnectionCountAsync());
     }
 
     [Fact]
@@ -79,7 +76,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         // arrange
         // the user may open the vhost and publish, but declares nothing
         await using var vhost = await fixture.CreateVhostAsync();
-        await vhost.SetPermissionsAsync("guest", configure: "^$", write: ".*", read: ".*");
+        await vhost.Faults.SetPermissionsAsync("guest", configure: "^$", write: ".*", read: ".*");
         var recorder = new MessageRecorder();
 
         // act
@@ -88,7 +85,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
 
         // assert
         Assert.Equal<ushort?>(Constants.AccessRefused, exception.ShutdownReason?.ReplyCode);
-        Assert.True(await Condition.WaitAsync(async () => await vhost.GetConnectionCountAsync() == 0, s_timeout));
+        Assert.True(await Condition.WaitAsync(async () => await vhost.Broker.GetConnectionCountAsync() == 0, TestTimeouts.Signal));
     }
 
     [Fact]
@@ -114,11 +111,46 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         // act
         await Assert.ThrowsAsync<BrokerUnreachableException>(
             () => runtime.StartAsync(TestContext.Current.CancellationToken).AsTask()
-                .WaitAsync(s_timeout, TestContext.Current.CancellationToken));
+                .WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
 
         // assert
         Assert.False(runtime.IsStarted);
-        Assert.Equal(0, await vhost.GetConnectionCountAsync());
+        Assert.Equal(0, await vhost.Broker.GetConnectionCountAsync());
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_Complete_When_ConnectTimeoutIsZero()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        var recorder = new MessageRecorder();
+
+        // act
+        // a timeout of zero allows one attempt and no retry
+        await using var bus = await CreateServices(vhost, recorder, connectTimeout: TimeSpan.Zero).BuildTestBusAsync();
+
+        // assert
+        await AssertRoundTripAsync(bus, recorder, "ORD-1");
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_FailFast_When_BrokerRefusesOneOfTheTwoConnections()
+    {
+        // arrange
+        // the broker completes the handshake of a connection above the limit and refuses it afterwards. It
+        // counts a connection with a delay, so the second connection waits until the first one is counted
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var limit = await vhost.Faults.LimitConnectionsAsync(1);
+        var recorder = new MessageRecorder();
+        var connectionProvider = new SequentialConnectionProvider(vhost);
+
+        // act
+        var exception = await Assert.ThrowsAnyAsync<OperationInterruptedException>(
+            () => StartAndDisposeAsync(CreateServices(vhost, recorder, connectionProvider)));
+
+        // assert
+        Assert.Equal<ushort?>(Constants.NotAllowed, exception.ShutdownReason?.ReplyCode);
+        await vhost.Broker.WaitForNoConnectionAsync();
     }
 
     [Fact]
@@ -130,7 +162,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         await using var bus = await CreateBusAsync(vhost, recorder);
 
         // act
-        var names = await vhost.GetConnectionNamesAsync();
+        var names = await vhost.Broker.GetConnectionNamesAsync();
 
         // assert
         Assert.Equal(["consumer", "dispatcher"], names.Select(name => name[(name.LastIndexOf(' ') + 1)..]));
@@ -166,7 +198,8 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
     private static IMessageBusHostBuilder CreateServices(
         VhostContext vhost,
         MessageRecorder recorder,
-        IRabbitMQConnectionProvider? connectionProvider = null)
+        IRabbitMQConnectionProvider? connectionProvider = null,
+        TimeSpan? connectTimeout = null)
         => new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
@@ -180,6 +213,11 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
                     t.ConnectionProvider(_ => connectionProvider);
                 }
 
+                if (connectTimeout is { } timeout)
+                {
+                    t.ConnectTimeout(timeout);
+                }
+
                 t.Endpoint("orders").Handler<OrderCreatedHandler>();
                 t.Endpoint("order-status").Handler<GetOrderStatusHandler>();
             });
@@ -189,7 +227,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         await using var services = builder.Services.BuildServiceProvider();
         var runtime = (MessagingRuntime)services.GetRequiredService<IMessagingRuntime>();
         await runtime.StartAsync(TestContext.Current.CancellationToken)
-            .AsTask().WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            .AsTask().WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
     }
 
     private static async Task AssertRoundTripAsync(TestBus bus, MessageRecorder recorder, string orderId)
@@ -200,7 +238,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
         await messageBus.PublishAsync(new OrderCreated { OrderId = orderId }, deadline.Token);
         Assert.True(await Condition.WaitAsync(
             () => recorder.Messages.Cast<OrderCreated>().Any(order => order.OrderId == orderId),
-            s_timeout));
+            TestTimeouts.Signal));
         var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = orderId }, deadline.Token);
         Assert.Equal(orderId, response.OrderId);
         Assert.Equal("Shipped", response.Status);
@@ -209,7 +247,7 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
     private static CancellationTokenSource CreateTimeout()
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(s_timeout);
+        cts.CancelAfter(TestTimeouts.Signal);
         return cts;
     }
 
@@ -236,6 +274,34 @@ public sealed class ConnectionStartupTests(RabbitMQFixture fixture)
             var connection = await factory.CreateConnectionAsync(resolver, null, cancellationToken);
             ConnectionAttempts.Enqueue(resolver.AttemptedHosts.ToArray());
             return connection;
+        }
+    }
+
+    private sealed class SequentialConnectionProvider(VhostContext vhost) : IRabbitMQConnectionProvider
+    {
+        private readonly SemaphoreSlim _gate = new(1, 1);
+        private int _connections;
+
+        public string Host => vhost.ConnectionSettings.HostName;
+
+        public string VirtualHost => vhost.VhostName;
+
+        public int Port => vhost.ConnectionSettings.Port;
+
+        public async ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken)
+        {
+            await _gate.WaitAsync(cancellationToken);
+            try
+            {
+                await vhost.Broker.WaitForCountedConnectionsAsync(_connections);
+                var connection = await vhost.ConnectionFactory.CreateConnectionAsync(cancellationToken);
+                _connections++;
+                return connection;
+            }
+            finally
+            {
+                _gate.Release();
+            }
         }
     }
 

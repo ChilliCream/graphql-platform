@@ -9,8 +9,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.ConnectionRecovery)]
 public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
-
     [Fact]
     public async Task RequestAsync_Should_Cancel_When_BrokerStoppedAndCallerCancels()
     {
@@ -21,7 +19,7 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
         await AssertRoundTripAsync(bus, recorder, "ORD-1");
 
         // act
-        await using (await fixture.StopBrokerAsync())
+        await using (await fixture.Faults.StopBrokerAsync())
         {
             for (var i = 0; i < 3; i++)
             {
@@ -52,9 +50,9 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
 
         // act
-        await using (await fixture.StopBrokerAsync())
+        await using (await fixture.Faults.StopBrokerAsync())
         {
-            Assert.True(await Condition.WaitAsync(() => !GetTransport(bus).ConsumerManager.IsConnected, s_timeout));
+            Assert.True(await Condition.WaitAsync(() => !GetTransport(bus).ConsumerManager.IsConnected, TestTimeouts.Signal));
             var request = messageBus.RequestAsync(new GetOrderStatus { OrderId = "expired" }, cancellation.Token).AsTask();
             try
             {
@@ -62,7 +60,7 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
 
                 // assert
                 var exception = await Assert.ThrowsAsync<ResponseTimeoutException>(
-                    () => request.WaitAsync(s_timeout, TestContext.Current.CancellationToken));
+                    () => request.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
                 Assert.Equal(TimeSpan.FromMinutes(2), exception.Timeout);
             }
             finally
@@ -94,17 +92,17 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
 
         // act
-        await using (await fixture.BlockPublishersAsync())
+        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
         {
             var request = messageBus.RequestAsync(new GetOrderStatus { OrderId = "blocked" }, cancellation.Token).AsTask();
             try
             {
-                await vhost.WaitForBlockedPublisherAsync(s_timeout);
+                await vhost.Broker.WaitForBlockedPublisherAsync();
                 timeProvider.Advance(TimeSpan.FromMinutes(2));
 
                 // assert
                 var exception = await Assert.ThrowsAsync<ResponseTimeoutException>(
-                    () => request.WaitAsync(s_timeout, TestContext.Current.CancellationToken));
+                    () => request.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
                 Assert.Equal(TimeSpan.FromMinutes(2), exception.Timeout);
             }
             finally
@@ -131,7 +129,7 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
             UserName = $"{vhost.VhostName}-requester",
             Password = "password"
         };
-        await using var user = await vhost.AddUserAsync(requesterFactory.UserName, requesterFactory.Password);
+        await using var user = await vhost.Faults.AddUserAsync(requesterFactory.UserName, requesterFactory.Password);
         var gate = new ReplyGate();
         await using var responder = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
@@ -150,21 +148,21 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
         // act
         using var scope = requester.Provider.CreateScope();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(30));
+        cts.CancelAfter(TestTimeouts.Signal);
         var request = scope.ServiceProvider.GetRequiredService<IMessageBus>().RequestAsync(
             new GetOrderStatus { OrderId = "ORD-1" },
             new SendOptions { Endpoint = new Uri("rabbitmq:q/order-status") },
             cts.Token).AsTask();
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // the requester cannot attach again until its permissions are restored, so the reply is sent while its
         // reply queue has no consumer
-        await vhost.SetPermissionsAsync(requesterFactory.UserName, configure: "^$", write: "^$", read: "^$");
-        await vhost.CloseConnectionOfConsumerAsync(replyQueue);
-        await vhost.WaitForNoConsumerAsync(replyQueue, s_timeout);
+        await vhost.Faults.SetPermissionsAsync(requesterFactory.UserName, configure: "^$", write: "^$", read: "^$");
+        await vhost.Faults.CloseConsumerConnectionAsync(replyQueue);
+        await vhost.Broker.WaitForNoConsumerAsync(replyQueue);
         gate.Release.TrySetResult();
-        await vhost.WaitForMessagesAsync(replyQueue, 1, s_timeout);
-        await vhost.SetPermissionsAsync(requesterFactory.UserName, configure: ".*", write: ".*", read: ".*");
+        await vhost.Broker.WaitForMessagesAsync(replyQueue, 1);
+        await vhost.Faults.SetPermissionsAsync(requesterFactory.UserName, configure: ".*", write: ".*", read: ".*");
 
         var reply = await request;
 
@@ -222,7 +220,7 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
         await messageBus.PublishAsync(new OrderCreated { OrderId = orderId }, deadline.Token);
         Assert.True(await Condition.WaitAsync(
             () => recorder.Messages.Cast<OrderCreated>().Any(order => order.OrderId == orderId),
-            s_timeout));
+            TestTimeouts.Signal));
         var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = orderId }, deadline.Token);
         Assert.Equal(orderId, response.OrderId);
         Assert.Equal("Shipped", response.Status);
@@ -231,7 +229,7 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
     private static CancellationTokenSource CreateTimeout()
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(s_timeout);
+        cts.CancelAfter(TestTimeouts.Signal);
         return cts;
     }
 

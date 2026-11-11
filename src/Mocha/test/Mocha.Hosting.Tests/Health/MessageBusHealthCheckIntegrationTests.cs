@@ -97,8 +97,33 @@ public sealed class MessageBusHealthCheckIntegrationTests
             [HealthStatus.Healthy, HealthStatus.Unhealthy, HealthStatus.Healthy],
             new[] { initial.Status, stopped.Status, restarted.Status });
         Assert.Equal(
-            "Transport 'orders' is unhealthy. A receive endpoint is not started.",
+            "Transport 'orders' is unhealthy. Receive endpoint 'orders' is not started.",
             stopped.Entries["MessageBus"].Description);
+        Assert.Equal(
+            new Dictionary<string, object> { ["orders"] = "Receive endpoint 'orders' is not started." },
+            stopped.Entries["MessageBus"].Data);
+    }
+
+    [Fact]
+    public async Task CheckHealthAsync_Should_ReportUnhealthyAfterTimeout_When_HealthRequestIsNotAnswered()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus().AddRequestHandler<UnresponsiveHealthRequestHandler>().AddInMemory();
+        services.AddHealthChecks().AddMessageBus(timeout: TimeSpan.FromMilliseconds(250));
+        await using var provider = services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestContext.Current.CancellationToken);
+        var healthChecks = provider.GetRequiredService<HealthCheckService>();
+
+        // act
+        var report = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        var entry = report.Entries["MessageBus"];
+        Assert.Equal(HealthStatus.Unhealthy, entry.Status);
+        Assert.Equal("Message Bus did not answer the health request within 00:00:00.2500000.", entry.Description);
     }
 
     [Fact]
@@ -154,5 +179,14 @@ public sealed class MessageBusHealthCheckIntegrationTests
     {
         public ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
             => ValueTask.CompletedTask;
+    }
+
+    public sealed class UnresponsiveHealthRequestHandler : IEventRequestHandler<HealthRequest, HealthResponse>
+    {
+        public async ValueTask<HealthResponse> HandleAsync(HealthRequest request, CancellationToken cancellationToken)
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            return new HealthResponse("OK");
+        }
     }
 }

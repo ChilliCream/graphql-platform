@@ -8,7 +8,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Messaging)]
 public class RequestReplyTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public RequestReplyTests(RabbitMQFixture fixture)
@@ -96,7 +95,7 @@ public class RequestReplyTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the request within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the request within timeout");
     }
 
     [Fact]
@@ -193,16 +192,16 @@ public class RequestReplyTests
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(s_timeout);
+        cts.CancelAfter(TestTimeouts.Signal);
         var before = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-before" }, cts.Token);
-        var replyQueue = await vhost.GetReplyQueueNameAsync();
+        var replyQueue = await vhost.Broker.GetReplyQueueNameAsync();
 
         // act
         // the reply queue expires while its consumer is disconnected
-        await using (await vhost.RevokeAccessAsync())
+        await using (await vhost.Faults.RevokeAccessAsync())
         {
-            await vhost.CloseConnectionOfConsumerAsync(queueName);
-            await vhost.DeleteQueueAsync(replyQueue);
+            await vhost.Faults.CloseConsumerConnectionAsync(queueName);
+            await vhost.Faults.DeleteQueueAsync(replyQueue);
         }
 
         var after = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-after" }, cts.Token);
@@ -236,25 +235,20 @@ public class RequestReplyTests
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         cts.CancelAfter(timeout);
         await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-before" }, cts.Token);
-        var replyQueue = await vhost.GetReplyQueueNameAsync();
-        await vhost.SetConfigurePermissionAsync("^$");
+        var replyQueue = await vhost.Broker.GetReplyQueueNameAsync();
         Task<OrderStatusResponse>[] pendingRequests;
 
         // act
-        try
+        await using (await vhost.Faults.DenyDeclaresAsync())
         {
             // the reply queue expires while its consumer is disconnected
-            await vhost.CloseConnectionOfConsumerAsync(queueName);
-            await vhost.DeleteQueueAsync(replyQueue);
+            await vhost.Faults.CloseConsumerConnectionAsync(queueName);
+            await vhost.Faults.DeleteQueueAsync(replyQueue);
             pendingRequests = Enumerable.Range(1, 3)
                 .Select(i => messageBus.RequestAsync(new GetOrderStatus { OrderId = $"ORD-{i}" }, cts.Token).AsTask())
                 .ToArray();
-            Assert.Equal(0, await vhost.GetMessageCountAsync(queueName));
+            Assert.Equal(0, (await vhost.Broker.GetQueueAsync(queueName))?.Messages);
             Assert.All(pendingRequests, request => Assert.False(request.IsCompleted));
-        }
-        finally
-        {
-            await vhost.SetConfigurePermissionAsync(".*");
         }
 
         var responses = await Task.WhenAll(pendingRequests).WaitAsync(cts.Token);

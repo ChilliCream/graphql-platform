@@ -823,7 +823,54 @@ builder.Services
 
 The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
 
-The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processor retries on the next signal. Messages are deleted from the outbox table after successful dispatch.
+The processor deletes a message from the outbox table after the transport has accepted it. When a dispatch does not succeed, the message stays in the table and is dispatched again as described in [Configure outbox retries](#configure-outbox-retries).
+
+When the host stops, a dispatch that is in progress is cancelled. If the transport has already accepted the message, the processor deletes the row before it stops.
+
+## Configure outbox retries
+
+Three options on `PostgresOutboxOptions` control what the processor does when a dispatch does not succeed:
+
+| Option            | Default    | Description                                                                                                                                                                                                                        |
+| ----------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DispatchTimeout` | 30 seconds | The longest time a single dispatch may take. When it elapses, the dispatch is cancelled and the message is released. The value must be greater than zero and at most 24 days. `Timeout.InfiniteTimeSpan` switches the timeout off. |
+| `MaxAttempts`     | 10         | The number of counted attempts after which a message is no longer dispatched. The value must be at least 1.                                                                                                                        |
+| `MaxRetryDelay`   | 10 minutes | The upper bound of the delay before a message is dispatched again after a counted attempt. The value must be greater than zero.                                                                                                    |
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEntityFramework<AppDbContext>(p =>
+        p.UsePostgresOutbox(o =>
+        {
+            o.DispatchTimeout = TimeSpan.FromSeconds(10);
+            o.MaxAttempts = 20;
+            o.MaxRetryDelay = TimeSpan.FromMinutes(1);
+        }));
+```
+
+The `TimesSent` column holds the number of counted attempts of a message. How a dispatch ends decides whether it counts:
+
+| Outcome of the dispatch                                                                                                | Counted | What the processor does                                                   | Log level                              |
+| ---------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------- | -------------------------------------- |
+| The transport accepted the message.                                                                                    |         | Deletes the row.                                                          |                                        |
+| The transport threw `TransportUnavailableException`, the dispatch exceeded `DispatchTimeout`, or the host is stopping. | No      | Releases the message unchanged, pauses, and dispatches the message again. | Warning, or Debug when the host stops. |
+| The dispatch threw any other exception.                                                                                | Yes     | Increments `TimesSent` and delays the next attempt.                       | Error                                  |
+| The message cannot be read, its message type is unknown, or no endpoint matches its destination.                       | Yes     | Increments `TimesSent` and delays the next attempt.                       | Warning                                |
+
+A message is eligible again one second after its first counted attempt. The delay doubles with every further counted attempt, up to `MaxRetryDelay`.
+
+A released message keeps its attempt count and its position in the outbox. After a release, the worker that dispatched the message pauses before it dispatches again. The pause starts at about 100 milliseconds, doubles with every further release up to 10 seconds, and starts over after a successful dispatch.
+
+The log entry of a dispatch that was released or threw carries the row ID (`Id`), the message ID (`MessageId`), the message type (`MessageType`), and the destination (`DestinationAddress`) as structured properties.
+
+When a message reaches `MaxAttempts` counted attempts, the processor writes a log entry at `Critical` level:
+
+```text
+Message with ID 0197f3c2-5b7e-7000-8a1c-3d2e9f4b6a10 exhausted all 10 attempts and will not be retried.
+```
+
+The ID is the `Id` of the row. The row stays in the outbox table and is not dispatched again. To dispatch it again, set its `TimesSent` to a value below `MaxAttempts`. The processor picks the row up the next time it reads the outbox, for example when another message is written to it.
 
 ## Configure outbox dispatch concurrency
 
@@ -837,6 +884,8 @@ builder.Services
 ```
 
 The value must be greater than zero and applies to each outbox processor in each application instance. Each concurrent send needs a database connection. When increasing the limit, leave enough connections in the database pool for the rest of your application.
+
+Concurrent sends are independent. A send that fails, times out, or is released does not cancel or delay the other sends.
 
 With a value greater than one, messages may arrive in a different order from the order in which they were stored. A value of one keeps sends sequential within that processor, but retries and multiple application instances can still change delivery order.
 

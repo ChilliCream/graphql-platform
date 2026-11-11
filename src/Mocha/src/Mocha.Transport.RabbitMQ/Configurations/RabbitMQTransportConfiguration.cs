@@ -69,6 +69,13 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     /// or <c>null</c> for two minutes.
     /// </summary>
     public TimeSpan? ConnectTimeout { get; set; }
+
+    /// <summary>
+    /// Gets or sets how long a publish waits for the broker's confirmation before it fails with
+    /// <see cref="TransportUnavailableException"/>, or <c>null</c> for two minutes.
+    /// <see cref="Timeout.InfiniteTimeSpan"/> waits until the caller cancels.
+    /// </summary>
+    public TimeSpan? PublishTimeout { get; set; }
 }
 
 /// <summary>

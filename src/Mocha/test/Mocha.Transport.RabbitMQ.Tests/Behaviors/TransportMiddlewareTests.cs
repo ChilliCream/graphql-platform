@@ -7,7 +7,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Topology)]
 public class TransportMiddlewareTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public TransportMiddlewareTests(RabbitMQFixture fixture)
@@ -55,7 +54,7 @@ public class TransportMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-T1" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message within timeout");
         Assert.Contains("transport-receive-mw", tracker.Invocations);
     }
 
@@ -100,7 +99,7 @@ public class TransportMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-T2" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message within timeout");
         Assert.Contains("transport-append-receive", tracker.Invocations);
     }
 
@@ -145,7 +144,7 @@ public class TransportMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-T3" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message within timeout");
         Assert.Contains("transport-prepend-receive", tracker.Invocations);
     }
 
@@ -183,7 +182,7 @@ public class TransportMiddlewareTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-TD1", Amount = 50.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the message within timeout");
         Assert.Contains("transport-dispatch-mw", tracker.Invocations);
     }
 
@@ -222,7 +221,7 @@ public class TransportMiddlewareTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-TD2", Amount = 25.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the message within timeout");
         Assert.Contains("transport-append-dispatch", tracker.Invocations);
     }
 
@@ -261,7 +260,7 @@ public class TransportMiddlewareTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-TD3", Amount = 10.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the message within timeout");
         Assert.Contains("transport-prepend-dispatch", tracker.Invocations);
     }
 

@@ -22,7 +22,9 @@ public static class TransportCircuitBreakerMiddleware
                 var circuitBreaker = context.Transport.Options.CircuitBreaker;
                 var breakDuration = circuitBreaker.BreakDuration;
 
-                var logger = context.Services.GetRequiredService<ILogger<ReceiveCircuitBreakerMiddleware>>();
+                var logger = context.Services
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger(typeof(TransportCircuitBreakerMiddleware));
                 var pipeline = new ResiliencePipelineBuilder()
                     .AddCircuitBreaker(
                         new CircuitBreakerStrategyOptions

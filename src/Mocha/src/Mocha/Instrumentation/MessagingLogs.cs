@@ -28,12 +28,12 @@ internal static partial class MessagingLogs
     [LoggerMessage(LogLevel.Warning, "Moved unhandled message {MessageId} to {DestinationAddress}")]
     public static partial void MessageSkipped(this ILogger logger, string? messageId, Uri destinationAddress);
 
-    [LoggerMessage(LogLevel.Warning, "Circuit for endpoint {Endpoint} is open; recovery will be tested after {Delay}")]
-    public static partial void CircuitOpen(this ILogger logger, Exception? exception, string endpoint, TimeSpan delay);
+    [LoggerMessage(LogLevel.Warning, "{Circuit} circuit for endpoint {Endpoint} is open; recovery will be tested after {Delay}")]
+    public static partial void CircuitOpen(this ILogger logger, Exception? exception, string circuit, string endpoint, TimeSpan delay);
 
-    [LoggerMessage(LogLevel.Information, "Circuit for endpoint {Endpoint} closed; processing resumed")]
-    public static partial void CircuitClosed(this ILogger logger, string endpoint);
+    [LoggerMessage(LogLevel.Information, "{Circuit} circuit for endpoint {Endpoint} closed; processing resumed")]
+    public static partial void CircuitClosed(this ILogger logger, string circuit, string endpoint);
 
-    [LoggerMessage(LogLevel.Information, "Circuit for endpoint {Endpoint} is testing recovery")]
-    public static partial void CircuitHalfOpen(this ILogger logger, string endpoint);
+    [LoggerMessage(LogLevel.Information, "{Circuit} circuit for endpoint {Endpoint} is testing recovery")]
+    public static partial void CircuitHalfOpen(this ILogger logger, string circuit, string endpoint);
 }

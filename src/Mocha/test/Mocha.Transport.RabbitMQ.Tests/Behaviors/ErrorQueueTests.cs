@@ -7,7 +7,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Topology)]
 public class ErrorQueueTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public ErrorQueueTests(RabbitMQFixture fixture)
@@ -45,7 +44,7 @@ public class ErrorQueueTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-FAULT" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Error queue consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Error queue consumer did not receive the faulted message");
 
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.Equal(FaultHeaders.ExpectedShape(), FaultHeaders.Shape(headers));
@@ -85,7 +84,7 @@ public class ErrorQueueTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Error queue consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Error queue consumer did not receive the faulted message");
 
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.ContainsKey("fault-exception-type"), "Missing fault-exception-type header");
@@ -122,7 +121,7 @@ public class ErrorQueueTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-PRESERVE" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Error queue consumer did not receive the faulted message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Error queue consumer did not receive the faulted message");
 
         var message = Assert.Single(capture.Messages);
         Assert.Equal("ORD-PRESERVE", message.OrderId);

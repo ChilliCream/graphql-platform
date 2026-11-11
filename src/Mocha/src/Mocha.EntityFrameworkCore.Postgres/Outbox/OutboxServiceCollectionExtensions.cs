@@ -16,6 +16,9 @@ namespace Mocha.Outbox;
 /// </summary>
 public static class OutboxServiceCollectionExtensions
 {
+    // Stays below the longest delay a timer accepts, which is about 24.8 days.
+    private static readonly TimeSpan s_maxDispatchTimeout = TimeSpan.FromDays(24);
+
     /// <summary>
     /// Registers the full Postgres outbox pipeline: table info discovery from the EF Core model,
     /// the <see cref="PostgresOutboxProcessor"/>, a hosted background worker, and a scoped
@@ -45,7 +48,13 @@ public static class OutboxServiceCollectionExtensions
         var contextType = builder.ContextType;
         builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
             .Configure(configure)
-            .Validate(o => o.MaxConcurrentMessages > 0, "MaxConcurrentMessages must be greater than zero.");
+            .Validate(o => o.MaxConcurrentMessages > 0, "MaxConcurrentMessages must be greater than zero.")
+            .Validate(
+                o => o.DispatchTimeout == Timeout.InfiniteTimeSpan
+                    || (o.DispatchTimeout > TimeSpan.Zero && o.DispatchTimeout <= s_maxDispatchTimeout),
+                "DispatchTimeout must be greater than zero and at most 24 days, or Timeout.InfiniteTimeSpan.")
+            .Validate(o => o.MaxAttempts > 0, "MaxAttempts must be greater than zero.")
+            .Validate(o => o.MaxRetryDelay > TimeSpan.Zero, "MaxRetryDelay must be greater than zero.");
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)
@@ -70,8 +79,11 @@ public static class OutboxServiceCollectionExtensions
                 };
 
                 var tableInfo = tableInfoMonitor.Get(builder.Name);
-                options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
-                options.MaxConcurrentMessages = outboxOptionsMonitor.Get(builder.Name).MaxConcurrentMessages;
+                var outboxOptions = outboxOptionsMonitor.Get(builder.Name);
+                options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox, outboxOptions);
+                options.MaxConcurrentMessages = outboxOptions.MaxConcurrentMessages;
+                options.DispatchTimeout = outboxOptions.DispatchTimeout;
+                options.MaxAttempts = outboxOptions.MaxAttempts;
             });
 
         builder.Services.AddSingleton(sp =>

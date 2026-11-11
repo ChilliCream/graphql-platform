@@ -36,6 +36,18 @@ public interface IRabbitMQMessagingTransportDescriptor
     IRabbitMQMessagingTransportDescriptor ConnectTimeout(TimeSpan timeout);
 
     /// <summary>
+    /// Sets how long a publish waits for the broker's confirmation, including the wait for a connection and
+    /// every retry, before it fails with <see cref="TransportUnavailableException"/>. The default is two minutes,
+    /// and <see cref="Timeout.InfiniteTimeSpan"/> waits until the caller cancels.
+    /// </summary>
+    /// <param name="timeout">
+    /// How long to wait, more than zero and at most 4,294,967,294 milliseconds, or
+    /// <see cref="Timeout.InfiniteTimeSpan"/>.
+    /// </param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQMessagingTransportDescriptor PublishTimeout(TimeSpan timeout);
+
+    /// <summary>
     /// Configures bus-level defaults that are applied to all auto-provisioned queues and exchanges.
     /// </summary>
     /// <param name="configure">A delegate that configures the bus defaults.</param>

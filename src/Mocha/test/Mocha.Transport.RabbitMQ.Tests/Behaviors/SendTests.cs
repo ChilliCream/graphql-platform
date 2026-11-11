@@ -6,7 +6,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Messaging)]
 public class SendTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public SendTests(RabbitMQFixture fixture)
@@ -35,7 +34,7 @@ public class SendTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-1", Amount = 99.99m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the request");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the request");
 
         var message = Assert.Single(recorder.Messages);
         var payment = Assert.IsType<ProcessPayment>(message);
@@ -67,7 +66,7 @@ public class SendTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await paymentRecorder.WaitAsync(s_timeout), "Payment handler did not receive the send message");
+        Assert.True(await paymentRecorder.WaitAsync(TestTimeouts.Signal), "Payment handler did not receive the send message");
 
         var msg = Assert.Single(paymentRecorder.Messages);
         Assert.IsType<ProcessPayment>(msg);
@@ -103,8 +102,8 @@ public class SendTests
         await messageBus.SendAsync(new ProcessRefund { OrderId = "ORD-2", Amount = 25.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await paymentRecorder.WaitAsync(s_timeout), "Payment handler did not receive the message");
-        Assert.True(await refundRecorder.WaitAsync(s_timeout), "Refund handler did not receive the message");
+        Assert.True(await paymentRecorder.WaitAsync(TestTimeouts.Signal), "Payment handler did not receive the message");
+        Assert.True(await refundRecorder.WaitAsync(TestTimeouts.Signal), "Refund handler did not receive the message");
 
         var payment = Assert.IsType<ProcessPayment>(Assert.Single(paymentRecorder.Messages));
         Assert.Equal("ORD-1", payment.OrderId);

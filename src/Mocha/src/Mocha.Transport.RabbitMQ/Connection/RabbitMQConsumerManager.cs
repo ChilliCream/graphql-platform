@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -6,46 +7,75 @@ using RabbitMQ.Client.Events;
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
-/// Manages RabbitMQ connections and consumers with automatic reconnection.
+/// Owns the RabbitMQ connection that consumes messages, and the consumers on it.
 /// </summary>
-public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
+internal sealed class RabbitMQConsumerManager : IAsyncDisposable
 {
-    private ImmutableArray<RegisteredConsumer> _registeredConsumers = [];
-    private CancellationTokenSource? _monitoringCts;
-    private Task? _monitoringTask;
+    private static readonly CreateChannelOptions s_probeChannelOptions = new(
+        publisherConfirmationsEnabled: false,
+        publisherConfirmationTrackingEnabled: false);
+
+    private readonly RabbitMQConnectionManager _connection;
+    private readonly object _sync = new();
+    private ImmutableArray<RabbitMQConsumer> _consumers = [];
+    private Task? _disposeTask;
+    private volatile bool _isDisposed;
 
     /// <summary>
-    /// Creates a new consumer manager that will use the specified connection factory to establish RabbitMQ connections.
+    /// Creates a consumer manager.
     /// </summary>
-    /// <param name="logger">The logger for connection and consumer lifecycle events.</param>
-    /// <param name="connectionFactory">A factory delegate that creates new RabbitMQ connections on demand.</param>
-    public RabbitMQConsumerManager(
-        ILogger<RabbitMQConsumerManager> logger,
-        Func<CancellationToken, ValueTask<IConnection>> connectionFactory) : base(logger, connectionFactory) { }
+    /// <param name="logger">The logger for consumer events.</param>
+    /// <param name="connection">The manager of the connection that consumes messages.</param>
+    public RabbitMQConsumerManager(ILogger<RabbitMQConsumerManager> logger, RabbitMQConnectionManager connection)
+    {
+        Logger = logger;
+        _connection = connection;
+    }
+
+    /// <summary>
+    /// Gets the logger for consumer events.
+    /// </summary>
+    public ILogger Logger { get; }
+
+    /// <summary>
+    /// Gets the manager of the connection that consumes messages.
+    /// </summary>
+    public RabbitMQConnectionManager Connection => _connection;
 
     /// <summary>
     /// Gets or sets how long one attempt to attach a consumer may take before it is abandoned and retried.
     /// </summary>
-    internal TimeSpan AttachTimeout { get; set; } = TimeSpan.FromSeconds(60);
+    public TimeSpan AttachTimeout { get; set; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// Gets whether the connection and every registered consumer are healthy.
+    /// Gets or sets how long a consumer waits for a handler of a lost channel to return before it reports
+    /// that it is blocked.
+    /// </summary>
+    public TimeSpan BlockedGracePeriod { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Gets whether a ready connection exists.
+    /// </summary>
+    public bool IsConnected => _connection.IsConnected;
+
+    /// <summary>
+    /// Gets whether the connection is ready and every consumer is attached.
     /// </summary>
     public bool IsHealthy => HealthFailureReason is null;
 
     /// <summary>
-    /// Gets the reason the connection or a registered consumer is unhealthy, or <c>null</c> when all are healthy.
+    /// Gets the reason the connection or a consumer is unhealthy, or <c>null</c> when all are healthy.
     /// </summary>
-    internal string? HealthFailureReason
+    public string? HealthFailureReason
     {
         get
         {
-            if (!IsConnected)
+            if (!_connection.IsConnected)
             {
                 return "The consumer connection is unavailable.";
             }
 
-            foreach (var consumer in _registeredConsumers)
+            foreach (var consumer in _consumers)
             {
                 if (consumer.HealthFailureReason is { } reason)
                 {
@@ -58,305 +88,177 @@ public sealed partial class RabbitMQConsumerManager : RabbitMQConnectionManagerB
     }
 
     /// <summary>
-    /// Registers a new consumer for the specified queue, creating a dedicated channel with the given prefetch count.
+    /// Connects, as <see cref="RabbitMQConnectionManager.StartAsync"/> describes.
     /// </summary>
-    /// <remarks>
-    /// If a connection is already established, the consumer is connected immediately.
-    /// On reconnection, all registered consumers are automatically re-attached.
-    /// Disposing the returned handle unregisters the consumer and closes its channel.
-    /// </remarks>
-    /// <param name="queueName">The name of the RabbitMQ queue to consume from.</param>
-    /// <param name="messageHandler">The callback invoked for each delivered message, receiving the channel, delivery event args, and a cancellation token.</param>
-    /// <param name="prefetchCount">The maximum number of unacknowledged messages the broker will deliver to this consumer.</param>
-    /// <param name="consumerDispatchConcurrency">The maximum number of messages dispatched concurrently to the consumer callback. When greater than 1, multiple messages are processed in parallel.</param>
-    /// <param name="cancellationToken">A token to cancel the registration operation.</param>
-    /// <returns>An <see cref="IAsyncDisposable"/> handle that, when disposed, unregisters the consumer and releases its channel.</returns>
-    public async Task<IAsyncDisposable> RegisterConsumerAsync(
-        string queueName,
-        Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
-        ushort prefetchCount,
-        ushort consumerDispatchConcurrency,
-        CancellationToken cancellationToken)
-        => await RegisterConsumerAsync(
-            queueName,
-            prepareAsync: null,
-            messageHandler,
-            prefetchCount,
-            consumerDispatchConcurrency,
-            cancellationToken);
+    public Task StartAsync(CancellationToken cancellationToken) => _connection.StartAsync(cancellationToken);
 
     /// <summary>
-    /// Registers a new consumer for the specified queue, and prepares every channel of the consumer
-    /// before it starts consuming on it.
+    /// Makes one round trip on a new connection, so a connection the broker refuses after the handshake
+    /// does not count as ready.
     /// </summary>
-    /// <param name="queueName">The name of the RabbitMQ queue to consume from.</param>
+    public static async Task SetUpConnectionAsync(IConnection connection, CancellationToken cancellationToken)
+    {
+        await using var channel = await connection.CreateChannelAsync(s_probeChannelOptions, cancellationToken);
+        await channel.CloseAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Registers a consumer for a queue and waits for its first attempt to attach. The consumer attaches
+    /// again by itself whenever its channel or its connection is lost, until it is stopped.
+    /// </summary>
+    /// <param name="queueName">The name of the queue to consume.</param>
     /// <param name="prepareAsync">
-    /// Runs on the consumer's channel before every attach, for example to declare the queue and its bindings,
-    /// or <c>null</c> to start consuming at once.
+    /// Runs on every new channel of the consumer before it consumes, for example to declare the queue and
+    /// its bindings, or <c>null</c> to consume at once.
     /// </param>
-    /// <param name="messageHandler">The callback invoked for each delivered message.</param>
-    /// <param name="prefetchCount">The maximum number of unacknowledged messages the broker delivers to this consumer.</param>
-    /// <param name="consumerDispatchConcurrency">The maximum number of messages processed concurrently.</param>
-    /// <param name="cancellationToken">A token to cancel the registration operation.</param>
-    internal async Task<RegisteredConsumer> RegisterConsumerAsync(
+    /// <param name="messageHandler">Handles one delivered message.</param>
+    /// <param name="maxPrefetch">The largest number of unacknowledged messages the broker delivers.</param>
+    /// <param name="maxConcurrency">The largest number of messages that are handled at the same time.</param>
+    /// <param name="cancellationToken">Ends the wait for the first attempt and stops the consumer.</param>
+    /// <returns>
+    /// The consumer. It is not attached when no connection was ready or the first attempt failed for a
+    /// reason that a later attempt can overcome.
+    /// </returns>
+    /// <exception cref="Exception">The broker refused the first attempt. The consumer is stopped.</exception>
+    public async Task<RabbitMQConsumer> RegisterConsumerAsync(
         string queueName,
         Func<IConnection, IChannel, CancellationToken, Task>? prepareAsync,
         Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
-        ushort prefetchCount,
-        ushort consumerDispatchConcurrency,
+        ushort maxPrefetch,
+        ushort maxConcurrency,
         CancellationToken cancellationToken)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
         cancellationToken.ThrowIfCancellationRequested();
-        ArgumentOutOfRangeException.ThrowIfZero(consumerDispatchConcurrency);
+        ArgumentOutOfRangeException.ThrowIfZero(maxConcurrency);
 
-        var registration = new RegisteredConsumer(consumerDispatchConcurrency)
+        var consumer = new RabbitMQConsumer(this, queueName, prepareAsync, messageHandler, maxPrefetch, maxConcurrency);
+        ImmutableInterlocked.Update(ref _consumers, static (consumers, added) => consumers.Add(added), consumer);
+
+        if (_isDisposed)
         {
-            Manager = this,
-            QueueName = queueName,
-            PrepareAsync = prepareAsync,
-            MessageHandler = messageHandler,
-            PrefetchCount = prefetchCount
-        };
-
-        using var _ = BeginLogScope();
-        AddConsumer(registration);
-
-        if (IsDisposed)
-        {
-            await registration.DisposeAsync();
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            await consumer.DisposeAsync();
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
         }
 
-        var connection = CurrentConnection;
-        if (connection is { IsOpen: true })
+        Exception? failure;
+        try
         {
-            try
-            {
-                await registration.ConnectAsync(connection, cancellationToken);
-            }
-            catch (Exception ex)
-                when (!cancellationToken.IsCancellationRequested
-                    && (!connection.IsOpen || ex is TimeoutException or OperationCanceledException))
-            {
-                // The connection was lost or the broker did not answer in time. A new connection attaches every
-                // registered consumer, and an open connection is retried by the consumer itself.
-                registration.EnsureAttached();
-            }
-            catch (Exception ex)
-            {
-                if (!cancellationToken.IsCancellationRequested && !IsDisposed)
-                {
-                    Logger.ConsumerRegistrationFailed(ex, ConnectionName, queueName);
-                }
-
-                // A registration the broker refused must not be attached later by a reconnect.
-                await registration.DisposeAsync();
-                throw;
-            }
+            failure = await consumer.FirstAttempt.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            await consumer.DisposeAsync();
+            throw;
         }
 
-        Logger.RegisteredConsumerForQueue(ConnectionName, queueName, registration.IsAttached);
+        // The disposal of the manager stopped the consumer while it attached.
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        return registration;
+        if (failure is not null && RabbitMQFailure.IsPermanent(failure))
+        {
+            using (_connection.BeginLogScope())
+            {
+                Logger.ConsumerRegistrationFailed(failure, queueName, _connection.ConnectionName);
+            }
+
+            // A consumer the broker refuses does not keep attaching in the background.
+            await consumer.DisposeAsync();
+            ExceptionDispatchInfo.Throw(failure);
+        }
+
+        return consumer;
     }
 
     /// <summary>
-    /// Deletes a queue on the current connection, and does nothing when there is no open connection.
+    /// Deletes a queue on the ready connection. Does nothing when there is no ready connection, and logs
+    /// a failure instead of throwing it.
     /// </summary>
-    /// <param name="queueName">The name of the queue to delete.</param>
-    /// <param name="cancellationToken">A token to cancel the deletion.</param>
-    internal async Task DeleteQueueAsync(string queueName, CancellationToken cancellationToken)
+    public async Task DeleteQueueAsync(string queueName, CancellationToken cancellationToken)
     {
-        using var _ = BeginLogScope();
-        if (CurrentConnection is not { IsOpen: true } connection || cancellationToken.IsCancellationRequested)
+        if (_connection.Connection is not { } connection || cancellationToken.IsCancellationRequested)
         {
             return;
         }
 
+        // A cancelled open would cost the connection a channel number, so the open runs to its end.
+        var opening = _connection.OpenChannelAsync(connection, s_probeChannelOptions, AttachTimeout);
         try
         {
-            await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
-            await channel.QueueDeleteAsync(queueName, cancellationToken: cancellationToken);
+            var channel = await opening.WaitOrAbandonAsync(cancellationToken);
+            try
+            {
+                await channel
+                    .QueueDeleteAsync(queueName, cancellationToken: cancellationToken)
+                    .WaitOrAbandonAsync(cancellationToken);
+            }
+            finally
+            {
+                _ = RabbitMQConnectionManager.CloseChannelAsync(channel);
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // Queue cleanup was cancelled by the caller.
+            // The caller cancelled the cleanup. A channel that still opens is closed.
+            _ = CloseWhenOpenedAsync(opening);
         }
         catch (Exception ex)
         {
-            Logger.FailedToDeleteQueue(ex, ConnectionName, queueName);
+            using (_connection.BeginLogScope())
+            {
+                Logger.QueueDeleteFailed(ex, queueName, _connection.ConnectionName);
+            }
         }
     }
 
-    /// <summary>
-    /// Restores registered consumers on a new connection and starts monitoring connection health.
-    /// </summary>
-    /// <param name="connection">The newly created <see cref="IConnection"/>.</param>
-    /// <param name="cancellationToken">A token to cancel the reconnection of consumers.</param>
-    /// <returns>A task that completes after consumer attachment attempts finish and health monitoring starts.</returns>
-    protected override async Task OnAfterConnectionCreatedAsync(
-        IConnection connection,
-        CancellationToken cancellationToken)
+    private static async Task CloseWhenOpenedAsync(Task<IChannel> opening)
     {
-        // Reconnect existing consumers
-        await ReconnectConsumersAsync(connection, cancellationToken);
-
-        // Start health monitoring if not already running
-        StartHealthMonitoring();
-    }
-
-    /// <summary>
-    /// Called after a connection was lost, and starts creating a new connection in the background,
-    /// to which every registered consumer is re-attached.
-    /// </summary>
-    protected override Task OnConnectionLostAsync()
-    {
-        StartReconnecting();
-        return Task.CompletedTask;
-    }
-
-    private async Task ReconnectConsumersAsync(IConnection connection, CancellationToken cancellationToken)
-    {
-        var consumers = _registeredConsumers;
-
-        if (consumers.IsEmpty)
-        {
-            return;
-        }
-
-        Logger.ReconnectConsumersAsync(ConnectionName, consumers.Length);
-
-        // Consumers attach independently, so one that does not get an answer does not hold back the others.
-        await Task.WhenAll(consumers.Select(consumer => ReconnectConsumerAsync(consumer, connection, cancellationToken)));
-    }
-
-    private async Task ReconnectConsumerAsync(
-        RegisteredConsumer consumer,
-        IConnection connection,
-        CancellationToken cancellationToken)
-    {
-        using var _ = BeginLogScope(connection);
         try
         {
-            await consumer.ConnectAsync(connection, cancellationToken);
-            if (consumer.IsAttached)
-            {
-                Logger.ReconnectConsumerForQueue(ConnectionName, consumer.QueueName);
-            }
+            await RabbitMQConnectionManager.CloseChannelAsync(await opening);
         }
-        catch (ObjectDisposedException) when (consumer.IsDisposed)
+        catch
         {
-            // The consumer was stopped while the connection was established.
-        }
-        catch (OperationCanceledException) when (consumer.IsDisposed)
-        {
-            // The consumer was stopped while it was attaching.
-        }
-        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
-        {
-            Logger.FailedToReconnectConsumerForQueue(
-                ex,
-                RabbitMQFailure.GetLogLevel(ex),
-                ConnectionName,
-                consumer.QueueName);
-
-            // The consumer retries with backoff instead of waiting for the next health check.
-            consumer.EnsureAttached();
+            // The channel could not be opened.
         }
     }
 
-    private void StartHealthMonitoring()
+    internal void Remove(RabbitMQConsumer consumer)
+        => ImmutableInterlocked.Update(ref _consumers, static (consumers, removed) => consumers.Remove(removed), consumer);
+
+    /// <summary>
+    /// Stops every consumer without waiting for running handlers, and closes the connection.
+    /// </summary>
+    public ValueTask DisposeAsync()
     {
-        if (_monitoringCts is { IsCancellationRequested: false })
+        lock (_sync)
         {
-            return;
-        }
-
-        _monitoringCts = new CancellationTokenSource();
-        _monitoringTask = MonitorConnectionHealthAsync(_monitoringCts.Token);
-    }
-
-    private async Task MonitorConnectionHealthAsync(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
-                using var _ = BeginLogScope();
-
-                if (!IsConnected)
-                {
-                    Logger.ConnectionHealthCheckFailedAttemptingReconnection(ConnectionName);
-                    StartReconnecting();
-                }
-                else
-                {
-                    Logger.ConnectionHealthCheckOk(ConnectionName);
-
-                    foreach (var consumer in _registeredConsumers)
-                    {
-                        consumer.EnsureAttached();
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                Logger.ErrorDuringConnectionHealthCheck(ex, ConnectionName);
-            }
+            return new ValueTask(_disposeTask ??= DisposeCoreAsync());
         }
     }
 
-    private void AddConsumer(RegisteredConsumer consumer)
+    private async Task DisposeCoreAsync()
     {
-        ImmutableInterlocked.Update(ref _registeredConsumers, consumers => consumers.Add(consumer));
+        // Leaves the caller's lock.
+        await Task.Yield();
+        _isDisposed = true;
+
+        // The consumers stop side by side, so a broker that does not answer delays the disposal only once.
+        await Task.WhenAll(_consumers.Select(StopConsumerAsync));
+        await _connection.DisposeAsync();
     }
 
-    private void RemoveConsumer(RegisteredConsumer consumer)
+    private async Task StopConsumerAsync(RabbitMQConsumer consumer)
     {
-        ImmutableInterlocked.Update(ref _registeredConsumers, consumers => consumers.Remove(consumer));
-    }
-
-    protected override async ValueTask DisposeAsyncCore()
-    {
-        // Stop monitoring
-        if (_monitoringCts is not null)
+        try
         {
-            await _monitoringCts.CancelAsync();
-            _monitoringCts.Dispose();
-            _monitoringCts = null;
+            await consumer.DisposeAsync();
         }
-
-        if (_monitoringTask is not null)
+        catch (Exception ex)
         {
-            try
+            using (_connection.BeginLogScope())
             {
-                await _monitoringTask;
-            }
-            catch
-            {
-                // Ignore
-            }
-        }
-
-        // Dispose all consumers
-        var consumers = ImmutableInterlocked.InterlockedExchange(ref _registeredConsumers, []);
-
-        foreach (var consumer in consumers)
-        {
-            try
-            {
-                await consumer.DisposeAsync();
-            }
-            catch (Exception ex)
-            {
-                using var _ = BeginLogScope(consumer.Channel);
-                Logger.ErrorDisposingConsumer(ex, ConnectionName, consumer.QueueName);
+                Logger.ConsumerStopFailed(ex, consumer.QueueName, _connection.ConnectionName);
             }
         }
     }

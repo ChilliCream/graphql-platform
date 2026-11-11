@@ -65,24 +65,20 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowle
             }
         }
 
-        LogSkippedSettlement(context, channel, eventArgs, ack ? "ack" : "nack");
+        LogSkippedSettlement(context, eventArgs, ack ? "ack" : "nack");
     }
 
-    private void LogSkippedSettlement(
-        IReceiveContext context,
-        IChannel channel,
-        BasicDeliverEventArgs delivery,
-        string settlement)
+    private void LogSkippedSettlement(IReceiveContext context, BasicDeliverEventArgs delivery, string settlement)
     {
-        if (!logger.IsEnabled(LogLevel.Debug))
+        if (!logger.IsEnabled(LogLevel.Information))
         {
             return;
         }
 
-        using ((context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.BeginLogScope(channel))
+        using ((context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.Connection.BeginLogScope())
         using (logger.BeginMessageScope(context))
         {
-            logger.SettlementSkippedChannelClosed(
+            logger.SettlementSkipped(
                 settlement,
                 delivery.BasicProperties.MessageId ?? context.MessageId,
                 delivery.ConsumerTag,
@@ -105,21 +101,4 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowle
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "RabbitMQAcknowledgement");
-}
-
-internal static partial class RabbitMQAcknowledgementLogs
-{
-    [LoggerMessage(
-        LogLevel.Debug,
-        "Skipped {Settlement} of message {MessageId}, consumer {ConsumerTag}, delivery {DeliveryTag} "
-            + "from exchange {Exchange} with routing key {RoutingKey} (redelivered: {Redelivered}) because its channel closed")]
-    public static partial void SettlementSkippedChannelClosed(
-        this ILogger logger,
-        string settlement,
-        string? messageId,
-        string consumerTag,
-        ulong deliveryTag,
-        string exchange,
-        string routingKey,
-        bool redelivered);
 }

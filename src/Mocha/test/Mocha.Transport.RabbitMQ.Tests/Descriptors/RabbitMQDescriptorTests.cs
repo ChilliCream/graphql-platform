@@ -36,8 +36,66 @@ public class RabbitMQDescriptorTests
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
 
         // assert
-        Assert.Equal(timeout, transport.Dispatcher.ConnectTimeout);
-        Assert.Equal(timeout, transport.ConsumerManager.ConnectTimeout);
+        Assert.Equal(timeout, transport.Dispatcher.Connection.ConnectTimeout);
+        Assert.Equal(timeout, transport.ConsumerManager.Connection.ConnectTimeout);
+    }
+
+    [Fact]
+    public void ConnectTimeout_Should_BeTwoMinutes_When_NotConfigured()
+    {
+        // act
+        var runtime = CreateRuntime(_ => { });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(TimeSpan.FromMinutes(2), transport.Dispatcher.Connection.ConnectTimeout);
+        Assert.Equal(TimeSpan.FromMinutes(2), transport.ConsumerManager.Connection.ConnectTimeout);
+    }
+
+    [Theory]
+    [InlineData(0L)]
+    [InlineData(-2L)]
+    [InlineData(4_294_967_295L)]
+    public void PublishTimeout_Should_Throw_When_TimeoutOutsideSupportedRange(long milliseconds)
+    {
+        // arrange
+        var timeout = TimeSpan.FromMilliseconds(milliseconds);
+
+        // act
+        var exception = Record.Exception(() => CreateRuntime(t => t.PublishTimeout(timeout)));
+
+        // assert
+        var error = Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Equal("timeout", error.ParamName);
+    }
+
+    [Theory]
+    [InlineData(1L)]
+    [InlineData(30_000L)]
+    [InlineData(4_294_967_294L)]
+    [InlineData(-1L)]
+    public void PublishTimeout_Should_ConfigureDispatcher_When_TimeoutWithinSupportedRangeOrInfinite(long milliseconds)
+    {
+        // arrange
+        var timeout = TimeSpan.FromMilliseconds(milliseconds);
+
+        // act
+        var runtime = CreateRuntime(t => t.PublishTimeout(timeout));
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(timeout, transport.Dispatcher.PublishTimeout);
+    }
+
+    [Fact]
+    public void PublishTimeout_Should_BeTwoMinutes_When_NotConfigured()
+    {
+        // act
+        var runtime = CreateRuntime(_ => { });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
+        // assert
+        Assert.Equal(TimeSpan.FromMinutes(2), transport.Dispatcher.PublishTimeout);
     }
 
     [Fact]

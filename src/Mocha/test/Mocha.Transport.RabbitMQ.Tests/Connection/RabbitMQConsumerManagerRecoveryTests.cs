@@ -1,5 +1,4 @@
 using System.Text;
-using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -12,9 +11,8 @@ public class RabbitMQConsumerManagerRecoveryTests
 {
     private const string QueueName = "recovery-queue";
 
-    // Shorter than the 30 second connection health check, so the consumer has to be
-    // re-attached by reacting to the loss, not by the periodic health check.
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+    // A consumer reacts to a loss at once, so a recovery that needs the general signal timeout is too slow.
+    private static readonly TimeSpan s_promptly = TimeSpan.FromSeconds(10);
 
     private readonly RabbitMQFixture _fixture;
 
@@ -32,11 +30,11 @@ public class RabbitMQConsumerManagerRecoveryTests
         await using var manager = await CreateManagerAsync(vhost);
         var received = new DeliveryRecorder();
 
-        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
+        var registration = await manager.RegisterConsumerAsync(
             QueueName,
             received.HandleAsync,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             CancellationToken.None);
 
         await admin.PublishAsync("A");
@@ -64,8 +62,8 @@ public class RabbitMQConsumerManagerRecoveryTests
         await manager.RegisterConsumerAsync(
             QueueName,
             received.HandleAsync,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             CancellationToken.None);
 
         await admin.PublishAsync("A");
@@ -92,7 +90,7 @@ public class RabbitMQConsumerManagerRecoveryTests
         var received = new DeliveryRecorder();
         var abandonedHandlerCancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
+        var registration = await manager.RegisterConsumerAsync(
             QueueName,
             async (channel, eventArgs, cancellationToken) =>
             {
@@ -115,8 +113,8 @@ public class RabbitMQConsumerManagerRecoveryTests
 
                 await received.HandleAsync(channel, eventArgs, cancellationToken);
             },
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             CancellationToken.None);
 
         await admin.PublishAsync("A");
@@ -130,34 +128,47 @@ public class RabbitMQConsumerManagerRecoveryTests
         Assert.Equal("A", await received.NextAsync());
         Assert.Equal("B", await received.NextAsync());
 
-        await abandonedHandlerCancelled.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-        Assert.True(manager.IsHealthy);
+        await abandonedHandlerCancelled.Task.WaitAsync(s_promptly, TestContext.Current.CancellationToken);
+        Assert.Null(manager.HealthFailureReason);
     }
 
     [Fact]
     public async Task Consumer_Should_NotBeReattached_When_Disposed()
     {
         // arrange
+        const string witnessQueue = "witness-queue";
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var admin = await AdminChannel.CreateAsync(vhost);
+        await admin.DeclareQueueAsync(witnessQueue);
         await using var manager = await CreateManagerAsync(vhost);
         var received = new DeliveryRecorder();
 
         var registration = await manager.RegisterConsumerAsync(
             QueueName,
             received.HandleAsync,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             CancellationToken.None);
+
+        // a second consumer of the same manager shows when the consumers attached to the new connection
+        await manager.RegisterConsumerAsync(
+            witnessQueue,
+            received.HandleAsync,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
+            CancellationToken.None);
+        var witness = await vhost.Broker.GetConsumerAsync(witnessQueue);
 
         // act
         await registration.DisposeAsync();
+        var afterDispose = await vhost.Broker.GetQueueAsync(QueueName);
+        await vhost.Faults.CloseConsumerConnectionAsync(witnessQueue);
+        await vhost.Broker.WaitForConsumerAsync(witnessQueue, otherThan: witness);
+        var afterReconnect = await vhost.Broker.GetQueueAsync(QueueName);
 
         // assert
-        var queue = await admin.Channel.QueueDeclarePassiveAsync(
-            QueueName,
-            TestContext.Current.CancellationToken);
-        Assert.Equal(0u, queue.ConsumerCount);
+        Assert.Equal(new QueueInfo(Consumers: 0, Ready: 0, Unacknowledged: 0), afterDispose);
+        Assert.Equal(new QueueInfo(Consumers: 0, Ready: 0, Unacknowledged: 0), afterReconnect);
     }
 
     [Fact]
@@ -172,26 +183,27 @@ public class RabbitMQConsumerManagerRecoveryTests
         var registration = await manager.RegisterConsumerAsync(
             QueueName,
             received.HandleAsync,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             CancellationToken.None);
 
         // the queue stays missing, so every re-attach attempt fails and the consumer backs off
-        await vhost.DeleteQueueAsync(QueueName);
+        await vhost.Faults.DeleteQueueAsync(QueueName);
         Assert.True(
             await Condition.WaitAsync(
-                async () => !(await vhost.GetConsumerCountsAsync()).ContainsKey(QueueName),
-                s_timeout));
+                async () => await vhost.Broker.GetQueueAsync(QueueName) is null,
+                s_promptly));
 
         // act
-        await registration.DisposeAsync().AsTask().WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await registration.DisposeAsync().AsTask().WaitAsync(s_promptly, TestContext.Current.CancellationToken);
         await admin.DeclareQueueAsync();
 
         // assert
-        // a re-attach that outlived the dispose would subscribe within its next backoff of at most two seconds
+        // nothing signals that a disposed consumer will never attach again, so this watches for a consumer for
+        // longer than the first delays of a re-attach that outlived the dispose
         Assert.False(
             await Condition.WaitAsync(
-                async () => (await vhost.GetConsumerCountsAsync()).GetValueOrDefault(QueueName) > 0,
+                async () => (await vhost.Broker.GetQueueAsync(QueueName))?.Consumers > 0,
                 TimeSpan.FromSeconds(4)));
     }
 
@@ -206,16 +218,16 @@ public class RabbitMQConsumerManagerRecoveryTests
         await manager.RegisterConsumerAsync(
             QueueName,
             received.HandleAsync,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             CancellationToken.None);
 
         // act
         var exception = await Assert.ThrowsAsync<OperationInterruptedException>(() => manager.RegisterConsumerAsync(
             "missing-queue",
             received.HandleAsync,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             CancellationToken.None));
         await admin.Channel.QueueDeclareAsync(
             "missing-queue",
@@ -224,19 +236,69 @@ public class RabbitMQConsumerManagerRecoveryTests
             autoDelete: false,
             cancellationToken: TestContext.Current.CancellationToken);
 
-        // a new connection re-attaches every registered consumer
-        await _fixture.CloseAllConnectionsAsync();
-        var reattached = await Condition.WaitAsync(
-            async () => (await vhost.GetConsumerCountsAsync()).GetValueOrDefault(QueueName) == 1,
-            s_timeout);
-        var zombie = await Condition.WaitAsync(
-            async () => (await vhost.GetConsumerCountsAsync()).GetValueOrDefault("missing-queue") > 0,
-            TimeSpan.FromSeconds(3));
+        // every consumer attaches to a new connection by itself, so a registration that was left behind has a
+        // consumer once the other consumer of the manager is attached again
+        var before = await vhost.Broker.GetConsumerAsync(QueueName);
+        await vhost.Faults.CloseConsumerConnectionAsync(QueueName);
+        await vhost.Broker.WaitForConsumerAsync(QueueName, otherThan: before);
+        var missingQueue = await vhost.Broker.GetQueueAsync("missing-queue");
 
         // assert
         Assert.Equal<ushort?>(Constants.NotFound, exception.ShutdownReason?.ReplyCode);
-        Assert.True(reattached);
-        Assert.False(zombie);
+        Assert.Equal(new QueueInfo(Consumers: 0, Ready: 0, Unacknowledged: 0), missingQueue);
+    }
+
+    [Fact]
+    public async Task RegisterConsumerAsync_Should_KeepOtherConsumersAttached_When_RegistrationIsCancelled()
+    {
+        // arrange
+        const string otherQueue = "other-queue";
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var admin = await AdminChannel.CreateAsync(vhost);
+        await admin.DeclareQueueAsync(otherQueue);
+        await using var manager = await CreateManagerAsync(vhost);
+        var received = new DeliveryRecorder();
+        await manager.RegisterConsumerAsync(
+            QueueName,
+            received.HandleAsync,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
+            CancellationToken.None);
+        var original = await manager.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var before = await vhost.Broker.GetConsumerAsync(QueueName);
+        var cancelledRegistrations = 0;
+
+        // act
+        // a registration is cancelled at a random moment while its channel opens and its consumer attaches
+        for (var i = 0; i < 100; i++)
+        {
+            using var cancellation = new CancellationTokenSource();
+            var registration = manager.RegisterConsumerAsync(
+                otherQueue,
+                received.HandleAsync,
+                maxPrefetch: 1,
+                maxConcurrency: 1,
+                cancellation.Token);
+            Thread.SpinWait(Random.Shared.Next(0, 80_000));
+            await cancellation.CancelAsync();
+
+            try
+            {
+                await (await registration).DisposeAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                cancelledRegistrations++;
+            }
+        }
+
+        var current = await manager.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var after = await vhost.Broker.GetConsumerAsync(QueueName);
+
+        // assert
+        Assert.True(cancelledRegistrations > 0, "No registration was cancelled while it was pending.");
+        Assert.Same(original, current);
+        Assert.Equal(before, after);
     }
 
     [Fact]
@@ -265,20 +327,28 @@ public class RabbitMQConsumerManagerRecoveryTests
             await manager.RegisterConsumerAsync(
                 $"many-{i}",
                 received.HandleAsync,
-                prefetchCount: 1,
-                consumerDispatchConcurrency: 1,
+                maxPrefetch: 1,
+                maxConcurrency: 1,
                 CancellationToken.None);
         }
 
+        var before = await vhost.Broker.GetConsumersAsync();
+        var lostTags = before.Select(consumer => consumer.ConsumerTag).ToHashSet();
+
         // act
-        await _fixture.CloseAllConnectionsAsync();
-        var reattached = await Condition.WaitAsync(
-            async () => (await vhost.GetConsumerCountsAsync()).Count(queue => queue.Value == 1) == count,
-            TimeSpan.FromSeconds(20));
-        var state = await vhost.GetStateAsync();
+        await vhost.Faults.CloseConnectionsAsync();
+        var after = await Wait.UntilAsync(
+            vhost.Broker.GetConsumersAsync,
+            consumers => consumers.Count == count && !consumers.Any(consumer => lostTags.Contains(consumer.ConsumerTag)),
+            $"{count} consumers that attached after the connection was closed",
+            within: s_promptly);
+        var state = await vhost.Broker.GetStateAsync();
 
         // assert
-        Assert.True(reattached);
+        Assert.Equal(count, lostTags.Count);
+        Assert.Equal(
+            Enumerable.Range(0, count).Select(i => $"many-{i}").Order(),
+            after.Select(consumer => consumer.Queue).Order());
         Assert.Equal(1, state.Connections);
         Assert.Equal(count, state.ConsumerChannels);
     }
@@ -313,8 +383,8 @@ public class RabbitMQConsumerManagerRecoveryTests
                     cancellationToken: ct);
             },
             replies.HandleAsync,
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             TestContext.Current.CancellationToken);
         await manager.RegisterConsumerAsync(
             QueueName,
@@ -326,7 +396,7 @@ public class RabbitMQConsumerManagerRecoveryTests
                     exclusive: false,
                     autoDelete: false,
                     cancellationToken: ct);
-                await replyConsumer.WaitUntilHealthyAsync(ct);
+                await replyConsumer.WaitUntilAttachedAsync(ct);
             },
             async (channel, delivery, ct) =>
             {
@@ -340,18 +410,18 @@ public class RabbitMQConsumerManagerRecoveryTests
                 await channel.BasicPublishAsync("", "replies", delivery.Body, ct);
                 await channel.BasicAckAsync(delivery.DeliveryTag, false, ct);
             },
-            prefetchCount: 1,
-            consumerDispatchConcurrency: 1,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
             TestContext.Current.CancellationToken);
         await admin.PublishAsync("ORD-1");
-        await firstDelivery.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await firstDelivery.Task.WaitAsync(s_promptly, TestContext.Current.CancellationToken);
 
         // act
         QueueDeclareOk pending;
         try
         {
-            await vhost.CloseConnectionOfConsumerAsync(QueueName);
-            await provisioning.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await vhost.Faults.CloseConsumerConnectionAsync(QueueName);
+            await provisioning.Task.WaitAsync(s_promptly, TestContext.Current.CancellationToken);
             pending = await admin.Channel.QueueDeclarePassiveAsync(QueueName, TestContext.Current.CancellationToken);
         }
         finally
@@ -367,19 +437,18 @@ public class RabbitMQConsumerManagerRecoveryTests
 
     private static async Task<RabbitMQConsumerManager> CreateManagerAsync(VhostContext vhost)
     {
-        var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance,
+        var manager = TestManagers.CreateConsumerManager(
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
-        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        await manager.StartAsync(TestContext.Current.CancellationToken);
         return manager;
     }
 
-    private static async Task CloseChannelByBrokerAsync(RabbitMQConsumerManager.RegisteredConsumer registration)
+    private static async Task CloseChannelByBrokerAsync(RabbitMQConsumer registration)
     {
         var channel = registration.Channel!;
         await channel.BasicAckAsync(deliveryTag: 9999, multiple: false, TestContext.Current.CancellationToken);
 
-        var deadline = DateTimeOffset.UtcNow.Add(s_timeout);
+        var deadline = DateTimeOffset.UtcNow.Add(s_promptly);
         while (channel.IsOpen && DateTimeOffset.UtcNow < deadline)
         {
             await Task.Delay(50, TestContext.Current.CancellationToken);
@@ -405,7 +474,7 @@ public class RabbitMQConsumerManagerRecoveryTests
         public async Task<string> NextAsync()
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-            cts.CancelAfter(s_timeout);
+            cts.CancelAfter(s_promptly);
 
             return await _bodies.Reader.ReadAsync(cts.Token);
         }
@@ -427,10 +496,12 @@ public class RabbitMQConsumerManagerRecoveryTests
             return admin;
         }
 
-        public async Task DeclareQueueAsync()
+        public Task DeclareQueueAsync() => DeclareQueueAsync(QueueName);
+
+        public async Task DeclareQueueAsync(string queueName)
         {
             await channel.QueueDeclareAsync(
-                QueueName,
+                queueName,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,

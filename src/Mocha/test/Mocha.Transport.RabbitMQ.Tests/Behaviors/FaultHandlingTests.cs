@@ -7,7 +7,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Topology)]
 public class FaultHandlingTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public FaultHandlingTests(RabbitMQFixture fixture)
@@ -63,15 +62,15 @@ public class FaultHandlingTests
         // act - publish event that triggers a throw
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-FAIL" }, CancellationToken.None);
 
-        // wait a bit for the throwing handler to process
-        await throwingRecorder.WaitAsync(TimeSpan.FromSeconds(2));
+        // the throwing handler has processed the event
+        Assert.True(await throwingRecorder.WaitAsync(TestTimeouts.Signal), "Throwing handler did not receive the event");
 
         // now publish a normal event
         await messageBus.PublishAsync(new ItemShipped { TrackingNumber = "TRK-1" }, CancellationToken.None);
 
         // assert - the second handler still works
         Assert.True(
-            await normalRecorder.WaitAsync(s_timeout),
+            await normalRecorder.WaitAsync(TestTimeouts.Signal),
             "Normal handler did not receive event after a previous handler threw");
     }
 

@@ -1,17 +1,20 @@
-using Microsoft.Extensions.Logging.Abstractions;
+using System.Diagnostics;
+using Mocha.Transport.RabbitMQ.Tests.Helpers;
+using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
 public sealed class RabbitMQLifecycleTests
 {
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(5);
+
     [Fact]
-    public async Task DisposeAsync_Should_CompleteWaitingRents_When_ConnectionFactoryIsCancelled()
+    public async Task DisposeAsync_Should_FailWaitingRents_When_ConnectionAttemptIsPending()
     {
         // arrange
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var dispatcher = new RabbitMQDispatcher(
-            NullLogger<RabbitMQDispatcher>.Instance,
+        var dispatcher = TestManagers.CreateDispatcher(
             async ct =>
             {
                 entered.TrySetResult();
@@ -24,39 +27,54 @@ public sealed class RabbitMQLifecycleTests
                     await release.Task;
                 }
 
-                throw new InvalidOperationException("Unreachable.");
+                throw new UnreachableException();
             },
             static (_, _) => Task.CompletedTask);
         var first = dispatcher.RentChannelAsync(CancellationToken.None).AsTask();
-        await entered.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await entered.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         var second = dispatcher.RentChannelAsync(CancellationToken.None).AsTask();
 
         // act
         var disposing = dispatcher.DisposeAsync().AsTask();
+        bool disposeWaitedForAttempt;
         try
         {
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(
-                () => second.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
-            Assert.False(disposing.IsCompleted);
+            await Assert.ThrowsAsync<ObjectDisposedException>(
+                () => second.WaitAsync(s_timeout, TestContext.Current.CancellationToken));
+            disposeWaitedForAttempt = !disposing.IsCompleted;
         }
         finally
         {
             release.TrySetResult();
-            await disposing.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+            await disposing.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         }
 
         // assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+        Assert.True(disposeWaitedForAttempt);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => first);
         Assert.False(dispatcher.IsConnected);
+    }
+
+    [Fact]
+    public async Task RentChannelAsync_Should_ThrowObjectDisposed_When_Disposed()
+    {
+        // arrange
+        var dispatcher = TestManagers.CreateDispatcher(NeverConnectAsync, static (_, _) => Task.CompletedTask);
+        await dispatcher.DisposeAsync();
+
+        // act
+        var exception = await Record.ExceptionAsync(
+            () => dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask());
+
+        // assert
+        Assert.IsType<ObjectDisposedException>(exception);
     }
 
     [Fact]
     public async Task RegisterConsumerAsync_Should_RejectZeroConcurrency_When_NoHandlerCouldRun()
     {
         // arrange
-        await using var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance,
-            static _ => throw new InvalidOperationException("No connection expected."));
+        await using var manager = TestManagers.CreateConsumerManager(NeverConnectAsync);
 
         // act
         var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => manager.RegisterConsumerAsync(
@@ -67,16 +85,14 @@ public sealed class RabbitMQLifecycleTests
             TestContext.Current.CancellationToken));
 
         // assert
-        Assert.Equal("consumerDispatchConcurrency", exception.ParamName);
+        Assert.Equal("maxConcurrency", exception.ParamName);
     }
 
     [Fact]
     public async Task RegisterConsumerAsync_Should_RejectRegistration_When_ManagerDisposed()
     {
         // arrange
-        var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance,
-            static _ => throw new InvalidOperationException("No connection expected."));
+        var manager = TestManagers.CreateConsumerManager(NeverConnectAsync);
         await manager.DisposeAsync();
 
         // act
@@ -89,57 +105,80 @@ public sealed class RabbitMQLifecycleTests
 
         // assert
         Assert.IsType<ObjectDisposedException>(exception);
-        Assert.False(manager.IsHealthy);
+        Assert.Equal("The consumer connection is unavailable.", manager.HealthFailureReason);
     }
 
     [Fact]
-    public async Task WaitUntilHealthyAsync_Should_CancelAllWaiters_When_RegistrationStops()
+    public async Task RegisterConsumerAsync_Should_ReturnDetachedConsumer_When_NoConnectionIsReady()
     {
         // arrange
-        await using var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance,
-            static _ => throw new InvalidOperationException("No connection expected."));
-        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
+        await using var manager = TestManagers.CreateConsumerManager(NeverConnectAsync);
+
+        // act
+        var consumer = await manager.RegisterConsumerAsync(
+            "orders",
+            static (_, _, _) => default,
+            1,
+            1,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(consumer.IsAttached);
+        Assert.Equal("The consumer is not attached.", consumer.HealthFailureReason);
+    }
+
+    [Fact]
+    public async Task WaitUntilAttachedAsync_Should_EndEveryWait_When_ConsumerStops()
+    {
+        // arrange
+        await using var manager = TestManagers.CreateConsumerManager(NeverConnectAsync);
+        var consumer = await manager.RegisterConsumerAsync(
             "orders",
             static (_, _, _) => default,
             1,
             1,
             TestContext.Current.CancellationToken);
         using var cancelled = new CancellationTokenSource();
-        var first = registration.WaitUntilHealthyAsync(cancelled.Token).AsTask();
-        var second = registration.WaitUntilHealthyAsync(CancellationToken.None).AsTask();
+        var first = consumer.WaitUntilAttachedAsync(cancelled.Token).AsTask();
+        var second = consumer.WaitUntilAttachedAsync(CancellationToken.None).AsTask();
 
         // act
         await cancelled.CancelAsync();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
         var otherWaiterPending = !second.IsCompleted;
-        await registration.StopAsync(TestContext.Current.CancellationToken);
+        await consumer.StopAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(otherWaiterPending);
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => second.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => second.WaitAsync(s_timeout, TestContext.Current.CancellationToken));
+        Assert.Equal("The consumer for queue 'orders' is stopped.", exception.Message);
     }
 
     [Fact]
-    public async Task DisposeAsync_Should_BeIdempotent_When_RegistrationWasStopped()
+    public async Task DisposeAsync_Should_BeIdempotent_When_ConsumerWasStopped()
     {
         // arrange
-        await using var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance,
-            static _ => throw new InvalidOperationException("No connection expected."));
-        var registration = (RabbitMQConsumerManager.RegisteredConsumer)await manager.RegisterConsumerAsync(
+        await using var manager = TestManagers.CreateConsumerManager(NeverConnectAsync);
+        var consumer = await manager.RegisterConsumerAsync(
             "orders",
             static (_, _, _) => default,
             1,
             1,
             TestContext.Current.CancellationToken);
-        await registration.StopAsync(TestContext.Current.CancellationToken);
+        await consumer.StopAsync(TestContext.Current.CancellationToken);
 
         // act
-        var exception = await Record.ExceptionAsync(() => registration.DisposeAsync().AsTask());
+        var exception = await Record.ExceptionAsync(() => consumer.DisposeAsync().AsTask());
 
         // assert
         Assert.Null(exception);
+        Assert.Equal("The consumer is stopped.", consumer.HealthFailureReason);
+    }
+
+    private static async ValueTask<IConnection> NeverConnectAsync(CancellationToken cancellationToken)
+    {
+        await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+        throw new UnreachableException();
     }
 }

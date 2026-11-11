@@ -6,6 +6,11 @@ public sealed class TestBus(ServiceProvider provider, MessagingRuntime runtime) 
 {
     public ServiceProvider Provider => provider;
 
+    /// <summary>
+    /// Gets the RabbitMQ transport of the bus.
+    /// </summary>
+    public RabbitMQMessagingTransport Transport => runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+
     public async ValueTask DisposeAsync()
     {
         // A host stops with a shutdown timeout, after which handlers that still run are cancelled.

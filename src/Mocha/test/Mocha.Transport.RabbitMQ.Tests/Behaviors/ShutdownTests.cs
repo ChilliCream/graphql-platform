@@ -7,8 +7,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.ConsumerRecovery)]
 public sealed class ShutdownTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
-
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -21,25 +19,25 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         await using var bus = await CreateBusAsync(vhost, gate);
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         await PublishAsync(bus);
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
         var dispose = disposeProvider ? bus.Provider.DisposeAsync().AsTask() : runtime.DisposeAsync().AsTask();
         try
         {
-            await dispose.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-            await gate.CancellationObserved.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await dispose.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+            await gate.CancellationObserved.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
             // assert
             Assert.True(gate.Cancelled);
             Assert.False(gate.Completed);
             Assert.False(runtime.IsStarted);
-            Assert.Equal(1, await vhost.GetMessageCountAsync("shutdown"));
+            Assert.Equal(1, (await vhost.Broker.GetQueueAsync("shutdown"))?.Messages);
         }
         finally
         {
             gate.Release.TrySetResult();
-            await dispose.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await dispose.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
         }
     }
 
@@ -52,15 +50,15 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         await using var bus = await CreateBusAsync(vhost, gate);
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         await PublishAsync(bus);
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
         var stop = runtime.StopAsync(CancellationToken.None).AsTask();
-        await vhost.WaitForNoConsumerAsync("shutdown", s_timeout);
+        await vhost.Broker.WaitForNoConsumerAsync("shutdown");
         var stoppedBeforeHandlerFinished = stop.IsCompleted;
         gate.Release.TrySetResult();
-        await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-        var messages = await vhost.GetMessageCountAsync("shutdown");
+        await stop.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        var messages = (await vhost.Broker.GetQueueAsync("shutdown"))?.Messages;
 
         // assert
         Assert.False(stoppedBeforeHandlerFinished);
@@ -79,12 +77,12 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         await using var bus = await CreateBusAsync(vhost, gate);
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         await PublishAsync(bus);
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
         using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(1));
         await runtime.StopAsync(stopTimeout.Token).AsTask()
-            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            .WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // assert
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
@@ -94,7 +92,7 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         Assert.True(gate.Cancelled);
         Assert.True(message?.Redelivered);
         // a handler cancelled by the shutdown did not fail, so its message is not dead-lettered
-        Assert.Equal(0, await vhost.GetMessageCountAsync("shutdown_error"));
+        Assert.Equal(0, (await vhost.Broker.GetQueueAsync("shutdown_error"))?.Messages);
         Assert.False(runtime.IsStarted);
     }
 
@@ -119,21 +117,24 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         var runtime = (MessagingRuntime)responder.Provider.GetRequiredService<IMessagingRuntime>();
         using var scope = requester.Provider.CreateScope();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(s_timeout);
+        cts.CancelAfter(TestTimeouts.Signal);
         var request = scope.ServiceProvider.GetRequiredService<IMessageBus>().RequestAsync(
             new GetOrderStatus { OrderId = "ORD-1" },
             new SendOptions { Endpoint = new Uri("rabbitmq:q/order-status") },
             cts.Token).AsTask();
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
-        using var stopTimeout = new CancellationTokenSource(s_timeout);
+        using var stopTimeout = new CancellationTokenSource(TestTimeouts.Signal);
         var stop = runtime.StopAsync(stopTimeout.Token).AsTask();
+        await vhost.Broker.WaitForNoConsumerAsync("order-status");
+        var stoppedBeforeHandlerFinished = stop.IsCompleted;
         gate.Release.TrySetResult();
         var reply = await request;
-        await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await stop.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // assert
+        Assert.False(stoppedBeforeHandlerFinished);
         Assert.Equal("Shipped", reply.Status);
         Assert.False(gate.Cancelled);
         Assert.False(runtime.IsStarted);
@@ -174,16 +175,16 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
                 TestContext.Current.CancellationToken);
         }
 
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
-        using var stopTimeout = new CancellationTokenSource(s_timeout);
+        using var stopTimeout = new CancellationTokenSource(TestTimeouts.Signal);
         var stop = runtime.StopAsync(stopTimeout.Token).AsTask();
         bool replyWasHealthy;
         try
         {
-            await vhost.WaitForNoConsumerAsync("nested-first", s_timeout);
-            await vhost.WaitForNoConsumerAsync("nested-second", s_timeout);
+            await vhost.Broker.WaitForNoConsumerAsync("nested-first");
+            await vhost.Broker.WaitForNoConsumerAsync("nested-second");
             replyWasHealthy = ((RabbitMQReceiveEndpoint)transport.ReplyReceiveEndpoint!).IsHealthy;
         }
         finally
@@ -191,9 +192,9 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
             gate.Release.TrySetResult();
         }
 
-        await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-        var firstMessages = await vhost.GetMessageCountAsync("nested-first");
-        var secondMessages = await vhost.GetMessageCountAsync("nested-second");
+        await stop.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        var firstMessages = (await vhost.Broker.GetQueueAsync("nested-first"))?.Messages;
+        var secondMessages = (await vhost.Broker.GetQueueAsync("nested-second"))?.Messages;
 
         // assert
         Assert.True(replyWasHealthy);
@@ -212,22 +213,22 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         var bus = await CreateBusAsync(vhost, gate);
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         await PublishAsync(bus);
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
-        using var stopTimeout = new CancellationTokenSource(s_timeout);
+        using var stopTimeout = new CancellationTokenSource(TestTimeouts.Signal);
         var stop = runtime.StopAsync(stopTimeout.Token).AsTask();
-        await fixture.CloseAllConnectionsAsync();
-        await gate.CancellationObserved.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await vhost.Faults.CloseConnectionsAsync();
+        await gate.CancellationObserved.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
         gate.Release.TrySetResult();
-        await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await stop.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
         await bus.DisposeAsync();
         var closed = await Condition.WaitAsync(
-            async () => await vhost.GetConnectionCountAsync() == 0,
-            TimeSpan.FromSeconds(5));
+            async () => await vhost.Broker.GetConnectionCountAsync() == 0,
+            TestTimeouts.Signal);
 
         // the handler completed, but its delivery could not be acked on the closed channel
-        var requeued = await vhost.GetMessageCountAsync("shutdown");
+        var requeued = (await vhost.Broker.GetQueueAsync("shutdown"))?.Messages;
 
         // assert
         Assert.False(gate.Completed);

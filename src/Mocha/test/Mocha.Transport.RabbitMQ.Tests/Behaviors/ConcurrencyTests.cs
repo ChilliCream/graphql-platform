@@ -7,7 +7,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Messaging)]
 public class ConcurrencyTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(60);
     private readonly RabbitMQFixture _fixture;
 
     public ConcurrencyTests(RabbitMQFixture fixture)
@@ -44,7 +43,7 @@ public class ConcurrencyTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(TestTimeouts.Signal, expectedCount: messageCount),
             $"Handler did not process all {messageCount} messages within timeout");
 
         Assert.Equal(1, tracker.PeakConcurrency);
@@ -79,7 +78,7 @@ public class ConcurrencyTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: messageCount),
+            await recorder.WaitAsync(TestTimeouts.Signal, expectedCount: messageCount),
             $"Handler did not process all {messageCount} messages within timeout");
 
         Assert.True(tracker.PeakConcurrency > 1, $"Expected parallelism > 1, but peak was {tracker.PeakConcurrency}");
@@ -90,7 +89,7 @@ public class ConcurrencyTests
     public async Task Handler_Should_LimitConcurrency_When_BacklogIsProcessedAfterRecovery()
     {
         // arrange
-        var timeout = TimeSpan.FromSeconds(30);
+        var timeout = TestTimeouts.Signal;
         const int messageCount = 10;
         var tracker = new ConcurrencyTracker();
         var recorder = new MessageRecorder();
@@ -111,23 +110,18 @@ public class ConcurrencyTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         await messageBus.PublishAsync(new OrderCreated { OrderId = "before" }, TestContext.Current.CancellationToken);
         Assert.True(await recorder.WaitAsync(timeout));
-        await vhost.SetConfigurePermissionAsync("^$");
 
         // act
-        try
+        await using (await vhost.Faults.DenyDeclaresAsync())
         {
-            await vhost.CloseConnectionOfConsumerAsync("recovery-orders");
-            await vhost.WaitForNoConsumerAsync("recovery-orders", timeout);
+            await vhost.Faults.CloseConsumerConnectionAsync("recovery-orders");
+            await vhost.Broker.WaitForNoConsumerAsync("recovery-orders");
             for (var i = 0; i < messageCount; i++)
             {
                 await messageBus.PublishAsync(
                     new OrderCreated { OrderId = $"ORD-{i}" },
                     TestContext.Current.CancellationToken);
             }
-        }
-        finally
-        {
-            await vhost.SetConfigurePermissionAsync(".*");
         }
 
         // assert

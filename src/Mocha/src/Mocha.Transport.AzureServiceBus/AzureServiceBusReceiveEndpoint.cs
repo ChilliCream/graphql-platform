@@ -15,6 +15,8 @@ namespace Mocha.Transport.AzureServiceBus;
 public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTransport transport)
     : ReceiveEndpoint<AzureServiceBusReceiveEndpointConfiguration>(transport)
 {
+    private static readonly TimeSpan s_temporaryResourceCleanupTimeout = TimeSpan.FromSeconds(30);
+
     private MessageProcessor? _processor;
     private QueueHeartbeat? _heartbeat;
     private ILogger<AzureServiceBusReceiveEndpoint> _logger = null!;
@@ -228,7 +230,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     /// Stops when the messaging runtime deactivates this endpoint, then disposes the heartbeat and
     /// processor resources. Disposal is best-effort: a failure while releasing either resource is
     /// logged as a warning and does not fail the stop. For a temporary endpoint, also removes the
-    /// Mocha-owned, auto-provisioned forwarding subscriptions that route to this endpoint's queue.
+    /// Mocha-owned, auto-provisioned forwarding subscriptions that route to this endpoint's queue,
+    /// whether or not <paramref name="cancellationToken"/> is canceled.
     /// </summary>
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
@@ -240,11 +243,10 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             {
                 await _processor.StopProcessingAsync(cancellationToken);
             }
-
-            if (Configuration.IsTemporary)
-            {
-                await CleanupTemporaryResourcesAsync(cancellationToken);
-            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The stop no longer waits for the processor. Disposing the processor below ends the processing.
         }
         finally
         {
@@ -275,6 +277,29 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
                 _processor = null;
             }
+        }
+
+        if (Configuration.IsTemporary)
+        {
+            await CleanupTemporaryResourcesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Removes the temporary resources of this endpoint within a fixed time. A cleanup that
+    /// does not complete in time is logged as a warning and does not fail the stop.
+    /// </summary>
+    private async Task CleanupTemporaryResourcesAsync()
+    {
+        using var timeout = new CancellationTokenSource(s_temporaryResourceCleanupTimeout);
+
+        try
+        {
+            await CleanupTemporaryResourcesAsync(timeout.Token);
+        }
+        catch (OperationCanceledException ex) when (timeout.IsCancellationRequested)
+        {
+            _logger.TemporaryResourceCleanupTimedOut(ex, Queue.Name, s_temporaryResourceCleanupTimeout);
         }
     }
 
@@ -401,6 +426,15 @@ internal static partial class Logs
         this ILogger logger,
         Exception exception,
         string queueName);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Deleting the temporary resources of Azure Service Bus queue '{QueueName}' did not complete within {Timeout}")]
+    public static partial void TemporaryResourceCleanupTimedOut(
+        this ILogger logger,
+        Exception exception,
+        string queueName,
+        TimeSpan timeout);
 
     [LoggerMessage(
         LogLevel.Warning,

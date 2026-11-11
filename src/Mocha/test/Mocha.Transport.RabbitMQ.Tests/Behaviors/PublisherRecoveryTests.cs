@@ -6,8 +6,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.ConnectionRecovery)]
 public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
-
     [Fact]
     public async Task PublishAsync_Should_Cancel_When_BrokerBlocksPublishing()
     {
@@ -22,10 +20,10 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
             .AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderCreatedHandler>())
             .BuildTestBusAsync();
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
 
         // act
-        await using (await fixture.BlockPublishersAsync())
+        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(
                 () => PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }, TimeSpan.FromSeconds(2))
@@ -37,7 +35,7 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         // assert
         Assert.True(await Condition.WaitAsync(
             () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-3"),
-            s_timeout));
+            TestTimeouts.Signal));
     }
 
     [Fact]
@@ -54,23 +52,27 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
             .AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderCreatedHandler>())
             .BuildTestBusAsync();
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
+        var dispatcherConnectionLost = await ObserveDispatcherConnectionLossAsync(bus);
 
         // act
+        // the broker holds back the confirm of a blocked publish, so the connection closes while it is awaited
         Task publish;
-        await using (await fixture.BlockPublishersAsync())
+        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
         {
-            publish = PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }, TimeSpan.FromSeconds(30));
-            await vhost.WaitForBlockedPublisherAsync(s_timeout);
-            await fixture.CloseAllConnectionsAsync();
+            publish = PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
+            await vhost.Broker.WaitForBlockedPublisherAsync();
+            await vhost.Faults.CloseConnectionsAsync();
+            await dispatcherConnectionLost.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
         }
 
-        await publish.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
+        await publish.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        await Wait.UntilAsync(() => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"));
 
         // assert
-        Assert.True(await Condition.WaitAsync(
-            () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"),
-            s_timeout));
+        Assert.Equal(
+            ["ORD-1", "ORD-2"],
+            orders.Messages.Cast<OrderCreated>().Select(order => order.OrderId).Distinct().Order());
     }
 
     [Fact]
@@ -81,10 +83,10 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         var orders = new MessageRecorder();
         await using var bus = await CreateOrdersBusAsync(vhost, orders);
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
 
         // act
-        await using (await fixture.StopBrokerAsync())
+        await using (await fixture.Faults.StopBrokerAsync())
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(
                 () => PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }, TimeSpan.FromSeconds(3))
@@ -96,7 +98,7 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         // assert
         Assert.True(await Condition.WaitAsync(
             () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-3"),
-            s_timeout));
+            TestTimeouts.Signal));
     }
 
     [Fact]
@@ -107,23 +109,23 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         var orders = new MessageRecorder();
         await using var bus = await CreateOrdersBusAsync(vhost, orders);
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
 
         // act
         Task publish;
-        await using (await fixture.StopBrokerAsync())
+        await using (await fixture.Faults.StopBrokerAsync())
         {
-            publish = PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }, TimeSpan.FromSeconds(30));
+            publish = PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
             await Assert.ThrowsAsync<TimeoutException>(
                 () => publish.WaitAsync(TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken));
         }
 
-        await publish.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
+        await publish.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(await Condition.WaitAsync(
             () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"),
-            s_timeout));
+            TestTimeouts.Signal));
     }
 
     [Fact]
@@ -135,25 +137,26 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         var orders = new MessageRecorder();
         await using var bus = await CreateOrdersBusAsync(vhost, orders);
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-0" });
-        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
+        var dispatcherConnectionLost = await ObserveDispatcherConnectionLossAsync(bus);
 
         // act
         Task[] publishes;
-        await using (await fixture.BlockPublishersAsync())
+        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
         {
             publishes = Enumerable.Range(1, count)
-                .Select(i => PublishAsync(bus, new OrderCreated { OrderId = $"ORD-{i}" }, TimeSpan.FromSeconds(30)))
+                .Select(i => PublishAsync(bus, new OrderCreated { OrderId = $"ORD-{i}" }))
                 .ToArray();
-            await vhost.WaitForBlockedPublisherAsync(s_timeout);
-            await fixture.CloseAllConnectionsAsync();
+            await vhost.Broker.WaitForBlockedPublisherAsync();
+            await vhost.Faults.CloseConnectionsAsync();
+            await dispatcherConnectionLost.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
         }
 
-        await Task.WhenAll(publishes).WaitAsync(TimeSpan.FromSeconds(45), TestContext.Current.CancellationToken);
+        await Task.WhenAll(publishes).WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        await Wait.UntilAsync(
+            () => orders.Messages.Cast<OrderCreated>().Select(o => o.OrderId).Distinct().Count() == count + 1);
 
         // assert
-        Assert.True(await Condition.WaitAsync(
-            () => orders.Messages.Cast<OrderCreated>().Select(o => o.OrderId).Distinct().Count() == count + 1,
-            TimeSpan.FromSeconds(30)));
         Assert.Equal(
             Enumerable.Range(0, count + 1).Select(i => $"ORD-{i}").Order(),
             orders.Messages.Cast<OrderCreated>().Select(o => o.OrderId).Distinct().Order());
@@ -168,10 +171,10 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         var orders = new MessageRecorder();
         await using var bus = await CreateOrdersBusAsync(vhost, orders);
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
 
         // act
-        await using (await vhost.FreezeConnectionsAsync())
+        await using (await vhost.Faults.FreezeConnectionsAsync())
         {
             await Assert.ThrowsAnyAsync<OperationCanceledException>(
                 () => PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }, TimeSpan.FromSeconds(2))
@@ -183,7 +186,7 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         // assert
         Assert.True(await Condition.WaitAsync(
             () => orders.Messages.Cast<OrderCreated>().Any(o => o.OrderId == "ORD-3"),
-            s_timeout));
+            TestTimeouts.Signal));
     }
 
     [Fact]
@@ -205,7 +208,7 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         await transport.StopAsync(runtime, TestContext.Current.CancellationToken);
         await transport.StartAsync(runtime, TestContext.Current.CancellationToken);
         await PublishAsync(publisher, new OrderCreated { OrderId = "ORD-1" });
-        var received = await orders.WaitAsync(s_timeout);
+        var received = await orders.WaitAsync(TestTimeouts.Signal);
 
         // assert
         Assert.True(received);
@@ -231,21 +234,21 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
             await PublishAsync(bus, new OrderCreated { OrderId = $"ORD-{i}" });
         }
 
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
         // the alarm blocks connections that publish, and the consumer connection only acks
-        bool drained;
-        await using (await fixture.BlockPublishersAsync())
+        QueueInfo? whileBlocked;
+        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
         {
+            await vhost.Broker.WaitForAlarmAsync();
             gate.Release.TrySetResult();
-            drained = await Condition.WaitAsync(
-                async () => await vhost.GetMessageCountAsync("orders") == 0,
-                s_timeout);
+            await vhost.Broker.WaitForEmptyQueueAsync("orders");
+            whileBlocked = await vhost.Broker.GetQueueAsync("orders");
         }
 
         // assert
-        Assert.True(drained);
+        Assert.Equal(new QueueInfo(Consumers: 1, Ready: 0, Unacknowledged: 0), whileBlocked);
         Assert.Equal(5, orders.Messages.Count);
     }
 
@@ -258,11 +261,20 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
             .AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderCreatedHandler>())
             .BuildTestBusAsync();
 
+    /// <summary>
+    /// Returns a task that completes once the client has seen the current connection of the dispatcher shut down.
+    /// </summary>
+    private static async Task<Task> ObserveDispatcherConnectionLossAsync(TestBus bus)
+    {
+        var connection = await bus.Transport.Dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        return connection.WhenShutdownAsync();
+    }
+
     private static async Task PublishAsync(TestBus bus, OrderCreated message, TimeSpan? timeout = null)
     {
         using var scope = bus.Provider.CreateScope();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(timeout ?? s_timeout);
+        cts.CancelAfter(timeout ?? TestTimeouts.Signal);
         await scope.ServiceProvider.GetRequiredService<IMessageBus>().PublishAsync(message, cts.Token);
     }
 

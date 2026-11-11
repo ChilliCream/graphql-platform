@@ -22,11 +22,11 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var queue = transport.ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>()
             .Single(endpoint => endpoint.Kind == ReceiveEndpointKind.Reply).Queue;
-        var beforeStop = await vhost.GetConsumerCountAsync(queue.Name);
+        var beforeStop = (await vhost.Broker.GetQueueAsync(queue.Name))?.Consumers;
 
         // act
         await transport.StopAsync(runtime, TestContext.Current.CancellationToken);
-        var afterStop = await vhost.GetConsumerCountAsync(queue.Name);
+        var afterStop = (await vhost.Broker.GetQueueAsync(queue.Name))?.Consumers;
 
         // assert
         Assert.Equal(1, beforeStop);
@@ -62,11 +62,11 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
             .BuildTestBusAsync();
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var beforeStop = await vhost.GetConsumerCountAsync(queueName);
+        var beforeStop = (await vhost.Broker.GetQueueAsync(queueName))?.Consumers;
 
         // act
         await transport.StopAsync(runtime, TestContext.Current.CancellationToken);
-        var afterStop = await vhost.GetConsumerCountAsync(queueName);
+        var afterStop = (await vhost.Broker.GetQueueAsync(queueName))?.Consumers;
 
         // assert
         Assert.Equal(1, beforeStop);
@@ -101,11 +101,11 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
             .BuildTestBusAsync();
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var beforeStop = await vhost.GetConsumerCountAsync(queueName);
+        var beforeStop = (await vhost.Broker.GetQueueAsync(queueName))?.Consumers;
 
         // act
         await transport.StopAsync(runtime, TestContext.Current.CancellationToken);
-        var afterStop = await vhost.GetConsumerCountAsync(queueName);
+        var afterStop = (await vhost.Broker.GetQueueAsync(queueName))?.Consumers;
 
         // assert
         Assert.Equal(1, beforeStop);
@@ -144,11 +144,11 @@ public sealed class ReplyQueueCleanupTests(RabbitMQFixture fixture)
             .BuildTestBusAsync();
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var beforeStop = await vhost.GetConsumerCountAsync(queueName);
+        var beforeStop = (await vhost.Broker.GetQueueAsync(queueName))?.Consumers;
 
         // act
         await transport.StopAsync(runtime, TestContext.Current.CancellationToken);
-        var afterStop = await vhost.GetConsumerCountAsync(queueName);
+        var afterStop = (await vhost.Broker.GetQueueAsync(queueName))?.Consumers;
 
         // assert
         Assert.Equal(2, beforeStop);

@@ -11,7 +11,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Topology)]
 public class UnifiedQueueBehaviorTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public UnifiedQueueBehaviorTests(RabbitMQFixture fixture)
@@ -49,7 +48,7 @@ public class UnifiedQueueBehaviorTests
 
         // assert
         Assert.True(
-            await capture.WaitAsync(s_timeout),
+            await capture.WaitAsync(TestTimeouts.Signal),
             "Consumer placed via the unified Queue() API did not receive the published message");
 
         var message = Assert.Single(capture.Messages);

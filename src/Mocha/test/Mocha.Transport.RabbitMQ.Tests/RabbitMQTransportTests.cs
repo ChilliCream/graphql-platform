@@ -1,8 +1,7 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using Moq;
-using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests;
 
@@ -128,7 +127,7 @@ public class RabbitMQTransportTests
     }
 
     [Fact]
-    public void Describe_Should_ReturnDescription_When_EventHandlerRegistered()
+    public void Describe_Should_ListExchangesQueuesAndBindings_When_EventHandlerRegistered()
     {
         // arrange
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
@@ -138,62 +137,7 @@ public class RabbitMQTransportTests
         var description = transport.Describe();
 
         // assert
-        Assert.NotNull(description);
-        Assert.Equal("rabbitmq", description.Schema);
-        Assert.Equal("RabbitMQMessagingTransport", description.TransportType);
-        Assert.NotNull(description.Topology);
-    }
-
-    [Fact]
-    public void Describe_Should_IncludeExchangeEntities_When_EventHandlerRegistered()
-    {
-        // arrange
-        var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act
-        var description = transport.Describe();
-
-        // assert
-        Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology.Entities, e => e.Kind == "exchange");
-    }
-
-    [Fact]
-    public void Describe_Should_IncludeQueueEntities_When_EventHandlerRegistered()
-    {
-        // arrange
-        var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act
-        var description = transport.Describe();
-
-        // assert
-        Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology.Entities, e => e.Kind == "queue");
-    }
-
-    [Fact]
-    public void Describe_Should_IncludeBindingLinks_When_EventHandlerRegistered()
-    {
-        // arrange
-        var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act
-        var description = transport.Describe();
-
-        // assert
-        Assert.NotNull(description.Topology);
-        Assert.NotEmpty(description.Topology.Links);
-        Assert.All(
-            description.Topology.Links,
-            link =>
-            {
-                Assert.Equal("bind", link.Kind);
-                Assert.Equal("forward", link.Direction);
-            });
+        RabbitMQDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
     [Fact]
@@ -441,128 +385,16 @@ public class RabbitMQTransportTests
     }
 
     [Fact]
-    public async Task DisposeAsync_Should_DisposeConsumerManager_When_Called()
-    {
-        // arrange
-        var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act & assert - no exception thrown
-        await transport.DisposeAsync();
-    }
-
-    [Fact]
-    public async Task DisposeAsync_Should_BeIdempotent_When_CalledTwice()
-    {
-        // arrange
-        var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        // act - call twice
-        await transport.DisposeAsync();
-        await transport.DisposeAsync();
-
-        // assert - no exception
-    }
-
-    [Fact]
-    public async Task DisposeAsync_Should_DisposeDispatcherConnectionAndPooledChannels_When_Called()
-    {
-        // arrange
-        var channelMock = CreateOpenChannel();
-        var connectionMock = CreateOpenConnection(channelMock);
-        var runtime = CreateRuntime(_ => { }, new FakeConnectionProvider(connectionMock.Object));
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        await transport.Dispatcher.EnsureConnectedAsync(TestContext.Current.CancellationToken);
-        var rented = await transport.Dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
-        await transport.Dispatcher.ReturnChannelAsync(rented);
-
-        channelMock.Invocations.Clear();
-        connectionMock.Invocations.Clear();
-
-        // act
-        await transport.DisposeAsync();
-
-        // assert
-        channelMock.Verify(c => c.DisposeAsync(), Times.AtLeastOnce());
-        connectionMock.Verify(c => c.DisposeAsync(), Times.AtLeastOnce());
-    }
-
-    [Fact]
-    public async Task DisposeAsync_Should_DisposeBothConsumerManagerAndDispatcher_When_ConnectedAndRepeated()
-    {
-        // arrange
-        var channelMock = CreateOpenChannel();
-        var connectionMock = CreateOpenConnection(channelMock);
-        var runtime = CreateRuntime(_ => { }, new FakeConnectionProvider(connectionMock.Object));
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        await transport.ConsumerManager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
-        await transport.Dispatcher.EnsureConnectedAsync(TestContext.Current.CancellationToken);
-        var rented = await transport.Dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
-        await transport.Dispatcher.ReturnChannelAsync(rented);
-
-        // act - dispose twice
-        await transport.DisposeAsync();
-        await transport.DisposeAsync();
-
-        // assert - dispatcher is disposed and rejects further use
-        await Assert.ThrowsAsync<ObjectDisposedException>(() =>
-            transport.Dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask());
-    }
-
-    [Fact]
     public async Task DisposeAsync_Should_NotThrow_When_TransportNeverInitialized()
     {
         // arrange
         var transport = new RabbitMQMessagingTransport(_ => { });
 
-        // act & assert - no exception thrown even though OnAfterInitialized never ran
-        await transport.DisposeAsync();
-    }
-
-    private static Mock<IChannel> CreateOpenChannel()
-    {
-        var channelMock = new Mock<IChannel>();
-        channelMock.SetupGet(c => c.IsOpen).Returns(true);
-        return channelMock;
-    }
-
-    private static Mock<IConnection> CreateOpenConnection(Mock<IChannel> channelToReturn)
-    {
-        var connectionMock = new Mock<IConnection>();
-        connectionMock.SetupGet(c => c.IsOpen).Returns(true);
-        connectionMock.SetupGet(c => c.ClientProvidedName).Returns("test-connection");
-        connectionMock
-            .Setup(c => c.CreateChannelAsync(It.IsAny<CreateChannelOptions?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(channelToReturn.Object);
-
-        return connectionMock;
-    }
-
-    [Fact]
-    public void ConnectTimeout_Should_ApplyToBothConnections_When_Configured()
-    {
-        // arrange
-        var configured = new ServiceCollection()
-            .AddMessageBus()
-            .AddRabbitMQ(t => t.ConnectionProvider(_ => new StubConnectionProvider()).ConnectTimeout(TimeSpan.FromSeconds(30)))
-            .BuildRuntime();
-        var unconfigured = new ServiceCollection()
-            .AddMessageBus()
-            .AddRabbitMQ(t => t.ConnectionProvider(_ => new StubConnectionProvider()))
-            .BuildRuntime();
-
         // act
-        var withTimeout = configured.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var withDefault = unconfigured.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var exception = await Record.ExceptionAsync(() => transport.DisposeAsync().AsTask());
 
         // assert
-        Assert.Equal(TimeSpan.FromSeconds(30), withTimeout.ConsumerManager.ConnectTimeout);
-        Assert.Equal(TimeSpan.FromSeconds(30), withTimeout.Dispatcher.ConnectTimeout);
-        Assert.Equal(TimeSpan.FromMinutes(2), withDefault.ConsumerManager.ConnectTimeout);
-        Assert.Equal(TimeSpan.FromMinutes(2), withDefault.Dispatcher.ConnectTimeout);
+        Assert.Null(exception);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
@@ -573,29 +405,6 @@ public class RabbitMQTransportTests
         configure(builder);
         var runtime = builder.AddRabbitMQ(t => t.ConnectionProvider(_ => new StubConnectionProvider())).BuildRuntime();
         return runtime;
-    }
-
-    private static MessagingRuntime CreateRuntime(
-        Action<IMessageBusHostBuilder> configure,
-        IRabbitMQConnectionProvider connectionProvider)
-    {
-        var services = new ServiceCollection();
-        services.AddSingleton(new MessageRecorder());
-        var builder = services.AddMessageBus();
-        configure(builder);
-        var runtime = builder
-            .AddRabbitMQ(t => t.ConnectionProvider(_ => connectionProvider).AutoProvision(false))
-            .BuildRuntime();
-        return runtime;
-    }
-
-    private sealed class FakeConnectionProvider(IConnection connection) : IRabbitMQConnectionProvider
-    {
-        public string Host => "localhost";
-        public string VirtualHost => "/";
-        public int Port => 5672;
-
-        public ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken) => new(connection);
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>

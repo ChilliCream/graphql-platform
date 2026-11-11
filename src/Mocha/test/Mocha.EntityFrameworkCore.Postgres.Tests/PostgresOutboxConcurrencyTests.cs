@@ -191,44 +191,102 @@ public sealed class PostgresOutboxConcurrencyTests(PostgresFixture fixture) : IC
     }
 
     [Fact]
-    public async Task ProcessAsync_Should_StopOtherWorkersAndRetainMessages_When_OneDispatchFails()
+    public async Task ProcessAsync_Should_KeepDispatchingOtherMessages_When_OneDispatchFails()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
         var probe = new DispatchProbe(4) { FailFirst = true };
         await using var provider = await CreateProviderAsync(connectionString, 4, probe);
         await InsertMessagesAsync(provider, connectionString, 0, 12);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
         var processor = provider.GetRequiredService<PostgresOutboxProcessor>();
 
         // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            processor.ProcessAsync(TestToken).WaitAsync(s_timeout, TestToken));
-        var pendingAfterFailure = await CountMessagesAsync(connectionString);
-        probe.FailFirst = false;
-        probe.Release.TrySetResult();
-        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
-        var restarted = processor.ProcessAsync(cancellation.Token);
+        var processing = processor.ProcessAsync(cancellation.Token);
+        int[] completedWhileFailing;
+        bool stoppedByFailure;
         try
         {
-            await WaitForEmptyOutboxAsync(connectionString);
+            await probe.Started.Task.WaitAsync(s_timeout, TestToken);
+            probe.Release.TrySetResult();
+            await WaitForOutboxCountAsync(connectionString, 1);
+            completedWhileFailing = probe.Completed.Order().ToArray();
+            stoppedByFailure = processing.IsCompleted;
         }
         finally
         {
             await cancellation.CancelAsync();
-            await restarted.WaitAsync(s_timeout, TestToken);
+            await processing.WaitAsync(s_timeout, TestToken);
         }
 
         // assert
-        Assert.Equal("The first dispatch failed.", exception.Message);
-        Assert.Equal(12, pendingAfterFailure);
+        Assert.Equal(Enumerable.Range(1, 11), completedWhileFailing);
+        Assert.False(stoppedByFailure);
         Assert.Equal(0, probe.ActiveDispatches);
-        Assert.Equal(Enumerable.Range(0, 12), probe.Completed.Order());
     }
+
+    [Fact]
+    public async Task Outbox_Should_DeliverMessageOnce_When_AnotherDispatchFailsBeforeItsDispatchReturns()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var acceptedA = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var returnA = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var dispatch = new ScriptedDispatch(async attempt =>
+        {
+            if (attempt is { MessageId: "B", Number: 1 })
+            {
+                // B fails only after the transport accepted A.
+                await acceptedA.Task.WaitAsync(attempt.CancellationToken);
+                throw new InvalidOperationException("The dispatch of B failed.");
+            }
+
+            await attempt.SendAsync();
+
+            if (attempt is { MessageId: "A", Number: 1 })
+            {
+                // The transport has A, and the dispatch of A returns only after B has failed.
+                acceptedA.TrySetResult();
+                await attempt.WaitForCancellationAsync(returnA.Task);
+            }
+        });
+        await using var provider = await CreateProviderAsync(connectionString, 2, dispatch.Middleware, null);
+        var rowOfA = await InsertMessageAsync(provider, connectionString, "A", 0);
+        var rowOfB = await InsertMessageAsync(provider, connectionString, "B", 1);
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+
+        // act
+        var timesSentOfB = await MessageRows.WaitForOutboxTimesSentAsync(
+            connectionString, rowOfB, 1, s_timeout, TestToken);
+        returnA.TrySetResult();
+        var removedA = await MessageRows.WaitForOutboxRemovalAsync(connectionString, rowOfA, s_timeout, TestToken);
+        await MessageRows.MakeOutboxDueAsync(connectionString, TimeSpan.FromHours(1), TestToken);
+        provider.GetRequiredService<IOutboxSignal>().Set();
+        await WaitForEmptyOutboxAsync(connectionString);
+
+        // assert
+        Assert.Equal(1, timesSentOfB);
+        Assert.True(removedA);
+        Assert.Equal(["A", "B"], dispatch.Accepted.Order());
+    }
+
+    private static Task<ServiceProvider> CreateProviderAsync(
+        string connectionString,
+        int? concurrency,
+        DispatchProbe probe)
+        => CreateProviderAsync(
+            connectionString,
+            concurrency,
+            new DispatchMiddlewareConfiguration(
+                (_, next) => context => probe.DispatchAsync(context, next),
+                "DispatchProbe"),
+            probe.ConnectionCreated);
 
     private static async Task<ServiceProvider> CreateProviderAsync(
         string connectionString,
         int? concurrency,
-        DispatchProbe probe)
+        DispatchMiddlewareConfiguration dispatchMiddleware,
+        Action<NpgsqlConnection>? connectionCreated)
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
@@ -245,13 +303,9 @@ public sealed class PostgresOutboxConcurrencyTests(PostgresFixture fixture) : IC
             t.DeclareQueue("pending");
             t.DispatchEndpoint("pending").ToQueue("pending").Publish<PendingEvent>();
         });
-        builder.ConfigureMessageBus(b => b.UseDispatch(
-            new DispatchMiddlewareConfiguration(
-                (_, next) => context => probe.DispatchAsync(context, next),
-                "DispatchProbe"),
-            after: "Serialization"));
+        builder.ConfigureMessageBus(b => b.UseDispatch(dispatchMiddleware, after: "Serialization"));
 
-        if (probe.ConnectionCreated is { } onConnectionCreated)
+        if (connectionCreated is { } onConnectionCreated)
         {
             services.PostConfigure<PostgresMessageOutboxOptions>(typeof(TestDbContext).FullName, options =>
             {
@@ -278,22 +332,31 @@ public sealed class PostgresOutboxConcurrencyTests(PostgresFixture fixture) : IC
         int startIndex,
         int count)
     {
-        var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var type = runtime.GetMessageType(typeof(PendingEvent));
         for (var i = startIndex; i < startIndex + count; i++)
         {
-            await MessageRows.InsertOutboxAsync(
-                connectionString,
-                new MessageEnvelope
-                {
-                    MessageId = i.ToString(),
-                    MessageType = type.Identity,
-                    ContentType = MessageContentType.Json.Value,
-                    DestinationAddress = runtime.GetPublishEndpoint(type).Address.ToString(),
-                    Body = JsonSerializer.SerializeToUtf8Bytes(new PendingEvent(i))
-                },
-                TestToken);
+            await InsertMessageAsync(provider, connectionString, i.ToString(), i);
         }
+    }
+
+    private static async Task<Guid> InsertMessageAsync(
+        IServiceProvider provider,
+        string connectionString,
+        string messageId,
+        int index)
+    {
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var type = runtime.GetMessageType(typeof(PendingEvent));
+        return await MessageRows.InsertOutboxAsync(
+            connectionString,
+            new MessageEnvelope
+            {
+                MessageId = messageId,
+                MessageType = type.Identity,
+                ContentType = MessageContentType.Json.Value,
+                DestinationAddress = runtime.GetPublishEndpoint(type).Address.ToString(),
+                Body = JsonSerializer.SerializeToUtf8Bytes(new PendingEvent(index))
+            },
+            TestToken);
     }
 
     private static async Task<long> CountMessagesAsync(string connectionString)

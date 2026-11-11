@@ -7,7 +7,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Topology)]
 public class ExplicitTopologyTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
     private readonly ITestOutputHelper _output;
 
@@ -48,7 +47,7 @@ public class ExplicitTopologyTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-TOPO" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer on custom-q did not receive the published message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Consumer on custom-q did not receive the published message");
 
         var message = Assert.Single(capture.Messages);
         Assert.Equal("ORD-TOPO", message.OrderId);
@@ -85,7 +84,7 @@ public class ExplicitTopologyTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-TOPO" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer on custom-q did not receive the published message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Consumer on custom-q did not receive the published message");
 
         var message = Assert.Single(capture.Messages);
         Assert.Equal("ORD-TOPO", message.OrderId);
@@ -123,7 +122,7 @@ public class ExplicitTopologyTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-RCV" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer on custom-q did not receive the published message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Consumer on custom-q did not receive the published message");
 
         var message = Assert.Single(capture.Messages);
         Assert.Equal("ORD-RCV", message.OrderId);
@@ -168,7 +167,7 @@ public class ExplicitTopologyTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ERROR-RENAME" }, CancellationToken.None);
 
         // assert
-        Assert.True(await faultCapture.WaitAsync(s_timeout), "Faulted message did not arrive in the renamed error queue");
+        Assert.True(await faultCapture.WaitAsync(TestTimeouts.Signal), "Faulted message did not arrive in the renamed error queue");
         Assert.Equal("ERROR-RENAME", Assert.Single(faultCapture.Messages).OrderId);
     }
 
@@ -245,7 +244,7 @@ public class ExplicitTopologyTests
 
         // assert
         Assert.True(
-            await capture.WaitAsync(s_timeout),
+            await capture.WaitAsync(TestTimeouts.Signal),
             "Consumer did not receive the message published to the explicit exchange destination");
 
         var message = Assert.Single(capture.Messages);
@@ -294,7 +293,7 @@ public class ExplicitTopologyTests
 
         // assert: message is delivered, proving the provisioned queue is operational.
         Assert.True(
-            await capture.WaitAsync(s_timeout),
+            await capture.WaitAsync(TestTimeouts.Signal),
             "Consumer on the converged 'orders' queue did not receive the published message");
 
         var received = Assert.Single(capture.Messages);

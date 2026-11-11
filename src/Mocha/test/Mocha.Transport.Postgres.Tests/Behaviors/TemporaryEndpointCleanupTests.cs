@@ -56,6 +56,54 @@ public sealed class TemporaryEndpointCleanupTests(PostgresFixture fixture)
             """);
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_RemoveTemporaryEndpointResources_When_RuntimeIsNotStopped()
+    {
+        // arrange
+        const string queueName = "temporary-orders";
+        var recorder = new MessageRecorder();
+        await using var db = await fixture.CreateDatabaseAsync();
+        await using var provider = new ServiceCollection()
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddPostgres(t =>
+            {
+                t.ConnectionString(db.ConnectionString);
+                t.Endpoint(queueName).Handler<OrderCreatedHandler>().Temporary();
+            })
+            .Services.BuildServiceProvider();
+
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestContext.Current.CancellationToken);
+        using var scope = provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        var result = await TemporaryEndpointCleanupScenario.ExecuteAsync(
+            messageBus,
+            recorder,
+            ct => InspectResourcesAsync(db.ConnectionString, queueName, ct),
+            _ => runtime.DisposeAsync(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "MessageDelivered": true,
+              "BeforeStop": {
+                "QueueExists": true,
+                "BindingExists": true
+              },
+              "AfterStop": {
+                "QueueExists": false,
+                "BindingExists": false
+              }
+            }
+            """);
+    }
+
     private static async Task<TemporaryEndpointResourceState> InspectResourcesAsync(
         string connectionString,
         string queueName,

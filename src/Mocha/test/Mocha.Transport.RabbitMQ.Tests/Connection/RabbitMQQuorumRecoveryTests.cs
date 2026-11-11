@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
 
@@ -10,13 +9,21 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 [Collection(RabbitMQCollections.ConsumerRecovery)]
 public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(15);
+    // The header in which a quorum queue counts the earlier deliveries of a message.
+#if RABBITMQ_3
+    private const string EarlierDeliveriesHeader = "x-delivery-count";
+#else
+    private const string EarlierDeliveriesHeader = "x-acquired-count";
+#endif
+
+    private const string BlockedReason =
+        "Queue 'orders': The consumer waits for a handler of a lost channel to return.";
 
     [Fact]
     public async Task Consumer_Should_RetainUnprocessedMessages_When_LostHandlerUsesAllCapacity()
     {
         // arrange
-        await using var timeout = await fixture.SetConsumerTimeoutAsync(TimeSpan.FromSeconds(1));
+        await using var timeout = await fixture.Faults.SetConsumerTimeoutAsync(TimeSpan.FromSeconds(1));
         await using var vhost = await fixture.CreateVhostAsync();
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -27,16 +34,15 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
             autoDelete: false,
             arguments: new Dictionary<string, object?> { ["x-queue-type"] = "quorum", ["x-delivery-limit"] = 2 },
             cancellationToken: TestContext.Current.CancellationToken);
-        await using var manager = new RabbitMQConsumerManager(
-            NullLogger<RabbitMQConsumerManager>.Instance,
+        await using var manager = TestManagers.CreateConsumerManager(
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
-        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        await manager.StartAsync(TestContext.Current.CancellationToken);
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var invocations = 0;
-        var delivered = new ConcurrentQueue<string>();
-        await manager.RegisterConsumerAsync(
+        var delivered = new ConcurrentQueue<(string Body, long EarlierDeliveries)>();
+        var consumer = await manager.RegisterConsumerAsync(
             "orders",
             async (consumerChannel, delivery, ct) =>
             {
@@ -48,7 +54,11 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
                     ct.ThrowIfCancellationRequested();
                 }
 
-                delivered.Enqueue(Encoding.UTF8.GetString(delivery.Body.Span));
+                var earlierDeliveries = delivery.BasicProperties.Headers is { } headers
+                    && headers.TryGetValue(EarlierDeliveriesHeader, out var count)
+                        ? Convert.ToInt64(count)
+                        : 0L;
+                delivered.Enqueue((Encoding.UTF8.GetString(delivery.Body.Span), earlierDeliveries));
                 await consumerChannel.BasicAckAsync(delivery.DeliveryTag, false, ct);
             },
             2,
@@ -56,30 +66,29 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
             TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "first"u8.ToArray(), TestContext.Current.CancellationToken);
         await channel.BasicPublishAsync("", "orders", "second"u8.ToArray(), TestContext.Current.CancellationToken);
-        await started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
         // act
         try
         {
-            await cancelled.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-            await vhost.WaitForNoConsumerAsync("orders", s_timeout);
-            // This spans several broker acknowledgement deadlines and exceeds the delivery limit if reattached.
-            await Task.Delay(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
-            var whileBlocked = (
-                await vhost.GetConsumerCountAsync("orders"),
-                await vhost.GetMessageCountAsync("orders"),
-                invocations,
-                manager.IsHealthy);
+            await cancelled.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+            await vhost.Broker.WaitForNoConsumerAsync("orders");
+
+            // A consumer that attached would take both messages again without a free handler, until the broker
+            // took them back.
+            await Wait.UntilAsync(() => manager.HealthFailureReason == BlockedReason);
+            var queueWhileBlocked = await vhost.Broker.GetQueueAsync("orders");
+            var whileBlocked = (queueWhileBlocked?.Consumers, queueWhileBlocked?.Messages, invocations);
             release.TrySetResult();
-            var settled = await Condition.WaitAsync(
-                async () => delivered.Count == 2 && await vhost.GetMessageCountAsync("orders") == 0,
-                s_timeout);
+            await Wait.UntilAsync(() => delivered.Count == 2);
+            await vhost.Broker.WaitForEmptyQueueAsync("orders");
 
             // assert
-            Assert.Equal((0, 2, 1, false), whileBlocked);
-            Assert.True(settled);
-            Assert.Equal(["first", "second"], delivered.Order());
-            Assert.True(manager.IsHealthy);
+            Assert.Equal((0, 2, 1), whileBlocked);
+
+            // each message was delivered once before, to the consumer that the broker took away
+            Assert.Equal([("first", 1L), ("second", 1L)], delivered.Order());
+            Assert.Null(manager.HealthFailureReason);
         }
         finally
         {
@@ -162,7 +171,7 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
             }
         }
 
-        var settled = await Condition.WaitAsync(async () => await vhost.GetMessageCountAsync("orders") == 0, s_timeout);
+        var settled = await Condition.WaitAsync(async () => (await vhost.Broker.GetQueueAsync("orders"))?.Messages == 0, TestTimeouts.Signal);
 
         // assert
         Assert.Equal(Enumerable.Repeat("order", expectedDeliveries), deliveries);

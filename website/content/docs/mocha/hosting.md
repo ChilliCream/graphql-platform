@@ -50,7 +50,31 @@ app.MapHealthChecks("/health");
 app.Run();
 ```
 
-A `GET /health` request includes the message bus status. The check reports `Unhealthy` if any local transport is unhealthy or the bus cannot reply to the health request within the timeout. RabbitMQ transport health includes broker connectivity, consumer attachment, and capacity occupied by canceled handlers that have not exited. Normally busy handlers do not make the transport unhealthy.
+A `GET /health` request includes the message bus status. The check fails if any local transport is unhealthy or the bus does not answer the health request within the timeout. The `Data` of the health check entry lists each unhealthy transport by name with its reason. RabbitMQ transport health includes broker connectivity, consumer attachment, and capacity occupied by canceled handlers that have not exited. Normally busy handlers do not make the transport unhealthy.
+
+## Configure the health check
+
+`AddMessageBus()` takes optional parameters:
+
+| Parameter       | Default        | Description                                                               |
+| --------------- | -------------- | ------------------------------------------------------------------------- |
+| `endpoint`      | `null`         | Destination of the health request. `null` uses the bus's default routing. |
+| `name`          | `"MessageBus"` | Name of the health check entry.                                           |
+| `failureStatus` | `Unhealthy`    | Status reported when the check fails.                                     |
+| `tags`          | `["ready"]`    | Tags of the health check.                                                 |
+| `timeout`       | 10 seconds     | Time within which the bus must answer the health request.                 |
+
+```csharp
+builder.Services
+    .AddHealthChecks()
+    .AddMessageBus(
+        name: "orders-bus",
+        failureStatus: HealthStatus.Degraded,
+        tags: ["ready", "messaging"],
+        timeout: TimeSpan.FromSeconds(5));
+```
+
+The health request expires after the timeout. A request that was not handled by then is dropped when it is received.
 
 ## Target a specific endpoint
 
@@ -66,7 +90,7 @@ The endpoint URI selects the destination of the health request. Every local tran
 
 ## Readiness and liveness
 
-The message bus check has the `"ready"` tag. Use separate, explicitly filtered endpoints for readiness and liveness:
+The message bus check has the `"ready"` tag unless you pass other `tags`. Use separate, explicitly filtered endpoints for readiness and liveness:
 
 ```csharp
 app.MapHealthChecks("/health/ready", new()

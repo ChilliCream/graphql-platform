@@ -7,7 +7,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Topology)]
 public class BusDefaultsIntegrationTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
     private readonly ITestOutputHelper _output;
 
@@ -65,7 +64,7 @@ public class BusDefaultsIntegrationTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-QUORUM" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the event within timeout");
 
         var message = Assert.Single(recorder.Messages);
         var order = Assert.IsType<OrderCreated>(message);
@@ -134,7 +133,7 @@ public class BusDefaultsIntegrationTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-DEFAULTS" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the event within timeout");
 
         var message = Assert.Single(recorder.Messages);
         var order = Assert.IsType<OrderCreated>(message);
@@ -207,7 +206,7 @@ public class BusDefaultsIntegrationTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-OVERRIDE" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message within timeout");
 
         var message = Assert.Single(capture.Messages);
         Assert.Equal("ORD-OVERRIDE", message.OrderId);

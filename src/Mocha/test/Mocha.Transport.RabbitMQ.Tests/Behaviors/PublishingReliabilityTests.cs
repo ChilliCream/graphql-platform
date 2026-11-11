@@ -8,8 +8,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.ConnectionRecovery)]
 public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
-
     [Fact]
     public async Task SendAsync_Should_DeliverOnce_When_ConcurrentPublishTargetsMissingExchange()
     {
@@ -32,14 +30,14 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
             .Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
         var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
         var second = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
-        await dispatcher.ReturnChannelAsync(first);
-        await dispatcher.ReturnChannelAsync(second);
+        dispatcher.Return(first, reusable: true);
+        dispatcher.Return(second, reusable: true);
         await DeleteExchangeAsync(vhost, "orders");
 
         // act
         Task publish;
         Task send;
-        await using (await vhost.FreezeConnectionsAsync())
+        await using (await vhost.Faults.FreezeConnectionsAsync())
         {
             publish = PublishAsync(bus, new OrderCreated { OrderId = "missing-exchange" });
             send = SendAsync(bus, new ProcessPayment { OrderId = "healthy", Amount = 1 });
@@ -50,7 +48,7 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
 
         // assert
         Assert.Equal<ushort?>(Constants.NotFound, exception.ShutdownReason?.ReplyCode);
-        Assert.Equal(2, await vhost.GetMessageCountAsync("healthy"));
+        Assert.Equal(2, (await vhost.Broker.GetQueueAsync("healthy"))?.Messages);
     }
 
     [Fact]
@@ -77,7 +75,7 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
 
         // assert
         Assert.False(exception.IsReturn);
-        Assert.Equal(1, await vhost.GetMessageCountAsync("bounded"));
+        Assert.Equal(1, (await vhost.Broker.GetQueueAsync("bounded"))?.Messages);
     }
 
     [Fact]
@@ -99,7 +97,7 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
             .BuildTestBusAsync();
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
         await SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
-        Assert.True(await payments.WaitAsync(s_timeout));
+        Assert.True(await payments.WaitAsync(TestTimeouts.Signal));
         await DeleteExchangeAsync(vhost, "orders");
 
         // act
@@ -109,7 +107,7 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
 
         // assert
         Assert.Equal<ushort?>(Constants.NotFound, exception.ShutdownReason?.ReplyCode);
-        Assert.True(await payments.WaitAsync(s_timeout));
+        Assert.True(await payments.WaitAsync(TestTimeouts.Signal));
         Assert.Equal(["ORD-1", "ORD-3"], payments.Messages.Cast<ProcessPayment>().Select(p => p.OrderId).Order());
     }
 
@@ -117,7 +115,7 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
     public async Task PublishAsync_Should_FailFast_When_MessageLargerThanMaxMessageSize()
     {
         // arrange
-        await using var maxMessageSize = await fixture.SetMaxMessageSizeAsync(4096);
+        await using var maxMessageSize = await fixture.Faults.SetMaxMessageSizeAsync(4096);
         await using var vhost = await fixture.CreateVhostAsync();
         var orders = new MessageRecorder();
         await using var bus = await CreateOrdersBusAsync(vhost, orders);
@@ -130,7 +128,7 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
 
         // assert
         Assert.Equal<ushort?>(Constants.PreconditionFailed, exception.ShutdownReason?.ReplyCode);
-        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
         Assert.Equal("ORD-2", Assert.Single(orders.Messages.Cast<OrderCreated>()).OrderId);
     }
 
@@ -147,17 +145,17 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
             .BuildTestBusAsync();
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
         Assert.True(await Condition.WaitAsync(
-            async () => await vhost.GetMessageCountAsync("orders_error") == 1,
-            s_timeout));
+            async () => (await vhost.Broker.GetQueueAsync("orders_error"))?.Messages == 1,
+            TestTimeouts.Signal));
 
         // act
         // without mandatory, the broker confirms a message it cannot route and drops it
-        await vhost.DeleteQueueAsync("orders_error");
+        await vhost.Faults.DeleteQueueAsync("orders_error");
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
         var deadLettered = await Condition.WaitAsync(
-            async () => await vhost.GetMessageCountAsync("orders_error") == 1,
-            s_timeout);
-        var pending = await vhost.GetMessageCountAsync("orders");
+            async () => (await vhost.Broker.GetQueueAsync("orders_error"))?.Messages == 1,
+            TestTimeouts.Signal);
+        var pending = (await vhost.Broker.GetQueueAsync("orders"))?.Messages;
 
         // assert
         Assert.True(deadLettered);
@@ -182,23 +180,23 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
             })
             .BuildTestBusAsync();
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        Assert.True(await orders.WaitAsync(s_timeout));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
         await DeleteExchangeAsync(vhost, "invoices");
 
         // act
         // the handler's publish to the deleted exchange makes the broker close its channel with 404
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
         var faulted = await Condition.WaitAsync(
-            async () => await vhost.GetMessageCountAsync("orders_error") == 1,
-            s_timeout);
+            async () => (await vhost.Broker.GetQueueAsync("orders_error"))?.Messages == 1,
+            TestTimeouts.Signal);
         await PublishAsync(bus, new OrderCreated { OrderId = InvoicingOrderHandler.WithoutInvoice });
-        var nextHandled = await orders.WaitAsync(s_timeout);
-        var consumers = await vhost.GetConsumerCountsAsync();
+        var nextHandled = await orders.WaitAsync(TestTimeouts.Signal);
+        var queue = await vhost.Broker.GetQueueAsync("orders");
 
         // assert
         Assert.True(faulted);
         Assert.True(nextHandled);
-        Assert.Equal(1, consumers.GetValueOrDefault("orders"));
+        Assert.Equal(1, queue?.Consumers);
     }
 
     private static Task<TestBus> CreateOrdersBusAsync(VhostContext vhost, MessageRecorder orders)
@@ -223,7 +221,7 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
     {
         using var scope = bus.Provider.CreateScope();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(timeout ?? s_timeout);
+        cts.CancelAfter(timeout ?? TestTimeouts.Signal);
         await scope.ServiceProvider.GetRequiredService<IMessageBus>().SendAsync(message, cts.Token);
     }
 
@@ -231,7 +229,7 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
     {
         using var scope = bus.Provider.CreateScope();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(timeout ?? s_timeout);
+        cts.CancelAfter(timeout ?? TestTimeouts.Signal);
         await scope.ServiceProvider.GetRequiredService<IMessageBus>().PublishAsync(message, cts.Token);
     }
 

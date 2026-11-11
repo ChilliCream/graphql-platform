@@ -6,12 +6,8 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Messaging)]
 public sealed class ConsumerLifecycleTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Consumer_Should_Recover_When_ReplyEndpointRestarted(bool restartDuringRecovery)
+    [Fact]
+    public async Task Consumer_Should_Recover_When_ReplyEndpointIsStopped()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -27,27 +23,20 @@ public sealed class ConsumerLifecycleTests(RabbitMQFixture fixture)
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var reply = transport.ReplyReceiveEndpoint!;
         await reply.StopAsync(runtime, TestContext.Current.CancellationToken);
-        if (!restartDuringRecovery)
-        {
-            await reply.StartAsync(runtime, TestContext.Current.CancellationToken);
-        }
+        var before = await vhost.Broker.GetConsumerAsync("orders");
 
         // act
-        await vhost.CloseConnectionOfConsumerAsync("orders");
-        if (restartDuringRecovery)
-        {
-            await vhost.WaitForNoConsumerAsync("orders", s_timeout);
-            await reply.StartAsync(runtime, TestContext.Current.CancellationToken);
-        }
-
+        // an endpoint attaches to a new connection by itself, whatever the state of the reply endpoint is
+        await vhost.Faults.CloseConsumerConnectionAsync("orders");
+        await vhost.Broker.WaitForConsumerAsync("orders", otherThan: before);
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        var received = await orders.WaitAsync(s_timeout);
+        var received = await orders.WaitAsync(TestTimeouts.Signal);
 
         // assert
         Assert.True(received);
         Assert.Equal(["ORD-1"], orders.Messages.Cast<OrderCreated>().Select(order => order.OrderId));
-        Assert.True(transport.ConsumerManager.IsHealthy);
-        Assert.Equal(1, await vhost.GetConsumerCountAsync("orders"));
+        Assert.Null(transport.ConsumerManager.HealthFailureReason);
+        Assert.False(reply.IsStarted);
     }
 
     [Fact]
@@ -68,16 +57,15 @@ public sealed class ConsumerLifecycleTests(RabbitMQFixture fixture)
         {
             var runtime = bus.Provider.GetRequiredService<IMessagingRuntime>();
             await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-            await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
             // act
             using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             var stop = ((MessagingRuntime)runtime).StopAsync(stopTimeout.Token).AsTask();
-            await stop.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await stop.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
             var requeued = await Condition.WaitAsync(
-                async () => await vhost.GetMessageCountAsync("orders") == 1
-                    && (await vhost.GetConsumerCountsAsync()).GetValueOrDefault("orders") == 0,
-                s_timeout);
+                async () => await vhost.Broker.GetQueueAsync("orders") is { Messages: 1, Consumers: 0 },
+                TestTimeouts.Signal);
 
             // assert
             Assert.True(requeued);
@@ -108,11 +96,11 @@ public sealed class ConsumerLifecycleTests(RabbitMQFixture fixture)
         await transport.StopAsync(runtime, TestContext.Current.CancellationToken);
         await transport.StartAsync(runtime, TestContext.Current.CancellationToken);
         await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        var received = await orders.WaitAsync(s_timeout);
+        var received = await orders.WaitAsync(TestTimeouts.Signal);
         var settled = await Condition.WaitAsync(
-            async () => await vhost.GetMessageCountAsync("orders") == 0,
-            s_timeout);
-        var state = await vhost.GetStateAsync();
+            async () => (await vhost.Broker.GetQueueAsync("orders"))?.Messages == 0,
+            TestTimeouts.Signal);
+        var state = await vhost.Broker.GetStateAsync();
 
         // assert
         Assert.True(received);

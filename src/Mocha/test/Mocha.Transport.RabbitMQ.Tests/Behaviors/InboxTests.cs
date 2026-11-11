@@ -9,7 +9,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Messaging)]
 public class InboxTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public InboxTests(RabbitMQFixture fixture)
@@ -58,8 +57,8 @@ public class InboxTests
         await messageBus.PublishAsync(new InboxEvent { Payload = "first" }, CancellationToken.None);
 
         // Wait for the first message to be fully processed and recorded in the inbox
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the first event within timeout");
-        await WaitUntilAsync(() => !inbox.RecordedEnvelopes.IsEmpty, s_timeout);
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the first event within timeout");
+        await WaitUntilAsync(() => !inbox.RecordedEnvelopes.IsEmpty, TestTimeouts.Signal);
 
         await messageBus.PublishAsync(new InboxEvent { Payload = "second" }, CancellationToken.None);
 
@@ -97,7 +96,7 @@ public class InboxTests
 
         // assert - both messages should be processed
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: 2),
+            await recorder.WaitAsync(TestTimeouts.Signal, expectedCount: 2),
             "Handler did not receive both events within timeout");
 
         Assert.Equal(2, recorder.Messages.Count);
@@ -165,7 +164,7 @@ public class InboxTests
 
         // assert - both messages should be processed even though they share the same MessageId
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: 2),
+            await recorder.WaitAsync(TestTimeouts.Signal, expectedCount: 2),
             "Handler should receive both messages when SkipInbox is set");
 
         Assert.Equal(2, recorder.Messages.Count);
@@ -213,7 +212,7 @@ public class InboxTests
 
         // assert - both should be processed since null MessageId cannot be deduplicated
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: 2),
+            await recorder.WaitAsync(TestTimeouts.Signal, expectedCount: 2),
             "Handler should receive both messages when MessageId is null");
 
         Assert.Equal(2, recorder.Messages.Count);

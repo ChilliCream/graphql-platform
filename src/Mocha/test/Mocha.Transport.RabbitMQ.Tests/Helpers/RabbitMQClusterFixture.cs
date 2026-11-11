@@ -4,6 +4,7 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Networks;
 using RabbitMQ.Client;
 using Testcontainers.RabbitMq;
+using ContainerWait = DotNet.Testcontainers.Builders.Wait;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 
@@ -27,10 +28,10 @@ public sealed class RabbitMQClusterFixture : IAsyncLifetime
             await node.InitializeAsync();
             if (!ReferenceEquals(node, _nodes[0]))
             {
-                await node.InvokeCommandAsync(["rabbitmqctl", "stop_app"]);
-                await node.InvokeCommandAsync(["rabbitmqctl", "reset"]);
-                await node.InvokeCommandAsync(["rabbitmqctl", "join_cluster", GetNodeName(0)]);
-                await node.InvokeCommandAsync(["rabbitmqctl", "start_app"]);
+                await node.ExecAsync(["rabbitmqctl", "stop_app"]);
+                await node.ExecAsync(["rabbitmqctl", "reset"]);
+                await node.ExecAsync(["rabbitmqctl", "join_cluster", GetNodeName(0)]);
+                await node.ExecAsync(["rabbitmqctl", "start_app"]);
             }
         }
     }
@@ -45,7 +46,7 @@ public sealed class RabbitMQClusterFixture : IAsyncLifetime
     /// </summary>
     public async Task<IAsyncDisposable> KillNodeAsync(int index)
     {
-        await _nodes[index].InvokeCommandAsync(
+        await _nodes[index].ExecAsync(
             ["rabbitmq-upgrade", "await_online_quorum_plus_one", "--timeout", "30"]);
         await _nodes[index].KillAsync();
         return new AsyncDisposable(() => _nodes[index].RestartAsync());
@@ -53,7 +54,7 @@ public sealed class RabbitMQClusterFixture : IAsyncLifetime
 
     public async Task<QueueState?> GetQueueStateAsync(int node, string queue)
     {
-        var output = await _nodes[node].InvokeCommandAsync(
+        var output = await _nodes[node].ExecAsync(
             ["rabbitmqctl", "list_queues", "name", "leader", "members", "messages", "--formatter", "json", "--quiet"]);
         using var document = JsonDocument.Parse(output);
         foreach (var state in document.RootElement.EnumerateArray())
@@ -86,6 +87,8 @@ public sealed class RabbitMQClusterFixture : IAsyncLifetime
 
     private sealed class ClusterNode(INetwork network, string hostname) : RabbitMQResource
     {
+        public Task<string> ExecAsync(string[] command) => Container.ExecWithTimeoutAsync(command);
+
         public Task KillAsync() => Container.StopAsync(TestContext.Current.CancellationToken);
 
         public Task RestartAsync() => Container.StartAsync(TestContext.Current.CancellationToken);
@@ -106,7 +109,7 @@ public sealed class RabbitMQClusterFixture : IAsyncLifetime
                 .WithEnvironment("RABBITMQ_ERLANG_COOKIE", "mocha-cluster-tests")
                 // Return deliveries held by a disconnected quorum consumer after one second.
                 .WithEnvironment("RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS", "-rabbit consumer_disconnected_timeout 1000")
-                .WithWaitStrategy(Wait.ForUnixContainer()
+                .WithWaitStrategy(ContainerWait.ForUnixContainer()
                     .UntilMessageIsLogged("Server startup complete")
                     .UntilCommandIsCompleted("rabbitmq-diagnostics", "-q", "check_running"))
                 .WithCreateParameterModifier(parameters => parameters.StopSignal = "SIGKILL")

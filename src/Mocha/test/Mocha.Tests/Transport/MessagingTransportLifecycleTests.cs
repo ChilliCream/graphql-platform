@@ -143,6 +143,64 @@ public sealed class MessagingTransportLifecycleTests
         Assert.True(transport.IsStarted);
     }
 
+    [Fact]
+    public async Task StartAsync_Should_StopStartedEndpointsAndRethrow_When_EndpointStartFails()
+    {
+        // arrange
+        var failure = new InvalidOperationException("Start failed.");
+        var transport = new TestTransport();
+        await using var provider = CreateProvider(transport);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        // the reply endpoint and one application endpoint start, the second application endpoint fails
+        transport.StartFailure = (Position: 3, failure);
+        var stopTokensCancelled = new ConcurrentQueue<bool>();
+        foreach (var endpoint in transport.ReceiveEndpoints.Cast<TestReceiveEndpoint>())
+        {
+            endpoint.StopCallback = ct =>
+            {
+                stopTokensCancelled.Enqueue(ct.IsCancellationRequested);
+                return ValueTask.CompletedTask;
+            };
+        }
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => transport.StartAsync(runtime, TestContext.Current.CancellationToken).AsTask());
+
+        // assert
+        Assert.Same(failure, exception);
+        Assert.Equal(["before", transport.Starts.ElementAt(1), "reply", "after"], transport.Stops);
+        Assert.Equal([true, true], stopTokensCancelled);
+        Assert.Equal([false, false, false], transport.ReceiveEndpoints.Select(endpoint => endpoint.IsStarted));
+        Assert.False(transport.IsStarted);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_RethrowStartFailure_When_StoppingStartedEndpointsFails()
+    {
+        // arrange
+        var failure = new InvalidOperationException("Start failed.");
+        var transport = new TestTransport();
+        await using var provider = CreateProvider(transport);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        transport.StartFailure = (Position: 3, failure);
+        transport.BeforeStopFailure = new InvalidOperationException("Before stop failed.");
+        transport.AfterStopFailure = new InvalidOperationException("After stop failed.");
+        foreach (var endpoint in transport.ReceiveEndpoints.Cast<TestReceiveEndpoint>())
+        {
+            endpoint.StopFailure = new InvalidOperationException("Endpoint stop failed.");
+        }
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => transport.StartAsync(runtime, TestContext.Current.CancellationToken).AsTask());
+
+        // assert
+        Assert.Same(failure, exception);
+        Assert.Equal(["before", transport.Starts.ElementAt(1), "reply", "after"], transport.Stops);
+        Assert.False(transport.IsStarted);
+    }
+
     private static ServiceProvider CreateProvider(TestTransport transport)
     {
         var builder = new ServiceCollection().AddMessageBus();
@@ -152,7 +210,11 @@ public sealed class MessagingTransportLifecycleTests
 
     private sealed class TestTransport : MessagingTransport
     {
+        public ConcurrentQueue<string> Starts { get; } = new();
+
         public ConcurrentQueue<string> Stops { get; } = new();
+
+        public (int Position, Exception Exception)? StartFailure { get; set; }
 
         public bool IsDisposed { get; private set; }
 
@@ -237,7 +299,13 @@ public sealed class MessagingTransportLifecycleTests
         protected override ValueTask OnStartAsync(
             IMessagingRuntimeContext context,
             CancellationToken cancellationToken)
-            => ValueTask.CompletedTask;
+        {
+            transport.Starts.Enqueue(Name);
+
+            return transport.StartFailure is { } failure && failure.Position == transport.Starts.Count
+                ? ValueTask.FromException(failure.Exception)
+                : ValueTask.CompletedTask;
+        }
 
         protected override async ValueTask OnStopAsync(
             IMessagingRuntimeContext context,

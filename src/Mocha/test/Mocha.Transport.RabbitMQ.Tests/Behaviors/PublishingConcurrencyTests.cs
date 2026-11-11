@@ -6,8 +6,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.ConnectionRecovery)]
 public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
-
     [Fact]
     public async Task SendAsync_Should_StayWithinChannelLimit_When_ThousandsSendConcurrently()
     {
@@ -27,11 +25,11 @@ public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
 
         // act
         var sends = Enumerable.Range(0, count)
-            .Select(i => SendAsync(bus, new ProcessPayment { OrderId = $"ORD-{i}", Amount = 1 }, TimeSpan.FromSeconds(30)));
+            .Select(i => SendAsync(bus, new ProcessPayment { OrderId = $"ORD-{i}", Amount = 1 }, TestTimeouts.Signal));
         await Task.WhenAll(sends);
 
         // assert
-        Assert.Equal(count, await vhost.GetMessageCountAsync("burst"));
+        Assert.Equal(count, (await vhost.Broker.GetQueueAsync("burst"))?.Messages);
     }
 
     [Theory]
@@ -60,7 +58,7 @@ public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
         }
 
         // act
-        await using (await fixture.BlockPublishersAsync())
+        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
         {
             for (var wave = 0; wave < 5; wave++)
             {
@@ -78,9 +76,9 @@ public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
         // assert
         Assert.True(await Condition.WaitAsync(
             () => payments.Messages.Cast<ProcessPayment>().Any(p => p.OrderId == "resumed"),
-            s_timeout));
+            TestTimeouts.Signal));
         Assert.Equal(1m, Assert.Single(payments.Messages.Cast<ProcessPayment>(), p => p.OrderId == "resumed").Amount);
-        Assert.Equal(2, await vhost.GetConnectionCountAsync());
+        Assert.Equal(2, await vhost.Broker.GetConnectionCountAsync());
     }
 
     [Fact]
@@ -106,7 +104,7 @@ public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
             TestContext.Current.CancellationToken).AsTask()));
 
         // assert
-        Assert.True(await orders.WaitAsync(s_timeout, count));
+        Assert.True(await orders.WaitAsync(TestTimeouts.Signal, count));
         Assert.Equal(
             Enumerable.Range(0, count).Select(i => $"ORD-{i}").Order(),
             orders.Messages.Cast<OrderCreated>().Select(order => order.OrderId).Order());
@@ -116,7 +114,7 @@ public sealed class PublishingConcurrencyTests(RabbitMQFixture fixture)
     {
         using var scope = bus.Provider.CreateScope();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        cts.CancelAfter(timeout ?? s_timeout);
+        cts.CancelAfter(timeout ?? TestTimeouts.Signal);
         await scope.ServiceProvider.GetRequiredService<IMessageBus>().SendAsync(message, cts.Token);
     }
 

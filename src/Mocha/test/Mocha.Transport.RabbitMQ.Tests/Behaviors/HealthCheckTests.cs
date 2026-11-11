@@ -8,7 +8,8 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 [Collection(RabbitMQCollections.Messaging)]
 public sealed class HealthCheckTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
+    private const string BlockedReason =
+        "Queue 'orders': The consumer waits for a handler of a lost channel to return.";
 
     [Theory]
     [InlineData(false)]
@@ -38,38 +39,37 @@ public sealed class HealthCheckTests(RabbitMQFixture fixture)
         {
             var initial = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken);
             await messageBus.PublishAsync(new OrderCreated { OrderId = "blocked" }, TestContext.Current.CancellationToken);
-            await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
             var busy = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken);
 
             // act
             if (loseConnection)
             {
-                await vhost.CloseConnectionOfConsumerAsync("orders");
+                await vhost.Faults.CloseConsumerConnectionAsync("orders");
             }
             else
             {
-                await vhost.DeleteQueueAsync("orders");
+                await vhost.Faults.DeleteQueueAsync("orders");
             }
 
-            await gate.Cancelled.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-            await vhost.WaitForNoConsumerAsync("orders", s_timeout);
+            await gate.Cancelled.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+            await vhost.Broker.WaitForNoConsumerAsync("orders");
             // The independent health request and reply endpoints can still process messages.
             var response = await messageBus.RequestAsync(new HealthRequest("Health Check"), TestContext.Current.CancellationToken);
-            var consumerHealthyWhileBlocked = transport.ConsumerManager.IsHealthy;
+            await Wait.UntilAsync(() => transport.ConsumerManager.HealthFailureReason == BlockedReason);
             var blocked = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken);
             gate.Release.TrySetResult();
-            await vhost.WaitForConsumerAsync("orders", s_timeout);
+            await vhost.Broker.WaitForConsumerAsync("orders");
             var recovered = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken);
             await messageBus.PublishAsync(new OrderCreated { OrderId = "recovered" }, TestContext.Current.CancellationToken);
-            var order = await gate.Recovered.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+            var order = await gate.Recovered.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
 
             // assert
             Assert.Equal(
                 [HealthStatus.Healthy, HealthStatus.Healthy, HealthStatus.Unhealthy, HealthStatus.Healthy],
                 new[] { initial.Status, busy.Status, blocked.Status, recovered.Status });
-            Assert.False(consumerHealthyWhileBlocked);
             Assert.Equal(
-                $"Transport '{transport.Name}' is unhealthy. Queue 'orders': All handler slots are occupied by cancelled handlers.",
+                $"Transport '{transport.Name}' is unhealthy. {BlockedReason}",
                 blocked.Entries["MessageBus"].Description);
             Assert.Equal("OK", response.Message);
             Assert.Equal("recovered", order.OrderId);

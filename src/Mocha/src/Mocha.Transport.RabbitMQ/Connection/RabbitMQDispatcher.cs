@@ -1,381 +1,407 @@
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
-/// Manages the RabbitMQ connection and bounded channel pool used to publish messages.
+/// Owns the RabbitMQ connection that publishes messages, and leases its channels to one publish at a time.
 /// </summary>
-public sealed partial class RabbitMQDispatcher(
-    ILogger<RabbitMQDispatcher> logger,
-    Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
-    Func<IConnection, CancellationToken, Task> onConnectionEstablished)
-    : RabbitMQConnectionManagerBase(logger, connectionFactory)
+internal sealed partial class RabbitMQDispatcher : IAsyncDisposable
 {
-    private const int MaxConcurrentPublishes = 1024;
-    private const int MaxPublisherChannels = 100;
+    /// <summary>
+    /// The largest number of publisher channels per connection, which is also the largest number of
+    /// publishes in flight.
+    /// </summary>
+    internal const int MaxPublisherChannels = 100;
 
     private static readonly CreateChannelOptions s_publishChannelOptions = new(
         publisherConfirmationsEnabled: true,
         publisherConfirmationTrackingEnabled: true,
         outstandingPublisherConfirmationsRateLimiter: null);
 
-    private readonly object _channelSync = new();
-    private readonly SemaphoreSlim _publishSlots = new(MaxConcurrentPublishes);
-    private readonly Dictionary<IChannel, PublisherChannel> _rentedChannels = new(MaxPublisherChannels);
-    private PublisherChannelPool? _channelPool;
+    private readonly ILogger _logger;
+    private readonly RabbitMQConnectionManager _connection;
+    private readonly object _sync = new();
+    private PublisherChannelPool? _pool;
+    private bool _isDisposed;
 
     /// <summary>
-    /// Gets a value indicating whether the dispatcher was disposed, after which no publish can succeed.
+    /// Creates a dispatcher.
     /// </summary>
-    internal bool IsShutDown => IsDisposed;
-
-    /// <summary>
-    /// Gets or sets how long opening a publisher channel may take before its connection is aborted.
-    /// </summary>
-    internal TimeSpan ChannelCreationTimeout { get; set; } = TimeSpan.FromSeconds(60);
-
-    /// <summary>
-    /// Rents a channel exclusively until it is returned, waiting when all publisher slots are in use.
-    /// The caller must return the channel via ReturnChannelAsync or DiscardChannel.
-    /// </summary>
-    public ValueTask<IChannel> RentChannelAsync(CancellationToken cancellationToken = default)
-        => RentChannelCoreAsync(null, cancellationToken);
-
-    /// <summary>
-    /// Rents a channel shared by concurrent publishes from the same publisher.
-    /// The caller must return the channel via ReturnChannelAsync or DiscardChannel.
-    /// </summary>
-    internal ValueTask<IChannel> RentChannelAsync(object publisher, CancellationToken cancellationToken)
-        => RentChannelCoreAsync(publisher, cancellationToken);
-
-    private async ValueTask<IChannel> RentChannelCoreAsync(object? publisher, CancellationToken cancellationToken)
+    /// <param name="logger">The logger for publish events.</param>
+    /// <param name="connection">The manager of the connection that publishes messages.</param>
+    public RabbitMQDispatcher(ILogger<RabbitMQDispatcher> logger, RabbitMQConnectionManager connection)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
-        cancellationToken.ThrowIfCancellationRequested();
+        _logger = logger;
+        _connection = connection;
+    }
 
-        if (!_publishSlots.Wait(0))
-        {
-            using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, DisposalToken);
-            await _publishSlots.WaitAsync(waitCts.Token);
-        }
+    /// <summary>
+    /// Gets the manager of the connection that publishes messages.
+    /// </summary>
+    public RabbitMQConnectionManager Connection => _connection;
 
-        try
+    /// <summary>
+    /// Gets whether a ready connection exists.
+    /// </summary>
+    public bool IsConnected => _connection.IsConnected;
+
+    /// <summary>
+    /// Gets whether the dispatcher was disposed, after which no publish can succeed.
+    /// </summary>
+    public bool IsDisposed => Volatile.Read(ref _isDisposed);
+
+    /// <summary>
+    /// Gets or sets how long opening a publisher channel may take before its connection is closed and replaced.
+    /// </summary>
+    public TimeSpan ChannelOpenTimeout { get; set; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// Gets or sets how long a publish waits for the broker's confirmation, including the wait for a
+    /// connection and all retries. <see cref="Timeout.InfiniteTimeSpan"/> waits until the caller cancels.
+    /// </summary>
+    public TimeSpan PublishTimeout { get; set; } = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// Connects and starts the stalled publish check.
+    /// </summary>
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await _connection.StartAsync(cancellationToken);
+        StartStalledPublishCheck();
+    }
+
+    /// <summary>
+    /// Leases a channel of the ready connection to one publish, waiting while there is no connection or all
+    /// channels are leased. The caller gives the lease back with <see cref="Return"/>.
+    /// </summary>
+    public async ValueTask<PublisherLease> RentChannelAsync(CancellationToken cancellationToken)
+    {
+        while (true)
         {
-            IChannel? channel = null;
-            while (channel is null)
+            var connection = await _connection.GetConnectionAsync(cancellationToken);
+            if (GetPool(connection) is not { } pool)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var connection = await GetConnectionAsync(cancellationToken);
-                PublisherChannelPool pool;
-                lock (_channelSync)
+                // The connection was replaced in the meantime.
+                continue;
+            }
+
+            await pool.AcquireAsync(cancellationToken);
+
+            if (pool.IsRetired)
+            {
+                // The connection was replaced while this publish waited. The other waiters of the pool follow.
+                pool.Release(channel: null, reusable: false);
+                continue;
+            }
+
+            var ownsPermit = true;
+            try
+            {
+                while (true)
                 {
-                    ObjectDisposedException.ThrowIf(IsDisposed, this);
-                    if (!ReferenceEquals(connection, CurrentConnection))
+                    while (pool.TryTakeIdle(out var idle))
                     {
-                        continue;
+                        if (idle.IsOpen)
+                        {
+                            return new PublisherLease(pool, idle);
+                        }
+
+                        _ = RabbitMQConnectionManager.CloseChannelAsync(idle);
                     }
 
-                    pool = _channelPool ??= new PublisherChannelPool(connection);
+                    if (!_connection.IsBlocked)
+                    {
+                        break;
+                    }
+
+                    // The broker does not read from a blocked connection, so it would not answer a request to
+                    // open a channel. The publish waits here and takes a channel that became idle meanwhile.
+                    await _connection.WaitWhileBlockedAsync(cancellationToken);
+                    if (pool.IsRetired || !ReferenceEquals(_connection.Connection, connection))
+                    {
+                        break;
+                    }
                 }
 
-                if (!ReferenceEquals(pool.Connection, connection))
+                if (pool.IsRetired || !ReferenceEquals(_connection.Connection, connection))
                 {
-                    await ClearChannelsAsync(preserveCurrentConnection: true);
+                    // The connection was lost while this publish waited.
+                    ownsPermit = false;
+                    pool.Release(channel: null, reusable: false);
                     continue;
                 }
 
-                channel = await TryRentChannelAsync(pool, publisher, cancellationToken);
+                var opening = _connection.OpenChannelAsync(connection, s_publishChannelOptions, ChannelOpenTimeout);
+                try
+                {
+                    var channel = await opening.WaitAsync(cancellationToken);
+                    LogPublisherChannelOpened(channel);
+                    return new PublisherLease(pool, channel);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // The caller gave up. The channel keeps its permit until it is open and goes to the pool.
+                    ownsPermit = false;
+                    _ = ReturnWhenOpenedAsync(pool, opening);
+                    throw;
+                }
+                catch (ChannelOpenBlockedException)
+                {
+                    ownsPermit = false;
+                    OnChannelNumberLost(pool);
+                    throw;
+                }
             }
-
-            return channel;
-        }
-        catch
-        {
-            _publishSlots.Release();
-            throw;
+            catch when (ownsPermit)
+            {
+                pool.Release(channel: null, reusable: false);
+                throw;
+            }
         }
     }
 
     /// <summary>
-    /// Rents a channel from the pool, or returns <c>null</c> when the caller has to try again because the
-    /// pool was replaced, it had to wait for a free slot, or the channel is no longer usable.
+    /// Gives a lease back. The channel is leased again only when <paramref name="reusable"/> is <c>true</c>,
+    /// which requires that the broker answered the last publish on it. Otherwise the channel is closed.
     /// </summary>
-    private async ValueTask<IChannel?> TryRentChannelAsync(
-        PublisherChannelPool pool,
-        object? publisher,
-        CancellationToken cancellationToken)
+    public void Return(PublisherLease lease, bool reusable) => lease.Pool.Release(lease.Channel, reusable);
+
+    private async Task ReturnWhenOpenedAsync(PublisherChannelPool pool, Task<IChannel> opening)
     {
-        PublisherChannelSlot? slot;
-        PublisherChannel? publisherChannel = null;
-        Task? slotAvailable = null;
-        lock (_channelSync)
+        IChannel? channel = null;
+        try
         {
-            ObjectDisposedException.ThrowIf(IsDisposed, this);
-            if (!ReferenceEquals(pool, _channelPool))
+            channel = await opening;
+        }
+        catch (ChannelOpenBlockedException)
+        {
+            OnChannelNumberLost(pool);
+            return;
+        }
+        catch
+        {
+            // The channel could not be opened.
+        }
+
+        pool.Release(channel, reusable: channel is not null);
+    }
+
+    /// <summary>
+    /// Keeps the permit of a channel number the client lost to a request the blocked connection did not
+    /// answer, so the connection never has more channels than permits. A connection that lost half of its
+    /// channels this way is replaced.
+    /// </summary>
+    private void OnChannelNumberLost(PublisherChannelPool pool)
+    {
+        if (pool.LoseChannelNumber())
+        {
+            _connection.ReportUnresponsive(
+                pool.Connection,
+                "half of its publisher channels were lost to requests the broker did not answer while it blocked the connection");
+        }
+    }
+
+    private PublisherChannelPool? GetPool(IConnection connection)
+    {
+        var pool = Volatile.Read(ref _pool);
+        if (pool is not null && ReferenceEquals(pool.Connection, connection))
+        {
+            return pool;
+        }
+
+        lock (_sync)
+        {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+            pool = _pool;
+            if (pool is not null && ReferenceEquals(pool.Connection, connection))
+            {
+                return pool;
+            }
+
+            // Only the ready connection gets a pool, so a caller that still holds a lost connection asks again.
+            if (!ReferenceEquals(_connection.Connection, connection))
             {
                 return null;
             }
 
-            slot = pool.TryRentSlot(publisher);
-            if (slot is null)
-            {
-                slotAvailable = pool.WaitForSlot();
-            }
-            else
-            {
-                if (slot.Current is { IsUnusable: true })
-                {
-                    RetireChannel(slot);
-                }
-
-                if (slot.Current is null)
-                {
-                    slot.Current = new PublisherChannel(slot);
-                    slot.Current.Creation = CreateChannelAsync(slot.Current, slot.Cleanup, DisposalToken);
-                }
-
-                publisherChannel = slot.Current;
-            }
-        }
-
-        if (slot is null)
-        {
-            await WaitForSlotAsync(pool, slotAvailable!, cancellationToken);
-            return null;
-        }
-
-        var isRented = false;
-        try
-        {
-            // Caller cancellation releases the lease; channel creation remains owned by the dispatcher.
-            var channel = await publisherChannel!.Opened.WaitAsync(cancellationToken);
-            lock (_channelSync)
-            {
-                ObjectDisposedException.ThrowIf(IsDisposed, this);
-                if (!ReferenceEquals(slot.Current, publisherChannel)
-                    || !ReferenceEquals(pool.Connection, CurrentConnection)
-                    || !channel.IsOpen)
-                {
-                    return null;
-                }
-
-                _rentedChannels.TryAdd(channel, publisherChannel);
-                publisherChannel.RentCount++;
-                isRented = true;
-                return channel;
-            }
-        }
-        finally
-        {
-            if (!isRented)
-            {
-                lock (_channelSync)
-                {
-                    pool.ReturnSlot(slot);
-                }
-            }
-        }
-    }
-
-    private async Task WaitForSlotAsync(
-        PublisherChannelPool pool,
-        Task slotAvailable,
-        CancellationToken cancellationToken)
-    {
-        using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken,
-            DisposalToken,
-            pool.RetirementToken);
-        try
-        {
-            await slotAvailable.WaitAsync(waitCts.Token);
-        }
-        catch (OperationCanceledException)
-            when (pool.RetirementToken.IsCancellationRequested
-                && !cancellationToken.IsCancellationRequested
-                && !IsDisposed)
-        {
-            // The pool was replaced, and the caller rents from its successor.
+            // The pool of a lost connection retired itself when the connection shut down.
+            pool?.Retire();
+            pool = new PublisherChannelPool(connection, MaxPublisherChannels);
+            Volatile.Write(ref _pool, pool);
+            return pool;
         }
     }
 
     /// <summary>
-    /// Returns a rented channel to the pool, or retires it when it is closed or belongs to a lost connection.
+    /// Stops the stalled publish check, closes the publisher channels and closes the connection.
     /// </summary>
-    public ValueTask ReturnChannelAsync(IChannel channel)
+    public async ValueTask DisposeAsync()
     {
-        ReturnChannel(channel, discard: false);
-        return ValueTask.CompletedTask;
+        PublisherChannelPool? pool;
+        lock (_sync)
+        {
+            _isDisposed = true;
+            pool = _pool;
+            _pool = null;
+        }
+
+        StopStalledPublishCheck();
+        pool?.Retire();
+        await _connection.DisposeAsync();
+    }
+}
+
+/// <summary>
+/// A publisher channel that is leased to one publish.
+/// </summary>
+/// <param name="Pool">The pool the channel belongs to.</param>
+/// <param name="Channel">The leased channel, which has publisher confirms enabled.</param>
+internal readonly record struct PublisherLease(PublisherChannelPool Pool, IChannel Channel)
+{
+    /// <summary>
+    /// Gets the connection the channel belongs to.
+    /// </summary>
+    public IConnection Connection => Pool.Connection;
+}
+
+/// <summary>
+/// The publisher channels of one connection. A permit bounds the channels and the publishes in flight, and
+/// channels the broker answered on last wait on a stack for the next publish.
+/// </summary>
+internal sealed class PublisherChannelPool
+{
+    // Larger than any number of waiters, and far from an overflow of the permit count.
+    private const int AllWaiters = 1 << 30;
+
+    private readonly SemaphoreSlim _permits;
+    private readonly Stack<IChannel> _idle;
+    private readonly int _capacity;
+    private int _lostChannelNumbers;
+    private bool _isRetired;
+
+    public PublisherChannelPool(IConnection connection, int maxChannels)
+    {
+        Connection = connection;
+
+        // A channel maximum of zero means that the broker sets no limit.
+        _capacity = connection.ChannelMax == 0 ? maxChannels : Math.Min(maxChannels, connection.ChannelMax);
+        _permits = new SemaphoreSlim(_capacity);
+        _idle = new Stack<IChannel>(_capacity);
+
+        connection.ConnectionShutdownAsync += (_, _) =>
+        {
+            Retire();
+            return Task.CompletedTask;
+        };
+
+        // A connection that closed before the subscription raised its shutdown event to nobody.
+        if (!connection.IsOpen)
+        {
+            Retire();
+        }
     }
 
     /// <summary>
-    /// Returns a publisher lease and retires the channel on which a protocol operation failed.
+    /// Gets the connection the channels belong to.
     /// </summary>
-    internal void DiscardChannel(IChannel channel) => ReturnChannel(channel, discard: true);
+    public IConnection Connection { get; }
 
-    private void ReturnChannel(IChannel channel, bool discard)
+    /// <summary>
+    /// Gets whether the connection was lost or the dispatcher was disposed, after which the pool leases
+    /// no channel.
+    /// </summary>
+    public bool IsRetired => Volatile.Read(ref _isRetired);
+
+    /// <summary>
+    /// Takes a permit, waiting while all are taken. The wait also ends when the pool is retired.
+    /// </summary>
+    public ValueTask AcquireAsync(CancellationToken cancellationToken)
+        => _permits.Wait(0, CancellationToken.None)
+            ? ValueTask.CompletedTask
+            : new ValueTask(_permits.WaitAsync(cancellationToken));
+
+    /// <summary>
+    /// Takes the channel that was returned last, if there is one.
+    /// </summary>
+    public bool TryTakeIdle(out IChannel channel)
     {
-        lock (_channelSync)
+        lock (_idle)
         {
-            if (!_rentedChannels.TryGetValue(channel, out var publisherChannel))
-            {
-                return;
-            }
-
-            if (--publisherChannel.RentCount == 0)
-            {
-                _rentedChannels.Remove(channel);
-            }
-
-            var slot = publisherChannel.Slot;
-            if (ReferenceEquals(slot.Current, publisherChannel)
-                && (discard || IsDisposed || !channel.IsOpen
-                    || !ReferenceEquals(publisherChannel.Connection, CurrentConnection)))
-            {
-                RetireChannel(slot);
-            }
-
-            slot.Pool.ReturnSlot(slot);
-        }
-
-        _publishSlots.Release();
-    }
-
-    private static void RetireChannel(PublisherChannelSlot slot)
-    {
-        if (slot.Current is { } publisherChannel)
-        {
-            slot.Current = null;
-            slot.Cleanup = DisposePublisherChannelAsync(publisherChannel);
+            return _idle.TryPop(out channel!);
         }
     }
 
-    private async Task CreateChannelAsync(
-        PublisherChannel publisherChannel,
-        Task cleanup,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Gives a permit back, and keeps its channel for the next publish when it is reusable and still open.
+    /// A channel that is not kept is closed first, so the connection never has more channels than permits.
+    /// </summary>
+    public void Release(IChannel? channel, bool reusable)
     {
-        await Task.Yield();
-        var connection = publisherChannel.Connection;
-        using var _ = BeginLogScope(connection);
-        using var creationCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        creationCts.CancelAfter(ChannelCreationTimeout);
-        Task<IChannel>? opening = null;
-        try
+        if (channel is not null)
         {
-            await cleanup.WaitAsync(creationCts.Token);
-            opening = connection.CreateChannelAsync(s_publishChannelOptions, creationCts.Token);
-            var channel = await opening.WaitAsync(creationCts.Token);
-            TrackChannel(connection, channel);
-            Logger.CreatedNewChannel(ConnectionName, channel.ChannelNumber);
-            publisherChannel.SetOpened(channel);
-        }
-        catch (Exception ex)
-        {
-            publisherChannel.SetFailed(ex);
-
-            if (ex is ChannelAllocationException)
+            var isKept = false;
+            if (reusable && channel.IsOpen)
             {
-                Logger.PublisherChannelLimitReached(ex, ConnectionName);
-                return;
-            }
-
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                Logger.PublisherChannelCreationFailed(ex, ConnectionName);
-            }
-
-            // Close the connection when opening a publisher channel fails.
-            try
-            {
-                await connection.AbortAsync();
-            }
-            catch
-            {
-                // The connection is already closing.
-            }
-
-            if (opening is not null)
-            {
-                try
+                lock (_idle)
                 {
-                    await CloseChannelAsync(await opening, CancellationToken.None);
-                }
-                catch
-                {
-                    // Opening the channel failed.
+                    if (!_isRetired)
+                    {
+                        _idle.Push(channel);
+                        isKept = true;
+                    }
                 }
             }
 
-            StartReconnecting();
+            if (!isKept)
+            {
+                _ = CloseAndReleaseAsync(channel);
+                return;
+            }
         }
+
+        _permits.Release();
     }
 
-    internal IConnection GetChannelConnection(IChannel channel)
+    private async Task CloseAndReleaseAsync(IChannel channel)
     {
-        lock (_channelSync)
+        // The permit follows the channel number, which the client gives back when the close has completed.
+        await RabbitMQConnectionManager.CloseChannelCompletelyAsync(channel);
+        _permits.Release();
+    }
+
+    /// <summary>
+    /// Keeps a permit for good, because the client lost its channel number. Returns <c>true</c> when half of
+    /// the permits are gone.
+    /// </summary>
+    public bool LoseChannelNumber() => Interlocked.Increment(ref _lostChannelNumbers) * 2 >= _capacity;
+
+    /// <summary>
+    /// Closes the idle channels and ends every wait for a permit. Channels that are returned later are
+    /// closed as well.
+    /// </summary>
+    public void Retire()
+    {
+        IChannel[] idle;
+        lock (_idle)
         {
-            return _rentedChannels[channel].Connection;
-        }
-    }
-
-    protected override async Task OnConnectionEstablished(IConnection connection, CancellationToken cancellationToken)
-    {
-        await onConnectionEstablished(connection, cancellationToken);
-    }
-
-    protected override async Task OnBeforeConnectionCreatedAsync(CancellationToken cancellationToken)
-    {
-        await ClearChannelsAsync(preserveCurrentConnection: false);
-    }
-
-    protected override async Task OnConnectionLostAsync()
-    {
-        await ClearChannelsAsync(preserveCurrentConnection: true);
-        StartReconnecting();
-    }
-
-    private async Task ClearChannelsAsync(bool preserveCurrentConnection)
-    {
-        PublisherChannelPool pool;
-        Task[] cleanup;
-        lock (_channelSync)
-        {
-            if (_channelPool is null
-                || (preserveCurrentConnection && !IsDisposed && _channelPool.Connection.IsOpen
-                    && ReferenceEquals(_channelPool.Connection, CurrentConnection)))
+            if (_isRetired)
             {
                 return;
             }
 
-            pool = _channelPool;
-            _channelPool = null;
-            cleanup = new Task[pool.Slots.Count];
-            for (var i = 0; i < pool.Slots.Count; i++)
-            {
-                var slot = pool.Slots[i];
-                RetireChannel(slot);
-                cleanup[i] = slot.Cleanup;
-            }
+            _isRetired = true;
+            idle = _idle.ToArray();
+            _idle.Clear();
         }
 
-        await pool.RetireAsync();
-        await Task.WhenAll(cleanup);
-    }
+        // Whoever takes a permit of a retired pool gives it back and asks for the pool of the next connection.
+        _permits.Release(AllWaiters);
 
-    private static async Task DisposePublisherChannelAsync(PublisherChannel publisherChannel)
-    {
-        await publisherChannel.Creation;
-        if (publisherChannel.Opened.IsCompletedSuccessfully)
+        foreach (var channel in idle)
         {
-            await CloseChannelAsync(publisherChannel.Opened.Result, CancellationToken.None);
+            _ = RabbitMQConnectionManager.CloseChannelAsync(channel);
         }
-    }
-
-    protected override async ValueTask DisposeAsyncCore()
-    {
-        await ClearChannelsAsync(preserveCurrentConnection: false);
     }
 }

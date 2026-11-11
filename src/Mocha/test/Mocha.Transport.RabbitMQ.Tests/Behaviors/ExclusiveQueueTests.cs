@@ -9,7 +9,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 public sealed class ExclusiveQueueTests(RabbitMQFixture fixture)
 {
     private const string QueueName = "exclusive-orders";
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     [Fact]
     public async Task StartAsync_Should_ConsumeFromExclusiveQueue_When_EndpointQueueIsExclusive()
@@ -21,12 +20,12 @@ public sealed class ExclusiveQueueTests(RabbitMQFixture fixture)
 
         // act
         await PublishAsync(bus, "ORD-1");
-        var received = await recorder.WaitAsync(s_timeout);
-        var consumers = await vhost.GetConsumerCountsAsync();
+        var received = await recorder.WaitAsync(TestTimeouts.Signal);
+        var queue = await vhost.Broker.GetQueueAsync(QueueName);
 
         // assert
         Assert.True(received);
-        Assert.Equal(1, consumers.GetValueOrDefault(QueueName));
+        Assert.Equal(1, queue?.Consumers);
     }
 
     [Fact]
@@ -37,20 +36,21 @@ public sealed class ExclusiveQueueTests(RabbitMQFixture fixture)
         var recorder = new MessageRecorder();
         await using var bus = await CreateBusAsync(vhost, recorder);
         await PublishAsync(bus, "ORD-1");
-        Assert.True(await recorder.WaitAsync(s_timeout));
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal));
+        var before = await vhost.Broker.GetConsumerAsync(QueueName);
 
         // act
         // the broker deletes an exclusive queue together with the connection that declared it
-        await vhost.CloseConsumerConnectionsAsync();
-        var reattached = await Condition.WaitAsync(
-            async () => (await vhost.GetConsumerCountsAsync()).GetValueOrDefault(QueueName) == 1,
-            s_timeout);
+        await vhost.Faults.CloseConsumerConnectionAsync(QueueName);
+        await vhost.Broker.WaitForConsumerAsync(QueueName, otherThan: before);
         await PublishAsync(bus, "ORD-2");
-        var received = await recorder.WaitAsync(s_timeout);
+        var received = await recorder.WaitAsync(TestTimeouts.Signal);
 
         // assert
-        Assert.True(reattached);
         Assert.True(received);
+        Assert.Equal(
+            ["ORD-1", "ORD-2"],
+            recorder.Messages.Cast<OrderCreated>().Select(order => order.OrderId).Order());
     }
 
     [Fact]
@@ -66,10 +66,10 @@ public sealed class ExclusiveQueueTests(RabbitMQFixture fixture)
         var runtime = (MessagingRuntime)services.GetRequiredService<IMessagingRuntime>();
         var exception = await Assert.ThrowsAnyAsync<OperationInterruptedException>(
             () => runtime.StartAsync(TestContext.Current.CancellationToken).AsTask()
-                .WaitAsync(s_timeout, TestContext.Current.CancellationToken));
+                .WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
 
         await PublishAsync(bus, "ORD-1");
-        var firstStillReceives = await recorder.WaitAsync(s_timeout);
+        var firstStillReceives = await recorder.WaitAsync(TestTimeouts.Signal);
 
         // assert
         Assert.Equal<ushort?>(Constants.ResourceLocked, exception.ShutdownReason?.ReplyCode);

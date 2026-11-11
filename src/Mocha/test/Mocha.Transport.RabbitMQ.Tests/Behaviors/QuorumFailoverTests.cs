@@ -6,8 +6,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClassFixture<RabbitMQClusterFixture>
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
-
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -40,7 +38,7 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
         deadline.CancelAfter(TimeSpan.FromSeconds(45));
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         await messageBus.RequestAsync(new GetOrderStatus { OrderId = "before-failover" }, deadline.Token);
-        var before = await transport.ConsumerManager.GetConnectionAsync(deadline.Token);
+        var before = await transport.ConsumerManager.Connection.GetConnectionAsync(deadline.Token);
         Assert.Equal(primary.Port, before.Endpoint.Port);
 
         // act
@@ -52,8 +50,8 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
                 !recorder.Messages.IsEmpty
                     && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
                     && transport.ConsumerManager.IsHealthy,
-            s_timeout);
-        var after = await transport.ConsumerManager.GetConnectionAsync(deadline.Token);
+            TestTimeouts.Signal);
+        var after = await transport.ConsumerManager.Connection.GetConnectionAsync(deadline.Token);
 
         // assert
         // Recovery may redeliver messages whose acknowledgements were lost.
@@ -120,7 +118,7 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
             await messageBus.PublishAsync(new OrderCreated { OrderId = $"ORD-{i}" }, deadline.Token);
         }
 
-        await gate.Started.Task.WaitAsync(s_timeout, deadline.Token);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, deadline.Token);
 
         // act
         await using var stopped = await fixture.KillNodeAsync(0);
@@ -128,7 +126,7 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
             async () =>
                 await fixture.GetQueueStateAsync(1, queue) is { Leader: { Length: > 0 } leader }
                     && leader != before.Leader,
-            s_timeout);
+            TestTimeouts.Signal);
         gate.Release.TrySetResult();
         await messageBus.PublishAsync(new OrderCreated { OrderId = "after-failover" }, deadline.Token);
         var settled = await Condition.WaitAsync(
@@ -136,7 +134,7 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
                 recorder.Messages.Cast<OrderCreated>().Select(m => m.OrderId).Distinct().Count() == 26
                     && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
                     && transport.ConsumerManager.IsHealthy,
-            s_timeout);
+            TestTimeouts.Signal);
 
         // assert
         Assert.True(elected);
@@ -193,38 +191,48 @@ public sealed class QuorumFailoverTests(RabbitMQClusterFixture fixture) : IClass
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         await messageBus.PublishAsync(new OrderCreated { OrderId = "unacknowledged" }, TestContext.Current.CancellationToken);
-        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-        var before = await transport.ConsumerManager.GetConnectionAsync(TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        var before = await transport.ConsumerManager.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
         Assert.Equal(primary.Port, before.Endpoint.Port);
         Assert.Equal(fixture.GetNodeName(1), (await fixture.GetQueueStateAsync(1, queue))?.Leader);
 
         // act
+        // the first delivery cannot be acknowledged on the killed node, so the event is delivered a second time
         await using var stopped = await fixture.KillNodeAsync(0);
         gate.Release.TrySetResult();
         var settled = await Condition.WaitAsync(
             async () =>
-                !recorder.Messages.IsEmpty
+                gate.Invocations == 2
+                    && !recorder.Messages.IsEmpty
                     && (await fixture.GetQueueStateAsync(1, queue))?.Messages == 0
                     && transport.ConsumerManager.IsHealthy,
-            s_timeout);
+            TestTimeouts.Signal);
 
         // assert
         Assert.True(settled);
+        Assert.Equal(2, gate.Invocations);
         Assert.Equal(["unacknowledged"],
             recorder.Messages.Cast<OrderCreated>().Select(message => message.OrderId).Distinct());
     }
 
     public sealed class HandlerGate
     {
+        private int _invocations;
+
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public int Invocations => Volatile.Read(ref _invocations);
+
+        public void HandlerInvoked() => Interlocked.Increment(ref _invocations);
     }
 
     public sealed class QuorumOrderHandler(HandlerGate gate, MessageRecorder recorder) : IEventHandler<OrderCreated>
     {
         public async ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
         {
+            gate.HandlerInvoked();
             gate.Started.TrySetResult();
             await gate.Release.Task.WaitAsync(cancellationToken);
             recorder.Record(message);

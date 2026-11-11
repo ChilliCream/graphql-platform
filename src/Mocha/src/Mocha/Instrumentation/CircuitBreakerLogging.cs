@@ -25,7 +25,7 @@ internal static class CircuitBreakerLogging
         {
             using (logger.BeginScope(logContext))
             {
-                logger.CircuitOpen(args.Outcome.Exception, endpoint, args.BreakDuration);
+                logger.CircuitOpen(args.Outcome.Exception, circuit, endpoint, args.BreakDuration);
             }
 
             return default;
@@ -34,7 +34,7 @@ internal static class CircuitBreakerLogging
         {
             using (logger.BeginScope(logContext))
             {
-                logger.CircuitClosed(endpoint);
+                logger.CircuitClosed(circuit, endpoint);
             }
 
             return default;
@@ -43,7 +43,7 @@ internal static class CircuitBreakerLogging
         {
             using (logger.BeginScope(logContext))
             {
-                logger.CircuitHalfOpen(endpoint);
+                logger.CircuitHalfOpen(circuit, endpoint);
             }
 
             return default;

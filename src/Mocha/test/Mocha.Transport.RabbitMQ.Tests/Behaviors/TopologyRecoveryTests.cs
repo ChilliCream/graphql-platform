@@ -33,7 +33,7 @@ public sealed class TopologyRecoveryTests(RabbitMQFixture fixture)
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var dispatcher = bus.Provider.GetRequiredService<IMessagingRuntime>()
             .Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
-        var publisherConnection = await dispatcher.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var publisherConnection = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
         await messageBus.PublishAsync(new OrderCreated { OrderId = "warmup" }, TestContext.Current.CancellationToken);
         if (sendBeforeDeletion)
         {
@@ -58,7 +58,7 @@ public sealed class TopologyRecoveryTests(RabbitMQFixture fixture)
 
         // assert
         Assert.Equal([("direct", ""), ("published", "orders")], orders);
-        Assert.Same(publisherConnection, await dispatcher.GetConnectionAsync(TestContext.Current.CancellationToken));
+        Assert.Same(publisherConnection, await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -79,11 +79,11 @@ public sealed class TopologyRecoveryTests(RabbitMQFixture fixture)
             .BuildTestBusAsync();
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await vhost.DeleteQueueAsync("archive");
+        await vhost.Faults.DeleteQueueAsync("archive");
 
         // act
         // No application consumer recreates this queue or its binding.
-        await fixture.CloseAllConnectionsAsync();
+        await vhost.Faults.CloseConnectionsAsync();
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, TestContext.Current.CancellationToken);
 
         // assert

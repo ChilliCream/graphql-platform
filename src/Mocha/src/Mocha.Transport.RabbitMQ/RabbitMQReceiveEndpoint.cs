@@ -20,9 +20,9 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
     public RabbitMQQueue Queue { get; private set; } = null!;
 
     /// <summary>
-    /// Gets whether the endpoint is attached and has capacity available beyond handlers cancelled by a channel loss.
+    /// Gets whether the endpoint's consumer is attached and the broker delivers to it.
     /// </summary>
-    public bool IsHealthy => _consumer is { IsHealthy: true };
+    internal bool IsHealthy => _consumer is { IsAttached: true };
 
     protected override void OnInitialize(
         IMessagingConfigurationContext context,
@@ -59,26 +59,25 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         Source = Queue;
     }
 
-    private RabbitMQConsumerManager.RegisteredConsumer? _consumer;
+    private RabbitMQConsumer? _consumer;
 
-    internal ValueTask WaitUntilHealthyAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Waits until the endpoint's consumer is attached. Fails when the endpoint is not started.
+    /// </summary>
+    internal ValueTask WaitUntilAttachedAsync(CancellationToken cancellationToken)
     {
         if (_consumer is not { } consumer)
         {
             throw ThrowHelper.ReplyEndpointNotStarted();
         }
 
-        return consumer.WaitUntilHealthyAsync(cancellationToken);
+        return consumer.WaitUntilAttachedAsync(cancellationToken);
     }
 
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        var replyEndpoint = Kind is ReceiveEndpointKind.Reply
-            ? null
-            : transport.ReplyReceiveEndpoint as RabbitMQReceiveEndpoint;
-
         _consumer = await transport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
             PrepareChannelAsync,
@@ -87,17 +86,8 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             _consumerDispatchConcurrency,
             cancellationToken);
 
-        async Task PrepareChannelAsync(IConnection connection, IChannel channel, CancellationToken ct)
-        {
-            var provisioner = new RabbitMQTopologyProvisioner(transport.Topology, connection);
-            await provisioner.ProvisionQueueAsync(Queue, channel, ct);
-
-            // The endpoint consumes once the reply endpoint can receive replies.
-            if (replyEndpoint is not null)
-            {
-                await replyEndpoint.WaitUntilHealthyAsync(ct);
-            }
-        }
+        Task PrepareChannelAsync(IConnection connection, IChannel channel, CancellationToken ct)
+            => new RabbitMQTopologyProvisioner(transport.Topology, connection).ProvisionQueueAsync(Queue, channel, ct);
     }
 
     private async ValueTask ProcessMessageAsync(

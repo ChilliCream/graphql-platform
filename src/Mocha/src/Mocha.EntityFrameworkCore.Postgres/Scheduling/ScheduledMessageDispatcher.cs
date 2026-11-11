@@ -128,6 +128,7 @@ public sealed class ScheduledMessageDispatcher
             new ActivityContext());
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var sent = false;
 
         try
         {
@@ -182,9 +183,12 @@ public sealed class ScheduledMessageDispatcher
                     {
                         await SendAsync(envelope, endpoint, messageType, cancellationToken);
 
+                        // The transport has the message, so its row is removed whatever the token says.
+                        sent = true;
+
                         await reader.CloseAsync();
 
-                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
+                        await DeleteMessageAsync(connection, id, transaction, CancellationToken.None);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
@@ -208,7 +212,7 @@ public sealed class ScheduledMessageDispatcher
             {
                 try
                 {
-                    await transaction.CommitAsync(cancellationToken);
+                    await transaction.CommitAsync(sent ? CancellationToken.None : cancellationToken);
                 }
                 catch
                 {
