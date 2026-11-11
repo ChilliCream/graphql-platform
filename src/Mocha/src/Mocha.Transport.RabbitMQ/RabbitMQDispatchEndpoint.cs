@@ -16,6 +16,12 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
     private volatile bool _isProvisioned;
 
     /// <summary>
+    /// Set while the exchange of the endpoint is known to be deleted. The broker deleted its bindings with it,
+    /// so they are declared again together with the exchange.
+    /// </summary>
+    private volatile bool _isExchangeMissing;
+
+    /// <summary>
     /// Gets the target queue for this endpoint, or <c>null</c> if the endpoint targets an exchange.
     /// </summary>
     public RabbitMQQueue? Queue { get; private set; }
@@ -43,16 +49,44 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
             var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, timeProvider);
             properties.EnsureHeadersFit(lease.Connection);
-            await PublishAsync(lease.Channel, envelope, properties, cancellationToken);
+
+            try
+            {
+                await PublishAsync(lease.Channel, envelope, properties, cancellationToken);
+            }
+            catch (PublishException ex)
+                when (ex.IsReturn && Queue is { Exclusive: false } queue && transport.Topology.ShouldProvision(queue))
+            {
+                // The queue of the endpoint does not exist. It is declared again with its bindings, and the
+                // message is sent once more.
+                await ProvisionQueueAsync(lease, queue, cancellationToken);
+                await PublishAsync(lease.Channel, envelope, properties, cancellationToken);
+            }
 
             // The channel is used again only when the broker answered the publish. A late answer must not
             // arrive during the next publish on the channel.
             lease.IsReusable = true;
         }
-        catch (PublishException)
+        catch (PublishException ex)
         {
             // The broker answered with a rejection or a return.
             lease.IsReusable = true;
+            if (ex.IsReturn && Queue is { } queue)
+            {
+                throw ThrowHelper.MessageReturned(queue.Name, ex);
+            }
+
+            throw;
+        }
+        catch (OperationInterruptedException ex)
+            when (ex.ShutdownReason is { Initiator: ShutdownInitiator.Peer, ReplyCode: Constants.NotFound }
+                && Exchange is { } exchange
+                && transport.Topology.ShouldProvision(exchange))
+        {
+            // The exchange of the endpoint does not exist. The next publish declares it again, with the
+            // bindings that the broker deleted together with it.
+            _isExchangeMissing = true;
+            _isProvisioned = false;
             throw;
         }
     }
@@ -77,9 +111,36 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             await exchange
                 .ProvisionAsync(lease.Channel, lease.Connection, cancellationToken)
                 .WaitOrAbandonAsync(cancellationToken);
+
+            if (_isExchangeMissing)
+            {
+                await ProvisionBindingsAsync(lease, exchange, cancellationToken);
+                _isExchangeMissing = false;
+            }
         }
 
         _isProvisioned = true;
+    }
+
+    /// <summary>
+    /// Declares the bindings that start or end at an exchange. A binding to an exclusive queue belongs to
+    /// the connection of its consumer and is left to it.
+    /// </summary>
+    private async Task ProvisionBindingsAsync(
+        ChannelLease lease,
+        RabbitMQExchange exchange,
+        CancellationToken cancellationToken)
+    {
+        foreach (var binding in exchange.Bindings)
+        {
+            if (binding is not RabbitMQQueueBinding { Destination.Exclusive: true }
+                && transport.Topology.ShouldProvision(binding))
+            {
+                await binding
+                    .ProvisionAsync(lease.Channel, lease.Connection, cancellationToken)
+                    .WaitOrAbandonAsync(cancellationToken);
+            }
+        }
     }
 
     /// <summary>
@@ -172,10 +233,14 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             }
         }
 
+        // A message sent to a missing queue is confirmed and dropped unless the broker is asked to return it.
+        // A reply whose requester is gone has no queue, and is dropped.
+        var mandatory = Queue is not null && Kind != DispatchEndpointKind.Reply;
+
         return channel.BasicPublishAsync(
             exchangeName,
             routingKey,
-            mandatory: false,
+            mandatory,
             properties,
             envelope.Body,
             cancellationToken);
