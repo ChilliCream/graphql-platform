@@ -378,7 +378,7 @@ test("run_Should_ReportCountsInSummary_When_EndpointRejects", async () => {
 
   assert.equal(
     summary,
-    "IndexNow failed: HTTP 403 (1 added, 1 changed, 1 removed), 0 retries.\n",
+    "IndexNow failed: HTTP 403 at batch 1 of 1 (1 added, 1 changed, 1 removed), 0 retries.\n",
   );
 });
 
@@ -399,7 +399,7 @@ test("run_Should_ReportCountsInWarningAndSummary_When_ErrorIsThrown", async () =
   ]);
   assert.equal(
     summary,
-    "IndexNow failed: a network error (boom) (1 added, 0 changed, 1 removed), 4 retries.\n",
+    "IndexNow failed: a network error (boom) at batch 1 of 1 (1 added, 0 changed, 1 removed), 4 retries.\n",
   );
 });
 
@@ -561,7 +561,7 @@ test("run_Should_GiveUpWithWarning_When_SiteVerificationNeverCompletes", async (
   ]);
   assert.equal(
     summary,
-    `IndexNow failed: HTTP 403 (${ONE_URL_COUNTS}), 4 retries.\n`,
+    `IndexNow failed: HTTP 403 at batch 1 of 1 (${ONE_URL_COUNTS}), 4 retries.\n`,
   );
 });
 
@@ -713,6 +713,31 @@ test("run_Should_CountRetriesAcrossBatches_When_EachBatchRetries", async () => {
   ]);
 });
 
+test("run_Should_ReportOwnRetriesPerBatchAndTotalInSummary_When_LaterBatchFails", async () => {
+  const current = Object.fromEntries(
+    Array.from({ length: 10_001 }, (_, index) => [url(`p${index}`), "1"]),
+  );
+
+  const { posts, logs, summary } = await runAgainstMock({
+    current,
+    postResponses: [
+      SITE_VERIFICATION_PENDING,
+      SITE_VERIFICATION_PENDING,
+      { status: 200 },
+      { status: 403, body: "Forbidden" },
+    ],
+  });
+
+  assert.equal(posts.length, 4);
+  assert.deepEqual(logs, [
+    "::warning::IndexNow: Batch 2 of 2 failed with HTTP 403 Forbidden. Skipping the remaining batches (10001 added, 0 changed, 0 removed (first run)).",
+  ]);
+  assert.equal(
+    summary,
+    "IndexNow failed: HTTP 403 at batch 2 of 2 (10001 added, 0 changed, 0 removed (first run)), 2 retries.\n",
+  );
+});
+
 test("extractSitemapUrls_Should_ReturnUniqueLocs_When_XmlHasWhitespaceAndEntities", () => {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -843,7 +868,10 @@ test("runSubmitAll_Should_WarnAndSucceed_When_IndexNowKeepsRejecting", async () 
   assert.deepEqual(logs, [
     "::warning::IndexNow: Batch 1 of 1 failed with HTTP 403 Forbidden. Skipping the remaining batches (1 URL).",
   ]);
-  assert.equal(summary, "IndexNow failed: HTTP 403 (1 URL), 0 retries.\n");
+  assert.equal(
+    summary,
+    "IndexNow failed: HTTP 403 at batch 1 of 1 (1 URL), 0 retries.\n",
+  );
 });
 
 test("runSubmitAll_Should_NotPost_When_DryRun", async () => {

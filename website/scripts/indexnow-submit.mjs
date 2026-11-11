@@ -434,16 +434,17 @@ async function deliver({
     });
     retries += result.retries;
     if (!result.ok) {
+      const batchRetries = result.retries;
       const failure = result.error
         ? `a network error (${result.error})`
         : `HTTP ${result.status}`;
       const detail = result.body ? ` ${result.body}` : "";
       warn(
-        `Batch ${index + 1} of ${batches.length} failed with ${failure}${detail}${retries > 0 ? ` after ${plural(retries, "retry")}` : ""}. Skipping the remaining batches (${counts}).`,
+        `Batch ${index + 1} of ${batches.length} failed with ${failure}${detail}${batchRetries > 0 ? ` after ${plural(batchRetries, "retry")}` : ""}. Skipping the remaining batches (${counts}).`,
       );
       await writeSummary(
         env,
-        `IndexNow failed: ${failure} (${counts}), ${plural(retries, "retry")}.`,
+        `IndexNow failed: ${failure} at batch ${index + 1} of ${batches.length} (${counts}), ${plural(retries, "retry")}.`,
       );
       return;
     }
