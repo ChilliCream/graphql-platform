@@ -1,5 +1,6 @@
 ---
 title: "Fusion"
+metaTitle: "Manage Fusion Gateways with Nitro"
 description: "Use Nitro as the control plane for your Fusion gateway: monitor topology and subgraph telemetry, and let the gateway pull its latest configuration automatically."
 ---
 

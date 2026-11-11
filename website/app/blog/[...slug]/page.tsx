@@ -131,7 +131,10 @@ export async function generateMetadata({
   if (rel === null) {
     return {};
   }
-  const { title, description } = readFrontmatter(path.join(BLOG_ROOT, rel));
+  const { title, metaTitle, description } = readFrontmatter(
+    path.join(BLOG_ROOT, rel),
+  );
+  const searchTitle = metaTitle ?? title;
 
   const stem = stemForSlug(slug);
   const summary = listBlogPostSummaries().find((s) => s.stem === stem);
@@ -141,7 +144,7 @@ export async function generateMetadata({
   const images = featuredImageAbs ? [featuredImageAbs] : undefined;
 
   return {
-    title,
+    title: searchTitle,
     description,
     ...(summary?.author
       ? {
@@ -161,7 +164,7 @@ export async function generateMetadata({
     openGraph: {
       type: "article",
       siteName: SITE_NAME,
-      title,
+      title: searchTitle,
       description,
       images,
       url: summary?.href,
@@ -181,7 +184,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       site: TWITTER_HANDLE,
-      title,
+      title: searchTitle,
       description,
       images,
     },

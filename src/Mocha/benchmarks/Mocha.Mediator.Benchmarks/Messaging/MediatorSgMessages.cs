@@ -10,15 +10,15 @@ public sealed record MediatorSgNotification(Guid Id) : global::Mediator.INotific
 public sealed class MediatorSgCommandHandler
     : global::Mediator.IRequestHandler<MediatorSgCommand, BenchmarkResponse>
 {
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
     public async ValueTask<BenchmarkResponse> Handle(
         MediatorSgCommand request,
         CancellationToken cancellationToken)
-        {
-            await Task.Yield();
-            return _response;
-        }
+    {
+        await Task.Yield();
+        return s_response;
+    }
 }
 
 // Notification handler for martinothamar Mediator

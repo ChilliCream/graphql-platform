@@ -73,7 +73,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Types.Policy})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Policy})"/>
     public static IInterfaceFieldDescriptor Policy(
         this IInterfaceFieldDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -100,7 +100,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Types.Policy})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Policy})"/>
     public static IInterfaceTypeDescriptor Policy(
         this IInterfaceTypeDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -127,7 +127,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Types.Policy})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Policy})"/>
     public static IObjectFieldDescriptor Policy(
         this IObjectFieldDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -154,7 +154,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Types.Policy})"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Policy})"/>
     public static IObjectTypeDescriptor Policy(
         this IObjectTypeDescriptor descriptor,
         IReadOnlyList<Policy> policies)
