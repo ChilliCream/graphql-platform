@@ -11,6 +11,26 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 public sealed class RabbitMQMessagingTransport : MessagingTransport
 {
+    /// <summary>
+    /// The logger category of the consumer connection, the receive endpoints and their deliveries.
+    /// </summary>
+    internal const string ConsumerLogCategory = "Mocha.Transport.RabbitMQ.Consumer";
+
+    /// <summary>
+    /// The logger category of the dispatcher connection and of every send and publish.
+    /// </summary>
+    internal const string DispatcherLogCategory = "Mocha.Transport.RabbitMQ.Dispatcher";
+
+    /// <summary>
+    /// The role of the connection that consumes messages, as it appears in connection names and logs.
+    /// </summary>
+    internal const string ConsumerRole = "consumer";
+
+    /// <summary>
+    /// The role of the connection that publishes messages, as it appears in connection names and logs.
+    /// </summary>
+    internal const string DispatcherRole = "dispatcher";
+
     private readonly Action<IRabbitMQMessagingTransportDescriptor> _configure;
 
     /// <summary>
