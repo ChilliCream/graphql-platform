@@ -94,16 +94,16 @@ public class FullPipelineBenchmarks
     public ValueTask<BenchmarkResponse> FullPipeline_Mocha_IMediator()
     {
         var scope = _rootProvider.CreateScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<Mocha.Mediator.IMediator>();
-        return mediator.SendAsync<BenchmarkResponse>(_command, CancellationToken.None);
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        return mediator.SendAsync(_command, CancellationToken.None);
     }
 
     [Benchmark]
     public ValueTask<BenchmarkResponse> FullPipeline_Mocha_Concrete()
     {
         var scope = _rootProvider.CreateScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<Mocha.Mediator.Mediator>();
-        return mediator.SendAsync<BenchmarkResponse>(_command, CancellationToken.None);
+        var mediator = scope.ServiceProvider.GetRequiredService<Mediator>();
+        return mediator.SendAsync(_command, CancellationToken.None);
     }
 
     [Benchmark]
@@ -129,7 +129,7 @@ public class FullPipelineBenchmarks
 
         var scope = _switchMediatorProvider.CreateScope();
         var sender = scope.ServiceProvider.GetRequiredService<global::Mediator.Switch.IValueSender>();
-        return sender.Send<BenchmarkResponse>(_switchMediatorCommand, CancellationToken.None);
+        return sender.Send(_switchMediatorCommand, CancellationToken.None);
     }
 
     [Benchmark]

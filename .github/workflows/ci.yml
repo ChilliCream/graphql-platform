@@ -34,7 +34,7 @@ jobs:
       - name: Check for changes in website directory
         id: check-website
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ./website ./src/Mocha/src/mocha-visualizer)
+          changes=$(git diff --name-only HEAD~1 HEAD -- ./website ./src/Mocha/src/mocha-visualizer ./.github/workflows/ci.yml ./.github/workflows/publish-website.yml)
           if [[ -n "$changes" ]]; then
             echo "website_changes=true" >> $GITHUB_OUTPUT
           else
@@ -170,7 +170,18 @@ jobs:
       # rehype-mermaid renders inline SVG with Chromium during the app build.
       # Visual tests use their own pinned Docker browser, not this installation.
       - name: Install Chromium for Mermaid Build
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
+        working-directory: website
+
+      - name: Install Chromium System Dependencies for Mermaid Build
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          for delay in 10 20 0; do
+            npx playwright install-deps chromium && exit 0
+            sleep "$delay"
+          done
+          exit 1
         working-directory: website
 
       - name: Format Check
