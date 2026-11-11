@@ -293,7 +293,7 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(new SchemaVersionInfo(version));
 
-        serviceCollection.AddSingleton(
+        serviceCollection.AddSingleton<ITypeConverter>(
             _ => context.DescriptorContext.TypeConverter);
 
         serviceCollection.AddSingleton(
