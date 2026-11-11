@@ -467,10 +467,10 @@ internal static partial class Logs
     public static partial void ConnectionRecoveryStarted(this ILogger logger);
 
     [LoggerMessage(LogLevel.Warning, "Connection blocked: {Reason}")]
-    public static partial void ConnectionBlocked(this ILogger logger, string reason);
+    public static partial void LegacyConnectionBlocked(this ILogger logger, string reason);
 
     [LoggerMessage(LogLevel.Information, "Connection unblocked")]
-    public static partial void ConnectionUnblocked(this ILogger logger);
+    public static partial void LegacyConnectionUnblocked(this ILogger logger);
 
     [LoggerMessage(LogLevel.Warning, "Connection health check failed - attempting reconnection")]
     public static partial void ConnectionHealthCheckFailedAttemptingReconnection(this ILogger logger);
