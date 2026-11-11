@@ -545,8 +545,17 @@ internal sealed class ElasticSearchFilterRewriter(
         => expression is ConstantExpression { Value: null }
             or UnaryExpression { NodeType: ExpressionType.Convert, Operand: ConstantExpression { Value: null } };
 
+    // the filter holds each value as a member of a constant, which is read without compiling a delegate.
     private static object? Evaluate(Expression expression)
-        => Expression.Lambda(expression).Compile().DynamicInvoke();
+        => expression switch
+        {
+            ConstantExpression constant => constant.Value,
+            MemberExpression { Expression: ConstantExpression owner, Member: PropertyInfo property }
+                => property.GetValue(owner.Value),
+            MemberExpression { Expression: ConstantExpression owner, Member: FieldInfo field }
+                => field.GetValue(owner.Value),
+            _ => Expression.Lambda(expression).Compile().DynamicInvoke()
+        };
 
     private static MethodCallExpression Kql(string query)
         => Expression.Call(s_kql, Expression.Constant(query));
