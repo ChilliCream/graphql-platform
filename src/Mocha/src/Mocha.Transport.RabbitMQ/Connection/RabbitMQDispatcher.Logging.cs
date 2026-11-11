@@ -6,98 +6,87 @@ internal static partial class Logs
 {
     [LoggerMessage(
         LogLevel.Debug,
-        "The broker confirmed message {MessageId} for endpoint {Endpoint} on {ConnectionName} after {Elapsed} "
-            + "(attempt {Attempt})")]
+        "RabbitMQ publish of {MessageId} to {Endpoint} confirmed after {Elapsed} (attempt {Attempt})")]
     public static partial void PublishConfirmed(
         this ILogger logger,
         string? messageId,
         string endpoint,
-        string connectionName,
         int attempt,
         TimeSpan elapsed);
 
     [LoggerMessage(
         LogLevel.Warning,
-        "The broker confirmed message {MessageId} for endpoint {Endpoint} on {ConnectionName} only after "
-            + "{Elapsed} (attempt {Attempt}), which is longer than {Threshold}")]
+        "RabbitMQ publish of {MessageId} to {Endpoint} confirmed slowly after {Elapsed} (attempt "
+            + "{Attempt}, threshold {Threshold})")]
     public static partial void PublishConfirmedSlowly(
         this ILogger logger,
         string? messageId,
         string endpoint,
-        string connectionName,
         int attempt,
         TimeSpan elapsed,
         TimeSpan threshold);
 
     [LoggerMessage(
         LogLevel.Error,
-        "Publishing message {MessageId} to endpoint {Endpoint} on {ConnectionName} failed after {Elapsed} "
-            + "(attempt {Attempt})")]
+        "RabbitMQ publish of {MessageId} to {Endpoint} failed after {Elapsed} (attempt {Attempt})")]
     public static partial void PublishFailed(
         this ILogger logger,
         Exception exception,
         string? messageId,
         string endpoint,
-        string connectionName,
         int attempt,
         TimeSpan elapsed);
 
     [LoggerMessage(
         LogLevel.Debug,
-        "Publishing message {MessageId} to endpoint {Endpoint} on {ConnectionName} was cancelled by the caller "
-            + "after {Elapsed} (attempt {Attempt})")]
+        "RabbitMQ publish of {MessageId} to {Endpoint} cancelled by the caller after {Elapsed} (attempt "
+            + "{Attempt})")]
     public static partial void PublishCancelled(
         this ILogger logger,
         string? messageId,
         string endpoint,
-        string connectionName,
         int attempt,
         TimeSpan elapsed);
 
     [LoggerMessage(
         LogLevel.Information,
-        "Publishing message {MessageId} to endpoint {Endpoint} on {ConnectionName} failed (attempt {Attempt}) "
-            + "and is attempted again in {Delay}. The broker delivers the message twice if it already has it. "
-            + "Reason: {Reason}")]
+        "RabbitMQ publish of {MessageId} to {Endpoint} failed (attempt {Attempt}): {Reason}; retrying in "
+            + "{Delay}, which can deliver it twice")]
     public static partial void PublishRetryScheduled(
         this ILogger logger,
         string? messageId,
         string endpoint,
-        string connectionName,
         int attempt,
         TimeSpan delay,
         string reason);
 
     [LoggerMessage(
         LogLevel.Warning,
-        "{Count} publishes on RabbitMQ connection {ConnectionName} have waited for the broker for at least "
-            + "{Interval}. The connection is {ConnectionStatus}")]
+        "RabbitMQ {ConnectionRole} connection {ConnectionStatus}: {Count} publishes waiting for "
+            + "{Interval} or longer")]
     public static partial void PublishesStalled(
         this ILogger logger,
-        string connectionName,
+        string connectionRole,
         long count,
         TimeSpan interval,
         string connectionStatus);
 
-    [LoggerMessage(LogLevel.Debug, "Opened publisher channel {ChannelNumber} on {ConnectionName}")]
-    public static partial void PublisherChannelOpened(this ILogger logger, string connectionName, int channelNumber);
+    [LoggerMessage(LogLevel.Debug, "RabbitMQ {ConnectionRole} connection opened publisher channel {ChannelNumber}")]
+    public static partial void PublisherChannelOpened(this ILogger logger, string connectionRole, int channelNumber);
 
     [LoggerMessage(
         LogLevel.Warning,
-        "The broker returned message {MessageId} because queue {Queue} does not exist on {ConnectionName}. "
-            + "Declaring the queue and its bindings again")]
+        "RabbitMQ publish of {MessageId} returned: queue {Queue} does not exist; declaring it again")]
     public static partial void MessageReturned(
         this ILogger logger,
         string? messageId,
-        string queue,
-        string connectionName);
+        string queue);
 
     [LoggerMessage(
         LogLevel.Information,
-        "Declared queue {Queue} and its bindings again on {ConnectionName}. Publishing message {MessageId} again")]
+        "RabbitMQ queue {Queue} declared again with its bindings; publishing {MessageId} again")]
     public static partial void QueueRedeclared(
         this ILogger logger,
         string queue,
-        string connectionName,
         string? messageId);
 }

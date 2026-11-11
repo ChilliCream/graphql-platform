@@ -26,7 +26,7 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
     /// </summary>
     /// <param name="logger">The logger for consumer events.</param>
     /// <param name="connection">The manager of the connection that consumes messages.</param>
-    public RabbitMQConsumerManager(ILogger<RabbitMQConsumerManager> logger, RabbitMQConnectionManager connection)
+    public RabbitMQConsumerManager(ILogger logger, RabbitMQConnectionManager connection)
     {
         Logger = logger;
         _connection = connection;
@@ -159,7 +159,7 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
         {
             using (_connection.BeginLogScope())
             {
-                Logger.ConsumerRegistrationFailed(failure, queueName, _connection.ConnectionName);
+                Logger.ConsumerRegistrationFailed(failure, queueName);
             }
 
             // A consumer the broker refuses does not keep attaching in the background.
@@ -206,7 +206,7 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
         {
             using (_connection.BeginLogScope())
             {
-                Logger.QueueDeleteFailed(ex, queueName, _connection.ConnectionName);
+                Logger.QueueDeleteFailed(ex, queueName);
             }
         }
     }
@@ -258,7 +258,7 @@ internal sealed class RabbitMQConsumerManager : IAsyncDisposable
         {
             using (_connection.BeginLogScope())
             {
-                Logger.ConsumerStopFailed(ex, consumer.QueueName, _connection.ConnectionName);
+                Logger.ConsumerStopFailed(ex, consumer.QueueName);
             }
         }
     }

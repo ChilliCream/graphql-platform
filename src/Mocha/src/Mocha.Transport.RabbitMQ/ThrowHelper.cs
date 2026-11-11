@@ -16,7 +16,7 @@ internal static class ThrowHelper
 
     public static ChannelOpenBlockedException ChannelOpenBlocked(Exception innerException)
         => new(
-            "The broker did not answer the request to open a channel, because it blocked the connection.",
+            "The broker did not answer the request to open a channel while it blocked the connection.",
             innerException);
 
     public static TimeoutException ChannelOpenTimedOut(Exception innerException)
@@ -32,6 +32,12 @@ internal static class ThrowHelper
         => new(
             $"The broker did not confirm the message within the publish timeout of {timeout}. "
             + "The broker may or may not have received the message.",
+            innerException);
+
+    public static TransportUnavailableException PublishRejected(TimeSpan timeout, Exception innerException)
+        => new(
+            $"The broker rejected the message until the publish timeout of {timeout} elapsed. "
+            + "This can happen when a queue is at its length limit.",
             innerException);
 
     public static InvalidOperationException ReplyEndpointNotStarted()

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -11,39 +10,27 @@ namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 internal static class TestManagers
 {
     public static RabbitMQConsumerManager CreateConsumerManager(
-        Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
-        string connectionName = "test consumer",
-        ILoggerFactory? loggerFactory = null)
-    {
-        loggerFactory ??= NullLoggerFactory.Instance;
-        var logger = loggerFactory.CreateLogger<RabbitMQConsumerManager>();
-        return new RabbitMQConsumerManager(
-            logger,
+        Func<CancellationToken, ValueTask<IConnection>> connectionFactory)
+        => new(
+            NullLogger.Instance,
             new RabbitMQConnectionManager(
-                logger,
-                connectionName,
+                NullLogger.Instance,
+                RabbitMQMessagingTransport.ConsumerRole,
                 TimeProvider.System,
                 connectionFactory,
                 RabbitMQConsumerManager.SetUpConnectionAsync));
-    }
 
     public static RabbitMQDispatcher CreateDispatcher(
         Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
-        Func<IConnection, CancellationToken, Task> setUpConnectionAsync,
-        string connectionName = "test dispatcher",
-        ILoggerFactory? loggerFactory = null)
-    {
-        loggerFactory ??= NullLoggerFactory.Instance;
-        var logger = loggerFactory.CreateLogger<RabbitMQDispatcher>();
-        return new RabbitMQDispatcher(
-            logger,
+        Func<IConnection, CancellationToken, Task> setUpConnectionAsync)
+        => new(
+            NullLogger.Instance,
             new RabbitMQConnectionManager(
-                logger,
-                connectionName,
+                NullLogger.Instance,
+                RabbitMQMessagingTransport.DispatcherRole,
                 TimeProvider.System,
                 connectionFactory,
                 setUpConnectionAsync));
-    }
 
     /// <summary>
     /// Registers a consumer that consumes at once, without preparing its channel.

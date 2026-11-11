@@ -6,6 +6,7 @@ using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
 using Npgsql;
+using RabbitMQ.Client;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests.Broker;
 
@@ -23,7 +24,11 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
         var deliveries = new DeliveryRecorder();
         var logs = RecordingLoggerProvider.For<PostgresOutboxProcessor>(LogLevel.Warning);
         await using var host = await StartHostAsync(
-            connectionString, deliveries, logs, static o => o.DispatchTimeout = TimeSpan.FromSeconds(2));
+            connectionString,
+            deliveries,
+            logs,
+            static o => o.DispatchTimeout = TimeSpan.FromSeconds(2),
+            ConsumeOrders);
 
         // The broker blocks a connection at once only when the connection has published before.
         await PublishAsync(host, "ORD-0");
@@ -60,12 +65,7 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
         var connectionString = await fixture.CreateDatabaseAsync();
         var deliveries = new DeliveryRecorder();
         var logs = RecordingLoggerProvider.For<PostgresOutboxProcessor>(LogLevel.Warning);
-        await using var host = await StartHostAsync(connectionString, deliveries, logs, static o =>
-        {
-            o.DispatchTimeout = TimeSpan.FromSeconds(2);
-            o.MaxAttempts = 2;
-            o.MaxRetryDelay = TimeSpan.FromMilliseconds(200);
-        });
+        await using var host = await StartHostAsync(connectionString, deliveries, logs, ExhaustQuickly, ConsumeOrders);
         await PublishAsync(host, "ORD-0");
         await deliveries.WaitForAsync(["ORD-0"], s_timeout, TestToken);
         string[] expected = ["ORD-0", "ORD-1", "ORD-2"];
@@ -94,11 +94,63 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
         Assert.Equal([LogLevel.Warning], logs.Entries.Select(entry => entry.Level).Distinct());
     }
 
+    [Fact]
+    public async Task Outbox_Should_KeepMessageAndNotCountAttempts_When_QueueRejectsMessagesLongerThanAllAttempts()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var logs = RecordingLoggerProvider.For<PostgresOutboxProcessor>(LogLevel.Warning);
+        await using var host = await StartHostAsync(
+            connectionString,
+            new DeliveryRecorder(),
+            logs,
+            ExhaustQuickly,
+            static t =>
+            {
+                t.DeclareQueue("stock").WithArgument("x-max-length", 1).WithArgument("x-overflow", "reject-publish");
+                t.DispatchEndpoint("stock-send").ToQueue("stock").Send<ReserveStock>();
+            });
+        await using var connection = await host.Services.GetRequiredService<IConnectionFactory>()
+            .CreateConnectionAsync(TestToken);
+        await using var channel = await connection.CreateChannelAsync(cancellationToken: TestToken);
+        await SendAsync(host, "ORD-0");
+        await MessageRows.WaitForOutboxCountAsync(connectionString, 0, s_timeout, TestToken);
+
+        // act
+        // the queue holds one message and rejects every further one
+        await SendAsync(host, "ORD-1");
+
+        // More dispatches time out than the message has attempts.
+        await logs.WaitForEntriesAsync(3, s_timeout, TestToken);
+        var (rowsWhileFull, timesSentWhileFull) = await ReadOutboxAsync(connectionString);
+        await channel.BasicGetAsync("stock", autoAck: true, TestToken);
+        var remaining = await MessageRows.WaitForOutboxCountAsync(connectionString, 0, s_timeout, TestToken);
+        var queued = await channel.MessageCountAsync("stock", TestToken);
+
+        // assert
+        Assert.Equal(1, rowsWhileFull);
+        Assert.Equal(0, timesSentWhileFull);
+        Assert.Equal(0, remaining);
+        Assert.Equal(1u, queued);
+        Assert.Equal([LogLevel.Warning], logs.Entries.Select(entry => entry.Level).Distinct());
+    }
+
+    private static void ExhaustQuickly(PostgresOutboxOptions options)
+    {
+        options.DispatchTimeout = TimeSpan.FromSeconds(2);
+        options.MaxAttempts = 2;
+        options.MaxRetryDelay = TimeSpan.FromMilliseconds(200);
+    }
+
+    private static void ConsumeOrders(IRabbitMQMessagingTransportDescriptor transport)
+        => transport.Endpoint("orders").Handler<OrderPlacedHandler>();
+
     private async Task<BrokerHost> StartHostAsync(
         string connectionString,
         DeliveryRecorder deliveries,
         RecordingLoggerProvider logs,
-        Action<PostgresOutboxOptions> configure)
+        Action<PostgresOutboxOptions> configure,
+        Action<IRabbitMQMessagingTransportDescriptor> configureTransport)
     {
         var services = new ServiceCollection();
         services.AddLogging(b => b.SetMinimumLevel(LogLevel.Trace).AddProvider(logs));
@@ -112,7 +164,7 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
             configure(o);
         }));
         builder.AddEventHandler<OrderPlacedHandler>();
-        builder.AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderPlacedHandler>());
+        builder.AddRabbitMQ(configureTransport);
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -138,6 +190,13 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
         await bus.PublishAsync(new OrderPlaced(orderId), TestToken);
     }
 
+    private static async Task SendAsync(BrokerHost host, string orderId)
+    {
+        await using var scope = host.Services.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await bus.SendAsync(new ReserveStock(orderId), TestToken);
+    }
+
     private static async Task<(long Rows, int? TimesSent)> ReadOutboxAsync(string connectionString)
     {
         await using var connection = new NpgsqlConnection(connectionString);
@@ -150,6 +209,8 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
     }
 
     public sealed record OrderPlaced(string OrderId);
+
+    public sealed record ReserveStock(string OrderId);
 
     public sealed class OrderPlacedHandler(DeliveryRecorder deliveries) : IEventHandler<OrderPlaced>
     {

@@ -82,7 +82,9 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
             if (deadline is { IsCancellationRequested: true } && !dispatcher.IsDisposed)
             {
-                var timedOut = ThrowHelper.PublishTimedOut(dispatcher.PublishTimeout, lastFailure ?? ex);
+                var timedOut = lastFailure is PublishException { IsReturn: false }
+                    ? ThrowHelper.PublishRejected(dispatcher.PublishTimeout, lastFailure)
+                    : ThrowHelper.PublishTimedOut(dispatcher.PublishTimeout, lastFailure ?? ex);
                 dispatcher.LogPublishFailed(context, timedOut, attempt, started);
                 throw timedOut;
             }

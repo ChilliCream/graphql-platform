@@ -1,8 +1,8 @@
 namespace Mocha;
 
 /// <summary>
-/// Thrown when a transport could not hand a message to its broker because the broker was unreachable or
-/// did not answer in time. The broker may or may not have received the message.
+/// Thrown when a transport could not hand a message to its broker in time: the broker was unreachable, did
+/// not answer, or did not accept the message. The broker may or may not have received the message.
 /// </summary>
 public sealed class TransportUnavailableException : Exception
 {

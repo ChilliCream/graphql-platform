@@ -104,7 +104,8 @@ public sealed class RabbitMQFailureTests
             { "a channel or connection was disposed", new ObjectDisposedException("channel") },
             { "the frame writer of the client closed", new ChannelClosedException() },
             { "the socket failed", new IOException("Unable to write data to the transport connection") },
-            { "the socket was reset", new SocketException(104) }
+            { "the socket was reset", new SocketException(104) },
+            { "the broker rejected the message", new PublishException(1, isReturn: false) }
         };
 
     public static TheoryData<string, Exception> PermanentFailures()
@@ -146,7 +147,7 @@ public sealed class RabbitMQFailureTests
                 new BrokerUnreachableException(
                     new AggregateException(new AuthenticationException("The remote certificate is invalid")))
             },
-            { "the broker rejected the message", new PublishException(1, isReturn: false) },
+            { "the broker returned a message without a queue to repair", new PublishException(1, isReturn: true) },
             {
                 "the broker returned the message",
                 new InvalidOperationException(

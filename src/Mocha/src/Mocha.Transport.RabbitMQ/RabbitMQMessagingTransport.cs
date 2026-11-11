@@ -11,6 +11,26 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 public sealed class RabbitMQMessagingTransport : MessagingTransport
 {
+    /// <summary>
+    /// The logger category of the consumer connection, the receive endpoints and their deliveries.
+    /// </summary>
+    internal const string ConsumerLogCategory = "Mocha.Transport.RabbitMQ.Consumer";
+
+    /// <summary>
+    /// The logger category of the dispatcher connection and of every send and publish.
+    /// </summary>
+    internal const string DispatcherLogCategory = "Mocha.Transport.RabbitMQ.Dispatcher";
+
+    /// <summary>
+    /// The role of the connection that consumes messages, as it appears in connection names and logs.
+    /// </summary>
+    internal const string ConsumerRole = "consumer";
+
+    /// <summary>
+    /// The role of the connection that publishes messages, as it appears in connection names and logs.
+    /// </summary>
+    internal const string DispatcherRole = "dispatcher";
+
     private readonly Action<IRabbitMQMessagingTransportDescriptor> _configure;
 
     /// <summary>
@@ -103,22 +123,21 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         // Reconnect delays and timeouts follow the system clock, also when the application replaces the clock.
         var timeProvider = TimeProvider.System;
 
+        var loggerFactory = context.Services.GetRequiredService<ILoggerFactory>();
+        var dispatcherLogger = loggerFactory.CreateLogger(DispatcherLogCategory);
+        var consumerLogger = loggerFactory.CreateLogger(ConsumerLogCategory);
+
         Dispatcher = new RabbitMQDispatcher(
-            context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>(),
-            CreateConnectionManager(
-                context,
-                context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>(),
-                timeProvider,
-                "dispatcher",
-                ProvisionTopologyAsync));
+            dispatcherLogger,
+            CreateConnectionManager(context, dispatcherLogger, timeProvider, DispatcherRole, ProvisionTopologyAsync));
 
         ConsumerManager = new RabbitMQConsumerManager(
-            context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>(),
+            consumerLogger,
             CreateConnectionManager(
                 context,
-                context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>(),
+                consumerLogger,
                 timeProvider,
-                "consumer",
+                ConsumerRole,
                 RabbitMQConsumerManager.SetUpConnectionAsync));
 
         if (configuration.ConnectTimeout is { } connectTimeout)
@@ -154,7 +173,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                 ? cancellationToken => provider.CreateAsync(connectionName, cancellationToken)
                 : Connection.CreateAsync;
 
-        return new RabbitMQConnectionManager(logger, connectionName, timeProvider, connectionFactory, setUpConnectionAsync)
+        return new RabbitMQConnectionManager(logger, role, timeProvider, connectionFactory, setUpConnectionAsync)
         {
             LogContext = new Dictionary<string, object?>
             {

@@ -144,7 +144,7 @@ internal sealed partial class RabbitMQDispatcher
 
             using (_connection.BeginLogScope())
             {
-                _logger.PublishesStalled(_connection.ConnectionName, stalled, StalledPublishInterval, status);
+                _logger.PublishesStalled(_connection.ConnectionRole, stalled, StalledPublishInterval, status);
             }
         }
 
@@ -171,14 +171,13 @@ internal sealed partial class RabbitMQDispatcher
                 _logger.PublishConfirmedSlowly(
                     messageId,
                     endpoint,
-                    _connection.ConnectionName,
                     attempt,
                     elapsed,
                     s_slowPublishThreshold);
             }
             else
             {
-                _logger.PublishConfirmed(messageId, endpoint, _connection.ConnectionName, attempt, elapsed);
+                _logger.PublishConfirmed(messageId, endpoint, attempt, elapsed);
             }
         }
     }
@@ -197,7 +196,6 @@ internal sealed partial class RabbitMQDispatcher
                 exception,
                 context.Envelope?.MessageId,
                 context.Endpoint.Name,
-                _connection.ConnectionName,
                 attempt,
                 Stopwatch.GetElapsedTime(started));
         }
@@ -216,7 +214,6 @@ internal sealed partial class RabbitMQDispatcher
             _logger.PublishCancelled(
                 context.Envelope?.MessageId,
                 context.Endpoint.Name,
-                _connection.ConnectionName,
                 attempt,
                 Stopwatch.GetElapsedTime(started));
         }
@@ -235,7 +232,6 @@ internal sealed partial class RabbitMQDispatcher
             _logger.PublishRetryScheduled(
                 context.Envelope?.MessageId,
                 context.Endpoint.Name,
-                _connection.ConnectionName,
                 attempt,
                 delay,
                 $"{exception.GetType().Name}: {exception.Message}");
@@ -247,7 +243,7 @@ internal sealed partial class RabbitMQDispatcher
         using (_connection.BeginLogScope())
         using (_logger.BeginMessageScope(context))
         {
-            _logger.MessageReturned(context.Envelope?.MessageId, queueName, _connection.ConnectionName);
+            _logger.MessageReturned(context.Envelope?.MessageId, queueName);
         }
     }
 
@@ -256,7 +252,7 @@ internal sealed partial class RabbitMQDispatcher
         using (_connection.BeginLogScope())
         using (_logger.BeginMessageScope(context))
         {
-            _logger.QueueRedeclared(queueName, _connection.ConnectionName, context.Envelope?.MessageId);
+            _logger.QueueRedeclared(queueName, context.Envelope?.MessageId);
         }
     }
 
@@ -269,7 +265,7 @@ internal sealed partial class RabbitMQDispatcher
 
         using (_connection.BeginLogScope())
         {
-            _logger.PublisherChannelOpened(_connection.ConnectionName, channel.ChannelNumber);
+            _logger.PublisherChannelOpened(_connection.ConnectionRole, channel.ChannelNumber);
         }
     }
 }

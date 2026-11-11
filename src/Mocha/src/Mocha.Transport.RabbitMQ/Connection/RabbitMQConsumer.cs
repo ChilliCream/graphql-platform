@@ -212,7 +212,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                                 ex,
                                 RabbitMQFailure.GetLogLevel(ex),
                                 QueueName,
-                                connections.ConnectionName,
                                 attempt,
                                 timeProvider.GetElapsedTime(detachedSince),
                                 delay);
@@ -232,7 +231,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                     logger.ConsumerAttached(
                         attachment.Tag,
                         QueueName,
-                        connections.ConnectionName,
                         timeProvider.GetElapsedTime(detachedSince),
                         MaxPrefetch,
                         MaxConcurrency);
@@ -274,7 +272,7 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
             {
                 using (connections.BeginLogScope())
                 {
-                    logger.ConsumerFailed(ex, QueueName, connections.ConnectionName);
+                    logger.ConsumerFailed(ex, QueueName);
                 }
             }
         }
@@ -387,7 +385,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
             {
                 _manager.Logger.ConsumerBlockedByHandlers(
                     QueueName,
-                    connections.ConnectionName,
                     MaxConcurrency,
                     gracePeriod);
             }
@@ -398,7 +395,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
             {
                 _manager.Logger.ConsumerUnblocked(
                     QueueName,
-                    connections.ConnectionName,
                     connections.TimeProvider.GetElapsedTime(blockedSince) + gracePeriod);
             }
         }
@@ -414,7 +410,7 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
         {
             if (reason is null)
             {
-                _manager.Logger.ConsumerCancelled(QueueName, connections.ConnectionName, cancelledHandlers);
+                _manager.Logger.ConsumerCancelled(QueueName, cancelledHandlers);
                 return;
             }
 
@@ -423,7 +419,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
             _manager.Logger.ConsumerChannelLost(
                 level,
                 QueueName,
-                connections.ConnectionName,
                 reason.ReplyCode,
                 reason.ReplyText,
                 reason.Initiator,
@@ -483,7 +478,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                 exception,
                 delivery.BasicProperties.MessageId,
                 QueueName,
-                connections.ConnectionName,
                 delivery.ConsumerTag,
                 delivery.DeliveryTag,
                 delivery.BasicProperties.CorrelationId);
@@ -537,7 +531,7 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
         {
             using (connections.BeginLogScope())
             {
-                logger.ConsumerDrainStarted(QueueName, connections.ConnectionName, RunningHandlers);
+                logger.ConsumerDrainStarted(QueueName, RunningHandlers);
             }
         }
 
@@ -581,7 +575,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                 {
                     logger.ConsumerDrainTimedOut(
                         QueueName,
-                        connections.ConnectionName,
                         runningHandlers,
                         connections.TimeProvider.GetElapsedTime(started));
                 }
@@ -604,7 +597,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
             {
                 logger.ConsumerStopped(
                     QueueName,
-                    connections.ConnectionName,
                     connections.TimeProvider.GetElapsedTime(started),
                     RunningHandlers);
             }
@@ -754,41 +746,9 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                 {
                     _owner._manager.Logger.HandlerCancellationFailed(
                         ex,
-                        _owner.QueueName,
-                        connections.ConnectionName);
+                        _owner.QueueName);
                 }
             }
         }
     }
-}
-
-/// <summary>
-/// Identifies what a consumer is doing.
-/// </summary>
-internal enum ConsumerState
-{
-    /// <summary>
-    /// The consumer waits for a ready connection.
-    /// </summary>
-    WaitingForConnection,
-
-    /// <summary>
-    /// The consumer opens a channel, declares its queue and starts consuming.
-    /// </summary>
-    Attaching,
-
-    /// <summary>
-    /// The consumer declared its queue and waits until a handler of a lost channel returns.
-    /// </summary>
-    WaitingForHandlers,
-
-    /// <summary>
-    /// The broker delivers messages to the consumer.
-    /// </summary>
-    Attached,
-
-    /// <summary>
-    /// The consumer was stopped.
-    /// </summary>
-    Stopped
 }

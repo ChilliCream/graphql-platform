@@ -16,7 +16,7 @@ public sealed class RabbitMQConnectionManagerIntegrationTests(RabbitMQFixture fi
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var manager = new RabbitMQConnectionManager(
             NullLogger.Instance,
-            "late",
+            RabbitMQMessagingTransport.ConsumerRole,
             TimeProvider.System,
             async _ =>
             {

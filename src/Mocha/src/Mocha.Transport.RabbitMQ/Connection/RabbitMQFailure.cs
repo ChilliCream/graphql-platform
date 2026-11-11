@@ -8,22 +8,6 @@ using RabbitMQ.Client.Exceptions;
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
-/// Identifies whether a failed RabbitMQ operation can succeed on a later attempt.
-/// </summary>
-internal enum RabbitMQFailureKind
-{
-    /// <summary>
-    /// The connection or the broker is unavailable, and a later attempt can succeed.
-    /// </summary>
-    Transient,
-
-    /// <summary>
-    /// The broker or the configuration refuses the operation, and it fails the same way on every attempt.
-    /// </summary>
-    Permanent
-}
-
-/// <summary>
 /// Classifies failures of RabbitMQ operations for connection startup, recovery logging and publish retries.
 /// </summary>
 internal static class RabbitMQFailure
@@ -50,8 +34,12 @@ internal static class RabbitMQFailure
 
                     return RabbitMQFailureKind.Permanent;
 
-                case AuthenticationFailureException or AuthenticationException or PublishException:
+                case AuthenticationFailureException or AuthenticationException:
                     return RabbitMQFailureKind.Permanent;
+
+                // A returned message has no route and fails. A rejected message is attempted again.
+                case PublishException publish:
+                    return publish.IsReturn ? RabbitMQFailureKind.Permanent : RabbitMQFailureKind.Transient;
 
                 // The broker closed the channel or the connection and said why.
                 case OperationInterruptedException { ShutdownReason: { Initiator: ShutdownInitiator.Peer } reason }:

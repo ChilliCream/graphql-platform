@@ -10,7 +10,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// Owns one RabbitMQ connection: connects it at start, hands it out while it is ready, and replaces it in
 /// the background after it was lost.
 /// </summary>
-internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
+internal sealed class RabbitMQConnectionManager : IAsyncDisposable
 {
     private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan s_maxRetryDelay = TimeSpan.FromSeconds(10);
@@ -43,7 +43,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
     /// Creates a connection manager.
     /// </summary>
     /// <param name="logger">The logger for connection lifecycle events.</param>
-    /// <param name="connectionName">The name that identifies the connection in logs.</param>
+    /// <param name="connectionRole">The role of the connection, which names it in logs.</param>
     /// <param name="timeProvider">The clock used for elapsed times and retry delays.</param>
     /// <param name="connectionFactory">Creates a new RabbitMQ connection.</param>
     /// <param name="setUpConnectionAsync">
@@ -52,7 +52,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
     /// </param>
     public RabbitMQConnectionManager(
         ILogger logger,
-        string connectionName,
+        string connectionRole,
         TimeProvider timeProvider,
         Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
         Func<IConnection, CancellationToken, Task> setUpConnectionAsync)
@@ -60,19 +60,30 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
         _logger = logger;
         _connectionFactory = connectionFactory;
         _setUpConnectionAsync = setUpConnectionAsync;
-        ConnectionName = connectionName;
+        ConnectionRole = connectionRole;
         TimeProvider = timeProvider;
     }
 
     /// <summary>
-    /// Gets the name that identifies the connection in logs.
+    /// Gets the role of the connection, which names it in logs.
     /// </summary>
-    public string ConnectionName { get; }
+    public string ConnectionRole { get; }
 
     /// <summary>
     /// Gets the clock used for elapsed times and retry delays.
     /// </summary>
     public TimeProvider TimeProvider { get; }
+
+    /// <summary>
+    /// Gets the properties that identify the connection in structured logs: service, instance, transport,
+    /// connection name and role, broker host, port and virtual host.
+    /// </summary>
+    public IReadOnlyDictionary<string, object?> LogContext { get; init; } = new Dictionary<string, object?>();
+
+    /// <summary>
+    /// Begins a logger scope that carries <see cref="LogContext"/>.
+    /// </summary>
+    public IDisposable? BeginLogScope() => _logger.BeginScope(LogContext);
 
     /// <summary>
     /// Gets or sets how long <see cref="StartAsync"/> keeps retrying while the broker cannot be reached.
@@ -273,7 +284,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
             {
                 using (BeginLogScope())
                 {
-                    _logger.ConnectionAttemptStarted(ConnectionName, attempt);
+                    _logger.ConnectionAttemptStarted(ConnectionRole, attempt);
                 }
 
                 var connection = await ConnectOnceAsync(attemptCts.Token);
@@ -304,7 +315,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
                 {
                     using (BeginLogScope())
                     {
-                        _logger.ConnectionFailed(failure, ConnectionName, attempt, elapsed);
+                        _logger.ConnectionFailed(failure, ConnectionRole, attempt, elapsed);
                     }
 
                     if (timedOut)
@@ -320,7 +331,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
                     _logger.ConnectionAttemptFailed(
                         failure,
                         RabbitMQFailure.GetLogLevel(failure),
-                        ConnectionName,
+                        ConnectionRole,
                         attempt,
                         elapsed,
                         delay);
@@ -388,7 +399,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
         using (BeginLogScope())
         {
             _logger.ConnectionReady(
-                ConnectionName,
+                ConnectionRole,
                 attempt,
                 TimeProvider.GetElapsedTime(Volatile.Read(ref _unavailableSince)));
         }
@@ -412,7 +423,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
         using (BeginLogScope())
         {
             _logger.ConnectionLost(
-                ConnectionName,
+                ConnectionRole,
                 reason?.ReplyCode ?? 0,
                 reason?.ReplyText,
                 reason?.Initiator ?? ShutdownInitiator.Library,
@@ -459,7 +470,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
     {
         using (BeginLogScope())
         {
-            _logger.ConnectionCallbackFailed(e.Exception, ConnectionName, Print(e.Detail));
+            _logger.ConnectionCallbackFailed(e.Exception, ConnectionRole, Print(e.Detail));
         }
 
         return Task.CompletedTask;
@@ -483,7 +494,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
 
         using (BeginLogScope())
         {
-            _logger.ConnectionBlocked(ConnectionName, reason);
+            _logger.ConnectionBlocked(ConnectionRole, reason);
         }
     }
 
@@ -505,7 +516,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
         using (BeginLogScope())
         {
             _logger.ConnectionUnblocked(
-                ConnectionName,
+                ConnectionRole,
                 blockedSince == 0 ? TimeSpan.Zero : TimeProvider.GetElapsedTime(blockedSince));
         }
     }
@@ -536,7 +547,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
     /// within <paramref name="timeout"/>, the connection is closed, which starts a recovery.
     /// </summary>
     /// <exception cref="ChannelOpenBlockedException">
-    /// The broker did not answer because it blocked the connection. The connection stays, and the channel
+    /// The broker did not answer while it blocked the connection. The connection stays, and the channel
     /// number of the open is lost until the connection is replaced.
     /// </exception>
     public async Task<IChannel> OpenChannelAsync(
@@ -591,7 +602,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
 
         using (BeginLogScope())
         {
-            _logger.ConnectionAborted(ConnectionName, reason);
+            _logger.ConnectionAborted(ConnectionRole, reason);
         }
     }
 
@@ -627,7 +638,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
     {
         using (BeginLogScope())
         {
-            _logger.ConnectionCloseFailed(exception, ConnectionName);
+            _logger.ConnectionCloseFailed(exception, ConnectionRole);
         }
     }
 
@@ -740,7 +751,7 @@ internal sealed partial class RabbitMQConnectionManager : IAsyncDisposable
 
         using (BeginLogScope())
         {
-            _logger.ConnectionStopped(ConnectionName);
+            _logger.ConnectionStopped(ConnectionRole);
         }
     }
 

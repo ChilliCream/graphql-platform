@@ -8,6 +8,7 @@ namespace Mocha.Hosting;
 /// </summary>
 public static class MessageBusHealthCheckExtensions
 {
+    private const string DefaultName = "MessageBus";
     private static readonly string[] s_defaultTags = ["ready"];
     private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(10);
 
@@ -21,6 +22,18 @@ public static class MessageBusHealthCheckExtensions
         builder.AddRequestHandler<HealthRequestHandler>();
         return builder;
     }
+
+    /// <summary>
+    /// Adds a message bus check with the default name, failure status, tags and timeout to the ASP.NET Core
+    /// health checks system.
+    /// </summary>
+    /// <param name="builder">The health checks builder to extend.</param>
+    /// <param name="endpoint">
+    /// The endpoint the health request is sent to, or <see langword="null"/> to use default routing.
+    /// </param>
+    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
+    public static IHealthChecksBuilder AddMessageBus(this IHealthChecksBuilder builder, Uri? endpoint)
+        => builder.AddMessageBus(endpoint, DefaultName);
 
     /// <summary>
     /// Adds a message bus check to the ASP.NET Core health checks system.
@@ -47,7 +60,7 @@ public static class MessageBusHealthCheckExtensions
     public static IHealthChecksBuilder AddMessageBus(
         this IHealthChecksBuilder builder,
         Uri? endpoint = null,
-        string name = "MessageBus",
+        string name = DefaultName,
         HealthStatus? failureStatus = null,
         IEnumerable<string>? tags = null,
         TimeSpan? timeout = null)

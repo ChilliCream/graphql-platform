@@ -7,48 +7,41 @@ internal static partial class Logs
 {
     [LoggerMessage(
         LogLevel.Information,
-        "Consumer {ConsumerTag} is attached to queue {Queue} on {ConnectionName} after {Elapsed} "
-            + "(prefetch {MaxPrefetch}, concurrency {MaxConcurrency})")]
+        "RabbitMQ consumer of {Queue} attached after {Elapsed} (tag {ConsumerTag}, prefetch "
+            + "{MaxPrefetch}, concurrency {MaxConcurrency})")]
     public static partial void ConsumerAttached(
         this ILogger logger,
         string consumerTag,
         string queue,
-        string connectionName,
         TimeSpan elapsed,
         ushort maxPrefetch,
         ushort maxConcurrency);
 
     [LoggerMessage(
-        Message = "The consumer for queue {Queue} on {ConnectionName} is detached for {Elapsed}: attempt {Attempt} "
-            + "failed. Retrying in {Delay}")]
+        Message = "RabbitMQ consumer of {Queue} detached for {Elapsed}, attempt {Attempt} failed; retrying in "
+            + "{Delay}")]
     public static partial void ConsumerAttachFailed(
         this ILogger logger,
         Exception exception,
         LogLevel level,
         string queue,
-        string connectionName,
         int attempt,
         TimeSpan elapsed,
         TimeSpan delay);
 
-    [LoggerMessage(
-        LogLevel.Error,
-        "The broker refused the consumer for queue {Queue} on {ConnectionName}. Its endpoint does not start")]
+    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue} refused by the broker; its endpoint does not start")]
     public static partial void ConsumerRegistrationFailed(
         this ILogger logger,
         Exception exception,
-        string queue,
-        string connectionName);
+        string queue);
 
     [LoggerMessage(
-        Message = "The consumer for queue {Queue} on {ConnectionName} lost its channel: {ReplyCode} {ReplyText} "
-            + "(initiator: {Initiator}). {CancelledHandlers} running handlers were cancelled, and the broker "
-            + "delivers their messages again")]
+        Message = "RabbitMQ consumer of {Queue} lost its channel: {ReplyCode} {ReplyText} (initiator {Initiator}); "
+            + "{CancelledHandlers} handlers cancelled, their messages are delivered again")]
     public static partial void ConsumerChannelLost(
         this ILogger logger,
         LogLevel level,
         string queue,
-        string connectionName,
         ushort replyCode,
         string replyText,
         ShutdownInitiator initiator,
@@ -56,120 +49,98 @@ internal static partial class Logs
 
     [LoggerMessage(
         LogLevel.Warning,
-        "The broker cancelled the consumer for queue {Queue} on {ConnectionName}, which it does when the queue "
-            + "is deleted. {CancelledHandlers} running handlers were cancelled. Attaching again")]
+        "RabbitMQ consumer of {Queue} cancelled by the broker; {CancelledHandlers} handlers cancelled, "
+            + "attaching again")]
     public static partial void ConsumerCancelled(
         this ILogger logger,
         string queue,
-        string connectionName,
         int cancelledHandlers);
 
     [LoggerMessage(
         LogLevel.Error,
-        "The consumer for queue {Queue} on {ConnectionName} cannot attach: all {MaxConcurrency} handlers of a "
-            + "lost channel are still running {GracePeriod} after they were cancelled. The endpoint consumes "
-            + "again when one of them returns")]
+        "RabbitMQ consumer of {Queue} blocked: all {MaxConcurrency} handlers of the lost channel still "
+            + "run {GracePeriod} after their cancellation; waiting for one to return")]
     public static partial void ConsumerBlockedByHandlers(
         this ILogger logger,
         string queue,
-        string connectionName,
         ushort maxConcurrency,
         TimeSpan gracePeriod);
 
-    [LoggerMessage(
-        LogLevel.Information,
-        "A handler of the consumer for queue {Queue} on {ConnectionName} returned after {Elapsed}. "
-            + "The consumer attaches again")]
+    [LoggerMessage(LogLevel.Information, "RabbitMQ consumer of {Queue} unblocked after {Elapsed}; attaching again")]
     public static partial void ConsumerUnblocked(
         this ILogger logger,
         string queue,
-        string connectionName,
         TimeSpan elapsed);
 
     [LoggerMessage(
         LogLevel.Information,
-        "Stopping the consumer for queue {Queue} on {ConnectionName}: waiting for {RunningHandlers} running "
-            + "handlers")]
+        "RabbitMQ consumer of {Queue} stopping; waiting for {RunningHandlers} handlers")]
     public static partial void ConsumerDrainStarted(
         this ILogger logger,
         string queue,
-        string connectionName,
         int runningHandlers);
 
     [LoggerMessage(
         LogLevel.Warning,
-        "The consumer for queue {Queue} on {ConnectionName} stopped waiting for its handlers after {Elapsed}. "
-            + "{RunningHandlers} handlers were cancelled, and the broker returns their unacknowledged messages "
-            + "to the queue")]
+        "RabbitMQ consumer of {Queue} stopped waiting after {Elapsed}; {RunningHandlers} handlers "
+            + "cancelled, their messages return to the queue")]
     public static partial void ConsumerDrainTimedOut(
         this ILogger logger,
         string queue,
-        string connectionName,
         int runningHandlers,
         TimeSpan elapsed);
 
     [LoggerMessage(
         LogLevel.Information,
-        "Stopped the consumer for queue {Queue} on {ConnectionName} after {Elapsed}. {RunningHandlers} "
-            + "handlers are still running")]
+        "RabbitMQ consumer of {Queue} stopped after {Elapsed} ({RunningHandlers} handlers still running)")]
     public static partial void ConsumerStopped(
         this ILogger logger,
         string queue,
-        string connectionName,
         TimeSpan elapsed,
         int runningHandlers);
 
-    [LoggerMessage(
-        LogLevel.Critical,
-        "The consumer for queue {Queue} on {ConnectionName} failed unexpectedly and no longer consumes")]
+    [LoggerMessage(LogLevel.Critical, "RabbitMQ consumer of {Queue} failed unexpectedly; it no longer consumes")]
     public static partial void ConsumerFailed(
         this ILogger logger,
         Exception exception,
-        string queue,
-        string connectionName);
+        string queue);
 
-    [LoggerMessage(LogLevel.Error, "Stopping the consumer for queue {Queue} on {ConnectionName} failed")]
+    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue}: stopping failed")]
     public static partial void ConsumerStopFailed(
         this ILogger logger,
         Exception exception,
-        string queue,
-        string connectionName);
+        string queue);
 
     [LoggerMessage(
         LogLevel.Error,
-        "Handling message {MessageId} from queue {Queue} on {ConnectionName} failed (consumer {ConsumerTag}, "
-            + "delivery {DeliveryTag}, correlation {CorrelationId})")]
+        "RabbitMQ consumer of {Queue}: handling message {MessageId} failed (tag {ConsumerTag}, delivery "
+            + "{DeliveryTag}, correlation {CorrelationId})")]
     public static partial void DeliveryFailed(
         this ILogger logger,
         Exception exception,
         string? messageId,
         string queue,
-        string connectionName,
         string consumerTag,
         ulong deliveryTag,
         string? correlationId);
 
-    [LoggerMessage(
-        LogLevel.Error,
-        "Cancelling the handlers of the consumer for queue {Queue} on {ConnectionName} failed")]
+    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue}: cancelling its handlers failed")]
     public static partial void HandlerCancellationFailed(
         this ILogger logger,
         Exception exception,
-        string queue,
-        string connectionName);
+        string queue);
 
-    [LoggerMessage(LogLevel.Warning, "Deleting queue {Queue} on {ConnectionName} failed")]
+    [LoggerMessage(LogLevel.Warning, "RabbitMQ queue {Queue}: deleting failed")]
     public static partial void QueueDeleteFailed(
         this ILogger logger,
         Exception exception,
-        string queue,
-        string connectionName);
+        string queue);
 
     [LoggerMessage(
         LogLevel.Information,
-        "Skipped the {Settlement} of message {MessageId} because its channel closed (consumer {ConsumerTag}, "
-            + "delivery {DeliveryTag}, exchange {Exchange}, routing key {RoutingKey}, redelivered: {Redelivered}). "
-            + "The broker delivers the message again")]
+        "RabbitMQ message {MessageId}: {Settlement} skipped, channel closed (tag {ConsumerTag}, delivery "
+            + "{DeliveryTag}, exchange {Exchange}, routing key {RoutingKey}, redelivered {Redelivered}); the "
+            + "broker delivers it again")]
     public static partial void SettlementSkipped(
         this ILogger logger,
         string settlement,

@@ -3,93 +3,76 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ;
 
-internal sealed partial class RabbitMQConnectionManager
-{
-    /// <summary>
-    /// Gets the properties that identify the connection in structured logs: service, instance, transport,
-    /// connection name and role, broker host, port and virtual host.
-    /// </summary>
-    public IReadOnlyDictionary<string, object?> LogContext { get; init; } = new Dictionary<string, object?>();
-
-    /// <summary>
-    /// Begins a logger scope that carries <see cref="LogContext"/>.
-    /// </summary>
-    public IDisposable? BeginLogScope() => _logger.BeginScope(LogContext);
-}
-
 internal static partial class Logs
 {
-    [LoggerMessage(LogLevel.Debug, "Connecting RabbitMQ connection {ConnectionName} (attempt {Attempt})")]
-    public static partial void ConnectionAttemptStarted(this ILogger logger, string connectionName, int attempt);
+    [LoggerMessage(LogLevel.Debug, "RabbitMQ {ConnectionRole} connection connecting (attempt {Attempt})")]
+    public static partial void ConnectionAttemptStarted(this ILogger logger, string connectionRole, int attempt);
 
     [LoggerMessage(
         LogLevel.Information,
-        "RabbitMQ connection {ConnectionName} is ready after {Elapsed} (attempt {Attempt})")]
+        "RabbitMQ {ConnectionRole} connection ready after {Elapsed} (attempt {Attempt})")]
     public static partial void ConnectionReady(
         this ILogger logger,
-        string connectionName,
+        string connectionRole,
         int attempt,
         TimeSpan elapsed);
 
     [LoggerMessage(
-        Message = "RabbitMQ connection {ConnectionName} is unavailable for {Elapsed}: attempt {Attempt} failed. "
-            + "Retrying in {Delay}")]
+        Message = "RabbitMQ {ConnectionRole} connection unavailable for {Elapsed}, attempt {Attempt} failed; "
+            + "retrying in {Delay}")]
     public static partial void ConnectionAttemptFailed(
         this ILogger logger,
         Exception exception,
         LogLevel level,
-        string connectionName,
+        string connectionRole,
         int attempt,
         TimeSpan elapsed,
         TimeSpan delay);
 
     [LoggerMessage(
         LogLevel.Error,
-        "RabbitMQ connection {ConnectionName} could not be established after {Elapsed} and {Attempt} attempts. "
-            + "The start fails")]
+        "RabbitMQ {ConnectionRole} connection not established after {Elapsed} and {Attempt} attempts; the "
+            + "start fails")]
     public static partial void ConnectionFailed(
         this ILogger logger,
         Exception exception,
-        string connectionName,
+        string connectionRole,
         int attempt,
         TimeSpan elapsed);
 
     [LoggerMessage(
         LogLevel.Warning,
-        "RabbitMQ connection {ConnectionName} was lost: {ReplyCode} {ReplyText} (initiator: {Initiator}, "
-            + "cause: {Cause}). Reconnecting in the background")]
+        "RabbitMQ {ConnectionRole} connection lost: {ReplyCode} {ReplyText} (initiator {Initiator}, cause "
+            + "{Cause}); reconnecting")]
     public static partial void ConnectionLost(
         this ILogger logger,
-        string connectionName,
+        string connectionRole,
         ushort replyCode,
         string? replyText,
         ShutdownInitiator initiator,
         string? cause);
 
-    [LoggerMessage(LogLevel.Warning, "Closing RabbitMQ connection {ConnectionName}: {Reason}")]
-    public static partial void ConnectionAborted(this ILogger logger, string connectionName, string reason);
+    [LoggerMessage(LogLevel.Warning, "RabbitMQ {ConnectionRole} connection closed by Mocha: {Reason}; reconnecting")]
+    public static partial void ConnectionAborted(this ILogger logger, string connectionRole, string reason);
 
-    [LoggerMessage(LogLevel.Information, "RabbitMQ connection {ConnectionName} is closed")]
-    public static partial void ConnectionStopped(this ILogger logger, string connectionName);
+    [LoggerMessage(LogLevel.Information, "RabbitMQ {ConnectionRole} connection closed")]
+    public static partial void ConnectionStopped(this ILogger logger, string connectionRole);
 
     [LoggerMessage(
         LogLevel.Warning,
-        "RabbitMQ connection {ConnectionName} is blocked by the broker: {Reason}. Publishes wait until the "
-            + "broker unblocks it")]
-    public static partial void ConnectionBlocked(this ILogger logger, string connectionName, string reason);
+        "RabbitMQ {ConnectionRole} connection blocked by the broker: {Reason}; publishes wait")]
+    public static partial void ConnectionBlocked(this ILogger logger, string connectionRole, string reason);
 
-    [LoggerMessage(
-        LogLevel.Information,
-        "RabbitMQ connection {ConnectionName} was unblocked by the broker after {Elapsed}")]
-    public static partial void ConnectionUnblocked(this ILogger logger, string connectionName, TimeSpan elapsed);
+    [LoggerMessage(LogLevel.Information, "RabbitMQ {ConnectionRole} connection unblocked after {Elapsed}")]
+    public static partial void ConnectionUnblocked(this ILogger logger, string connectionRole, TimeSpan elapsed);
 
-    [LoggerMessage(LogLevel.Debug, "Closing a discarded RabbitMQ connection of {ConnectionName} failed")]
-    public static partial void ConnectionCloseFailed(this ILogger logger, Exception exception, string connectionName);
+    [LoggerMessage(LogLevel.Debug, "RabbitMQ {ConnectionRole} connection: closing a discarded connection failed")]
+    public static partial void ConnectionCloseFailed(this ILogger logger, Exception exception, string connectionRole);
 
-    [LoggerMessage(LogLevel.Error, "A callback of RabbitMQ connection {ConnectionName} failed. Detail: {Detail}")]
+    [LoggerMessage(LogLevel.Error, "RabbitMQ {ConnectionRole} connection: a callback failed ({Detail})")]
     public static partial void ConnectionCallbackFailed(
         this ILogger logger,
         Exception exception,
-        string connectionName,
+        string connectionRole,
         string detail);
 }

@@ -73,6 +73,32 @@ public sealed class MessageBusHealthCheckExtensionsTests
     }
 
     [Fact]
+    public async Task AddMessageBus_Should_SendToTheEndpoint_When_CalledWithTheEndpointOnly()
+    {
+        // arrange
+        // a method group converts only to the overload that takes exactly these parameters
+        Func<IHealthChecksBuilder, Uri?, IHealthChecksBuilder> addMessageBus =
+            MessageBusHealthCheckExtensions.AddMessageBus;
+        var orders = new Uri("rabbitmq://orders-health");
+        var bus = CreateBus(_ => new ValueTask<HealthResponse>(new HealthResponse("OK")));
+        var services = CreateServices(bus.Object);
+        addMessageBus(services.AddHealthChecks(), orders);
+        await using var provider = services.BuildServiceProvider();
+        var healthChecks = provider.GetRequiredService<HealthCheckService>();
+
+        // act
+        var report = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(["MessageBus"], report.Entries.Keys);
+        Assert.Equal(HealthStatus.Healthy, report.Status);
+        bus.Verify(m => m.RequestAsync(
+            It.IsAny<HealthRequest>(),
+            It.Is<SendOptions>(o => o.Endpoint == orders),
+            It.IsAny<CancellationToken>()), Times.Once());
+    }
+
+    [Fact]
     public async Task AddMessageBus_Should_ReportFailureStatusAfterTimeout_When_BusDoesNotAnswer()
     {
         // arrange

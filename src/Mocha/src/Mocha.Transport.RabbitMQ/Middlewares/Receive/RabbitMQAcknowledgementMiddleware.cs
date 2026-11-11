@@ -12,7 +12,7 @@ namespace Mocha.Transport.RabbitMQ.Middlewares;
 /// Receive middleware that sends a BasicAck on successful processing and a BasicNack (with requeue) on failure,
 /// ensuring messages are properly acknowledged or returned to the broker.
 /// </summary>
-internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowledgementMiddleware> logger)
+internal sealed class RabbitMQAcknowledgementMiddleware(ILogger logger)
 {
     /// <summary>
     /// Invokes the next middleware in the pipeline and acknowledges or negatively acknowledges the message based on the outcome.
@@ -97,7 +97,8 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger<RabbitMQAcknowle
             static (context, next) =>
             {
                 var middleware = new RabbitMQAcknowledgementMiddleware(
-                    context.Services.GetRequiredService<ILogger<RabbitMQAcknowledgementMiddleware>>());
+                    context.Services.GetRequiredService<ILoggerFactory>()
+                        .CreateLogger(RabbitMQMessagingTransport.ConsumerLogCategory));
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "RabbitMQAcknowledgement");
