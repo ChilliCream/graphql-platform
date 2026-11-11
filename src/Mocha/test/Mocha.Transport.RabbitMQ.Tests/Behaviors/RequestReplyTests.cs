@@ -130,7 +130,7 @@ public class RequestReplyTests
     }
 
     [Fact]
-    public async Task Transport_Should_DeclareDurableAutoDeleteReplyQueue_When_Started()
+    public async Task Transport_Should_DeclareDurableExpiringReplyQueue_When_Started()
     {
         // arrange
         // The broker denies non-durable, non-exclusive queues by default since RabbitMQ 4.3, so a
@@ -172,8 +172,42 @@ public class RequestReplyTests
         // assert
         Assert.True(replyQueue.GetProperty("durable").GetBoolean());
         Assert.False(replyQueue.GetProperty("exclusive").GetBoolean());
-        Assert.True(replyQueue.GetProperty("auto_delete").GetBoolean());
-        Assert.Equal(1800000, expires);
+        Assert.False(replyQueue.GetProperty("auto_delete").GetBoolean());
+        Assert.Equal(60000, expires);
+    }
+
+    [Fact]
+    public async Task RequestAsync_Should_ReturnResponse_When_ConsumerConnectionIsLost()
+    {
+        // arrange
+        const string queueName = "order-status";
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(vhost.ConnectionFactory)
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddRabbitMQ(t => t.Endpoint(queueName).Handler<GetOrderStatusHandler>())
+            .BuildTestBusAsync();
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(TestTimeouts.Signal);
+        var before = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-before" }, cts.Token);
+        var replyQueue = await vhost.Broker.GetReplyQueueNameAsync();
+
+        // act
+        // the reply queue expires while its consumer is disconnected
+        await using (await vhost.Faults.RevokeAccessAsync())
+        {
+            await vhost.Faults.CloseConsumerConnectionAsync(queueName);
+            await vhost.Faults.DeleteQueueAsync(replyQueue);
+        }
+
+        var after = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "ORD-after" }, cts.Token);
+
+        // assert
+        Assert.Equal(("ORD-before", "Shipped"), (before.OrderId, before.Status));
+        Assert.Equal(("ORD-after", "Shipped"), (after.OrderId, after.Status));
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>
