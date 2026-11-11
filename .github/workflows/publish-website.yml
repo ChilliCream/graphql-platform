@@ -50,7 +50,18 @@ jobs:
         working-directory: website
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
+        working-directory: website
+
+      - name: Install Playwright Chromium System Dependencies
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          for delay in 10 20 0; do
+            npx playwright install-deps chromium && exit 0
+            sleep "$delay"
+          done
+          exit 1
         working-directory: website
 
       - name: Cache Optimized Images
