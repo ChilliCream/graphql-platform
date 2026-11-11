@@ -1,0 +1,84 @@
+{
+  "sources": [
+    "Mocha.Mediator"
+  ],
+  "activities": [
+    {
+      "OperationName": "send OuterCommand",
+      "DisplayName": "send OuterCommand",
+      "Kind": "Internal",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "messaging.system",
+          "Value": "mocha.mediator"
+        },
+        {
+          "Key": "messaging.operation.name",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.type",
+          "Value": "OuterCommand"
+        }
+      ],
+      "events": [],
+      "activities": [
+        {
+          "OperationName": "send TracedCommand",
+          "DisplayName": "send TracedCommand",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "messaging.system",
+              "Value": "mocha.mediator"
+            },
+            {
+              "Key": "messaging.operation.name",
+              "Value": "send"
+            },
+            {
+              "Key": "messaging.operation.type",
+              "Value": "send"
+            },
+            {
+              "Key": "messaging.message.type",
+              "Value": "TracedCommand"
+            }
+          ],
+          "events": []
+        },
+        {
+          "OperationName": "publish TracedNotification",
+          "DisplayName": "publish TracedNotification",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "messaging.system",
+              "Value": "mocha.mediator"
+            },
+            {
+              "Key": "messaging.operation.name",
+              "Value": "publish"
+            },
+            {
+              "Key": "messaging.operation.type",
+              "Value": "publish"
+            },
+            {
+              "Key": "messaging.message.type",
+              "Value": "TracedNotification"
+            }
+          ],
+          "events": []
+        }
+      ]
+    }
+  ]
+}
