@@ -191,13 +191,14 @@ async function captureLogs(action) {
 
 async function runAgainstMock({
   status = 200,
+  responseBody = "",
   state,
   previous,
   current,
   fetchImpl,
 }) {
   const directory = await mkdtemp(path.join(os.tmpdir(), "indexnow-"));
-  const mock = await withMock(status, "");
+  const mock = await withMock(status, responseBody);
   try {
     const manifestPath = path.join(directory, "new.json");
     const statePath = path.join(directory, "state.json");
@@ -306,7 +307,19 @@ test("run_Should_WarnAndNotThrow_When_EndpointRejects", async () => {
 
   assert.equal(posts.length, 1);
   assert.deepEqual(logs, [
-    "::warning::IndexNow: Batch 1 of 1 failed with HTTP 403 . Skipping the remaining batches (1 added, 0 changed, 0 removed (first run)).",
+    "::warning::IndexNow: Batch 1 of 1 failed with HTTP 403. Skipping the remaining batches (1 added, 0 changed, 0 removed (first run)).",
+  ]);
+});
+
+test("run_Should_IncludeResponseBodyInWarning_When_EndpointRejectsWithBody", async () => {
+  const { logs } = await runAgainstMock({
+    status: 403,
+    responseBody: "key not found",
+    current: { [url("a")]: "1" },
+  });
+
+  assert.deepEqual(logs, [
+    "::warning::IndexNow: Batch 1 of 1 failed with HTTP 403 key not found. Skipping the remaining batches (1 added, 0 changed, 0 removed (first run)).",
   ]);
 });
 

@@ -371,9 +371,10 @@ export async function run(env = process.env, options = {}) {
       });
       statuses.push(response.status);
       if (!response.ok) {
-        const body = await response.text().catch(() => "");
+        const body = (await response.text().catch(() => "")).trim();
+        const detail = body ? ` ${body}` : "";
         warn(
-          `Batch ${index + 1} of ${batches.length} failed with HTTP ${response.status} ${body}. Skipping the remaining batches (${counts}).`,
+          `Batch ${index + 1} of ${batches.length} failed with HTTP ${response.status}${detail}. Skipping the remaining batches (${counts}).`,
         );
         await writeSummary(
           env,
