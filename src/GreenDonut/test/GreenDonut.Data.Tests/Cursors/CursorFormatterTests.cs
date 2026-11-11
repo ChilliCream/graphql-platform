@@ -113,6 +113,88 @@ public class CursorFormatterTests
         Assert.Equal("description:123", parsed.Values[1]);
     }
 
+    [Theory]
+    [InlineData('a', 300)]
+    [InlineData('é', 150)]
+    public void Format_Should_WriteWholeKey_When_KeyExceedsInitialBuffer(char character, int length)
+    {
+        // arrange
+        var name = new string(character, length);
+        var entity = new MyClass { Name = name };
+        Expression<Func<MyClass, object>> selector = x => x.Name;
+        var serializer = new StringCursorKeySerializer();
+
+        // act
+        var result = CursorFormatter.Format(entity, [new CursorKey(selector, serializer)]);
+
+        // assert
+        Assert.Equal("{}" + name, Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+    }
+
+    [Fact]
+    public void Format_Should_WriteBothKeys_When_SecondKeyExceedsExpandedBuffer()
+    {
+        // arrange
+        var entity = new MyClass { Name = new string('a', 300), Description = new string('b', 1000) };
+        Expression<Func<MyClass, object?>> selector1 = x => x.Name;
+        Expression<Func<MyClass, object?>> selector2 = x => x.Description;
+        var serializer = new StringCursorKeySerializer();
+
+        // act
+        var result = CursorFormatter.Format(
+            entity,
+            [
+                new CursorKey(selector1, serializer),
+                new CursorKey(selector2, serializer)
+            ]);
+
+        // assert
+        Assert.Equal(
+            "{}" + entity.Name + ":" + entity.Description,
+            Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+    }
+
+    [Fact]
+    public void Format_Should_EscapeColons_When_EscapedKeyExceedsInitialBuffer()
+    {
+        // arrange
+        // the key fits in the 254 bytes left after "{}", its escaped form does not
+        var entity = new MyClass { Name = "::" + new string('a', 251) };
+        Expression<Func<MyClass, object>> selector = x => x.Name;
+        var serializer = new StringCursorKeySerializer();
+
+        // act
+        var result = CursorFormatter.Format(entity, [new CursorKey(selector, serializer)]);
+
+        // assert
+        Assert.Equal(
+            @"{}\:\:" + new string('a', 251),
+            Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+    }
+
+    [Fact]
+    public void Format_And_Parse_Should_RoundTrip_When_KeysExceedInitialBuffer()
+    {
+        // arrange
+        var entity = new MyClass
+        {
+            Name = string.Concat(Enumerable.Repeat("é:", 100)),
+            Description = new string('b', 300)
+        };
+        Expression<Func<MyClass, object?>> selector1 = x => x.Name;
+        Expression<Func<MyClass, object?>> selector2 = x => x.Description;
+        var serializer = new StringCursorKeySerializer();
+        CursorKey[] keys = [new CursorKey(selector1, serializer), new CursorKey(selector2, serializer)];
+
+        // act
+        var formatted = CursorFormatter.Format(entity, keys);
+        var parsed = CursorParser.Parse(formatted, keys);
+
+        // assert
+        Assert.Equal(entity.Name, parsed.Values[0]);
+        Assert.Equal(entity.Description, parsed.Values[1]);
+    }
+
     [Fact]
     public void Format_Nested_Key_With_Null_Intermediate_Yields_Null_Value()
     {
