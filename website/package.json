@@ -14,6 +14,7 @@
     "generate:indexnow-manifest": "node scripts/generate-indexnow-manifest.mjs",
     "indexnow:fetch-previous": "node scripts/indexnow-submit.mjs fetch-previous",
     "indexnow:submit": "node scripts/indexnow-submit.mjs",
+    "indexnow:submit-all": "node scripts/indexnow-submit.mjs submit-all",
     "validate:structured-data": "node scripts/validate-structured-data.mjs",
     "validate:benchmarks": "node scripts/validate-benchmark-report.mjs",
     "test:indexnow": "node --test scripts/indexnow.test.mjs",

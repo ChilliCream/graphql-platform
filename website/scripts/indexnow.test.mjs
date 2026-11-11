@@ -8,12 +8,14 @@ import { hashPageContent } from "./generate-indexnow-manifest.mjs";
 import {
   batchUrls,
   diffManifests,
+  extractSitemapUrls,
   fetchPreviousState,
   INDEXNOW_HOST,
   MAX_URLS_PER_REQUEST,
   parseManifest,
   run,
   runFetchPrevious,
+  runSubmitAll,
   waitForLiveManifest,
 } from "./indexnow-submit.mjs";
 
@@ -189,6 +191,35 @@ async function captureLogs(action) {
   return logs;
 }
 
+function scriptedFetch(responses, sent) {
+  const queue = [...responses];
+  return async (input, init) => {
+    if (init?.method !== "POST") {
+      return fetch(input, init);
+    }
+    sent.push(init.body);
+    const next = queue.shift();
+    if (next === undefined) {
+      throw new Error("no scripted response left");
+    }
+    if (next instanceof Error) {
+      throw next;
+    }
+    return new Response(next.body ?? "", {
+      status: next.status,
+      headers: next.headers,
+    });
+  };
+}
+
+const SITE_VERIFICATION_PENDING = {
+  status: 403,
+  body: JSON.stringify({
+    errorCode: "SiteVerificationNotCompleted",
+    message: "Site verification is not completed.",
+  }),
+};
+
 async function runAgainstMock({
   status = 200,
   responseBody = "",
@@ -196,7 +227,14 @@ async function runAgainstMock({
   previous,
   current,
   fetchImpl,
+  postResponses,
+  now,
+  env: extraEnv,
 }) {
+  const sleeps = [];
+  const sleep = async (ms) => {
+    sleeps.push(ms);
+  };
   const directory = await mkdtemp(path.join(os.tmpdir(), "indexnow-"));
   const mock = await withMock(status, responseBody);
   try {
@@ -223,17 +261,25 @@ async function runAgainstMock({
       INDEXNOW_LIVE_MANIFEST_URL: `${mock.origin}/indexnow-manifest.json`,
       INDEXNOW_POLL_INTERVAL_SECONDS: "0.01",
       INDEXNOW_POLL_TIMEOUT_SECONDS: "1",
+      ...extraEnv,
     };
     mock.liveBody.current = JSON.stringify(current);
-    const logs = await captureLogs(() => run(env, { fetchImpl }));
+    const sent = [];
+    if (postResponses) {
+      fetchImpl = scriptedFetch(postResponses, sent);
+    }
+    const logs = await captureLogs(() => run(env, { fetchImpl, sleep, now }));
     const summary = await readFile(summaryPath, "utf8").catch(() => "");
     return {
-      posts: mock.requests
-        .filter((request) => request.method === "POST")
-        .map((request) => JSON.parse(request.body)),
+      posts: postResponses
+        ? sent.map((body) => JSON.parse(body))
+        : mock.requests
+            .filter((request) => request.method === "POST")
+            .map((request) => JSON.parse(request.body)),
       logs,
       summary,
       statePath,
+      sleeps,
     };
   } finally {
     await mock.close();
@@ -271,7 +317,7 @@ test("run_Should_PostChangedUrls_When_ManifestsDiffer", async () => {
   );
   assert.deepEqual(posts[0].urlList, [url("new"), url("edit"), url("gone")]);
   assert.deepEqual(logs, [
-    "::notice::IndexNow submitted 1 added, 1 changed, 1 removed, 1 request, HTTP 200.",
+    "::notice::IndexNow submitted 1 added, 1 changed, 1 removed, 1 request, HTTP 200, 0 retries.",
   ]);
 });
 
@@ -332,7 +378,7 @@ test("run_Should_ReportCountsInSummary_When_EndpointRejects", async () => {
 
   assert.equal(
     summary,
-    "IndexNow failed: HTTP 403 (1 added, 1 changed, 1 removed).\n",
+    "IndexNow failed: HTTP 403 at batch 1 of 1 (1 added, 1 changed, 1 removed), 0 retries.\n",
   );
 });
 
@@ -341,22 +387,19 @@ test("run_Should_ReportCountsInWarningAndSummary_When_ErrorIsThrown", async () =
     previous: { [url("gone")]: "1" },
     current: { [url("new")]: "1" },
     fetchImpl: (input, init) => {
-      if (init?.method === "POST") {
-        throw new Error("boom");
+      if (init?.method !== "POST") {
+        return fetch(input, init);
       }
-      return fetch(input, init);
+      throw new Error("boom");
     },
   });
 
-  assert.deepEqual(
-    logs.filter((line) => line.startsWith("::warning::")),
-    [
-      "::warning::IndexNow: Submission failed (boom) (1 added, 0 changed, 1 removed).",
-    ],
-  );
+  assert.deepEqual(logs, [
+    "::warning::IndexNow: Batch 1 of 1 failed with a network error (boom) after 4 retries. Skipping the remaining batches (1 added, 0 changed, 1 removed).",
+  ]);
   assert.equal(
     summary,
-    "IndexNow failed: boom (1 added, 0 changed, 1 removed).\n",
+    "IndexNow failed: a network error (boom) at batch 1 of 1 (1 added, 0 changed, 1 removed), 4 retries.\n",
   );
 });
 
@@ -369,7 +412,7 @@ test("run_Should_PostEveryUrl_When_StateIsFirstRun", async () => {
   assert.deepEqual(posts[0].urlList, [url("a"), url("b")]);
   assert.equal(
     summary,
-    "IndexNow submitted 2 added, 0 changed, 0 removed (first run), 1 request, HTTP 200.\n",
+    "IndexNow submitted 2 added, 0 changed, 0 removed (first run), 1 request, HTTP 200, 0 retries.\n",
   );
 });
 
@@ -483,4 +526,417 @@ test("runFetchPrevious_Should_PersistTheOutcome_When_ManifestIsFirstRun", async 
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+const FIRST_RUN = { current: { [url("a")]: "1" } };
+const ONE_URL_COUNTS = "1 added, 0 changed, 0 removed (first run)";
+
+test("run_Should_SucceedAfterRetry_When_SiteVerificationNotCompletedThenOk", async () => {
+  const { posts, logs, summary, sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [SITE_VERIFICATION_PENDING, { status: 200 }],
+  });
+
+  assert.equal(posts.length, 2);
+  assert.deepEqual(sleeps, [30_000]);
+  assert.deepEqual(logs, [
+    `::notice::IndexNow submitted ${ONE_URL_COUNTS}, 1 request, HTTP 200, 1 retry.`,
+  ]);
+  assert.equal(
+    summary,
+    `IndexNow submitted ${ONE_URL_COUNTS}, 1 request, HTTP 200, 1 retry.\n`,
+  );
+});
+
+test("run_Should_GiveUpWithWarning_When_SiteVerificationNeverCompletes", async () => {
+  const { posts, logs, summary, sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: Array.from({ length: 5 }, () => SITE_VERIFICATION_PENDING),
+  });
+
+  assert.equal(posts.length, 5);
+  assert.deepEqual(sleeps, [30_000, 60_000, 120_000, 240_000]);
+  assert.deepEqual(logs, [
+    `::warning::IndexNow: Batch 1 of 1 failed with HTTP 403 ${SITE_VERIFICATION_PENDING.body} after 4 retries. Skipping the remaining batches (${ONE_URL_COUNTS}).`,
+  ]);
+  assert.equal(
+    summary,
+    `IndexNow failed: HTTP 403 at batch 1 of 1 (${ONE_URL_COUNTS}), 4 retries.\n`,
+  );
+});
+
+test("run_Should_WaitRetryAfterSeconds_When_Status429", async () => {
+  const { logs, sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [
+      { status: 429, headers: { "retry-after": "7" } },
+      { status: 200 },
+    ],
+  });
+
+  assert.deepEqual(sleeps, [7_000]);
+  assert.deepEqual(logs, [
+    `::notice::IndexNow submitted ${ONE_URL_COUNTS}, 1 request, HTTP 200, 1 retry.`,
+  ]);
+});
+
+test("run_Should_WaitUntilRetryAfterDate_When_Status429", async () => {
+  const start = Date.parse("2026-11-11T12:00:00Z");
+
+  const { sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    now: () => start,
+    postResponses: [
+      {
+        status: 429,
+        headers: { "retry-after": new Date(start + 12_000).toUTCString() },
+      },
+      { status: 200 },
+    ],
+  });
+
+  assert.deepEqual(sleeps, [12_000]);
+});
+
+test("run_Should_CapRetryAfter_When_ItExceedsTheLongestBackoff", async () => {
+  const { sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [
+      { status: 429, headers: { "retry-after": "9999" } },
+      { status: 200 },
+    ],
+  });
+
+  assert.deepEqual(sleeps, [240_000]);
+});
+
+test("run_Should_UseBackoff_When_429HasNoUsableRetryAfter", async () => {
+  const { sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [
+      { status: 429, headers: { "retry-after": "soon" } },
+      { status: 429 },
+      { status: 200 },
+    ],
+  });
+
+  assert.deepEqual(sleeps, [30_000, 60_000]);
+});
+
+test("run_Should_SucceedAfterRetry_When_ServerErrorThenOk", async () => {
+  const { posts, logs, sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [{ status: 500 }, { status: 200 }],
+  });
+
+  assert.equal(posts.length, 2);
+  assert.deepEqual(sleeps, [30_000]);
+  assert.deepEqual(logs, [
+    `::notice::IndexNow submitted ${ONE_URL_COUNTS}, 1 request, HTTP 200, 1 retry.`,
+  ]);
+});
+
+test("run_Should_SucceedAfterRetry_When_NetworkErrorThenOk", async () => {
+  const { posts, logs, sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [new Error("socket hang up"), { status: 200 }],
+  });
+
+  assert.equal(posts.length, 2);
+  assert.deepEqual(sleeps, [30_000]);
+  assert.deepEqual(logs, [
+    `::notice::IndexNow submitted ${ONE_URL_COUNTS}, 1 request, HTTP 200, 1 retry.`,
+  ]);
+});
+
+test("run_Should_NotRetry_When_PlainForbidden", async () => {
+  const { posts, logs, sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [{ status: 403, body: "Forbidden" }, { status: 200 }],
+  });
+
+  assert.equal(posts.length, 1);
+  assert.deepEqual(sleeps, []);
+  assert.deepEqual(logs, [
+    `::warning::IndexNow: Batch 1 of 1 failed with HTTP 403 Forbidden. Skipping the remaining batches (${ONE_URL_COUNTS}).`,
+  ]);
+});
+
+test("run_Should_NotRetry_When_ForbiddenBodyIsNotJson", async () => {
+  const { posts, sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [{ status: 403, body: "SiteVerificationNotCompleted" }],
+  });
+
+  assert.equal(posts.length, 1);
+  assert.deepEqual(sleeps, []);
+});
+
+test("run_Should_NotRetry_When_Status422", async () => {
+  const { posts, sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    postResponses: [{ status: 422 }, { status: 200 }],
+  });
+
+  assert.equal(posts.length, 1);
+  assert.deepEqual(sleeps, []);
+});
+
+test("run_Should_ScaleBackoff_When_RetryBaseDelayIsConfigured", async () => {
+  const { sleeps } = await runAgainstMock({
+    ...FIRST_RUN,
+    env: { INDEXNOW_RETRY_BASE_DELAY_SECONDS: "0.5" },
+    postResponses: [{ status: 500 }, { status: 500 }, { status: 200 }],
+  });
+
+  assert.deepEqual(sleeps, [500, 1_000]);
+});
+
+test("run_Should_CountRetriesAcrossBatches_When_EachBatchRetries", async () => {
+  const current = Object.fromEntries(
+    Array.from({ length: 10_001 }, (_, index) => [url(`p${index}`), "1"]),
+  );
+
+  const { posts, logs } = await runAgainstMock({
+    current,
+    postResponses: [
+      { status: 500 },
+      { status: 200 },
+      { status: 503 },
+      { status: 200 },
+    ],
+  });
+
+  assert.equal(posts.length, 4);
+  assert.deepEqual(logs, [
+    "::notice::IndexNow submitted 10001 added, 0 changed, 0 removed (first run), 2 requests, HTTP 200, 2 retries.",
+  ]);
+});
+
+test("run_Should_ReportOwnRetriesPerBatchAndTotalInSummary_When_LaterBatchFails", async () => {
+  const current = Object.fromEntries(
+    Array.from({ length: 10_001 }, (_, index) => [url(`p${index}`), "1"]),
+  );
+
+  const { posts, logs, summary } = await runAgainstMock({
+    current,
+    postResponses: [
+      SITE_VERIFICATION_PENDING,
+      SITE_VERIFICATION_PENDING,
+      { status: 200 },
+      { status: 403, body: "Forbidden" },
+    ],
+  });
+
+  assert.equal(posts.length, 4);
+  assert.deepEqual(logs, [
+    "::warning::IndexNow: Batch 2 of 2 failed with HTTP 403 Forbidden. Skipping the remaining batches (10001 added, 0 changed, 0 removed (first run)).",
+  ]);
+  assert.equal(
+    summary,
+    "IndexNow failed: HTTP 403 at batch 2 of 2 (10001 added, 0 changed, 0 removed (first run)), 2 retries.\n",
+  );
+});
+
+test("extractSitemapUrls_Should_ReturnUniqueLocs_When_XmlHasWhitespaceAndEntities", () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>https://chillicream.com/</loc>
+</url>
+<url><loc>
+  https://chillicream.com/a?x=1&amp;y=2
+</loc><lastmod>2026-01-01</lastmod></url>
+<url><loc>https://chillicream.com/</loc></url>
+<url><loc></loc></url>
+</urlset>`;
+
+  assert.deepEqual(extractSitemapUrls(xml), [
+    "https://chillicream.com/",
+    "https://chillicream.com/a?x=1&y=2",
+  ]);
+  assert.deepEqual(extractSitemapUrls("<urlset></urlset>"), []);
+});
+
+function sitemapXml(urls) {
+  return `<?xml version="1.0"?><urlset>${urls.map((u) => `<url><loc>${u}</loc></url>`).join("\n")}</urlset>`;
+}
+
+async function runSubmitAllAgainst({
+  sitemap,
+  postResponses = [],
+  env: extraEnv,
+}) {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "indexnow-"));
+  try {
+    const summaryPath = path.join(directory, "summary.md");
+    const sleeps = [];
+    const sent = [];
+    const scripted = scriptedFetch(postResponses, sent);
+    const fetchImpl = async (input, init) => {
+      if (init?.method === "POST") {
+        return scripted(input, init);
+      }
+      assert.equal(String(input), "https://chillicream.com/sitemap.xml");
+      if (sitemap instanceof Error) {
+        throw sitemap;
+      }
+      return new Response(sitemap.body, { status: sitemap.status ?? 200 });
+    };
+    let ok;
+    const logs = await captureLogs(async () => {
+      ok = await runSubmitAll(
+        { GITHUB_STEP_SUMMARY: summaryPath, ...extraEnv },
+        {
+          fetchImpl,
+          sleep: async (ms) => {
+            sleeps.push(ms);
+          },
+        },
+      );
+    });
+    return {
+      ok,
+      logs,
+      sleeps,
+      posts: sent.map((body) => JSON.parse(body)),
+      summary: await readFile(summaryPath, "utf8").catch(() => ""),
+    };
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+test("runSubmitAll_Should_PostEverySitemapUrl_When_SitemapIsValid", async () => {
+  const { ok, posts, logs, summary } = await runSubmitAllAgainst({
+    sitemap: { body: sitemapXml([url("a"), url("b")]) },
+    postResponses: [{ status: 200 }],
+  });
+
+  assert.equal(ok, true);
+  assert.equal(posts.length, 1);
+  assert.equal(posts[0].host, INDEXNOW_HOST);
+  assert.deepEqual(posts[0].urlList, [url("a"), url("b")]);
+  assert.deepEqual(logs, [
+    "::notice::IndexNow submitted 2 URLs, 1 request, HTTP 200, 0 retries.",
+  ]);
+  assert.equal(
+    summary,
+    "IndexNow submitted 2 URLs, 1 request, HTTP 200, 0 retries.\n",
+  );
+});
+
+test("runSubmitAll_Should_PostInBatches_When_SitemapExceedsTheBatchSize", async () => {
+  const urls = Array.from({ length: 10_001 }, (_, index) => url(`p${index}`));
+
+  const { posts, summary } = await runSubmitAllAgainst({
+    sitemap: { body: sitemapXml(urls) },
+    postResponses: [{ status: 200 }, { status: 200 }],
+  });
+
+  assert.deepEqual(
+    posts.map((post) => post.urlList.length),
+    [10_000, 1],
+  );
+  assert.equal(
+    summary,
+    "IndexNow submitted 10001 URLs, 2 requests, HTTP 200, 0 retries.\n",
+  );
+});
+
+test("runSubmitAll_Should_RetryAndSucceed_When_SiteVerificationNotCompletedThenOk", async () => {
+  const { ok, posts, sleeps, logs } = await runSubmitAllAgainst({
+    sitemap: { body: sitemapXml([url("a")]) },
+    postResponses: [SITE_VERIFICATION_PENDING, { status: 200 }],
+  });
+
+  assert.equal(ok, true);
+  assert.equal(posts.length, 2);
+  assert.deepEqual(sleeps, [30_000]);
+  assert.deepEqual(logs, [
+    "::notice::IndexNow submitted 1 URL, 1 request, HTTP 200, 1 retry.",
+  ]);
+});
+
+test("runSubmitAll_Should_WarnAndSucceed_When_IndexNowKeepsRejecting", async () => {
+  const { ok, logs, summary } = await runSubmitAllAgainst({
+    sitemap: { body: sitemapXml([url("a")]) },
+    postResponses: [{ status: 403, body: "Forbidden" }],
+  });
+
+  assert.equal(ok, true);
+  assert.deepEqual(logs, [
+    "::warning::IndexNow: Batch 1 of 1 failed with HTTP 403 Forbidden. Skipping the remaining batches (1 URL).",
+  ]);
+  assert.equal(
+    summary,
+    "IndexNow failed: HTTP 403 at batch 1 of 1 (1 URL), 0 retries.\n",
+  );
+});
+
+test("runSubmitAll_Should_NotPost_When_DryRun", async () => {
+  const { ok, posts, logs, summary } = await runSubmitAllAgainst({
+    sitemap: { body: sitemapXml([url("a")]) },
+    env: { INDEXNOW_DRY_RUN: "true" },
+  });
+
+  assert.equal(ok, true);
+  assert.deepEqual(posts, []);
+  assert.deepEqual(
+    logs.at(-1),
+    "::notice::IndexNow dry run: 1 URL, 1 request.",
+  );
+  assert.equal(summary, "IndexNow dry run: 1 URL, 1 request.\n");
+});
+
+test("runSubmitAll_Should_Fail_When_SitemapRequestReturnsErrorStatus", async () => {
+  const { ok, posts, logs, summary } = await runSubmitAllAgainst({
+    sitemap: { status: 503, body: "" },
+  });
+
+  assert.equal(ok, false);
+  assert.deepEqual(posts, []);
+  assert.deepEqual(logs, [
+    "::error::IndexNow: Could not read the sitemap (the sitemap request returned HTTP 503).",
+  ]);
+  assert.equal(
+    summary,
+    "IndexNow failed: Could not read the sitemap (the sitemap request returned HTTP 503).\n",
+  );
+});
+
+test("runSubmitAll_Should_Fail_When_SitemapRequestThrows", async () => {
+  const { ok, logs } = await runSubmitAllAgainst({
+    sitemap: new Error("getaddrinfo ENOTFOUND"),
+  });
+
+  assert.equal(ok, false);
+  assert.deepEqual(logs, [
+    "::error::IndexNow: Could not read the sitemap (getaddrinfo ENOTFOUND).",
+  ]);
+});
+
+test("runSubmitAll_Should_Fail_When_SitemapHasNoUrls", async () => {
+  const { ok, posts, logs } = await runSubmitAllAgainst({
+    sitemap: { body: "<urlset></urlset>" },
+  });
+
+  assert.equal(ok, false);
+  assert.deepEqual(posts, []);
+  assert.deepEqual(logs, [
+    "::error::IndexNow: Could not read the sitemap (the sitemap contains no URLs).",
+  ]);
+});
+
+test("runSubmitAll_Should_SkipForeignHosts_When_SitemapListsThem", async () => {
+  const { posts, logs } = await runSubmitAllAgainst({
+    sitemap: { body: sitemapXml([url("a"), "https://example.com/x"]) },
+    postResponses: [{ status: 200 }],
+  });
+
+  assert.deepEqual(posts[0].urlList, [url("a")]);
+  assert.deepEqual(logs, [
+    "::warning::IndexNow: Skipping URLs that are not on chillicream.com.",
+    "::notice::IndexNow submitted 1 URL, 1 request, HTTP 200, 0 retries.",
+  ]);
 });
