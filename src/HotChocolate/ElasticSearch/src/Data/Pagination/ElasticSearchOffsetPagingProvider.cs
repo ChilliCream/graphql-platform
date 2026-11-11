@@ -23,7 +23,17 @@ public sealed class ElasticSearchOffsetPagingProvider : OffsetPagingProvider
     private static readonly IPagingProvider s_fallback = new QueryableOffsetPagingProvider();
 
     /// <inheritdoc />
-    public override bool CanHandle(IExtendedType source) => true;
+    /// <remarks>
+    /// A source that is neither a list nor a queryable, such as a MongoDB executable, is left to its own provider.
+    /// </remarks>
+    public override bool CanHandle(IExtendedType source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return s_fallback.CanHandle(source)
+            || source.Source.GetInterfaces().Append(source.Source).Any(
+                type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IQueryableExecutable<>));
+    }
 
     /// <inheritdoc />
     protected override OffsetPagingHandler CreateHandler(IExtendedType source, PagingOptions options)

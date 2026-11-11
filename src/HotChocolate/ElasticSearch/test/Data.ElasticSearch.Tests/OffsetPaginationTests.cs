@@ -1,5 +1,7 @@
 using System.Text.Json.Nodes;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
@@ -153,6 +155,52 @@ public class OffsetPaginationTests : TestBase
         Assert.Null(json["errors"]);
         Assert.Equal("[{\"index\":1},{\"index\":2}]", json["data"]!["list"]!["items"]!.ToJsonString());
         Assert.Equal("[{\"index\":1},{\"index\":2}]", json["data"]!["queryable"]!["items"]!.ToJsonString());
+    }
+
+    [Fact]
+    public async Task Execute_Should_LeaveSourceToOtherProvider_When_SourceIsNotAList()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x =>
+            {
+                x.Name("Query");
+                x.Field("other").UseOffsetPaging<ObjectType<Foo>>().Resolve<OtherSource>(_ => new OtherSource());
+            })
+            .AddOffsetPagingProvider<OtherPagingProvider>()
+            .AddElasticSearchPagingProviders()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ other { items { index } } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var json = JsonNode.Parse(result.ToJson())!;
+        Assert.Null(json["errors"]);
+        Assert.Equal("[{\"index\":42}]", json["data"]!["other"]!["items"]!.ToJsonString());
+    }
+
+    // a source that only its own provider pages, as a MongoDB executable is.
+    public sealed class OtherSource;
+
+    public sealed class OtherPagingProvider : OffsetPagingProvider
+    {
+        public override bool CanHandle(IExtendedType source) => source.Source == typeof(OtherSource);
+
+        protected override OffsetPagingHandler CreateHandler(IExtendedType source, PagingOptions options)
+            => new OtherPagingHandler(options);
+    }
+
+    private sealed class OtherPagingHandler(PagingOptions options) : OffsetPagingHandler(options)
+    {
+        protected override ValueTask<CollectionSegment> SliceAsync(
+            IResolverContext context,
+            object source,
+            OffsetPagingArguments arguments)
+            => new(new CollectionSegment([new Foo(42)], new CollectionSegmentInfo(false, false), 1));
     }
 
     private ValueTask<IRequestExecutor> CreateExecutorAsync()

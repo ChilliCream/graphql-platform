@@ -109,6 +109,8 @@ builder
     .AddElasticSearchPagingProviders();
 ```
 
+The provider is registered as the default one. A list or a queryable that is not an ES|QL query is paged as with `QueryableOffsetPagingProvider`, and any other source, such as a MongoDB executable, is left to its own provider.
+
 # Limitations
 
 Reading a list of objects in the result is not supported yet: the list can be filtered, but comes back empty when selected.
