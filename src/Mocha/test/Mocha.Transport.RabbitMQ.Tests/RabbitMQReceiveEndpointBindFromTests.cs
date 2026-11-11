@@ -51,7 +51,7 @@ public class RabbitMQReceiveEndpointBindFromTests
                     .BindFrom(new Uri("exchange:topic-exchange"), "order.created.us");
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var description = transport.Describe();
@@ -84,7 +84,7 @@ public class RabbitMQReceiveEndpointBindFromTests
                     .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created");
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var binding = topology.Bindings
@@ -112,7 +112,7 @@ public class RabbitMQReceiveEndpointBindFromTests
                     .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created");
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var binding = topology.Bindings
@@ -140,7 +140,7 @@ public class RabbitMQReceiveEndpointBindFromTests
                     .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created", false);
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var binding = topology.Bindings
@@ -167,7 +167,7 @@ public class RabbitMQReceiveEndpointBindFromTests
                     .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created", autoProvision: true);
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var binding = topology.Bindings
@@ -195,7 +195,7 @@ public class RabbitMQReceiveEndpointBindFromTests
                     .BindFrom(new Uri("exchange:source-fanout-exchange"), "order.created");
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var binding = topology.Bindings

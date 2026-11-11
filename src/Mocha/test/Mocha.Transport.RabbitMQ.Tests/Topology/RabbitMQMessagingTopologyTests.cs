@@ -563,7 +563,7 @@ public class RabbitMQMessagingTopologyTests
         configure(builder);
         var runtime = builder.AddRabbitMQ(t => t.ConnectionProvider(_ => new StubConnectionProvider())).BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         return (runtime, transport, topology);
     }
 }

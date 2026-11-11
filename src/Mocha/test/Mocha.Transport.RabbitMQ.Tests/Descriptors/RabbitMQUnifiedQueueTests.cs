@@ -152,7 +152,7 @@ public class RabbitMQUnifiedQueueTests
                 t.DeclareQueue("orders").AutoProvision(false);
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var description = transport.Describe();
@@ -257,7 +257,7 @@ public class RabbitMQUnifiedQueueTests
                 t.Queue("audit").WithArgument("x-message-ttl", 30_000);
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.SingleOrDefault(q => q.Name == "audit");
@@ -310,7 +310,7 @@ public class RabbitMQUnifiedQueueTests
                 t.Queue("temp-audit").Temporary();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == "temp-audit");
@@ -334,7 +334,7 @@ public class RabbitMQUnifiedQueueTests
                 t.Queue("temp-audit").Temporary(TimeSpan.FromMinutes(5));
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == "temp-audit");

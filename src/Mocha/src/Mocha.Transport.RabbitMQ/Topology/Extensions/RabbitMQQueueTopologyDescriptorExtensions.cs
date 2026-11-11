@@ -145,11 +145,11 @@ public static class RabbitMQQueueTopologyDescriptorExtensions
     }
 
     /// <summary>
-    /// Sets the maximum delivery limit for messages in the queue.
+    /// Sets the redelivery limit for a quorum queue.
     /// Messages that exceed this limit will be dead-lettered or discarded.
     /// </summary>
     /// <param name="descriptor">The queue descriptor.</param>
-    /// <param name="limit">The maximum number of delivery attempts.</param>
+    /// <param name="limit">The broker's redelivery limit, or -1 for unlimited redeliveries.</param>
     /// <returns>The descriptor for method chaining.</returns>
     public static IRabbitMQQueueTopologyDescriptor MaxDeliveryLimit(this IRabbitMQQueueTopologyDescriptor descriptor, int limit)
     {

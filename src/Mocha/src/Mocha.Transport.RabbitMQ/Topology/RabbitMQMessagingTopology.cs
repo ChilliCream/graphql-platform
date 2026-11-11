@@ -33,6 +33,21 @@ public sealed class RabbitMQMessagingTopology(
     public bool AutoProvision => autoProvision;
 
     /// <summary>
+    /// Gets whether the exchange is auto-provisioned, by its own setting or else the topology default.
+    /// </summary>
+    internal bool ShouldProvision(RabbitMQExchange exchange) => exchange.AutoProvision ?? autoProvision;
+
+    /// <summary>
+    /// Gets whether the queue is auto-provisioned, by its own setting or else the topology default.
+    /// </summary>
+    internal bool ShouldProvision(RabbitMQQueue queue) => queue.AutoProvision ?? autoProvision;
+
+    /// <summary>
+    /// Gets whether the binding is auto-provisioned, by its own setting or else the topology default.
+    /// </summary>
+    internal bool ShouldProvision(RabbitMQBinding binding) => binding.AutoProvision ?? autoProvision;
+
+    /// <summary>
     /// Gets the list of exchanges registered in this topology.
     /// </summary>
     public IReadOnlyList<RabbitMQExchange> Exchanges => _exchanges;

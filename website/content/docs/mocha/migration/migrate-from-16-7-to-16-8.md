@@ -7,6 +7,29 @@ Update every `Mocha.*` package in the application to version 16.8 before applyin
 
 Entries that name RabbitMQ, the Postgres outbox, or Azure Service Bus apply to applications that use them. All other entries apply to every transport.
 
+# API breaking changes
+
+## RabbitMQ connection types are internal
+
+`RabbitMQDispatcher`, `RabbitMQConsumerManager`, and `RabbitMQConnectionManagerBase` are no longer public. The `Dispatcher` and `ConsumerManager` properties of `RabbitMQMessagingTransport` are no longer public either. Code that rented a channel from the dispatcher or registered a consumer through the consumer manager does not compile.
+
+`IRabbitMQConnectionProvider` and the `Connection` property of `RabbitMQMessagingTransport` stay public. Code that needs a channel of its own creates a connection with `IRabbitMQConnectionProvider.CreateAsync` or with the application's `IConnectionFactory`, and keeps that connection for the lifetime of the application.
+
+## RabbitMQ topology resources are provisioned with their connection
+
+`IRabbitMQResource.ProvisionAsync` and the `ProvisionAsync` methods of `RabbitMQQueue`, `RabbitMQExchange`, `RabbitMQBinding`, `RabbitMQQueueBinding`, and `RabbitMQExchangeBinding` take the connection that owns the channel as a new second parameter:
+
+```diff
+-await queue.ProvisionAsync(channel, cancellationToken);
++await queue.ProvisionAsync(channel, connection, cancellationToken);
+```
+
+Assemblies that call or implement these methods must be recompiled against 16.8.
+
+## The RabbitMQ transport requires RabbitMQ.Client 7.2.2
+
+`Mocha.Transport.RabbitMQ` references `RabbitMQ.Client` 7.2.2. Version 16.7 referenced 7.2.0. An application that pins `RabbitMQ.Client` to a lower version gets a package downgrade error (`NU1605`) at restore. Raise the pinned version to 7.2.2 or later.
+
 # Behavioral breaking changes
 
 ## The Postgres outbox no longer counts an unavailable transport as an attempt
