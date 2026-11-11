@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
@@ -367,6 +368,40 @@ public class IntegrationTests : TestBase
 
         var result = await executorAsync.ExecuteAsync(query, TestContext.Current.CancellationToken);
         result.MatchQuerySnapshot();
+    }
+
+    [Fact]
+    public async Task Execute_Should_FilterWithDefaultProvider_When_SourceIsNotElasticSearch()
+    {
+        // arrange
+        Foo[] data = [.. _data, new Foo { Id = "D", Bar = "D", Qux = "D" }];
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x =>
+            {
+                x.Name("Query");
+                x.Field("list").UseFiltering<FooFilterType>().Resolve<List<Foo>>(_ => [.. data]);
+                x.Field("queryable").UseFiltering<FooFilterType>().Resolve(_ => data.AsQueryable());
+            })
+            .AddElasticSearchFiltering()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                list(where: { baz: { bar: { eq: "A" } } }) { bar }
+                queryable(where: { baz: { bar: { eq: "A" } } }) { bar }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var json = JsonNode.Parse(result.ToJson())!;
+        Assert.Null(json["errors"]);
+        Assert.Equal("[{\"bar\":\"A\"}]", json["data"]!["list"]!.ToJsonString());
+        Assert.Equal("[{\"bar\":\"A\"}]", json["data"]!["queryable"]!.ToJsonString());
     }
 
     public class Foo
