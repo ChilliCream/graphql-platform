@@ -232,6 +232,7 @@ async function runAgainstMock({
         .map((request) => JSON.parse(request.body)),
       logs,
       summary,
+      statePath,
     };
   } finally {
     await mock.close();
@@ -268,7 +269,9 @@ test("run_Should_PostChangedUrls_When_ManifestsDiffer", async () => {
     `https://${INDEXNOW_HOST}/${posts[0].key}.txt`,
   );
   assert.deepEqual(posts[0].urlList, [url("new"), url("edit"), url("gone")]);
-  assert.ok(logs.some((line) => line.startsWith("::notice::")));
+  assert.deepEqual(logs, [
+    "::notice::IndexNow submitted 1 added, 1 changed, 1 removed, 1 request, HTTP 200.",
+  ]);
 });
 
 test("run_Should_NotPost_When_NothingChanged", async () => {
@@ -302,7 +305,9 @@ test("run_Should_WarnAndNotThrow_When_EndpointRejects", async () => {
   });
 
   assert.equal(posts.length, 1);
-  assert.ok(logs.some((line) => line.startsWith("::warning::IndexNow:")));
+  assert.deepEqual(logs, [
+    "::warning::IndexNow: Batch 1 of 1 failed with HTTP 403 . Skipping the remaining batches (1 added, 0 changed, 0 removed (first run)).",
+  ]);
 });
 
 test("run_Should_ReportCountsInSummary_When_EndpointRejects", async () => {
@@ -356,23 +361,17 @@ test("run_Should_PostEveryUrl_When_StateIsFirstRun", async () => {
 });
 
 test("run_Should_SkipWithWarning_When_StateFileIsMissing", async () => {
-  const { posts, logs, summary } = await runAgainstMock({
+  const { posts, logs, summary, statePath } = await runAgainstMock({
     state: null,
     current: { [url("a")]: "1" },
   });
 
+  const reason = `the previous state is missing or invalid, the pre-deploy fetch did not complete (ENOENT: no such file or directory, open '${statePath}')`;
   assert.deepEqual(posts, []);
-  assert.equal(logs.filter((line) => line.startsWith("::warning::")).length, 1);
-  assert.ok(
-    logs[0].startsWith(
-      "::warning::IndexNow: Skipping submission, no diff computed: the previous state is missing or invalid",
-    ),
-  );
-  assert.ok(
-    summary.startsWith(
-      "IndexNow skipped: no diff computed, the previous state is missing or invalid",
-    ),
-  );
+  assert.deepEqual(logs, [
+    `::warning::IndexNow: Skipping submission, no diff computed: ${reason}.`,
+  ]);
+  assert.equal(summary, `IndexNow skipped: no diff computed, ${reason}.\n`);
 });
 
 test("run_Should_SkipWithRecordedReason_When_StateIsSkip", async () => {
