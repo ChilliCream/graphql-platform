@@ -134,6 +134,12 @@ export async function waitForLiveManifest({
   }
 }
 
+function describeError(error) {
+  const cause = error?.cause;
+  const detail = cause?.code ?? cause?.errors?.[0]?.code ?? cause?.message;
+  return detail ? `${error.message}, ${detail}` : (error?.message ?? error);
+}
+
 function oneLine(value) {
   return String(value).replace(/\s+/g, " ").trim().slice(0, 300);
 }
@@ -275,9 +281,7 @@ export async function run(env = process.env, options = {}) {
     console.log(`::notice::IndexNow submitted ${outcome}.`);
     await writeSummary(env, `IndexNow submitted ${outcome}.`);
   } catch (error) {
-    warn(
-      `Submission failed (${error?.cause?.code ?? error?.message ?? error}).`,
-    );
+    warn(`Submission failed (${describeError(error)}).`);
     await writeSummary(env, "IndexNow failed, see the step log.");
   }
 }
