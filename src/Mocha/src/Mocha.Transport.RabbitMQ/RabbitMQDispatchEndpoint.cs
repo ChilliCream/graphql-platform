@@ -41,6 +41,13 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         // scope while the publish is in flight.
         var timeProvider = context.Services.GetTimeProvider();
 
+        // A request is published once its reply queue exists and is consumed, so the reply cannot be dropped.
+        if (transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint
+            && envelope.ResponseAddress == replyEndpoint.Source.Address.ToString())
+        {
+            await replyEndpoint.WaitUntilAttachedAsync(cancellationToken);
+        }
+
         using var lease = await dispatcher.RentChannelAsync(cancellationToken);
 
         try
