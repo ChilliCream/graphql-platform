@@ -341,6 +341,8 @@ RabbitMQ blocks publishing connections while a memory or disk alarm is active. S
 
 Each send or publish uses its own channel until RabbitMQ answered, so a message that makes RabbitMQ close its channel does not affect other messages. The transport allows up to 100 sends and publishes in flight per transport instance, or fewer if the broker allows fewer channels per connection. Additional calls wait until one completes. Awaiting each call before starting the next sends messages one at a time. The Postgres outbox has a separate setting for [dispatching messages concurrently](../reliability.md#configure-outbox-dispatch-concurrency).
 
+A request is sent only while the reply queue of the service instance exists and is consumed. RabbitMQ drops a reply whose requester has stopped in the meantime.
+
 ### Missing queues and bindings
 
 When you send directly to a queue that no longer exists, Mocha restores the queue and its configured bindings and retries once if auto-provisioning is enabled and the queue is not exclusive. Otherwise, or if the queue is still missing after the retry, the send throws `InvalidOperationException`. If RabbitMQ refuses to declare the queue, the send fails with the broker's reason.
