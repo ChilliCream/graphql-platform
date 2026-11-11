@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -107,6 +108,45 @@ public sealed class RabbitMQConnectionManagerTests
     }
 
     [Theory]
+    [InlineData(null, 10)]
+    [InlineData(1, 1)]
+    public async Task StartAsync_Should_CapRetryDelayAtMaxRetryDelay_When_AttemptsKeepFailing(
+        int? maxRetryDelaySeconds,
+        int expectedCapSeconds)
+    {
+        // arrange
+        const int failedAttempts = 8;
+        var cap = TimeSpan.FromSeconds(expectedCapSeconds);
+        var time = new RecordingTimeProvider();
+        var connection = new Mock<IConnection>();
+        connection.SetupGet(c => c.IsOpen).Returns(true);
+        var attempts = 0;
+        await using var manager = new RabbitMQConnectionManager(
+            NullLogger.Instance,
+            "test",
+            time,
+            _ => Interlocked.Increment(ref attempts) <= failedAttempts
+                ? ValueTask.FromException<IConnection>(new IOException("The broker is unreachable."))
+                : new ValueTask<IConnection>(connection.Object),
+            static (_, _) => Task.CompletedTask);
+        if (maxRetryDelaySeconds is { } seconds)
+        {
+            manager.MaxRetryDelay = TimeSpan.FromSeconds(seconds);
+        }
+
+        // act
+        await manager.StartAsync(TestContext.Current.CancellationToken)
+            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        // a delay lies between half of its ceiling and its ceiling, and the ceiling of the last one is the cap
+        var delays = time.Delays.ToArray();
+        Assert.Equal(failedAttempts, delays.Length);
+        Assert.All(delays, delay => Assert.InRange(delay, TimeSpan.Zero, cap));
+        Assert.InRange(delays[^1], cap / 2, cap);
+    }
+
+    [Theory]
     [InlineData(typeof(OperationCanceledException))]
     [InlineData(typeof(TimeoutException))]
     public async Task CloseChannelAsync_Should_DisposeChannel_When_CloseFails(Type failure)
@@ -143,5 +183,24 @@ public sealed class RabbitMQConnectionManagerTests
     {
         await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
         throw new UnreachableException();
+    }
+
+    /// <summary>
+    /// A clock whose timers are due at once, and that records the delay each timer was created with.
+    /// </summary>
+    private sealed class RecordingTimeProvider : TimeProvider
+    {
+        public ConcurrentQueue<TimeSpan> Delays { get; } = new();
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            if (dueTime == Timeout.InfiniteTimeSpan)
+            {
+                return base.CreateTimer(callback, state, dueTime, period);
+            }
+
+            Delays.Enqueue(dueTime);
+            return base.CreateTimer(callback, state, TimeSpan.Zero, period);
+        }
     }
 }

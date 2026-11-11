@@ -89,7 +89,9 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
     public async Task RegisterConsumerAsync_Should_End_When_ManagerIsDisposedDuringTheFirstAttempt()
     {
         // arrange
+        // the client holds a request the broker does not answer for this long, which bounds a part of the dispose
         await using var vhost = await fixture.CreateVhostAsync();
+        vhost.ConnectionSettings.ContinuationTimeout = TimeSpan.FromSeconds(2);
         await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
         await DeclareQueueAsync(channel, "orders");

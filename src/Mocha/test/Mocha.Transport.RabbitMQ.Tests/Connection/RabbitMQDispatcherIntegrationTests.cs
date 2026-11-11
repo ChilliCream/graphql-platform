@@ -379,8 +379,9 @@ public sealed class RabbitMQDispatcherIntegrationTests(RabbitMQFixture fixture)
         }
 
         // assert
+        // the broker lists the connection for another 30 seconds after the dispose gave up on closing it
         await Assert.ThrowsAsync<ObjectDisposedException>(() => pending);
-        await vhost.Broker.WaitForNoConnectionAsync();
+        await vhost.Broker.WaitForNoConnectionAsync(TestTimeouts.Signal + TimeSpan.FromSeconds(15));
     }
 
     private static RabbitMQDispatcher CreateDispatcher(VhostContext vhost)

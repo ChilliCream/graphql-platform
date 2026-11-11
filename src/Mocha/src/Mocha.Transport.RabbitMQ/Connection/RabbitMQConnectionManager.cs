@@ -13,7 +13,6 @@ namespace Mocha.Transport.RabbitMQ;
 internal sealed class RabbitMQConnectionManager : IAsyncDisposable
 {
     private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan s_maxRetryDelay = TimeSpan.FromSeconds(10);
     private static readonly CancellationToken s_cancelled = new(canceled: true);
 
     /// <summary>
@@ -99,6 +98,11 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
     /// Gets or sets how long one connection attempt may take before it is abandoned and retried.
     /// </summary>
     public TimeSpan AttemptTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Gets or sets the longest delay between two connection attempts.
+    /// </summary>
+    public TimeSpan MaxRetryDelay { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// Gets the ready connection, or <c>null</c> while there is none.
@@ -308,7 +312,7 @@ internal sealed class RabbitMQConnectionManager : IAsyncDisposable
                 var failure = !timedOut ? ex
                     : attemptCts.IsCancellationRequested ? ThrowHelper.ConnectionAttemptTimedOut(attemptTimeout, ex)
                     : ThrowHelper.ConnectionRequestTimedOut(ex);
-                var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
+                var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, MaxRetryDelay);
                 var elapsed = TimeProvider.GetElapsedTime(Volatile.Read(ref _unavailableSince));
 
                 // A start gives up when the failure repeats on every attempt, or when the next attempt would

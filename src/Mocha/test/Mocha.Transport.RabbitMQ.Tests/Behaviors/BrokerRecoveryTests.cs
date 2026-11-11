@@ -131,13 +131,15 @@ public sealed class BrokerRecoveryTests(RabbitMQFixture fixture)
     public async Task DisposeAsync_Should_LeaveNoConnection_When_BrokerUnreachableDuringRecovery()
     {
         // arrange
-        // a recovery waits at most ten seconds between two attempts to connect
-        var longestReconnectDelay = TimeSpan.FromSeconds(10);
+        // a recovery waits at most this long between two attempts to connect
+        var longestReconnectDelay = TimeSpan.FromSeconds(1);
         await using var vhost = await fixture.CreateVhostAsync();
         vhost.ConnectionSettings.NetworkRecoveryInterval = TimeSpan.FromSeconds(1);
         var recorder = new MessageRecorder();
         var bus = await CreateBusAsync(vhost, recorder);
         var transport = bus.Transport;
+        transport.ConsumerManager.Connection.MaxRetryDelay = longestReconnectDelay;
+        transport.Dispatcher.Connection.MaxRetryDelay = longestReconnectDelay;
         await WarmUpAsync(vhost, bus, recorder);
 
         // act

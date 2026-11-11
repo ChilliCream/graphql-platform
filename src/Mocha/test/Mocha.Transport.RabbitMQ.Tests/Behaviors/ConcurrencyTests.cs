@@ -27,6 +27,7 @@ public class ConcurrencyTests
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
+            .AddSingleton(new HandlerDuration(TimeSpan.FromMilliseconds(100)))
             .AddMessageBus()
             .AddEventHandler<SlowOrderHandler>()
             .AddRabbitMQ(t => t.Endpoint("slow-ep").Handler<SlowOrderHandler>().MaxConcurrency(1).MaxPrefetch(20))
@@ -62,6 +63,7 @@ public class ConcurrencyTests
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
+            .AddSingleton(new HandlerDuration(TimeSpan.FromMilliseconds(500)))
             .AddMessageBus()
             .AddEventHandler<SlowOrderHandler>()
             .AddRabbitMQ(t => t.Endpoint("slow-ep").Handler<SlowOrderHandler>().MaxConcurrency(5).MaxPrefetch(20))
@@ -99,6 +101,7 @@ public class ConcurrencyTests
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(tracker)
             .AddSingleton(recorder)
+            .AddSingleton(new HandlerDuration(TimeSpan.FromMilliseconds(500)))
             .AddMessageBus()
             .AddEventHandler<SlowOrderHandler>()
             .AddRabbitMQ(t => t.Endpoint("recovery-orders")
@@ -129,7 +132,12 @@ public class ConcurrencyTests
         Assert.Equal(1, tracker.PeakConcurrency);
     }
 
-    public sealed class SlowOrderHandler(ConcurrencyTracker tracker, MessageRecorder recorder)
+    /// <summary>
+    /// How long <see cref="SlowOrderHandler"/> takes for one message.
+    /// </summary>
+    public sealed record HandlerDuration(TimeSpan Value);
+
+    public sealed class SlowOrderHandler(ConcurrencyTracker tracker, MessageRecorder recorder, HandlerDuration duration)
         : IEventHandler<OrderCreated>
     {
         public async ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
@@ -137,7 +145,7 @@ public class ConcurrencyTests
             tracker.Enter();
             try
             {
-                await Task.Delay(500, cancellationToken);
+                await Task.Delay(duration.Value, cancellationToken);
             }
             finally
             {

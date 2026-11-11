@@ -267,11 +267,17 @@ public sealed partial class BrokerView
     /// <summary>
     /// Waits until the vhost has no open connection.
     /// </summary>
-    public Task WaitForNoConnectionAsync()
+    public Task WaitForNoConnectionAsync() => WaitForNoConnectionAsync(TestTimeouts.Signal);
+
+    /// <summary>
+    /// Waits until the vhost has no open connection, for no longer than <paramref name="within"/>.
+    /// </summary>
+    public Task WaitForNoConnectionAsync(TimeSpan within)
         => Wait.UntilAsync(
             GetConnectionsAsync,
             connections => connections.Count == 0,
-            $"no connection to vhost '{_vhostName}'");
+            $"no connection to vhost '{_vhostName}'",
+            within);
 
     private async Task<IReadOnlyList<ConsumerInfo>> GetConsumersOfAsync(string queueName)
         => (await GetConsumersAsync()).Where(consumer => consumer.Queue == queueName).ToArray();
