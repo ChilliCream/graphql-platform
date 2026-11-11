@@ -318,7 +318,8 @@ internal sealed record QueueProbe(bool Exists, int Consumers, int Ready);
 
 /// <summary>
 /// The collections of the tests that need a broker. Every collection has a broker of its own and runs its tests
-/// one after another, the collections run in parallel, and the longest one decides how long a run takes.
+/// one after another, and <c>xunit.runner.json</c> lets all collections run at the same time, so the longest one
+/// decides how long a run takes.
 /// </summary>
 public static class RabbitMQCollections
 {
