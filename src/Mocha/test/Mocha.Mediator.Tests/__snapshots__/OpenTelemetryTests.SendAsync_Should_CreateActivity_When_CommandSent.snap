@@ -4,14 +4,18 @@
   ],
   "activities": [
     {
-      "OperationName": "TracedCommand send",
-      "DisplayName": "TracedCommand send",
+      "OperationName": "send TracedCommand",
+      "DisplayName": "send TracedCommand",
       "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
           "Key": "messaging.system",
           "Value": "mocha.mediator"
+        },
+        {
+          "Key": "messaging.operation.name",
+          "Value": "send"
         },
         {
           "Key": "messaging.operation.type",

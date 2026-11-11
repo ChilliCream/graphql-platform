@@ -72,7 +72,6 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
 
             if (activity is not null)
             {
-                activity.SetStatus(ActivityStatusCode.Ok);
                 context.Features.GetOrSet<ReceiveActivityFeature>().ActivityContext = activity.Context;
             }
         }
@@ -83,7 +82,8 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
             _activity?
                 .EnrichMessageDefault()
                 .SetMessageId(_context.MessageId ?? string.Empty)
-                .SetConversationId(_context.CorrelationId ?? string.Empty);
+                .SetConversationId(_context.CorrelationId ?? string.Empty)
+                .SetOkStatusUnlessError();
 
             _activity?.Dispose();
         }
@@ -112,8 +112,6 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
                     null,
                     CreateLinks(batchContext))
                 : OpenTelemetry.Source.StartActivity($"consume {_consumerName}", ActivityKind.Consumer);
-
-            _activity?.SetStatus(ActivityStatusCode.Ok);
         }
 
         public void Dispose()
@@ -129,7 +127,8 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
                     .SetMessageId(_context.MessageId)
                     .SetConversationId(_context.ConversationId)
                     .SetMessageType(messageType)
-                    .SetConsumerName(_consumerName);
+                    .SetConsumerName(_consumerName)
+                    .SetOkStatusUnlessError();
 
                 if (batchConsumeContext is not null)
                 {
@@ -196,8 +195,6 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
                 ?.SetOperationName(_operationName)
                 .SetOperationType(MessagingOperationType.Send)
                 .EnrichMessageDefault();
-
-            _activity?.SetStatus(ActivityStatusCode.Ok);
         }
 
         public void Dispose()
@@ -211,7 +208,8 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
                 .SetConversationId(_context.ConversationId ?? string.Empty)
                 .SetInstanceId(_context.Host.InstanceId)
                 .SetDestinationTemporary(false)
-                .SetDestinationAddress(destination);
+                .SetDestinationAddress(destination)
+                .SetOkStatusUnlessError();
 
             _activity?.Dispose();
 

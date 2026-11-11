@@ -4,14 +4,18 @@
   ],
   "activities": [
     {
-      "OperationName": "OuterCommand send",
-      "DisplayName": "OuterCommand send",
+      "OperationName": "send OuterCommand",
+      "DisplayName": "send OuterCommand",
       "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
           "Key": "messaging.system",
           "Value": "mocha.mediator"
+        },
+        {
+          "Key": "messaging.operation.name",
+          "Value": "send"
         },
         {
           "Key": "messaging.operation.type",
@@ -25,14 +29,18 @@
       "events": [],
       "activities": [
         {
-          "OperationName": "TracedCommand send",
-          "DisplayName": "TracedCommand send",
+          "OperationName": "send TracedCommand",
+          "DisplayName": "send TracedCommand",
           "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
               "Key": "messaging.system",
               "Value": "mocha.mediator"
+            },
+            {
+              "Key": "messaging.operation.name",
+              "Value": "send"
             },
             {
               "Key": "messaging.operation.type",
@@ -46,14 +54,18 @@
           "events": []
         },
         {
-          "OperationName": "TracedNotification publish",
-          "DisplayName": "TracedNotification publish",
+          "OperationName": "publish TracedNotification",
+          "DisplayName": "publish TracedNotification",
           "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
               "Key": "messaging.system",
               "Value": "mocha.mediator"
+            },
+            {
+              "Key": "messaging.operation.name",
+              "Value": "publish"
             },
             {
               "Key": "messaging.operation.type",

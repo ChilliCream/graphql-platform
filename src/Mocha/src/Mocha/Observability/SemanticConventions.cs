@@ -306,4 +306,20 @@ internal static class SemanticConventions
         activity.SetTag(MessageBodySize, value);
         return activity;
     }
+
+    /// <summary>
+    /// Sets the status of the activity to <see cref="ActivityStatusCode.Ok"/>, unless it is
+    /// <see cref="ActivityStatusCode.Error"/>.
+    /// </summary>
+    /// <param name="activity">The activity to complete.</param>
+    /// <returns>The same <see cref="Activity"/> instance for fluent chaining.</returns>
+    public static Activity SetOkStatusUnlessError(this Activity activity)
+    {
+        if (activity.Status != ActivityStatusCode.Error)
+        {
+            activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
+        return activity;
+    }
 }

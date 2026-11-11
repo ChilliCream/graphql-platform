@@ -480,8 +480,8 @@ builder.Services
 
 This registers the `ActivityMediatorDiagnosticListener`, which follows the [OpenTelemetry messaging semantic conventions](https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/):
 
-- Creates an [`Activity`](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-concepts) (OpenTelemetry span) named `"{MessageTypeName} send"` for commands/queries or `"{MessageTypeName} publish"` for notifications
-- Tags the span with `messaging.system` = `"mocha.mediator"`, `messaging.operation.type` = `"send"` or `"publish"`, and `messaging.message.type` = the message type name
+- Creates an [`Activity`](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-concepts) (OpenTelemetry span) named `"send {MessageTypeName}"` for commands/queries or `"publish {MessageTypeName}"` for notifications
+- Tags the span with `messaging.system` = `"mocha.mediator"`, `messaging.operation.name` and `messaging.operation.type` = `"send"` or `"publish"`, and `messaging.message.type` = the message type name
 - Sets `ActivityStatusCode.Ok` on success
 - On error: adds an `exception` event with `exception.type` and `exception.message` tags, and sets `ActivityStatusCode.Error`
 
