@@ -9,7 +9,7 @@ namespace Mocha.Transport.RabbitMQ;
 public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingTransport>
 {
     private RabbitMQMessagingTopology _topology =>
-        field ??= (RabbitMQMessagingTopology)Transport.Topology;
+        field ??= Transport.Topology;
 
     /// <inheritdoc />
     public override DispatchEndpointConfiguration? CreateEndpointConfiguration(

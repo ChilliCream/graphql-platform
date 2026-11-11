@@ -7,7 +7,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Manages RabbitMQ connections and provides channel pooling for publishing messages.
 /// </summary>
-public sealed class RabbitMQDispatcher(
+internal sealed class RabbitMQDispatcher(
     ILogger<RabbitMQDispatcher> logger,
     Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
     Func<IConnection, CancellationToken, Task> onConnectionEstablished)

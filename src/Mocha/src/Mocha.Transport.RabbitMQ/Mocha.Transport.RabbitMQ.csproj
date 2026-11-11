@@ -9,7 +9,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
-    <PackageReference Include="RabbitMQ.Client" VersionOverride="7.2.0" />
+    <!--
+      In RabbitMQ.Client 7.2.2 disposing a connection also stops the client's automatic recovery, which the
+      transport's own recovery relies on. The central version 7.0.0 does not do that, and stays as it is for
+      HotChocolate.Subscriptions.RabbitMQ. Check client behavior against the source of the version used here.
+    -->
+    <PackageReference Include="RabbitMQ.Client" VersionOverride="7.2.2" />
     <PackageReference Include="System.IO.Hashing" />
   </ItemGroup>
 </Project>

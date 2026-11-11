@@ -45,7 +45,7 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
             throw new InvalidOperationException("Queue name is required");
         }
 
-        var topology = (RabbitMQMessagingTopology)Transport.Topology;
+        var topology = transport.Topology;
 
         Queue =
             topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName)

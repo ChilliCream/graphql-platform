@@ -137,16 +137,17 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             return;
         }
 
-        var autoProvision = ((RabbitMQMessagingTopology)transport.Topology).AutoProvision;
+        var topology = transport.Topology;
+        var connection = await transport.Dispatcher.GetConnectionAsync(cancellationToken);
 
-        if (Queue is not null && (Queue.AutoProvision ?? autoProvision))
+        if (Queue is not null && topology.ShouldProvision(Queue))
         {
-            await Queue.ProvisionAsync(channel, cancellationToken);
+            await Queue.ProvisionAsync(channel, connection, cancellationToken);
         }
 
-        if (Exchange is not null && (Exchange.AutoProvision ?? autoProvision))
+        if (Exchange is not null && topology.ShouldProvision(Exchange))
         {
-            await Exchange.ProvisionAsync(channel, cancellationToken);
+            await Exchange.ProvisionAsync(channel, connection, cancellationToken);
         }
 
         _isProvisioned = true;

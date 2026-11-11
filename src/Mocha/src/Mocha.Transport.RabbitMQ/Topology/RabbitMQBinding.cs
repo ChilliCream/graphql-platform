@@ -53,8 +53,9 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
     /// Declares this binding on the broker using the specified channel.
     /// </summary>
     /// <param name="channel">The RabbitMQ channel to use for declaring the binding.</param>
+    /// <param name="connection">The connection that owns the channel.</param>
     /// <param name="cancellationToken">A token to cancel the provisioning operation.</param>
-    public abstract Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken);
+    public abstract Task ProvisionAsync(IChannel channel, IConnection connection, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -94,7 +95,7 @@ public sealed class RabbitMQExchangeBinding : RabbitMQBinding
     }
 
     /// <inheritdoc />
-    public override async Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken)
+    public override async Task ProvisionAsync(IChannel channel, IConnection connection, CancellationToken cancellationToken)
     {
         await channel.ExchangeBindAsync(
             Destination.Name,
@@ -142,7 +143,7 @@ public sealed class RabbitMQQueueBinding : RabbitMQBinding
     }
 
     /// <inheritdoc />
-    public override async Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken)
+    public override async Task ProvisionAsync(IChannel channel, IConnection connection, CancellationToken cancellationToken)
     {
         await channel.QueueBindAsync(
             Destination.Name,

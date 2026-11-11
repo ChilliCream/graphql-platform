@@ -187,7 +187,7 @@ public class RabbitMQDescriptorTests
             t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // assert
         var errorQueue = topology.Queues.Single(q => q.Name == "q_error");
@@ -205,7 +205,7 @@ public class RabbitMQDescriptorTests
             t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // assert
         var errorQueue = topology.Queues.Single(q => q.Name == "q_error");

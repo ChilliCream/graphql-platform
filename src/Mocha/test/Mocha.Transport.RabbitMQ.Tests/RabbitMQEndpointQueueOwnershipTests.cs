@@ -85,7 +85,7 @@ public class RabbitMQEndpointQueueOwnershipTests
                 t.Queue("orders").AutoProvision(true).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == "orders");
@@ -109,7 +109,7 @@ public class RabbitMQEndpointQueueOwnershipTests
                 t.Queue("orders").WithArgument("x-dead-letter-exchange", "orders_dlx").Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == "orders");
@@ -133,7 +133,7 @@ public class RabbitMQEndpointQueueOwnershipTests
                 t.Endpoint("temp-orders").Temporary().Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == "temp-orders");
@@ -157,7 +157,7 @@ public class RabbitMQEndpointQueueOwnershipTests
                 t.Endpoint("temp-orders").Temporary(TimeSpan.FromMinutes(5)).Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == "temp-orders");
@@ -207,7 +207,7 @@ public class RabbitMQEndpointQueueOwnershipTests
                 }
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         var secondConfiguration = new RabbitMQReceiveEndpointConfiguration
         {
             Name = "second",
@@ -266,7 +266,7 @@ public class RabbitMQEndpointQueueOwnershipTests
                 t.Endpoint("orders").Temporary().Consumer<OrderSpyConsumer>();
             });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == "orders");

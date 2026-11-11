@@ -125,7 +125,7 @@ public class RabbitMQReceiveTopologyConventionTests
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         var replyExchange = runtime.Naming.GetPublishEndpointName(typeof(StockInfoResult));
 
         // act
@@ -153,7 +153,7 @@ public class RabbitMQReceiveTopologyConventionTests
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         var replyEndpoint = transport.ReceiveEndpoints
             .OfType<RabbitMQReceiveEndpoint>()
             .Single(e => e.Kind == ReceiveEndpointKind.Reply);
@@ -245,7 +245,7 @@ public class RabbitMQReceiveTopologyConventionTests
         var endpoint = transport.ReceiveEndpoints
             .OfType<RabbitMQReceiveEndpoint>()
             .First(e => e.Kind == ReceiveEndpointKind.Default);
-        return ((RabbitMQMessagingTopology)transport.Topology, endpoint.Queue.Name);
+        return (transport.Topology, endpoint.Queue.Name);
     }
 
     private static MessagingRuntime CreateRuntime(

@@ -7,7 +7,7 @@ public sealed class RabbitMQDefaultQueueOptions
 {
     /// <summary>
     /// Gets or sets the default queue type (Classic, Quorum, or Stream).
-    /// When set, all auto-provisioned queues will use this queue type unless explicitly overridden.
+    /// When no queue type is configured, RabbitMQ selects the queue type.
     /// </summary>
     public string? QueueType { get; set; }
 
@@ -29,22 +29,22 @@ public sealed class RabbitMQDefaultQueueOptions
     public Dictionary<string, object> Arguments { get; set; } = new();
 
     /// <summary>
-    /// Applies these defaults to a queue configuration, without overriding explicitly set values.
-    /// Quorum and stream queue types are not applied to queues that have auto-delete or exclusive
-    /// set, since those properties are incompatible with these queue types. Default arguments are
-    /// also skipped for incompatible queues because they may contain queue-type-specific settings
-    /// (e.g. <c>x-delivery-limit</c> is only valid for quorum queues).
+    /// Applies queue defaults without overriding explicitly configured values.
+    /// Auto-delete and exclusive queues skip queue type and argument defaults; non-durable queues skip them
+    /// when the defaults specify quorum or stream.
     /// </summary>
     internal void ApplyTo(RabbitMQQueueConfiguration configuration)
     {
         configuration.Durable ??= Durable;
         configuration.AutoDelete ??= AutoDelete;
 
-        // Quorum and stream queues do not support auto-delete or exclusive properties.
-        // Skip applying queue type and default arguments for incompatible configurations
-        // (e.g. reply queues) since default arguments are often queue-type-specific.
+        var queueType = GetQueueType();
+
         var isIncompatibleWithQueueType =
-            configuration.AutoDelete is true || configuration.Exclusive is true;
+            configuration.AutoDelete is true
+            || configuration.Exclusive is true
+            || (configuration.Durable is false
+                && queueType is RabbitMQQueueType.Quorum or RabbitMQQueueType.Stream);
 
         if (isIncompatibleWithQueueType)
         {
@@ -66,4 +66,7 @@ public sealed class RabbitMQDefaultQueueOptions
             }
         }
     }
+
+    private string? GetQueueType()
+        => QueueType ?? (Arguments.TryGetValue("x-queue-type", out var value) ? value as string : null);
 }
