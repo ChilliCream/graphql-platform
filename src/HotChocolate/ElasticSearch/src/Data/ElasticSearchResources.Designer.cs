@@ -62,36 +62,36 @@ namespace HotChocolate.Data.ElasticSearch {
         /// <summary>
         ///   Looks up a localized string similar to This condition is not supported on a list: `{0}`..
         /// </summary>
-        internal static string ThrowHelper_ListFilter_NotSupported {
+        internal static string ErrorHelper_ListFilter_NotSupported {
             get {
-                return ResourceManager.GetString("ThrowHelper_ListFilter_NotSupported", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_ListFilter_NotSupported", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to This filter on `{0}` needs the field to be mapped as nested .
         /// </summary>
-        internal static string ThrowHelper_ListFilter_RequiresNested {
+        internal static string ErrorHelper_ListFilter_RequiresNested {
             get {
-                return ResourceManager.GetString("ThrowHelper_ListFilter_RequiresNested", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_ListFilter_RequiresNested", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to KQL cannot express this pattern on a nested field: `{0}`..
         /// </summary>
-        internal static string ThrowHelper_ListFilter_ReservedCharacter {
+        internal static string ErrorHelper_ListFilter_ReservedCharacter {
             get {
-                return ResourceManager.GetString("ThrowHelper_ListFilter_ReservedCharacter", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_ListFilter_ReservedCharacter", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to ES|QL cannot skip rows: a page must start at the first row..
         /// </summary>
-        internal static string ThrowHelper_Paging_SkipNotSupported {
+        internal static string ErrorHelper_Paging_SkipNotSupported {
             get {
-                return ResourceManager.GetString("ThrowHelper_Paging_SkipNotSupported", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_Paging_SkipNotSupported", resourceCulture);
             }
         }
     }

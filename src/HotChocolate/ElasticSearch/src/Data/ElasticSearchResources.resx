@@ -18,16 +18,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ThrowHelper_ListFilter_NotSupported" xml:space="preserve">
+  <data name="ErrorHelper_ListFilter_NotSupported" xml:space="preserve">
     <value>This condition is not supported on a list: `{0}`.</value>
   </data>
-  <data name="ThrowHelper_ListFilter_RequiresNested" xml:space="preserve">
+  <data name="ErrorHelper_ListFilter_RequiresNested" xml:space="preserve">
     <value>This filter on `{0}` needs the field to be mapped as nested and marked with `ElasticSearchNestedAttribute`: an object mapping keeps the values of each field apart.</value>
   </data>
-  <data name="ThrowHelper_ListFilter_ReservedCharacter" xml:space="preserve">
+  <data name="ErrorHelper_ListFilter_ReservedCharacter" xml:space="preserve">
     <value>KQL cannot express this pattern on a nested field: `{0}`.</value>
   </data>
-  <data name="ThrowHelper_Paging_SkipNotSupported" xml:space="preserve">
+  <data name="ErrorHelper_Paging_SkipNotSupported" xml:space="preserve">
     <value>ES|QL cannot skip rows: a page must start at the first row.</value>
   </data>
 </root>
