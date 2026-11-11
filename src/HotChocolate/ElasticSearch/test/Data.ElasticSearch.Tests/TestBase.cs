@@ -32,12 +32,19 @@ public class TestBase
 
     protected string DefaultIndexName { get; } = $"{Guid.NewGuid():N}";
 
-    protected async Task IndexDocuments<T>(IEnumerable<T> data)
+    protected EsqlClient CreateClient(JsonSerializerOptions options)
+        => new(new EsqlClientSettings(_http.BaseAddress!) { JsonSerializerOptions = options });
+
+    protected async Task IndexDocuments<T>(IEnumerable<T> data, JsonSerializerOptions? options = null)
         where T : class
     {
         await _http.DeleteAsync("/_all", TestContext.Current.CancellationToken);
 
-        var mapping = new JsonObject { ["mappings"] = new JsonObject { ["properties"] = Properties(typeof(T)) } };
+        var enumsAsText = options?.Converters.Any(c => c is JsonStringEnumConverter) == true;
+        var mapping = new JsonObject
+        {
+            ["mappings"] = new JsonObject { ["properties"] = Properties(typeof(T), enumsAsText) }
+        };
         using var created = await _http.PutAsync(
             "/" + DefaultIndexName,
             new StringContent(mapping.ToJsonString(), Encoding.UTF8, "application/json"),
@@ -48,7 +55,7 @@ public class TestBase
 
         foreach (var element in data)
         {
-            bulk.Append("{\"index\":{}}\n").Append(JsonSerializer.Serialize(element, s_options)).Append('\n');
+            bulk.Append("{\"index\":{}}\n").Append(JsonSerializer.Serialize(element, options ?? s_options)).Append('\n');
         }
 
         using var indexed = await _http.PostAsync(
@@ -67,7 +74,7 @@ public class TestBase
         }
     }
 
-    private static JsonObject Properties(Type type)
+    private static JsonObject Properties(Type type, bool enumsAsText)
     {
         var properties = new JsonObject();
 
@@ -75,19 +82,22 @@ public class TestBase
         {
             var name = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name
                 ?? JsonNamingPolicy.CamelCase.ConvertName(property.Name);
-            properties[name] = Mapping(property.PropertyType, property);
+            properties[name] = Mapping(property.PropertyType, property, enumsAsText);
         }
 
         return properties;
     }
 
-    private static JsonObject Mapping(Type type, PropertyInfo property)
+    private static JsonObject Mapping(Type type, PropertyInfo property, bool enumsAsText)
     {
         type = Nullable.GetUnderlyingType(type) ?? type;
 
         if (type.IsEnum)
         {
-            return new JsonObject { ["type"] = property.IsDefined(typeof(JsonConverterAttribute)) ? "keyword" : "integer" };
+            return new JsonObject
+            {
+                ["type"] = enumsAsText || property.IsDefined(typeof(JsonConverterAttribute)) ? "keyword" : "integer"
+            };
         }
 
         if (type == typeof(string) || type == typeof(Guid) || type == typeof(Uri))
@@ -131,10 +141,10 @@ public class TestBase
 
         if (element is not null)
         {
-            return Mapping(element, property);
+            return Mapping(element, property, enumsAsText);
         }
 
-        var mapping = new JsonObject { ["properties"] = Properties(type) };
+        var mapping = new JsonObject { ["properties"] = Properties(type, enumsAsText) };
 
         if (property.IsDefined(typeof(ElasticSearchNestedAttribute)))
         {

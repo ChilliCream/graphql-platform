@@ -11,6 +11,8 @@ internal sealed class ElasticSearchQueryableFilterProvider : QueryableFilterProv
 {
     private readonly JsonNamingPolicy? _namingPolicy = JsonNamingPolicy.CamelCase;
 
+    private readonly JsonSerializerOptions? _options;
+
     public ElasticSearchQueryableFilterProvider(
         Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
         : base(configure)
@@ -23,6 +25,11 @@ internal sealed class ElasticSearchQueryableFilterProvider : QueryableFilterProv
     public ElasticSearchQueryableFilterProvider(JsonNamingPolicy? namingPolicy)
     {
         _namingPolicy = namingPolicy;
+    }
+
+    public ElasticSearchQueryableFilterProvider(JsonSerializerOptions options)
+    {
+        _options = options;
     }
 
     protected override void Configure(IFilterProviderDescriptor<QueryableFilterContext> descriptor)
@@ -41,7 +48,7 @@ internal sealed class ElasticSearchQueryableFilterProvider : QueryableFilterProv
             return base.ApplyToResult(input, where);
         }
 
-        var rewriter = new ElasticSearchFilterRewriter(_namingPolicy);
+        var rewriter = new ElasticSearchFilterRewriter(_namingPolicy, _options);
         var rewritten = (Expression<Func<TEntityType, bool>>)rewriter.Visit(where);
         return base.ApplyToResult(input, rewritten);
     }

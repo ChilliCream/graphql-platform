@@ -30,4 +30,20 @@ public static class ElasticSearchFilteringRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         JsonNamingPolicy? namingPolicy)
         => builder.ConfigureSchema(x => x.AddElasticSearchFiltering(namingPolicy));
+
+    /// <summary>
+    /// Adds filtering over ES|QL to the schema, with the serializer options of the ES|QL client,
+    /// which write the values that a filter on a list of objects compares.
+    /// </summary>
+    /// <param name="builder">The request executor builder.</param>
+    /// <param name="options">The serializer options of the ES|QL client.</param>
+    /// <returns>The request executor builder.</returns>
+    public static IRequestExecutorBuilder AddElasticSearchFiltering(
+        this IRequestExecutorBuilder builder,
+        JsonSerializerOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        return builder.ConfigureSchema(x => x.AddElasticSearchFiltering(options));
+    }
 }

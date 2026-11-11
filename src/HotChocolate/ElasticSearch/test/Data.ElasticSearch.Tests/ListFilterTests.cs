@@ -1,5 +1,7 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Elastic.Esql.Extensions;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
@@ -337,17 +339,65 @@ public class ListFilterTests(ElasticsearchResource resource) : TestBase(resource
         Assert.Equal(Names(expected), Names(actual));
     }
 
+    [Theory]
+    [InlineData(false, "some: { tone: { eq: BLUE } }")]
+    [InlineData(false, "some: { tone: { in: [BLUE, GREEN] } }")]
+    [InlineData(false, "some: { hue: { eq: BLUE } }")]
+    [InlineData(true, "some: { tone: { eq: BLUE } }")]
+    [InlineData(true, "some: { tone: { neq: BLUE } }")]
+    [InlineData(true, "some: { tone: { in: [BLUE, GREEN] } }")]
+    [InlineData(true, "all: { tone: { nin: [RED] } }")]
+    [InlineData(true, "some: { hue: { eq: BLUE } }")]
+    public async Task Filter_Should_MatchLinq_When_OptionsWriteEnumsAsText(bool nested, string filter)
+    {
+        // arrange
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+        };
+        var client = CreateClient(options);
+
+        // act
+        JsonNode expected;
+        JsonNode actual;
+
+        if (nested)
+        {
+            var data = s_objects.Select(o => new NestedDocument { Name = o.Name, Items = o.Items }).ToArray();
+            await IndexDocuments(data, options);
+            expected = await ExecuteAsync(() => data.AsQueryable(), false, "items", filter);
+            actual = await ExecuteAsync(
+                () => client.CreateQuery<NestedDocument>().From(Client.Index), true, "items", filter, options);
+        }
+        else
+        {
+            var data = s_objects.Select(o => new ObjectDocument { Name = o.Name, Items = o.Items }).ToArray();
+            await IndexDocuments(data, options);
+            expected = await ExecuteAsync(() => data.AsQueryable(), false, "items", filter);
+            actual = await ExecuteAsync(
+                () => client.CreateQuery<ObjectDocument>().From(Client.Index), true, "items", filter, options);
+        }
+
+        // assert
+        Assert.Equal(Names(expected), Names(actual));
+    }
+
     private IQueryable<T> Query<T>() where T : class => Client.Esql.CreateQuery<T>().From(Client.Index);
 
     internal static async Task<JsonNode> ExecuteAsync<T>(
         Func<IQueryable<T>> source,
         bool elasticSearch,
         string field,
-        string filter)
+        string filter,
+        JsonSerializerOptions? options = null)
         where T : class
     {
         var builder = new ServiceCollection().AddGraphQL();
-        builder = elasticSearch ? builder.AddElasticSearchFiltering() : builder.AddFiltering();
+        builder = !elasticSearch ? builder.AddFiltering()
+            : options is null ? builder.AddElasticSearchFiltering()
+            : builder.AddElasticSearchFiltering(options);
 
         var executor = await builder
             .AddQueryType(d => d

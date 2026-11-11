@@ -12,7 +12,9 @@ namespace HotChocolate.Data.ElasticSearch.Filtering;
 /// <summary>
 /// Rewrites the predicates that ES|QL answers differently from .NET, or cannot answer from a column.
 /// </summary>
-internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy) : ExpressionVisitor
+internal sealed class ElasticSearchFilterRewriter(
+    JsonNamingPolicy? namingPolicy,
+    JsonSerializerOptions? options = null) : ExpressionVisitor
 {
     private static readonly MethodInfo s_kql =
         typeof(EsqlFunctions).GetMethod(nameof(EsqlFunctions.Kql), [typeof(string)])!;
@@ -371,6 +373,17 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
         => member.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name
             ?? namingPolicy?.ConvertName(member.Name)
             ?? member.Name;
+
+    // a value as the serializer of the client writes it, or null without its options.
+    private JsonElement? Serialize(object value)
+    {
+        if (options is null || !options.TryGetTypeInfo(value.GetType(), out var typeInfo))
+        {
+            return null;
+        }
+
+        return JsonSerializer.SerializeToElement(value, typeInfo);
+    }
 
     private string FieldPath(MemberExpression member)
         => member.Expression is MemberExpression parent
@@ -755,25 +768,38 @@ internal sealed class ElasticSearchFilterRewriter(JsonNamingPolicy? namingPolicy
             return builder.ToString();
         }
 
-        // an enum is stored by name through a string converter, and by number otherwise.
-        private static string Literal(Expression field, object? value)
-            => value is Enum enumValue && !IsStoredByName(field)
-                ? Literal(Convert.ChangeType(
-                    enumValue,
-                    Enum.GetUnderlyingType(enumValue.GetType()),
-                    CultureInfo.InvariantCulture))
-                : Literal(value);
-
-        private static bool IsStoredByName(Expression field)
+        // an enum is stored by name through a string converter on the property, else as the serializer options
+        // write it, and without them by name through a string converter on the enum and by number otherwise.
+        private string Literal(Expression field, object? value)
         {
+            if (value is not Enum enumValue)
+            {
+                return Literal(value);
+            }
+
             while (field is UnaryExpression { NodeType: ExpressionType.Convert } convert)
             {
                 field = convert.Operand;
             }
 
-            var type = Nullable.GetUnderlyingType(field.Type) ?? field.Type;
-            return (field is MemberExpression member && IsStringConverter(member.Member))
-                || IsStringConverter(type);
+            if (field is MemberExpression member && IsStringConverter(member.Member))
+            {
+                return Literal(value);
+            }
+
+            if (owner.Serialize(enumValue) is { } serialized)
+            {
+                return serialized.ValueKind == JsonValueKind.String
+                    ? Literal(serialized.GetString())
+                    : serialized.GetRawText();
+            }
+
+            return IsStringConverter(enumValue.GetType())
+                ? Literal(value)
+                : Literal(Convert.ChangeType(
+                    enumValue,
+                    Enum.GetUnderlyingType(enumValue.GetType()),
+                    CultureInfo.InvariantCulture));
         }
 
         private static bool IsStringConverter(MemberInfo member)
