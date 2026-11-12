@@ -77,9 +77,10 @@ public sealed partial class HttpSourceSchemaClient
     /// that carries every variable value set of the request.
     /// </summary>
     /// <param name="body">
-    /// The body that was sent: an operation batch that holds, in request order, one variable
-    /// batch for a request or one operation for each of its variable value sets; or, for a batch
-    /// of one request, that request's own operation or variable batch.
+    /// The body that was sent: an operation batch that holds, in request order, either one
+    /// operation or variable batch per request, or one operation for each variable value set
+    /// of each request; or, for a batch of one request, that request's own operation or
+    /// variable batch.
     /// </param>
     /// <param name="operationIndex">The position of the operation in the batch.</param>
     /// <param name="requests">The requests of the batch.</param>
@@ -118,23 +119,11 @@ public sealed partial class HttpSourceSchemaClient
                 return;
             }
 
+            // Otherwise every request has one operation for each of its variable value sets.
             var position = 0;
 
-            for (var i = 0; i < requests.Length && position < operations.Length; i++)
+            for (var i = 0; i < requests.Length; i++)
             {
-                if (operations[position] is VariableBatchRequest)
-                {
-                    if (position == operationIndex)
-                    {
-                        requestIndex = i;
-                        variableIndex = -1;
-                        return;
-                    }
-
-                    position++;
-                    continue;
-                }
-
                 var operationCount = Math.Max(1, requests.ItemRef(i).Variables.Length);
 
                 if (operationIndex < position + operationCount)
@@ -319,9 +308,10 @@ public sealed partial class HttpSourceSchemaClient
         /// </summary>
         /// <param name="requests">The requests of the batch.</param>
         /// <param name="body">
-        /// The body that was sent: an operation batch that holds, in request order, one variable
-        /// batch for a request or one operation for each of its variable value sets; or, for a
-        /// batch of one request, that request's own operation or variable batch.
+        /// The body that was sent: an operation batch that holds, in request order, either one
+        /// operation or variable batch per request, or one operation for each variable value set
+        /// of each request; or, for a batch of one request, that request's own operation or
+        /// variable batch.
         /// </param>
         /// <param name="alwaysSendsRequestIndex">
         /// <c>true</c> when the source schema names every document of an operation batch with a
