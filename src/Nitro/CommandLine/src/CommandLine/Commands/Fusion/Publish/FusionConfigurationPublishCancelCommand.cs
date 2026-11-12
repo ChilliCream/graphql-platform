@@ -65,6 +65,8 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
                 throw new ExitException();
             }
 
+            await FusionConfigurationPublishingState.ClearRequestId(fileSystem, requestId, cancellationToken);
+
             activity.Success($"Canceled publication for request '{requestId.EscapeMarkup()}'.");
 
             return ExitCodes.Success;
