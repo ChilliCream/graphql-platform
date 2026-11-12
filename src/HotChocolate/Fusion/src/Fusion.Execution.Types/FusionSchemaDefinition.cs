@@ -681,6 +681,28 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     }
 
     /// <summary>
+    /// Determines whether an object type sets a context in a source schema, either through
+    /// <c>@fusion__context</c> on the type itself, on an interface it implements in that source
+    /// schema, or on a union it is a member of in that source schema.
+    /// </summary>
+    /// <param name="type">The object type.</param>
+    /// <param name="schemaName">The name of the source schema.</param>
+    /// <param name="contextName">The name of the context.</param>
+    /// <returns>
+    /// <c>true</c> if the object type sets the context in the source schema, otherwise <c>false</c>.
+    /// </returns>
+    public bool SetsContext(FusionObjectTypeDefinition type, string schemaName, string contextName)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
+        ArgumentException.ThrowIfNullOrEmpty(contextName);
+
+        EnsurePlannerTopologyCacheInitialized();
+
+        return _plannerTopologyCache.SetsContext(type.Name, schemaName, contextName);
+    }
+
+    /// <summary>
     /// Tries to get the best direct lookup to transition from one schema
     /// to another without intermediary transitions.
     /// The best lookup algorithm will try to find the smallest possible key that does not

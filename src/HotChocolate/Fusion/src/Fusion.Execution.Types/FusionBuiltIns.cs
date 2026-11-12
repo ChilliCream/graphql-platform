@@ -18,6 +18,7 @@ internal static class FusionBuiltIns
     public const string Lookup = "fusion__lookup";
     public const string Implements = "fusion__implements";
     public const string InterfaceObject = "fusion__interfaceObject";
+    public const string Context = "fusion__context";
     public const string UnionMember = "fusion__unionMember";
     public const string EnumValue = "fusion__enumValue";
     public const string Policy = "fusion__policy";

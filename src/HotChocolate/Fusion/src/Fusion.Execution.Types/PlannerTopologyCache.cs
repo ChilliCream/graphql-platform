@@ -15,17 +15,20 @@ internal sealed class PlannerTopologyCache
     private readonly FrozenDictionary<LookupKey, ImmutableArray<Lookup>> _orderedLookups;
     private readonly FrozenDictionary<TransitionKey, Lookup> _directTransitions;
     private readonly FrozenDictionary<string, TypeScatterInfo> _typeScatter;
+    private readonly FrozenSet<ContextKey> _contexts;
 
     private PlannerTopologyCache(
         FrozenDictionary<FieldKey, FieldResolutionInfo> fieldResolutions,
         FrozenDictionary<LookupKey, ImmutableArray<Lookup>> orderedLookups,
         FrozenDictionary<TransitionKey, Lookup> directTransitions,
-        FrozenDictionary<string, TypeScatterInfo> typeScatter)
+        FrozenDictionary<string, TypeScatterInfo> typeScatter,
+        FrozenSet<ContextKey> contexts)
     {
         _fieldResolutions = fieldResolutions;
         _orderedLookups = orderedLookups;
         _directTransitions = directTransitions;
         _typeScatter = typeScatter;
+        _contexts = contexts;
     }
 
     public static PlannerTopologyCache Build(FusionSchemaDefinition schema)
@@ -41,12 +44,14 @@ internal sealed class PlannerTopologyCache
         var orderedLookups = BuildOrderedLookups(schema, complexTypes);
         var directTransitions = BuildTransitions(schema, complexTypes, schemaNames);
         var typeScatter = BuildTypeScatter(complexTypes, fieldResolutions);
+        var contexts = BuildContexts(schema, complexTypes);
 
         return new PlannerTopologyCache(
             fieldResolutions.ToFrozenDictionary(),
             orderedLookups.ToFrozenDictionary(),
             directTransitions.ToFrozenDictionary(),
-            typeScatter.ToFrozenDictionary(StringComparer.Ordinal));
+            typeScatter.ToFrozenDictionary(StringComparer.Ordinal),
+            contexts.ToFrozenSet());
     }
 
     public bool TryGetFieldResolution(
@@ -73,6 +78,9 @@ internal sealed class PlannerTopologyCache
         string typeName,
         out TypeScatterInfo scatter)
         => _typeScatter.TryGetValue(typeName, out scatter);
+
+    public bool SetsContext(string typeName, string schemaName, string contextName)
+        => _contexts.Contains(new ContextKey(typeName, schemaName, contextName));
 
     private static HashSet<string> CollectSchemaNames(
         IEnumerable<FusionComplexTypeDefinition> complexTypes)
@@ -302,6 +310,53 @@ internal sealed class PlannerTopologyCache
         return scatter;
     }
 
+    // An object type sets a context in a source schema when the type itself, an interface it
+    // implements in that schema, or a union it is a member of in that schema declares the context.
+    private static HashSet<ContextKey> BuildContexts(
+        FusionSchemaDefinition schema,
+        IEnumerable<FusionComplexTypeDefinition> complexTypes)
+    {
+        var contexts = new HashSet<ContextKey>();
+        var unionTypes = schema.Types.AsEnumerable().OfType<FusionUnionTypeDefinition>().ToArray();
+
+        foreach (var objectType in complexTypes.OfType<FusionObjectTypeDefinition>())
+        {
+            foreach (var source in objectType.Sources)
+            {
+                foreach (var contextName in source.Contexts)
+                {
+                    contexts.Add(new ContextKey(objectType.Name, source.SchemaName, contextName));
+                }
+
+                foreach (var interfaceType in objectType.Implements)
+                {
+                    if (source.Implements.Contains(interfaceType.Name)
+                        && interfaceType.Sources.TryGetMember(source.SchemaName, out var interfaceSource))
+                    {
+                        foreach (var contextName in interfaceSource.Contexts)
+                        {
+                            contexts.Add(new ContextKey(objectType.Name, source.SchemaName, contextName));
+                        }
+                    }
+                }
+
+                foreach (var unionType in unionTypes)
+                {
+                    if (source.MemberOf.Contains(unionType.Name)
+                        && unionType.Sources.TryGetMember(source.SchemaName, out var unionSource))
+                    {
+                        foreach (var contextName in unionSource.Contexts)
+                        {
+                            contexts.Add(new ContextKey(objectType.Name, source.SchemaName, contextName));
+                        }
+                    }
+                }
+            }
+        }
+
+        return contexts;
+    }
+
     private static ImmutableArray<Lookup> OrderLookups(ImmutableArray<Lookup> lookups)
         => [.. lookups.OrderBy(CreateLookupOrderingKey, StringComparer.Ordinal)];
 
@@ -326,6 +381,8 @@ internal sealed class PlannerTopologyCache
     private readonly record struct FieldKey(string TypeName, string FieldName);
 
     private readonly record struct LookupKey(string TypeName, string? SchemaName);
+
+    private readonly record struct ContextKey(string TypeName, string SchemaName, string ContextName);
 
     private readonly record struct TransitionKey(string TypeName, string FromSchema, string ToSchema);
 }
