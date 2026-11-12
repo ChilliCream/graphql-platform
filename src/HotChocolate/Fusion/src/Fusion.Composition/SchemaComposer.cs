@@ -272,6 +272,8 @@ internal sealed class SchemaComposer
     [
         new PolicyDirectiveArgumentRule(),
         new PolicyOnInterfaceObjectRule(),
+        new ContextNameInvalidRule(),
+        new ContextOnInterfaceObjectRule(),
         new CostDirectiveDefinitionRule(),
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),

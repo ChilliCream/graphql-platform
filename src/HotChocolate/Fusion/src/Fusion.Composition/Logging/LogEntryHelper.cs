@@ -130,6 +130,39 @@ internal static class LogEntryHelper
     private static string FormatSchemaNames(IEnumerable<string> schemaNames)
         => string.Join(", ", schemaNames.Select(static n => $"'{n}'"));
 
+    public static LogEntry ContextNameInvalid(
+        IDirective contextDirective,
+        ITypeDefinition type,
+        string name,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(type.Name);
+
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_ContextNameInvalid, type.Name, schema.Name, name)
+            .SetCode(LogEntryCodes.ContextNameInvalid)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(contextDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry ContextOnInterfaceObject(
+        Directive contextDirective,
+        MutableObjectTypeDefinition standIn,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_ContextOnInterfaceObject, standIn.Name, schema.Name)
+            .SetCode(LogEntryCodes.ContextOnInterfaceObject)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(standIn.Coordinate)
+            .SetTypeSystemMember(contextDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry DisallowedInaccessibleBuiltInScalar(
         MutableScalarTypeDefinition scalar,
         MutableSchemaDefinition schema)
