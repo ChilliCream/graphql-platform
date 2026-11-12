@@ -419,6 +419,28 @@ public static class DirectiveNames
     }
 
     /// <summary>
+    /// The name constants of the @context directive.
+    /// </summary>
+    public static class Context
+    {
+        /// <summary>
+        /// The name of the @context directive.
+        /// </summary>
+        public const string Name = "context";
+
+        /// <summary>
+        /// The argument names of the @context directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the context.
+            /// </summary>
+            public const string Name = "name";
+        }
+    }
+
+    /// <summary>
     /// The name constants of the @require directive.
     /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--require"/>
     /// </summary>

@@ -19,6 +19,7 @@ internal static class FusionBuiltIns
         new HashSet<MutableDirectiveDefinition>(
         [
             new AuthenticatedMutableDirectiveDefinition(),
+            new ContextMutableDirectiveDefinition(s_stringType),
             new EventCursorMutableDirectiveDefinition(),
             new ExternalMutableDirectiveDefinition(),
             new ImplementMutableDirectiveDefinition(),

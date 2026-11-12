@@ -81,4 +81,139 @@ public sealed class SourceSchemaEnricherTests
         Assert.False(bookCategoryCountFieldMetadata.IsKeyField);
         Assert.True(bookCategoryCountFieldMetadata.IsShareable);
     }
+
+    [Fact]
+    public void Enrich_RequireWithContextPath_SetsContextNames()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    price(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int
+                }
+                """);
+        var schema = new SourceSchemaParser(sourceSchemaText, new CompositionLog()).Parse().Value;
+        var enricher = new SourceSchemaEnricher(schema, [schema]);
+
+        // act
+        enricher.Enrich();
+
+        // assert
+        var argument = schema.QueryType!.Fields["price"].Arguments["currency"];
+        var metadata = argument.Features.GetRequired<SourceInputFieldMetadata>();
+        Assert.Equal(["userContext"], metadata.RequireInfo!.ContextNames);
+    }
+
+    [Fact]
+    public void Enrich_RequireWithNestedContextPaths_SetsDistinctContextNames()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    price(
+                        input: Input!
+                            @require(field: "{ a: $userContext.currency, b: $region.code, c: $userContext.id, d: id }")): Int
+                }
+
+                input Input {
+                    a: String
+                    b: String
+                    c: String
+                    d: String
+                }
+                """);
+        var schema = new SourceSchemaParser(sourceSchemaText, new CompositionLog()).Parse().Value;
+        var enricher = new SourceSchemaEnricher(schema, [schema]);
+
+        // act
+        enricher.Enrich();
+
+        // assert
+        var argument = schema.QueryType!.Fields["price"].Arguments["input"];
+        var metadata = argument.Features.GetRequired<SourceInputFieldMetadata>();
+        Assert.Equal(["userContext", "region"], metadata.RequireInfo!.ContextNames);
+    }
+
+    [Fact]
+    public void Enrich_RequireWithoutContextPath_SetsEmptyContextNames()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    price(currency: String! @require(field: "currency.isoCode")): Int
+                }
+                """);
+        var schema = new SourceSchemaParser(sourceSchemaText, new CompositionLog()).Parse().Value;
+        var enricher = new SourceSchemaEnricher(schema, [schema]);
+
+        // act
+        enricher.Enrich();
+
+        // assert
+        var argument = schema.QueryType!.Fields["price"].Arguments["currency"];
+        var metadata = argument.Features.GetRequired<SourceInputFieldMetadata>();
+        Assert.Empty(metadata.RequireInfo!.ContextNames);
+    }
+
+    [Fact]
+    public void Enrich_RequireWithInvalidSyntax_SetsEmptyContextNames()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    price(currency: String! @require(field: "$userContext.")): Int
+                }
+                """);
+        var schema = new SourceSchemaParser(sourceSchemaText, new CompositionLog()).Parse().Value;
+        var enricher = new SourceSchemaEnricher(schema, [schema]);
+
+        // act
+        enricher.Enrich();
+
+        // assert
+        var argument = schema.QueryType!.Fields["price"].Arguments["currency"];
+        var requireInfo = argument.Features.GetRequired<SourceInputFieldMetadata>().RequireInfo!;
+        Assert.True(requireInfo.IsInvalidFieldSyntax);
+        Assert.Empty(requireInfo.ContextNames);
+    }
+
+    [Fact]
+    public void Enrich_IsWithContextPath_SetsContextNames()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    product(id: ID! @is(field: "$userContext.productId")): String
+                }
+                """);
+        var schema = new SourceSchemaParser(sourceSchemaText, new CompositionLog()).Parse().Value;
+        var enricher = new SourceSchemaEnricher(schema, [schema]);
+
+        // act
+        enricher.Enrich();
+
+        // assert
+        var argument = schema.QueryType!.Fields["product"].Arguments["id"];
+        var metadata = argument.Features.GetRequired<SourceInputFieldMetadata>();
+        Assert.Equal(["userContext"], metadata.IsInfo!.ContextNames);
+    }
 }
