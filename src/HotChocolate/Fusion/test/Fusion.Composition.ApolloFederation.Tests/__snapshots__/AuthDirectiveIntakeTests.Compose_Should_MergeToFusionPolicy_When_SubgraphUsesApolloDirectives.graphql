@@ -7,9 +7,7 @@ schema
 }
 
 type Query @fusion__type(schema: A) @fusion__type(schema: B) {
-  me: String
-    @fusion__policy(authenticated: true)
-    @fusion__field(schema: A)
+  me: String @fusion__policy(authenticated: true) @fusion__field(schema: A)
   product(id: ID! @fusion__inputField(schema: A)): Product
     @fusion__policy(authenticated: true)
     @fusion__field(schema: A)
@@ -54,6 +52,11 @@ type Product
     @fusion__field(schema: B)
 }
 
+enum fusion__CaseBudgetExceededBehavior {
+  EVALUATE_PER_REQUEST
+  OVERESTIMATE
+}
+
 enum fusion__NodeResolution {
   GATEWAY
   SOURCE_SCHEMA
@@ -82,16 +85,6 @@ scalar fusion__FieldSelectionPath
 "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
 scalar fusion__FieldSelectionSet
 
-"The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
-directive @fusion__policy(
-  "Whether the member requires an authenticated user."
-  authenticated: Boolean! = false
-  "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
-  policies: [[String!]!]
-  "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
-  scopes: [[String!]!]
-) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
-
 "The @fusion__cost directive specifies cost metadata for each source schema."
 directive @fusion__cost(
   "The name of the source schema that defined the cost metadata."
@@ -106,7 +99,17 @@ directive @fusion__cost(
   | ENUM
   | INPUT_FIELD_DEFINITION
 
-directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+directive @fusion__cost_options(
+  caseBudget: Int
+  caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+  costPlanCacheSize: Int
+  defaultListSize: Int
+  enforceCostLimits: Boolean
+  maxFieldCost: Float
+  maxResponseSize: Float
+  maxTypeCost: Float
+  skipAnalyzer: Boolean
+) on SCHEMA
 
 "The @fusion__enumValue directive specifies which source schema provides an enum value."
 directive @fusion__enumValue(
@@ -211,6 +214,16 @@ directive @fusion__lookup(
   "The name of the source schema where the annotated entity type can be looked up from."
   schema: fusion__Schema!
 ) repeatable on OBJECT | INTERFACE | UNION
+
+"The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+directive @fusion__policy(
+  "Whether the member requires an authenticated user."
+  authenticated: Boolean! = false
+  "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+  policies: [[String!]!]
+  "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+  scopes: [[String!]!]
+) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
 "The @fusion__requires directive specifies if a field has requirements on a source schema."
 directive @fusion__requires(
