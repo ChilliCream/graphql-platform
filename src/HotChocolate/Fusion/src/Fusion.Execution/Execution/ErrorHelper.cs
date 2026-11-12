@@ -207,18 +207,6 @@ internal static class ErrorHelper
         return result;
     }
 
-    public static OperationResult SubscriptionFaulted(Exception fault, IErrorHandler errorHandler)
-    {
-        var result = OperationResult.FromError(
-            [.. errorHandler.Handle([ErrorBuilder.FromException(fault).Build()])]);
-
-        result.ContextData = result.ContextData.Add(
-            ExecutionContextData.HttpStatusCode,
-            HttpStatusCode.InternalServerError);
-
-        return result;
-    }
-
     private static void SetUnauthorized(OperationResult result, string? challenge)
     {
         result.ContextData = result.ContextData.Add(

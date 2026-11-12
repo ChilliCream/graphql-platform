@@ -224,8 +224,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     }
 
     [Fact]
-    public async Task
-        ReadResultsAsync_Should_EndTheStreamWithTheInnerErrors_When_AnErrorFilterReturnsAnAggregateError()
+    public async Task ReadResultsAsync_Should_Throw_When_TheExpiryScopeFailsToCommit()
     {
         // arrange
         var time = new FakeTimeProvider(DateTimeOffset.UnixEpoch.AddHours(1));
@@ -234,77 +233,30 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
         var executor = await CreateSubscriptionExecutorAsync(
             client,
             policies => policies.Allow("live"),
-            builder =>
-            {
-                builder.ConfigureSchemaServices(
-                    (_, sc) =>
-                    {
-                        sc.AddSingleton<TimeProvider>(time);
-                        sc.AddSingleton<IAuditProvider>(audit);
-                    });
-                builder.AddErrorFilter(e => new AggregateError(e.WithMessage("a"), e.WithMessage("b")));
-            });
+            builder => builder.ConfigureSchemaServices(
+                (_, sc) =>
+                {
+                    sc.AddSingleton<TimeProvider>(time);
+                    sc.AddSingleton<IAuditProvider>(audit);
+                }));
         var user = Authenticated(CreateExpiryClaim(time.GetUtcNow().AddMinutes(10)));
         await using var result = await executor.ExecuteAsync(
             CreateRequest(Subscription, user).Build(),
             TestContext.Current.CancellationToken);
         await using var events = ReadEvents(result);
-        audit.CommitFailure = new InvalidOperationException("commit");
+        var expected = new InvalidOperationException("commit");
+        audit.CommitFailure = expected;
         time.Advance(TimeSpan.FromMinutes(10));
 
         // act
-        Assert.True(await events.MoveNextAsync());
-        await using var terminal = events.Current;
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await events.MoveNextAsync());
 
         // assert
+        Assert.Same(expected, exception);
         Snapshot.Create()
-            .Add(terminal.ToJson(), "Terminal Result")
-            .Add(GetRequestedStatusCode(terminal), "Terminal Status Code")
-            .MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task ReadResultsAsync_Should_EndTheStreamWithAnErrorResult_When_TheExpiryScopeFailsToCommit()
-    {
-        // arrange
-        var time = new FakeTimeProvider(DateTimeOffset.UnixEpoch.AddHours(1));
-        var client = new AuthorizationTestClient(Event);
-        var audit = new RecordingAuditProvider(client);
-        var listener = new CapturingExecutionDiagnosticEventListener();
-        var executor = await CreateSubscriptionExecutorAsync(
-            client,
-            policies => policies.Allow("live"),
-            builder =>
-            {
-                builder.ConfigureSchemaServices(
-                    (_, sc) =>
-                    {
-                        sc.AddSingleton<TimeProvider>(time);
-                        sc.AddSingleton<IAuditProvider>(audit);
-                    });
-                builder.AddDiagnosticEventListener(_ => listener);
-            });
-        var user = Authenticated(CreateExpiryClaim(time.GetUtcNow().AddMinutes(10)));
-        await using var result = await executor.ExecuteAsync(
-            CreateRequest(Subscription, user).Build(),
-            TestContext.Current.CancellationToken);
-        await using var events = ReadEvents(result);
-        audit.CommitFailure = new InvalidOperationException("commit");
-        time.Advance(TimeSpan.FromMinutes(10));
-
-        // act
-        Assert.True(await events.MoveNextAsync());
-        await using var terminal = events.Current;
-        var hasNext = await events.MoveNextAsync();
-
-        // assert
-        Snapshot.Create()
-            .Add(terminal.ToJson(), "Terminal Result")
-            .Add(GetRequestedStatusCode(terminal), "Terminal Status Code")
-            .Add(hasNext, "Has Next")
+            .Add(GetRequestedStatusCode(result), "Requested Status Code")
             .Add(audit.Scopes.Select(Format).ToArray(), "Scopes")
-            .Add(listener.RequestErrors.Select(Describe).ToArray(), "Request Errors")
-            .Add(listener.SubscriptionEventErrors.Select(Describe).ToArray(), "Subscription Event Errors")
             .MatchMarkdownSnapshot();
     }
 
@@ -328,9 +280,6 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
 
         return current.ToJson();
     }
-
-    private static string Describe(Exception exception)
-        => $"{exception.GetType().FullName}: {exception.Message}";
 
     private static Claim CreateExpiryClaim(DateTimeOffset expiry)
         => new("exp", expiry.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));

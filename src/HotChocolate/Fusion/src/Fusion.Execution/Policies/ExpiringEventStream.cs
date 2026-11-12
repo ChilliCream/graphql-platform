@@ -2,7 +2,6 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Policies.Auditing;
 
@@ -26,8 +25,6 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
     private readonly IVariableValueCollection _variables;
     private readonly DateTimeOffset _expiry;
     private readonly TimeProvider _timeProvider;
-    private readonly IErrorHandler _errorHandler;
-    private readonly Action<Exception> _reportFailure;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ExpiringEventStream"/>.
@@ -59,12 +56,6 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
     /// <param name="timeProvider">
     /// The time provider that measures the expiry of the token.
     /// </param>
-    /// <param name="errorHandler">
-    /// The error handler that shapes the error result of a failed expiry audit scope.
-    /// </param>
-    /// <param name="reportFailure">
-    /// The callback that receives the failure to commit the audit scope of the expiry.
-    /// </param>
     public ExpiringEventStream(
         IAsyncEnumerable<OperationResult> results,
         IExecutionResult result,
@@ -74,9 +65,7 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
         OperationPlan plan,
         IVariableValueCollection variables,
         DateTimeOffset expiry,
-        TimeProvider timeProvider,
-        IErrorHandler errorHandler,
-        Action<Exception> reportFailure)
+        TimeProvider timeProvider)
     {
         _results = results;
         _result = result;
@@ -89,32 +78,22 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
         _variables = variables;
         _expiry = expiry;
         _timeProvider = timeProvider;
-        _errorHandler = errorHandler;
-        _reportFailure = reportFailure;
     }
 
     public IAsyncEnumerator<OperationResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         => new Enumerator(this, cancellationToken);
 
-    private async ValueTask<Exception?> RecordExpiryAsync(CancellationToken cancellationToken)
+    private async ValueTask RecordExpiryAsync(CancellationToken cancellationToken)
     {
         if (!_recordsAudit)
         {
-            return null;
+            return;
         }
 
-        try
-        {
-            var scope = _trail.BeginRequest(_info, _user);
+        var scope = _trail.BeginRequest(_info, _user);
 
-            _evaluator.RecordDenied(scope, _plan, _variables, ExpiredReason);
-            await scope.CommitAsync(cancellationToken);
-            return null;
-        }
-        catch (Exception ex) when (PolicyEvaluator.IsFault(ex, cancellationToken))
-        {
-            return ex;
-        }
+        _evaluator.RecordDenied(scope, _plan, _variables, ExpiredReason);
+        await scope.CommitAsync(cancellationToken);
     }
 
     private sealed class Enumerator : IAsyncEnumerator<OperationResult>
@@ -179,14 +158,8 @@ internal sealed class ExpiringEventStream : IAsyncEnumerable<OperationResult>
                 ExecutionContextData.HttpStatusCode,
                 HttpStatusCode.Unauthorized);
 
-            if (await _stream.RecordExpiryAsync(_callerToken) is not { } failure)
-            {
-                return false;
-            }
-
-            _stream._reportFailure(failure);
-            Current = ErrorHelper.SubscriptionFaulted(failure, _stream._errorHandler);
-            return true;
+            await _stream.RecordExpiryAsync(_callerToken);
+            return false;
         }
 
         public async ValueTask DisposeAsync()

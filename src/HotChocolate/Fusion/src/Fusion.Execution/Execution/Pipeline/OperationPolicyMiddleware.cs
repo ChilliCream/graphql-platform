@@ -26,7 +26,6 @@ internal sealed class OperationPolicyMiddleware
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IInputType _booleanType;
     private readonly TimeProvider _timeProvider;
-    private readonly IErrorHandler _errorHandler;
 
     private OperationPolicyMiddleware(
         PolicyEvaluator evaluator,
@@ -35,8 +34,7 @@ internal sealed class OperationPolicyMiddleware
         AuthenticationSchemeResolver schemeResolver,
         IFusionExecutionDiagnosticEvents diagnosticEvents,
         IInputType booleanType,
-        TimeProvider timeProvider,
-        IErrorHandler errorHandler)
+        TimeProvider timeProvider)
     {
         _evaluator = evaluator;
         _auditProvider = auditProvider;
@@ -45,7 +43,6 @@ internal sealed class OperationPolicyMiddleware
         _diagnosticEvents = diagnosticEvents;
         _booleanType = booleanType;
         _timeProvider = timeProvider;
-        _errorHandler = errorHandler;
     }
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
@@ -198,7 +195,6 @@ internal sealed class OperationPolicyMiddleware
             && context.Result is ResponseStream stream)
         {
             context.Result = EndOnExpiry(
-                context,
                 user,
                 plan,
                 subscriptionScope,
@@ -237,7 +233,6 @@ internal sealed class OperationPolicyMiddleware
     }
 
     private ResponseStream EndOnExpiry(
-        RequestContext context,
         ClaimsPrincipal user,
         OperationPlan plan,
         IAuditScope scope,
@@ -256,9 +251,7 @@ internal sealed class OperationPolicyMiddleware
                 plan,
                 variables,
                 expiry,
-                _timeProvider,
-                _errorHandler,
-                failure => _diagnosticEvents.RequestError(context, failure)));
+                _timeProvider));
         expiring.RegisterForCleanup(stream);
         return expiring;
     }
@@ -298,7 +291,6 @@ internal sealed class OperationPolicyMiddleware
                 var auditProvider = fc.SchemaServices.GetRequiredService<IAuditProvider>();
                 var booleanType = GetBooleanType(schema);
                 var timeProvider = fc.SchemaServices.GetService<TimeProvider>() ?? TimeProvider.System;
-                var errorHandler = fc.SchemaServices.GetRequiredService<IErrorHandler>();
                 var middleware = new OperationPolicyMiddleware(
                     new PolicyEvaluator(options, diagnosticEvents),
                     auditProvider,
@@ -306,8 +298,7 @@ internal sealed class OperationPolicyMiddleware
                     schemeResolver,
                     diagnosticEvents,
                     booleanType,
-                    timeProvider,
-                    errorHandler);
+                    timeProvider);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             Key);
