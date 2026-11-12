@@ -52,7 +52,7 @@ public sealed class SchemaComposerTests
     }
 
     [Fact]
-    public void Compose_Should_WarnAboutInheritedAuthorization_When_ImplementationFieldIsProtected()
+    public void Compose_Should_WarnAboutInheritedPolicy_When_ImplementationFieldIsProtected()
     {
         // arrange
         var log = new CompositionLog();
@@ -80,8 +80,8 @@ public sealed class SchemaComposerTests
         Assert.True(result.IsSuccess);
         Assert.Equal(
             [
-                "AUTHORIZATION_INHERITED:SearchResult.title",
-                "AUTHORIZATION_INHERITED:Video.title"
+                "POLICY_INHERITED:SearchResult.title",
+                "POLICY_INHERITED:Video.title"
             ],
             log.Select(e => $"{e.Code}:{e.Coordinate}"));
     }
@@ -1145,8 +1145,8 @@ public sealed class SchemaComposerTests
         // assert
         Assert.Equal(
             [
-                "AuthorizationDirectiveArgumentRule",
-                "AuthorizationOnInterfaceObjectRule",
+                "PolicyDirectiveArgumentRule",
+                "PolicyOnInterfaceObjectRule",
                 "CostDirectiveDefinitionRule",
                 "DisallowedInaccessibleElementsRule",
                 "ExternalOnInterfaceRule",
@@ -1201,7 +1201,7 @@ public sealed class SchemaComposerTests
         // assert
         Assert.Equal(
             [
-                "AuthorizationDirectiveRule",
+                "PolicyDirectiveRule",
                 "EnumValuesMismatchRule",
                 "ExternalArgumentDefaultMismatchRule",
                 "ExternalArgumentMissingRule",
@@ -1239,8 +1239,8 @@ public sealed class SchemaComposerTests
         // assert
         Assert.Equal(
             [
-                "AuthorizationInheritedRule",
-                "AuthorizationTransitiveRequirementsRule",
+                "PolicyInheritedRule",
+                "PolicyTransitiveRequirementsRule",
                 "EmptyMergedEnumTypeRule",
                 "EmptyMergedInputObjectTypeRule",
                 "EmptyMergedInterfaceTypeRule",

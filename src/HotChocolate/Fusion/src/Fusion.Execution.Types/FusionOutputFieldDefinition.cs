@@ -125,9 +125,9 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     public string? DeprecationReason { get; }
 
     /// <summary>
-    /// Gets the merged authorization requirement, or <c>null</c> if the field has none.
+    /// Gets the merged policy requirement, or <c>null</c> if the field has none.
     /// </summary>
-    internal AuthorizationDirective? Authorization
+    internal PolicyDirective? Policy
     {
         get;
         init
@@ -136,15 +136,15 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
 
             if (value is not null)
             {
-                _flags |= FieldDefinitionFlags.HasAuthorization;
+                _flags |= FieldDefinitionFlags.HasPolicy;
             }
         }
     }
 
     /// <summary>
-    /// Gets a value indicating whether this field carries an authorization requirement.
+    /// Gets a value indicating whether this field carries a policy requirement.
     /// </summary>
-    public bool HasAuthorization => (_flags & FieldDefinitionFlags.HasAuthorization) == FieldDefinitionFlags.HasAuthorization;
+    public bool HasPolicy => (_flags & FieldDefinitionFlags.HasPolicy) == FieldDefinitionFlags.HasPolicy;
 
     /// <summary>
     /// Gets a value indicating whether this field is marked as inaccessible.
@@ -295,6 +295,6 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
         Introspection = 1,
         Inaccessible = 2,
         GatewayField = 4,
-        HasAuthorization = 8
+        HasPolicy = 8
     }
 }

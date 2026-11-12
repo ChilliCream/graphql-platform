@@ -6,16 +6,16 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Policies;
 
 /// <summary>
-/// Fails the startup of a gateway whose authorization requirements cannot be enforced.
+/// Fails the startup of a gateway whose policy requirements cannot be enforced.
 /// </summary>
 internal static class PolicyStartupValidator
 {
     /// <summary>
-    /// Validates the Schemes option, and for a schema that uses authorization also that a
+    /// Validates the Schemes option, and for a schema that uses policy also that a
     /// usable authentication scheme exists and that every policy name resolves.
     /// </summary>
     /// <param name="usage">
-    /// The authorization requirements the schema uses.
+    /// The policy requirements the schema uses.
     /// </param>
     /// <param name="options">
     /// The policy options.
@@ -30,7 +30,7 @@ internal static class PolicyStartupValidator
     /// The token that signals that the operation was aborted.
     /// </param>
     public static async ValueTask ValidateAsync(
-        FusionAuthorizationUsage? usage,
+        FusionPolicyUsage? usage,
         FusionPolicyOptions options,
         AuthenticationSchemeResolver schemeResolver,
         IPolicyResolver policyResolver,

@@ -116,18 +116,18 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The &apos;{1}&apos; argument of the @{0} directive must be a list of string lists..
         /// </summary>
-        internal static string AuthorizationDirective_Argument_Invalid {
+        internal static string PolicyDirective_Argument_Invalid {
             get {
-                return ResourceManager.GetString("AuthorizationDirective_Argument_Invalid", resourceCulture);
+                return ResourceManager.GetString("PolicyDirective_Argument_Invalid", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The type kind &apos;{0}&apos; does not carry authorization directives..
+        ///   Looks up a localized string similar to The type kind &apos;{0}&apos; does not carry policy directives..
         /// </summary>
-        internal static string AuthorizationInheritance_UnexpectedTypeKind {
+        internal static string PolicyInheritance_UnexpectedTypeKind {
             get {
-                return ResourceManager.GetString("AuthorizationInheritance_UnexpectedTypeKind", resourceCulture);
+                return ResourceManager.GetString("PolicyInheritance_UnexpectedTypeKind", resourceCulture);
             }
         }
 
@@ -233,36 +233,36 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Whether the member requires an authenticated user..
         /// </summary>
-        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Authenticated_Description {
+        internal static string FusionPolicyMutableDirectiveDefinition_Argument_Authenticated_Description {
             get {
-                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Authenticated_Description", resourceCulture);
+                return ResourceManager.GetString("FusionPolicyMutableDirectiveDefinition_Argument_Authenticated_Description", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass..
         /// </summary>
-        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Policies_Description {
+        internal static string FusionPolicyMutableDirectiveDefinition_Argument_Policies_Description {
             get {
-                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Policies_Description", resourceCulture);
+                return ResourceManager.GetString("FusionPolicyMutableDirectiveDefinition_Argument_Policies_Description", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present..
         /// </summary>
-        internal static string FusionAuthorizationMutableDirectiveDefinition_Argument_Scopes_Description {
+        internal static string FusionPolicyMutableDirectiveDefinition_Argument_Scopes_Description {
             get {
-                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Argument_Scopes_Description", resourceCulture);
+                return ResourceManager.GetString("FusionPolicyMutableDirectiveDefinition_Argument_Scopes_Description", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The @fusion__authorization directive carries the merged authorization requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied..
+        ///   Looks up a localized string similar to The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied..
         /// </summary>
-        internal static string FusionAuthorizationMutableDirectiveDefinition_Description {
+        internal static string FusionPolicyMutableDirectiveDefinition_Description {
             get {
-                return ResourceManager.GetString("FusionAuthorizationMutableDirectiveDefinition_Description", resourceCulture);
+                return ResourceManager.GetString("FusionPolicyMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
 
@@ -856,45 +856,45 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The &apos;{1}&apos; argument of the @{0} directive on &apos;{2}&apos; in schema &apos;{3}&apos; must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value {4}..
         /// </summary>
-        internal static string LogEntryHelper_AuthorizationDirectiveArgumentInvalid {
+        internal static string LogEntryHelper_PolicyDirectiveArgumentInvalid {
             get {
-                return ResourceManager.GetString("LogEntryHelper_AuthorizationDirectiveArgumentInvalid", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_PolicyDirectiveArgumentInvalid", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to The merged {0} requirement of &apos;{1}&apos; has {2} alternative groups, which exceeds the threshold of {3}..
         /// </summary>
-        internal static string LogEntryHelper_AuthorizationGroupCountExceeded {
+        internal static string LogEntryHelper_PolicyGroupCountExceeded {
             get {
-                return ResourceManager.GetString("LogEntryHelper_AuthorizationGroupCountExceeded", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_PolicyGroupCountExceeded", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The member &apos;{0}&apos; requires authorization through interface inheritance, but no source schema annotated it. The requirement comes from {1} in the source schemas {2}..
+        ///   Looks up a localized string similar to The member &apos;{0}&apos; requires a policy through interface inheritance, but no source schema annotated it. The requirement comes from {1} in the source schemas {2}..
         /// </summary>
-        internal static string LogEntryHelper_AuthorizationInherited {
+        internal static string LogEntryHelper_PolicyInherited {
             get {
-                return ResourceManager.GetString("LogEntryHelper_AuthorizationInherited", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_PolicyInherited", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to The @interfaceObject type &apos;{0}&apos; in schema &apos;{1}&apos; cannot be annotated with @{2}. Annotate its fields instead..
         /// </summary>
-        internal static string LogEntryHelper_AuthorizationOnInterfaceObject {
+        internal static string LogEntryHelper_PolicyOnInterfaceObject {
             get {
-                return ResourceManager.GetString("LogEntryHelper_AuthorizationOnInterfaceObject", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_PolicyOnInterfaceObject", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The field &apos;{0}&apos; depends on &apos;{1}&apos; through &apos;{2}&apos; in schema &apos;{3}&apos;, but does not declare all authorization requirements of &apos;{1}&apos;. Not covered: {4}..
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; depends on &apos;{1}&apos; through &apos;{2}&apos; in schema &apos;{3}&apos;, but does not declare all policy requirements of &apos;{1}&apos;. Not covered: {4}..
         /// </summary>
-        internal static string LogEntryHelper_AuthorizationTransitiveRequirementsMissing {
+        internal static string LogEntryHelper_PolicyTransitiveRequirementsMissing {
             get {
-                return ResourceManager.GetString("LogEntryHelper_AuthorizationTransitiveRequirementsMissing", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_PolicyTransitiveRequirementsMissing", resourceCulture);
             }
         }
 

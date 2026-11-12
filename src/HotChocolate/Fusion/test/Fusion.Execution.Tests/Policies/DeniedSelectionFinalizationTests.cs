@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Policies;
 
-public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
+public class DeniedSelectionFinalizationTests : PolicyExecutionTestBase
 {
     private const string Schema =
         """
@@ -325,7 +325,7 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
         // arrange
         var executor = await CreateExecutorAsync(
             Schema,
-            new AuthorizationTestClient(Data),
+            new PolicyTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies => policies.Deny("finance"));
         var user = Authenticated();
@@ -364,7 +364,7 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
         // arrange
         var executor = await CreateExecutorAsync(
             Schema,
-            new AuthorizationTestClient(Data),
+            new PolicyTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies => policies.Deny("finance"),
             builder =>
@@ -429,7 +429,7 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
         // arrange
         var executor = await CreateExecutorAsync(
             Schema,
-            new AuthorizationTestClient(Data),
+            new PolicyTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies => policies.Deny("finance"),
             builder =>
@@ -476,7 +476,7 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
         // arrange
         var executor = await CreateExecutorAsync(
             Schema,
-            new AuthorizationTestClient(Data),
+            new PolicyTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies => policies.Deny("finance"),
             builder => builder.ModifyPolicyOptions(
@@ -942,7 +942,7 @@ public class DeniedSelectionFinalizationTests : AuthorizationExecutionTestBase
         Action<InMemoryPolicyBuilder>? policies = null)
         => CreateExecutorAsync(
             Schema,
-            new AuthorizationTestClient(Data),
+            new PolicyTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies,
             builder => builder.ModifyPolicyOptions(

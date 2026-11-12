@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Policies;
 
-public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
+public class OperationPolicyMiddlewareTests : PolicyExecutionTestBase
 {
     private const string Schema =
         """
@@ -78,7 +78,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_NotEvaluatePolicies_When_OperationIsUnprotected()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,
@@ -109,7 +109,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_ReturnAllFields_When_EveryPolicyAllows()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,
@@ -146,7 +146,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_ReturnNullWithoutError_When_DenyHandlingIsNull()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -178,7 +178,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_NeverReceiveDeniedData_When_PolicyDenies()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -202,7 +202,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_NotCallScopeAndNamedPolicies_When_PrincipalIsMissing()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,
@@ -243,7 +243,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_NotFetch_When_EveryRootSelectionOfTheNodeIsDenied()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -305,7 +305,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
         string expected)
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -328,7 +328,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_NotExecuteMutation_When_RootFieldIsDenied()
     {
         // arrange
-        var client = new AuthorizationTestClient("""{"rename":"done"}""");
+        var client = new PolicyTestClient("""{"rename":"done"}""");
         var executor = await CreateExecutorAsync(
             MutationSchema,
             client,
@@ -355,7 +355,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_ReturnGenericError_When_PolicyIsNotResolved()
     {
         // arrange
-        var client = new AuthorizationTestClient("""{"ghost":"gh"}""");
+        var client = new PolicyTestClient("""{"ghost":"gh"}""");
         var listener = new CapturingExecutionDiagnosticEventListener();
         var executor = await CreateExecutorAsync(
             GhostSchema,
@@ -397,7 +397,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_ReturnGenericError_When_PolicyIsNotResolvedAndPrincipalIsAnonymous()
     {
         // arrange
-        var client = new AuthorizationTestClient("""{"ghost":"gh"}""");
+        var client = new PolicyTestClient("""{"ghost":"gh"}""");
         var listener = new CapturingExecutionDiagnosticEventListener();
         var executor = await CreateExecutorAsync(
             GhostSchema,
@@ -438,7 +438,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_SkipEvaluation_When_RequestIsWarmup()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,
@@ -462,7 +462,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_EvaluateEachVariableSetSeparately_When_RequestIsBatched()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -507,7 +507,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_NotShareDecisions_When_OperationWithoutVariablesRunsTwice()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -555,7 +555,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_CopyVariables_When_VariableCollectionIsCustom()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -615,7 +615,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_PassResolvedArguments_When_VariableIsNestedInAnInputObject()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -665,7 +665,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_PassResolvedArguments_When_VariableIsNestedInAList()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -739,7 +739,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
         string expected)
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,
@@ -809,7 +809,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
         string expected)
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,
@@ -836,7 +836,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_SkipTheDeniedSelectionOfEveryFetch_When_DeferIsEnabled()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,
@@ -911,7 +911,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
     public async Task InvokeAsync_Should_SkipTheDeniedSelectionOfEveryFetch_When_DeferIsDisabled()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,

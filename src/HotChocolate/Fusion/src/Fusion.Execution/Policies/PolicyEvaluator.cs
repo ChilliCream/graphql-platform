@@ -377,7 +377,7 @@ internal sealed class PolicyEvaluator
 
         // The policy names of a selection are alternative groups. One group whose
         // policies all allowed satisfies the requirement.
-        var groups = ((FusionOutputFieldDefinition)selection.Field).Authorization?.Policies ?? [];
+        var groups = ((FusionOutputFieldDefinition)selection.Field).Policy?.Policies ?? [];
         PolicyDescriptor? firstDenied = null;
 
         foreach (var group in groups)

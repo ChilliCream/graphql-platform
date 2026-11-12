@@ -82,7 +82,7 @@ public sealed class SourceSchemaParserTests
     }
 
     [Fact]
-    public void Parse_Should_BindAuthorizationDirectives_When_SourceSchemaDeclaresNone()
+    public void Parse_Should_BindPolicyDirectives_When_SourceSchemaDeclaresNone()
     {
         // arrange
         var sourceSchemaText =

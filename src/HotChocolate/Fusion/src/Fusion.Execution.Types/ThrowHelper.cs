@@ -20,9 +20,9 @@ internal static class ThrowHelper
     public static InvalidOperationException InvalidCompletionContext()
         => new("The context has an invalid state.");
 
-    public static DirectiveParserException AuthorizationDirectiveArgumentNotSupported(string argumentName)
-        => new($"The argument `{argumentName}` is not supported on @fusion__authorization.");
+    public static DirectiveParserException PolicyDirectiveArgumentNotSupported(string argumentName)
+        => new($"The argument `{argumentName}` is not supported on @fusion__policy.");
 
-    public static DirectiveParserException AuthorizationDirectiveGroupsInvalid(string argumentName)
-        => new($"The `{argumentName}` argument of @fusion__authorization must be a list of string lists.");
+    public static DirectiveParserException PolicyDirectiveGroupsInvalid(string argumentName)
+        => new($"The `{argumentName}` argument of @fusion__policy must be a list of string lists.");
 }

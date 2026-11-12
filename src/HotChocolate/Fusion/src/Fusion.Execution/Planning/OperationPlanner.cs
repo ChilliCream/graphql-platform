@@ -63,7 +63,7 @@ public sealed partial class OperationPlanner
         _options = options;
         _policyResolver = policyResolver;
 
-        if (schema.Features.Get<FusionAuthorizationUsage>() is { IsUsed: true })
+        if (schema.Features.Get<FusionPolicyUsage>() is { IsUsed: true })
         {
             _protectedFieldNames = CollectProtectedFieldNames(schema);
         }
@@ -84,7 +84,7 @@ public sealed partial class OperationPlanner
 
             foreach (var field in complexType.Fields)
             {
-                if (field.HasAuthorization)
+                if (field.HasPolicy)
                 {
                     names.Add(field.Name);
                 }

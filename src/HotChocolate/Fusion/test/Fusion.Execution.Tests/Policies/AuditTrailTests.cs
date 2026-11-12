@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Policies;
 
-public class AuditTrailTests : AuthorizationExecutionTestBase
+public class AuditTrailTests : PolicyExecutionTestBase
 {
     private const string Schema =
         """
@@ -51,7 +51,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task BeginRequest_Should_RecordEntryOfEveryDirective_When_OperationIsProtected()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             Schema,
@@ -79,7 +79,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task BeginRequest_Should_RecordReasonAndAuditData_When_PolicyDeniesWithBoth()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             Schema,
@@ -103,7 +103,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task BeginRequest_Should_RecordUnauthenticatedDenials_When_PrincipalIsAnonymous()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
 
@@ -126,7 +126,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task BeginRequest_Should_RecordFailureReason_When_PolicyIsUnresolved()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             GhostSchema,
@@ -157,7 +157,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_RecordRemainingEntriesAsUnanswered_When_PolicyIsUnresolved()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             GhostSchema,
@@ -189,7 +189,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_PropagatePolicyFault_When_UnresolvedPolicyIsSkipped()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var listener = new CapturingExecutionDiagnosticEventListener();
         var audit = new RecordingAuditProvider(client);
         var policyFault = new InvalidOperationException("boom");
@@ -239,7 +239,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_PropagateRecordingFault_When_UnresolvedPolicyCannotBeRecorded()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var listener = new CapturingExecutionDiagnosticEventListener();
         var recordingFault = new InvalidOperationException("record");
         var audit = new RecordingAuditProvider(client)
@@ -286,7 +286,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_CommitScopeWithFailureReason_When_PolicyThrows()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             Schema,
@@ -327,7 +327,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     {
         // arrange
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             Schema,
@@ -371,7 +371,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_CommitScopeWithFailureReason_When_PolicyCancelsWithoutRequestCancellation()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             Schema,
@@ -407,7 +407,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_RecordRemainingEntriesAsUnanswered_When_EvaluatorFails()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client)
         {
             RecordFailure = (2, new InvalidOperationException("record"))
@@ -444,7 +444,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_PropagateThePolicyFaultAndReportTheCommitFailure_When_CommitFailsAfterAFault()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var listener = new CapturingExecutionDiagnosticEventListener();
         var audit = new RecordingAuditProvider(client) { CommitFailure = new InvalidOperationException("commit") };
         var executor = await CreateAuditedExecutorAsync(
@@ -487,7 +487,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_PropagateThePolicyFaultAndReportTheFailFailure_When_FailThrowsAfterAFault()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var listener = new CapturingExecutionDiagnosticEventListener();
         var audit = new RecordingAuditProvider(client)
         {
@@ -533,7 +533,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_PropagateThePolicyFaultAndReportTheRecordingFailure_When_RecordingFailsAfterAFault()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var listener = new CapturingExecutionDiagnosticEventListener();
         var audit = new RecordingAuditProvider(client)
         {
@@ -578,7 +578,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_FailClosed_When_CommitFailsWithoutAFault()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client) { CommitFailure = new InvalidOperationException("commit") };
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
 
@@ -611,7 +611,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task BeginRequest_Should_CaptureSubject_When_ScopeIsOpened()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
         var user = Authenticated(
@@ -633,7 +633,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task BeginRequest_Should_CarryOperationAndPlanIdOfThePolicyContext_When_ScopeIsOpened()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         (string OperationId, string PlanId)? evaluated = null;
         var executor = await CreateAuditedExecutorAsync(
@@ -663,7 +663,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task BeginRequest_Should_OpenOneScopePerVariableSet_When_RequestIsVariableBatch()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             Schema,
@@ -696,7 +696,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task BeginRequest_Should_RecordEachOccurrenceOnce_When_DeferIsConditional(bool defer)
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
         var request = CreateRequest(
@@ -722,7 +722,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteBatchAsync_Should_CreateTrailOnce_When_RequestsAreBatched()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
         var batch = new OperationRequestBatch(
@@ -754,7 +754,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteBatchAsync_Should_GiveEveryScopeTheSameInvocationId_When_RequestsAreBatched()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
         var batch = new OperationRequestBatch(
@@ -784,7 +784,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_NotCreateTrail_When_OperationIsUnprotected()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
 
@@ -809,7 +809,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task ExecuteBatchAsync_Should_NotCreateTrail_When_EveryOperationIsUnprotected()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
         var batch = new OperationRequestBatch(
@@ -838,7 +838,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task CommitAsync_Should_RunOnceBeforeTheSourceSchemaIsCalled_When_OperationIsProtected()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(Schema, client, audit);
 
@@ -858,7 +858,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task CommitAsync_Should_RunBeforeTheRequestIsRejected_When_DenialEscalates()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateAuditedExecutorAsync(
             Schema,
@@ -937,7 +937,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
     public async Task Gateway_Should_UseNoOpAuditProvider_When_NoProviderIsRegistered()
     {
         // arrange
-        var client = new AuthorizationTestClient(Data);
+        var client = new PolicyTestClient(Data);
         var executor = await CreateExecutorAsync(
             Schema,
             client,
@@ -971,7 +971,7 @@ public class AuditTrailTests : AuthorizationExecutionTestBase
 
     private static Task<IRequestExecutor> CreateAuditedExecutorAsync(
         string schema,
-        AuthorizationTestClient client,
+        PolicyTestClient client,
         RecordingAuditProvider audit,
         Action<InMemoryPolicyBuilder>? policies = null,
         Action<IFusionGatewayBuilder>? configure = null)

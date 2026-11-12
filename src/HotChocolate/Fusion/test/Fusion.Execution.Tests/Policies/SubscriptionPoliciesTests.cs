@@ -10,7 +10,7 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace HotChocolate.Fusion.Policies;
 
-public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
+public class SubscriptionPoliciesTests : PolicyExecutionTestBase
 {
     private const string Schema =
         """
@@ -42,7 +42,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_RefuseWithUnauthorized_When_SubscribeFieldIsDeniedForAnonymous()
     {
         // arrange
-        var client = new AuthorizationTestClient(Event);
+        var client = new PolicyTestClient(Event);
         var executor = await CreateSubscriptionExecutorAsync(client, policies => policies.Allow("live"));
 
         // act
@@ -62,7 +62,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     public async Task ExecuteAsync_Should_RefuseWithForbidden_When_SubscribeFieldIsDeniedForAuthenticated()
     {
         // arrange
-        var client = new AuthorizationTestClient(Event);
+        var client = new PolicyTestClient(Event);
         var executor = await CreateSubscriptionExecutorAsync(client, policies => policies.Allow("live"));
 
         // act
@@ -83,7 +83,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     {
         // arrange
         var time = new FakeTimeProvider(DateTimeOffset.UnixEpoch.AddHours(1));
-        var client = new AuthorizationTestClient(Event);
+        var client = new PolicyTestClient(Event);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateSubscriptionExecutorAsync(
             client,
@@ -114,7 +114,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     public async Task ReadResultsAsync_Should_RenderTheDenialErrorOnEveryEvent_When_FieldIsDeniedAtSubscribeInErrorMode()
     {
         // arrange
-        var client = new AuthorizationTestClient(Event);
+        var client = new PolicyTestClient(Event);
         var recorder = new InMemoryPolicyRecorder();
         var executor = await CreateExecutorAsync(
             Schema,
@@ -191,7 +191,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     {
         // arrange
         var time = new FakeTimeProvider(DateTimeOffset.UnixEpoch.AddHours(1));
-        var client = new AuthorizationTestClient(Event);
+        var client = new PolicyTestClient(Event);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateSubscriptionExecutorAsync(
             client,
@@ -228,7 +228,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     {
         // arrange
         var time = new FakeTimeProvider(DateTimeOffset.UnixEpoch.AddHours(1));
-        var client = new AuthorizationTestClient(Event);
+        var client = new PolicyTestClient(Event);
         var audit = new RecordingAuditProvider(client);
         var executor = await CreateSubscriptionExecutorAsync(
             client,
@@ -261,7 +261,7 @@ public class SubscriptionPoliciesTests : AuthorizationExecutionTestBase
     }
 
     private static Task<IRequestExecutor> CreateSubscriptionExecutorAsync(
-        AuthorizationTestClient client,
+        PolicyTestClient client,
         Action<InMemoryPolicyBuilder> policies,
         Action<IFusionGatewayBuilder>? configure = null)
         => CreateExecutorAsync(Schema, client, new InMemoryPolicyRecorder(), policies, configure);

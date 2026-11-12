@@ -257,7 +257,7 @@ public sealed class AuthDirectiveIntakeTests
     }
 
     [Fact]
-    public void Compose_Should_MergeToFusionAuthorization_When_SubgraphUsesApolloDirectives()
+    public void Compose_Should_MergeToFusionPolicy_When_SubgraphUsesApolloDirectives()
     {
         // arrange
         const string a =
@@ -347,7 +347,7 @@ public sealed class AuthDirectiveIntakeTests
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Contains(log, e => e.Code == LogEntryCodes.AuthorizationDirectiveArgumentInvalid);
+        Assert.Contains(log, e => e.Code == LogEntryCodes.PolicyDirectiveArgumentInvalid);
     }
 
     [Fact]
@@ -380,7 +380,7 @@ public sealed class AuthDirectiveIntakeTests
             """
             {
                 "message": "The 'scopes' argument of the @requiresScopes directive on 'Query.me' in schema 'A' must be a non-blank string or a non-empty list of non-blank strings and non-empty lists of non-blank strings, but has the value [[]].",
-                "code": "INVALID_AUTHORIZATION_DIRECTIVE_ARGUMENT",
+                "code": "INVALID_POLICY_DIRECTIVE_ARGUMENT",
                 "severity": "Error",
                 "coordinate": "Query.me",
                 "schema": "A",

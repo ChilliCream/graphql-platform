@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Policies;
 
-public class PolicyPlanSerializationTests : AuthorizationExecutionTestBase
+public class PolicyPlanSerializationTests : PolicyExecutionTestBase
 {
     private const string Schema =
         """
@@ -136,7 +136,7 @@ public class PolicyPlanSerializationTests : AuthorizationExecutionTestBase
         var plannedCapture = new PlanCapture();
         var plannedExecutor = await CreateExecutorAsync(
             sourceSchema,
-            new AuthorizationTestClient(Data),
+            new PolicyTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies,
             builder =>
@@ -154,7 +154,7 @@ public class PolicyPlanSerializationTests : AuthorizationExecutionTestBase
         var parsedCapture = new PlanCapture();
         var parsedExecutor = await CreateExecutorAsync(
             sourceSchema,
-            new AuthorizationTestClient(Data),
+            new PolicyTestClient(Data),
             new InMemoryPolicyRecorder(),
             policies,
             builder =>

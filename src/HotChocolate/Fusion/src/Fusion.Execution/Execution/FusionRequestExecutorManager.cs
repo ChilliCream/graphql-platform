@@ -239,7 +239,7 @@ internal sealed class FusionRequestExecutorManager
         var services = executor.Schema.Services;
 
         return PolicyStartupValidator.ValidateAsync(
-            executor.Schema.Features.Get<FusionAuthorizationUsage>(),
+            executor.Schema.Features.Get<FusionPolicyUsage>(),
             services.GetRequiredService<FusionPolicyOptions>(),
             services.GetRequiredService<AuthenticationSchemeResolver>(),
             services.GetRequiredService<IPolicyResolver>(),

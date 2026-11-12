@@ -56,9 +56,9 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition, IFus
     Type IRuntimeTypeProvider.RuntimeType => typeof(object);
 
     /// <summary>
-    /// Gets the merged authorization requirement, or <c>null</c> if the type has none.
+    /// Gets the merged policy requirement, or <c>null</c> if the type has none.
     /// </summary>
-    internal AuthorizationDirective? Authorization { get; init; }
+    internal PolicyDirective? Policy { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether this type is marked as inaccessible.

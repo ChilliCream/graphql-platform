@@ -4,7 +4,7 @@ using HotChocolate.Fusion.Policies.Auditing;
 
 namespace HotChocolate.Fusion.Policies;
 
-internal sealed class RecordingAuditProvider(AuthorizationTestClient client) : IAuditProvider
+internal sealed class RecordingAuditProvider(PolicyTestClient client) : IAuditProvider
 {
     private readonly ConcurrentQueue<RecordingAuditScope> _scopes = [];
     private int _trailCount;

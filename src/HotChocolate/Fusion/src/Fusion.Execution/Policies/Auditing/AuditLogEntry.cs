@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Policies.Auditing;
 /// The schema coordinate of the protected field.
 /// </param>
 /// <param name="DirectiveName">
-/// The name of the authorization directive.
+/// The name of the policy directive.
 /// </param>
 /// <param name="PolicyName">
 /// The policy name, or <c>null</c> for directives without one.

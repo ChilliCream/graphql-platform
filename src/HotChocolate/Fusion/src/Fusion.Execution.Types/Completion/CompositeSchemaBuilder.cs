@@ -251,7 +251,7 @@ internal static class CompositeSchemaBuilder
             isInaccessible,
             CreateOutputFields(definition.Fields, isQuery, enableSemanticIntrospection))
         {
-            Authorization = AuthorizationDirectiveParser.Parse(definition.Directives)
+            Policy = PolicyDirectiveParser.Parse(definition.Directives)
         };
     }
 
@@ -266,7 +266,7 @@ internal static class CompositeSchemaBuilder
             isInaccessible,
             CreateOutputFields(definition.Fields, isQuery: false, enableSemanticIntrospection: false))
         {
-            Authorization = AuthorizationDirectiveParser.Parse(definition.Directives)
+            Policy = PolicyDirectiveParser.Parse(definition.Directives)
         };
     }
 
@@ -304,7 +304,7 @@ internal static class CompositeSchemaBuilder
             isInaccessible,
             CreateEnumValues(definition.Values))
         {
-            Authorization = AuthorizationDirectiveParser.Parse(definition.Directives)
+            Policy = PolicyDirectiveParser.Parse(definition.Directives)
         };
     }
 
@@ -318,7 +318,7 @@ internal static class CompositeSchemaBuilder
             definition.Description?.Value,
             isInaccessible)
         {
-            Authorization = AuthorizationDirectiveParser.Parse(definition.Directives)
+            Policy = PolicyDirectiveParser.Parse(definition.Directives)
         };
     }
 
@@ -472,7 +472,7 @@ internal static class CompositeSchemaBuilder
                     isGatewayField: isGatewayField,
                     CreateOutputFieldArguments(field.Arguments))
                 {
-                    Authorization = AuthorizationDirectiveParser.Parse(field.Directives)
+                    Policy = PolicyDirectiveParser.Parse(field.Directives)
                 };
             }
         }
@@ -493,7 +493,7 @@ internal static class CompositeSchemaBuilder
                     isGatewayField: isGatewayField,
                     CreateOutputFieldArguments(field.Arguments))
                 {
-                    Authorization = AuthorizationDirectiveParser.Parse(field.Directives)
+                    Policy = PolicyDirectiveParser.Parse(field.Directives)
                 };
             }
         }
@@ -656,7 +656,7 @@ internal static class CompositeSchemaBuilder
             features.Set(CollectOptInFeatures(context));
         }
 
-        features.Set(CollectAuthorizationUsage(context));
+        features.Set(CollectPolicyUsage(context));
 
         context.Interceptor.OnBeforeCompleteSchema(context, ref features);
         features.Set<ValueSelectionToSelectionSetRewriter>(null);
@@ -1455,9 +1455,9 @@ internal static class CompositeSchemaBuilder
         }
     }
 
-    private static FusionAuthorizationUsage CollectAuthorizationUsage(CompositeSchemaBuilderContext context)
+    private static FusionPolicyUsage CollectPolicyUsage(CompositeSchemaBuilderContext context)
     {
-        var flags = FusionAuthorizationUsageFlags.None;
+        var flags = FusionPolicyUsageFlags.None;
         var policyNames = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var type in context.TypeDefinitions)
@@ -1465,21 +1465,21 @@ internal static class CompositeSchemaBuilder
             switch (type)
             {
                 case FusionComplexTypeDefinition complexType:
-                    Add(complexType.Authorization);
+                    Add(complexType.Policy);
 
                     foreach (var field in complexType.Fields)
                     {
-                        Add(field.Authorization);
+                        Add(field.Policy);
                     }
 
                     break;
 
                 case FusionEnumTypeDefinition enumType:
-                    Add(enumType.Authorization);
+                    Add(enumType.Policy);
                     break;
 
                 case FusionScalarTypeDefinition scalarType:
-                    Add(scalarType.Authorization);
+                    Add(scalarType.Policy);
                     break;
             }
         }
@@ -1488,30 +1488,30 @@ internal static class CompositeSchemaBuilder
         policyNames.CopyTo(sortedPolicyNames);
         Array.Sort(sortedPolicyNames, StringComparer.Ordinal);
 
-        return new FusionAuthorizationUsage(flags, AsImmutableArray(sortedPolicyNames));
+        return new FusionPolicyUsage(flags, AsImmutableArray(sortedPolicyNames));
 
-        void Add(AuthorizationDirective? authorization)
+        void Add(PolicyDirective? policy)
         {
-            if (authorization is null)
+            if (policy is null)
             {
                 return;
             }
 
-            if (authorization.Authenticated)
+            if (policy.Authenticated)
             {
-                flags |= FusionAuthorizationUsageFlags.Authenticated;
+                flags |= FusionPolicyUsageFlags.Authenticated;
             }
 
-            if (authorization.Scopes.Length > 0)
+            if (policy.Scopes.Length > 0)
             {
-                flags |= FusionAuthorizationUsageFlags.Scopes;
+                flags |= FusionPolicyUsageFlags.Scopes;
             }
 
-            foreach (var group in authorization.Policies)
+            foreach (var group in policy.Policies)
             {
                 foreach (var name in group)
                 {
-                    flags |= FusionAuthorizationUsageFlags.Policies;
+                    flags |= FusionPolicyUsageFlags.Policies;
                     policyNames.Add(name);
                 }
             }

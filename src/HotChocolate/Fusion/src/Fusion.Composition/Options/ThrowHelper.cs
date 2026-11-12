@@ -14,11 +14,11 @@ internal static class ThrowHelper
     public static ArgumentOutOfRangeException UnexpectedCostCoordinateKind(CostCoordinateKind kind)
         => new(nameof(kind));
 
-    public static InvalidOperationException AuthorizationDirectiveArgumentInvalid(
+    public static InvalidOperationException PolicyDirectiveArgumentInvalid(
         string directiveName,
         string argumentName)
-        => new(string.Format(AuthorizationDirective_Argument_Invalid, directiveName, argumentName));
+        => new(string.Format(PolicyDirective_Argument_Invalid, directiveName, argumentName));
 
     public static InvalidOperationException UnexpectedTypeKind(TypeKind kind)
-        => new(string.Format(AuthorizationInheritance_UnexpectedTypeKind, kind));
+        => new(string.Format(PolicyInheritance_UnexpectedTypeKind, kind));
 }

@@ -7,8 +7,8 @@ using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// The source schema behind the subscription authorization transport tests. Its subscription
-/// fields carry the authorization directives of the gateway and stream the events of a
+/// The source schema behind the subscription policy transport tests. Its subscription
+/// fields carry the policy directives of the gateway and stream the events of a
 /// <see cref="SubscriptionPoliciesFeed"/>.
 /// </summary>
 public static class SubscriptionPoliciesSource

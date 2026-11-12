@@ -91,7 +91,7 @@ public sealed class Selection : ISelection
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
-        if (field is FusionOutputFieldDefinition { HasAuthorization: true })
+        if (field is FusionOutputFieldDefinition { HasPolicy: true })
         {
             _flags |= Flags.HasPolicies;
         }

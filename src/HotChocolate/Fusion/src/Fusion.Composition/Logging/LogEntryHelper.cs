@@ -27,7 +27,7 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry AuthorizationDirectiveArgumentInvalid(
+    public static LogEntry PolicyDirectiveArgumentInvalid(
         string directiveName,
         string argumentName,
         IValueNode? value,
@@ -36,20 +36,20 @@ internal static class LogEntryHelper
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_AuthorizationDirectiveArgumentInvalid,
+                LogEntryHelper_PolicyDirectiveArgumentInvalid,
                 directiveName,
                 argumentName,
                 coordinate,
                 schema.Name,
                 value?.ToString() ?? "undefined")
-            .SetCode(LogEntryCodes.AuthorizationDirectiveArgumentInvalid)
+            .SetCode(LogEntryCodes.PolicyDirectiveArgumentInvalid)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(coordinate)
             .SetSchema(schema)
             .Build();
     }
 
-    public static LogEntry AuthorizationGroupCountExceeded(
+    public static LogEntry PolicyGroupCountExceeded(
         string requirement,
         SchemaCoordinate coordinate,
         MutableSchemaDefinition schema,
@@ -58,54 +58,54 @@ internal static class LogEntryHelper
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_AuthorizationGroupCountExceeded,
+                LogEntryHelper_PolicyGroupCountExceeded,
                 requirement,
                 coordinate,
                 groupCount,
                 threshold)
-            .SetCode(LogEntryCodes.AuthorizationGroupCountExceeded)
+            .SetCode(LogEntryCodes.PolicyGroupCountExceeded)
             .SetSeverity(LogSeverity.Warning)
             .SetCoordinate(coordinate)
             .SetSchema(schema)
             .Build();
     }
 
-    public static LogEntry AuthorizationInherited(
+    public static LogEntry PolicyInherited(
         SchemaCoordinate coordinate,
         ImmutableArray<string> paths,
         ImmutableArray<string> schemaNames)
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_AuthorizationInherited,
+                LogEntryHelper_PolicyInherited,
                 coordinate,
                 string.Join("; ", paths),
                 FormatSchemaNames(schemaNames))
-            .SetCode(LogEntryCodes.AuthorizationInherited)
+            .SetCode(LogEntryCodes.PolicyInherited)
             .SetSeverity(LogSeverity.Warning)
             .SetCoordinate(coordinate)
             .Build();
     }
 
-    public static LogEntry AuthorizationOnInterfaceObject(
+    public static LogEntry PolicyOnInterfaceObject(
         MutableObjectTypeDefinition standIn,
         string directiveName,
         MutableSchemaDefinition schema)
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_AuthorizationOnInterfaceObject,
+                LogEntryHelper_PolicyOnInterfaceObject,
                 standIn.Name,
                 schema.Name,
                 directiveName)
-            .SetCode(LogEntryCodes.AuthorizationOnInterfaceObject)
+            .SetCode(LogEntryCodes.PolicyOnInterfaceObject)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(standIn)
             .SetSchema(schema)
             .Build();
     }
 
-    public static LogEntry AuthorizationTransitiveRequirementsMissing(
+    public static LogEntry PolicyTransitiveRequirementsMissing(
         SchemaCoordinate requiringCoordinate,
         SchemaCoordinate dependencyCoordinate,
         SchemaCoordinate viaCoordinate,
@@ -114,13 +114,13 @@ internal static class LogEntryHelper
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_AuthorizationTransitiveRequirementsMissing,
+                LogEntryHelper_PolicyTransitiveRequirementsMissing,
                 requiringCoordinate,
                 dependencyCoordinate,
                 viaCoordinate,
                 schema.Name,
                 string.Join(", ", uncoveredDirectiveNames.Select(static n => $"@{n}")))
-            .SetCode(LogEntryCodes.AuthorizationTransitiveRequirementsMissing)
+            .SetCode(LogEntryCodes.PolicyTransitiveRequirementsMissing)
             .SetSeverity(LogSeverity.Error)
             .SetCoordinate(requiringCoordinate)
             .SetSchema(schema)

@@ -258,9 +258,9 @@ internal sealed class PolicyMarker
         Selection selection,
         ImmutableArray<PolicyDescriptor>.Builder descriptors)
     {
-        var authorization = ((FusionOutputFieldDefinition)selection.Field).Authorization!;
+        var policy = ((FusionOutputFieldDefinition)selection.Field).Policy!;
 
-        if (authorization.Authenticated)
+        if (policy.Authenticated)
         {
             descriptors.Add(
                 new PolicyDescriptor(
@@ -271,20 +271,20 @@ internal sealed class PolicyMarker
                     context.GetPolicy(DirectiveNames.Authenticated.Name, null)));
         }
 
-        if (authorization.Scopes.Length > 0)
+        if (policy.Scopes.Length > 0)
         {
             descriptors.Add(
                 new PolicyDescriptor(
                     DirectiveNames.RequiresScopes.Name,
                     policyName: null,
-                    authorization.Scopes,
+                    policy.Scopes,
                     selection,
                     context.GetPolicy(DirectiveNames.RequiresScopes.Name, null)));
         }
 
         var policyNames = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var group in authorization.Policies)
+        foreach (var group in policy.Policies)
         {
             foreach (var policyName in group)
             {

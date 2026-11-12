@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 namespace HotChocolate.Fusion.Directives;
 
 /// <summary>
-/// An authorization requirement expressed as alternative groups of names.
+/// A policy requirement expressed as alternative groups of names.
 /// </summary>
 internal sealed class PolicyRequirement : IEquatable<PolicyRequirement>
 {

@@ -5,7 +5,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Policies;
 
 /// <summary>
-/// Describes one occurrence of an authorization directive on a selection together with the
+/// Describes one occurrence of a policy directive on a selection together with the
 /// policy that evaluates it.
 /// </summary>
 public sealed class PolicyDescriptor
