@@ -191,13 +191,13 @@ public class IncrementalPlanActivationTests : FusionTestBase
         }
 
         // assert
-        string.Join("\n", rows).MatchInlineSnapshot(
-            """
-            a=False,b=False:
-            a=True,b=False: [a,b]
-            a=False,b=True: [a,b]
-            a=True,b=True: [a,b]
-            """);
+        rows.MatchInlineSnapshots(
+        [
+            "a=False,b=False:",
+            "a=True,b=False: [a,b]",
+            "a=False,b=True: [a,b]",
+            "a=True,b=True: [a,b]"
+        ]);
     }
 
     [Fact]
