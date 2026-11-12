@@ -2,6 +2,14 @@ namespace HotChocolate.Fusion.Logging;
 
 public static class LogEntryCodes
 {
+    public const string AuthenticatedMismatch = "AUTHENTICATED_MISMATCH";
+    public const string PolicyDirectiveArgumentInvalid =
+        "INVALID_POLICY_DIRECTIVE_ARGUMENT";
+    public const string PolicyGroupCountExceeded = "POLICY_GROUP_COUNT_EXCEEDED";
+    public const string PolicyInherited = "POLICY_INHERITED";
+    public const string PolicyOnInterfaceObject = "POLICY_ON_INTERFACE_OBJECT";
+    public const string PolicyTransitiveRequirementsMissing =
+        "POLICY_TRANSITIVE_REQUIREMENTS_MISSING";
     public const string ConflictingApolloFederationVersion =
         "CONFLICTING_APOLLO_FEDERATION_VERSION";
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";

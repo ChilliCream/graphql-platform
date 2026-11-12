@@ -282,6 +282,18 @@ public static class ErrorCodes
         /// The request body exceeds the maximum size the server accepts.
         /// </summary>
         public const string RequestBodyTooLarge = "HC0136";
+
+        /// <summary>
+        /// The variable paths in <c>map</c> mix paths that start with an operation index
+        /// and paths that start with <c>variables</c>.
+        /// </summary>
+        public const string MultiPartMixedOperationIndexPaths = "HC0141";
+
+        /// <summary>
+        /// A variable path in the <c>map</c> of a batched request does not start
+        /// with an operation index.
+        /// </summary>
+        public const string MultiPartMissingOperationIndex = "HC0142";
     }
 
     public static class Schema

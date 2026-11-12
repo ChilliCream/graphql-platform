@@ -1,9 +1,14 @@
+using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Net;
 using System.Text.Json;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -911,10 +916,433 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
         Assert.Equal("The specified operation kind is not allowed.", error["message"]);
     }
 
+    [Fact]
+    public async Task Upload_Should_BindFiles_When_BatchMapsFilesByOperationIndex()
+    {
+        // arrange
+        var server = CreateStarWarsServer(configureServices: EnableBatchingOnUploadSchema);
+        const string operations =
+            """
+            [
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              },
+              {
+                "query": "query ($i: [[InputWithFileInput!]!]!) { listUpload(input: $i) }",
+                "variables": { "i": [[{ "file": null }]] }
+              }
+            ]
+            """;
+        const string map = """{ "1": ["0.variables.file"], "2": ["1.variables.i.0.0.file"] }""";
+        using var form = CreateUploadForm(operations, map);
+
+        // act
+        using var response = await server.SendMultipartRequestAsync(form, "/upload");
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Cache-Control: no-cache
+                Content-Type: multipart/mixed; boundary="-"
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"requestIndex":0,"data":{"singleUpload":"abc"}}
+                ---
+                Content-Type: application/json; charset=utf-8
+
+                {"requestIndex":1,"data":{"listUpload":"def"}}
+                -----
+
+                """);
+    }
+
+    [Fact]
+    public async Task Upload_Should_BindFile_When_SingleOperationBatchMapsFileByOperationIndex()
+    {
+        // arrange
+        var server = CreateStarWarsServer(configureServices: EnableBatchingOnUploadSchema);
+        const string operations =
+            """
+            [
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              }
+            ]
+            """;
+        using var form = CreateUploadForm(operations, """{ "1": ["0.variables.file"] }""");
+
+        // act
+        using var response = await server.SendMultipartRequestAsync(form, "/upload");
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"singleUpload":"abc"}}
+                """);
+    }
+
+    [Fact]
+    public async Task Upload_Should_ReturnBadRequest_When_BatchMapsFileWithoutOperationIndex()
+    {
+        // arrange
+        var server = CreateStarWarsServer(configureServices: EnableBatchingOnUploadSchema);
+        const string operations =
+            """
+            [
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              },
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              }
+            ]
+            """;
+        using var form = CreateUploadForm(operations, """{ "1": ["variables.file"] }""");
+
+        // act
+        using var response = await server.SendMultipartRequestAsync(form, "/upload");
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 132
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The variable path must start with an operation index in a batched request.","extensions":{"code":"HC0142"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Upload_Should_RefuseBatch_When_RequestBatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("upload")
+                .AddDiagnosticEventListener(_ => listener));
+        const string operations =
+            """
+            [
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              },
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              }
+            ]
+            """;
+        using var form = CreateUploadForm(operations, """{ "1": ["variables.file"] }""");
+
+        // act
+        using var response = await server.SendMultipartRequestAsync(form, "/upload");
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Request batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Upload_Should_BindFile_When_SingleOperationBatchOmitsOperationIndex()
+    {
+        // arrange
+        var server = CreateStarWarsServer(configureServices: EnableBatchingOnUploadSchema);
+        const string operations =
+            """
+            [
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              }
+            ]
+            """;
+        using var form = CreateUploadForm(operations, """{ "1": ["variables.file"] }""");
+
+        // act
+        using var response = await server.SendMultipartRequestAsync(form, "/upload");
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"singleUpload":"abc"}}
+                """);
+    }
+
+    [Fact]
+    public async Task Upload_Should_ReturnBadRequest_When_MapMixesOperationIndexes()
+    {
+        // arrange
+        var server = CreateStarWarsServer(configureServices: EnableBatchingOnUploadSchema);
+        const string operations =
+            """
+            [
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              },
+              {
+                "query": "query ($file: Upload!) { singleUpload(file: $file) }",
+                "variables": { "file": null }
+              }
+            ]
+            """;
+        using var form = CreateUploadForm(
+            operations,
+            """{ "1": ["0.variables.file"], "2": ["variables.file"] }""");
+
+        // act
+        using var response = await server.SendMultipartRequestAsync(form, "/upload");
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 153
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"The variable paths must either all start with an operation index or all start with `variables`.","extensions":{"code":"HC0141"}}]}
+                """);
+    }
+
+    [Theory]
+    [InlineData(
+        """
+        [
+          { "query": "{ __typename }" },
+          { "query": "query ($f: Upload!) { singleUpload(file: $f) }", "variables": { "f": null } }
+        ]
+        """,
+        """{ "1": ["0.variables.f"] }""")]
+    [InlineData(
+        """
+        [
+          { "query": "query ($f: Upload!) { singleUpload(file: $f) }", "variables": { "f": null } },
+          { "query": "query ($f: Upload!) { singleUpload(file: $f) }", "variables": { "f": null } }
+        ]
+        """,
+        """{ "1": ["variables.f"] }""")]
+    public async Task Upload_Should_DisposeEveryRequest_When_MultipartRequestIsRejected(
+        string operations,
+        string map)
+    {
+        // arrange
+        TaskCompletionSource? responseCompleted = null;
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType<UploadQuery>()
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.RequestBatching),
+            app => app
+                .Use(async (context, next) =>
+                {
+                    // completion callbacks run in reverse order, so this one runs after the
+                    // callbacks that dispose the requests
+                    var completed = responseCompleted;
+                    context.Response.OnCompleted(() =>
+                    {
+                        completed?.SetResult();
+                        return Task.CompletedTask;
+                    });
+                    PooledBufferTracker.TrackCurrentFlow();
+                    await next(context);
+                })
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+
+        // the first request builds the executor and warms the caches of the error path
+        using (var warmUpForm = CreateUploadForm(operations, map))
+        {
+            using var warmUpResponse =
+                await server.SendMultipartRequestAsync(warmUpForm, "/graphql");
+        }
+
+        using var tracker = new PooledBufferTracker();
+        responseCompleted = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        using var form = CreateUploadForm(operations, map);
+
+        // act
+        using var response = await server.SendMultipartRequestAsync(form, "/graphql");
+        await responseCompleted.Task.WaitAsync(
+            TimeSpan.FromSeconds(30),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.NotEqual(0, tracker.RentCount);
+        Assert.Empty(tracker.UnreturnedBufferSizes);
+    }
+
+    private static void EnableBatchingOnUploadSchema(IServiceCollection services)
+        => services
+            .AddGraphQLServer("upload")
+            .ModifyServerOptions(o => o.Batching = AllowedBatching.RequestBatching);
+
+    private static MultipartFormDataContent CreateUploadForm(string operations, string map)
+    {
+        var form = new MultipartFormDataContent
+        {
+            { new StringContent(operations), "operations" },
+            { new StringContent(map), "map" },
+            { new StringContent("abc"), "1", "a.txt" },
+            { new StringContent("def"), "2", "b.txt" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+        return form;
+    }
+
     private sealed class FailedAntiforgeryValidationFeature : IAntiforgeryValidationFeature
     {
         public bool IsValid => false;
 
         public Exception? Error => null;
+    }
+
+    private sealed class RecordingListener : ServerDiagnosticEventListener
+    {
+        public List<IError> Errors { get; } = [];
+
+        public override void HttpRequestError(HttpContext context, IError error)
+            => Errors.Add(error);
+    }
+
+    private sealed class PooledBufferTracker : EventListener
+    {
+        private static readonly AsyncLocal<bool> s_isTrackedFlow = new();
+        private readonly Lock _sync = new();
+        private readonly Dictionary<int, int> _rentedBuffers = [];
+        private int _rentCount;
+
+        public int RentCount
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return _rentCount;
+                }
+            }
+        }
+
+        public IReadOnlyCollection<int> UnreturnedBufferSizes
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return [.. _rentedBuffers.Values];
+                }
+            }
+        }
+
+        public static void TrackCurrentFlow() => s_isTrackedFlow.Value = true;
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == "System.Buffers.ArrayPoolEventSource")
+            {
+                EnableEvents(eventSource, EventLevel.Verbose);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            if (eventData.Payload is not { Count: >= 2 } payload)
+            {
+                return;
+            }
+
+            if (eventData.EventName == "BufferRented"
+                && (!s_isTrackedFlow.Value || IsRentedByBufferedReadStream()))
+            {
+                return;
+            }
+
+            lock (_sync)
+            {
+                switch (eventData.EventName)
+                {
+                    case "BufferRented":
+                        _rentCount++;
+                        _rentedBuffers[(int)payload[0]!] = (int)payload[1]!;
+                        break;
+
+                    case "BufferReturned":
+                        _rentedBuffers.Remove((int)payload[0]!);
+                        break;
+                }
+            }
+        }
+
+        // MultipartReader never disposes its BufferedReadStream, so that buffer stays rented:
+        // https://github.com/dotnet/aspnetcore/issues/57478
+        private static bool IsRentedByBufferedReadStream()
+            => new StackTrace().GetFrames().Any(
+                frame => frame.GetMethod()?.DeclaringType == typeof(BufferedReadStream));
     }
 }

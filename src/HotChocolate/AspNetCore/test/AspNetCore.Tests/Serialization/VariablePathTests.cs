@@ -83,12 +83,46 @@ public class VariablePathTests
     }
 
     [Theory]
+    [InlineData("0.variables.file", 0, new object[] { "file" })]
+    [InlineData("1.variables.files.0", 1, new object[] { "files", 0 })]
+    [InlineData(".12..variables.input.file", 12, new object[] { "input", "file" })]
+    public void Parse_Should_ReadOperationIndex_When_PathStartsWithOperationIndex(
+        string input,
+        int operationIndex,
+        object[] expected)
+    {
+        // arrange
+        // act
+        var path = VariablePath.Parse(input);
+
+        // assert
+        Assert.Equal(operationIndex, path.OperationIndex);
+        Assert.Equal(expected, GetValues(path));
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnNoOperationIndex_When_PathStartsWithVariables()
+    {
+        // arrange
+        // act
+        var path = VariablePath.Parse("variables.file");
+
+        // assert
+        Assert.Null(path.OperationIndex);
+    }
+
+    [Theory]
     [InlineData("", "Invalid variable path `` in `map`.", "HC0041")]
     [InlineData("...", "Invalid variable path `...` in `map`.", "HC0041")]
     [InlineData("variables", "Invalid variable path `variables` in `map`.", "HC0041")]
     [InlineData("..wrong..", "Invalid variable path `..wrong..` in `map`.", "HC0041")]
+    [InlineData("0", "Invalid variable path `0` in `map`.", "HC0041")]
+    [InlineData("0.variables", "Invalid variable path `0.variables` in `map`.", "HC0041")]
     [InlineData("wrong.file", "The variable path must start with `variables`.", "HC0042")]
     [InlineData("Variables.file", "The variable path must start with `variables`.", "HC0042")]
+    [InlineData("0.wrong.file", "The variable path must start with `variables`.", "HC0042")]
+    [InlineData("0.1.variables.file", "The variable path must start with `variables`.", "HC0042")]
+    [InlineData("-1.variables.file", "The variable path must start with `variables`.", "HC0042")]
     public void Parse_Should_PreserveValidationErrors_When_PathIsInvalid(
         string input,
         string message,
@@ -121,6 +155,7 @@ public class VariablePathTests
     [Theory]
     [InlineData("variables.1.foo")]
     [InlineData("variables.variables")]
+    [InlineData("0.variables.1.foo")]
     public void Parse_Should_RejectPath_When_FirstSegmentIsNotAKey(string input)
     {
         // arrange

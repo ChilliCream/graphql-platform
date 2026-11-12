@@ -93,6 +93,7 @@ internal static class FederationSchemaTransformer
         }
 
         SourceExternalFieldMetadata.Capture(schema);
+        TransformAuthDirectivesToFusion.Apply(schema);
         RemoveFederationInfrastructure.Apply(schema);
         GenerateLookupFields.Apply(schema);
         RewriteKeyDirectives.Apply(schema);

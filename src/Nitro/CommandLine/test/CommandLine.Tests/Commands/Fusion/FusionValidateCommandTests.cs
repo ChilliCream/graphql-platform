@@ -1472,6 +1472,16 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
 
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
+
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(
               "The GraphQL field definition in the source schema that this field depends on."
@@ -1720,6 +1730,16 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(
@@ -1978,6 +1998,16 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(

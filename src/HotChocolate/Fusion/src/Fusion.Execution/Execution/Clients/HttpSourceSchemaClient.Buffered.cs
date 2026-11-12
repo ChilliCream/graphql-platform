@@ -50,7 +50,10 @@ public sealed partial class HttpSourceSchemaClient
                 return;
             }
 
-            var mapper = new VariableBatchResultMapper(variables, _supportsVariableBatching);
+            var mapper = new VariableBatchResultMapper(
+                variables,
+                httpRequest.Body,
+                _supportsVariableBatching);
 
             await foreach (var document in httpResponse
                 .ReadAsResultStreamAsync(context.MemorySource)
@@ -113,7 +116,10 @@ public sealed partial class HttpSourceSchemaClient
             httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             context.TrackTransport(requests.ItemRef(0).Node, httpRequest.Uri, httpResponse.RawContentType);
 
-            var mapper = new BatchResultMapper(requests, _supportsVariableBatching);
+            var mapper = new BatchResultMapper(
+                requests,
+                httpRequest.Body,
+                _supportsVariableBatching);
 
             await foreach (var document in httpResponse
                 .ReadAsResultStreamAsync(context.MemorySource)
