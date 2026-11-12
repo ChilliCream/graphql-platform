@@ -10,7 +10,8 @@ namespace HotChocolate.ApolloFederation.Resolvers;
 
 /// <summary>
 /// This class contains helpers to generate representation-driven entity fillers. The representation is
-/// authoritative wherever it carries a value, while resolver values survive where it is silent.
+/// authoritative for <c>@external</c> fields wherever it carries a value, while resolver values survive
+/// where it is silent. Fields that this subgraph owns are never taken from the representation.
 /// </summary>
 /// <remarks>
 /// Non-null concrete object fields are filled per-property instead of replaced wholesale. Abstract
@@ -33,7 +34,7 @@ internal static class ExternalSetterExpressionHelper
     public static void TryAddExternalSetter(ObjectType type, ObjectTypeConfiguration typeDef)
     {
         var visited = new HashSet<ITypeDefinition> { type };
-        var block = BuildFiller(type, type.RuntimeType, s_entity, [], visited);
+        var block = BuildFiller(type, type.RuntimeType, s_entity, [], visited, isExternal: false);
 
         if (block is not null)
         {
@@ -77,11 +78,15 @@ internal static class ExternalSetterExpressionHelper
         Type runtimeType,
         Expression instance,
         string[] pathPrefix,
-        HashSet<ITypeDefinition> visited)
+        HashSet<ITypeDefinition> visited,
+        bool isExternal)
     {
         var statements = new List<Expression>();
         var variables = new List<ParameterExpression>();
         var keyFields = CollectKeyFieldNames(type);
+
+        // An '@external' on the type marks all of its fields as external.
+        isExternal = isExternal || type.Directives.ContainsDirective<ExternalDirective>();
 
         foreach (var field in type.Fields)
         {
@@ -101,9 +106,13 @@ internal static class ExternalSetterExpressionHelper
                 continue;
             }
 
+            // only '@external' fields, and fields below them, are filled from the representation.
+            // an owned object field is descended into so nested '@external' fields are filled.
+            var isFieldExternal = isExternal || field.Directives.ContainsDirective<ExternalDirective>();
+
             if (fieldType is ListType)
             {
-                if (property.SetMethod is not null)
+                if (isFieldExternal && property.SetMethod is not null)
                 {
                     statements.Add(CreateTrySetValue(runtimeType, property, path, instance));
                 }
@@ -123,11 +132,11 @@ internal static class ExternalSetterExpressionHelper
                 // so non-null children are preserved and null children can still be reconstructed.
                 if (visited.Add(objectType))
                 {
-                    recurse = BuildFiller(objectType, childType, childVar, path, visited);
+                    recurse = BuildFiller(objectType, childType, childVar, path, visited, isFieldExternal);
                     visited.Remove(objectType);
                 }
 
-                var reconstruct = property.SetMethod is not null
+                var reconstruct = isFieldExternal && property.SetMethod is not null
                     ? CreateTrySetValue(runtimeType, property, path, instance)
                     : null;
 
@@ -149,7 +158,7 @@ internal static class ExternalSetterExpressionHelper
                 continue;
             }
 
-            if (property.SetMethod is not null)
+            if (isFieldExternal && property.SetMethod is not null)
             {
                 statements.Add(CreateTrySetValue(runtimeType, property, path, instance));
             }

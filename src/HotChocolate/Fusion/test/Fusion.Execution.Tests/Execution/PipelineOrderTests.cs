@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Execution.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -42,6 +43,7 @@ public class PipelineOrderTests
                     WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
                     WellKnownRequestMiddleware.OperationPlanMiddleware,
                     WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware,
+                    FusionMiddleware.OperationPolicy.Key,
                     WellKnownRequestMiddleware.ConcurrencyGateMiddleware,
                     WellKnownRequestMiddleware.OperationExecutionMiddleware
                 ]
@@ -63,6 +65,7 @@ public class PipelineOrderTests
                     WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
                     WellKnownRequestMiddleware.OperationPlanMiddleware,
                     WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware,
+                    FusionMiddleware.OperationPolicy.Key,
                     WellKnownRequestMiddleware.ConcurrencyGateMiddleware,
                     WellKnownRequestMiddleware.OperationExecutionMiddleware
                 ]
@@ -84,6 +87,7 @@ public class PipelineOrderTests
                     WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
                     WellKnownRequestMiddleware.OperationPlanMiddleware,
                     WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware,
+                    FusionMiddleware.OperationPolicy.Key,
                     WellKnownRequestMiddleware.ConcurrencyGateMiddleware,
                     WellKnownRequestMiddleware.OperationExecutionMiddleware
                 ]

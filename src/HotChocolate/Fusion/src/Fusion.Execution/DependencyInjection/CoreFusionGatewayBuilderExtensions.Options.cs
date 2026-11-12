@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -83,5 +84,24 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return FusionSetupUtilities.Configure(
             builder,
             options => options.CostOptionsModifiers.Add(configure));
+    }
+
+    /// <summary>
+    /// Registers a callback to modify the <see cref="FusionPolicyOptions"/>
+    /// (deny handling, request rejection, authentication schemes, scope claim, etc.).
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="configure">A delegate that configures the policy options.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    public static IFusionGatewayBuilder ModifyPolicyOptions(
+        this IFusionGatewayBuilder builder,
+        Action<FusionPolicyOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return FusionSetupUtilities.Configure(
+            builder,
+            options => options.PolicyOptionsModifiers.Add(configure));
     }
 }

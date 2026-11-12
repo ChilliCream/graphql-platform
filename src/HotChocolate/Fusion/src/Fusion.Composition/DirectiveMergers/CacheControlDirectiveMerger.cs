@@ -68,16 +68,41 @@ internal class CacheControlDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
                 .Select(CacheControlDirective.From)
                 .ToArray();
 
-        if (cacheControlDirectives.Length != memberDefinitions.Length)
+        if (cacheControlDirectives.Length == 0)
         {
-            // Only merge if all member definitions have the @cacheControl directive.
             return;
         }
 
-        // Null is the lowest value.
-        var min = (int? acc, int? val) => (int?)(acc is null || val is null ? null : Math.Min(acc.Value, val.Value));
-        var maxAge = cacheControlDirectives.Select(d => d.MaxAge).Aggregate(min);
-        var sharedMaxAge = cacheControlDirectives.Select(d => d.SharedMaxAge).Aggregate(min);
+        var allDefined = cacheControlDirectives.Length == memberDefinitions.Length;
+        int? maxAge = null;
+        int? sharedMaxAge = null;
+
+        if (mergedMember is not MutableOutputFieldDefinition)
+        {
+            var lifetimes = cacheControlDirectives
+                .Where(d => d.MaxAge is not null || d.SharedMaxAge is not null)
+                .ToArray();
+
+            if (lifetimes.All(d => d.SharedMaxAge is not null))
+            {
+                maxAge = lifetimes.Min(d => d.MaxAge);
+                sharedMaxAge = lifetimes.Min(d => d.SharedMaxAge);
+            }
+            else
+            {
+                maxAge = lifetimes.Min(
+                    d => Math.Min(d.MaxAge ?? int.MaxValue, d.SharedMaxAge ?? int.MaxValue));
+            }
+        }
+        else if (allDefined)
+        {
+            // Null is the lowest value.
+            static int? min(int? acc, int? val)
+                => acc is null || val is null ? null : Math.Min(acc.Value, val.Value);
+            maxAge = cacheControlDirectives.Select(d => d.MaxAge).Aggregate(min);
+            sharedMaxAge = cacheControlDirectives.Select(d => d.SharedMaxAge).Aggregate(min);
+        }
+
         var inheritMaxAge = cacheControlDirectives.All(d => d.InheritMaxAge == true);
         var scope =
             cacheControlDirectives.Any(d => d.Scope is CacheControlScope.Private)
@@ -97,7 +122,7 @@ internal class CacheControlDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
             argumentAssignments.Add(new ArgumentAssignment(ArgumentNames.SharedMaxAge, sharedMaxAge.Value));
         }
 
-        if (!cacheControlDirectives.All(d => d.InheritMaxAge is null))
+        if (allDefined && !cacheControlDirectives.All(d => d.InheritMaxAge is null))
         {
             argumentAssignments.Add(new ArgumentAssignment(ArgumentNames.InheritMaxAge, inheritMaxAge));
         }
@@ -116,6 +141,11 @@ internal class CacheControlDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
                 new ArgumentAssignment(
                     ArgumentNames.Vary,
                     new ListValueNode(vary.Select(v => new StringValueNode(v)).ToList())));
+        }
+
+        if (!allDefined && argumentAssignments.Count == 0)
+        {
+            return;
         }
 
         var cacheControlDirective = new Directive(directiveDefinition, argumentAssignments);

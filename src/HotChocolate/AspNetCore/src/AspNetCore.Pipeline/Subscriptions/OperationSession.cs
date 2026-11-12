@@ -1,3 +1,6 @@
+using System.Net;
+using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -41,6 +44,7 @@ internal sealed class OperationSession : IOperationSession
         var ct = cts.Token;
         var completeTry = false;
         var errorSent = false;
+        var closeUnauthorized = false;
 
         try
         {
@@ -73,7 +77,17 @@ internal sealed class OperationSession : IOperationSession
                     {
                         try
                         {
-                            // use the original cancellation token here to keep the websocket open for other streams.
+                            if (IsTerminalErrorResult(item))
+                            {
+                                // an error message terminates the operation, so no further message
+                                // is sent for it.
+                                errorSent = true;
+                                await _session.Protocol.SendErrorMessageAsync(_session, Id, item.Errors, ct);
+                                break;
+                            }
+
+                            // use the original cancellation token here to keep the websocket open for other
+                            // streams.
                             await SendResultMessageAsync(item, cancellationToken);
                         }
                         finally
@@ -81,6 +95,14 @@ internal sealed class OperationSession : IOperationSession
                             await item.DisposeAsync();
                         }
                     }
+
+                    // a stream that ends requesting 401 closes the connection as unauthorized
+                    // instead of completing the operation.
+                    closeUnauthorized =
+                        !errorSent
+                        && !ct.IsCancellationRequested
+                        && RequestedStatusCode.TryGet(responseStream.ContextData, out var requestedStatusCode)
+                        && requestedStatusCode is HttpStatusCode.Unauthorized;
                     break;
             }
 
@@ -89,7 +111,11 @@ internal sealed class OperationSession : IOperationSession
             // message again.
             completeTry = true;
 
-            if (!errorSent && !ct.IsCancellationRequested)
+            if (closeUnauthorized)
+            {
+                await _session.Connection.CloseUnauthorizedAsync(ct);
+            }
+            else if (!errorSent && !ct.IsCancellationRequested)
             {
                 await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
             }
@@ -242,6 +268,11 @@ internal sealed class OperationSession : IOperationSession
 
         return requestBuilder;
     }
+
+    private static bool IsTerminalErrorResult(OperationResult result)
+        => result.Data is null
+            && result.Errors is { Count: > 0 }
+            && RequestedStatusCode.TryGet(result.ContextData, out _);
 
     private async Task SendResultMessageAsync(OperationResult result, CancellationToken ct)
     {

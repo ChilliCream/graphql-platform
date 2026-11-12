@@ -583,6 +583,99 @@ public class XmlDocumentationProviderTests
         Assert.Null(description);
     }
 
+    [Fact]
+    public void GetDescription_Should_ReturnTypeSummary_When_TypeIsConstructedGeneric()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(typeof(Envelope<string>));
+
+        // assert
+        Assert.Equal("An envelope that carries a payload.", description);
+    }
+
+    [Fact]
+    public void GetDescription_Should_ReturnPropertySummary_When_DeclaringTypeIsConstructedGeneric()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(
+            typeof(Envelope<string>).GetProperty(nameof(Envelope<string>.Payload))!);
+
+        // assert
+        Assert.Equal("The carried payload.", description);
+    }
+
+    [Fact]
+    public void GetDescription_Should_ReturnMethodDescription_When_DeclaringTypeIsConstructedGeneric()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+        var method = typeof(Envelope<string>).GetMethod(nameof(Envelope<string>.GetAttachment))!;
+
+        // act
+        var methodDescription = documentationProvider.GetDescription(method);
+        var parameterDescription = documentationProvider.GetDescription(method.GetParameters()[0]);
+        var returnDescription = documentationProvider.GetDescription(method.ReturnParameter);
+
+        // assert
+        Assert.Equal("Gets an attachment.\n\n**Returns:**\nThe attachment.", methodDescription);
+        Assert.Equal("The attachment position.", parameterDescription);
+        Assert.Equal("The attachment.", returnDescription);
+    }
+
+    [Theory]
+    [InlineData(typeof(Envelope<>))]
+    [InlineData(typeof(Envelope<string>))]
+    public void GetDescription_Should_ReturnParameterDescription_When_ParameterTypeUsesTypeParameter(
+        Type envelopeType)
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+        var method = envelopeType.GetMethod(nameof(Envelope<string>.Seal))!;
+
+        // act
+        var methodDescription = documentationProvider.GetDescription(method);
+        var parameterDescription = documentationProvider.GetDescription(method.GetParameters()[0]);
+
+        // assert
+        Assert.Equal("Seals the envelope.", methodDescription);
+        Assert.Equal("The attachments to seal.", parameterDescription);
+    }
+
+    [Theory]
+    [InlineData(typeof(Envelope<>))]
+    [InlineData(typeof(Envelope<string>))]
+    public void GetDescription_Should_ReturnParameterDescription_When_MethodIsGeneric(
+        Type envelopeType)
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+        var method = envelopeType.GetMethod(nameof(Envelope<string>.Unwrap))!;
+
+        // act
+        var methodDescription = documentationProvider.GetDescription(method);
+        var parameterDescription = documentationProvider.GetDescription(method.GetParameters()[0]);
+
+        // assert
+        Assert.Equal("Unwraps the attachments.", methodDescription);
+        Assert.Equal("The attachments to unwrap.", parameterDescription);
+    }
+
     private static XDocument CreatePointDocumentation(string description) =>
         XDocument.Parse(
             $"""

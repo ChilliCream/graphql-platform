@@ -332,6 +332,7 @@ public class DeferTests : FusionTestBase
                                     deliveryGroups,
                                     incrementalPlan.Requirements)
                             ],
+                            plan.Policies,
                             plan.SearchSpace,
                             plan.ExpandedNodes));
 

@@ -45,7 +45,7 @@ public class PoolingBenchmarks
     private ObjectPool<PooledObject> _threadStaticFallbackPool = null!;
 
     [ThreadStatic]
-    private static PooledObject? t_cached;
+    private static PooledObject? s_cached;
 
     private static readonly object s_message = "hello";
     private static readonly Type s_type = typeof(string);
@@ -57,7 +57,7 @@ public class PoolingBenchmarks
         _objectPool = new DefaultObjectPool<PooledObject>(new PooledObjectPolicy(), 64);
         _threadLocal = new ThreadLocal<PooledObject>(() => new PooledObject(), trackAllValues: false);
         _threadStaticFallbackPool = new DefaultObjectPool<PooledObject>(new PooledObjectPolicy(), 64);
-        t_cached = null;
+        s_cached = null;
     }
 
     [GlobalCleanup]
@@ -123,10 +123,10 @@ public class PoolingBenchmarks
     [Benchmark]
     public object? ThreadStatic_WithObjectPoolFallback()
     {
-        var obj = t_cached;
+        var obj = s_cached;
         if (obj is not null)
         {
-            t_cached = null;
+            s_cached = null;
         }
         else
         {
@@ -138,9 +138,9 @@ public class PoolingBenchmarks
         var result = obj.Message;
 
         obj.Reset();
-        if (t_cached is null)
+        if (s_cached is null)
         {
-            t_cached = obj;
+            s_cached = obj;
         }
         else
         {

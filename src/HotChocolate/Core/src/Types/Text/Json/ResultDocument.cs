@@ -1070,12 +1070,6 @@ public sealed partial class ResultDocument : IDisposable
 
     public void Dispose()
     {
-        ReleaseTrackingArrays();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ReleaseTrackingArrays()
-    {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
@@ -1101,6 +1095,4 @@ public sealed partial class ResultDocument : IDisposable
         s_arrayPool.Return(_data);
         _data = [];
     }
-
-    ~ResultDocument() => ReleaseTrackingArrays();
 }

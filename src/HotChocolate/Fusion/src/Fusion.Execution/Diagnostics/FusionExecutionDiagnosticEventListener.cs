@@ -219,6 +219,9 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     /// <inheritdoc />
     public virtual void ExecutorEvicted(string name, IRequestExecutor executor) { }
 
+    /// <inheritdoc />
+    public virtual void ExecutorUpdateFailed(string schemaName, Exception exception) { }
+
     private sealed class EmptyActivityScope : IDisposable
     {
         public void Dispose() { }

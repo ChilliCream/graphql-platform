@@ -45,6 +45,7 @@ import { estimateReadingTime } from "@/src/helpers/readingTime";
 import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { shareCardSize } from "@/src/og/pageShareCardImage";
 import {
   ORGANIZATION_ID,
   schemaId,
@@ -108,17 +109,32 @@ export async function generateMetadata({
   }
   if (isPaginationSlug(slug)) {
     const pageNum = Number(slug[0]);
-    return pageMetadata({
+    const metadata = pageMetadata({
       title: `Blog, Page ${pageNum}`,
       description: `${BLOG_DESCRIPTION} Page ${pageNum}.`,
       path: `/blog/${pageNum}`,
     });
+    const images = [
+      {
+        url: toAbsoluteUrl("/blog/opengraph-image"),
+        ...shareCardSize,
+        alt: "ChilliCream blog",
+      },
+    ];
+    return {
+      ...metadata,
+      openGraph: { ...metadata.openGraph, images },
+      twitter: { ...metadata.twitter, images },
+    };
   }
   const rel = resolveBlogFile(slug);
   if (rel === null) {
     return {};
   }
-  const { title, description } = readFrontmatter(path.join(BLOG_ROOT, rel));
+  const { title, metaTitle, description } = readFrontmatter(
+    path.join(BLOG_ROOT, rel),
+  );
+  const searchTitle = metaTitle ?? title;
 
   const stem = stemForSlug(slug);
   const summary = listBlogPostSummaries().find((s) => s.stem === stem);
@@ -128,7 +144,7 @@ export async function generateMetadata({
   const images = featuredImageAbs ? [featuredImageAbs] : undefined;
 
   return {
-    title,
+    title: searchTitle,
     description,
     ...(summary?.author
       ? {
@@ -148,7 +164,7 @@ export async function generateMetadata({
     openGraph: {
       type: "article",
       siteName: SITE_NAME,
-      title,
+      title: searchTitle,
       description,
       images,
       url: summary?.href,
@@ -168,7 +184,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       site: TWITTER_HANDLE,
-      title,
+      title: searchTitle,
       description,
       images,
     },

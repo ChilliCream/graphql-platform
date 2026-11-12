@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
@@ -3168,7 +3169,7 @@ public class DeferPlannerTests : FusionTestBase
         var schema = ComposeProductReviewSchema();
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
-        var planner = new OperationPlanner(schema, new OperationCompiler(schema, pool));
+        var planner = new OperationPlanner(schema, new OperationCompiler(schema, pool), TestPolicyResolver.Create());
 
         // the requirement of the consumer is anchored beside the defer anchor
         var anchor = SelectionPath.Parse("$.products");
@@ -3380,7 +3381,7 @@ public class DeferPlannerTests : FusionTestBase
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
 
-        return new OperationPlanner(schema, new OperationCompiler(schema, pool));
+        return new OperationPlanner(schema, new OperationCompiler(schema, pool), TestPolicyResolver.Create());
     }
 
     private static IncrementalPlanDescriptor CreateDescriptor(string operation, string path)

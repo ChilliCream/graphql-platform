@@ -6,6 +6,7 @@ import { BenchmarkScenarioPanels } from "@/src/components/benchmarks/BenchmarkSc
 import { BenchmarkScenarioTiles } from "@/src/components/benchmarks/BenchmarkScenarioTiles";
 import { BenchmarkStickyScenarioBar } from "@/src/components/benchmarks/BenchmarkStickyScenarioBar";
 import { useBenchmarkControls } from "@/src/components/benchmarks/useBenchmarkControls";
+import { useHintDismissal } from "@/src/components/benchmarks/useHintDismissal";
 import type { ReactNode } from "react";
 import type {
   BenchmarkReport,
@@ -28,6 +29,7 @@ export function BenchmarkExplorer({
   charts,
   initialScenario,
 }: BenchmarkExplorerProps) {
+  useHintDismissal();
   const controls = useBenchmarkControls(
     report,
     historyTechnologies,

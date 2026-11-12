@@ -2,6 +2,14 @@ namespace HotChocolate.Fusion.Logging;
 
 public static class LogEntryCodes
 {
+    public const string AuthenticatedMismatch = "AUTHENTICATED_MISMATCH";
+    public const string PolicyDirectiveArgumentInvalid =
+        "INVALID_POLICY_DIRECTIVE_ARGUMENT";
+    public const string PolicyGroupCountExceeded = "POLICY_GROUP_COUNT_EXCEEDED";
+    public const string PolicyInherited = "POLICY_INHERITED";
+    public const string PolicyOnInterfaceObject = "POLICY_ON_INTERFACE_OBJECT";
+    public const string PolicyTransitiveRequirementsMissing =
+        "POLICY_TRANSITIVE_REQUIREMENTS_MISSING";
     public const string ConflictingApolloFederationVersion =
         "CONFLICTING_APOLLO_FEDERATION_VERSION";
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
@@ -51,7 +59,11 @@ public static class LogEntryCodes
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidApolloFederationSupportSettings =
         "INVALID_APOLLO_FEDERATION_SUPPORT_SETTINGS";
+    public const string InvalidCostPlanCacheSizeSetting = "INVALID_COST_PLAN_CACHE_SIZE_SETTING";
     public const string InvalidDefaultListSizeSetting = "INVALID_DEFAULT_LIST_SIZE_SETTING";
+    public const string InvalidMaxFieldCostSetting = "INVALID_MAX_FIELD_COST_SETTING";
+    public const string InvalidMaxResponseSizeSetting = "INVALID_MAX_RESPONSE_SIZE_SETTING";
+    public const string InvalidMaxTypeCostSetting = "INVALID_MAX_TYPE_COST_SETTING";
     public const string InvalidNodeResolution = "INVALID_NODE_RESOLUTION";
     public const string InvalidProjectedFieldSharing = "INVALID_PROJECTED_FIELD_SHARING";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";

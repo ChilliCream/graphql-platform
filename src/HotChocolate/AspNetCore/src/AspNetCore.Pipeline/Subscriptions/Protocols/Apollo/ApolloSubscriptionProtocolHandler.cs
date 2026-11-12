@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
@@ -141,6 +142,8 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
         if (connected && type.ValueEquals(Utf8Messages.Start))
         {
+            GraphQLRequest? request = null;
+
             try
             {
                 if (!TryParseSubscribeMessage(root, out var dataStartMessage))
@@ -152,7 +155,20 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     return;
                 }
 
-                if (!session.Operations.Enqueue(dataStartMessage.Id, dataStartMessage.Payload))
+                request = dataStartMessage.Payload;
+
+                if (request.Variables?.RootElement.ValueKind is JsonValueKind.Array)
+                {
+                    throw new GraphQLRequestException(
+                        ErrorHelper.VariableBatchingNotSupportedForWebSocket());
+                }
+
+                if (session.Operations.Enqueue(dataStartMessage.Id, request))
+                {
+                    // the operation session now owns the request and disposes it.
+                    request = null;
+                }
+                else
                 {
                     await connection.CloseAsync(
                         Apollo_OnReceive_SubscriptionIdNotUnique,
@@ -203,6 +219,10 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     idProp.GetString()!,
                     [syntaxError],
                     cancellationToken);
+            }
+            finally
+            {
+                request?.Dispose();
             }
 
             // the operation is registered and we are done.
