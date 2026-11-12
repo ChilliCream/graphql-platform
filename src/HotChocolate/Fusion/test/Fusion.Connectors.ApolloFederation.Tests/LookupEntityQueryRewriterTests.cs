@@ -528,7 +528,8 @@ public class LookupEntityQueryRewriterTests
             key,
             new NamedTypeNode("String"),
             SelectionPath.Root,
-            map);
+            map,
+            []);
 
     private static IValueSelectionNode GetRequireMap(
         FusionSchemaDefinition schema,

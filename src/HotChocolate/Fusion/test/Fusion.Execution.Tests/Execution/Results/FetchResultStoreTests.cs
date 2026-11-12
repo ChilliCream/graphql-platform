@@ -2219,6 +2219,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             new NamedTypeNode("String"),
             SelectionPath.Root,
             new FieldSelectionMapParser("aliasSource").Parse(),
+            [],
             "__fusion_internal_alias");
 
         // act
@@ -2340,6 +2341,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             new NamedTypeNode("String"),
             SelectionPath.Root,
             new FieldSelectionMapParser("id").Parse(),
+            [],
             "__fusion_internal_id");
 
         // act
@@ -2491,12 +2493,14 @@ public sealed class FetchResultStoreTests : FusionTestBase
                     "__fusion_1_id",
                     new NonNullTypeNode(new NamedTypeNode("Int")),
                     products,
-                    new FieldSelectionMapParser("id").Parse()),
+                    new FieldSelectionMapParser("id").Parse(),
+                    []),
                 new OperationRequirement(
                     "__fusion_2_weight",
                     new NamedTypeNode("Int"),
                     products.AppendField("details"),
-                    new FieldSelectionMapParser("weight").Parse())
+                    new FieldSelectionMapParser("weight").Parse(),
+                    [])
             ]);
 
         // assert
@@ -2554,12 +2558,14 @@ public sealed class FetchResultStoreTests : FusionTestBase
                     "__fusion_1_id",
                     new NonNullTypeNode(new NamedTypeNode("Int")),
                     products,
-                    new FieldSelectionMapParser("id").Parse()),
+                    new FieldSelectionMapParser("id").Parse(),
+                    []),
                 new OperationRequirement(
                     "__fusion_2_weight",
                     nonNullRequirement ? new NonNullTypeNode(new NamedTypeNode("Int")) : new NamedTypeNode("Int"),
                     products.AppendField("details"),
-                    new FieldSelectionMapParser("weight").Parse())
+                    new FieldSelectionMapParser("weight").Parse(),
+                    [])
             ]);
 
         // assert
@@ -2616,7 +2622,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
                     "__fusion_1_pages",
                     new NamedTypeNode("Int"),
                     items.AppendFragment("Book"),
-                    new FieldSelectionMapParser("pages").Parse())
+                    new FieldSelectionMapParser("pages").Parse(),
+                    [])
             ]);
 
         // assert
@@ -2675,7 +2682,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
                     "__fusion_1_weight",
                     new NamedTypeNode("Int"),
                     products.AppendField("details"),
-                    new FieldSelectionMapParser("weight").Parse())
+                    new FieldSelectionMapParser("weight").Parse(),
+                    [])
             ]);
 
         // assert
@@ -2734,7 +2742,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
                     "__fusion_1_weight",
                     new NamedTypeNode("Int"),
                     products.AppendField("details"),
-                    new FieldSelectionMapParser("weight").Parse())
+                    new FieldSelectionMapParser("weight").Parse(),
+                    [])
             ]);
 
         // assert
@@ -4637,6 +4646,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             new NamedTypeNode("String"),
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))),
+            [],
             null);
 
     private static OperationRequirement Requirement(
@@ -4649,6 +4659,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             type,
             SelectionPath.Root,
             new FieldSelectionMapParser(map).Parse(),
+            [],
             null);
 
     private static HashSet<string> ImportedKeys(params string[] keys)

@@ -30,7 +30,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     /// <summary>
     /// The version of the operation plan JSON format written by this formatter.
     /// </summary>
-    private const string FormatVersion = "1.3.0";
+    private const string FormatVersion = "1.4.0";
 
     private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
     {
@@ -531,6 +531,45 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         jsonWriter.WritePropertyName("selectionMap");
         jsonWriter.WriteStringValue(requirement.Map.ToString());
+
+        if (!requirement.ContextRoots.IsDefaultOrEmpty)
+        {
+            jsonWriter.WritePropertyName("contextRoots");
+            jsonWriter.WriteStartArray();
+
+            foreach (var contextRoot in requirement.ContextRoots)
+            {
+                WriteContextRoot(jsonWriter, contextRoot);
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteContextRoot(JsonWriter jsonWriter, RequirementContextRoot contextRoot)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("name");
+        jsonWriter.WriteStringValue(contextRoot.Name);
+
+        jsonWriter.WritePropertyName("path");
+        jsonWriter.WriteStringValue(contextRoot.Path.ToString());
+
+        if (!contextRoot.TypeNames.IsDefaultOrEmpty)
+        {
+            jsonWriter.WritePropertyName("types");
+            jsonWriter.WriteStartArray();
+
+            foreach (var typeName in contextRoot.TypeNames)
+            {
+                jsonWriter.WriteStringValue(typeName);
+            }
+
+            jsonWriter.WriteEndArray();
+        }
 
         jsonWriter.WriteEndObject();
     }

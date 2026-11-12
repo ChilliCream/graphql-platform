@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
@@ -22,6 +23,10 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <param name="Map">
 /// The field selection map that projects the requirement value from the data.
 /// </param>
+/// <param name="ContextRoots">
+/// The roots of the context paths the requirement reads from. Entries with the same
+/// name are ordered nearest first. Empty when the requirement reads no context.
+/// </param>
 /// <param name="InternalAlias">
 /// The internal alias assigned when this requirement's field collides with a sibling
 /// selection of the same response name but different arguments; the field is fetched
@@ -33,4 +38,5 @@ public record OperationRequirement(
     ITypeNode Type,
     SelectionPath Path,
     IValueSelectionNode Map,
+    ImmutableArray<RequirementContextRoot> ContextRoots,
     string? InternalAlias = null);

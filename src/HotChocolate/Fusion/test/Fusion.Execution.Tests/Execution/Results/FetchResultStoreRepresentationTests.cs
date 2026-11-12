@@ -414,6 +414,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             new NamedTypeNode("String"),
             SelectionPath.Root,
             new FieldSelectionMapParser("id").Parse(),
+            [],
             "__fusion_internal_id");
 
         using var resultArena = new MemoryArena();
@@ -516,9 +517,9 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var stringType = new NamedTypeNode("String");
         var requirements = new[]
         {
-            new OperationRequirement("__fusion_1_a", stringType, SelectionPath.Root, maps[0], null),
-            new OperationRequirement("__fusion_2_b", stringType, SelectionPath.Root, maps[1], null),
-            new OperationRequirement("__fusion_3_c", stringType, SelectionPath.Root, maps[2], null)
+            new OperationRequirement("__fusion_1_a", stringType, SelectionPath.Root, maps[0], [], null),
+            new OperationRequirement("__fusion_2_b", stringType, SelectionPath.Root, maps[1], [], null),
+            new OperationRequirement("__fusion_3_c", stringType, SelectionPath.Root, maps[2], [], null)
         };
 
         // act
@@ -623,12 +624,14 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
                 "__fusion_1_details",
                 new NamedTypeNode("String"),
                 target.AppendFragment("A").AppendField("details"),
-                new FieldSelectionMapParser("x").Parse()),
+                new FieldSelectionMapParser("x").Parse(),
+                []),
             new OperationRequirement(
                 "__fusion_2_details",
                 new NamedTypeNode("String"),
                 target.AppendFragment("B").AppendField("details"),
-                new FieldSelectionMapParser("x").Parse())
+                new FieldSelectionMapParser("x").Parse(),
+                [])
         };
         var resultSelection = Utf8GraphQLParser.Parse(
                 """
@@ -737,7 +740,8 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
                 "__fusion_1_details",
                 new NamedTypeNode("String"),
                 target.AppendFragment("B").AppendField("details"),
-                new FieldSelectionMapParser("x").Parse())
+                new FieldSelectionMapParser("x").Parse(),
+                [])
         };
         var resultSelection = Utf8GraphQLParser.Parse(
                 """
@@ -3413,6 +3417,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             type,
             SelectionPath.Root,
             new FieldSelectionMapParser(map).Parse(),
+            [],
             null);
 
     private static HashSet<string> ImportedKeys(params string[] keys)
