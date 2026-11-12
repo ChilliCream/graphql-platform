@@ -50,25 +50,18 @@ internal sealed class ReceiveRedeliveryMiddleware(
             switch (decision.Action)
             {
                 case RedeliveryAction.Discard:
-                    using (logger.BeginMessageScope(LogLevel.Warning, context))
-                    {
-                        logger.MessageDiscarded(ex, context.MessageId);
-                    }
-
+                    logger.MessageDiscarded(ex, context.MessageId);
                     context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
                     return;
 
                 case RedeliveryAction.Redeliver:
                     var scheduledTime = timeProvider.GetUtcNow().Add(decision.Delay);
-                    using (logger.BeginMessageScope(LogLevel.Warning, context))
-                    {
-                        logger.RedeliveringMessage(ex, context.MessageId, delayedRetryCount + 1, decision.Delay);
-                        var isScheduled = await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
-                        logger.MessageRedelivered(
-                            context.MessageId,
-                            delayedRetryCount + 1,
-                            isScheduled ? scheduledTime : null);
-                    }
+                    logger.RedeliveringMessage(ex, context.MessageId, delayedRetryCount + 1, decision.Delay);
+                    var isScheduled = await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
+                    logger.MessageRedelivered(
+                        context.MessageId,
+                        delayedRetryCount + 1,
+                        isScheduled ? scheduledTime : null);
 
                     context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
                     return;

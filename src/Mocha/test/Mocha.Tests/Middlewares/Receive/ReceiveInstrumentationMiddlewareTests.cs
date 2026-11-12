@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
 
@@ -44,7 +46,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     {
         // arrange
         var events = new MockMessagingDiagnosticEvents();
-        var middleware = new ReceiveInstrumentationMiddleware(events);
+        var middleware = new ReceiveInstrumentationMiddleware(events, NullLogger.Instance);
         var context = new StubReceiveContext();
         var nextCalled = false;
 
@@ -68,7 +70,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         // arrange
         var activity = new MockDisposable();
         var events = new MockMessagingDiagnosticEvents { ActivityToReturn = activity };
-        var middleware = new ReceiveInstrumentationMiddleware(events);
+        var middleware = new ReceiveInstrumentationMiddleware(events, NullLogger.Instance);
         var context = new StubReceiveContext();
 
         ReceiveDelegate next = _ => ValueTask.CompletedTask;
@@ -85,7 +87,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     {
         // arrange
         var events = new MockMessagingDiagnosticEvents();
-        var middleware = new ReceiveInstrumentationMiddleware(events);
+        var middleware = new ReceiveInstrumentationMiddleware(events, NullLogger.Instance);
         var context = new StubReceiveContext();
         var expectedException = new InvalidOperationException("Test exception");
 
@@ -107,7 +109,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     {
         // arrange
         var events = new MockMessagingDiagnosticEvents();
-        var middleware = new ReceiveInstrumentationMiddleware(events);
+        var middleware = new ReceiveInstrumentationMiddleware(events, NullLogger.Instance);
         var context = new StubReceiveContext();
         var expectedException = new InvalidOperationException("Should be rethrown");
 
@@ -127,7 +129,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         // arrange
         var activity = new MockDisposable();
         var events = new MockMessagingDiagnosticEvents { ActivityToReturn = activity };
-        var middleware = new ReceiveInstrumentationMiddleware(events);
+        var middleware = new ReceiveInstrumentationMiddleware(events, NullLogger.Instance);
         var context = new StubReceiveContext();
 
         ReceiveDelegate next = _ => throw new InvalidOperationException("Test");
@@ -151,7 +153,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     {
         // arrange
         var events = new MockMessagingDiagnosticEvents();
-        var middleware = new ReceiveInstrumentationMiddleware(events);
+        var middleware = new ReceiveInstrumentationMiddleware(events, NullLogger.Instance);
         var context = new StubReceiveContext();
         IReceiveContext? receivedContext = null;
 
@@ -173,7 +175,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
     {
         // arrange
         var events = new MockMessagingDiagnosticEvents();
-        var middleware = new ReceiveInstrumentationMiddleware(events);
+        var middleware = new ReceiveInstrumentationMiddleware(events, NullLogger.Instance);
         var context = new StubReceiveContext();
 
         ReceiveDelegate next = _ => ValueTask.CompletedTask;
@@ -192,6 +194,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         var events = new MockMessagingDiagnosticEvents();
         var services = new ServiceCollection();
         services.AddSingleton<IMessagingDiagnosticEvents>(events);
+        services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
         var provider = services.BuildServiceProvider();
 
         var configuration = ReceiveInstrumentationMiddleware.Create();

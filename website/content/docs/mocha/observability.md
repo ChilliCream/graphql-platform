@@ -200,6 +200,8 @@ When OpenTelemetry is configured with `AddOpenTelemetry().WithLogging()`, your `
 
 The Aspire configuration block above already includes `builder.Logging.AddOpenTelemetry(...)`, which enables this behavior. No additional code is needed in your handlers.
 
+Log entries written while a message is received, including the entries of your handlers, also carry the message's `MessageId`, `MessageType`, `CorrelationId`, `ConversationId`, `Endpoint`, and `Transport` in a logger scope.
+
 Keep `IncludeScopes = true` in your OpenTelemetry logging configuration to export Mocha's message and connection correlation fields.
 
 For more detail on .NET distributed tracing concepts and how `Activity` maps to spans, see [.NET Distributed Tracing Concepts](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-concepts).
