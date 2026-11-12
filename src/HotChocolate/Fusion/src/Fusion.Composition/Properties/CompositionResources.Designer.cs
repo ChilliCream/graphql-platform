@@ -1772,6 +1772,33 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; in schema &apos;{1}&apos; reads from a context and must not have a default value..
+        /// </summary>
+        internal static string LogEntryHelper_RequireContextDefaultValue {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireContextDefaultValue", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; references the context &apos;{2}&apos;, which is not set by any type in the schema..
+        /// </summary>
+        internal static string LogEntryHelper_RequireContextNotSet {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireContextNotSet", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains a context path, which is not allowed on an interface field or on a field that implements an interface field..
+        /// </summary>
+        internal static string LogEntryHelper_RequireContextOnInterface {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_RequireContextOnInterface", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
         internal static string LogEntryHelper_RequireInvalidFields {
