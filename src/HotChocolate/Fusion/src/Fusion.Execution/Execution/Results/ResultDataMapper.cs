@@ -13,41 +13,44 @@ internal static class ResultDataMapper
     /// Maps a value selection from the composite result and writes it directly as JSON.
     /// Returns <c>true</c> if the value was written successfully, <c>false</c> if the
     /// value could not be resolved (undefined/null for required paths) or a null value
-    /// landed in a non-null position of the declared requirement type.
+    /// landed in a non-null position of the declared requirement type. A context path
+    /// that names no element of <paramref name="contextRoots"/> cannot be resolved.
     /// </summary>
     public static bool TryMap(
         CompositeResultElement result,
         IValueSelectionNode valueSelection,
         ITypeNode type,
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         string? internalAlias,
         JsonWriter writer)
-        => Visit(valueSelection, result, type, schema, internalAlias, writer);
+        => Visit(valueSelection, result, type, schema, contextRoots, internalAlias, writer);
 
     private static bool Visit(
         IValueSelectionNode node,
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         string? internalAlias,
         JsonWriter writer)
     {
         switch (node)
         {
             case ChoiceValueSelectionNode choice:
-                return VisitChoice(choice, result, type, schema, internalAlias, writer);
+                return VisitChoice(choice, result, type, schema, contextRoots, internalAlias, writer);
 
             case PathNode path:
-                return VisitPath(path, result, type, schema, internalAlias, writer);
+                return VisitPath(path, result, type, schema, contextRoots, internalAlias, writer);
 
             case ObjectValueSelectionNode objectValue:
-                return VisitObject(objectValue, result, schema, internalAlias, writer);
+                return VisitObject(objectValue, result, schema, contextRoots, internalAlias, writer);
 
             case PathObjectValueSelectionNode pathObject:
-                return VisitPathObject(pathObject, result, type, schema, internalAlias, writer);
+                return VisitPathObject(pathObject, result, type, schema, contextRoots, internalAlias, writer);
 
             case PathListValueSelectionNode pathList:
-                return VisitPathList(pathList, result, type, schema, internalAlias, writer);
+                return VisitPathList(pathList, result, type, schema, contextRoots, internalAlias, writer);
 
             default:
                 throw new NotSupportedException("Unknown value selection node type.");
@@ -59,12 +62,13 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         string? internalAlias,
         JsonWriter writer)
     {
         foreach (var branch in node.Branches)
         {
-            if (Visit(branch, result, type, schema, internalAlias, writer))
+            if (Visit(branch, result, type, schema, contextRoots, internalAlias, writer))
             {
                 return true;
             }
@@ -78,10 +82,11 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         string? internalAlias,
         JsonWriter writer)
     {
-        var resolved = ResolvePath(schema, result, node, internalAlias);
+        var resolved = ResolvePath(schema, contextRoots, result, node, internalAlias);
         var valueKind = resolved.ValueKind;
 
         if (valueKind is JsonValueKind.Undefined)
@@ -166,6 +171,7 @@ internal static class ResultDataMapper
         ObjectValueSelectionNode node,
         CompositeResultElement result,
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         string? internalAlias,
         JsonWriter writer)
     {
@@ -190,11 +196,11 @@ internal static class ResultDataMapper
             if (field.ValueSelection is null)
             {
                 var pathNode = new PathNode(new PathSegmentNode(field.Name));
-                written = VisitPath(pathNode, result, null, schema, fieldInternalAlias, writer);
+                written = VisitPath(pathNode, result, null, schema, contextRoots, fieldInternalAlias, writer);
             }
             else
             {
-                written = Visit(field.ValueSelection, result, null, schema, fieldInternalAlias, writer);
+                written = Visit(field.ValueSelection, result, null, schema, contextRoots, fieldInternalAlias, writer);
             }
 
             if (!written)
@@ -212,10 +218,11 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         string? internalAlias,
         JsonWriter writer)
     {
-        var resolved = ResolvePath(schema, result, node.Path, internalAlias);
+        var resolved = ResolvePath(schema, contextRoots, result, node.Path, internalAlias);
         var valueKind = resolved.ValueKind;
 
         if (valueKind is JsonValueKind.Undefined)
@@ -239,7 +246,7 @@ internal static class ResultDataMapper
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        return VisitObject(node.ObjectValueSelection, resolved, schema, internalAlias: null, writer: writer);
+        return VisitObject(node.ObjectValueSelection, resolved, schema, contextRoots, internalAlias: null, writer: writer);
     }
 
     private static bool VisitPathList(
@@ -247,10 +254,11 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? type,
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         string? internalAlias,
         JsonWriter writer)
     {
-        var resolved = ResolvePath(schema, result, node.Path, internalAlias);
+        var resolved = ResolvePath(schema, contextRoots, result, node.Path, internalAlias);
         var valueKind = resolved.ValueKind;
 
         switch (valueKind)
@@ -268,7 +276,7 @@ internal static class ResultDataMapper
                 return true;
 
             case JsonValueKind.Array:
-                return VisitList(node.ListValueSelection, resolved, GetElementType(type), schema, writer);
+                return VisitList(node.ListValueSelection, resolved, GetElementType(type), schema, contextRoots, writer);
 
             default:
                 return false;
@@ -280,6 +288,7 @@ internal static class ResultDataMapper
         CompositeResultElement result,
         ITypeNode? elementType,
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         JsonWriter writer)
     {
         if (result.ValueKind is not JsonValueKind.Array)
@@ -302,7 +311,7 @@ internal static class ResultDataMapper
                 continue;
             }
 
-            if (!Visit(node.ElementSelection, item, elementType, schema, internalAlias: null, writer: writer))
+            if (!Visit(node.ElementSelection, item, elementType, schema, contextRoots, internalAlias: null, writer: writer))
             {
                 return false;
             }
@@ -318,12 +327,44 @@ internal static class ResultDataMapper
     private static ITypeNode? GetElementType(ITypeNode? type)
         => type?.IsListType() == true ? type.ElementType() : null;
 
+    private static bool TryGetContextRoot(
+        ReadOnlySpan<ContextRootElement> contextRoots,
+        string name,
+        out CompositeResultElement root)
+    {
+        foreach (var contextRoot in contextRoots)
+        {
+            if (contextRoot.Name.Equals(name, StringComparison.Ordinal))
+            {
+                root = contextRoot.Element;
+                return true;
+            }
+        }
+
+        root = default;
+        return false;
+    }
+
     private static CompositeResultElement ResolvePath(
         ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots,
         CompositeResultElement result,
         PathNode path,
         string? internalAlias)
     {
+        if (path.ContextName is not null)
+        {
+            // A context path starts at the element that sets the context. That element is
+            // not the entity the requirement is anchored at, so an internal alias of the
+            // requirement does not apply to it.
+            if (!TryGetContextRoot(contextRoots, path.ContextName.Value, out result))
+            {
+                return default;
+            }
+
+            internalAlias = null;
+        }
+
         if (result.ValueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException("Only object results are supported.");
@@ -405,3 +446,14 @@ internal static class ResultDataMapper
         return currentResult;
     }
 }
+
+/// <summary>
+/// The element that sets a context name for a requirement.
+/// </summary>
+/// <param name="Name">
+/// The name of the context.
+/// </param>
+/// <param name="Element">
+/// The result element that sets the context.
+/// </param>
+internal readonly record struct ContextRootElement(string Name, CompositeResultElement Element);

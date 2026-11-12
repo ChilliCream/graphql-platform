@@ -1121,7 +1121,7 @@ AddErrors_Next:
                 return [];
             }
 
-            return BuildVariableValueSetsUnsafe(elements, selectionSet.Length, requestVariables, requiredData);
+            return BuildVariableValueSetsUnsafe(elements, selectionSet, requestVariables, requiredData);
         }
     }
 
@@ -1157,7 +1157,7 @@ AddErrors_Next:
 
             return BuildVariableValueSetsUnsafe(
                 _collectTargetCombined.AsSpan(0, combinedCount),
-                selectionSets[0].Length,
+                selectionSets[0],
                 requestVariables,
                 requiredData);
         }
@@ -1199,12 +1199,15 @@ AddErrors_Next:
                 return [];
             }
 
-            // Entities are only reused while the result has no errors.
-            if (_errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 })
+            // Entities are only reused while the result has no errors and the requirements
+            // read no context roots.
+            if (_errors is { Count: > 0 }
+                || _pocketedErrors is { Count: > 0 }
+                || HasContextRoots(requiredData))
             {
                 return BuildVariableValueSetsUnsafe(
                     _collectTargetCombined.AsSpan(0, targetCount),
-                    selectionSets[0].Length,
+                    selectionSets[0],
                     requestVariables,
                     requiredData);
             }
@@ -1221,7 +1224,7 @@ AddErrors_Next:
 
             var variableValueSets = BuildVariableValueSetsUnsafe(
                 targets,
-                selectionSets[0].Length,
+                selectionSets[0],
                 requestVariables,
                 requiredData);
 
@@ -1239,7 +1242,7 @@ AddErrors_Next:
 
             var producerValueSets = BuildVariableValueSetsUnsafe(
                 producers[..producerCount],
-                selectionSets[0].Length,
+                selectionSets[0],
                 requestVariables,
                 requiredData);
 
@@ -2162,17 +2165,19 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
-        int targetPathLength,
+        SelectionPath targetPath,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
         _variableDedupTable.Initialize(elements.Length);
         PooledArrayWriter? buffer = null;
+        var targetPathLength = targetPath.Length;
         var anchorSegmentCount = CountRequirementAnchorSegments(requiredData, targetPathLength);
+        var hasContextRoots = HasContextRoots(requiredData);
 
         // The fast paths map requirements from the target elements, so requirements
-        // anchored below the target take the general path.
-        if (requestVariables.Count == 0 && anchorSegmentCount == 0)
+        // anchored below the target or reading from context roots take the general path.
+        if (requestVariables.Count == 0 && anchorSegmentCount == 0 && !hasContextRoots)
         {
             var fastPathResult = requiredData.Length switch
             {
@@ -2212,6 +2217,9 @@ AddErrors_Next:
         var nextIndex = 0;
         var forwardedVariables = SerializeForwardedVariablesUnsafe(requestVariables, elements.Length);
         var anchorSegments = RentRequirementAnchorSegments(requiredData, targetPathLength, anchorSegmentCount);
+        var contextRootResolvers = hasContextRoots
+            ? CreateContextRootResolvers(requiredData, targetPath)
+            : null;
 
         foreach (var result in elements)
         {
@@ -2237,12 +2245,15 @@ AddErrors_Next:
 
                 _jsonWriter.WritePropertyName(requirement.Key);
 
+                var contextRoots = ContextRootResolver.Resolve(contextRootResolvers?[i], result);
+
                 if (!TryGetRequirementAnchor(result, requirementAnchorSegments, out var anchor)
                     || !ResultDataMapper.TryMap(
                         anchor,
                         requirement.Map,
                         requirement.Type,
                         _schema,
+                        contextRoots,
                         requirement.InternalAlias,
                         _jsonWriter))
                 {
@@ -2284,6 +2295,58 @@ AddErrors_Next:
         }
 
         return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
+    }
+
+    private static bool HasContextRoots(ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        foreach (var requirement in requiredData)
+        {
+            if (!requirement.ContextRoots.IsDefaultOrEmpty)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Creates a resolver for each requirement that reads from context roots. The entry of a
+    /// requirement without context roots is <c>null</c>.
+    /// </summary>
+    private static ContextRootResolver?[] CreateContextRootResolvers(
+        ReadOnlySpan<OperationRequirement> requiredData,
+        SelectionPath targetPath)
+    {
+        var resolvers = new ContextRootResolver?[requiredData.Length];
+        var targetDepth = CountFieldSegments(targetPath);
+
+        for (var i = 0; i < requiredData.Length; i++)
+        {
+            var contextRoots = requiredData[i].ContextRoots;
+
+            if (!contextRoots.IsDefaultOrEmpty)
+            {
+                resolvers[i] = new ContextRootResolver(contextRoots, targetDepth);
+            }
+        }
+
+        return resolvers;
+    }
+
+    private static int CountFieldSegments(SelectionPath path)
+    {
+        var count = 0;
+
+        for (var i = 0; i < path.Length; i++)
+        {
+            if (path[i].Kind is SelectionPathSegmentKind.Field)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private static int CountRequirementAnchorSegments(
@@ -2483,6 +2546,7 @@ AddErrors_Next:
                 requirement.Map,
                 requirementType,
                 _schema,
+                [],
                 requirement.InternalAlias,
                 _jsonWriter))
             {
@@ -2629,6 +2693,7 @@ AddErrors_Next:
                 requirement1.Map,
                 requirementType1,
                 _schema,
+                [],
                 requirement1.InternalAlias,
                 _jsonWriter))
             {
@@ -2643,6 +2708,7 @@ AddErrors_Next:
                 requirement2.Map,
                 requirementType2,
                 _schema,
+                [],
                 requirement2.InternalAlias,
                 _jsonWriter))
             {
@@ -2811,6 +2877,7 @@ AddErrors_Next:
                 requirement1.Map,
                 requirementType1,
                 _schema,
+                [],
                 requirement1.InternalAlias,
                 _jsonWriter))
             {
@@ -2825,6 +2892,7 @@ AddErrors_Next:
                 requirement2.Map,
                 requirementType2,
                 _schema,
+                [],
                 requirement2.InternalAlias,
                 _jsonWriter))
             {
@@ -2839,6 +2907,7 @@ AddErrors_Next:
                 requirement3.Map,
                 requirementType3,
                 _schema,
+                [],
                 requirement3.InternalAlias,
                 _jsonWriter))
             {
@@ -4009,6 +4078,115 @@ AddErrors_Next:
         s_variableValuePool.Return(variableValueSets);
 
         return ImmutableCollectionsMarshal.AsImmutableArray(result);
+    }
+
+    /// <summary>
+    /// Resolves, for the target elements of a requirement, the elements that set the contexts
+    /// the requirement reads from.
+    /// </summary>
+    private sealed class ContextRootResolver
+    {
+        private readonly ContextRootCandidates[] _contexts;
+        private readonly ContextRootElement[] _resolved;
+
+        public ContextRootResolver(ImmutableArray<RequirementContextRoot> contextRoots, int targetDepth)
+        {
+            var contexts = new List<ContextRootCandidates>();
+
+            foreach (var contextRoot in contextRoots)
+            {
+                // A context root is an ancestor of the target or the target itself.
+                var levelsUp = targetDepth - CountFieldSegments(contextRoot.Path);
+
+                if (levelsUp < 0)
+                {
+                    continue;
+                }
+
+                var candidate = new ContextRootCandidate(levelsUp, contextRoot.TypeNames);
+                var index = contexts.FindIndex(t => t.Name.Equals(contextRoot.Name, StringComparison.Ordinal));
+
+                if (index < 0)
+                {
+                    contexts.Add(new ContextRootCandidates(contextRoot.Name, [candidate]));
+                }
+                else
+                {
+                    contexts[index].Candidates.Add(candidate);
+                }
+            }
+
+            _contexts = [.. contexts];
+            _resolved = new ContextRootElement[_contexts.Length];
+        }
+
+        /// <summary>
+        /// Resolves the context roots of <paramref name="target"/>. A context that no candidate
+        /// resolves for is not part of the result. The result is valid until the next call.
+        /// </summary>
+        public ReadOnlySpan<ContextRootElement> Resolve(CompositeResultElement target)
+        {
+            var count = 0;
+
+            foreach (var context in _contexts)
+            {
+                foreach (var candidate in context.Candidates)
+                {
+                    if (TryGetRoot(target, candidate, out var root))
+                    {
+                        _resolved[count++] = new ContextRootElement(context.Name, root);
+                        break;
+                    }
+                }
+            }
+
+            return _resolved.AsSpan(0, count);
+        }
+
+        /// <summary>
+        /// Resolves the context roots of <paramref name="target"/> with <paramref name="resolver"/>,
+        /// or returns no roots when the requirement has no resolver.
+        /// </summary>
+        public static ReadOnlySpan<ContextRootElement> Resolve(
+            ContextRootResolver? resolver,
+            CompositeResultElement target)
+            => resolver is null ? default : resolver.Resolve(target);
+
+        private static bool TryGetRoot(
+            CompositeResultElement target,
+            ContextRootCandidate candidate,
+            out CompositeResultElement root)
+        {
+            root = target;
+
+            for (var i = 0; i < candidate.LevelsUp; i++)
+            {
+                // A list level has no field segment, so the walk passes over it.
+                do
+                {
+                    root = root.Parent;
+                }
+                while (root.ValueKind is JsonValueKind.Array);
+
+                if (root.ValueKind is not JsonValueKind.Object)
+                {
+                    return false;
+                }
+            }
+
+            if (candidate.TypeNames.IsDefaultOrEmpty)
+            {
+                return true;
+            }
+
+            var runtimeType = root.SelectionSet?.Type.Name;
+
+            return runtimeType is not null && candidate.TypeNames.Contains(runtimeType);
+        }
+
+        private readonly record struct ContextRootCandidates(string Name, List<ContextRootCandidate> Candidates);
+
+        private readonly record struct ContextRootCandidate(int LevelsUp, ImmutableArray<string> TypeNames);
     }
 
     private readonly record struct LeafValue(Selection Selection, CompositeResultElement Value);
