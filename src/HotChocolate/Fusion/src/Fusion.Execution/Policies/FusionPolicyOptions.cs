@@ -17,7 +17,7 @@ public sealed class FusionPolicyOptions
 
     /// <summary>
     /// Gets or sets how a denied selection is reported.
-    /// <see cref="Policies.DenyHandling.Null"/> by default.
+    /// <see cref="DenyHandling.Null"/> by default.
     /// </summary>
     public DenyHandling DenyHandling
     {
@@ -32,7 +32,7 @@ public sealed class FusionPolicyOptions
 
     /// <summary>
     /// Gets or sets which denials reject the whole request.
-    /// <see cref="Policies.RejectRequestOn.Off"/> by default.
+    /// <see cref="RejectRequestOn.Off"/> by default.
     /// </summary>
     public RejectRequestOn RejectRequestOn
     {
@@ -108,7 +108,7 @@ public sealed class FusionPolicyOptions
 
     /// <summary>
     /// Gets or sets how the scopes are stored in the scope claim.
-    /// <see cref="Policies.ScopeClaimFormat.SpaceSeparated"/> by default.
+    /// <see cref="ScopeClaimFormat.SpaceSeparated"/> by default.
     /// </summary>
     public ScopeClaimFormat ScopeClaimFormat
     {
