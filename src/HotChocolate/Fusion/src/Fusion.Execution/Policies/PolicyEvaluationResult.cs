@@ -94,29 +94,19 @@ internal sealed class PolicyEvaluationResult
     }
 
     /// <summary>
-    /// Gets the first denial of a selection that is part of the selection set.
+    /// Gets the denial for a selection.
     /// </summary>
-    /// <param name="selectionSet">
-    /// The selection set that declares the denied selection.
+    /// <param name="selection">
+    /// The selection whose denial to get.
     /// </param>
     /// <param name="denial">
-    /// The first denial of a selection of the selection set.
+    /// The denial for the selection.
     /// </param>
-    public bool TryGetDenial(SelectionSet selectionSet, out SelectionDenial denial)
+    public bool TryGetDenial(Selection selection, out SelectionDenial denial)
     {
-        ArgumentNullException.ThrowIfNull(selectionSet);
+        ArgumentNullException.ThrowIfNull(selection);
 
-        foreach (var current in Denials)
-        {
-            if (ReferenceEquals(current.Selection.DeclaringSelectionSet, selectionSet))
-            {
-                denial = current;
-                return true;
-            }
-        }
-
-        denial = default;
-        return false;
+        return _denialsBySelection.TryGetValue(selection, out denial);
     }
 
     /// <summary>

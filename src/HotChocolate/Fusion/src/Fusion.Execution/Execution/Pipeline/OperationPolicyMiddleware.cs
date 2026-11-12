@@ -146,7 +146,7 @@ internal sealed class OperationPolicyMiddleware
             }
 
             if (isSubscription
-                && policyResult.TryGetDenial(plan.Operation.RootSelectionSet, out var rootDenial))
+                && policyResult.TryGetDenial(plan.Operation.RootSelectionSet.Selections[0], out var rootDenial))
             {
                 await RejectAsync(context, rootDenial);
                 return;
