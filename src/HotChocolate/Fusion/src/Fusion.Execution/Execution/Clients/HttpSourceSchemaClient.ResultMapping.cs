@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Transport;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -44,30 +45,6 @@ public sealed partial class HttpSourceSchemaClient
         return true;
     }
 
-    private static int ResolveRequestIndex(
-        ImmutableArray<SourceSchemaClientRequest> requests,
-        SourceResultDocument result)
-    {
-        if (requests.Length == 1)
-        {
-            return 0;
-        }
-
-        if (!result.Root.TryGetProperty(RequestIndex, out var requestIndexElement))
-        {
-            return -1;
-        }
-
-        var requestIndex = requestIndexElement.GetInt32();
-
-        if ((uint)requestIndex < (uint)requests.Length)
-        {
-            return requestIndex;
-        }
-
-        throw ThrowHelper.RequestIndexOutOfRange(requestIndex);
-    }
-
     private static int ResolveVariableIndex(
         in SourceSchemaClientRequest request,
         SourceResultDocument result)
@@ -94,29 +71,84 @@ public sealed partial class HttpSourceSchemaClient
         throw ThrowHelper.VariableIndexOutOfRange(variableIndex);
     }
 
-    private static void ResolveFlattenedIndex(
+    /// <summary>
+    /// Resolves the position of an operation in a sent batch to the request it belongs to,
+    /// and to the variable value set it carries, or <c>-1</c> when it is a variable batch
+    /// that carries every variable value set of the request.
+    /// </summary>
+    /// <param name="body">
+    /// The body that was sent: an operation batch that holds, in request order, one variable
+    /// batch for a request or one operation for each of its variable value sets; or, for a batch
+    /// of one request, that request's own operation or variable batch.
+    /// </param>
+    /// <param name="operationIndex">The position of the operation in the batch.</param>
+    /// <param name="requests">The requests of the batch.</param>
+    /// <param name="requestIndex">The index of the request the operation belongs to.</param>
+    /// <param name="variableIndex">
+    /// The index of the variable value set the operation carries.
+    /// </param>
+    private static void ResolveOperation(
+        IRequestBody body,
+        int operationIndex,
         ImmutableArray<SourceSchemaClientRequest> requests,
-        int flattenedIndex,
         out int requestIndex,
         out int variableIndex)
     {
-        var remaining = flattenedIndex;
-
-        for (var i = 0; i < requests.Length; i++)
+        if (body is not OperationBatchRequest batch)
         {
-            var varCount = Math.Max(1, requests.ItemRef(i).Variables.Length);
-
-            if (remaining < varCount)
+            if (operationIndex == 0)
             {
-                requestIndex = i;
-                variableIndex = remaining;
+                requestIndex = 0;
+                variableIndex = body is VariableBatchRequest ? -1 : 0;
                 return;
             }
 
-            remaining -= varCount;
+            throw ThrowHelper.RequestIndexOutOfRange(operationIndex);
         }
 
-        throw ThrowHelper.FlattenedRequestIndexOutOfRange(flattenedIndex);
+        var operations = batch.Requests;
+
+        if ((uint)operationIndex < (uint)operations.Length)
+        {
+            // Every request has exactly one operation when the counts match.
+            if (operations.Length == requests.Length)
+            {
+                requestIndex = operationIndex;
+                variableIndex = operations[operationIndex] is VariableBatchRequest ? -1 : 0;
+                return;
+            }
+
+            var position = 0;
+
+            for (var i = 0; i < requests.Length && position < operations.Length; i++)
+            {
+                if (operations[position] is VariableBatchRequest)
+                {
+                    if (position == operationIndex)
+                    {
+                        requestIndex = i;
+                        variableIndex = -1;
+                        return;
+                    }
+
+                    position++;
+                    continue;
+                }
+
+                var operationCount = Math.Max(1, requests.ItemRef(i).Variables.Length);
+
+                if (operationIndex < position + operationCount)
+                {
+                    requestIndex = i;
+                    variableIndex = operationIndex - position;
+                    return;
+                }
+
+                position += operationCount;
+            }
+        }
+
+        throw ThrowHelper.RequestIndexOutOfRange(operationIndex);
     }
 
     private static bool TryGetResultPath(
@@ -154,7 +186,8 @@ public sealed partial class HttpSourceSchemaClient
     private struct VariableBatchResultMapper
     {
         private readonly ImmutableArray<VariableValues> _variables;
-        private readonly bool _readVariableIndex;
+        private readonly bool _isVariableBatch;
+        private bool? _hasRequestIndex;
         private int _nextIndex;
         private SourceSchemaResult? _errorResult;
 
@@ -162,14 +195,24 @@ public sealed partial class HttpSourceSchemaClient
         /// Initializes a mapper for the given variable value sets.
         /// </summary>
         /// <param name="variables">The variable value sets of the request.</param>
-        /// <param name="readVariableIndex">
-        /// <c>true</c> when each document names its variable value set with a <c>variableIndex</c>;
-        /// <c>false</c> when the documents arrive in the order of the variable value sets.
+        /// <param name="body">
+        /// The body that was sent: a variable batch, whose documents name their variable value
+        /// set with a <c>variableIndex</c>, or an operation batch with one operation per variable
+        /// value set, whose documents name it with a <c>requestIndex</c>.
         /// </param>
-        public VariableBatchResultMapper(ImmutableArray<VariableValues> variables, bool readVariableIndex)
+        /// <param name="alwaysSendsRequestIndex">
+        /// <c>true</c> when the source schema names every document of an operation batch with a
+        /// <c>requestIndex</c>; <c>false</c> when its documents may carry none and arrive in the
+        /// order of the variable value sets.
+        /// </param>
+        public VariableBatchResultMapper(
+            ImmutableArray<VariableValues> variables,
+            IRequestBody body,
+            bool alwaysSendsRequestIndex)
         {
             _variables = variables;
-            _readVariableIndex = readVariableIndex;
+            _isVariableBatch = body is VariableBatchRequest;
+            _hasRequestIndex = alwaysSendsRequestIndex ? true : null;
         }
 
         /// <summary>
@@ -183,29 +226,17 @@ public sealed partial class HttpSourceSchemaClient
         /// </summary>
         public bool TryMap(SourceResultDocument document, [NotNullWhen(true)] out SourceSchemaResult? result)
         {
-            int index;
-
-            if (_readVariableIndex)
+            if (!TryGetIndex(document, out var index))
             {
-                if (!document.Root.TryGetProperty(VariableIndex, out var variableIndex)
-                    || variableIndex.ValueKind is not JsonValueKind.Number)
-                {
-                    // if we do not get a variable index we have a protocol error
-                    // and must terminate the request.
-                    SetErrorResult(document, out result);
-                    return false;
-                }
-
-                index = variableIndex.GetInt32();
-            }
-            else
-            {
-                index = _nextIndex++;
+                // if we do not get the index the batch calls for we have a protocol error
+                // and must terminate the request.
+                SetErrorResult(document, out result);
+                return false;
             }
 
             if ((uint)index >= (uint)_variables.Length)
             {
-                // if the variable index is larger than the amount of variable sets we have
+                // if the index is larger than the amount of variable sets we have
                 // we also have a protocol issue and must terminate the request.
                 SetErrorResult(document, out result);
                 return false;
@@ -225,6 +256,40 @@ public sealed partial class HttpSourceSchemaClient
             return _errorResult!.WithPath(variable.Path, variable.AdditionalPaths);
         }
 
+        private bool TryGetIndex(SourceResultDocument document, out int index)
+        {
+            if (_isVariableBatch)
+            {
+                return TryReadIndex(document, VariableIndex, out index);
+            }
+
+            _hasRequestIndex ??= document.Root.TryGetProperty(RequestIndex, out _);
+
+            if (_hasRequestIndex.Value)
+            {
+                return TryReadIndex(document, RequestIndex, out index);
+            }
+
+            index = _nextIndex++;
+            return true;
+        }
+
+        private static bool TryReadIndex(
+            SourceResultDocument result,
+            ReadOnlySpan<byte> propertyName,
+            out int index)
+        {
+            if (result.Root.TryGetProperty(propertyName, out var indexElement)
+                && indexElement.ValueKind is JsonValueKind.Number)
+            {
+                index = indexElement.GetInt32();
+                return true;
+            }
+
+            index = -1;
+            return false;
+        }
+
         private void SetErrorResult(SourceResultDocument document, out SourceSchemaResult? result)
         {
             _errorResult = new SourceSchemaResult(_variables.ItemRef(0).Path, document);
@@ -238,7 +303,8 @@ public sealed partial class HttpSourceSchemaClient
     private struct BatchResultMapper
     {
         private readonly ImmutableArray<SourceSchemaClientRequest> _requests;
-        private readonly bool _supportsVariableBatching;
+        private readonly IRequestBody _body;
+        private readonly bool _alwaysSendsRequestIndex;
         private bool? _hasRequestIndex;
         private int _currentRequestIndex;
         private int _currentVariableIndex;
@@ -252,14 +318,25 @@ public sealed partial class HttpSourceSchemaClient
         /// Initializes a mapper for the requests of a batch.
         /// </summary>
         /// <param name="requests">The requests of the batch.</param>
-        /// <param name="supportsVariableBatching">
-        /// <c>true</c> when the source schema received each request with all its variable value
-        /// sets; <c>false</c> when each variable value set was sent as a request of its own.
+        /// <param name="body">
+        /// The body that was sent: an operation batch that holds, in request order, one variable
+        /// batch for a request or one operation for each of its variable value sets; or, for a
+        /// batch of one request, that request's own operation or variable batch.
         /// </param>
-        public BatchResultMapper(ImmutableArray<SourceSchemaClientRequest> requests, bool supportsVariableBatching)
+        /// <param name="alwaysSendsRequestIndex">
+        /// <c>true</c> when the source schema names every document of an operation batch with a
+        /// <c>requestIndex</c>, so that a document without one answers the whole batch;
+        /// <c>false</c> when its documents may carry none and arrive in the order of the
+        /// operations.
+        /// </param>
+        public BatchResultMapper(
+            ImmutableArray<SourceSchemaClientRequest> requests,
+            IRequestBody body,
+            bool alwaysSendsRequestIndex)
         {
             _requests = requests;
-            _supportsVariableBatching = supportsVariableBatching;
+            _body = body;
+            _alwaysSendsRequestIndex = alwaysSendsRequestIndex;
         }
 
         /// <summary>
@@ -270,9 +347,7 @@ public sealed partial class HttpSourceSchemaClient
             _document = document;
             _position = 0;
 
-            // If we don't support variable batching, requests with multiple variables
-            // might have been flattened to multiple requests.
-            if (!_supportsVariableBatching)
+            if (!_alwaysSendsRequestIndex)
             {
                 // Check if the first result has a requestIndex.
                 // If it does we can assume all others will have one as well and we know we need to check for it.
@@ -281,42 +356,73 @@ public sealed partial class HttpSourceSchemaClient
 
                 if (_hasRequestIndex.Value)
                 {
-                    if (!document.Root.TryGetProperty(RequestIndex, out var flatRequestIndex))
+                    if (!document.Root.TryGetProperty(RequestIndex, out var requestIndex))
                     {
                         throw ThrowHelper.MissingBatchRequestIndex();
                     }
 
-                    ResolveFlattenedIndex(
-                        _requests,
-                        flatRequestIndex.GetInt32(),
-                        out _requestIndex,
-                        out _variableIndex);
+                    BeginOperation(document, requestIndex.GetInt32());
+                    return;
                 }
-                else
-                {
-                    _requestIndex = _currentRequestIndex;
-                    _variableIndex = _currentVariableIndex;
 
-                    if (++_currentVariableIndex
-                        >= Math.Max(1, _requests.ItemRef(_currentRequestIndex).Variables.Length))
-                    {
-                        _currentRequestIndex++;
-                        _currentVariableIndex = 0;
-                    }
+                _requestIndex = _currentRequestIndex;
+                _variableIndex = _currentVariableIndex;
+
+                if (++_currentVariableIndex
+                    >= Math.Max(1, _requests.ItemRef(_currentRequestIndex).Variables.Length))
+                {
+                    _currentRequestIndex++;
+                    _currentVariableIndex = 0;
                 }
 
                 _kind = BatchResultKind.Single;
                 return;
             }
 
-            _requestIndex = ResolveRequestIndex(_requests, document);
+            if (document.Root.TryGetProperty(RequestIndex, out var operationIndex))
+            {
+                BeginOperation(document, operationIndex.GetInt32());
+                return;
+            }
 
-            if (_requestIndex == -1)
+            if (_requests.Length > 1)
             {
                 _kind = BatchResultKind.EveryRequest;
                 return;
             }
 
+            _requestIndex = 0;
+            BeginVariableBatch(document);
+        }
+
+        /// <summary>
+        /// Maps the document onto the operation at <paramref name="operationIndex"/> of the batch.
+        /// </summary>
+        private void BeginOperation(SourceResultDocument document, int operationIndex)
+        {
+            ResolveOperation(
+                _body,
+                operationIndex,
+                _requests,
+                out _requestIndex,
+                out var variableIndex);
+
+            if (variableIndex == -1)
+            {
+                BeginVariableBatch(document);
+                return;
+            }
+
+            _variableIndex = variableIndex;
+            _kind = BatchResultKind.Single;
+        }
+
+        /// <summary>
+        /// Maps the document onto the variable value set that it names with a <c>variableIndex</c>,
+        /// or onto every variable value set of the request when it names none.
+        /// </summary>
+        private void BeginVariableBatch(SourceResultDocument document)
+        {
             ref readonly var request = ref _requests.ItemRef(_requestIndex);
             _variableIndex = ResolveVariableIndex(in request, document);
 

@@ -122,6 +122,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                     context,
                     request.Variables,
                     httpResponse,
+                    httpRequest.Body,
                     cancellationToken);
 
                 if (_configuration.OnSourceSchemaResult is not null)
@@ -340,7 +341,10 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             context.TrackTransport(requests.ItemRef(0).Node, httpRequest.Uri, httpResponse.RawContentType);
 
-            var mapper = new BatchResultMapper(requests, _supportsVariableBatching);
+            var mapper = new BatchResultMapper(
+                requests,
+                httpRequest.Body,
+                _supportsVariableBatching);
 
             await foreach (var result in httpResponse.ReadAsResultStreamAsync(arenaSource).WithCancellation(cancellationToken))
             {
@@ -737,6 +741,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         OperationPlanContext context,
         ImmutableArray<VariableValues> variables,
         GraphQLHttpResponse response,
+        IRequestBody body,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (variables.Length <= 1)
@@ -746,7 +751,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             yield break;
         }
 
-        var mapper = new VariableBatchResultMapper(variables, _supportsVariableBatching);
+        var mapper = new VariableBatchResultMapper(variables, body, _supportsVariableBatching);
 
         await foreach (var document in response.ReadAsResultStreamAsync(context.MemorySource)
             .WithCancellation(cancellationToken))
