@@ -1,3 +1,4 @@
+using System.Globalization;
 using HotChocolate.AspNetCore.Parsers;
 using ThrowHelper = HotChocolate.AspNetCore.Utilities.ThrowHelper;
 
@@ -12,9 +13,40 @@ internal sealed class FileMapTrie
 
     public FileMapTrieNode Root => _root;
 
+    /// <summary>
+    /// Gets a value indicating whether the paths start with an operation index,
+    /// which keys the first level of the trie.
+    /// </summary>
+    public bool HasIndexedPaths { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the paths start with <c>variables</c>.
+    /// </summary>
+    public bool HasUnindexedPaths { get; private set; }
+
     public void AddPath(VariablePath path, string fileKey)
     {
         var current = _root;
+
+        if (path.OperationIndex is { } operationIndex)
+        {
+            if (HasUnindexedPaths)
+            {
+                throw ThrowHelper.HttpMultipartMiddleware_MixedOperationIndexPaths();
+            }
+
+            HasIndexedPaths = true;
+            current = current.GetOrAddNode(operationIndex.ToString(CultureInfo.InvariantCulture));
+        }
+        else
+        {
+            if (HasIndexedPaths)
+            {
+                throw ThrowHelper.HttpMultipartMiddleware_MixedOperationIndexPaths();
+            }
+
+            HasUnindexedPaths = true;
+        }
 
         foreach (var segment in path)
         {
