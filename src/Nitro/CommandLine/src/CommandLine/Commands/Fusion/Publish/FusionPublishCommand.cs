@@ -294,12 +294,8 @@ internal sealed class FusionPublishCommand : Command
             SourceSchemaVersion[]? sourceSchemaVersions,
             Func<Task<Stream>> prepareArchive)
         {
-            string? requestId = null;
+            var requestId = await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken);
             var published = false;
-            if (legacyArchiveFile is not null)
-            {
-                requestId = await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken);
-            }
 
             try
             {
