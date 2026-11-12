@@ -6,6 +6,7 @@ internal static class CharConstants
     public const char Colon = ':';
     public const char Comma = ',';
     public const char Delete = '\u007F';
+    public const char Dollar = '$';
     public const char HorizontalTab = '\t';
     public const char LeftAngleBracket = '<';
     public const char LeftBrace = '{';

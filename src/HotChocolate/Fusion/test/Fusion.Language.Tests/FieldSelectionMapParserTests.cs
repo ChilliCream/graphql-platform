@@ -93,6 +93,81 @@ public sealed class FieldSelectionMapParserTests
     }
 
     [Theory]
+    // https://github.com/graphql/graphql-federation-spec/pull/241
+    [InlineData("$userContext.userCurrency.isoCode")]
+    [InlineData("$account<User>.locale | $account<Organization>.defaultLocale")]
+    [InlineData("{ currency: $userContext.userCurrency.isoCode, rate: exchange.rate }")]
+    public void ParseAndPrint_ContextPath_Matches(string sourceText)
+    {
+        // arrange & act
+        var result = new FieldSelectionMapParser(sourceText).Parse().Print(indented: false);
+
+        // assert
+        Assert.Equal(sourceText, result);
+    }
+
+    [Fact]
+    public void Parse_ContextPath_ProducesContextNameAndPathSegment()
+    {
+        // arrange
+        var parser = new FieldSelectionMapParser("$userContext.userCurrency.isoCode");
+
+        // act
+        var node = Assert.IsType<PathNode>(parser.Parse());
+
+        // assert
+        Assert.Equal("userContext", node.ContextName?.Value);
+        Assert.Null(node.TypeName);
+        Assert.Equal("userCurrency", node.PathSegment.FieldName.Value);
+        Assert.Equal("isoCode", node.PathSegment.PathSegment?.FieldName.Value);
+    }
+
+    [Fact]
+    public void Parse_ContextPathWithTypeName_KeepsTypeNameSeparateFromContextName()
+    {
+        // arrange
+        var parser = new FieldSelectionMapParser("$account<User>.locale");
+
+        // act
+        var node = Assert.IsType<PathNode>(parser.Parse());
+
+        // assert
+        Assert.Equal("account", node.ContextName?.Value);
+        Assert.Equal("User", node.TypeName?.Value);
+        Assert.Equal("locale", node.PathSegment.FieldName.Value);
+    }
+
+    [Fact]
+    public void Parse_PathWithoutContext_HasNoContextName()
+    {
+        // arrange
+        var parser = new FieldSelectionMapParser("<User>.locale");
+
+        // act
+        var node = Assert.IsType<PathNode>(parser.Parse());
+
+        // assert
+        Assert.Null(node.ContextName);
+    }
+
+    [Theory]
+    [InlineData("$")]
+    [InlineData("$ctx")]
+    [InlineData("$.a")]
+    [InlineData("$ctx<User>")]
+    [InlineData("$ctx.")]
+    [InlineData("$ctx.{ a }")]
+    [InlineData("a.$ctx.b")]
+    public void Parse_InvalidContextPath_ThrowsSyntaxException(string sourceText)
+    {
+        // arrange & act
+        void Act() => new FieldSelectionMapParser(sourceText).Parse();
+
+        // assert
+        Assert.Throws<FieldSelectionMapSyntaxException>(Act);
+    }
+
+    [Theory]
     [InlineData("""price(currency: "USD")""")]
     [InlineData("""category.averagePrice(currency: "USD")""")]
     [InlineData("""{ averagePrice: category.averagePrice(currency: "USD") }""")]
@@ -893,7 +968,7 @@ public sealed class FieldSelectionMapParserTests
 
         // assert
         Assert.Equal(
-            "Unexpected character `$`.",
+            "Unexpected token: Dollar.",
             Assert.Throws<FieldSelectionMapSyntaxException>(Act).Message);
     }
 

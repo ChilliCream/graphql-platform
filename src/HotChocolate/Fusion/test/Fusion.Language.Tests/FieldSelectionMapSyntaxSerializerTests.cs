@@ -103,6 +103,38 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     }
 
     [Fact]
+    public void Serialize_PathWithContextName_ReturnsExpectedString()
+    {
+        // arrange
+        var pathNode = new PathNode(
+            contextName: new NameNode("ctx"),
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")),
+            typeName: null);
+
+        // act
+        _serializer.Serialize(pathNode, _writer);
+
+        // assert
+        Assert.Equal("$ctx.field1", _writer.ToString());
+    }
+
+    [Fact]
+    public void Serialize_PathWithContextNameAndTypeName_ReturnsExpectedString()
+    {
+        // arrange
+        var pathNode = new PathNode(
+            contextName: new NameNode("ctx"),
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")),
+            typeName: new NameNode("Type1"));
+
+        // act
+        _serializer.Serialize(pathNode, _writer);
+
+        // assert
+        Assert.Equal("$ctx<Type1>.field1", _writer.ToString());
+    }
+
+    [Fact]
     public void Serialize_SelectedListValue_ReturnsExpectedString()
     {
         // arrange

@@ -89,6 +89,7 @@ public ref struct FieldSelectionMapParser
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (_reader.TokenKind)
         {
+            case TokenKind.Dollar: // For a ContextReference.
             case TokenKind.Name: // For a PathSegment.
             case TokenKind.LeftAngleBracket: // For a <TypeName>.
                 path = ParsePath();
@@ -146,20 +147,31 @@ public ref struct FieldSelectionMapParser
     {
         var start = Start();
 
+        NameNode? contextName = null;
         NameNode? typeName = null;
+
+        if (_reader.TokenKind == TokenKind.Dollar)
+        {
+            MoveNext(); // skip "$"
+            contextName = ParseName();
+        }
 
         if (_reader.TokenKind == TokenKind.LeftAngleBracket)
         {
             MoveNext(); // skip "<"
             typeName = ParseName();
             Expect(TokenKind.RightAngleBracket);
+        }
+
+        if (contextName is not null || typeName is not null)
+        {
             Expect(TokenKind.Period);
         }
 
         var pathSegment = ParsePathSegment();
         var location = CreateLocation(in start);
 
-        return new PathNode(location, pathSegment, typeName);
+        return new PathNode(location, contextName, pathSegment, typeName);
     }
 
     private PathSegmentNode ParsePathSegment()

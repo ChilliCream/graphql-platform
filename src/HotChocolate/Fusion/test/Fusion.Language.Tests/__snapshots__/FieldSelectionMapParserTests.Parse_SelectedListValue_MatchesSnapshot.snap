@@ -14,6 +14,7 @@
       "Line": 1,
       "Column": 1
     },
+    "ContextName": null,
     "PathSegment": {
       "Kind": "PathSegment",
       "Location": {
@@ -54,6 +55,7 @@
         "Line": 1,
         "Column": 8
       },
+      "ContextName": null,
       "PathSegment": {
         "Kind": "PathSegment",
         "Location": {

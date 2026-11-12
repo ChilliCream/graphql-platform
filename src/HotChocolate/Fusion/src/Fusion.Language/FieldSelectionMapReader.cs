@@ -311,6 +311,7 @@ internal ref struct FieldSelectionMapReader
         return code switch
         {
             CharConstants.Colon => TokenKind.Colon,
+            CharConstants.Dollar => TokenKind.Dollar,
             CharConstants.LeftAngleBracket => TokenKind.LeftAngleBracket,
             CharConstants.LeftBrace => TokenKind.LeftBrace,
             CharConstants.LeftParenthesis => TokenKind.LeftParenthesis,

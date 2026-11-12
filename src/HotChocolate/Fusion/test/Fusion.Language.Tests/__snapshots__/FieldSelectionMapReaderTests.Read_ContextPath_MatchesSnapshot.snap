@@ -1,0 +1,44 @@
+[
+  {
+    "Kind": "Dollar",
+    "Start": 0,
+    "End": 1,
+    "Line": 1,
+    "Column": 1
+  },
+  {
+    "Kind": "Name",
+    "Start": 1,
+    "End": 12,
+    "Line": 1,
+    "Column": 2
+  },
+  {
+    "Kind": "Period",
+    "Start": 12,
+    "End": 13,
+    "Line": 1,
+    "Column": 13
+  },
+  {
+    "Kind": "Name",
+    "Start": 13,
+    "End": 25,
+    "Line": 1,
+    "Column": 14
+  },
+  {
+    "Kind": "Period",
+    "Start": 25,
+    "End": 26,
+    "Line": 1,
+    "Column": 26
+  },
+  {
+    "Kind": "Name",
+    "Start": 26,
+    "End": 33,
+    "Line": 1,
+    "Column": 27
+  }
+]
