@@ -253,7 +253,9 @@ internal sealed class SourceSchemaEnricher(
         {
             try
             {
-                new FieldSelectionMapParser(fieldArgument.Value).Parse();
+                var selectedValue = new FieldSelectionMapParser(fieldArgument.Value).Parse();
+                isInfo.ContextNames =
+                    FieldSelectionMapContextNamesExtractor.Instance.Extract(selectedValue);
             }
             catch (FieldSelectionMapSyntaxException)
             {
@@ -285,7 +287,9 @@ internal sealed class SourceSchemaEnricher(
         {
             try
             {
-                new FieldSelectionMapParser(fieldArgument.Value).Parse();
+                var selectedValue = new FieldSelectionMapParser(fieldArgument.Value).Parse();
+                requireInfo.ContextNames =
+                    FieldSelectionMapContextNamesExtractor.Instance.Extract(selectedValue);
             }
             catch (FieldSelectionMapSyntaxException)
             {
