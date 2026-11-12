@@ -152,15 +152,7 @@ public sealed class ValueSelectionToSelectionSetRewriter(
         switch (node)
         {
             case PathNode { ContextName: { } contextName } path:
-                contexts ??= new Dictionary<string, List<ISelectionNode>>(StringComparer.Ordinal);
-
-                if (!contexts.TryGetValue(contextName.Value, out var selections))
-                {
-                    selections = [];
-                    contexts.Add(contextName.Value, selections);
-                }
-
-                selections.Add(VisitPath(path, null));
+                AddContextSelection(ref contexts, contextName.Value, VisitPath(path, null));
                 break;
 
             case ChoiceValueSelectionNode choice:
@@ -176,6 +168,15 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                 break;
 
             case PathListValueSelectionNode pathList:
+                if (pathList.Path.ContextName is { } listContextName
+                    && Visit(pathList.ListValueSelection) is { } listInner)
+                {
+                    AddContextSelection(
+                        ref contexts,
+                        listContextName.Value,
+                        VisitPath(pathList.Path, listInner));
+                }
+
                 CollectContextPaths(pathList.ListValueSelection, ref contexts);
                 break;
 
@@ -184,9 +185,34 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                 break;
 
             case PathObjectValueSelectionNode pathObj:
+                if (pathObj.Path.ContextName is { } objContextName
+                    && Visit(pathObj.ObjectValueSelection) is { } objInner)
+                {
+                    AddContextSelection(
+                        ref contexts,
+                        objContextName.Value,
+                        VisitPath(pathObj.Path, objInner));
+                }
+
                 CollectContextPaths(pathObj.ObjectValueSelection, ref contexts);
                 break;
         }
+    }
+
+    private static void AddContextSelection(
+        ref Dictionary<string, List<ISelectionNode>>? contexts,
+        string contextName,
+        ISelectionNode selection)
+    {
+        contexts ??= new Dictionary<string, List<ISelectionNode>>(StringComparer.Ordinal);
+
+        if (!contexts.TryGetValue(contextName, out var selections))
+        {
+            selections = [];
+            contexts.Add(contextName, selections);
+        }
+
+        selections.Add(selection);
     }
 
     private static void CollectContextPaths(

@@ -185,6 +185,50 @@ public sealed class FusionSchemaDefinitionContextTests
             """);
     }
 
+    [Fact]
+    public void Create_Should_CollectContextPath_When_PathIsFollowedByObjectSelection()
+    {
+        // arrange
+        var schema = CreateSchema();
+
+        // act
+        var requirements = GetRequirements(schema, "Transaction", "currencyCode");
+
+        // assert
+        Assert.Null(requirements.Requirements);
+        requirements.ContextRequirements["userContext"].ToString().MatchInlineSnapshot(
+            """
+            {
+              userCurrency {
+                ... {
+                  isoCode
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Create_Should_CollectContextPath_When_PathIsFollowedByListSelection()
+    {
+        // arrange
+        var schema = CreateSchema();
+
+        // act
+        var requirements = GetRequirements(schema, "Transaction", "tagNames");
+
+        // assert
+        Assert.Null(requirements.Requirements);
+        requirements.ContextRequirements["userContext"].ToString().MatchInlineSnapshot(
+            """
+            {
+              tags {
+                name
+              }
+            }
+            """);
+    }
+
     private static FieldRequirements GetRequirements(
         FusionSchemaDefinition schema,
         string typeName,
@@ -269,6 +313,20 @@ public sealed class FusionSchemaDefinitionContextTests
                       requirements: "exchange { rate }"
                       field: "fee(rate: Float!): Float"
                       map: ["exchange.rate"]
+                    )
+                  currencyCode(code: String!): String
+                    @fusion__field(schema: A)
+                    @fusion__requires(
+                      schema: A
+                      field: "currencyCode(code: String!): String"
+                      map: ["$userContext.userCurrency.{ isoCode }"]
+                    )
+                  tagNames(names: [String!]!): String
+                    @fusion__field(schema: A)
+                    @fusion__requires(
+                      schema: A
+                      field: "tagNames(names: [String!]!): String"
+                      map: ["$userContext.tags[name]"]
                     )
                   label(locale: String!): String
                     @fusion__field(schema: A)
