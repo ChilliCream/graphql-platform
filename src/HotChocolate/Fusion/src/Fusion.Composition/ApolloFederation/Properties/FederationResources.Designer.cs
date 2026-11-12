@@ -69,6 +69,15 @@ namespace HotChocolate.Fusion.ApolloFederation.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @fromContext directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; has an invalid &apos;field&apos; value..
+        /// </summary>
+        internal static string FederationSchemaAnalyzer_FromContextInvalid {
+            get {
+                return ResourceManager.GetString("FederationSchemaAnalyzer_FromContextInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Federation v1 is not supported..
         /// </summary>
         internal static string FederationSchemaAnalyzer_FederationV1NotSupported {

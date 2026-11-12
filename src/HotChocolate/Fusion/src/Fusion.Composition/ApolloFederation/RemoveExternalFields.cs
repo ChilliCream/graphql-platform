@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.SyntaxWalkers;
 using HotChocolate.Fusion.Validators;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -295,6 +297,7 @@ internal static class RemoveExternalFields
     {
         var referenced = new HashSet<(string, string)>();
         var validator = new FieldSelectionMapValidator(schema);
+        var contextTypes = CollectContextTypes(schema);
 
         foreach (var type in schema.Types.OfType<MutableObjectTypeDefinition>())
         {
@@ -340,6 +343,7 @@ internal static class RemoveExternalFields
                             fieldSelectionMap,
                             inputType,
                             outputType,
+                            contextTypes,
                             out var selectedFields);
 
                         // A @require map that traverses an object- or interface-typed
@@ -352,7 +356,13 @@ internal static class RemoveExternalFields
                         // (such as "price") keeps nothing: its external leaf is removed so it
                         // never competes with its real owner as a spurious partial
                         // contribution.
-                        var hasComplexIntermediate = false;
+                        //
+                        // A map that reads a context selects fields of the types that set the
+                        // context, so it keeps every selected field the same way.
+                        var hasComplexIntermediate =
+                            FieldSelectionMapContextNamesExtractor.Instance
+                                .Extract(fieldSelectionMap)
+                                .Length > 0;
 
                         foreach (var selectedField in selectedFields)
                         {
@@ -383,6 +393,37 @@ internal static class RemoveExternalFields
         }
 
         return referenced;
+    }
+
+    private static Dictionary<string, ImmutableArray<ITypeDefinition>> CollectContextTypes(
+        MutableSchemaDefinition schema)
+    {
+        var contextTypes = new Dictionary<string, List<ITypeDefinition>>(StringComparer.Ordinal);
+
+        foreach (var type in schema.Types)
+        {
+            foreach (var contextDirective in type.Directives[Context])
+            {
+                if (!contextDirective.Arguments.TryGetValue(Name, out var nameValue)
+                    || nameValue is not StringValueNode nameString)
+                {
+                    continue;
+                }
+
+                if (!contextTypes.TryGetValue(nameString.Value, out var types))
+                {
+                    types = [];
+                    contextTypes.Add(nameString.Value, types);
+                }
+
+                types.Add(type);
+            }
+        }
+
+        return contextTypes.ToDictionary(
+            t => t.Key,
+            t => t.Value.ToImmutableArray(),
+            StringComparer.Ordinal);
     }
 
     internal static HashSet<(string TypeName, string FieldName)> CollectKeyReferences(

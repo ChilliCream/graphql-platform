@@ -24,6 +24,9 @@
   <data name="FederationSchemaAnalyzer_DirectiveNotSupported" xml:space="preserve">
     <value>The @{0} directive is not supported.</value>
   </data>
+  <data name="FederationSchemaAnalyzer_FromContextInvalid" xml:space="preserve">
+    <value>The @fromContext directive on argument '{0}' in schema '{1}' has an invalid 'field' value.</value>
+  </data>
   <data name="FederationV1SchemaAnalyzer_InvalidDirectiveArguments" xml:space="preserve">
     <value>Apollo Federation v1 source schema '{0}' applies '@{1}' to '{2}' with invalid arguments. Expected {3}.</value>
   </data>
