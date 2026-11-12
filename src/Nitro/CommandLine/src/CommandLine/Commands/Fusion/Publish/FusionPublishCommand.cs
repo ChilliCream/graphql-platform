@@ -449,6 +449,14 @@ internal sealed class FusionPublishCommand : Command
                         console.Error.WriteErrorLine("This is the error that caused the publishing process to fail in the first place:");
                     }
                 }
+
+                if (!string.IsNullOrEmpty(requestId))
+                {
+                    await FusionConfigurationPublishingState.ClearRequestId(
+                        fileSystem,
+                        requestId,
+                        CancellationToken.None);
+                }
             }
         }
     }

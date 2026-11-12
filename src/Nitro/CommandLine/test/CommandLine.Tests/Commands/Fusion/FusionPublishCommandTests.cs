@@ -2115,6 +2115,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
+        VerifyFusionPublishingStateCacheDeleted();
     }
 
     [Fact]
@@ -3670,6 +3671,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
+        VerifyFusionPublishingStateCacheDeleted();
     }
 
     [Fact]
