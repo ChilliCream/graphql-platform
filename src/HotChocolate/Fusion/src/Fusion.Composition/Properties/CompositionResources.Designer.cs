@@ -1205,42 +1205,6 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;costPlanCacheSize&apos; composition setting must be a positive integer ({0})..
-        /// </summary>
-        internal static string LogEntryHelper_InvalidCostPlanCacheSizeSetting {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_InvalidCostPlanCacheSizeSetting", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;maxFieldCost&apos; composition setting must be a non-negative finite number ({0})..
-        /// </summary>
-        internal static string LogEntryHelper_InvalidMaxFieldCostSetting {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_InvalidMaxFieldCostSetting", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;maxResponseSize&apos; composition setting must be a non-negative finite number ({0})..
-        /// </summary>
-        internal static string LogEntryHelper_InvalidMaxResponseSizeSetting {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_InvalidMaxResponseSizeSetting", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;maxTypeCost&apos; composition setting must be a non-negative finite number ({0})..
-        /// </summary>
-        internal static string LogEntryHelper_InvalidMaxTypeCostSetting {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_InvalidMaxTypeCostSetting", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be a non-negative integer no larger than 2147483647 ({0})..
         /// </summary>
         internal static string LogEntryHelper_InvalidDefaultListSizeSettingRange {

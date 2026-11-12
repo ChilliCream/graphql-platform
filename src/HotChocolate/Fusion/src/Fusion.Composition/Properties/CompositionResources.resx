@@ -414,18 +414,6 @@
   <data name="LogEntryHelper_InvalidProjectedFieldSharing" xml:space="preserve">
     <value>The default field '{0}' on type '{1}' is contributed by unrelated interfaces {2}; every contributing @interfaceObject declaration must be marked @shareable.</value>
   </data>
-  <data name="LogEntryHelper_InvalidCostPlanCacheSizeSetting" xml:space="preserve">
-    <value>The 'costPlanCacheSize' composition setting must be a positive integer ({0}).</value>
-  </data>
-  <data name="LogEntryHelper_InvalidMaxFieldCostSetting" xml:space="preserve">
-    <value>The 'maxFieldCost' composition setting must be a non-negative finite number ({0}).</value>
-  </data>
-  <data name="LogEntryHelper_InvalidMaxResponseSizeSetting" xml:space="preserve">
-    <value>The 'maxResponseSize' composition setting must be a non-negative finite number ({0}).</value>
-  </data>
-  <data name="LogEntryHelper_InvalidMaxTypeCostSetting" xml:space="preserve">
-    <value>The 'maxTypeCost' composition setting must be a non-negative finite number ({0}).</value>
-  </data>
   <data name="LogEntryHelper_InvalidDefaultListSizeSettingRange" xml:space="preserve">
     <value>The 'defaultListSize' composition setting must be a non-negative integer no larger than 2147483647 ({0}).</value>
   </data>
