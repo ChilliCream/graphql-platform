@@ -24,8 +24,16 @@ public abstract class PolicyExecutionTestBase : FusionTestBase
     private static readonly ImmutableDictionary<string, string> s_challenges =
         ImmutableDictionary<string, string>.Empty.Add("Bearer", "Bearer");
 
-    internal static async Task<IRequestExecutor> CreateExecutorAsync(
+    internal static Task<IRequestExecutor> CreateExecutorAsync(
         string sourceSchema,
+        PolicyTestClient client,
+        InMemoryPolicyRecorder recorder,
+        Action<InMemoryPolicyBuilder>? policies = null,
+        Action<IFusionGatewayBuilder>? configure = null)
+        => CreateExecutorAsync([sourceSchema], client, recorder, policies, configure);
+
+    internal static async Task<IRequestExecutor> CreateExecutorAsync(
+        string[] sourceSchemas,
         PolicyTestClient client,
         InMemoryPolicyRecorder recorder,
         Action<InMemoryPolicyBuilder>? policies = null,
@@ -46,7 +54,10 @@ public abstract class PolicyExecutionTestBase : FusionTestBase
 
         builder.AddInMemoryPolicies(fallback => fallback.Allow("finance").Allow("owner").Allow("editor").Allow("admin"));
 
-        builder.AddInMemoryConfiguration(ComposeSchemaDocument(defaultListSize: 1, sourceSchema + "\n" + Directives));
+        builder.AddInMemoryConfiguration(
+            ComposeSchemaDocument(
+                defaultListSize: 1,
+                [.. sourceSchemas.Select(static sourceSchema => sourceSchema + "\n" + Directives)]));
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(new PolicyTestClientFactory(client));
         builder.ConfigureSchemaServices(
             (_, sc) => sc.AddSingleton<IAuthenticationSchemeLookup>(
@@ -54,7 +65,14 @@ public abstract class PolicyExecutionTestBase : FusionTestBase
 
         FusionSetupUtilities.Configure(
             builder,
-            setup => setup.ClientConfigurationModifiers.Add(_ => new PolicyTestClientConfiguration("a")));
+            setup =>
+            {
+                for (var i = 0; i < sourceSchemas.Length; i++)
+                {
+                    var name = ((char)('a' + i)).ToString();
+                    setup.ClientConfigurationModifiers.Add(_ => new PolicyTestClientConfiguration(name));
+                }
+            });
 
         configure?.Invoke(builder);
 

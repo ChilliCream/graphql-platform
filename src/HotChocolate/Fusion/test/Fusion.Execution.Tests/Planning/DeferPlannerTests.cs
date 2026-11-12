@@ -521,6 +521,67 @@ public class DeferPlannerTests : FusionTestBase
     }
 
     [Fact]
+    public void Defer_UnlabeledUnconditionalDefer_Should_ProduceOwnGroup_When_EnclosingDeferIsConditional()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query ($d: Boolean!) {
+                user(id: "1") {
+                    name
+                    ... @defer(if: $d) {
+                        email
+                        ... @defer {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Collection(
+            plan.IncrementalPlans.Select(p => p.DeliveryGroups[0]).OrderBy(g => g.Id),
+            outer =>
+            {
+                Assert.Equal("d", outer.IfVariable);
+                Assert.Null(outer.Parent);
+            },
+            inner =>
+            {
+                Assert.Null(inner.IfVariable);
+                Assert.Equal("d", inner.Parent?.IfVariable);
+            });
+    }
+
+    [Fact]
     public void Defer_WithIncludeDirective_Should_ProduceDeferredGroup()
     {
         // arrange

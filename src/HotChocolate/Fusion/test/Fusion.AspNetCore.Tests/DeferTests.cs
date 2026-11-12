@@ -3235,6 +3235,77 @@ public class DeferTests : FusionTestBase
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task Defer_Should_DeliverUnconditionalInnerDefer_When_ConditionalOuterDeferIsToggled(
+        bool outerEnabled)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                product: Product
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price: Int!
+                cost: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query($d: Boolean!) {
+                product {
+                    id
+                    ... @defer(if: $d) {
+                        price
+                        ... @defer {
+                            cost
+                        }
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["d"] = outerEnabled });
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: outerEnabled ? "Enabled" : "Disabled",
+            stableStream: true);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task Defer_Should_NotStream_When_EmptyOuterGroupAndInnerGroupAreDisabled(
         bool bodyBehindLookup)
     {
