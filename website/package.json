@@ -16,6 +16,7 @@
     "indexnow:submit": "node scripts/indexnow-submit.mjs",
     "indexnow:submit-all": "node scripts/indexnow-submit.mjs submit-all",
     "validate:structured-data": "node scripts/validate-structured-data.mjs",
+    "test:validator": "node --test scripts/seo-validator.test.mjs",
     "validate:benchmarks": "node scripts/validate-benchmark-report.mjs",
     "test:indexnow": "node --test scripts/indexnow.test.mjs",
     "test:benchmarks": "node --test tests/benchmarks/*.test.mjs",
