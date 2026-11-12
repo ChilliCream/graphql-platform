@@ -218,5 +218,23 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("FieldSelectionMapValidator_NullableFieldOnPathToNonNullType", resourceCulture);
             }
         }
+        
+        internal static string FieldSelectionMapValidator_ContextNotSet {
+            get {
+                return ResourceManager.GetString("FieldSelectionMapValidator_ContextNotSet", resourceCulture);
+            }
+        }
+        
+        internal static string FieldSelectionMapValidator_ContextTypeConditionNotObjectType {
+            get {
+                return ResourceManager.GetString("FieldSelectionMapValidator_ContextTypeConditionNotObjectType", resourceCulture);
+            }
+        }
+        
+        internal static string FieldSelectionMapValidator_TypeDoesNotSetContext {
+            get {
+                return ResourceManager.GetString("FieldSelectionMapValidator_TypeDoesNotSetContext", resourceCulture);
+            }
+        }
     }
 }

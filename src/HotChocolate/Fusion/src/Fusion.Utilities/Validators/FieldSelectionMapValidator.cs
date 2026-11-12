@@ -13,12 +13,33 @@ public sealed class FieldSelectionMapValidator(
     bool disallowNullableFieldsOnPathToNonNullInputType = false)
     : FieldSelectionMapSyntaxVisitor<FieldSelectionMapValidatorContext>(Continue)
 {
+    private static readonly IReadOnlyDictionary<string, ImmutableArray<ITypeDefinition>>
+        s_noContextTypes = ImmutableDictionary<string, ImmutableArray<ITypeDefinition>>.Empty;
+
     public ImmutableArray<string> Validate(
         IValueSelectionNode choiceValueSelection,
         IType inputType,
         IType outputType)
+        => Validate(choiceValueSelection, inputType, outputType, s_noContextTypes);
+
+    /// <summary>
+    /// Validates the field selection map against the input and output type.
+    /// </summary>
+    /// <param name="choiceValueSelection">The field selection map to validate.</param>
+    /// <param name="inputType">The input type the selected value is assigned to.</param>
+    /// <param name="outputType">The output type the paths of the selection start at.</param>
+    /// <param name="contextTypes">
+    /// The types that set each context, keyed by context name. A context that is missing or has
+    /// no types is not set by any type.
+    /// </param>
+    /// <returns>The validation errors, or an empty array if the selection is valid.</returns>
+    public ImmutableArray<string> Validate(
+        IValueSelectionNode choiceValueSelection,
+        IType inputType,
+        IType outputType,
+        IReadOnlyDictionary<string, ImmutableArray<ITypeDefinition>> contextTypes)
     {
-        var context = new FieldSelectionMapValidatorContext(inputType, outputType);
+        var context = new FieldSelectionMapValidatorContext(inputType, outputType, contextTypes);
 
         Visit(choiceValueSelection, context);
 
@@ -30,8 +51,34 @@ public sealed class FieldSelectionMapValidator(
         IType inputType,
         IType outputType,
         out ImmutableHashSet<IOutputFieldDefinition> selectedFields)
+        => Validate(
+            choiceValueSelection,
+            inputType,
+            outputType,
+            s_noContextTypes,
+            out selectedFields);
+
+    /// <summary>
+    /// Validates the field selection map against the input and output type and returns the
+    /// output fields it selects.
+    /// </summary>
+    /// <param name="choiceValueSelection">The field selection map to validate.</param>
+    /// <param name="inputType">The input type the selected value is assigned to.</param>
+    /// <param name="outputType">The output type the paths of the selection start at.</param>
+    /// <param name="contextTypes">
+    /// The types that set each context, keyed by context name. A context that is missing or has
+    /// no types is not set by any type.
+    /// </param>
+    /// <param name="selectedFields">The output fields the selection selects.</param>
+    /// <returns>The validation errors, or an empty array if the selection is valid.</returns>
+    public ImmutableArray<string> Validate(
+        IValueSelectionNode choiceValueSelection,
+        IType inputType,
+        IType outputType,
+        IReadOnlyDictionary<string, ImmutableArray<ITypeDefinition>> contextTypes,
+        out ImmutableHashSet<IOutputFieldDefinition> selectedFields)
     {
-        var context = new FieldSelectionMapValidatorContext(inputType, outputType);
+        var context = new FieldSelectionMapValidatorContext(inputType, outputType, contextTypes);
 
         Visit(choiceValueSelection, context);
 
@@ -44,8 +91,61 @@ public sealed class FieldSelectionMapValidator(
         IFieldSelectionMapSyntaxNode node,
         FieldSelectionMapValidatorContext context)
     {
+        if (TryGetContextPath(node, context) is { } contextPath
+            && context.ContextTypes.TryGetValue(
+                contextPath.ContextName!.Value,
+                out var contextTypes)
+            && !contextTypes.IsDefaultOrEmpty)
+        {
+            ValidateForEachContextType(node, contextPath, contextTypes, context);
+
+            return Skip;
+        }
+
         context.Nodes.Push(node);
         return base.Enter(node, context);
+    }
+
+    // A context path without a type condition is rooted at every type that sets the context. The
+    // node that owns the path (the path itself, or the path with its object or list selection)
+    // is validated as a whole once per context type.
+    private static PathNode? TryGetContextPath(
+        IFieldSelectionMapSyntaxNode node,
+        FieldSelectionMapValidatorContext context)
+    {
+        var path = node switch
+        {
+            PathNode pathNode
+                when !context.Nodes.TryPeek(out var parent)
+                    || parent is not (PathObjectValueSelectionNode or PathListValueSelectionNode)
+                => pathNode,
+            PathObjectValueSelectionNode pathObject => pathObject.Path,
+            PathListValueSelectionNode pathList => pathList.Path,
+            _ => null
+        };
+
+        return path is { ContextName: not null, TypeName: null }
+            && !ReferenceEquals(path, context.ResolvedContextPath)
+            ? path
+            : null;
+    }
+
+    private void ValidateForEachContextType(
+        IFieldSelectionMapSyntaxNode node,
+        PathNode contextPath,
+        ImmutableArray<ITypeDefinition> contextTypes,
+        FieldSelectionMapValidatorContext context)
+    {
+        foreach (var contextType in contextTypes)
+        {
+            var contextTypeContext =
+                new FieldSelectionMapValidatorContext(context, contextType, contextPath);
+
+            Visit(node, contextTypeContext);
+
+            context.Errors.AddRange(contextTypeContext.Errors);
+            context.SelectedFields.UnionWith(contextTypeContext.SelectedFields);
+        }
     }
 
     protected override ISyntaxVisitorAction Leave(
@@ -60,6 +160,12 @@ public sealed class FieldSelectionMapValidator(
         PathNode node,
         FieldSelectionMapValidatorContext context)
     {
+        if (node.ContextName is { } contextName
+            && !ReferenceEquals(node, context.ResolvedContextPath))
+        {
+            return EnterContextPath(node, contextName, context);
+        }
+
         if (node.TypeName is { } typeName)
         {
             if (!schema.Types.TryGetType(typeName.Value, out var conditionType))
@@ -93,6 +199,68 @@ public sealed class FieldSelectionMapValidator(
 
         return Continue;
     }
+
+    private ISyntaxVisitorAction EnterContextPath(
+        PathNode node,
+        NameNode contextName,
+        FieldSelectionMapValidatorContext context)
+    {
+        if (!context.ContextTypes.TryGetValue(contextName.Value, out var contextTypes)
+            || contextTypes.IsDefaultOrEmpty)
+        {
+            context.Errors.Add(
+                string.Format(FieldSelectionMapValidator_ContextNotSet, contextName.Value));
+
+            return Break;
+        }
+
+        // A context path without a type condition is validated per context type before it
+        // reaches this method, so the path has a type condition here.
+        var typeName = node.TypeName!;
+
+        if (!schema.Types.TryGetType(typeName.Value, out var conditionType))
+        {
+            context.Errors.Add(
+                string.Format(
+                    FieldSelectionMapValidator_InvalidTypeConditionInPath,
+                    node,
+                    typeName));
+
+            return Break;
+        }
+
+        if (conditionType is not IObjectTypeDefinition conditionObject)
+        {
+            context.Errors.Add(
+                string.Format(
+                    FieldSelectionMapValidator_ContextTypeConditionNotObjectType,
+                    conditionType.Name,
+                    contextName.Value));
+
+            return Break;
+        }
+
+        if (!contextTypes.Any(t => SetsContext(t, conditionObject)))
+        {
+            context.Errors.Add(
+                string.Format(
+                    FieldSelectionMapValidator_TypeDoesNotSetContext,
+                    conditionObject.Name,
+                    contextName.Value));
+
+            return Break;
+        }
+
+        context.OutputTypes.Push(conditionObject);
+
+        return Continue;
+    }
+
+    private bool SetsContext(ITypeDefinition contextType, IObjectTypeDefinition objectType)
+        => contextType.Name.Equals(objectType.Name, StringComparison.Ordinal)
+            || (contextType is not IObjectTypeDefinition
+                && schema.GetPossibleTypes(contextType)
+                    .Any(t => t.Name.Equals(objectType.Name, StringComparison.Ordinal)));
 
     protected override ISyntaxVisitorAction Leave(
         PathNode node,
@@ -485,11 +653,38 @@ public sealed class FieldSelectionMapValidator(
 
 public sealed class FieldSelectionMapValidatorContext
 {
-    public FieldSelectionMapValidatorContext(IType inputType, IType outputType)
+    public FieldSelectionMapValidatorContext(
+        IType inputType,
+        IType outputType,
+        IReadOnlyDictionary<string, ImmutableArray<ITypeDefinition>> contextTypes)
     {
         InputTypes.Push(inputType);
         OutputTypes.Push(outputType);
+        ContextTypes = contextTypes;
     }
+
+    // Creates the context that validates a context path rooted at a single context type.
+    internal FieldSelectionMapValidatorContext(
+        FieldSelectionMapValidatorContext parent,
+        ITypeDefinition contextType,
+        PathNode resolvedContextPath)
+    {
+        foreach (var inputType in parent.InputTypes.Reverse())
+        {
+            InputTypes.Push(inputType);
+        }
+
+        OutputTypes.Push(contextType);
+        ContextTypes = parent.ContextTypes;
+        ResolvedContextPath = resolvedContextPath;
+    }
+
+    public IReadOnlyDictionary<string, ImmutableArray<ITypeDefinition>> ContextTypes { get; }
+
+    /// <summary>
+    /// Gets the context path whose root is already set to a context type, or <c>null</c>.
+    /// </summary>
+    public PathNode? ResolvedContextPath { get; }
 
     public Stack<IFieldSelectionMapSyntaxNode> Nodes { get; } = [];
 
