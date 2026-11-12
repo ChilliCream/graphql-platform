@@ -29,6 +29,7 @@ What you will observe:
 - The log volume rises with the failure rate. Every faulted message adds one Error entry with its exception.
 - Alerts that count Error entries of the application now count faulted messages. Exclude the event name `MessageFaulted`, or set the log level of its category, where that is not wanted.
 - Every entry carries `MessageId`, `MessageType`, `CorrelationId`, `ConversationId`, `Endpoint`, and `Transport` in a logger scope.
+- Every other entry written while a message is received, including the entries of your handlers, carries the same logger scope.
 
 ## Circuit breakers log their state changes
 

@@ -29,7 +29,6 @@ internal sealed class ReceiveDeadLetterMiddleware(
         }
         catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
-            using var _ = logger.BeginMessageScope(LogLevel.Critical, context);
             logger.ExceptionOccurred(ex);
         }
 
@@ -49,7 +48,6 @@ internal sealed class ReceiveDeadLetterMiddleware(
                 dispatchContext.Envelope = context.Envelope;
 
                 await deadLetterEndpoint.ExecuteAsync(dispatchContext);
-                using var _ = logger.BeginMessageScope(LogLevel.Warning, context);
                 logger.MessageSkipped(context.MessageId, deadLetterEndpoint.Destination?.Address ?? deadLetterEndpoint.Address);
             }
             finally
