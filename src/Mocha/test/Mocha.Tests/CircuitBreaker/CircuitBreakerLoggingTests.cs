@@ -7,6 +7,7 @@ namespace Mocha.Tests;
 public sealed class CircuitBreakerLoggingTests
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
+    private static readonly Guid s_instanceId = new("00000000-0000-0000-0000-000000000001");
 
     [Fact]
     public async Task TransportCircuitBreaker_Should_LogTransportCircuitUnderOwnCategory_When_CircuitOpens()
@@ -46,6 +47,9 @@ public sealed class CircuitBreakerLoggingTests
                 LogLevel.Warning,
                 "Transport circuit for endpoint orders is open; recovery will be tested after 00:00:30"),
             entry);
+        Assert.Equal(
+            ["InstanceId:00000000-0000-0000-0000-000000000001 Transport:memory Endpoint:orders Circuit:Transport"],
+            logs.Scopes);
     }
 
     [Fact]
@@ -80,6 +84,9 @@ public sealed class CircuitBreakerLoggingTests
                 LogLevel.Warning,
                 "Consumer circuit for endpoint orders is open; recovery will be tested after 00:00:30"),
             entry);
+        Assert.Equal(
+            ["InstanceId:00000000-0000-0000-0000-000000000001 Transport:memory Endpoint:orders Circuit:Consumer"],
+            logs.Scopes);
     }
 
     private static async Task<ServiceProvider> CreateBusAsync(
@@ -90,6 +97,7 @@ public sealed class CircuitBreakerLoggingTests
         var services = new ServiceCollection();
         services.AddLogging(logging => logging.AddProvider(logs));
         var builder = services.AddMessageBus();
+        builder.Host(host => host.InstanceId(s_instanceId));
         configure(builder);
         builder.AddInMemory(configureTransport);
 
@@ -134,18 +142,24 @@ public sealed class CircuitBreakerLoggingTests
     private sealed record LogEntry(string Category, LogLevel Level, string Message);
 
     /// <summary>
-    /// Records the first log entry with the given event name, together with the category of its logger.
+    /// Records the first log entry with the given event name, together with the category of its logger
+    /// and the text of each scope it was logged in.
     /// </summary>
-    private sealed class RecordingLoggerProvider(string eventName) : ILoggerProvider
+    private sealed class RecordingLoggerProvider(string eventName) : ILoggerProvider, ISupportExternalScope
     {
         private readonly TaskCompletionSource<LogEntry> _entry =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private IExternalScopeProvider? _scopeProvider;
 
         public Task<LogEntry> Entry => _entry.Task;
+
+        public List<string> Scopes { get; } = [];
 
         private string EventName => eventName;
 
         public ILogger CreateLogger(string categoryName) => new RecordingLogger(this, categoryName);
+
+        public void SetScopeProvider(IExternalScopeProvider scopeProvider) => _scopeProvider = scopeProvider;
 
         public void Dispose()
         {
@@ -166,8 +180,11 @@ public sealed class CircuitBreakerLoggingTests
                 Exception? exception,
                 Func<TState, Exception?, string> formatter)
             {
-                if (eventId.Name == provider.EventName)
+                if (eventId.Name == provider.EventName && !provider._entry.Task.IsCompleted)
                 {
+                    provider._scopeProvider?.ForEachScope(
+                        static (scope, scopes) => scopes.Add(scope?.ToString() ?? string.Empty),
+                        provider.Scopes);
                     provider._entry.TrySetResult(new LogEntry(category, logLevel, formatter(state, exception)));
                 }
             }
