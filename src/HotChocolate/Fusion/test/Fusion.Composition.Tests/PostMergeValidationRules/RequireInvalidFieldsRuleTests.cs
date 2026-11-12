@@ -878,4 +878,150 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
             """
         ]);
     }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_ContextPathSelectsFieldServedByDeclaringSchema()
+    {
+        AssertValid(
+        [
+            """
+            type User @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_ContextPathFieldNameMatchesFieldServedByRequiringSchema()
+    {
+        AssertValid(
+        [
+            """
+            type User @context(name: "userContext") {
+                id: ID!
+                currency: String!
+            }
+
+            type Transaction {
+                id: ID!
+                currency: String
+                amount(currency: String! @require(field: "$userContext.currency")): Int
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_ContextPathSelectsFieldMissingOnOneContextType()
+    {
+        AssertInvalid(
+            [
+                """
+                type User @context(name: "account") {
+                    id: ID!
+                    locale: String
+                }
+
+                type Organization @context(name: "account") {
+                    id: ID!
+                    defaultLocale: String
+                }
+
+                type Transaction {
+                    id: ID!
+                    amount(locale: String @require(field: "$account.locale")): Int
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @require directive on argument 'Transaction.amount(locale:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Transaction.amount(locale:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'locale' does not exist on the type 'Organization'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_ContextPathsUseTypeConditionPerContextType()
+    {
+        AssertValid(
+        [
+            """
+            type User @context(name: "account") {
+                id: ID!
+                locale: String
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                defaultLocale: String
+            }
+
+            type Transaction {
+                id: ID!
+                amount(
+                    locale: String
+                        @require(field: "$account<User>.locale | $account<Organization>.defaultLocale")
+                ): Int
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_ContextTypeLacksFieldOfContextPath()
+    {
+        AssertInvalid(
+            [
+                """
+                type User @context(name: "userContext") {
+                    id: ID!
+                }
+
+                type Transaction {
+                    id: ID!
+                    amount(currency: String! @require(field: "$userContext.userCurrency")): Int
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @require directive on argument 'Transaction.amount(currency:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Transaction.amount(currency:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The field 'userCurrency' does not exist on the type 'User'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
 }
