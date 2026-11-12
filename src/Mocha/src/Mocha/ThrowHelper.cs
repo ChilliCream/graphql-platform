@@ -287,4 +287,10 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"Consumer '{consumerName}' is bound to receive endpoints '{endpoint}' and '{conflictingEndpoint}', "
             + "which resolve to different exception policies. A consumer must resolve to one exception policy.");
+
+    public static Exception LogScopeIndexOutOfRange(int index)
+        => new ArgumentOutOfRangeException(
+            nameof(index),
+            index,
+            "The index is outside the range of values in the log scope.");
 }

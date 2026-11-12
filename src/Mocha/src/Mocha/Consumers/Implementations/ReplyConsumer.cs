@@ -66,7 +66,7 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
         {
             // Fault the waiting requester rather than leave it to time out.
             responseManager.SetException(correlationId, ex);
-            using var _ = _logger.BeginMessageScope(context);
+            using var _ = _logger.BeginMessageScope(LogLevel.Error, context);
             _logger.ReplyProcessingFailed(ex, correlationId, context.MessageId);
         }
 
@@ -86,7 +86,7 @@ public sealed class ReplyConsumer(DeferredResponseManager responseManager) : Con
             return;
         }
 
-        using var _ = _logger.BeginMessageScope(context);
+        using var _ = _logger.BeginMessageScope(LogLevel.Warning, context);
         _logger.ReplyDiscarded(correlationId, context.MessageId);
     }
 }
