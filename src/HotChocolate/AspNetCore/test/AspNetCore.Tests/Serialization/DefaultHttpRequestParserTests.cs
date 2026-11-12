@@ -1,10 +1,12 @@
 using System.Collections;
+using System.Diagnostics.Tracing;
 using System.IO.Pipelines;
 using System.Text;
 using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore.Serialization;
@@ -353,6 +355,58 @@ public sealed class DefaultHttpRequestParserTests
         pipe.Reader.AdvanceTo(result.Buffer.End);
     }
 
+    [Theory]
+    [InlineData("""extensions={"a":1}""")]
+    [InlineData("""extensions={"persistedQuery":{"sha256Hash":"a/b"}}""")]
+    [InlineData("""query={ a }&variables={"a":1}&onError=BAD""")]
+    [InlineData("""query={ a }&variables={"a":1}&extensions={""")]
+    public void ParseRequestFromParams_Should_DisposeDocuments_When_ParsingFails(string queryString)
+    {
+        // arrange
+        var queryParams = new QueryCollection(QueryHelpers.ParseQuery(queryString));
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+        using var tracker = new PooledBufferTracker();
+
+        // act
+        void Parse() => parser.ParseRequestFromParams(queryParams);
+
+        // assert
+        Assert.Throws<GraphQLRequestException>(Parse);
+        Assert.NotEqual(0, tracker.RentCount);
+        Assert.Empty(tracker.UnreturnedBufferSizes);
+    }
+
+    [Theory]
+    [InlineData("""variables={"a":1}&onError=BAD""")]
+    [InlineData("""variables={"a":1}&extensions={""")]
+    public void ParsePersistedOperationRequestFromParams_Should_DisposeDocuments_When_ParsingFails(
+        string queryString)
+    {
+        // arrange
+        var queryParams = new QueryCollection(QueryHelpers.ParseQuery(queryString));
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+        using var tracker = new PooledBufferTracker();
+
+        // act
+        void Parse() => parser.ParsePersistedOperationRequestFromParams(
+            "abc123",
+            operationName: null,
+            queryParams);
+
+        // assert
+        Assert.Throws<GraphQLRequestException>(Parse);
+        Assert.NotEqual(0, tracker.RentCount);
+        Assert.Empty(tracker.UnreturnedBufferSizes);
+    }
+
     public sealed class MockQueryParams(string id) : IQueryCollection
     {
         public IEnumerator<KeyValuePair<string, StringValues>> GetEnumerator()
@@ -380,5 +434,44 @@ public sealed class DefaultHttpRequestParserTests
         public ICollection<string> Keys => throw new NotImplementedException();
 
         public StringValues this[string key] => key.Equals("id") ? id : null;
+    }
+
+    private sealed class PooledBufferTracker : EventListener
+    {
+        private readonly Dictionary<int, int> _rentedBuffers = [];
+        private readonly int _threadId = Environment.CurrentManagedThreadId;
+
+        public int RentCount { get; private set; }
+
+        public IReadOnlyCollection<int> UnreturnedBufferSizes => _rentedBuffers.Values;
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == "System.Buffers.ArrayPoolEventSource")
+            {
+                EnableEvents(eventSource, EventLevel.Verbose);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            if (Environment.CurrentManagedThreadId != _threadId
+                || eventData.Payload is not { Count: >= 2 } payload)
+            {
+                return;
+            }
+
+            switch (eventData.EventName)
+            {
+                case "BufferRented":
+                    RentCount++;
+                    _rentedBuffers[(int)payload[0]!] = (int)payload[1]!;
+                    break;
+
+                case "BufferReturned":
+                    _rentedBuffers.Remove((int)payload[0]!);
+                    break;
+            }
+        }
     }
 }

@@ -1310,6 +1310,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               field: String! @fusion__field(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -1351,7 +1356,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1545,6 +1560,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -1595,7 +1615,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1798,6 +1828,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -1848,7 +1883,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(

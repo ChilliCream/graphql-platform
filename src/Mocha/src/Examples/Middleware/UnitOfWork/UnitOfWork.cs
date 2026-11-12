@@ -3,8 +3,6 @@
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run UnitOfWork.cs
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Transport.InMemory;
 
@@ -127,7 +125,7 @@ internal sealed class UnitOfWorkConsumerMiddleware
 
     public static ConsumerMiddlewareConfiguration Create()
         => new(
-            static (context, next) =>
+            static (_, next) =>
             {
                 var middleware = new UnitOfWorkConsumerMiddleware();
                 return ctx => middleware.InvokeAsync(ctx, next);

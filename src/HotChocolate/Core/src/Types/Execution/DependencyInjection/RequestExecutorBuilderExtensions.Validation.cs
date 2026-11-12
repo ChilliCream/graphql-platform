@@ -364,6 +364,31 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Adds a delegate that modifies the <see cref="ValidationOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate that modifies the <see cref="ValidationOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder ModifyValidationOptions(
+        this IRequestExecutorBuilder builder,
+        Action<ValidationOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return ConfigureValidation(builder, (_, b) => b.ModifyOptions(configure));
+    }
+
+    /// <summary>
     /// Configures the underlying <see cref="DocumentValidatorBuilder"/>.
     /// </summary>
     /// <param name="builder">

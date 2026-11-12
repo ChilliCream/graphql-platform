@@ -34,7 +34,7 @@ jobs:
       - name: Check for changes in website directory
         id: check-website
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ./website ./src/Mocha/src/mocha-visualizer)
+          changes=$(git diff --name-only HEAD~1 HEAD -- ./website ./src/Mocha/src/mocha-visualizer ./.github/workflows/ci.yml ./.github/workflows/publish-website.yml)
           if [[ -n "$changes" ]]; then
             echo "website_changes=true" >> $GITHUB_OUTPUT
           else
@@ -170,7 +170,18 @@ jobs:
       # rehype-mermaid renders inline SVG with Chromium during the app build.
       # Visual tests use their own pinned Docker browser, not this installation.
       - name: Install Chromium for Mermaid Build
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
+        working-directory: website
+
+      - name: Install Chromium System Dependencies for Mermaid Build
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          for delay in 10 20 0; do
+            npx playwright install-deps chromium && exit 0
+            sleep "$delay"
+          done
+          exit 1
         working-directory: website
 
       - name: Format Check
@@ -188,6 +199,37 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: website
+
+      - name: SEO Validator Contract Tests
+        run: npm run test:validator
+        working-directory: website
+
+      - name: Build Website Image
+        run: docker build -f Dockerfile -t website-seo:${{ github.run_id }} .
+        working-directory: website
+
+      - name: Start Website Container
+        shell: bash
+        run: |
+          docker run --detach --name website-seo-${{ github.run_id }} \
+            --publish 127.0.0.1:3002:80 website-seo:${{ github.run_id }}
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --output /dev/null http://localhost:3002/; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs website-seo-${{ github.run_id }}
+          echo "Website container did not become healthy." >&2
+          exit 1
+
+      - name: Validate SEO and Structured Data
+        run: npm run validate:structured-data -- http://localhost:3002
+        working-directory: website
+
+      - name: Remove Website Container
+        if: ${{ always() }}
+        run: docker rm --force website-seo-${{ github.run_id }} || true
 
       - name: Visual Runner Contract Tests
         run: node --test scripts/visual-tests-docker.test.mjs
@@ -362,6 +404,8 @@ jobs:
           echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
       - name: Merge coverage reports
+        env:
+          DOTNET_COVERAGE_TELEMETRY_OPTOUT: 1
         run: >
           dotnet-coverage merge
           --output ./output/merged.cobertura.xml
@@ -376,13 +420,18 @@ jobs:
           "HEAD^1...HEAD^2"
           -- '*.cs' > ./output/pr.diff
 
+      - name: Build patch coverage script
+        # The report step's stdout becomes the PR comment, so build output stays in this step.
+        run: dotnet build .github/scripts/patch-coverage.cs
+
       - name: Generate patch coverage report
         id: report
         env:
           GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          dotnet .github/scripts/patch-coverage.cs -- ./output/merged.cobertura.xml ./output/pr.diff > ./output/report.md
+          dotnet run --no-build --file .github/scripts/patch-coverage.cs \
+            -- ./output/merged.cobertura.xml ./output/pr.diff > ./output/report.md
           if [ -s ./output/report.md ]; then
             echo "has_content=true" >> "$GITHUB_OUTPUT"
           else

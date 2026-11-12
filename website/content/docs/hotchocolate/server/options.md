@@ -130,7 +130,7 @@ builder
 
 | Property                                  | Type                   | Default            | Description                                                                                                                                    |
 | ----------------------------------------- | ---------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`.       |
+| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Subscription`.                                              |
 | `EnableGetRequests`                       | `bool`                 | `true`             | Allows GraphQL queries over HTTP GET.                                                                                                          |
 | `EnableMultipartRequests`                 | `bool`                 | `true`             | Allows multipart HTTP requests (file uploads).                                                                                                 |
 | `EnableQueriesOverPost`                   | `bool`                 | `true`             | Allows GraphQL queries over HTTP POST.                                                                                                         |

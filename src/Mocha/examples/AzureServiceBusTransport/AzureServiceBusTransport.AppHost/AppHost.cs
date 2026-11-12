@@ -1,5 +1,3 @@
-using Aspire.Hosting.ApplicationModel;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Infrastructure - Azure Service Bus emulator running in Docker.

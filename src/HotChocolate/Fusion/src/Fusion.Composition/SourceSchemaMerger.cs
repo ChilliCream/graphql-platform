@@ -2201,6 +2201,10 @@ internal sealed partial class SourceSchemaMerger
             },
             // Enum type definitions.
             {
+                TypeNames.FusionCaseBudgetExceededBehavior,
+                new FusionCaseBudgetExceededBehaviorMutableEnumTypeDefinition()
+            },
+            {
                 TypeNames.FusionNodeResolution,
                 new FusionNodeResolutionMutableEnumTypeDefinition()
             },
@@ -2217,6 +2221,8 @@ internal sealed partial class SourceSchemaMerger
 
     private FrozenDictionary<string, MutableDirectiveDefinition> CreateFusionDirectiveDefinitions()
     {
+        var caseBudgetExceededBehaviorType =
+            (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionCaseBudgetExceededBehavior];
         var schemaEnumType =
             (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionSchema];
         var nodeResolutionType =
@@ -2234,6 +2240,7 @@ internal sealed partial class SourceSchemaMerger
             (MutableScalarTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionFieldSelectionSet];
         var stringType = BuiltIns.String.Create();
         var booleanType = BuiltIns.Boolean.Create();
+        var floatType = BuiltIns.Float.Create();
         var intType = BuiltIns.Int.Create();
 
         return new Dictionary<string, MutableDirectiveDefinition>
@@ -2248,7 +2255,11 @@ internal sealed partial class SourceSchemaMerger
             },
             {
                 DirectiveNames.FusionCostOptions,
-                new FusionCostOptionsMutableDirectiveDefinition(intType)
+                new FusionCostOptionsMutableDirectiveDefinition(
+                    intType,
+                    floatType,
+                    booleanType,
+                    caseBudgetExceededBehaviorType)
             },
             {
                 DirectiveNames.FusionEnumValue,
@@ -2374,14 +2385,77 @@ internal sealed partial class SourceSchemaMerger
                                 + $"'{_shareableFieldRuntimeTypeRouting}' is invalid.")
                         }))));
 
+        var costOptionsArguments = new List<ArgumentAssignment>();
+
         if (_options.DefaultListSize is { } defaultListSize)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.DefaultListSize, new IntValueNode(defaultListSize)));
+        }
+
+        if (_options.MaxFieldCost is { } maxFieldCost)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.MaxFieldCost, new HotChocolate.Language.FloatValueNode(maxFieldCost)));
+        }
+
+        if (_options.MaxTypeCost is { } maxTypeCost)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.MaxTypeCost, new HotChocolate.Language.FloatValueNode(maxTypeCost)));
+        }
+
+        if (_options.EnforceCostLimits is { } enforceCostLimits)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.EnforceCostLimits, new BooleanValueNode(enforceCostLimits)));
+        }
+
+        if (_options.SkipCostAnalyzer is { } skipCostAnalyzer)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.SkipAnalyzer, new BooleanValueNode(skipCostAnalyzer)));
+        }
+
+        if (_options.MaxResponseSize is { } maxResponseSize)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.MaxResponseSize, new HotChocolate.Language.FloatValueNode(maxResponseSize)));
+        }
+
+        if (_options.CostPlanCacheSize is { } costPlanCacheSize)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.CostPlanCacheSize, new IntValueNode(costPlanCacheSize)));
+        }
+
+        if (_options.CaseBudget is { } caseBudget)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.CaseBudget, new IntValueNode(caseBudget)));
+        }
+
+        if (_options.CaseBudgetExceededBehavior is { } caseBudgetExceededBehavior)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(
+                    ArgumentNames.CaseBudgetExceededBehavior,
+                    new EnumValueNode(
+                        caseBudgetExceededBehavior switch
+                        {
+                            CaseBudgetExceededBehavior.EvaluatePerRequest => "EVALUATE_PER_REQUEST",
+                            CaseBudgetExceededBehavior.Overestimate => "OVERESTIMATE",
+                            _ => throw ThrowHelper.UnexpectedCaseBudgetExceededBehavior(
+                                caseBudgetExceededBehavior)
+                        })));
+        }
+
+        if (costOptionsArguments.Count > 0)
         {
             mergedSchema.Directives.Add(
                 new Directive(
                     _fusionDirectiveDefinitions[DirectiveNames.FusionCostOptions],
-                    new ArgumentAssignment(
-                        ArgumentNames.DefaultListSize,
-                        new IntValueNode(defaultListSize))));
+                    costOptionsArguments));
         }
     }
 

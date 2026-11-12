@@ -8,6 +8,7 @@ import { Card } from "@/src/design-system/Card";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 import {
+  FRAMEWORKS_GROUP,
   ORGANIZATION_ID,
   schemaId,
   schemaRef,
@@ -43,6 +44,7 @@ const SOFTWARE = {
   },
   runtimePlatform: ".NET and ASP.NET Core",
   license: "https://opensource.org/license/mit",
+  isPartOf: schemaRef(FRAMEWORKS_GROUP.id),
   creator: schemaRef(ORGANIZATION_ID),
   publisher: schemaRef(ORGANIZATION_ID),
 } as const;

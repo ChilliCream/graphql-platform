@@ -1286,6 +1286,42 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;costPlanCacheSize&apos; composition setting must be a positive integer ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidCostPlanCacheSizeSetting {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidCostPlanCacheSizeSetting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;maxFieldCost&apos; composition setting must be a non-negative finite number ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidMaxFieldCostSetting {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidMaxFieldCostSetting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;maxResponseSize&apos; composition setting must be a non-negative finite number ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidMaxResponseSizeSetting {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidMaxResponseSizeSetting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;maxTypeCost&apos; composition setting must be a non-negative finite number ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidMaxTypeCostSetting {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidMaxTypeCostSetting", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be a non-negative integer no larger than 2147483647 ({0})..
         /// </summary>
         internal static string LogEntryHelper_InvalidDefaultListSizeSettingRange {
@@ -2006,6 +2042,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to ... and {0} more.
+        /// </summary>
+        internal static string SatisfiabilityError_AndMore {
+            get {
+                return ResourceManager.GetString("SatisfiabilityError_AndMore", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Cycle detected: {0} -&gt; {1}..
         /// </summary>
         internal static string SatisfiabilityValidator_CycleDetected {
@@ -2047,6 +2092,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SatisfiabilityValidator_NoLookupForRequiringField {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_NoLookupForRequiringField", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The lookup &apos;{0}&apos; in schema &apos;{1}&apos; reads its key &apos;{2}&apos; from the selection set that schema &apos;{3}&apos; provides for type &apos;{4}&apos;, which omits it..
+        /// </summary>
+        internal static string SatisfiabilityValidator_ProvidedSelectionSetOmitsLookupKey {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_ProvidedSelectionSetOmitsLookupKey", resourceCulture);
             }
         }
 

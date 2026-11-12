@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -35,7 +36,7 @@ public static class RequestExecutorServiceCollectionExtensions
         services.TryAddSingleton<AggregateServiceScopeInitializer>();
         services.TryAddSingleton<ParameterBindingResolver>();
 
-        services.TryAddSingleton(sp =>
+        services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
         {
             var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new StringBuilderPooledObjectPolicy();

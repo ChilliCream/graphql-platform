@@ -177,8 +177,172 @@ internal static class CostSchemaIndexBuilder
             fieldArguments.ToFrozenDictionary(),
             fieldSemanticIds.ToFrozenDictionary(ReferenceEqualityComparer.Instance),
             inputObjectFields.ToFrozenDictionary(),
+            ComputeInputObjectStaticShapes(inputObjectFields),
             directiveArguments.ToFrozenDictionary(),
             directiveArgumentMetadata.ToFrozenDictionary());
+    }
+
+    /// <summary>
+    /// Computes the static shape of every input object type: the weight of its fields plus the static shape
+    /// of each nested input object type, where input object types that reference each other count once.
+    /// </summary>
+    private static FrozenDictionary<string, double> ComputeInputObjectStaticShapes(
+        Dictionary<string, ImmutableArray<InputValueMetadata>> inputObjectFields)
+    {
+        var typeCount = inputObjectFields.Count;
+        var types = new ImmutableArray<InputValueMetadata>[typeCount];
+        var typeIndex = new Dictionary<string, int>(typeCount, StringComparer.Ordinal);
+
+        foreach (var (typeName, fields) in inputObjectFields)
+        {
+            types[typeIndex.Count] = fields;
+            typeIndex.Add(typeName, typeIndex.Count);
+        }
+
+        var firstField = new int[typeCount + 1];
+        var fieldCount = 0;
+
+        for (var i = 0; i < typeCount; i++)
+        {
+            firstField[i] = fieldCount;
+            fieldCount += types[i].Length;
+        }
+
+        firstField[typeCount] = fieldCount;
+
+        var fieldTargets = new int[fieldCount];
+
+        for (var i = 0; i < typeCount; i++)
+        {
+            var fields = types[i];
+
+            for (var j = 0; j < fields.Length; j++)
+            {
+                fieldTargets[firstField[i] + j] = typeIndex.GetValueOrDefault(fields[j].TypeName, -1);
+            }
+        }
+
+        var discovery = new int[typeCount];
+        var lowLink = new int[typeCount];
+        var group = new int[typeCount];
+        var shapes = new double[typeCount];
+        var onStack = new bool[typeCount];
+        var groupMembers = new Stack<int>();
+        var completed = new List<int>();
+        var pending = new Stack<(int Type, int NextField)>();
+        var discovered = 0;
+        var groupCount = 0;
+
+        Array.Fill(discovery, -1);
+
+        for (var root = 0; root < typeCount; root++)
+        {
+            if (discovery[root] != -1)
+            {
+                continue;
+            }
+
+            Discover(root);
+
+            while (pending.TryPop(out var frame))
+            {
+                var (type, nextField) = frame;
+                var descended = false;
+
+                while (nextField < firstField[type + 1])
+                {
+                    var target = fieldTargets[nextField++];
+
+                    if (target == -1)
+                    {
+                        continue;
+                    }
+
+                    if (discovery[target] == -1)
+                    {
+                        pending.Push((type, nextField));
+                        Discover(target);
+                        descended = true;
+                        break;
+                    }
+
+                    if (onStack[target])
+                    {
+                        lowLink[type] = Math.Min(lowLink[type], discovery[target]);
+                    }
+                }
+
+                if (descended)
+                {
+                    continue;
+                }
+
+                if (lowLink[type] == discovery[type])
+                {
+                    CompleteGroup(type);
+                }
+
+                if (pending.TryPeek(out var parent))
+                {
+                    lowLink[parent.Type] = Math.Min(lowLink[parent.Type], lowLink[type]);
+                }
+            }
+        }
+
+        var result = new Dictionary<string, double>(typeCount, StringComparer.Ordinal);
+
+        foreach (var (typeName, index) in typeIndex)
+        {
+            result.Add(typeName, shapes[index]);
+        }
+
+        return result.ToFrozenDictionary(StringComparer.Ordinal);
+
+        void Discover(int type)
+        {
+            discovery[type] = discovered;
+            lowLink[type] = discovered;
+            discovered++;
+            groupMembers.Push(type);
+            onStack[type] = true;
+            pending.Push((type, firstField[type]));
+        }
+
+        void CompleteGroup(int root)
+        {
+            var id = groupCount++;
+            int member;
+
+            completed.Clear();
+
+            do
+            {
+                member = groupMembers.Pop();
+                onStack[member] = false;
+                group[member] = id;
+                completed.Add(member);
+            }
+            while (member != root);
+
+            var shape = 0.0;
+
+            foreach (var type in completed)
+            {
+                var fields = types[type];
+
+                for (var j = 0; j < fields.Length; j++)
+                {
+                    var target = fieldTargets[firstField[type] + j];
+                    var nested = target != -1 && group[target] != id ? shapes[target] : 0.0;
+                    shape += fields[j].Weight + nested;
+                }
+            }
+
+            foreach (var type in completed)
+            {
+                shapes[type] = shape;
+            }
+        }
     }
 
     private static FrozenDictionary<string, int> IndexObjectTypes(

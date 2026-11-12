@@ -860,6 +860,107 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             });
 
     [Fact]
+    public Task Subscribe_Should_Send_Error_When_Request_Is_Variable_Batch()
+    {
+        var snapshot = new Snapshot();
+
+        return RunTest(
+            async ct =>
+            {
+                // arrange
+                using var testServer = CreateStarWarsServer(output: output);
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                const string subscribeMessage =
+                    """
+                    {
+                      "id": "abc",
+                      "type": "subscribe",
+                      "payload": {
+                        "query": "query($episode: Episode) { hero(episode: $episode) { name } }",
+                        "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+                      }
+                    }
+                    """;
+
+                // act
+                await webSocket.SendMessageAsync(subscribeMessage, ct);
+
+                // assert
+                var message = await WaitForMessage(webSocket, Messages.Error, ct);
+                Assert.NotNull(message);
+                snapshot.Add(message).MatchInline(
+                    """
+                    {
+                      "id": "abc",
+                      "type": "error",
+                      "payload": [
+                        {
+                          "message": "Variable batching is not supported for WebSocket requests.",
+                          "extensions": {
+                            "code": "HC0009"
+                          }
+                        }
+                      ]
+                    }
+                    """);
+            });
+    }
+
+    [Fact]
+    public Task Subscribe_Should_Send_Error_When_Request_Batch_Contains_Variable_Batch()
+    {
+        var snapshot = new Snapshot();
+
+        return RunTest(
+            async ct =>
+            {
+                // arrange
+                using var testServer = CreateStarWarsServer(output: output);
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                const string subscribeMessage =
+                    """
+                    {
+                      "id": "abc",
+                      "type": "subscribe",
+                      "payload": [
+                        { "query": "{ hero { name } }" },
+                        {
+                          "query": "query($episode: Episode) { hero(episode: $episode) { name } }",
+                          "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+                        }
+                      ]
+                    }
+                    """;
+
+                // act
+                await webSocket.SendMessageAsync(subscribeMessage, ct);
+
+                // assert
+                var message = await WaitForMessage(webSocket, Messages.Error, ct);
+                Assert.NotNull(message);
+                snapshot.Add(message).MatchInline(
+                    """
+                    {
+                      "id": "abc",
+                      "type": "error",
+                      "payload": [
+                        {
+                          "message": "Variable batching is not supported for WebSocket requests.",
+                          "extensions": {
+                            "code": "HC0009"
+                          }
+                        }
+                      ]
+                    }
+                    """);
+            });
+    }
+
+    [Fact]
     public Task Connection_Init_Received_In_Time_Should_Not_Timeout_When_OnConnect_Is_Slow()
         => RunTest(
             async ct =>

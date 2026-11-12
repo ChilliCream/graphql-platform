@@ -1,4 +1,3 @@
-using ChilliCream.Nitro;
 using Mocha;
 using Mocha.Transport.AzureServiceBus;
 using AzureServiceBusTransport.NotificationService.Handlers;

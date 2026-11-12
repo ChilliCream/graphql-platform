@@ -23,7 +23,21 @@ internal static class CacheControlConstraintsComputer
     /// Computes the cache constraints for the given operation.
     /// Returns null if the operation is not a query or no constraints apply.
     /// </summary>
-    public static ImmutableCacheConstraints? Compute(IOperation operation)
+    /// <param name="operation">
+    /// The operation to compute the cache constraints for.
+    /// </param>
+    /// <param name="options">
+    /// The options whose defaults apply to root fields and to the selections in
+    /// <paramref name="lookupSelections"/> without a <c>maxAge</c>, <c>sharedMaxAge</c>,
+    /// or <c>inheritMaxAge: true</c>, or <c>null</c> to apply no defaults.
+    /// </param>
+    /// <param name="lookupSelections">
+    /// The selections below the root that a lookup brings in, or <c>null</c> when there are none.
+    /// </param>
+    public static ImmutableCacheConstraints? Compute(
+        IOperation operation,
+        ICacheControlOptions? options,
+        IReadOnlySet<ISelection>? lookupSelections)
     {
         if (operation.Definition.Operation is not OperationType.Query)
         {
@@ -31,6 +45,7 @@ internal static class CacheControlConstraintsComputer
         }
 
         var constraints = new CacheControlConstraints();
+        var defaults = options is { Enable: true, ApplyDefaults: true } ? options : null;
         var rootSelections = operation.RootSelectionSet.GetSelections();
 
         foreach (var rootSelection in rootSelections)
@@ -42,7 +57,13 @@ internal static class CacheControlConstraintsComputer
                 return null;
             }
 
-            ProcessSelection(rootSelection, constraints, operation);
+            ProcessSelection(
+                rootSelection,
+                constraints,
+                operation,
+                defaults,
+                takesDefaults: true,
+                lookupSelections);
         }
 
         if (constraints.MaxAge is null && constraints.SharedMaxAge is null)
@@ -91,45 +112,88 @@ internal static class CacheControlConstraintsComputer
         };
     }
 
+    private static bool DeclaresLifetime(IDirective? directive)
+        => directive is not null
+            && (GetIntArgument(directive, MaxAgeArg) is not null
+                || GetIntArgument(directive, SharedMaxAgeArg) is not null
+                || GetBoolArgument(directive, InheritMaxAgeArg) == true);
+
     private static void ProcessSelection(
         ISelection selection,
         CacheControlConstraints constraints,
-        IOperation operation)
+        IOperation operation,
+        ICacheControlOptions? defaults,
+        bool takesDefaults,
+        IReadOnlySet<ISelection>? lookupSelections)
     {
         var field = selection.Field;
+        var returnType = field.Type.NamedType();
         var maxAgeSet = false;
         var sharedMaxAgeSet = false;
         var scopeSet = false;
         var varySet = false;
 
+        // A root field or a field a lookup brings in takes the default lifetime when it has
+        // no @cacheControl, or when neither its directive nor its return type sets a
+        // lifetime, and then the default scope unless its directive sets one.
+        if (takesDefaults && defaults is not null && !field.IsIntrospectionField)
+        {
+            var fieldDirective = field.Directives.FirstOrDefault(DirectiveName);
+
+            if (fieldDirective is null
+                || (!DeclaresLifetime(fieldDirective)
+                    && !ReturnTypeDeclaresLifetime(selection, returnType, operation)))
+            {
+                ApplyCacheControl(
+                    defaults.DefaultMaxAge,
+                    directiveSharedMaxAge: null,
+                    directiveInheritMaxAge: null,
+                    fieldDirective is null || GetScopeArgument(fieldDirective, ScopeArg) is null
+                        ? defaults.DefaultScope
+                        : null,
+                    directiveVary: null);
+            }
+        }
+
         ExtractCacheControlFromDirectives(field);
+
+        var maxAgeSetByField = maxAgeSet;
+        var sharedMaxAgeSetByField = sharedMaxAgeSet;
 
         if (!maxAgeSet || !sharedMaxAgeSet || !scopeSet || !varySet)
         {
             // Either maxAge or scope have not been specified by the @cacheControl
             // directive on the field, so we try to infer these details
             // from the type of the field.
-
-            if (field.Type is IDirectivesProvider type)
-            {
-                // The type of the field is complex and can therefore be
-                // annotated with a @cacheControl directive.
-                ExtractCacheControlFromDirectives(type);
-            }
+            ExtractCacheControlFromDirectives(returnType);
         }
 
         if (!selection.IsLeaf)
         {
+            var isAbstractType = returnType.IsAbstractType();
             var possibleTypes = operation.GetPossibleTypes(selection);
 
             foreach (var type in possibleTypes)
             {
+                if (isAbstractType)
+                {
+                    maxAgeSet = maxAgeSetByField;
+                    sharedMaxAgeSet = sharedMaxAgeSetByField;
+                    ExtractCacheControlFromDirectives(type);
+                }
+
                 var selectionSet = operation.GetSelectionSet(selection, type);
                 var selections = selectionSet.GetSelections();
 
                 foreach (var childSelection in selections)
                 {
-                    ProcessSelection(childSelection, constraints, operation);
+                    ProcessSelection(
+                        childSelection,
+                        constraints,
+                        operation,
+                        defaults,
+                        takesDefaults: lookupSelections?.Contains(childSelection) == true,
+                        lookupSelections);
                 }
             }
         }
@@ -144,12 +208,21 @@ internal static class CacheControlConstraintsComputer
                 return;
             }
 
-            var directiveMaxAge = GetIntArgument(directive, MaxAgeArg);
-            var directiveSharedMaxAge = GetIntArgument(directive, SharedMaxAgeArg);
-            var directiveInheritMaxAge = GetBoolArgument(directive, InheritMaxAgeArg);
-            var directiveScope = GetScopeArgument(directive, ScopeArg);
-            var directiveVary = GetStringListArgument(directive, VaryArg);
+            ApplyCacheControl(
+                GetIntArgument(directive, MaxAgeArg),
+                GetIntArgument(directive, SharedMaxAgeArg),
+                GetBoolArgument(directive, InheritMaxAgeArg),
+                GetScopeArgument(directive, ScopeArg),
+                GetStringListArgument(directive, VaryArg));
+        }
 
+        void ApplyCacheControl(
+            int? directiveMaxAge,
+            int? directiveSharedMaxAge,
+            bool? directiveInheritMaxAge,
+            CacheControlScope? directiveScope,
+            string[]? directiveVary)
+        {
             var previousMaxAge = constraints.MaxAge;
             if (!maxAgeSet
                 && directiveMaxAge.HasValue)
@@ -226,6 +299,32 @@ internal static class CacheControlConstraintsComputer
                 varySet = true;
             }
         }
+    }
+
+    private static bool ReturnTypeDeclaresLifetime(
+        ISelection selection,
+        ITypeDefinition returnType,
+        IOperation operation)
+    {
+        if (DeclaresLifetime(returnType.Directives.FirstOrDefault(DirectiveName)))
+        {
+            return true;
+        }
+
+        if (!returnType.IsAbstractType())
+        {
+            return false;
+        }
+
+        foreach (var possibleType in operation.GetPossibleTypes(selection))
+        {
+            if (!DeclaresLifetime(possibleType.Directives.FirstOrDefault(DirectiveName)))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static int? GetIntArgument(IDirective directive, string name)

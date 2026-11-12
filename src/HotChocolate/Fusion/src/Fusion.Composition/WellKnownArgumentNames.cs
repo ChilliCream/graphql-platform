@@ -11,7 +11,11 @@ internal static class WellKnownArgumentNames
     public const string CursorArgument = "cursorArgument";
     public const string CursorField = "cursorField";
     public const string DefaultListSize = "defaultListSize";
+    public const string CaseBudget = "caseBudget";
+    public const string CaseBudgetExceededBehavior = "caseBudgetExceededBehavior";
+    public const string CostPlanCacheSize = "costPlanCacheSize";
     public const string DestructiveHint = "destructiveHint";
+    public const string EnforceCostLimits = "enforceCostLimits";
     public const string Field = "field";
     public const string Fields = "fields";
     public const string From = "from";
@@ -25,6 +29,9 @@ internal static class WellKnownArgumentNames
     public const string Kind = "kind";
     public const string Map = "map";
     public const string MaxAge = "maxAge";
+    public const string MaxFieldCost = "maxFieldCost";
+    public const string MaxResponseSize = "maxResponseSize";
+    public const string MaxTypeCost = "maxTypeCost";
     public const string Member = "member";
     public const string Message = "message";
     public const string Name = "name";
@@ -39,6 +46,7 @@ internal static class WellKnownArgumentNames
     public const string RequireOneSlicingArgument = "requireOneSlicingArgument";
     public const string Schema = "schema";
     public const string ShareableFieldRuntimeTypeRouting = "shareableFieldRuntimeTypeRouting";
+    public const string SkipAnalyzer = "skipAnalyzer";
     public const string Scope = "scope";
     public const string Scopes = DirectiveNames.RequiresScopes.Arguments.Scopes;
     public const string SharedMaxAge = "sharedMaxAge";

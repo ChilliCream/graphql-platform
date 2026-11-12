@@ -11,6 +11,7 @@ namespace HotChocolate.Fusion.Planning;
 public record OperationPlanStep : PlanStep
 {
     private const int StackAllocWordLimit = 32;
+    private const int StackAllocDependentLimit = 32;
 
     public required OperationDefinitionNode Definition { get; init; }
 
@@ -64,7 +65,7 @@ public record OperationPlanStep : PlanStep
 
         try
         {
-            return DependsOnRecursive(otherStep, Id, allSteps, visited);
+            return DependsOnIterative(otherStep, Id, allSteps, visited);
         }
         finally
         {
@@ -75,37 +76,74 @@ public record OperationPlanStep : PlanStep
         }
     }
 
-    private static bool DependsOnRecursive(
-        OperationPlanStep currentStep,
+    private static bool DependsOnIterative(
+        OperationPlanStep otherStep,
         int targetId,
         ImmutableList<PlanStep> allSteps,
         Span<ulong> visited)
     {
-        var word = currentStep.Id >> 6;
-        var bit = 1UL << (currentStep.Id & 63);
+        Span<int> dependentStack = stackalloc int[StackAllocDependentLimit];
+        int[]? rented = null;
+        var dependentCount = 0;
+        var currentStep = otherStep;
 
-        if ((visited[word] & bit) != 0)
+        try
         {
-            return false;
-        }
-
-        visited[word] |= bit;
-
-        if (currentStep.Dependents.Contains(targetId))
-        {
-            return true;
-        }
-
-        foreach (var dependentId in currentStep.Dependents)
-        {
-            var dependentStep = allSteps.ById(dependentId);
-            if (dependentStep is OperationPlanStep dependentOpStep
-                && DependsOnRecursive(dependentOpStep, targetId, allSteps, visited))
+            while (true)
             {
-                return true;
+                var word = currentStep.Id >> 6;
+                var bit = 1UL << (currentStep.Id & 63);
+
+                if ((visited[word] & bit) == 0)
+                {
+                    visited[word] |= bit;
+
+                    if (currentStep.Dependents.Contains(targetId))
+                    {
+                        return true;
+                    }
+
+                    foreach (var dependentId in currentStep.Dependents)
+                    {
+                        if (dependentCount == dependentStack.Length)
+                        {
+                            var expandedStack = ArrayPool<int>.Shared.Rent(dependentStack.Length * 2);
+                            dependentStack[..dependentCount].CopyTo(expandedStack);
+
+                            if (rented is not null)
+                            {
+                                ArrayPool<int>.Shared.Return(rented);
+                            }
+
+                            rented = expandedStack;
+                            dependentStack = expandedStack;
+                        }
+
+                        dependentStack[dependentCount++] = dependentId;
+                    }
+                }
+
+                OperationPlanStep? dependentStep = null;
+                while (dependentCount > 0 && dependentStep is null)
+                {
+                    var dependentId = dependentStack[--dependentCount];
+                    dependentStep = allSteps.ById(dependentId) as OperationPlanStep;
+                }
+
+                if (dependentStep is null)
+                {
+                    return false;
+                }
+
+                currentStep = dependentStep;
             }
         }
-
-        return false;
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<int>.Shared.Return(rented);
+            }
+        }
     }
 }

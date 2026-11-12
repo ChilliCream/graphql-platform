@@ -1,9 +1,12 @@
+using HotChocolate.Configuration;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
@@ -111,6 +114,25 @@ public sealed class InterceptorTests
             """);
     }
 
+    [Fact]
+    public async Task Field_Should_GetDefaultResolverCost_When_LaterInterceptorAddsIt()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType(d => d.Field("title").Resolve("title"))
+            .TryAddTypeInterceptor<AddResolverFieldTypeInterceptor>();
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var field = schema.Types.GetType<ObjectType>(OperationTypeNames.Query).Fields["added"];
+        var cost = Assert.Single(field.Directives, d => d.Type.Name == "cost");
+        Assert.Equal(10.0, cost.ToValue<CostDirective>().Weight);
+    }
+
     private static ObjectField QueryField(Schema schema)
         => schema.Types.GetType<ObjectType>(OperationTypeNames.Query).Fields["books"];
 
@@ -161,6 +183,23 @@ public sealed class InterceptorTests
             .AddSorting()
             .ModifyCostOptions(configureOptions)
             .BuildSchemaAsync();
+
+    public sealed class AddResolverFieldTypeInterceptor : TypeInterceptor
+    {
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            TypeSystemConfiguration configuration)
+        {
+            if (configuration is ObjectTypeConfiguration { Name: "Query" } queryType)
+            {
+                queryType.Fields.Add(
+                    new ObjectFieldConfiguration(
+                        "added",
+                        type: TypeReference.Parse("String"),
+                        resolver: _ => new ValueTask<object?>("added")));
+            }
+        }
+    }
 
     public sealed class Book
     {

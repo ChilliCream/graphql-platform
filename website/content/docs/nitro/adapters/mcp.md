@@ -1,5 +1,6 @@
 ---
 title: "MCP"
+metaTitle: "MCP Adapter for Nitro"
 description: "Publish MCP feature collections with Nitro: author GraphQL tools and prompts, version and validate them, and serve them at the `/graphql/mcp` endpoint."
 ---
 

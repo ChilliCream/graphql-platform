@@ -37,13 +37,17 @@ internal static class CompositionTestHelper
 
     internal static ImmutableSortedSet<MutableSchemaDefinition> CreateSchemaDefinitions(
         string[] sdl)
+        => CreateSchemaDefinitions(
+            [.. sdl.Select((s, i) => new SourceSchemaText(((char)('A' + i)).ToString(), s))]);
+
+    internal static ImmutableSortedSet<MutableSchemaDefinition> CreateSchemaDefinitions(
+        SourceSchemaText[] sourceSchemas)
     {
         var log = new CompositionLog();
 
         var parsingResult =
-            sdl.Select((s, i) =>
+            sourceSchemas.Select(sourceSchemaText =>
             {
-                var sourceSchemaText = new SourceSchemaText(((char)('A' + i)).ToString(), s);
                 var options = new SourceSchemaParserOptions { EnableSchemaValidation = false };
 
                 return new SourceSchemaParser(sourceSchemaText, log, options).Parse();

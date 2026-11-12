@@ -1,0 +1,32 @@
+{
+  "sources": [
+    "Mocha.Mediator"
+  ],
+  "activities": [
+    {
+      "OperationName": "publish TracedNotification",
+      "DisplayName": "publish TracedNotification",
+      "Kind": "Internal",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "messaging.system",
+          "Value": "mocha.mediator"
+        },
+        {
+          "Key": "messaging.operation.name",
+          "Value": "publish"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "publish"
+        },
+        {
+          "Key": "messaging.message.type",
+          "Value": "TracedNotification"
+        }
+      ],
+      "events": []
+    }
+  ]
+}

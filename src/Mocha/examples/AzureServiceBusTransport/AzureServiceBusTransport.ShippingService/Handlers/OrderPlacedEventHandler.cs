@@ -8,7 +8,7 @@ public sealed class OrderPlacedEventHandler(
     ILogger<OrderPlacedEventHandler> logger)
     : IEventHandler<OrderPlacedEvent>
 {
-    private static readonly string[] Carriers = ["FedEx", "UPS", "DHL", "USPS"];
+    private static readonly string[] s_carriers = ["FedEx", "UPS", "DHL", "USPS"];
 
     public async ValueTask HandleAsync(OrderPlacedEvent message, CancellationToken cancellationToken)
     {
@@ -24,7 +24,7 @@ public sealed class OrderPlacedEventHandler(
         await Task.Delay(500, cancellationToken);
 
         var trackingNumber = $"TRK-{Guid.NewGuid().ToString()[..8].ToUpperInvariant()}";
-        var carrier = Carriers[Random.Shared.Next(Carriers.Length)];
+        var carrier = s_carriers[Random.Shared.Next(s_carriers.Length)];
 
         await messageBus.PublishAsync(
             new OrderShippedEvent

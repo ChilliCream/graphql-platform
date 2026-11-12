@@ -3,7 +3,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.ConsumerRecovery)]
 public sealed class ShutdownTests(RabbitMQFixture fixture)
 {
     [Fact]

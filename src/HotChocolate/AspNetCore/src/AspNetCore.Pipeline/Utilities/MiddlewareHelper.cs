@@ -418,10 +418,12 @@ internal static class MiddlewareHelper
                 newRequestFlags |= RequestFlags.AllowQuery;
             }
 
+#pragma warning disable CS0618
             if ((flags & AllowedGetOperations.Mutation) == AllowedGetOperations.Mutation)
             {
                 newRequestFlags |= RequestFlags.AllowMutation;
             }
+#pragma warning restore CS0618
 
             if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription
                 && (requestFlags & RequestFlags.AllowSubscription) == RequestFlags.AllowSubscription)

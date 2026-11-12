@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using ChilliCream.Nitro;
 using Mocha;
 using Mocha.Mediator;
 using Mocha.Sagas;
