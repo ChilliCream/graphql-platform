@@ -50,7 +50,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             switch (decision.Action)
             {
                 case RedeliveryAction.Discard:
-                    using (logger.BeginMessageScope(context))
+                    using (logger.BeginMessageScope(LogLevel.Warning, context))
                     {
                         logger.MessageDiscarded(ex, context.MessageId);
                     }
@@ -60,7 +60,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
 
                 case RedeliveryAction.Redeliver:
                     var scheduledTime = timeProvider.GetUtcNow().Add(decision.Delay);
-                    using (logger.BeginMessageScope(context))
+                    using (logger.BeginMessageScope(LogLevel.Warning, context))
                     {
                         logger.RedeliveringMessage(ex, context.MessageId, delayedRetryCount + 1, decision.Delay);
                         var isScheduled = await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
