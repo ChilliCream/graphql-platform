@@ -138,6 +138,15 @@
   <data name="FusionCostMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__cost directive specifies cost metadata for each source schema.</value>
   </data>
+  <data name="FusionContextMutableDirectiveDefinition_Argument_Name_Description" xml:space="preserve">
+    <value>The name of the context.</value>
+  </data>
+  <data name="FusionContextMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema in which the type sets the context.</value>
+  </data>
+  <data name="FusionContextMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__context directive specifies that the values of a type set a named context in a source schema.</value>
+  </data>
   <data name="FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that provides the specified enum value.</value>
   </data>
