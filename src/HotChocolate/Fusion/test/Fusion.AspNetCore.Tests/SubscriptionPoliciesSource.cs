@@ -14,7 +14,6 @@ namespace HotChocolate.Fusion;
 public static class SubscriptionPoliciesSource
 {
     public const string LivePolicy = "live";
-    public const string FlipPolicy = "flip";
 
     public static void Configure(IRequestExecutorBuilder builder)
         => builder
@@ -25,7 +24,7 @@ public static class SubscriptionPoliciesSource
             .AddDirectiveType(CreateDirective("requiresScopes", "scopes"))
             .AddDirectiveType(CreateDirective("policy", "policies"));
 
-    public sealed record Item(string Id, string Name, string Code, string Note, string Tag);
+    public sealed record Item(string Id, string Name, string Code, string Tag);
 
     public sealed class Query
     {
@@ -72,7 +71,6 @@ public static class SubscriptionPoliciesSource
             descriptor.Field(t => t.Name).Type<StringType>().Directive("policy", Matrix("policies", LivePolicy));
             descriptor.Field(t => t.Code).Type<NonNullType<StringType>>()
                 .Directive("policy", Matrix("policies", LivePolicy));
-            descriptor.Field(t => t.Note).Type<StringType>().Directive("policy", Matrix("policies", FlipPolicy));
             descriptor.Field(t => t.Tag).Type<StringType>();
         }
     }

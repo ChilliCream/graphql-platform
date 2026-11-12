@@ -23,7 +23,7 @@ public abstract class SubscriptionPoliciesTransportTestBase : FusionTestBase
     protected const string ChangedSubscription = "subscription { changed { id name tag } }";
 
     protected static readonly SubscriptionPoliciesSource.Item Event =
-        new("1", "name", "code", "note", "tag");
+        new("1", "name", "code", "tag");
 
     protected static void DenyLivePolicy(IFusionGatewayBuilder builder)
         => builder.AddInMemoryPolicies(policies => policies.Deny(SubscriptionPoliciesSource.LivePolicy));
@@ -61,9 +61,7 @@ public abstract class SubscriptionPoliciesTransportTestBase : FusionTestBase
                 // The policies the test configures take precedence over the allowing defaults below.
                 configure(builder);
                 builder.AddInMemoryPolicies(
-                    policies => policies
-                        .Allow(SubscriptionPoliciesSource.LivePolicy)
-                        .Allow(SubscriptionPoliciesSource.FlipPolicy));
+                    policies => policies.Allow(SubscriptionPoliciesSource.LivePolicy));
             },
             includeOperationPlan: false);
 
