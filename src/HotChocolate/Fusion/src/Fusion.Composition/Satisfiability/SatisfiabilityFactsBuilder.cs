@@ -9,6 +9,7 @@ internal sealed class SatisfiabilityFactsBuilder
 {
     private readonly MutableSchemaDefinition _schema;
     private readonly FusionLookupDirectiveCache _lookupCache;
+    private readonly FieldOptionCache _fieldOptions;
     private readonly HashSet<ReachablePositionKey> _reachablePositions = [];
     private readonly HashSet<SatisfiabilityFacts.FieldResolvableFactKey> _fieldResolvableFacts = [];
     private readonly HashSet<SatisfiabilityFacts.CanTransitionFactKey> _canTransitionFacts = [];
@@ -21,12 +22,15 @@ internal sealed class SatisfiabilityFactsBuilder
     /// </summary>
     /// <param name="schema">The merged schema whose satisfiability facts are computed.</param>
     /// <param name="lookupCache">The lookup directive cache for the merged schema.</param>
+    /// <param name="fieldOptions">The field option cache for the merged schema.</param>
     public SatisfiabilityFactsBuilder(
         MutableSchemaDefinition schema,
-        FusionLookupDirectiveCache lookupCache)
+        FusionLookupDirectiveCache lookupCache,
+        FieldOptionCache fieldOptions)
     {
         _schema = schema;
         _lookupCache = lookupCache;
+        _fieldOptions = fieldOptions;
     }
 
     /// <summary>
@@ -80,7 +84,9 @@ internal sealed class SatisfiabilityFactsBuilder
 
             foreach (var schemaName in field.GetSchemaNames())
             {
-                if (field.IsPartial(schemaName))
+                // A field whose requirement reads a context is never a candidate owner of a lookup input
+                // or of another requirement.
+                if (field.IsPartial(schemaName) || !_fieldOptions.GetContextNames(field, schemaName).IsEmpty)
                 {
                     continue;
                 }

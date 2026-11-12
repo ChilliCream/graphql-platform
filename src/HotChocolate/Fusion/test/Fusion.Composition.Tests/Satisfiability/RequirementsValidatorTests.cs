@@ -67,11 +67,13 @@ public sealed class RequirementsValidatorTests
         var queryType = (MutableObjectTypeDefinition)schema.Types["Query"];
         var productByIdField = queryType.Fields["productById"];
         var lookupCache = new FusionLookupDirectiveCache(schema);
+        var fieldOptions = new FieldOptionCache(schema, new SchemaSetInterner([]));
         var requirementsValidator =
             new RequirementsValidator(
                 schema,
                 lookupCache,
-                new SatisfiabilityFactsBuilder(schema, lookupCache).Build(),
+                new SatisfiabilityFactsBuilder(schema, lookupCache, fieldOptions).Build(),
+                fieldOptions,
                 queryViewerField: null,
                 includeSatisfiabilityPaths: false);
         var selectedValue = new FieldSelectionMapParser("specialField").Parse();
@@ -161,11 +163,13 @@ public sealed class RequirementsValidatorTests
         var queryType = (MutableObjectTypeDefinition)schema.Types["Query"];
         var e0Field = queryType.Fields["e0"];
         var lookupCache = new FusionLookupDirectiveCache(schema);
+        var fieldOptions = new FieldOptionCache(schema, new SchemaSetInterner([]));
         var requirementsValidator =
             new RequirementsValidator(
                 schema,
                 lookupCache,
-                new SatisfiabilityFactsBuilder(schema, lookupCache).Build(),
+                new SatisfiabilityFactsBuilder(schema, lookupCache, fieldOptions).Build(),
+                fieldOptions,
                 queryViewerField: null,
                 includeSatisfiabilityPaths: true);
         var selectionSet =

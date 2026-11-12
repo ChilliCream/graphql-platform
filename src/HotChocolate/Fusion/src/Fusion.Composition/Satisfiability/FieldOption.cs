@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types.Mutable;
 
@@ -12,6 +13,7 @@ internal sealed class FieldOption(
     int schemaIndex,
     bool isPartial,
     SelectionSetNode? requirements,
+    ImmutableArray<string> contextNames,
     SelectionSetNode? eventStreamMessage)
 {
     /// <summary>
@@ -33,6 +35,12 @@ internal sealed class FieldOption(
     /// Gets the requirements of the field in the schema, or <c>null</c> if it has none.
     /// </summary>
     public SelectionSetNode? Requirements { get; } = requirements;
+
+    /// <summary>
+    /// Gets the names of the contexts that the requirements of the field in the schema read, which is
+    /// empty if it reads none.
+    /// </summary>
+    public ImmutableArray<string> ContextNames { get; } = contextNames;
 
     /// <summary>
     /// Gets the event stream message of the field in the schema, or <c>null</c> if it has none.

@@ -63,9 +63,10 @@ internal sealed partial class SatisfiabilityValidator
             apolloFederationCompatibility ?? new ApolloFederationCompatibilityOptions();
         _apolloFederationSchemaNames = apolloFederationSchemaNames ?? new HashSet<string>();
         _schemaSets = new SchemaSetInterner(GetSourceSchemaNames(schema));
+        _contextScopes = new ContextScopes(schema, _schemaSets);
         _fieldOptions = new FieldOptionCache(schema, _schemaSets);
         _lookupCache = new FusionLookupDirectiveCache(schema);
-        _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache).Build();
+        _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache, _fieldOptions).Build();
         _queryViewerField = GetQueryViewerField(schema);
         _queryViewerSchemas = _queryViewerField is null
             ? []
@@ -75,6 +76,7 @@ internal sealed partial class SatisfiabilityValidator
                 schema,
                 _lookupCache,
                 _facts,
+                _fieldOptions,
                 _queryViewerField,
                 _options.IncludeSatisfiabilityPaths);
     }
@@ -339,6 +341,13 @@ internal sealed partial class SatisfiabilityValidator
             return null;
         }
 
+        // A field whose requirement reads a context is usable only when a value above the object sets
+        // that context in the schema of the option.
+        if (!HasContexts(option.ContextNames, field, schemaName, work.Key.ContextScope, type, errors))
+        {
+            return null;
+        }
+
         // The fixpoint confirms direct lookups in O(1); otherwise the reach of the visit key
         // holds the outcome of every transition route, and the path is only walked to explain
         // a failure.
@@ -443,6 +452,47 @@ internal sealed partial class SatisfiabilityValidator
         }
 
         return pathItem;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="scope"/> has an entry in <paramref name="schemaName"/> for every one of
+    /// <paramref name="contextNames"/>, which <paramref name="field"/> reads, and adds the reason it has not to
+    /// <paramref name="errors"/> unless it is <c>null</c>.
+    /// </summary>
+    private bool HasContexts(
+        ImmutableArray<string> contextNames,
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        ContextScopeRef scope,
+        MutableComplexTypeDefinition type,
+        List<SatisfiabilityError>? errors)
+    {
+        var hasContexts = true;
+
+        foreach (var contextName in contextNames)
+        {
+            if (_contextScopes.Contains(scope, schemaName, contextName))
+            {
+                continue;
+            }
+
+            hasContexts = false;
+
+            if (errors is null)
+            {
+                break;
+            }
+
+            errors.Add(
+                new SatisfiabilityError(
+                    string.Format(
+                        SatisfiabilityValidator_ContextNotSet,
+                        $"{type.Name}.{field.Name}",
+                        schemaName,
+                        contextName)));
+        }
+
+        return hasContexts;
     }
 
     /// <summary>
@@ -1070,6 +1120,14 @@ internal sealed partial class SatisfiabilityValidator
             return false;
         }
 
+        var contextNames = _fieldOptions.GetContextNames(item.Field, schemaName);
+
+        if (!contextNames.IsEmpty
+            && !HasContexts(contextNames, item.Field, schemaName, GetContextScope(parentPath), type, errors: null))
+        {
+            return false;
+        }
+
         var requirements = item.Field.GetFusionRequiresRequirements(schemaName);
 
         if (requirements is null || _facts.IsFieldResolvableOn(type, item.Field, schemaName))
@@ -1087,6 +1145,29 @@ internal sealed partial class SatisfiabilityValidator
                 parentPath[1..],
                 CreateArrivalScope(parentPath),
                 budget);
+    }
+
+    /// <summary>
+    /// Gets the context scope of the object that the first item of <paramref name="pathFromLeaf"/>, given from the
+    /// leaf to the root, produces.
+    /// </summary>
+    private ContextScopeRef GetContextScope(SatisfiabilityPathItem[] pathFromLeaf)
+    {
+        var scope = ContextScopeRef.Empty;
+
+        for (var i = pathFromLeaf.Length - 1; i >= 0; i--)
+        {
+            if (pathFromLeaf[i].Type is not MutableObjectTypeDefinition type)
+            {
+                continue;
+            }
+
+            var holderSchemaName = i == pathFromLeaf.Length - 1 ? null : pathFromLeaf[i + 1].SchemaName;
+
+            scope = _contextScopes.Extend(scope, type, holderSchemaName);
+        }
+
+        return scope;
     }
 
     /// <summary>
