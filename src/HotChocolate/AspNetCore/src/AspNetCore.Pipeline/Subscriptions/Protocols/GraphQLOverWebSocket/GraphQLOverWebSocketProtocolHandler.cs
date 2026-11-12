@@ -136,6 +136,12 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                     connectionStatus.Extensions,
                     cancellationToken);
             }
+            else if (connectionStatus.IsUnauthorized)
+            {
+                await connection.CloseUnauthorizedAsync(
+                    connectionStatus.Message,
+                    cancellationToken);
+            }
             else
             {
                 await connection.CloseConnectionRefusedAsync(

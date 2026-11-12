@@ -1,3 +1,6 @@
+using HotChocolate.Types;
+using static HotChocolate.Fusion.Properties.CompositionResources;
+
 namespace HotChocolate.Fusion.Options;
 
 internal static class ThrowHelper
@@ -38,6 +41,14 @@ internal static class ThrowHelper
 
     public static ArgumentOutOfRangeException UnexpectedCostCoordinateKind(CostCoordinateKind kind)
         => new(nameof(kind));
+
+    public static InvalidOperationException PolicyDirectiveArgumentInvalid(
+        string directiveName,
+        string argumentName)
+        => new(string.Format(PolicyDirective_Argument_Invalid, directiveName, argumentName));
+
+    public static InvalidOperationException UnexpectedTypeKind(TypeKind kind)
+        => new(string.Format(PolicyInheritance_UnexpectedTypeKind, kind));
 
     public static InvalidOperationException UnknownSourceSchema(string schemaName)
         => new($"The source schema '{schemaName}' has no index in the schema set table.");

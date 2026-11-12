@@ -54,7 +54,16 @@ public static class ConnectionExtensions
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
-            "Unauthorized",
+            CloseReasons.UnauthorizedMessage,
+            CloseReasons.Unauthorized,
+            cancellationToken);
+
+    public static ValueTask CloseUnauthorizedAsync(
+        this ISocketConnection connection,
+        string message,
+        CancellationToken cancellationToken)
+        => connection.CloseAsync(
+            message,
             CloseReasons.Unauthorized,
             cancellationToken);
 

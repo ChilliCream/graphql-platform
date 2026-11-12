@@ -12,6 +12,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -75,6 +76,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 #pragma warning disable IDE0370 // Remove unnecessary suppression
     public IVariableValueCollection Variables { get; private set; } = default!;
 #pragma warning restore IDE0370 // Remove unnecessary suppression
+
+    /// <summary>
+    /// Gets the policy evaluation result of the variable set being executed.
+    /// </summary>
+    internal PolicyEvaluationResult PolicyEvaluationResult { get; private set; } = PolicyEvaluationResult.Empty;
 
     /// <summary>
     /// Gets the schema definition associated with this execution.
@@ -145,6 +151,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     }
 
     internal ExecutionState ExecutionState => _executionState;
+
+    /// <summary>
+    /// Gets the error handler of the schema this context executes against.
+    /// </summary>
+    internal IErrorHandler ErrorHandler => _errorHandler;
 
     internal bool IsNodeSkipped(int nodeId)
         => _executionState.IsNodeSkipped(nodeId);
@@ -898,6 +909,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal OperationResult Complete(bool reusable = false, bool retainMemoryForDefer = false)
     {
         _resultStore.FinalizePocketedErrors();
+
+        if (PolicyEvaluationResult.RequiresFinalization)
+        {
+            _resultStore.FinalizeDeniedSelections(PolicyEvaluationResult);
+        }
 
         var environment = Schema.TryGetEnvironment();
 
