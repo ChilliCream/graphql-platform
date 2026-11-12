@@ -27,7 +27,7 @@ internal sealed class FusionRequiresMutableDirectiveDefinition : MutableDirectiv
             });
 
         Arguments.Add(
-            new MutableInputFieldDefinition(Requirements, new NonNullType(fieldSelectionSetType))
+            new MutableInputFieldDefinition(Requirements, fieldSelectionSetType)
             {
                 Description = FusionRequiresMutableDirectiveDefinition_Requirements_Description
             });

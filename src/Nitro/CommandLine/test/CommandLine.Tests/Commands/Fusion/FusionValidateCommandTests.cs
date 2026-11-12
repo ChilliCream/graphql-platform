@@ -1342,6 +1342,14 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             "The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces."
             scalar fusion__FieldSelectionSet
 
+            "The @fusion__context directive specifies that the values of a type set a named context in a source schema."
+            directive @fusion__context(
+              "The name of the context."
+              name: String!
+              "The name of the source schema in which the type sets the context."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE | UNION
+
             "The @fusion__cost directive specifies cost metadata for each source schema."
             directive @fusion__cost(
               "The name of the source schema that defined the cost metadata."
@@ -1489,7 +1497,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type."
               map: [fusion__FieldSelectionMap]!
               "A selection set on the annotated field that describes its requirements."
-              requirements: fusion__FieldSelectionSet!
+              requirements: fusion__FieldSelectionSet
               "The name of the source schema where this field has requirements to data on other source schemas."
               schema: fusion__Schema!
             ) repeatable on FIELD_DEFINITION
@@ -1601,6 +1609,14 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               vary: [String]
             ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
 
+            "The @fusion__context directive specifies that the values of a type set a named context in a source schema."
+            directive @fusion__context(
+              "The name of the context."
+              name: String!
+              "The name of the source schema in which the type sets the context."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE | UNION
+
             "The @fusion__cost directive specifies cost metadata for each source schema."
             directive @fusion__cost(
               "The name of the source schema that defined the cost metadata."
@@ -1748,7 +1764,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type."
               map: [fusion__FieldSelectionMap]!
               "A selection set on the annotated field that describes its requirements."
-              requirements: fusion__FieldSelectionSet!
+              requirements: fusion__FieldSelectionSet
               "The name of the source schema where this field has requirements to data on other source schemas."
               schema: fusion__Schema!
             ) repeatable on FIELD_DEFINITION
@@ -1869,6 +1885,14 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               vary: [String]
             ) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
 
+            "The @fusion__context directive specifies that the values of a type set a named context in a source schema."
+            directive @fusion__context(
+              "The name of the context."
+              name: String!
+              "The name of the source schema in which the type sets the context."
+              schema: fusion__Schema!
+            ) repeatable on OBJECT | INTERFACE | UNION
+
             "The @fusion__cost directive specifies cost metadata for each source schema."
             directive @fusion__cost(
               "The name of the source schema that defined the cost metadata."
@@ -2016,7 +2040,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type."
               map: [fusion__FieldSelectionMap]!
               "A selection set on the annotated field that describes its requirements."
-              requirements: fusion__FieldSelectionSet!
+              requirements: fusion__FieldSelectionSet
               "The name of the source schema where this field has requirements to data on other source schemas."
               schema: fusion__Schema!
             ) repeatable on FIELD_DEFINITION
