@@ -71,6 +71,7 @@ public static class LogEntryCodes
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
     public const string InvalidShareableFieldRuntimeTypeRouting =
         "INVALID_SHAREABLE_FIELD_RUNTIME_TYPE_ROUTING";
+    public const string IsFieldsHasContextPath = "IS_FIELDS_HAS_CONTEXT_PATH";
     public const string IsInvalidFields = "IS_INVALID_FIELDS";
     public const string IsInvalidFieldType = "IS_INVALID_FIELD_TYPE";
     public const string IsInvalidSyntax = "IS_INVALID_SYNTAX";

@@ -501,6 +501,9 @@
   <data name="LogEntryHelper_MultipleCursorFields" xml:space="preserve">
     <value>The @eventStream field '{0}' in schema '{1}' must not declare more than one @eventCursor field on its return type.</value>
   </data>
+  <data name="LogEntryHelper_IsFieldsHasContextPath" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' contains a context path. A context path is only allowed in the 'field' argument of the @require directive.</value>
+  </data>
   <data name="LogEntryHelper_IsInvalidFields" xml:space="preserve">
     <value>The @is directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
