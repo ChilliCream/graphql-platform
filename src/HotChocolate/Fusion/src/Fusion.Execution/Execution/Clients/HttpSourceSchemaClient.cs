@@ -467,6 +467,20 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 }
             }
 
+            // A batch with a single operation is sent as that operation with its own file map.
+            if (capacity == 1)
+            {
+                return new GraphQLHttpRequest(
+                    CreateSingleRequest(context, originalRequests[0], _onError, ref buffer))
+                {
+                    Uri = _configuration.BaseAddress,
+                    AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
+                    EnableFileUploads = true,
+                    OperationKind = GetOperationKindHint(originalRequests[0].OperationType),
+                    HasDeadline = context.HasExecutionDeadline
+                };
+            }
+
             var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>(capacity);
             var fileEntries = ImmutableArray.CreateBuilder<FileEntry>();
             buffer ??= new ChunkedArrayWriter();
