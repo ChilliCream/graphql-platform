@@ -139,8 +139,13 @@ public sealed class AsyncAutoResetEventTests
 
         // act
         signal.UnsafeOnCompleted(() => observed.SetResult(local.Value));
-        local.Value = "setter";
-        signal.Set();
+        await Task.Run(
+            () =>
+            {
+                local.Value = "setter";
+                signal.Set();
+            },
+            TestContext.Current.CancellationToken);
         var value = await observed.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // assert
@@ -159,6 +164,121 @@ public sealed class AsyncAutoResetEventTests
         local.Value = "setter";
         signal.Set();
         var value = await wait.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("awaiter", value);
+    }
+
+    [Fact]
+    public async Task Set_Should_RunContinuationOnCallingThread_When_CallerIsNotThreadPoolThread()
+    {
+        // arrange
+        var signal = new AsyncAutoResetEvent(runInlineOutsideThreadPool: true);
+        var continuationThread = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var setterThread = 0;
+        signal.UnsafeOnCompleted(() => continuationThread.SetResult(Environment.CurrentManagedThreadId));
+
+        // act
+        var setter = new Thread(() =>
+        {
+            setterThread = Environment.CurrentManagedThreadId;
+            signal.Set();
+        });
+        setter.Start();
+        setter.Join(s_timeout);
+        var observedThread = await continuationThread.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(setterThread, observedThread);
+        Assert.False(signal.IsSignaled);
+    }
+
+    [Fact]
+    public async Task Set_Should_QueueContinuation_When_InlineRunsAreDisabled()
+    {
+        // arrange
+        var signal = new AsyncAutoResetEvent(runInlineOutsideThreadPool: false);
+        var ranOnThreadPool = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        signal.UnsafeOnCompleted(() => ranOnThreadPool.SetResult(Thread.CurrentThread.IsThreadPoolThread));
+
+        // act
+        var setter = new Thread(signal.Set);
+        setter.Start();
+        setter.Join(s_timeout);
+        var result = await ranOnThreadPool.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void HasTwoSocketEnginesPerProcessor_Should_RequireTwiceTheProcessorCount_When_ThreadCountIsSet()
+    {
+        // arrange
+        string?[] threadCounts = [null, "", "invalid", "-8", "4", "7", "8", "16"];
+
+        // act
+        var results = threadCounts.Select(
+            threadCount => $"{threadCount ?? "null"}: "
+                + AsyncAutoResetEvent.HasTwoSocketEnginesPerProcessor(threadCount, processorCount: 4));
+
+        // assert
+        results.MatchInlineSnapshots(
+        [
+            "null: False",
+            ": False",
+            "invalid: False",
+            "-8: False",
+            "4: False",
+            "7: False",
+            "8: True",
+            "16: True"
+        ]);
+    }
+
+    [Fact]
+    public async Task Set_Should_QueueContinuation_When_CallerIsThreadPoolThread()
+    {
+        // arrange
+        var signal = new AsyncAutoResetEvent(runInlineOutsideThreadPool: true);
+        using var insideSet = new ThreadLocal<bool>();
+        var ranInsideSet = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        signal.UnsafeOnCompleted(() => ranInsideSet.SetResult(insideSet.Value));
+
+        // act
+        await Task.Run(
+            () =>
+            {
+                insideSet.Value = true;
+                signal.Set();
+                insideSet.Value = false;
+            },
+            TestContext.Current.CancellationToken);
+        var result = await ranInsideSet.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task OnCompleted_Should_RunContinuationInAwaiterContext_When_SetOutsideThreadPool()
+    {
+        // arrange
+        var signal = new AsyncAutoResetEvent(runInlineOutsideThreadPool: true);
+        var local = new AsyncLocal<string?>();
+        var observed = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        local.Value = "awaiter";
+        signal.OnCompleted(() => observed.SetResult(local.Value));
+
+        // act
+        var setter = new Thread(() =>
+        {
+            local.Value = "setter";
+            signal.Set();
+        });
+        setter.Start();
+        setter.Join(s_timeout);
+        var value = await observed.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("awaiter", value);
