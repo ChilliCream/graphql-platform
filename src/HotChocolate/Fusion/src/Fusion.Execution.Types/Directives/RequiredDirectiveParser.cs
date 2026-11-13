@@ -55,12 +55,6 @@ internal static class RequiredDirectiveParser
                 "The `schema` argument is required on the @require directive.");
         }
 
-        if (requirements is null)
-        {
-            throw new DirectiveParserException(
-                "The `requirements` argument is required on the @require directive.");
-        }
-
         if (field is null)
         {
             throw new DirectiveParserException(

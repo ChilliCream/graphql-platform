@@ -11,12 +11,14 @@ namespace HotChocolate.Fusion.Types.Metadata;
 /// <param name="schemaName">The name of the source schema containing this interface type.</param>
 /// <param name="lookups">The entity lookups available for this interface type in the source schema.</param>
 /// <param name="implements">The names of interfaces implemented by this interface type in the source schema.</param>
+/// <param name="contexts">The names of the contexts that this interface type sets in the source schema.</param>
 /// <param name="isInterfaceObject">Whether the source schema exposes this interface as an @interfaceObject stand-in.</param>
 public sealed class SourceInterfaceType(
     string name,
     string schemaName,
     ImmutableArray<Lookup> lookups,
     ImmutableHashSet<string> implements,
+    ImmutableHashSet<string> contexts,
     bool isInterfaceObject = false)
     : ISourceComplexType
 {
@@ -39,6 +41,11 @@ public sealed class SourceInterfaceType(
     /// Gets the names of interfaces implemented by this interface type in the source schema.
     /// </summary>
     public ImmutableHashSet<string> Implements { get; } = implements;
+
+    /// <summary>
+    /// Gets the names of the contexts that this interface type sets in the source schema.
+    /// </summary>
+    public ImmutableHashSet<string> Contexts { get; } = contexts;
 
     /// <summary>
     /// Gets a value indicating whether the source schema exposes this interface as an

@@ -12,12 +12,14 @@ namespace HotChocolate.Fusion.Types.Metadata;
 /// <param name="lookups">The entity lookups available for this object type in the source schema.</param>
 /// <param name="implements">The names of interfaces implemented by this object type in the source schema.</param>
 /// <param name="memberOf">The names of union types that this object type is a member of in the source schema.</param>
+/// <param name="contexts">The names of the contexts that this object type sets in the source schema.</param>
 public sealed class SourceObjectType(
     string name,
     string schemaName,
     ImmutableArray<Lookup> lookups,
     ImmutableHashSet<string> implements,
-    ImmutableHashSet<string> memberOf)
+    ImmutableHashSet<string> memberOf,
+    ImmutableHashSet<string> contexts)
     : ISourceComplexType
 {
     /// <summary>
@@ -44,4 +46,9 @@ public sealed class SourceObjectType(
     /// Gets the names of union types that this object type is a member of in the source schema.
     /// </summary>
     public ImmutableHashSet<string> MemberOf { get; } = memberOf;
+
+    /// <summary>
+    /// Gets the names of the contexts that this object type sets in the source schema.
+    /// </summary>
+    public ImmutableHashSet<string> Contexts { get; } = contexts;
 }

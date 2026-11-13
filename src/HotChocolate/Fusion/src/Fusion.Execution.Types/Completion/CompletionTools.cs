@@ -110,6 +110,7 @@ internal static class CompletionTools
         var sourceObjectType = new SourceObjectType[types.Length];
         var sourceImplements = ImplementsDirectiveParser.Parse(typeDef.Directives);
         var sourceUnionMembersOf = context.GetSourceUnionMembers(typeDef.Name.Value);
+        var sourceContexts = ContextDirectiveParser.Parse(typeDef.Directives);
 
         for (var i = 0; i < types.Length; i++)
         {
@@ -119,13 +120,15 @@ internal static class CompletionTools
             context.RegisterForCompletionRange(lookups);
             sourceImplements.TryGetValue(type.SchemaKey, out var implements);
             sourceUnionMembersOf.TryGetValue(type.SchemaKey, out var unionTypes);
+            sourceContexts.TryGetValue(type.SchemaKey, out var contexts);
 
             sourceObjectType[i] = new SourceObjectType(
                 typeDef.Name.Value,
                 schemaName,
                 lookups,
                 implements ?? [],
-                unionTypes ?? []);
+                unionTypes ?? [],
+                contexts ?? []);
         }
 
         return new SourceObjectTypeCollection(sourceObjectType);
@@ -141,6 +144,7 @@ internal static class CompletionTools
         var sourceImplements = ImplementsDirectiveParser.Parse(
             typeDef.Directives);
         var interfaceObjectSchemaKeys = InterfaceObjectDirectiveParser.Parse(typeDef.Directives);
+        var sourceContexts = ContextDirectiveParser.Parse(typeDef.Directives);
 
         for (var i = 0; i < types.Length; i++)
         {
@@ -149,12 +153,14 @@ internal static class CompletionTools
             var lookups = GetLookupBySchema(lookupDirectives, schemaName, typeDef.Name.Value, context);
             context.RegisterForCompletionRange(lookups);
             sourceImplements.TryGetValue(type.SchemaKey, out var implements);
+            sourceContexts.TryGetValue(type.SchemaKey, out var contexts);
 
             sourceInterfaceType[i] = new SourceInterfaceType(
                 typeDef.Name.Value,
                 schemaName,
                 lookups,
                 implements ?? [],
+                contexts ?? [],
                 interfaceObjectSchemaKeys.Contains(type.SchemaKey));
         }
 
@@ -168,6 +174,7 @@ internal static class CompletionTools
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
         var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
         var temp = new SourceUnionType[types.Length];
+        var sourceContexts = ContextDirectiveParser.Parse(typeDef.Directives);
 
         for (var i = 0; i < types.Length; i++)
         {
@@ -175,11 +182,13 @@ internal static class CompletionTools
             var schemaName = context.GetSchemaName(type.SchemaKey);
             var lookups = GetLookupBySchema(lookupDirectives, schemaName, typeDef.Name.Value, context);
             context.RegisterForCompletionRange(lookups);
+            sourceContexts.TryGetValue(type.SchemaKey, out var contexts);
 
             temp[i] = new SourceUnionType(
                 typeDef.Name.Value,
                 schemaName,
-                lookups);
+                lookups,
+                contexts ?? []);
         }
 
         return new SourceUnionTypeCollection(temp);

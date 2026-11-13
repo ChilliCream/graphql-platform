@@ -2842,7 +2842,7 @@ public sealed partial class OperationPlanner
         var compositeField = workItem.Selection.Field;
         var sourceField = compositeField.Sources[current.SchemaName];
         var sourceRequirements = sourceField.Requirements!;
-        var requirements = sourceRequirements.Requirements;
+        var requirements = sourceRequirements.Requirements!;
         requirementAliases = new RequirementAliasContext(sourceRequirements.Fields, current.RequirementAliases);
 
         if (index.IsRegistered(requirements))

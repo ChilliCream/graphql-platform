@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types.Metadata;
@@ -66,10 +67,27 @@ public sealed class FieldRequirements : INeedsCompletion
     public ImmutableArray<IValueSelectionNode?> Fields { get; }
 
     /// <summary>
-    /// Gets the data requirements for this field.
+    /// Gets the data requirements for this field that are rooted at the declaring type,
+    /// or <c>null</c> if no map entry reads from the declaring type.
     /// </summary>
-    public SelectionSetNode Requirements { get; private set; } = null!;
+    public SelectionSetNode? Requirements { get; private set; }
+
+    /// <summary>
+    /// Gets the data requirements for this field that are read from contexts, as one selection
+    /// set per context name. Empty if no map entry has a context path.
+    /// </summary>
+    public ImmutableDictionary<string, SelectionSetNode> ContextRequirements { get; private set; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
+        = ImmutableDictionary<string, SelectionSetNode>.Empty;
+#endif
 
     void INeedsCompletion.Complete(FusionSchemaDefinition schema, CompositeSchemaBuilderContext context)
-        => Requirements = context.RewriteValueSelectionToSelectionSet(schema, _declaringTypeName, Fields);
+    {
+        var requirements = context.RewriteValueSelectionToSelectionSet(schema, _declaringTypeName, Fields);
+
+        Requirements = requirements.Selections.Count == 0 ? null : requirements;
+        ContextRequirements = ValueSelectionToSelectionSetRewriter.RewriteContextPaths(Fields.OfType<IValueSelectionNode>());
+    }
 }
