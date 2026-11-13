@@ -20,7 +20,7 @@ namespace HotChocolate.Fusion.PostMergeValidationRules;
 /// other fields through <c>@require</c> or a lookup key without declaring all of their
 /// policy requirements. A requirement is declared when every alternative group of it
 /// contains a group of the dependency and <c>@authenticated</c> is present whenever the dependency
-/// has it.
+/// has it. Fields read through a context path of a <c>@require</c> map count as dependencies.
 /// </summary>
 internal sealed class PolicyTransitiveRequirementsRule : IEventHandler<SchemaEvent>
 {
@@ -90,7 +90,7 @@ internal sealed class PolicyTransitiveRequirementsRule : IEventHandler<SchemaEve
                             continue;
                         }
 
-                        var dependencies = SelectFields(map, argument, mergedType);
+                        var dependencies = SelectFields(map, argument, mergedType, sourceSchema);
 
                         Check(
                             mergedField,
@@ -154,7 +154,8 @@ internal sealed class PolicyTransitiveRequirementsRule : IEventHandler<SchemaEve
                         SelectFields(
                             argument.GetIsFieldSelectionMap() ?? argument.Name,
                             argument,
-                            mergedType));
+                            mergedType,
+                            sourceSchema));
                 }
             }
 
@@ -199,7 +200,8 @@ internal sealed class PolicyTransitiveRequirementsRule : IEventHandler<SchemaEve
         private List<IOutputFieldDefinition> SelectFields(
             string map,
             MutableInputFieldDefinition argument,
-            MutableComplexTypeDefinition mergedType)
+            MutableComplexTypeDefinition mergedType,
+            MutableSchemaDefinition sourceSchema)
         {
             var inputTypeName = argument.Type.AsTypeDefinition().Name;
 
@@ -210,12 +212,13 @@ internal sealed class PolicyTransitiveRequirementsRule : IEventHandler<SchemaEve
 
             var inputType = argument.Type.ToTypeNode().RewriteToType(inputTypeDefinition);
 
+            var contextTypes = argument.GetContextTypes(sourceSchema, schema);
             var selection = new FieldSelectionMapParser(map).Parse();
             var selectedFields = new HashSet<IOutputFieldDefinition>();
 
             foreach (var variant in ExpandChoices(selection))
             {
-                _validator.Validate(variant, inputType, mergedType, out var variantFields);
+                _validator.Validate(variant, inputType, mergedType, contextTypes, out var variantFields);
                 selectedFields.UnionWith(variantFields);
             }
 

@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
@@ -58,7 +57,7 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
             var outputTypeNode = sourceType.ToTypeNode();
             var outputTypeDefinition = schema.Types[sourceType.Name];
             var outputType = outputTypeNode.RewriteToType(outputTypeDefinition);
-            var contextTypes = GetContextTypes(sourceArgument, sourceSchema, schema);
+            var contextTypes = sourceArgument.GetContextTypes(sourceSchema, schema);
             var errors = validator.Validate(fieldSelectionMap, inputType, outputType, contextTypes);
 
             // A first-level field of the selection map must not be served by the requiring schema.
@@ -90,65 +89,6 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
                         errors));
             }
         }
-    }
-
-    /// <summary>
-    /// Gets the merged definitions of the types that set each context the argument references in
-    /// the source schema that declares the argument.
-    /// </summary>
-    private static Dictionary<string, ImmutableArray<ITypeDefinition>> GetContextTypes(
-        MutableInputFieldDefinition argument,
-        MutableSchemaDefinition sourceSchema,
-        MutableSchemaDefinition schema)
-    {
-        var contextTypes = new Dictionary<string, ImmutableArray<ITypeDefinition>>();
-
-        if (argument.RequireInfo is not { ContextNames.Length: > 0 } requireInfo)
-        {
-            return contextTypes;
-        }
-
-        foreach (var contextName in requireInfo.ContextNames)
-        {
-            var types = ImmutableArray.CreateBuilder<ITypeDefinition>();
-
-            foreach (var sourceType in sourceSchema.Types)
-            {
-                if (SetsContext(sourceType, contextName)
-                    && schema.Types.TryGetType(sourceType.Name, out var mergedType))
-                {
-                    types.Add(mergedType);
-                }
-            }
-
-            contextTypes[contextName] = types.ToImmutable();
-        }
-
-        return contextTypes;
-    }
-
-    private static bool SetsContext(ITypeDefinition type, string contextName)
-    {
-        if (type is not (MutableObjectTypeDefinition
-                or MutableInterfaceTypeDefinition
-                or MutableUnionTypeDefinition)
-            || type is not IDirectivesProvider provider)
-        {
-            return false;
-        }
-
-        foreach (var directive in provider.Directives.AsEnumerable())
-        {
-            if (directive.Name == Context
-                && directive.Arguments.TryGetValue(Name, out var value)
-                && value is HotChocolate.Language.StringValueNode { Value: var name }
-                && name == contextName)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>
