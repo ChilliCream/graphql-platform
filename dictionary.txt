@@ -217,6 +217,7 @@ PKCE
 Pkcs
 pkey
 pochi
+pooler
 Postgraphile
 preconfigured
 preparables
