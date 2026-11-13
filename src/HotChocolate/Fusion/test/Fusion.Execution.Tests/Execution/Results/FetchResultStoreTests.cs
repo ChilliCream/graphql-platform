@@ -2453,6 +2453,313 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_ReadContextFromAncestor_When_TransactionsShareOneUser()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              me: User
+            }
+
+            type User {
+              userCurrency: Currency
+              transactions: [Transaction]
+            }
+
+            type Transaction {
+              id: ID
+            }
+
+            type Currency {
+              isoCode: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ me { userCurrency { isoCode } transactions { id } } }",
+            """
+            {"data":{"me":{
+              "userCurrency":{"isoCode":"EUR"},
+              "transactions":[{"id":"t1"},{"id":"t2"},{"id":"t3"}]
+            }}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$userContext.userCurrency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("userContext", SelectionPath.Root.AppendField("me"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.transactions[0]
+            Additional paths: [me.transactions[1], me.transactions[2]]
+            Variables: {"__fusion_1_currency":"EUR"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_ReadContextOfOwnUser_When_TransactionsBelongToListOfUsers()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              users: [User]
+            }
+
+            type User {
+              userCurrency: Currency
+              transactions: [Transaction]
+            }
+
+            type Transaction {
+              id: ID
+            }
+
+            type Currency {
+              isoCode: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ users { userCurrency { isoCode } transactions { id } } }",
+            """
+            {"data":{"users":[
+              {"userCurrency":{"isoCode":"EUR"},"transactions":[{"id":"t1"},{"id":"t2"}]},
+              {"userCurrency":{"isoCode":"USD"},"transactions":[{"id":"t3"}]}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$userContext.userCurrency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("userContext", SelectionPath.Root.AppendField("users"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("users").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: users[0].transactions[0]
+            Additional paths: [users[0].transactions[1]]
+            Variables: {"__fusion_1_currency":"EUR"}
+            Path: users[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_currency":"USD"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_CombineContextAndEntityValue_When_MapMixesBoth()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              me: User
+            }
+
+            type User {
+              userCurrency: Currency
+              transactions: [Transaction]
+            }
+
+            type Transaction {
+              id: ID
+              amount: Int
+            }
+
+            type Currency {
+              isoCode: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ me { userCurrency { isoCode } transactions { id amount } } }",
+            """
+            {"data":{"me":{
+              "userCurrency":{"isoCode":"EUR"},
+              "transactions":[{"id":"t1","amount":10},{"id":"t2","amount":20}]
+            }}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirement = ContextRequirement(
+            "__fusion_1_input",
+            "{ currency: $userContext.userCurrency.isoCode, amount: amount }",
+            new NamedTypeNode("ConversionInput"),
+            new RequirementContextRoot("userContext", SelectionPath.Root.AppendField("me"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_input":{"currency":"EUR","amount":10}}
+            Path: me.transactions[1]
+            Additional paths: []
+            Variables: {"__fusion_1_input":{"currency":"EUR","amount":20}}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_PreferNearestRoot_When_ItsTypeMatches()
+    {
+        // arrange
+        using var accounts = new AccountStoreFixture();
+        var store = accounts.Store;
+
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$ctx.currency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot(
+                "ctx",
+                SelectionPath.Root.AppendField("me").AppendField("accounts"),
+                ["Savings"]),
+            new RequirementContextRoot("ctx", SelectionPath.Root.AppendField("me"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("accounts").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.accounts[0].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_currency":"EUR"}
+            Path: me.accounts[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_currency":"GBP"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipTarget_When_NoContextRootMatchesRuntimeType()
+    {
+        // arrange
+        using var accounts = new AccountStoreFixture();
+        var store = accounts.Store;
+
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$ctx.currency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot(
+                "ctx",
+                SelectionPath.Root.AppendField("me").AppendField("accounts"),
+                ["Savings"]));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("accounts").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.accounts[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_currency":"GBP"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipBranch_When_ContextPathTypeDoesNotMatchRoot()
+    {
+        // arrange
+        using var accounts = new AccountStoreFixture();
+        var store = accounts.Store;
+
+        var requirement = ContextRequirement(
+            "__fusion_1_value",
+            "$ctx<Savings>.currency.isoCode | $ctx<Checking>.currency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("ctx", SelectionPath.Root.AppendField("me").AppendField("accounts"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("accounts").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.accounts[0].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":"USD"}
+            Path: me.accounts[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":"GBP"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipTarget_When_ContextNameHasNoRoot()
+    {
+        // arrange
+        using var accounts = new AccountStoreFixture();
+        var store = accounts.Store;
+
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$other.currency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("ctx", SelectionPath.Root.AppendField("me"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("accounts").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        Assert.True(result.IsDefaultOrEmpty);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_MapFromRequirementPath_When_RequirementIsAnchoredBelowTarget()
     {
         // arrange
@@ -4337,6 +4644,98 @@ public sealed class FetchResultStoreTests : FusionTestBase
         // assert
         Assert.Equal(expected, RenderData(store));
     }
+
+    private sealed class AccountStoreFixture : IDisposable
+    {
+        private readonly MemoryArena _resultArena = new();
+        private readonly MemoryArena _sourceArena = new();
+
+        public AccountStoreFixture()
+        {
+            var schema = ComposeSchema(
+                """
+                # name: test
+                type Query {
+                  me: User
+                }
+
+                type User {
+                  currency: Currency
+                  accounts: [Account]
+                }
+
+                interface Account {
+                  currency: Currency
+                  transactions: [Transaction]
+                }
+
+                type Checking implements Account {
+                  currency: Currency
+                  transactions: [Transaction]
+                }
+
+                type Savings implements Account {
+                  currency: Currency
+                  transactions: [Transaction]
+                }
+
+                type Transaction {
+                  id: ID
+                }
+
+                type Currency {
+                  isoCode: String
+                }
+                """);
+
+            Store = CreateLiveStore(
+                schema,
+                """
+                {
+                  me {
+                    currency { isoCode }
+                    accounts {
+                      __typename
+                      currency { isoCode }
+                      transactions { id }
+                    }
+                  }
+                }
+                """,
+                """
+                {"data":{"me":{
+                  "currency":{"isoCode":"EUR"},
+                  "accounts":[
+                    {"__typename":"Checking","currency":{"isoCode":"USD"},"transactions":[{"id":"t1"}]},
+                    {"__typename":"Savings","currency":{"isoCode":"GBP"},"transactions":[{"id":"t2"}]}
+                  ]
+                }}}
+                """,
+                _resultArena,
+                _sourceArena);
+        }
+
+        public FetchResultStore Store { get; }
+
+        public void Dispose()
+        {
+            Store.Dispose();
+            _resultArena.Dispose();
+            _sourceArena.Dispose();
+        }
+    }
+
+    private static OperationRequirement ContextRequirement(
+        string key,
+        string map,
+        ITypeNode type,
+        params RequirementContextRoot[] contextRoots)
+        => new(
+            key,
+            type,
+            SelectionPath.Root,
+            new FieldSelectionMapParser(map).Parse(),
+            [.. contextRoots]);
 
     private static FetchResultStore CreateLiveStore(
         FusionSchemaDefinition schema,
