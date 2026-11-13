@@ -340,14 +340,18 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             }
 
             var requests = requestBuilder.DrainToImmutable();
-            var variableValueSets = new VariableValues[requests.Length];
 
-            for (var i = 0; i < variableValueSets.Length; i++)
+            if (context.CollectTelemetry)
             {
-                variableValueSets[i] = requests[i].Variables[0];
-            }
+                var variableValueSets = new VariableValues[requests.Length];
 
-            context.TrackVariableValueSets(this, ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets));
+                for (var i = 0; i < variableValueSets.Length; i++)
+                {
+                    variableValueSets[i] = requests[i].Variables[0];
+                }
+
+                context.TrackVariableValueSets(this, ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets));
+            }
 
             // Obtain a transport client for the source schema and stream the batch
             // response. As each individual result arrives, we queue its merge for
