@@ -326,6 +326,61 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_ResolvePriceWithTenantCurrency_When_TheRootStepIsInAnotherSchema()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<TenantPricing.Query>());
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<TenantReviews.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              reviews {
+                product {
+                  id
+                  price
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private static class TenantReviews
+    {
+        public class Query
+        {
+            public Review[] GetReviews() => [new Review(new Product(1)), new Review(new Product(2))];
+        }
+
+        public record Review(Product Product);
+
+        [EntityKey("id")]
+        public record Product([property: ID, Shareable] int Id);
+    }
+
     private static class TenantPricing
     {
         [Context("tenant")]

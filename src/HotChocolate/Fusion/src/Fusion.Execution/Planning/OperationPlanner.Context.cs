@@ -85,7 +85,28 @@ public sealed partial class OperationPlanner
                 contextAliases.Add(contextName, [.. contextAliasContext.Aliases]);
             }
 
-            if (leftover is not null)
+            if (leftover is not null && target.Path.IsRoot)
+            {
+                // No lookup enters the operation root, so the selections that no root step took
+                // become a new root step of a schema that serves them.
+                index.Register(target.SelectionSetId, leftover);
+
+                backlog = backlog.Push(
+                    new OperationWorkItem(
+                        OperationWorkItemKind.Root,
+                        new SelectionSet(
+                            target.SelectionSetId,
+                            leftover,
+                            target.Type,
+                            target.Path))
+                    {
+                        Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
+                        ParentDepth = stepDepth,
+                        Conditions = workItem.Conditions,
+                        SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy
+                    });
+            }
+            else if (leftover is not null)
             {
                 backlog = PushRequirementLeftover(
                     backlog,

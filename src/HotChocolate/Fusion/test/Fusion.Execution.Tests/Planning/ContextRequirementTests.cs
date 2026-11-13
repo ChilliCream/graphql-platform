@@ -631,6 +631,160 @@ public class ContextRequirementTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_FetchTheContextInTheRequiringSchema_When_TheRootStepIsInAnotherSchema()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query @context(name: "tenant") {
+                tenantSettings: TenantSettings!
+                products: [Product!]!
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type TenantSettings {
+                currency: String!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+            }
+            """,
+            """
+            type Query {
+                reviews: [Review!]!
+            }
+
+            type Review {
+                product: Product!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              reviews {
+                product {
+                  price
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_InlineTheContextOnlyInTheRequiringSchema_When_TwoSchemasHaveRootSteps()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query @context(name: "tenant") {
+                tenantSettings: TenantSettings!
+                products: [Product!]!
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type TenantSettings {
+                currency: String!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+            }
+            """,
+            """
+            type Query {
+                reviews: [Review!]!
+            }
+
+            type Review {
+                product: Product!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                price
+              }
+              reviews {
+                product {
+                  id
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_NotUseTheQueryContext_When_TheOperationIsAMutation()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query @context(name: "tenant") {
+                tenantSettings: TenantSettings!
+                products: [Product!]!
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type TenantSettings {
+                currency: String!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int! @shareable
+            }
+            """,
+            """
+            type Mutation {
+                createProduct: Product!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price: Int! @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            mutation {
+              createProduct {
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Throw_When_OnlySomePossibleTypesOfTheNearestAncestorSetTheContext()
     {
         // arrange
