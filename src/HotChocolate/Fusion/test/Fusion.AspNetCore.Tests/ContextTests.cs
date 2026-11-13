@@ -409,6 +409,119 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_DeliverAmountWithCurrencyOfUser_When_TheContextRootIsInsideTheDeferredFragment()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<DeferredBilling.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              ... @defer {
+                users {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Execute_Should_DeliverAmountWithCurrencyOfUser_When_TheContextRootIsTheAnchorOfTheDeferredFragment()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<DeferredBilling.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              users {
+                ... @defer {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Execute_Should_DeliverPriceWithTenantCurrency_When_TheQueryContextRootIsAboveTheDeferredFragment()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<TenantPricing.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              products {
+                id
+                ... @defer {
+                  price
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
     private static class TenantReviews
     {
         public class Query
@@ -595,6 +708,47 @@ public class ContextTests : FusionTestBase
 
             public required int TaxRate { get; set; }
         }
+    }
+
+    private static class DeferredBilling
+    {
+        private static readonly User[] s_users =
+        [
+            new User(1, new Currency("USD"), [1, 2]),
+            new User(2, new Currency("EUR"), [3, 4])
+        ];
+
+        public class Query
+        {
+            public User[] GetUsers() => s_users;
+
+            [Lookup]
+            [Internal]
+            public User? GetUserById([ID] int id) => s_users.FirstOrDefault(u => u.Id == id);
+
+            [Lookup]
+            [Internal]
+            public Transaction? GetTransactionById([ID] int id) => new Transaction(id);
+        }
+
+        [EntityKey("id")]
+        [Context("userContext")]
+        public record User(
+            [property: ID, Shareable] int Id,
+            Currency UserCurrency,
+            [property: GraphQLIgnore] int[] TransactionIds)
+        {
+            public Transaction[] GetTransactions()
+                => TransactionIds.Select(id => new Transaction(id)).ToArray();
+        }
+
+        public record Transaction([property: ID, Shareable] int Id)
+        {
+            public int GetAmount([Require("$userContext.userCurrency.isoCode")] string currency)
+                => Id * 100 * Billing.Transaction.Rate(currency);
+        }
+
+        public record Currency(string IsoCode);
     }
 
     private static class UserCurrencies
