@@ -11,7 +11,7 @@ public class DeferredResponseManagerTests
         // arrange
         var timeProvider = new FakeTimeProvider();
         var manager = new DeferredResponseManager(timeProvider);
-        using var timeout = manager.CreateRequestTimeout();
+        using var timeout = new CancellationTokenSource(manager.DefaultTimeout, timeProvider);
         var promise = manager.AddPromise("request", timeout.Token);
 
         // act
@@ -30,7 +30,7 @@ public class DeferredResponseManagerTests
         // arrange
         var timeProvider = new FakeTimeProvider();
         var manager = new DeferredResponseManager(timeProvider);
-        using var timeout = manager.CreateRequestTimeout();
+        using var timeout = new CancellationTokenSource(manager.DefaultTimeout, timeProvider);
         var promise = manager.AddPromise("request", timeout.Token);
 
         // act
