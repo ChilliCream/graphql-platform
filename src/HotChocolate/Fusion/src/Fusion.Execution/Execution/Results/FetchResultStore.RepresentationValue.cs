@@ -275,15 +275,14 @@ internal sealed partial class FetchResultStore
         {
             if (!importedKeys.Contains(requirement.Key))
             {
-                throw new InvalidOperationException(
-                    "A deferred incremental plan fetch references a requirement that was not imported.");
+                throw ThrowHelper.DeferredRequirementNotImported();
             }
         }
 
         lock (_lock)
         {
             return BuildRepresentationValueFromSnapshotUnsafe(
-                importedEntries,
+                importedEntries.AsSpan(),
                 requestVariables,
                 requiredData,
                 requiredShape,
@@ -293,7 +292,7 @@ internal sealed partial class FetchResultStore
     }
 
     private RepresentationValue BuildRepresentationValueFromSnapshotUnsafe(
-        ImmutableArray<VariableValues> importedEntries,
+        ReadOnlySpan<VariableValues> importedEntries,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
         ImmutableArray<RepresentationShapeNode> requiredShape,

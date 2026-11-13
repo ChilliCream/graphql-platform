@@ -452,5 +452,11 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("OperationPolicy_EvaluationFaulted", resourceCulture);
             }
         }
+
+        internal static string FetchResultStore_DeferredRequirementNotImported {
+            get {
+                return ResourceManager.GetString("FetchResultStore_DeferredRequirementNotImported", resourceCulture);
+            }
+        }
     }
 }

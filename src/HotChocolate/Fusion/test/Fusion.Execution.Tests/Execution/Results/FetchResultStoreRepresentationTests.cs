@@ -325,6 +325,90 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateRepresentationVariableValues_Should_KeepFirstOccurrenceOrder_When_ContextValuesAreInterleaved()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              users: [User]
+            }
+
+            type User {
+              id: ID!
+              currency: String!
+              transactions: [Transaction]
+            }
+
+            type Transaction {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ users { currency transactions { id } } }",
+            """
+            {"data":{"users":[
+              {"currency":"USD","transactions":[{"id":"1"}]},
+              {"currency":"EUR","transactions":[{"id":"2"}]},
+              {"currency":"GBP","transactions":[{"id":"3"}]},
+              {"currency":"EUR","transactions":[{"id":"4"}]},
+              {"currency":"USD","transactions":[{"id":"5"}]},
+              {"currency":"GBP","transactions":[{"id":"6"}]}]}}
+            """,
+            resultArena,
+            sourceArena);
+        var target = SelectionPath.Root.AppendField("users").AppendField("transactions");
+        var requirements = new[]
+        {
+            Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID")),
+            ContextRequirement("__fusion_2_currency", "$userContext.currency", target)
+        };
+        var lookupField = ParseLookupField(
+            "{ transactionById(id: $__fusion_1_id) { id amount(currency: $__fusion_2_currency) } }");
+
+        // act
+        var representations = store.CreateRepresentationVariableValues(
+            [target],
+            [],
+            requirements,
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, "Transaction"),
+            "Transaction");
+
+        // assert
+        representations
+            .Select(representation => RenderRepresentation(store, representation))
+            .MatchInlineSnapshots(
+            [
+                """
+                Representations: {"representations":[{"__typename":"Transaction","id":"1"},{"__typename":"Transaction","id":"5"}],"__fusion_2_currency":"USD"}
+                Path: users[0].transactions[0]
+                Additional paths: []
+                Path: users[4].transactions[0]
+                Additional paths: []
+                """,
+                """
+                Representations: {"representations":[{"__typename":"Transaction","id":"2"},{"__typename":"Transaction","id":"4"}],"__fusion_2_currency":"EUR"}
+                Path: users[1].transactions[0]
+                Additional paths: []
+                Path: users[3].transactions[0]
+                Additional paths: []
+                """,
+                """
+                Representations: {"representations":[{"__typename":"Transaction","id":"3"},{"__typename":"Transaction","id":"6"}],"__fusion_2_currency":"GBP"}
+                Path: users[2].transactions[0]
+                Additional paths: []
+                Path: users[5].transactions[0]
+                Additional paths: []
+                """
+            ]);
+    }
+
+    [Fact]
     public void CreateRepresentationVariableValues_Should_ReturnOneGroup_When_EntitiesShareTheContextValue()
     {
         // arrange

@@ -331,34 +331,59 @@ sourceSchemas:
                 }
               }
       - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
-              _entities(representations: $representations) {
-                ... on Transaction {
-                  amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
+                  _entities(representations: $representations) {
+                    ... on Transaction {
+                      amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+                    }
+                  }
                 }
-              }
-            }
-          variables: |
-            {
-              "representations": [
+              variables: |
                 {
-                  "__typename": "Transaction",
-                  "id": "1"
-                },
-                {
-                  "__typename": "Transaction",
-                  "id": "2"
-                },
-                {
-                  "__typename": "Transaction",
-                  "id": "5"
+                  "representations": [
+                    {
+                      "__typename": "Transaction",
+                      "id": "1"
+                    },
+                    {
+                      "__typename": "Transaction",
+                      "id": "2"
+                    },
+                    {
+                      "__typename": "Transaction",
+                      "id": "5"
+                    }
+                  ],
+                  "__fusion_2_currencyCode": "USD"
                 }
-              ],
-              "__fusion_2_currencyCode": "USD"
-            }
+            - document: |
+                query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
+                  _entities(representations: $representations) {
+                    ... on Transaction {
+                      amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "representations": [
+                    {
+                      "__typename": "Transaction",
+                      "id": "3"
+                    },
+                    {
+                      "__typename": "Transaction",
+                      "id": "4"
+                    }
+                  ],
+                  "__fusion_2_currencyCode": "EUR"
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -376,32 +401,6 @@ sourceSchemas:
                   ]
                 }
               }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
-              _entities(representations: $representations) {
-                ... on Transaction {
-                  amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
-                }
-              }
-            }
-          variables: |
-            {
-              "representations": [
-                {
-                  "__typename": "Transaction",
-                  "id": "3"
-                },
-                {
-                  "__typename": "Transaction",
-                  "id": "4"
-                }
-              ],
-              "__fusion_2_currencyCode": "EUR"
-            }
-        response:
-          results:
             - |
               {
                 "data": {

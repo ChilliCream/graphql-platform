@@ -123,6 +123,9 @@ internal static class ThrowHelper
         long observed)
         => new(operationId, reason, limit, observed);
 
+    public static InvalidOperationException DeferredRequirementNotImported()
+        => new(FusionExecutionResources.FetchResultStore_DeferredRequirementNotImported);
+
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(
             FusionExecutionResources.OperationBatchExecutionNode_MissingBatchResult,

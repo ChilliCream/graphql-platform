@@ -222,4 +222,7 @@
   <data name="OperationPolicy_EvaluationFaulted" xml:space="preserve">
     <value>The policy evaluation of the request faulted without the request being canceled.</value>
   </data>
+  <data name="FetchResultStore_DeferredRequirementNotImported" xml:space="preserve">
+    <value>A deferred incremental plan fetch references a requirement that was not imported.</value>
+  </data>
 </root>

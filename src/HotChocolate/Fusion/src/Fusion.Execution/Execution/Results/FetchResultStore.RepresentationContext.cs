@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -50,41 +49,50 @@ internal sealed partial class FetchResultStore
             var elements = _collectTargetCombined.AsSpan(0, count);
             var resolvers = CreateContextRootResolvers(requiredData, selectionSets[0]);
             using var groups = new ContextValueGroups(requiredData);
-            var groupOfElement = new int[count];
+            var groupOfElement = ArrayPool<int>.Shared.Rent(count);
+            var grouped = ArrayPool<CompositeResultElement>.Shared.Rent(count);
+            var groupEnds = ArrayPool<int>.Shared.Rent(count + 1);
 
-            for (var i = 0; i < count; i++)
+            try
             {
-                groupOfElement[i] = groups.AddElement(_schema, elements[i], requiredData, resolvers);
-            }
-
-            var result = ImmutableArray.CreateBuilder<RepresentationValue>(groups.Count);
-
-            for (var group = 0; group < groups.Count; group++)
-            {
-                var members = new List<CompositeResultElement>();
-
                 for (var i = 0; i < count; i++)
                 {
-                    if (groupOfElement[i] == group)
+                    groupOfElement[i] = groups.AddElement(_schema, elements[i], requiredData, resolvers);
+                }
+
+                ScatterByGroup(
+                    elements,
+                    groupOfElement.AsSpan(0, count),
+                    groups.Count,
+                    grouped,
+                    groupEnds);
+
+                var result = ImmutableArray.CreateBuilder<RepresentationValue>(groups.Count);
+
+                for (var group = 0; group < groups.Count; group++)
+                {
+                    var start = group == 0 ? 0 : groupEnds[group - 1];
+                    var representation = BuildRepresentationValueUnsafe(
+                        grouped.AsSpan(start, groupEnds[group] - start),
+                        requestVariables,
+                        requiredShape,
+                        entityTypeName,
+                        groups.GetValues(group));
+
+                    if (!representation.IsEmpty)
                     {
-                        members.Add(elements[i]);
+                        result.Add(representation);
                     }
                 }
 
-                var representation = BuildRepresentationValueUnsafe(
-                    CollectionsMarshal.AsSpan(members),
-                    requestVariables,
-                    requiredShape,
-                    entityTypeName,
-                    groups.GetValues(group));
-
-                if (!representation.IsEmpty)
-                {
-                    result.Add(representation);
-                }
+                return result.ToImmutable();
             }
-
-            return result.ToImmutable();
+            finally
+            {
+                ArrayPool<int>.Shared.Return(groupOfElement);
+                ArrayPool<int>.Shared.Return(groupEnds);
+                ArrayPool<CompositeResultElement>.Shared.Return(grouped, clearArray: true);
+            }
         }
     }
 
@@ -117,63 +125,115 @@ internal sealed partial class FetchResultStore
         {
             if (!importedKeys.Contains(requirement.Key))
             {
-                throw new InvalidOperationException(
-                    "A deferred incremental plan fetch references a requirement that was not imported.");
+                throw ThrowHelper.DeferredRequirementNotImported();
             }
         }
 
         lock (_lock)
         {
-            var slices = new (long Start, long Length)[requiredData.Length];
+            Span<(long Start, long Length)> slices = requiredData.Length <= 32
+                ? stackalloc (long, long)[requiredData.Length]
+                : new (long, long)[requiredData.Length];
             using var groups = new ContextValueGroups(requiredData);
-            var groupOfEntry = new int[importedEntries.Length];
+            var groupOfEntry = ArrayPool<int>.Shared.Rent(importedEntries.Length);
+            var grouped = ArrayPool<VariableValues>.Shared.Rent(importedEntries.Length);
+            var groupEnds = ArrayPool<int>.Shared.Rent(importedEntries.Length + 1);
 
-            for (var i = 0; i < importedEntries.Length; i++)
+            try
             {
-                groupOfEntry[i] = -1;
-
-                if (importedEntries[i].IsEmpty)
-                {
-                    continue;
-                }
-
-                var sequence = importedEntries[i].Values.AsSequence();
-
-                if (TryCollectRequirementSlices(sequence, requiredData, slices))
-                {
-                    groupOfEntry[i] = groups.AddSnapshot(sequence, slices);
-                }
-            }
-
-            var result = ImmutableArray.CreateBuilder<RepresentationValue>(groups.Count);
-
-            for (var group = 0; group < groups.Count; group++)
-            {
-                var members = new List<VariableValues>();
-
                 for (var i = 0; i < importedEntries.Length; i++)
                 {
-                    if (groupOfEntry[i] == group)
+                    groupOfEntry[i] = -1;
+
+                    if (importedEntries[i].IsEmpty)
                     {
-                        members.Add(importedEntries[i]);
+                        continue;
+                    }
+
+                    var sequence = importedEntries[i].Values.AsSequence();
+
+                    if (TryCollectRequirementSlices(sequence, requiredData, slices))
+                    {
+                        groupOfEntry[i] = groups.AddSnapshot(sequence, slices);
                     }
                 }
 
-                var representation = BuildRepresentationValueFromSnapshotUnsafe(
-                    ImmutableCollectionsMarshal.AsImmutableArray(members.ToArray()),
-                    requestVariables,
-                    requiredData,
-                    requiredShape,
-                    entityTypeName,
-                    groups.GetValues(group));
+                ScatterByGroup(
+                    importedEntries.AsSpan(),
+                    groupOfEntry.AsSpan(0, importedEntries.Length),
+                    groups.Count,
+                    grouped,
+                    groupEnds);
 
-                if (!representation.IsEmpty)
+                var result = ImmutableArray.CreateBuilder<RepresentationValue>(groups.Count);
+
+                for (var group = 0; group < groups.Count; group++)
                 {
-                    result.Add(representation);
-                }
-            }
+                    var start = group == 0 ? 0 : groupEnds[group - 1];
+                    var representation = BuildRepresentationValueFromSnapshotUnsafe(
+                        grouped.AsSpan(start, groupEnds[group] - start),
+                        requestVariables,
+                        requiredData,
+                        requiredShape,
+                        entityTypeName,
+                        groups.GetValues(group));
 
-            return result.ToImmutable();
+                    if (!representation.IsEmpty)
+                    {
+                        result.Add(representation);
+                    }
+                }
+
+                return result.ToImmutable();
+            }
+            finally
+            {
+                ArrayPool<int>.Shared.Return(groupOfEntry);
+                ArrayPool<int>.Shared.Return(groupEnds);
+                ArrayPool<VariableValues>.Shared.Return(grouped, clearArray: true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Copies the items into <paramref name="grouped"/> ordered by their group while keeping the
+    /// order within a group, and writes the exclusive end of every group into
+    /// <paramref name="groupEnds"/>. Items whose group is negative are dropped.
+    /// </summary>
+    private static void ScatterByGroup<T>(
+        ReadOnlySpan<T> items,
+        ReadOnlySpan<int> groupOfItem,
+        int groupCount,
+        Span<T> grouped,
+        Span<int> groupEnds)
+    {
+        groupEnds = groupEnds[..groupCount];
+        groupEnds.Clear();
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            if (groupOfItem[i] >= 0)
+            {
+                groupEnds[groupOfItem[i]]++;
+            }
+        }
+
+        // The counts become the start of every group, and filling a group advances its start to its end.
+        var next = 0;
+
+        for (var group = 0; group < groupCount; group++)
+        {
+            var count = groupEnds[group];
+            groupEnds[group] = next;
+            next += count;
+        }
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            if (groupOfItem[i] >= 0)
+            {
+                grouped[groupEnds[groupOfItem[i]]++] = items[i];
+            }
         }
     }
 
@@ -206,17 +266,26 @@ internal sealed partial class FetchResultStore
 
         public ContextValueGroups(ReadOnlySpan<OperationRequirement> requiredData)
         {
-            var indexes = new List<int>();
+            var contextCount = 0;
 
-            for (var i = 0; i < requiredData.Length; i++)
+            foreach (var requirement in requiredData)
             {
-                if (!requiredData[i].ContextRoots.IsDefaultOrEmpty)
+                if (!requirement.ContextRoots.IsDefaultOrEmpty)
                 {
-                    indexes.Add(i);
+                    contextCount++;
                 }
             }
 
-            _requirementIndexes = [.. indexes];
+            _requirementIndexes = new int[contextCount];
+
+            for (int i = 0, next = 0; i < requiredData.Length; i++)
+            {
+                if (!requiredData[i].ContextRoots.IsDefaultOrEmpty)
+                {
+                    _requirementIndexes[next++] = i;
+                }
+            }
+
             _names = new string[_requirementIndexes.Length];
             _valueSlices = new (int, int)[_requirementIndexes.Length];
 
