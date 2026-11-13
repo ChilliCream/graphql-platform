@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
@@ -254,14 +255,17 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             return ExecutionStatus.Skipped;
         }
 
-        var requestVariables = new VariableValues[representations.Length];
-
-        for (var i = 0; i < requestVariables.Length; i++)
+        if (context.CollectTelemetry)
         {
-            requestVariables[i] = new VariableValues(CompactPath.Root, representations[i].Value);
-        }
+            var requestVariables = new VariableValues[representations.Length];
 
-        context.TrackVariableValueSets(this, ImmutableCollectionsMarshal.AsImmutableArray(requestVariables));
+            for (var i = 0; i < requestVariables.Length; i++)
+            {
+                requestVariables[i] = new VariableValues(CompactPath.Root, representations[i].Value);
+            }
+
+            context.TrackVariableValueSets(this, ImmutableCollectionsMarshal.AsImmutableArray(requestVariables));
+        }
 
         if (representations.Length == 1)
         {
@@ -285,127 +289,140 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         var diagnosticEvents = context.DiagnosticEvents;
         var schemaName = _schemaName;
         var requests = ImmutableArray.CreateBuilder<SourceSchemaClientRequest>(representations.Length);
-        var variablesByIndex = new ImmutableArray<VariableValues>[representations.Length];
-        var statuses = new ExecutionStatus[representations.Length];
-        var receivedResults = new bool[representations.Length];
-
-        for (var i = 0; i < representations.Length; i++)
-        {
-            variablesByIndex[i] = representations[i].ToVariableValues();
-            statuses[i] = ExecutionStatus.Failed;
-            requests.Add(new SourceSchemaClientRequest
-            {
-                Node = this,
-                SchemaName = schemaName,
-                OperationType = _lookup.Operation.Type,
-                OperationSourceText = _lookup.Operation,
-                Variables = [new VariableValues(CompactPath.Root, representations[i].Value)],
-                RequiresFileUpload = false,
-                OperationDocument = _lookup.OperationDocument,
-                LookupTypeName = _lookup.EntityTypeName
-            });
-        }
+        var count = representations.Length;
+        var variablesByIndex = ArrayPool<ImmutableArray<VariableValues>>.Shared.Rent(count);
+        var statuses = ArrayPool<ExecutionStatus>.Shared.Rent(count);
+        var receivedResults = ArrayPool<bool>.Shared.Rent(count);
 
         try
         {
-            var client = context.GetClient(schemaName, _lookup.Operation.Type);
-            using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
+            receivedResults.AsSpan(0, count).Clear();
 
-            await foreach (var batchResult in client.ExecuteBatchAsync(context, requests.MoveToImmutable(), cancellationToken)
-                .ConfigureAwait(false))
+            for (var i = 0; i < count; i++)
             {
-                var index = batchResult.RequestIndex;
-                var result = batchResult.Result;
-                var hasErrors = result.Errors is not null;
-                var pendingMerge = default(PendingMerge);
-                var hasPendingMerge = false;
-
-                receivedResults[index] = true;
-
-                try
+                variablesByIndex[i] = representations[i].ToVariableValues();
+                statuses[i] = ExecutionStatus.Failed;
+                requests.Add(new SourceSchemaClientRequest
                 {
-                    pendingMerge = PendingMerge.RepresentationSingle(
-                        this,
-                        schemaName,
-                        s_entitiesSource,
-                        _resultSelectionSet,
-                        variablesByIndex[index],
-                        representations[index],
-                        result,
-                        hasErrors);
-                    hasPendingMerge = true;
-                    context.EnqueuePendingMerge(pendingMerge);
-                    statuses[index] = hasErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    Node = this,
+                    SchemaName = schemaName,
+                    OperationType = _lookup.Operation.Type,
+                    OperationSourceText = _lookup.Operation,
+                    Variables = [new VariableValues(CompactPath.Root, representations[i].Value)],
+                    RequiresFileUpload = false,
+                    OperationDocument = _lookup.OperationDocument,
+                    LookupTypeName = _lookup.EntityTypeName
+                });
+            }
+
+            try
+            {
+                var client = context.GetClient(schemaName, _lookup.Operation.Type);
+                using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
+
+                await foreach (var batchResult in client.ExecuteBatchAsync(context, requests.MoveToImmutable(), cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    if (hasPendingMerge)
+                    var index = batchResult.RequestIndex;
+                    var result = batchResult.Result;
+                    var hasErrors = result.Errors is not null;
+                    var pendingMerge = default(PendingMerge);
+                    var hasPendingMerge = false;
+
+                    receivedResults[index] = true;
+
+                    try
                     {
-                        pendingMerge.DisposeUnmerged();
+                        pendingMerge = PendingMerge.RepresentationSingle(
+                            this,
+                            schemaName,
+                            s_entitiesSource,
+                            _resultSelectionSet,
+                            variablesByIndex[index],
+                            representations[index],
+                            result,
+                            hasErrors);
+                        hasPendingMerge = true;
+                        context.EnqueuePendingMerge(pendingMerge);
+                        statuses[index] = hasErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
                     }
-
-                    return ExecutionStatus.Failed;
-                }
-                catch (Exception exception)
-                {
-                    if (hasPendingMerge)
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
-                        pendingMerge.DisposeUnmerged();
+                        if (hasPendingMerge)
+                        {
+                            pendingMerge.DisposeUnmerged();
+                        }
+
+                        return ExecutionStatus.Failed;
                     }
-                    else
+                    catch (Exception exception)
                     {
-                        result.Dispose();
+                        if (hasPendingMerge)
+                        {
+                            pendingMerge.DisposeUnmerged();
+                        }
+                        else
+                        {
+                            result.Dispose();
+                        }
+
+                        diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
+                        context.AddErrors(exception, variablesByIndex[index], _resultSelectionSet);
                     }
-
-                    diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-                    context.AddErrors(exception, variablesByIndex[index], _resultSelectionSet);
                 }
             }
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ExecutionStatus.Failed;
-        }
-        catch (Exception exception)
-        {
-            diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
-
-            // Groups whose result already arrived keep their status, the others failed with the transport.
-            for (var i = 0; i < statuses.Length; i++)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                if (!receivedResults[i])
+                return ExecutionStatus.Failed;
+            }
+            catch (Exception exception)
+            {
+                diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
+
+                // Groups whose result already arrived keep their status, the others failed with the transport.
+                for (var i = 0; i < count; i++)
                 {
-                    context.AddErrors(exception, variablesByIndex[i], _resultSelectionSet);
+                    if (!receivedResults[i])
+                    {
+                        context.AddErrors(exception, variablesByIndex[i], _resultSelectionSet);
+                    }
+                }
+
+                return AggregateStatus(statuses.AsSpan(0, count));
+            }
+
+            // A group without a result is either a transport failure that the batch fallback isolated
+            // to its request, or a source schema that did not honor the batch protocol.
+            for (var i = 0; i < count; i++)
+            {
+                if (receivedResults[i])
+                {
+                    continue;
+                }
+
+                if (context.TryGetBatchRequestError(this, i, out var requestError))
+                {
+                    diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, requestError);
+                    context.AddErrors(requestError, variablesByIndex[i], _resultSelectionSet);
+                }
+                else
+                {
+                    context.AddErrors(ThrowHelper.MissingBatchResult(Id), variablesByIndex[i], _resultSelectionSet);
                 }
             }
 
-            return AggregateStatus(statuses);
+            return AggregateStatus(statuses.AsSpan(0, count));
         }
-
-        // A group without a result is either a transport failure that the batch fallback isolated
-        // to its request, or a source schema that did not honor the batch protocol.
-        for (var i = 0; i < statuses.Length; i++)
+        finally
         {
-            if (receivedResults[i])
-            {
-                continue;
-            }
-
-            if (context.TryGetBatchRequestError(this, i, out var requestError))
-            {
-                diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, requestError);
-                context.AddErrors(requestError, variablesByIndex[i], _resultSelectionSet);
-            }
-            else
-            {
-                context.AddErrors(ThrowHelper.MissingBatchResult(Id), variablesByIndex[i], _resultSelectionSet);
-            }
+            variablesByIndex.AsSpan(0, count).Clear();
+            ArrayPool<ImmutableArray<VariableValues>>.Shared.Return(variablesByIndex);
+            ArrayPool<ExecutionStatus>.Shared.Return(statuses);
+            ArrayPool<bool>.Shared.Return(receivedResults);
         }
-
-        return AggregateStatus(statuses);
     }
 
-    internal static ExecutionStatus AggregateStatus(ExecutionStatus[] statuses)
+    internal static ExecutionStatus AggregateStatus(ReadOnlySpan<ExecutionStatus> statuses)
     {
         var failed = 0;
         var partial = false;
