@@ -336,9 +336,9 @@ Declares that every value of the annotated type provides a named context. A `@re
 directive @context(name: String!) repeatable on OBJECT | INTERFACE | UNION
 ```
 
-| Argument | Type      | Description                                                                           |
-| -------- | --------- | ------------------------------------------------------------------------------------- |
-| `name`   | `String!` | The name of the context. It starts with a letter and contains only letters and digits |
+| Argument | Type      | Description                                                                                        |
+| -------- | --------- | -------------------------------------------------------------------------------------------------- |
+| `name`   | `String!` | The name of the context. It starts with an ASCII letter and contains only ASCII letters and digits |
 
 **Example -- currency of the current user:**
 
@@ -376,6 +376,19 @@ public sealed class User
     public required string Id { get; init; }
 
     public required Currency UserCurrency { get; init; }
+
+    public required List<Transaction> Transactions { get; init; }
+}
+
+[QueryType]
+public static partial class TransactionQueries
+{
+    [Lookup, Internal]
+    public static async Task<Transaction?> GetTransactionByIdAsync(
+        [ID<Transaction>] int id,
+        ITransactionByIdDataLoader transactionById,
+        CancellationToken cancellationToken)
+        => await transactionById.LoadAsync(id, cancellationToken);
 }
 
 [ObjectType<Transaction>]
@@ -393,9 +406,10 @@ public static partial class TransactionNode
 - The gateway uses the nearest value above the field that provides the context. If several types on the path provide the same context, the one closest to the field wins.
 - The value the field is selected on does not provide the context for that field. A field reads only from values above it.
 - Every query path that reaches the field must pass through a value that provides the context. A path without one raises `UNSATISFIABLE_QUERY_PATH`.
-- A context name starts with a letter and contains only letters and digits. Violations raise `CONTEXT_NAME_INVALID`.
+- A context name starts with an ASCII letter and contains only ASCII letters and digits. Violations raise `CONTEXT_NAME_INVALID`.
 - The context must be provided by a type in the same source schema as the field that reads it. Otherwise composition raises `REQUIRE_CONTEXT_NOT_SET`. The fields that the path selects can be served by any source schema.
 - The source schema that declares the field needs a lookup for the field's parent type. Without one, composition raises `UNSATISFIABLE_QUERY_PATH`.
+- That lookup must be `@internal`. A public lookup lets a client reach the field without a value that provides the context, and composition raises `UNSATISFIABLE_QUERY_PATH`.
 - A context path is not allowed on interface fields or on fields that implement an interface field (`REQUIRE_CONTEXT_ON_INTERFACE`).
 - An argument that reads from a context cannot have a default value (`REQUIRE_CONTEXT_DEFAULT_VALUE`).
 - `@context` is not allowed on types that are annotated with `@interfaceObject` (`CONTEXT_ON_INTERFACE_OBJECT`).
