@@ -128,7 +128,7 @@ internal sealed class EntityReuseCandidateMap
 
                     lookups.Add(new Lookup(
                         apolloOperation.Id,
-                        apolloOperation.Dependencies.ToArray(),
+                        [.. apolloOperation.Dependencies, .. apolloOperation.OptionalDependencies],
                         apolloOperation.Lookup.EntityTypeName,
                         apolloOperation.ResultSelectionSet,
                         apolloOperation.Requirements.ToArray(),
@@ -485,7 +485,7 @@ internal sealed class EntityReuseCandidateMap
         return true;
     }
 
-    private static bool IsFlatRepresentationShape(
+    internal static bool IsFlatRepresentationShape(
         ImmutableArray<RepresentationShapeNode> shape,
         string[] requirementFields)
     {
