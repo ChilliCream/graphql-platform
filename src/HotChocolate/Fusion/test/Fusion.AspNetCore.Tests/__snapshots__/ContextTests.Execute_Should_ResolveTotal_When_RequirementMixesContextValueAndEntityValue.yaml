@@ -1,0 +1,351 @@
+title: Execute_Should_ResolveTotal_When_RequirementMixesContextValueAndEntityValue
+request:
+  document: |
+    {
+      users {
+        transactions {
+          total
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "users": [
+          {
+            "transactions": [
+              {
+                "total": 101
+              },
+              {
+                "total": 202
+              }
+            ]
+          },
+          {
+            "transactions": [
+              {
+                "total": 603
+              },
+              {
+                "total": 804
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        me: User
+        users: [User!]!
+        transactionById(id: ID!): Transaction @lookup @internal
+      }
+
+      type Account {
+        transactions: [Transaction!]!
+      }
+
+      type Currency {
+        isoCode: String!
+      }
+
+      type Transaction @key(fields: "id") {
+        amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+        id: ID! @shareable
+        total(
+          pricing: PricingInput! @require(field: "{\n  currency: $userContext.userCurrency.isoCode\n  taxRate: taxRate\n}")
+        ): Int!
+      }
+
+      type User @key(fields: "id") @context(name: "userContext") {
+        transactions: [Transaction!]!
+        account: Account!
+        id: ID! @shareable
+        userCurrency: Currency!
+      }
+
+      input PricingInput {
+        currency: String!
+        taxRate: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_8818c8f3_1 {
+              users {
+                transactions {
+                  id
+                }
+                userCurrency {
+                  isoCode
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "transactions": [
+                        {
+                          "id": "1"
+                        },
+                        {
+                          "id": "2"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "USD"
+                      }
+                    },
+                    {
+                      "transactions": [
+                        {
+                          "id": "3"
+                        },
+                        {
+                          "id": "4"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "EUR"
+                      }
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_8818c8f3_2($__fusion_1_pricing: PricingInput!, $__fusion_2_id: ID!) {
+              transactionById(id: $__fusion_2_id) {
+                total(pricing: $__fusion_1_pricing)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_pricing": {
+                  "currency": "USD",
+                  "taxRate": 1
+                },
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_1_pricing": {
+                  "currency": "USD",
+                  "taxRate": 2
+                },
+                "__fusion_2_id": "2"
+              },
+              {
+                "__fusion_1_pricing": {
+                  "currency": "EUR",
+                  "taxRate": 3
+                },
+                "__fusion_2_id": "3"
+              },
+              {
+                "__fusion_1_pricing": {
+                  "currency": "EUR",
+                  "taxRate": 4
+                },
+                "__fusion_2_id": "4"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "total": 101
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "total": 202
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "total": 603
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "total": 804
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        transactionById(id: ID!): Transaction @lookup @internal
+      }
+
+      type Transaction @key(fields: "id") {
+        id: ID! @shareable
+        taxRate: Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_8818c8f3_3($__fusion_3_id: ID!) {
+              transactionById(id: $__fusion_3_id) {
+                taxRate
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "1"
+              },
+              {
+                "__fusion_3_id": "2"
+              },
+              {
+                "__fusion_3_id": "3"
+              },
+              {
+                "__fusion_3_id": "4"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "taxRate": 1
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "taxRate": 2
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "taxRate": 3
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "taxRate": 4
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          users {
+            transactions {
+              total
+              id @fusion__requirement
+              taxRate @fusion__requirement
+            }
+            userCurrency @fusion__requirement {
+              isoCode @fusion__requirement
+            }
+          }
+        }
+      hash: ed35f9360cf953cf4703ada867a6be01
+      searchSpace: 1
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_8818c8f3_1 {
+          users {
+            transactions {
+              id
+            }
+            userCurrency {
+              isoCode
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_8818c8f3_2($__fusion_1_pricing: PricingInput!, $__fusion_2_id: ID!) {
+          transactionById(id: $__fusion_2_id) {
+            total(pricing: $__fusion_1_pricing)
+          }
+        }
+      source: $.transactionById
+      target: $.users.transactions
+      requirements:
+        - name: __fusion_1_pricing
+          selectionMap: >-
+            {
+              currency: $userContext.userCurrency.isoCode
+              taxRate: taxRate
+            }
+          contextRoots:
+            - name: userContext
+              path: $.users
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 3
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_8818c8f3_3($__fusion_3_id: ID!) {
+          transactionById(id: $__fusion_3_id) {
+            taxRate
+          }
+        }
+      source: $.transactionById
+      target: $.users.transactions
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

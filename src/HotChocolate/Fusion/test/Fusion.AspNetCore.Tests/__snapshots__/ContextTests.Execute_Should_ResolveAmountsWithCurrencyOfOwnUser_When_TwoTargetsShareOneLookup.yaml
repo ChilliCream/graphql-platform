@@ -1,0 +1,370 @@
+title: Execute_Should_ResolveAmountsWithCurrencyOfOwnUser_When_TwoTargetsShareOneLookup
+request:
+  document: |
+    {
+      users {
+        transactions {
+          amount
+        }
+        pending {
+          amount
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "users": [
+          {
+            "transactions": [
+              {
+                "amount": 100
+              },
+              {
+                "amount": 200
+              }
+            ],
+            "pending": [
+              {
+                "amount": 700
+              }
+            ]
+          },
+          {
+            "transactions": [
+              {
+                "amount": 600
+              },
+              {
+                "amount": 800
+              }
+            ],
+            "pending": [
+              {
+                "amount": 1600
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        me: User
+        users: [User!]!
+        transactionById(id: ID!): Transaction @lookup @internal
+      }
+
+      type Account {
+        transactions: [Transaction!]!
+      }
+
+      type Currency {
+        isoCode: String!
+      }
+
+      type Transaction @key(fields: "id") {
+        amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+        id: ID! @shareable
+      }
+
+      type User @key(fields: "id") @context(name: "userContext") {
+        transactions: [Transaction!]!
+        account: Account!
+        id: ID! @shareable
+        userCurrency: Currency!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_b7736447_1 {
+              users {
+                transactions {
+                  id
+                }
+                userCurrency {
+                  isoCode
+                }
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "transactions": [
+                        {
+                          "id": "1"
+                        },
+                        {
+                          "id": "2"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "USD"
+                      },
+                      "id": "1"
+                    },
+                    {
+                      "transactions": [
+                        {
+                          "id": "3"
+                        },
+                        {
+                          "id": "4"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "EUR"
+                      },
+                      "id": "2"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_b7736447_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+              transactionById(id: $__fusion_2_id) {
+                amount(currency: $__fusion_1_currency)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_currency": "USD",
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_1_currency": "USD",
+                "__fusion_2_id": "2"
+              },
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "3"
+              },
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "4"
+              },
+              {
+                "__fusion_1_currency": "USD",
+                "__fusion_2_id": "7"
+              },
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "8"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 100
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 200
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 600
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 800
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 700
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 1600
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup @internal
+      }
+
+      type Transaction @key(fields: "id") {
+        id: ID! @shareable
+      }
+
+      type User @key(fields: "id") {
+        pending: [Transaction!]!
+        id: ID! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_b7736447_3($__fusion_3_id: ID!) {
+              userById(id: $__fusion_3_id) {
+                pending {
+                  id
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "1"
+              },
+              {
+                "__fusion_3_id": "2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "pending": [
+                      {
+                        "id": "7"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "pending": [
+                      {
+                        "id": "8"
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          users {
+            transactions {
+              amount
+              id @fusion__requirement
+            }
+            pending {
+              amount
+              id @fusion__requirement
+            }
+            userCurrency @fusion__requirement {
+              isoCode @fusion__requirement
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: 20333b496b70ce26f0adf5344396672e
+      searchSpace: 1
+      expandedNodes: 5
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_b7736447_1 {
+          users {
+            transactions {
+              id
+            }
+            userCurrency {
+              isoCode
+            }
+            id
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_b7736447_3($__fusion_3_id: ID!) {
+          userById(id: $__fusion_3_id) {
+            pending {
+              id
+            }
+          }
+        }
+      source: $.userById
+      target: $.users
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 2
+      type: OperationBatch
+      schema: A
+      operation: |
+        query Op_b7736447_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+          transactionById(id: $__fusion_2_id) {
+            amount(currency: $__fusion_1_currency)
+          }
+        }
+      source: $.transactionById
+      targets:
+        - $.users.transactions
+        - $.users.pending
+      batchingGroupId: 6
+      requirements:
+        - name: __fusion_1_currency
+          selectionMap: >-
+            $userContext.userCurrency.isoCode
+          contextRoots:
+            - name: userContext
+              path: $.users
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 3
