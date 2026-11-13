@@ -148,7 +148,8 @@ internal sealed partial class FetchResultStore
                 elements,
                 requestVariables,
                 requiredShape,
-                entityTypeName);
+                entityTypeName,
+                contextValues: []);
         }
     }
 
@@ -184,7 +185,8 @@ internal sealed partial class FetchResultStore
                 _collectTargetCombined.AsSpan(0, combinedCount),
                 requestVariables,
                 requiredShape,
-                entityTypeName);
+                entityTypeName,
+                contextValues: []);
         }
     }
 
@@ -245,6 +247,7 @@ internal sealed partial class FetchResultStore
                 requestVariables,
                 requiredShape,
                 entityTypeName,
+                contextValues: [],
                 producers[..producerCount],
                 candidates.ResponseNames,
                 out reusedCount);
@@ -284,7 +287,8 @@ internal sealed partial class FetchResultStore
                 requestVariables,
                 requiredData,
                 requiredShape,
-                entityTypeName);
+                entityTypeName,
+                contextValues: []);
         }
     }
 
@@ -293,7 +297,8 @@ internal sealed partial class FetchResultStore
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
         ImmutableArray<RepresentationShapeNode> requiredShape,
-        string entityTypeName)
+        string entityTypeName,
+        ReadOnlySpan<ContextVariableValue> contextValues)
     {
         Span<(long Start, long Length)> requirementSlices = requiredData.Length <= 32
             ? stackalloc (long, long)[requiredData.Length]
@@ -353,6 +358,7 @@ internal sealed partial class FetchResultStore
             var value = CompleteRepresentationVariableValueUnsafe(
                 variableStartPosition,
                 requestVariables,
+                contextValues,
                 resultPaths,
                 ref additionalPaths,
                 nextIndex);
@@ -379,12 +385,14 @@ internal sealed partial class FetchResultStore
         ReadOnlySpan<CompositeResultElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ImmutableArray<RepresentationShapeNode> requiredShape,
-        string entityTypeName)
+        string entityTypeName,
+        ReadOnlySpan<ContextVariableValue> contextValues)
         => BuildRepresentationValueUnsafe(
             elements,
             requestVariables,
             requiredShape,
             entityTypeName,
+            contextValues,
             producers: [],
             reusedResponseNames: [],
             out _);
@@ -396,6 +404,7 @@ internal sealed partial class FetchResultStore
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName,
+        ReadOnlySpan<ContextVariableValue> contextValues,
         ReadOnlySpan<CompositeResultElement> producers,
         ReadOnlySpan<string> reusedResponseNames,
         out int reusedCount)
@@ -495,6 +504,7 @@ internal sealed partial class FetchResultStore
             var value = CompleteRepresentationVariableValueUnsafe(
                 variableStartPosition,
                 requestVariables,
+                contextValues,
                 resultPaths,
                 ref additionalPaths,
                 nextIndex);
@@ -580,6 +590,7 @@ internal sealed partial class FetchResultStore
     private RepresentationValue CompleteRepresentationVariableValueUnsafe(
         int startPosition,
         IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<ContextVariableValue> contextValues,
         EntityResultPath[] resultPaths,
         ref AdditionalPathAccumulator additionalPaths,
         int count)
@@ -594,6 +605,7 @@ internal sealed partial class FetchResultStore
 
         _jsonWriter.WriteEndArray();
         WriteRequestVariablePropertiesUnsafe(requestVariables);
+        WriteContextVariablePropertiesUnsafe(contextValues);
         _jsonWriter.WriteEndObject();
 
         additionalPaths.ApplyTo(resultPaths, count, this, _result);

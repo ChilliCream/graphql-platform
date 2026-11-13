@@ -15,6 +15,8 @@ namespace HotChocolate.Fusion.Execution.ApolloFederation;
 /// An argument binds a requirement when its value is a variable named after a
 /// requirement key. Maps bound on the root lookup field anchor at the representation
 /// root; maps bound on nested fields anchor at the selection set containing the field.
+/// A requirement that reads from a context is a field argument of the source schema, so it
+/// is not part of the representation shape.
 /// </para>
 /// </summary>
 internal static class RepresentationShapeBuilder
@@ -55,6 +57,12 @@ internal static class RepresentationShapeBuilder
         for (var i = 0; i < requiredData.Length; i++)
         {
             var requirement = requiredData[i];
+
+            if (IsContextRequirement(requirement))
+            {
+                continue;
+            }
+
             EnsureTargetPrefix(target, requirement);
 
             var path = ImmutableArray.CreateBuilder<RepresentationPathSegment>(
@@ -111,7 +119,7 @@ internal static class RepresentationShapeBuilder
             bindings.Add(new RepresentationBinding(requirement.Key, path.ToImmutable()));
         }
 
-        return bindings.MoveToImmutable();
+        return bindings.ToImmutable();
     }
 
     /// <summary>
@@ -254,6 +262,15 @@ internal static class RepresentationShapeBuilder
                 requiredData[index].InternalAlias);
         }
 
+        for (var i = 0; i < requiredData.Length; i++)
+        {
+            // A context requirement has no binding, it is not part of the representation.
+            if (IsContextRequirement(requiredData[i]))
+            {
+                matched[i] = true;
+            }
+        }
+
         EnsureAllRequirementsAreBound(requiredData, matched);
 
         // Bake the abstract-composite decision now, at plan build, so the
@@ -327,6 +344,9 @@ internal static class RepresentationShapeBuilder
         throw new InvalidOperationException(
             $"The rewritten Apollo operation does not select the entity type '{entityTypeName}'.");
     }
+
+    private static bool IsContextRequirement(OperationRequirement requirement)
+        => !requirement.ContextRoots.IsDefaultOrEmpty;
 
     private static void EnsureTargetPrefix(
         SelectionPath target,
@@ -578,6 +598,12 @@ internal static class RepresentationShapeBuilder
             }
 
             matched[index] = true;
+
+            if (IsContextRequirement(requiredData[index]))
+            {
+                continue;
+            }
+
             bindings.Add(new RepresentationBinding(requiredData[index].Key, [.. path]));
         }
     }

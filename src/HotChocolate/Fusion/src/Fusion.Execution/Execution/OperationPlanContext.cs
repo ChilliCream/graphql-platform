@@ -677,6 +677,50 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             out reusedCount);
     }
 
+    /// <summary>
+    /// Creates the representations variables of an entity lookup whose requirements read from
+    /// contexts. The entities are grouped by equal context values, and every group gets its own
+    /// variables.
+    /// </summary>
+    internal ImmutableArray<RepresentationValue> CreateRepresentationVariableValues(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
+    {
+        if (requirements.Length == 0)
+        {
+            return [];
+        }
+
+        var importedMatchCount = CountImportedRequirementKeys(requirements);
+
+        if (importedMatchCount == 0)
+        {
+            return _resultStore.CreateRepresentationVariableValues(
+                selectionSets,
+                GetPathThroughVariables(forwardedVariables),
+                requirements,
+                requiredShape,
+                entityTypeName);
+        }
+
+        if (importedMatchCount != requirements.Length)
+        {
+            // Planner-invariant guard, see the single-target overload.
+            throw CreateMixedScopeException(requirements);
+        }
+
+        return _resultStore.CreateRepresentationVariableValuesFromSnapshot(
+            _requirementValues,
+            _requirementKeys!,
+            GetPathThroughVariables(forwardedVariables),
+            requirements,
+            requiredShape,
+            entityTypeName);
+    }
+
     private InvalidOperationException CreateMixedScopeException(
         ReadOnlySpan<OperationRequirement> requirements)
     {
