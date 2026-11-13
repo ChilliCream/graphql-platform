@@ -17,6 +17,7 @@ In Hot Chocolate, many of these directives are expressed using C# attributes. Se
 | [`@interfaceObject`](#interfaceobject) | `OBJECT`                                  |     No     | Contribute fields to an interface                 |
 | [`@implement`](#implement)             | `FIELD_DEFINITION`                        |     No     | Replace a projected interface-object default      |
 | [`@require`](#require)                 | `ARGUMENT_DEFINITION`                     |     No     | Declare cross-subgraph data dependencies          |
+| [`@context`](#context)                 | `OBJECT`, `INTERFACE`, `UNION`            |    Yes     | Provide a named value to `@require` context paths |
 | [`@shareable`](#shareable)             | `OBJECT`, `FIELD_DEFINITION`              |    Yes     | Allow multiple subgraphs to define the same field |
 | [`@provides`](#provides)               | `FIELD_DEFINITION`                        |     No     | Declare locally-resolvable subfields              |
 | [`@external`](#external)               | `FIELD_DEFINITION`                        |     No     | Mark field as owned by another subgraph           |
@@ -326,6 +327,81 @@ type Product {
 ```
 
 > **In C#:** `[Require]` attribute on method parameters. See [Data Requirements](./data-requirements-and-mapping.md).
+
+## `@context`
+
+Declares that every value of the annotated type provides a named context. A `@require` field selection map in the same source schema reads from the context with a context path such as `$userContext.userCurrency.isoCode`. Arguments that read from a context are removed from the composed client-facing schema like any other `@require` argument.
+
+```graphql
+directive @context(name: String!) repeatable on OBJECT | INTERFACE | UNION
+```
+
+| Argument | Type      | Description                                                                           |
+| -------- | --------- | ------------------------------------------------------------------------------------- |
+| `name`   | `String!` | The name of the context. It starts with a letter and contains only letters and digits |
+
+**Example -- currency of the current user:**
+
+```graphql
+# Source schema
+type Query {
+  me: User
+  transactionById(id: ID!): Transaction @lookup @internal
+}
+
+type User @key(fields: "id") @context(name: "userContext") {
+  id: ID!
+  userCurrency: Currency!
+  transactions: [Transaction!]!
+}
+
+type Currency {
+  isoCode: String!
+}
+
+type Transaction @key(fields: "id") {
+  id: ID!
+  amount(
+    currency: String! @require(field: "$userContext.userCurrency.isoCode")
+  ): Int!
+}
+```
+
+When a query selects `Transaction.amount` below a `User`, the gateway passes the `isoCode` of that user's `userCurrency` as the `currency` argument. Clients do not see the `currency` argument.
+
+```csharp
+[Context("userContext")]
+public sealed class User
+{
+    public required string Id { get; init; }
+
+    public required Currency UserCurrency { get; init; }
+}
+
+[ObjectType<Transaction>]
+public static partial class TransactionNode
+{
+    public static int GetAmount(
+        [Parent] Transaction transaction,
+        [Require("$userContext.userCurrency.isoCode")] string currency)
+        => CurrencyConverter.Convert(transaction.Amount, currency);
+}
+```
+
+**Rules:**
+
+- The gateway uses the nearest value above the field that provides the context. If several types on the path provide the same context, the one closest to the field wins.
+- The value the field is selected on does not provide the context for that field. A field reads only from values above it.
+- Every query path that reaches the field must pass through a value that provides the context. A path without one raises `UNSATISFIABLE_QUERY_PATH`.
+- A context name starts with a letter and contains only letters and digits. Violations raise `CONTEXT_NAME_INVALID`.
+- The context must be provided by a type in the same source schema as the field that reads it. Otherwise composition raises `REQUIRE_CONTEXT_NOT_SET`. The fields that the path selects can be served by any source schema.
+- The source schema that declares the field needs a lookup for the field's parent type. Without one, composition raises `UNSATISFIABLE_QUERY_PATH`.
+- A context path is not allowed on interface fields or on fields that implement an interface field (`REQUIRE_CONTEXT_ON_INTERFACE`).
+- An argument that reads from a context cannot have a default value (`REQUIRE_CONTEXT_DEFAULT_VALUE`).
+- `@context` is not allowed on types that are annotated with `@interfaceObject` (`CONTEXT_ON_INTERFACE_OBJECT`).
+- A context path is only allowed in `@require`. In `@is` it raises `IS_FIELDS_HAS_CONTEXT_PATH`.
+
+> **In C#:** `[Context]` attribute on classes, structs and interfaces. See [Data Requirements](./data-requirements-and-mapping.md) for the syntax of context paths.
 
 ---
 
