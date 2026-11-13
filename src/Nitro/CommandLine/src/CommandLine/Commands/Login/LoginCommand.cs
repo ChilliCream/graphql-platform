@@ -85,7 +85,7 @@ internal sealed class LoginCommand : Command
         var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
         var selected = await PagedSelectionPrompt
             .New(paginationContainer)
-            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
+            .Title(Prompts.SelectDefaultWorkspace)
             .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
 
@@ -97,8 +97,6 @@ internal sealed class LoginCommand : Command
         await sessionService.SelectWorkspaceAsync(
             new Workspace(selected.Id, selected.Name),
             cancellationToken);
-
-        console.OkQuestion(Prompts.SelectDefaultWorkspace, selected.Name);
 
         return ExitCodes.Success;
     }

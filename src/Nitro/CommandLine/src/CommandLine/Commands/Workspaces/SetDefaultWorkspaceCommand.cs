@@ -61,7 +61,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         var selected = await PagedSelectionPrompt
             .New(paginationContainer)
-            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
+            .Title(Prompts.SelectDefaultWorkspace)
             .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
 
@@ -72,8 +72,6 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         var selectedWorkspace = new Workspace(selected.Id, selected.Name);
         await sessionService.SelectWorkspaceAsync(selectedWorkspace, cancellationToken);
-
-        console.OkQuestion(Prompts.SelectDefaultWorkspace, selectedWorkspace.Name);
 
         return ExitCodes.Success;
     }

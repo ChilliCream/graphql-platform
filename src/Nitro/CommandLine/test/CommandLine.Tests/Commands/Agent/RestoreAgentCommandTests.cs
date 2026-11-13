@@ -753,7 +753,7 @@ public sealed partial class RestoreAgentCommandTests(NitroCommandFixture fixture
         result.StdOut.Replace(Directory.GetParent(WorkingDirectory)!.FullName, "<temp>")
             .MatchInlineSnapshot(
                 """
-                ? Delete '<temp>/acme/.nitro' and '<temp>/acme/.git/nitro' and restore from '<temp>/backup.zip'? [y/n] (y): n
+                Delete '<temp>/acme/.nitro' and '<temp>/acme/.git/nitro' and restore from '<temp>/backup.zip'? [y/n] (y): n
                 Aborted.
                 """);
     }

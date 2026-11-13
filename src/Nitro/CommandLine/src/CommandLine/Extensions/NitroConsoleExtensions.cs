@@ -42,7 +42,7 @@ internal static class NitroConsoleExtensions
                 "Attempted to prompt the user for input, but the console is running in non-interactive mode.");
         }
 
-        var prompt = new TextPrompt<string>(question.AsQuestion());
+        var prompt = new TextPrompt<string>(question);
 
         if (defaultValue is not null)
         {
@@ -66,7 +66,7 @@ internal static class NitroConsoleExtensions
         }
 
         var prompt = new SelectionPrompt<T>()
-            .Title(question.AsQuestion())
+            .Title(question)
             .AddChoices(items);
 
         return await prompt.ShowAsync(console, cancellationToken);
@@ -112,7 +112,7 @@ internal static class NitroConsoleExtensions
                 "Attempted to prompt the user for confirmation, but the console is running in non-interactive mode.");
         }
 
-        var prompt = new ConfirmationPrompt(question.AsQuestion())
+        var prompt = new ConfirmationPrompt(question)
         {
             DefaultValue = defaultValue
         };
@@ -180,20 +180,13 @@ internal static class NitroConsoleExtensions
         console.MarkupLine(Glyphs.Check.Space() + message);
     }
 
-    public static void OkQuestion(this INitroConsole console, string question, string result)
-    {
-        console.MarkupLine(
-            $"{Glyphs.QuestionMark.Space()}[bold]{question}[/]: [green]{result}[/]");
-    }
-
     public static async Task<string> AskAsync(
         this INitroConsole console,
         string question,
         string defaultValue,
         CancellationToken cancellationToken)
     {
-        var questionText = $"{question}".AsQuestion();
-        var prompt = new TextPrompt<string>(questionText).DefaultValue(defaultValue);
+        var prompt = new TextPrompt<string>(question).DefaultValue(defaultValue);
         return await prompt.ShowAsync(console, cancellationToken);
     }
 }

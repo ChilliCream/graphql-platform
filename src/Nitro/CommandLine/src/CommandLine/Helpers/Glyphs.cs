@@ -6,8 +6,6 @@ internal static class Glyphs
 
     public const string Cross = "[red bold]✕[/]";
 
-    public const string QuestionMark = "[lime bold]?[/]";
-
     public const string ExclamationMark = "[yellow bold]![/]";
 
     public const string Clock = "⏳";

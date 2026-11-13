@@ -120,7 +120,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             $"""
-            ? Delete task '{id}'? [y/n] (y): y
+            Delete task '{id}'? [y/n] (y): y
             ✓ Deleted task '{id}'.
             """);
     }
@@ -142,7 +142,7 @@ public sealed class DeleteTaskCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             $"""
-            ? Delete task '{id}'? [y/n] (y): n
+            Delete task '{id}'? [y/n] (y): n
             Aborted.
             """);
         Assert.Equal("open", await QueryScalarAsync(
