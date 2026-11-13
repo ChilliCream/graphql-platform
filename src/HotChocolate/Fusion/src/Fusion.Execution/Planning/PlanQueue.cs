@@ -684,13 +684,18 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             if (schemaName == planNodeTemplate.SchemaName)
             {
-                var inlineBacklog = backlog.Push(workItem);
-                var inlineRemainingCost = EstimateRemainingCost(planNodeTemplate, inlineBacklog);
-                Enqueue(planNodeTemplate with
+                // A field that reads from a context is resolved in a later request through a
+                // lookup, so it is never inlined into the step that produced its parent.
+                if (!ReadsFromContext(workItem.Selection.Field, schemaName))
                 {
-                    Backlog = inlineBacklog,
-                    RemainingCost = inlineRemainingCost,
-                });
+                    var inlineBacklog = backlog.Push(workItem);
+                    var inlineRemainingCost = EstimateRemainingCost(planNodeTemplate, inlineBacklog);
+                    Enqueue(planNodeTemplate with
+                    {
+                        Backlog = inlineBacklog,
+                        RemainingCost = inlineRemainingCost,
+                    });
+                }
 
                 if (schema.TryGetBestDirectLookup(
                     selectionSetType,
@@ -758,4 +763,8 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             }
         }
     }
+
+    private static bool ReadsFromContext(FusionOutputFieldDefinition field, string schemaName)
+        => field.Sources.TryGetMember(schemaName, out var source)
+            && source.Requirements is { ContextRequirements.Count: > 0 };
 }

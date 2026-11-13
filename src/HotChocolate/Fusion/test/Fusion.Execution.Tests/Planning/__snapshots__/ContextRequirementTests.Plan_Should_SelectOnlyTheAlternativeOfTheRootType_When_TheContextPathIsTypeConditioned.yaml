@@ -1,0 +1,50 @@
+operation:
+  - document: |
+      {
+        me {
+          transactions {
+            label
+            id @fusion__requirement
+          }
+          locale @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        me {
+          transactions {
+            id
+          }
+          locale
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_locale: String!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          label(locale: $__fusion_1_locale)
+        }
+      }
+    source: $.transactionById
+    target: $.me.transactions
+    requirements:
+      - name: __fusion_1_locale
+        selectionMap: >-
+          $account<User>.locale | $account<Organization>.defaultLocale
+        contextRoots:
+          - name: account
+            path: $.me
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

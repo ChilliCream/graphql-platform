@@ -1,0 +1,83 @@
+operation:
+  - document: |
+      {
+        me {
+          products {
+            amount
+            id @fusion__requirement
+            exchange @fusion__requirement {
+              rate @fusion__requirement
+            }
+          }
+          userCurrency @fusion__requirement {
+            isoCode @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        me {
+          products {
+            id
+          }
+          userCurrency {
+            isoCode
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_conversion: ConversionInput!
+        $__fusion_2_id: ID!
+      ) {
+        productById(id: $__fusion_2_id) {
+          amount(conversion: $__fusion_1_conversion)
+        }
+      }
+    source: $.productById
+    target: $.me.products
+    requirements:
+      - name: __fusion_1_conversion
+        selectionMap: >-
+          {
+            currency: $userContext.userCurrency.isoCode
+            rate: exchange.rate
+          }
+        contextRoots:
+          - name: userContext
+            path: $.me
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 3
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        productById(id: $__fusion_3_id) {
+          exchange {
+            rate
+          }
+        }
+      }
+    source: $.productById
+    target: $.me.products
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
