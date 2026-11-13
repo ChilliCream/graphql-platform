@@ -8,7 +8,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// Manages RabbitMQ connections and consumers with automatic reconnection.
 /// </summary>
-public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
+internal sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 {
     private ImmutableArray<RegisteredConsumer> _registeredConsumers = [];
 

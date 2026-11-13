@@ -13,7 +13,7 @@ public class RabbitMQReplyQueueTests
         // reply queue must stay durable and rely on auto-delete plus a queue expiry.
         var runtime = CreateRuntime(_ => { });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name.StartsWith("response-", StringComparison.Ordinal));
@@ -36,7 +36,7 @@ public class RabbitMQReplyQueueTests
             d.Queue.Arguments["x-delivery-limit"] = 5;
         }));
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act
         var queue = topology.Queues.Single(q => q.Name.StartsWith("response-", StringComparison.Ordinal));
