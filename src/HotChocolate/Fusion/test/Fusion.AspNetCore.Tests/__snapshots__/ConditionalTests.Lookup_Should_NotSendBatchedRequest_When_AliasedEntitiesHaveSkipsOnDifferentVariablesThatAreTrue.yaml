@@ -1,0 +1,155 @@
+title: Lookup_Should_NotSendBatchedRequest_When_AliasedEntitiesHaveSkipsOnDifferentVariablesThatAreTrue
+request:
+  document: |
+    query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+      first: thing {
+        id
+        delta @skip(if: $skipDelta)
+        epsilon @skip(if: $skipEpsilon)
+      }
+      second: thing {
+        id
+        delta @skip(if: $skipDelta)
+        epsilon @skip(if: $skipEpsilon)
+      }
+    }
+  variables: |
+    {
+      "skipDelta": true,
+      "skipEpsilon": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "first": {
+          "id": 123
+        },
+        "second": {
+          "id": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thing: Thing
+      }
+
+      type Thing @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_20dc0055_1 {
+              first: thing {
+                id
+              }
+              second: thing {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "first": {
+                    "id": 123
+                  },
+                  "second": {
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thingById(id: Int!): Thing @lookup
+      }
+
+      type Thing {
+        id: Int!
+        delta: Int!
+        epsilon: Int!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+          first: thing {
+            id
+            id @fusion__requirement
+            delta @skip(if: $skipDelta)
+            epsilon @skip(if: $skipEpsilon)
+          }
+          second: thing {
+            id
+            id @fusion__requirement
+            delta @skip(if: $skipDelta)
+            epsilon @skip(if: $skipEpsilon)
+          }
+        }
+      name: testQuery
+      hash: 0676e0aa973456fec430b4a3c3b35d82
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_20dc0055_1 {
+          first: thing {
+            id
+          }
+          second: thing {
+            id
+          }
+        }
+    - id: 2
+      type: OperationBatch
+      schema: B
+      operation: |
+        query testQuery_20dc0055_2(
+          $skipDelta: Boolean!
+          $skipEpsilon: Boolean!
+          $__fusion_1_id: Int!
+        ) {
+          thingById(id: $__fusion_1_id) {
+            delta @skip(if: $skipDelta)
+            epsilon @skip(if: $skipEpsilon)
+          }
+        }
+      source: $.thingById
+      targets:
+        - $.second
+        - $.first
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      conditionAlternatives:
+        -
+          - variable: $skipDelta
+            passingValue: false
+        -
+          - variable: $skipEpsilon
+            passingValue: false
+      forwardedVariables:
+        - skipDelta
+        - skipEpsilon
+      dependencies:
+        - id: 1

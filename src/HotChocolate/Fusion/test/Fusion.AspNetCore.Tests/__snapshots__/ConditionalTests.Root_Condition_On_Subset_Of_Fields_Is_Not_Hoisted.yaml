@@ -84,6 +84,13 @@ operationPlan:
           }
           c @include(if: $x)
         }
+      conditionAlternatives:
+        -
+          - variable: $s
+            passingValue: false
+        -
+          - variable: $x
+            passingValue: true
       forwardedVariables:
         - s
         - x

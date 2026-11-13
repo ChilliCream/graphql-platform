@@ -1,0 +1,129 @@
+title: Lookup_Should_NotSendRequest_When_SkipAndIncludeOnDifferentVariablesAreOff
+request:
+  document: |
+    query testQuery($skipDelta: Boolean!, $includeEpsilon: Boolean!) {
+      thing {
+        id
+        delta @skip(if: $skipDelta)
+        epsilon @include(if: $includeEpsilon)
+      }
+    }
+  variables: |
+    {
+      "skipDelta": true,
+      "includeEpsilon": false
+    }
+response:
+  body: |
+    {
+      "data": {
+        "thing": {
+          "id": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thing: Thing
+      }
+
+      type Thing @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_c96d81bd_1 {
+              thing {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thing": {
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thingById(id: Int!): Thing @lookup
+      }
+
+      type Thing {
+        id: Int!
+        delta: Int!
+        epsilon: Int!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($skipDelta: Boolean!, $includeEpsilon: Boolean!) {
+          thing {
+            id
+            id @fusion__requirement
+            delta @skip(if: $skipDelta)
+            epsilon @include(if: $includeEpsilon)
+          }
+        }
+      name: testQuery
+      hash: 4bbf87f277ebd826c934e115b925c829
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_c96d81bd_1 {
+          thing {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_c96d81bd_2(
+          $skipDelta: Boolean!
+          $includeEpsilon: Boolean!
+          $__fusion_1_id: Int!
+        ) {
+          thingById(id: $__fusion_1_id) {
+            delta @skip(if: $skipDelta)
+            epsilon @include(if: $includeEpsilon)
+          }
+        }
+      source: $.thingById
+      target: $.thing
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      conditionAlternatives:
+        -
+          - variable: $includeEpsilon
+            passingValue: true
+        -
+          - variable: $skipDelta
+            passingValue: false
+      forwardedVariables:
+        - skipDelta
+        - includeEpsilon
+      dependencies:
+        - id: 1

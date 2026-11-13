@@ -77,6 +77,13 @@ operationPlan:
       conditions:
         - variable: $s
           passingValue: false
+      conditionAlternatives:
+        -
+          - variable: $x
+            passingValue: true
+        -
+          - variable: $y
+            passingValue: true
       forwardedVariables:
         - x
         - y
