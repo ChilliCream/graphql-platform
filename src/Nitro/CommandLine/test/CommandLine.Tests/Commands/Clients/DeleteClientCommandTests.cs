@@ -141,6 +141,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertSuccess(
             """
+            ? Which client do you want to delete?: client-1
             Deleting client 'client-1'
             └── ✓ Deleted client 'client-1'.
 
@@ -203,6 +204,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
             """);
         result.StdOut.MatchInlineSnapshot(
             """
+            ? Which client do you want to delete?: client-1
             Deleting client 'client-1'
             └── ✕ Failed to delete the client.
             """);
@@ -229,6 +231,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
             """);
         result.StdOut.MatchInlineSnapshot(
             """
+            ? Which client do you want to delete?: client-1
             Deleting client 'client-1'
             └── ✕ Failed to delete the client.
             """);
@@ -255,6 +258,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
             """);
         result.StdOut.MatchInlineSnapshot(
             """
+            ? Which client do you want to delete?: client-1
             Deleting client 'client-1'
             └── ✕ Failed to delete the client.
             """);

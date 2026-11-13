@@ -63,40 +63,41 @@ internal sealed class LoginCommand : Command
         var page = await client.SelectWorkspacesAsync(null, 5, cancellationToken);
         var loggedIn = $"Logged in as [green]{session.Email.EscapeMarkup()}[/]";
 
-        if (page.Items.Count == 1)
-        {
-            var only = page.Items[0];
-            await sessionService.SelectWorkspaceAsync(
-                new Workspace(only.Id, only.Name),
-                cancellationToken);
-            console.OkLine($"{loggedIn} (Workspace: [green]{only.Name.EscapeMarkup()}[/])");
-            return ExitCodes.Success;
-        }
-
-        console.OkLine(loggedIn);
-
         if (page.Items.Count == 0)
         {
+            console.OkLine(loggedIn);
             console.MarkupLine(
                 $"{Glyphs.ExclamationMark.Space()}You do not have any workspaces. Run `nitro launch` and create one.");
             return ExitCodes.Success;
         }
 
-        var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
-        var selected = await PagedSelectionPrompt
-            .New(paginationContainer)
-            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
-            .UseConverter(x => x.Name)
-            .RenderAsync(console, cancellationToken);
+        Workspace workspace;
 
-        if (selected is null)
+        if (page.Items.Count == 1)
         {
-            throw new ExitException("No workspace was selected as default.");
+            var only = page.Items[0];
+            workspace = new Workspace(only.Id, only.Name);
+        }
+        else
+        {
+            var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
+            var selected = await PagedSelectionPrompt
+                .New(paginationContainer)
+                .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
+                .UseConverter(x => x.Name)
+                .RenderAsync(console, cancellationToken);
+
+            if (selected is null)
+            {
+                console.OkLine(loggedIn);
+                throw new ExitException("No workspace was selected as default.");
+            }
+
+            workspace = new Workspace(selected.Id, selected.Name);
         }
 
-        await sessionService.SelectWorkspaceAsync(
-            new Workspace(selected.Id, selected.Name),
-            cancellationToken);
+        await sessionService.SelectWorkspaceAsync(workspace, cancellationToken);
+        console.OkLine($"{loggedIn} (Workspace: [green]{workspace.Name.EscapeMarkup()}[/])");
 
         return ExitCodes.Success;
     }

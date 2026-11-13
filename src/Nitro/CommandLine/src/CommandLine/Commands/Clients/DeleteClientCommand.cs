@@ -61,6 +61,11 @@ internal sealed class DeleteClientCommand : Command
             console.WriteLine("Selected client: " + selectedClient.Name);
 
             clientId = selectedClient.Id;
+            console.OkQuestion(clientMessage, clientId);
+        }
+        else
+        {
+            console.OkQuestion(clientMessage, clientId);
         }
 
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);

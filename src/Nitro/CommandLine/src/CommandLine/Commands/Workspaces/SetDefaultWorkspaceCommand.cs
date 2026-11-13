@@ -73,6 +73,8 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         var selectedWorkspace = new Workspace(selected.Id, selected.Name);
         await sessionService.SelectWorkspaceAsync(selectedWorkspace, cancellationToken);
 
+        console.OkQuestion(Prompts.SelectDefaultWorkspace, selectedWorkspace.Name);
+
         return ExitCodes.Success;
     }
 }

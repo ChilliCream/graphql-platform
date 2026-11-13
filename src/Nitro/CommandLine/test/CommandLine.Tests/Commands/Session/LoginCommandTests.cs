@@ -171,6 +171,9 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
 
         // assert
         result.AssertSuccess();
+        Assert.EndsWith(
+            "✓ Logged in as user@test.com (Workspace: second-workspace)",
+            result.StdOut.TrimEnd());
 
         VerifyWorkspaceSelected("ws-2", "second-workspace");
     }

@@ -180,6 +180,11 @@ internal static class NitroConsoleExtensions
         console.MarkupLine(Glyphs.Check.Space() + message);
     }
 
+    public static void OkQuestion(this INitroConsole console, string question, string result)
+    {
+        console.MarkupLine($"{Glyphs.QuestionMark.Space()}{question}: [green]{result}[/]");
+    }
+
     public static async Task<string> AskAsync(
         this INitroConsole console,
         string question,
