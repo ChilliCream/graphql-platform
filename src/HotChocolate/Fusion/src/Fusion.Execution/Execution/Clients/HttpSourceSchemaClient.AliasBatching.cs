@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Clients.AliasBatching;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
@@ -26,7 +27,7 @@ public sealed partial class HttpSourceSchemaClient
         var requests = ImmutableArray.Create(request);
         var items = new AliasBatchItem[request.Variables.Length];
         var sharedVariables = new List<Utf8VariableDefinitionNode>();
-        var itemCount = CollectItems(requests, items, sharedVariables);
+        var itemCount = CollectItems(requests.AsSpan(), items, sharedVariables);
 
         await foreach (var result in ExecuteAliasBatchStreamAsync(
             context, requests, items, itemCount, sharedVariables, cancellationToken)
@@ -47,7 +48,7 @@ public sealed partial class HttpSourceSchemaClient
     {
         var items = new AliasBatchItem[CountVariableSets(requests)];
         var sharedVariables = new List<Utf8VariableDefinitionNode>();
-        var itemCount = CollectItems(requests, items, sharedVariables);
+        var itemCount = CollectItems(requests.AsSpan(), items, sharedVariables);
 
         // A batch that merges fewer than two items gains nothing from the alias protocol, so
         // every request stays on the protocol the source schema natively supports.
@@ -87,6 +88,199 @@ public sealed partial class HttpSourceSchemaClient
         }
     }
 
+    /// <summary>
+    /// Sends the variable sets of one request as a single batched request and hands the result of
+    /// every set to <paramref name="sink"/> in request order.
+    /// </summary>
+    private ValueTask ExecuteAliasBatchBufferedAsync(
+        OperationPlanContext context,
+        in SourceSchemaClientRequest request,
+        ISourceSchemaResultSink sink,
+        CancellationToken cancellationToken)
+    {
+        var itemBufferLength = request.Variables.Length;
+        var items = ArrayPool<AliasBatchItem>.Shared.Rent(itemBufferLength);
+        GraphQLHttpRequest httpRequest;
+        int itemCount;
+
+        try
+        {
+            var requests = new ReadOnlySpan<SourceSchemaClientRequest>(in request);
+            var sharedVariables = new List<Utf8VariableDefinitionNode>();
+            itemCount = CollectItems(requests, items, sharedVariables);
+            httpRequest = CreateAliasBatchHttpRequest(context, requests, items, itemCount, sharedVariables);
+        }
+        catch
+        {
+            ReturnItems(items, itemBufferLength);
+            throw;
+        }
+
+        return SendAliasBatchAsync(
+            context,
+            request.Node,
+            request.SchemaName,
+            httpRequest,
+            items,
+            itemCount,
+            sink,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends every request of the batch as a single batched request and hands the results to
+    /// <paramref name="sink"/> in request order.
+    /// </summary>
+    private ValueTask ExecuteAliasBatchBufferedAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        ISourceSchemaResultSink sink,
+        CancellationToken cancellationToken)
+    {
+        var itemBufferLength = CountVariableSets(requests);
+        var items = ArrayPool<AliasBatchItem>.Shared.Rent(itemBufferLength);
+        GraphQLHttpRequest httpRequest;
+        int itemCount;
+
+        try
+        {
+            var sharedVariables = new List<Utf8VariableDefinitionNode>();
+            itemCount = CollectItems(requests.AsSpan(), items, sharedVariables);
+
+            // A batch with too few items or with a request that cannot join it is executed on the
+            // streaming path, which sends those requests on their own.
+            if (itemCount < 2 || itemCount < itemBufferLength)
+            {
+                ReturnItems(items, itemBufferLength);
+                return ForwardToSinkAsync(
+                    ExecuteAliasBatchAsync(context, requests, cancellationToken),
+                    sink,
+                    cancellationToken);
+            }
+
+            httpRequest = CreateAliasBatchHttpRequest(
+                context,
+                requests.AsSpan(),
+                items,
+                itemCount,
+                sharedVariables);
+        }
+        catch
+        {
+            ReturnItems(items, itemBufferLength);
+            throw;
+        }
+
+        ref readonly var firstRequest = ref requests.ItemRef(0);
+
+        return SendAliasBatchAsync(
+            context,
+            firstRequest.Node,
+            firstRequest.SchemaName,
+            httpRequest,
+            items,
+            itemCount,
+            sink,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a batched request, hands the result of every item to <paramref name="sink"/> in item
+    /// order and returns <paramref name="items"/> to the pool.
+    /// </summary>
+    private async ValueTask SendAliasBatchAsync(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        GraphQLHttpRequest httpRequest,
+        AliasBatchItem[] items,
+        int itemCount,
+        ISourceSchemaResultSink sink,
+        CancellationToken cancellationToken)
+    {
+        var results = ArrayPool<SourceSchemaResult>.Shared.Rent(itemCount);
+        var resultCount = 0;
+        var delivered = 0;
+
+        try
+        {
+            GraphQLHttpResponse? httpResponse = null;
+
+            try
+            {
+                httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+                context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
+
+                var document = await httpResponse
+                    .ReadAsResultAsync(context.Memory, cancellationToken)
+                    .ConfigureAwait(false);
+
+                try
+                {
+                    SplitResponse(document, items.AsSpan(0, itemCount), results, schemaName);
+                    resultCount = itemCount;
+                }
+                catch
+                {
+                    document.Dispose();
+                    throw;
+                }
+            }
+            finally
+            {
+                httpResponse?.Dispose();
+            }
+
+            while (delivered < resultCount)
+            {
+                var result = results[delivered];
+                var requestIndex = items[delivered].RequestIndex;
+
+                // The sink frees the result it receives, so the result leaves the undelivered
+                // range before it is handed out.
+                delivered++;
+
+                if (!OnResult(context, node, sink, requestIndex, result))
+                {
+                    break;
+                }
+            }
+        }
+        finally
+        {
+            // A sink that stops before the last item leaves the results it did not receive
+            // behind, so their hold on the shared response document is released here.
+            for (var i = delivered; i < resultCount; i++)
+            {
+                results[i].Dispose();
+            }
+
+            results.AsSpan(0, itemCount).Clear();
+            ArrayPool<SourceSchemaResult>.Shared.Return(results);
+            ReturnItems(items, itemCount);
+        }
+    }
+
+    private static async ValueTask ForwardToSinkAsync(
+        IAsyncEnumerable<SourceSchemaBatchResult> results,
+        ISourceSchemaResultSink sink,
+        CancellationToken cancellationToken)
+    {
+        await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            if (!sink.OnResult(result.RequestIndex, result.Result))
+            {
+                break;
+            }
+        }
+    }
+
+    private static void ReturnItems(AliasBatchItem[] items, int length)
+    {
+        items.AsSpan(0, length).Clear();
+        ArrayPool<AliasBatchItem>.Shared.Return(items);
+    }
+
     private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteAliasBatchStreamAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
@@ -97,27 +291,15 @@ public sealed partial class HttpSourceSchemaClient
     {
         var request = requests[0];
         var node = request.Node;
-        var operation = context.OperationPlan.Operation;
-        var body = new AliasBatchedRequestBody(
+        var httpRequest = CreateAliasBatchHttpRequest(
+            context,
+            requests.AsSpan(),
             items,
             itemCount,
-            sharedVariables,
-            operation.Name,
-            operation.ShortHash,
-            ComputeCompositionHash(requests, items, itemCount),
-            _onError);
-
-        var httpRequest = new GraphQLHttpRequest(body, _configuration.BaseAddress)
-        {
-            AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-            OperationKind = GetOperationKindHint(request.OperationType),
-            HasDeadline = context.HasExecutionDeadline
-        };
-
-        SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, node, _configuration);
+            sharedVariables);
 
         GraphQLHttpResponse? httpResponse = null;
-        SourceSchemaResult[] results;
+        var results = new SourceSchemaResult[itemCount];
 
         try
         {
@@ -130,7 +312,7 @@ public sealed partial class HttpSourceSchemaClient
 
             try
             {
-                results = SplitResponse(document, items.AsSpan(0, itemCount), request.SchemaName);
+                SplitResponse(document, items.AsSpan(0, itemCount), results, request.SchemaName);
             }
             catch
             {
@@ -173,11 +355,43 @@ public sealed partial class HttpSourceSchemaClient
     }
 
     /// <summary>
+    /// Creates the batched request that merges the items into one aliased operation.
+    /// </summary>
+    private GraphQLHttpRequest CreateAliasBatchHttpRequest(
+        OperationPlanContext context,
+        ReadOnlySpan<SourceSchemaClientRequest> requests,
+        AliasBatchItem[] items,
+        int itemCount,
+        List<Utf8VariableDefinitionNode> sharedVariables)
+    {
+        ref readonly var request = ref requests[0];
+        var operation = context.OperationPlan.Operation;
+        var body = new AliasBatchedRequestBody(
+            items,
+            itemCount,
+            sharedVariables,
+            operation.Name,
+            operation.ShortHash,
+            ComputeCompositionHash(requests, items, itemCount),
+            _onError);
+
+        var httpRequest = new GraphQLHttpRequest(body, _configuration.BaseAddress)
+        {
+            AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
+            OperationKind = GetOperationKindHint(request.OperationType),
+            HasDeadline = context.HasExecutionDeadline
+        };
+
+        SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, request.Node, _configuration);
+        return httpRequest;
+    }
+
+    /// <summary>
     /// Computes the hash of the batch composition from the hash of the operation each item is
     /// built from, in item order.
     /// </summary>
     private static ulong ComputeCompositionHash(
-        ImmutableArray<SourceSchemaClientRequest> requests,
+        ReadOnlySpan<SourceSchemaClientRequest> requests,
         AliasBatchItem[] items,
         int itemCount)
     {
@@ -207,21 +421,20 @@ public sealed partial class HttpSourceSchemaClient
     }
 
     /// <summary>
-    /// Splits the batched response into one result per item. A response that carries an outcome
-    /// for the whole request is handed to every item, and a response that does not follow the
-    /// batched shape fails the request.
+    /// Splits the batched response into one result per item and writes them to
+    /// <paramref name="results"/>. A response that carries an outcome for the whole request is
+    /// handed to every item, and a response that does not follow the batched shape fails the request.
     /// </summary>
-    private static SourceSchemaResult[] SplitResponse(
+    private static void SplitResponse(
         SourceResultDocument document,
         ReadOnlySpan<AliasBatchItem> items,
+        SourceSchemaResult[] results,
         string schemaName)
     {
-        var results = new SourceSchemaResult[items.Length];
-
         switch (AliasBatchResponseSplitter.TrySplit(document, items, results))
         {
             case AliasBatchSplitStatus.Split:
-                return results;
+                return;
 
             case AliasBatchSplitStatus.Broadcast:
                 var documentOwner = new SourceResultDocumentOwner(document, items.Length);
@@ -242,7 +455,7 @@ public sealed partial class HttpSourceSchemaClient
                         additionalPaths: variables.AdditionalPaths);
                 }
 
-                return results;
+                return;
 
             default:
                 throw ThrowHelper.InvalidAliasBatchResponse(schemaName);
@@ -254,7 +467,7 @@ public sealed partial class HttpSourceSchemaClient
     /// definitions that the items share.
     /// </summary>
     private static int CollectItems(
-        ImmutableArray<SourceSchemaClientRequest> requests,
+        ReadOnlySpan<SourceSchemaClientRequest> requests,
         AliasBatchItem[] items,
         List<Utf8VariableDefinitionNode> sharedVariables)
     {
@@ -262,7 +475,7 @@ public sealed partial class HttpSourceSchemaClient
 
         for (var requestIndex = 0; requestIndex < requests.Length; requestIndex++)
         {
-            var request = requests[requestIndex];
+            ref readonly var request = ref requests[requestIndex];
 
             if (!CanAliasBatch(request, out var operation, out var rootField))
             {
@@ -329,10 +542,10 @@ public sealed partial class HttpSourceSchemaClient
     /// of the requests that forward it.
     /// </summary>
     private static void DemoteConflictingVariables(
-        ImmutableArray<SourceSchemaClientRequest> requests,
+        ReadOnlySpan<SourceSchemaClientRequest> requests,
         List<Utf8VariableDefinitionNode> sharedVariables)
     {
-        foreach (var request in requests)
+        foreach (ref readonly var request in requests)
         {
             if (!CanAliasBatch(request, out var operation, out _))
             {
@@ -435,7 +648,7 @@ public sealed partial class HttpSourceSchemaClient
     /// <param name="operation">The single operation of the request's document.</param>
     /// <param name="rootField">The single root selection of <paramref name="operation"/>.</param>
     private static bool CanAliasBatch(
-        SourceSchemaClientRequest request,
+        in SourceSchemaClientRequest request,
         out Utf8OperationDefinitionNode operation,
         out Utf8FieldNode rootField)
     {
