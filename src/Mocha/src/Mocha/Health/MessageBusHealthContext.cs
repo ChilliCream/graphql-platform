@@ -5,12 +5,12 @@ namespace Mocha;
 /// </summary>
 public sealed class MessageBusHealthContext
 {
-    private readonly List<MessageBusHealthFailure> _failures = [];
+    private List<MessageBusHealthFailure>? _failures;
 
     /// <summary>
     /// Gets the reported problems in the order they were reported. The list is empty when the bus is healthy.
     /// </summary>
-    public IReadOnlyList<MessageBusHealthFailure> Failures => _failures;
+    public IReadOnlyList<MessageBusHealthFailure> Failures => _failures ?? (IReadOnlyList<MessageBusHealthFailure>)[];
 
     /// <summary>
     /// Reports a part of the message bus as unhealthy.
@@ -22,6 +22,6 @@ public sealed class MessageBusHealthContext
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentException.ThrowIfNullOrEmpty(reason);
 
-        _failures.Add(new MessageBusHealthFailure(name, reason));
+        (_failures ??= []).Add(new MessageBusHealthFailure(name, reason));
     }
 }
