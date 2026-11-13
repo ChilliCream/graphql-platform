@@ -1025,7 +1025,6 @@ public sealed class SatisfiabilityContextTests
         var (result, log) = ComposeSourceSchemas(sourceSchemas);
 
         // assert
-        Assert.Empty(log);
         Assert.True(result.IsSuccess);
         Assert.Empty(log);
     }

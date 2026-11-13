@@ -2109,8 +2109,7 @@ internal sealed partial class SourceSchemaMerger
                     new(ArgumentNames.Map, mapArgument)
                 ];
 
-                // The requirements only hold selections on the declaring type, so a field whose
-                // map consists of context paths only has none.
+                // The requirements argument is added only when the map selects fields.
                 if (selectionSet.Selections.Count > 0)
                 {
                     arguments.Insert(
