@@ -1089,6 +1089,215 @@ public class ContextRequirementTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_ReadTheAliasedContextField_When_TheClientFieldIsInAFragmentOnAnOverlappingType()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                org: Organization
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                members: [Member!]!
+            }
+
+            interface Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            interface Account {
+                currency(region: String): Currency!
+            }
+
+            type User implements Member & Account @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Bot implements Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$account.currency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              org {
+                members {
+                  ... on Account {
+                    currency(region: "EU") {
+                      isoCode
+                    }
+                  }
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadTheAliasedContextField_When_TheClientFieldIsInANestedFragment()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                org: Organization
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                members: [Member!]!
+            }
+
+            interface Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type User implements Member @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Bot implements Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$account.currency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              org {
+                members {
+                  ... on Member {
+                    ... on User {
+                      currency(region: "EU") {
+                        isoCode
+                      }
+                    }
+                  }
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadTheAliasedContextField_When_EveryMemberSetsTheContext()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                org: Organization
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                members: [Member!]!
+            }
+
+            interface Member {
+                id: ID!
+                currency(region: String): Currency!
+                transactions: [Transaction!]!
+            }
+
+            type User implements Member @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Bot implements Member @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$account.currency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              org {
+                members {
+                  ... on User {
+                    currency(region: "EU") {
+                      isoCode
+                    }
+                  }
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_ReadTheAliasedContextField_When_TheClientFieldIsAtTheFartherRoot()
     {
         // arrange
