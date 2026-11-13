@@ -270,6 +270,8 @@ internal sealed class SchemaComposer
     /// </summary>
     internal static ImmutableArray<object> SourceSchemaRules { get; } =
     [
+        new PolicyDirectiveArgumentRule(),
+        new PolicyOnInterfaceObjectRule(),
         new CostDirectiveDefinitionRule(),
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
@@ -317,6 +319,7 @@ internal sealed class SchemaComposer
     /// </summary>
     internal static ImmutableArray<object> CreatePreMergeRules(SchemaComposerOptions options) =>
     [
+        new PolicyDirectiveRule(),
         new EnumValuesMismatchRule(options.Merger.EnumValuesMergeBehavior),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalArgumentMissingRule(),
@@ -347,6 +350,8 @@ internal sealed class SchemaComposer
     /// </summary>
     internal static ImmutableArray<object> CreatePostMergeRules(SchemaComposerOptions options) =>
     [
+        new PolicyInheritedRule(),
+        new PolicyTransitiveRequirementsRule(),
         new EmptyMergedEnumTypeRule(),
         new EmptyMergedInputObjectTypeRule(),
         new EmptyMergedInterfaceTypeRule(),

@@ -158,6 +158,11 @@ public static class ErrorCodes
         /// The request tried to fetch to many nodes at once.
         /// </summary>
         public const string FetchedToManyNodesAtOnce = "HC0076";
+
+        /// <summary>
+        /// The request tried to resolve more entity representations than allowed.
+        /// </summary>
+        public const string TooManyRepresentations = "HC0140";
     }
 
     /// <summary>
@@ -277,6 +282,18 @@ public static class ErrorCodes
         /// The request body exceeds the maximum size the server accepts.
         /// </summary>
         public const string RequestBodyTooLarge = "HC0136";
+
+        /// <summary>
+        /// The variable paths in <c>map</c> mix paths that start with an operation index
+        /// and paths that start with <c>variables</c>.
+        /// </summary>
+        public const string MultiPartMixedOperationIndexPaths = "HC0141";
+
+        /// <summary>
+        /// A variable path in the <c>map</c> of a batched request does not start
+        /// with an operation index.
+        /// </summary>
+        public const string MultiPartMissingOperationIndex = "HC0142";
     }
 
     public static class Schema
@@ -438,6 +455,11 @@ public static class ErrorCodes
         /// The maximum allowed selection set depth was exceeded.
         /// </summary>
         public const string MaxSelectionSetDepthOverflow = "HC0138";
+
+        /// <summary>
+        /// The maximum allowed number of selections was exceeded.
+        /// </summary>
+        public const string MaxSelectionCountOverflow = "HC0139";
     }
 
     /// <summary>

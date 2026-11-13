@@ -3,6 +3,7 @@ using System.Reflection;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -354,6 +355,7 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
                 [.. nodes],
                 deliveryGroups: [],
                 incrementalPlans: [],
+                policies: PolicyPlan.Empty,
                 searchSpace: 0,
                 expandedNodes: 0);
             var contextPool = executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();
@@ -377,6 +379,7 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
                 requestContext,
                 VariableValueCollection.Empty,
                 variableIndex: -1,
+                PolicyEvaluationResult.Empty,
                 plan,
                 cts,
                 new MemoryArena());

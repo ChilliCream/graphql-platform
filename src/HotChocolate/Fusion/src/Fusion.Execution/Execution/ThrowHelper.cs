@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -9,6 +10,91 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class ThrowHelper
 {
+    public static InvalidOperationException PolicyEntryNotPartOfContext()
+        => new(FusionExecutionResources.PolicyEvaluationContext_EntryNotPartOfContext);
+
+    public static InvalidOperationException PolicyEntryAlreadyAnswered(
+        string fieldCoordinate,
+        string policy)
+        => new(string.Format(
+            FusionExecutionResources.PolicyEvaluationContext_EntryAlreadyAnswered,
+            fieldCoordinate,
+            policy));
+
+    public static InvalidOperationException OperationPolicyRequiresPlan()
+        => new(FusionExecutionResources.OperationPolicy_OperationPlanMissing);
+
+    public static InvalidOperationException AuditScopeAlreadyCommitted()
+        => new(FusionExecutionResources.AuditScope_AlreadyCommitted);
+
+    public static InvalidOperationException OperationPolicyFaulted(Exception fault)
+        => new(FusionExecutionResources.OperationPolicy_EvaluationFaulted, fault);
+
+    public static InvalidOperationException OperationPolicyRequiresBooleanType()
+        => new(FusionExecutionResources.OperationPolicy_BooleanTypeMissing);
+
+    public static InvalidOperationException VariableAlreadyExists(string variableName)
+        => new(string.Format(
+            FusionExecutionResources.VariableValueCollection_VariableAlreadyExists,
+            variableName));
+
+    public static InvalidOperationException PolicyOptionsAreReadOnly()
+        => new(FusionExecutionResources.FusionPolicyOptions_ReadOnly);
+
+    public static ArgumentException SchemeChallengeEmpty(string schemeName, string paramName)
+        => new(
+            string.Format(
+                FusionExecutionResources.FusionPolicyOptions_SchemeChallengeEmpty,
+                schemeName),
+            paramName);
+
+    public static InvalidOperationException AuthenticationSchemeNotRegistered(string schemeName)
+        => new(string.Format(
+            FusionExecutionResources.PolicyValidation_SchemeNotRegistered,
+            schemeName));
+
+    public static InvalidOperationException NoAuthenticationSchemeRegistered()
+        => new(FusionExecutionResources.PolicyValidation_NoSchemeRegistered);
+
+    public static InvalidOperationException NoAuthenticationSchemeLookup()
+        => new(FusionExecutionResources.PolicyValidation_NoSchemeLookup);
+
+    public static InvalidOperationException EmptyAuthenticationSchemes()
+        => new(FusionExecutionResources.PolicyValidation_SchemesEmpty);
+
+    public static InvalidOperationException AuthenticationSchemesWithoutLookup()
+        => new(FusionExecutionResources.PolicyValidation_SchemesWithoutLookup);
+
+    public static InvalidOperationException InvalidDeferIfVariable(string variableName)
+        => new(string.Format(
+            FusionExecutionResources.DeliveryGroup_InvalidIfVariable,
+            variableName));
+
+    public static PolicyNotResolvedException PolicyNotResolved(string directiveName, string? policyName)
+        => new(string.Format(
+            FusionExecutionResources.PolicyResolver_PolicyNotResolved,
+            policyName ?? string.Empty,
+            directiveName));
+
+    public static InvalidOperationException PolicyPlanSelectionNotInPlan()
+        => new(FusionExecutionResources.PolicyPlan_SelectionNotInPlan);
+
+    public static InvalidOperationException PolicyPlanIncrementalPlanNotFound(int index)
+        => new(string.Format(
+            FusionExecutionResources.PolicyPlan_IncrementalPlanNotFound,
+            index));
+
+    public static InvalidOperationException PolicyPlanSelectionNotFound(string path)
+        => new(string.Format(
+            FusionExecutionResources.PolicyPlan_SelectionNotFound,
+            path));
+
+    public static InvalidOperationException PolicyPlanOperandNotFound(string variableName, string operandName)
+        => new(string.Format(
+            FusionExecutionResources.PolicyPlan_OperandNotFound,
+            variableName,
+            operandName));
+
     public static InvalidOperationException MissingBooleanVariable(string variableName)
         => new(string.Format(
             FusionExecutionResources.ExecutionNode_MissingBooleanVariable,
@@ -73,9 +159,6 @@ internal static class ThrowHelper
 
     public static InvalidOperationException MissingBatchRequestIndex()
         => new("Expected requestIndex in batch response but it was missing.");
-
-    public static InvalidOperationException FlattenedRequestIndexOutOfRange(int flattenedIndex)
-        => new($"Flattened index {flattenedIndex} is out of range.");
 
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
         => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");

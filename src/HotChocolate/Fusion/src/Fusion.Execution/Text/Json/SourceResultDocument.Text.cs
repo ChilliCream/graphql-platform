@@ -124,6 +124,7 @@ public sealed partial class SourceResultDocument
         // The propertyName is stored exactly one row before its value
         => GetString(valueCursor - 1, JsonTokenType.PropertyName)!;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ReadOnlySpan<byte> GetPropertyNameRaw(Cursor valueCursor)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);

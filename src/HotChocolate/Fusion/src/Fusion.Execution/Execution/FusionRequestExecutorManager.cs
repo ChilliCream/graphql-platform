@@ -22,8 +22,11 @@ using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
+using HotChocolate.Fusion.Policies.Auditing;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -45,18 +48,22 @@ internal sealed class FusionRequestExecutorManager
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly EventObservable _events = new();
     private readonly IServiceProvider _applicationServices;
+    private readonly TimeProvider _timeProvider;
 
     private bool _disposed;
     private ulong _version;
 
     public FusionRequestExecutorManager(
         IOptionsMonitor<FusionGatewaySetup> optionsMonitor,
+        TimeProvider timeProvider,
         IServiceProvider applicationServices)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
+        ArgumentNullException.ThrowIfNull(timeProvider);
         ArgumentNullException.ThrowIfNull(applicationServices);
 
         _optionsMonitor = optionsMonitor;
+        _timeProvider = timeProvider;
         _applicationServices = applicationServices;
 
         var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
@@ -135,13 +142,13 @@ internal sealed class FusionRequestExecutorManager
         }
     }
 
-    private static async Task EvictRequestExecutorAsync(FusionRequestExecutor previousExecutor)
+    private async Task EvictRequestExecutorAsync(FusionRequestExecutor previousExecutor)
     {
         var evictionTimeout = previousExecutor.Schema.GetOptions().EvictionTimeout;
 
         // we will give the request executor some grace period to finish all requests
         // in the pipeline.
-        await Task.Delay(evictionTimeout).ConfigureAwait(false);
+        await Task.Delay(evictionTimeout, _timeProvider).ConfigureAwait(false);
 
         await previousExecutor.DisposeAsync().ConfigureAwait(false);
     }
@@ -158,8 +165,9 @@ internal sealed class FusionRequestExecutorManager
                 cancellationToken)
                 .ConfigureAwait(false);
 
-        var executor = CreateRequestExecutor(schemaName, configuration);
+        var executor = await CreateRequestExecutorAsync(schemaName, configuration).ConfigureAwait(false);
 
+        await ValidatePoliciesAsync(executor, cancellationToken).ConfigureAwait(false);
         await WarmupExecutorAsync(executor, true, cancellationToken).ConfigureAwait(false);
 
         return new RequestExecutorRegistration(
@@ -170,7 +178,7 @@ internal sealed class FusionRequestExecutorManager
             configuration);
     }
 
-    private FusionRequestExecutor CreateRequestExecutor(
+    private async ValueTask<FusionRequestExecutor> CreateRequestExecutorAsync(
         string schemaName,
         FusionConfiguration configuration)
     {
@@ -187,6 +195,7 @@ internal sealed class FusionRequestExecutorManager
         var requestOptions = CreateRequestOptions(setup);
         var plannerOptions = CreatePlannerOptions(setup, options);
         var costOptions = CreateCostOptions(setup);
+        var policyOptions = CreatePolicyOptions(setup);
         var parserOptions = CreateParserOptions(setup);
         var features = CreateSchemaFeatures(
             setup,
@@ -200,18 +209,41 @@ internal sealed class FusionRequestExecutorManager
             options,
             requestOptions,
             plannerOptions,
-            costOptions);
+            costOptions,
+            policyOptions);
 
-        var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
-        _ = schemaServices.GetRequiredService<CostSchemaIndex>();
-        var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
+        try
+        {
+            var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
+            _ = schemaServices.GetRequiredService<CostSchemaIndex>();
+            var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
-        var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
-        var executor = new FusionRequestExecutor(schema, _applicationServices, pipeline, contextPool, version);
-        var requestExecutorAccessor = schemaServices.GetRequiredService<RequestExecutorAccessor>();
-        requestExecutorAccessor.RequestExecutor = executor;
+            var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
+            var executor = new FusionRequestExecutor(schema, _applicationServices, pipeline, contextPool, version);
+            var requestExecutorAccessor = schemaServices.GetRequiredService<RequestExecutorAccessor>();
+            requestExecutorAccessor.RequestExecutor = executor;
 
-        return executor;
+            return executor;
+        }
+        catch
+        {
+            await schemaServices.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    private static ValueTask ValidatePoliciesAsync(
+        FusionRequestExecutor executor,
+        CancellationToken cancellationToken)
+    {
+        var services = executor.Schema.Services;
+
+        return PolicyStartupValidator.ValidateAsync(
+            executor.Schema.Features.Get<FusionPolicyUsage>(),
+            services.GetRequiredService<FusionPolicyOptions>(),
+            services.GetRequiredService<AuthenticationSchemeResolver>(),
+            services.GetRequiredService<IPolicyResolver>(),
+            cancellationToken);
     }
 
     private static async Task WarmupExecutorAsync(
@@ -311,6 +343,20 @@ internal sealed class FusionRequestExecutorManager
         return costOptions;
     }
 
+    private static FusionPolicyOptions CreatePolicyOptions(FusionGatewaySetup setup)
+    {
+        var policyOptions = new FusionPolicyOptions();
+
+        foreach (var configure in setup.PolicyOptionsModifiers)
+        {
+            configure.Invoke(policyOptions);
+        }
+
+        policyOptions.MakeReadOnly();
+
+        return policyOptions;
+    }
+
     private static ParserOptions CreateParserOptions(FusionGatewaySetup setup)
     {
         var options = new FusionParserOptions();
@@ -395,7 +441,8 @@ internal sealed class FusionRequestExecutorManager
         FusionOptions options,
         FusionRequestOptions requestOptions,
         OperationPlannerOptions plannerOptions,
-        FusionCostOptions costOptions)
+        FusionCostOptions costOptions,
+        FusionPolicyOptions policyOptions)
     {
         var schemaServices = new ServiceCollection();
 
@@ -405,7 +452,8 @@ internal sealed class FusionRequestExecutorManager
             schemaServices,
             options,
             requestOptions,
-            costOptions);
+            costOptions,
+            policyOptions);
         AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices, options);
@@ -425,7 +473,8 @@ internal sealed class FusionRequestExecutorManager
         IServiceCollection services,
         FusionOptions options,
         FusionRequestOptions requestOptions,
-        FusionCostOptions costOptions)
+        FusionCostOptions costOptions,
+        FusionPolicyOptions policyOptions)
     {
         services.AddSingleton<IRootServiceProviderAccessor>(
             new RootServiceProviderAccessor(_applicationServices));
@@ -452,6 +501,24 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(requestOptions);
         services.AddSingleton(requestOptions.PersistedOperations);
         services.AddSingleton(costOptions);
+        services.AddSingleton(policyOptions);
+        services.AddSingleton(
+            static sp => new AuthenticationSchemeResolver(
+                sp.GetRequiredService<FusionPolicyOptions>(),
+                sp.GetService<IAuthenticationSchemeLookup>()));
+        services.TryAddSingleton<IAuditProvider>(NoOpAuditProvider.Instance);
+        services.TryAddSingleton<IPolicyResolver>(
+            static sp =>
+            {
+                var policyOptions = sp.GetRequiredService<FusionPolicyOptions>();
+
+                return new PolicyResolver(
+                    new BuiltInPolicyProvider(
+                        new RequiresScopesPolicy(
+                            policyOptions.ScopeClaimName,
+                            policyOptions.ScopeClaimFormat)),
+                    sp.GetServices<IPolicyProvider>());
+            });
         services.AddSingleton(
             static sp =>
             {
@@ -551,7 +618,8 @@ internal sealed class FusionRequestExecutorManager
             static sp => new OperationPlanner(
                 sp.GetRequiredService<FusionSchemaDefinition>(),
                 sp.GetRequiredService<OperationCompiler>(),
-                sp.GetRequiredService<OperationPlannerOptions>()));
+                sp.GetRequiredService<OperationPlannerOptions>(),
+                sp.GetRequiredService<IPolicyResolver>()));
     }
 
     private static void AddParserServices(IServiceCollection services)
@@ -752,16 +820,40 @@ internal sealed class FusionRequestExecutorManager
                     continue;
                 }
 
+                var previousExecutor = Executor;
+                var previousConfiguration = _currentConfiguration;
+                FusionRequestExecutor? nextExecutor = null;
+
+                try
+                {
+                    nextExecutor = await _manager
+                        .CreateRequestExecutorAsync(Executor.Schema.Name, configuration)
+                        .ConfigureAwait(false);
+
+                    await ValidatePoliciesAsync(nextExecutor, _cancellationToken).ConfigureAwait(false);
+                    await WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    if (nextExecutor is not null)
+                    {
+                        await nextExecutor.DisposeAsync().ConfigureAwait(false);
+                    }
+
+                    configuration.Dispose();
+
+                    if (_cancellationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    DiagnosticEvents.ExecutorUpdateFailed(Executor.Schema.Name, ex);
+                    continue;
+                }
+
                 _documentHash = documentHash;
                 _settingsHash = settingsHash;
                 _planningFingerprint = configuration.PlanningFingerprint;
-
-                var previousExecutor = Executor;
-                var previousConfiguration = _currentConfiguration;
-                var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
-
-                await WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
-
                 Executor = nextExecutor;
                 _currentConfiguration = configuration;
 

@@ -214,7 +214,9 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             if (hasPendingMerge)
             {
-                context.EnqueuePendingMerge(pendingMerge);
+                // ExecuteAsync reports the completion of this node right after we return,
+                // and that signal wakes the executor for the merge as well.
+                context.EnqueuePendingMergeBeforeCompletion(pendingMerge);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

@@ -1034,4 +1034,45 @@ public class SourceResultDocumentTests
         Assert.Equal("value", exception.ParamName);
         Assert.Equal(0, output.WrittenCount);
     }
+
+    [Fact]
+    public void ReadRawValue_Should_ReturnValue_When_ValueEndsAtChunkEnd()
+    {
+        // arrange
+        // The first chunk of the document holds 1024 bytes.
+        using var document = ParseWithValueAt(1017, "1234567");
+        var row = document.Root.GetProperty("value").GetValueRow();
+
+        // act
+        var value = document.ReadRawValue(row.Location, row.SizeOrLength);
+
+        // assert
+        Assert.Equal("1234567", Encoding.UTF8.GetString(value));
+    }
+
+    [Fact]
+    public void ReadRawValue_Should_CopyValue_When_ValueSpansChunks()
+    {
+        // arrange
+        // The first chunk of the document holds 1024 bytes.
+        using var document = ParseWithValueAt(1020, "1234567");
+        var row = document.Root.GetProperty("value").GetValueRow();
+
+        // act
+        var value = document.ReadRawValue(row.Location, row.SizeOrLength);
+
+        // assert
+        Assert.Equal("1234567", Encoding.UTF8.GetString(value));
+    }
+
+    // Parses a document into the geometric chunks of an arena with the number property value
+    // whose bytes start at valueStart.
+    private static SourceResultDocument ParseWithValueAt(int valueStart, string value)
+    {
+        const string prefix = "{\"padding\":\"";
+        const string separator = "\",\"value\":";
+        var padding = new string('x', valueStart - prefix.Length - separator.Length);
+        var json = Encoding.UTF8.GetBytes(prefix + padding + separator + value + ",\"tail\":\"xxxxxxxx\"}");
+        return SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), new ReadOnlySequence<byte>(json));
+    }
 }

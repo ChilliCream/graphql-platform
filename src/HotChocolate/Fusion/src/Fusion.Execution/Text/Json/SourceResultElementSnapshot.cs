@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
@@ -16,6 +17,7 @@ internal readonly ref struct SourceResultElementSnapshot
     internal readonly SourceResultDocument.Cursor _cursor;
     internal readonly SourceResultDocument.DbRow _row;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal SourceResultElementSnapshot(
         SourceResultDocument parent,
         SourceResultDocument.Cursor cursor,
@@ -36,7 +38,11 @@ internal readonly ref struct SourceResultElementSnapshot
     /// <summary>
     /// The <see cref="JsonValueKind"/> the value is.
     /// </summary>
-    public JsonValueKind ValueKind => _row.TokenType.ToValueKind();
+    public JsonValueKind ValueKind
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _row.TokenType.ToValueKind();
+    }
 
     /// <summary>
     /// Get the value at a specified index when the current value is a
@@ -483,6 +489,7 @@ internal readonly ref struct SourceResultElementSnapshot
     /// <exception cref="InvalidOperationException">
     /// The current value is not a JSON object.
     /// </exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal SourcePropertySnapshotEnumerator EnumeratePropertySnapshots()
     {
         if (_row.TokenType is not JsonTokenType.StartObject)
@@ -500,6 +507,7 @@ internal readonly ref struct SourceResultElementSnapshot
     /// <exception cref="InvalidOperationException">
     /// The current value is not a JSON array.
     /// </exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal SourceElementSnapshotEnumerator EnumerateElementSnapshots()
     {
         if (_row.TokenType is not JsonTokenType.StartArray)

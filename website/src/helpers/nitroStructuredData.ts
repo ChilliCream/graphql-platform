@@ -2,6 +2,7 @@ import { TIERS } from "@/src/components/pricing/pricingData";
 import { SITE_NAME } from "@/src/helpers/site";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 import {
+  FEDERATION_PLATFORM_GROUP,
   ORGANIZATION_ID,
   type JsonLdNode,
   schemaId,
@@ -55,7 +56,10 @@ export function createNitroProductNode(
     description,
     url: toAbsoluteUrl("/products/nitro"),
     image: toAbsoluteUrl("/images/nitro/nitro-app.png"),
-    category: "GraphQL observability and API operations platform",
+    category: [
+      "GraphQL observability and API operations platform",
+      schemaRef(FEDERATION_PLATFORM_GROUP.id),
+    ],
     brand: {
       "@type": "Brand",
       name: SITE_NAME,

@@ -1,10 +1,13 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -120,6 +123,112 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
     }
 
     [Fact]
+    public async Task ExecuteBufferedAsync_Should_MatchExecuteAsync_When_OperationBatchResultsArriveOutOfOrder()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.RequestBatching,
+            JsonLines,
+            """{"requestIndex":2,"data":{"field":"c"}}""",
+            """{"requestIndex":0,"data":{"field":"a"}}""",
+            """{"requestIndex":1,"data":{"field":"b"}}""");
+        var context = fixture.CreateContext();
+        var request = CreateRequest(fixture.RootNode, variableCount: 3);
+
+        // act
+        var streamed = await ExecuteStreamedAsync(client, context, request);
+        var buffered = await ExecuteBufferedAsync(client, context, request);
+
+        // assert
+        Assert.Equal(streamed, buffered);
+        buffered.MatchInlineSnapshots(
+        [
+            """0 [2] {"field":"c"}""",
+            """0 [0] {"field":"a"}""",
+            """0 [1] {"field":"b"}"""
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteBufferedAsync_Should_FanOutErrorResult_When_RequestIndexDisappears()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.RequestBatching,
+            JsonLines,
+            """{"requestIndex":1,"data":{"field":"b"}}""",
+            """{"errors":[{"message":"broken"}]}""");
+        var context = fixture.CreateContext();
+        var request = CreateRequest(fixture.RootNode, variableCount: 2);
+
+        // act
+        var streamed = await ExecuteStreamedAsync(client, context, request);
+        var buffered = await ExecuteBufferedAsync(client, context, request);
+
+        // assert
+        Assert.Equal(streamed, buffered);
+        buffered.MatchInlineSnapshots(
+        [
+            """0 [1] {"field":"b"}""",
+            "0 [0] errors",
+            "0 [1] errors"
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_MapResultsByRequestIndex_When_UploadSendsOperationBatch()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.Default,
+            JsonLines,
+            """{"requestIndex":1,"data":{"field":"b"}}""",
+            """{"requestIndex":0,"data":{"field":"a"}}""");
+        using var memory = new ChunkedArrayWriter();
+        var context = fixture.CreateContext();
+        context.RequestContext.Features.Set<IFileLookup>(new EmptyFileLookup());
+        var request = CreateUploadRequest(fixture.RootNode, memory, variableCount: 2);
+
+        // act
+        var results = await ExecuteStreamedAsync(client, context, request);
+
+        // assert
+        results.MatchInlineSnapshots(
+        [
+            """0 [1] {"field":"b"}""",
+            """0 [0] {"field":"a"}"""
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_FanOutErrorResult_When_UploadBatchResultHasNoRequestIndex()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.Default,
+            JsonLines,
+            """{"errors":[{"message":"broken"}]}""");
+        using var memory = new ChunkedArrayWriter();
+        var context = fixture.CreateContext();
+        context.RequestContext.Features.Set<IFileLookup>(new EmptyFileLookup());
+        var request = CreateUploadRequest(fixture.RootNode, memory, variableCount: 2);
+
+        // act
+        var results = await ExecuteStreamedAsync(client, context, request);
+
+        // assert
+        results.MatchInlineSnapshots(
+        [
+            "0 [0] errors",
+            "0 [1] errors"
+        ]);
+    }
+
+    [Fact]
     public async Task ExecuteBufferedAsync_Should_DeliverReadResultsThenThrow_When_ResponseFailsMidStream()
     {
         // arrange
@@ -203,6 +312,32 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
         [
             """1 root {"field":"b"}""",
             """0 root {"field":"a"}"""
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteBatchBufferedAsync_Should_MatchExecuteBatchAsync_When_BatchHasOneRequest()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.Default,
+            JsonLines,
+            """{"variableIndex":1,"data":{"field":"b"}}""",
+            """{"variableIndex":0,"data":{"field":"a"}}""");
+        var context = fixture.CreateContext();
+        var requests = ImmutableArray.Create(CreateRequest(fixture.RootNode, variableCount: 2));
+
+        // act
+        var streamed = await ExecuteBatchStreamedAsync(client, context, requests);
+        var buffered = await ExecuteBatchBufferedAsync(client, context, requests);
+
+        // assert
+        Assert.Equal(streamed, buffered);
+        buffered.MatchInlineSnapshots(
+        [
+            """0 [1] {"field":"b"}""",
+            """0 [0] {"field":"a"}"""
         ]);
     }
 
@@ -351,6 +486,64 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
     }
 
     [Fact]
+    public async Task ExecuteBatchAsync_Should_MapRequestIndexToVariableSet_When_UploadBatchIsFlattened()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.Default,
+            JsonLines,
+            """{"requestIndex":2,"data":{"field":"c"}}""",
+            """{"requestIndex":0,"data":{"field":"a"}}""",
+            """{"requestIndex":1,"data":{"field":"b"}}""");
+        using var memory = new ChunkedArrayWriter();
+        var context = fixture.CreateContext();
+        context.RequestContext.Features.Set<IFileLookup>(new EmptyFileLookup());
+        var requests = ImmutableArray.Create(
+            CreateUploadRequest(fixture.RootNode, memory, variableCount: 2),
+            CreateUploadRequest(fixture.RootNode, memory, variableCount: 1));
+
+        // act
+        var results = await ExecuteBatchStreamedAsync(client, context, requests);
+
+        // assert
+        results.MatchInlineSnapshots(
+        [
+            """1 [0] {"field":"c"}""",
+            """0 [0] {"field":"a"}""",
+            """0 [1] {"field":"b"}"""
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteBatchBufferedAsync_Should_ReportRequestIndex_When_FlattenedIndexIsOutOfRange()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.RequestBatching,
+            JsonLines,
+            """{"requestIndex":0,"data":{"field":"a"}}""",
+            """{"requestIndex":3,"data":{"field":"b"}}""");
+        var context = fixture.CreateContext();
+        var requests = ImmutableArray.Create(
+            CreateRequest(fixture.RootNode, variableCount: 2),
+            CreateRequest(fixture.RootNode, variableCount: 1));
+
+        // act
+        var streamed = await ExecuteBatchStreamedAsync(client, context, requests);
+        var buffered = await ExecuteBatchBufferedAsync(client, context, requests);
+
+        // assert
+        Assert.Equal(streamed, buffered);
+        buffered.MatchInlineSnapshots(
+        [
+            """0 [0] {"field":"a"}""",
+            "InvalidOperationException: The batch response contains an invalid requestIndex '3'."
+        ]);
+    }
+
+    [Fact]
     public async Task CanExecuteBuffered_Should_ReturnFalse_When_RequestNeedsIteratorPath()
     {
         // arrange
@@ -495,6 +688,26 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
             OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText),
             Variables = variables.MoveToImmutable()
         };
+    }
+
+    private static SourceSchemaClientRequest CreateUploadRequest(
+        ExecutionNode node,
+        ChunkedArrayWriter memory,
+        int variableCount)
+    {
+        var request = CreateRequest(node, variableCount);
+        var variables = ImmutableArray.CreateBuilder<VariableValues>(variableCount);
+
+        foreach (var variable in request.Variables)
+        {
+            var start = memory.Position;
+            "{}"u8.CopyTo(memory.GetSpan(2));
+            memory.Advance(2);
+            var values = JsonSegment.Create(memory.GetSequence(start, memory.Position - start));
+            variables.Add(variable with { Values = values });
+        }
+
+        return request with { RequiresFileUpload = true, Variables = variables.MoveToImmutable() };
     }
 
     private static async Task<List<string>> ExecuteStreamedAsync(
@@ -656,6 +869,15 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
             }
 
             return result.Errors is null ? "none" : "errors";
+        }
+    }
+
+    private sealed class EmptyFileLookup : IFileLookup
+    {
+        public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
+        {
+            file = null;
+            return false;
         }
     }
 

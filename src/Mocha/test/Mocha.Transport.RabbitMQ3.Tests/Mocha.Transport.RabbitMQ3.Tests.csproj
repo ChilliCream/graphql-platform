@@ -13,6 +13,9 @@
       Include="..\Mocha.Transport.RabbitMQ.Tests\**\*.cs"
       Exclude="..\Mocha.Transport.RabbitMQ.Tests\bin\**;..\Mocha.Transport.RabbitMQ.Tests\obj\**"
     />
+    <None Include="..\Mocha.Transport.RabbitMQ.Tests\xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

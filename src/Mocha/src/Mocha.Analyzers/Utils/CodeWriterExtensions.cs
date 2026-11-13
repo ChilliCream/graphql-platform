@@ -21,7 +21,7 @@ public static class CodeWriterExtensions
         writer.WriteIndentedLine(
             "[global::System.CodeDom.Compiler.GeneratedCode(\"Mocha.Analyzers\", \"1.0.0\")]");
 #else
-        var version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
+        var version = typeof(CodeWriter).Assembly.GetName().Version.ToString();
         writer.WriteIndentedLine(
             $"[global::System.CodeDom.Compiler.GeneratedCode(\"Mocha.Analyzers\", \"{version}\")]");
 #endif

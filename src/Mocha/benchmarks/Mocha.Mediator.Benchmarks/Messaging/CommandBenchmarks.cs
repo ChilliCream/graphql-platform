@@ -114,23 +114,25 @@ public class CommandBenchmarks
     public ValueTask<BenchmarkResponse> SendCommand_Mocha_IMediator()
     {
         var scope = _rootProvider.CreateScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<Mocha.Mediator.IMediator>();
-        return mediator.SendAsync<BenchmarkResponse>(_command, CancellationToken.None);
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        return mediator.SendAsync(_command, CancellationToken.None);
     }
 
     [Benchmark]
     public ValueTask<BenchmarkResponse> SendCommand_Mocha_Concrete()
     {
         var scope = _rootProvider.CreateScope();
-        var mediator = scope.ServiceProvider.GetRequiredService<Mocha.Mediator.Mediator>();
-        return mediator.SendAsync<BenchmarkResponse>(_command, CancellationToken.None);
+        var mediator = scope.ServiceProvider.GetRequiredService<Mediator>();
+        return mediator.SendAsync(_command, CancellationToken.None);
     }
 
     [Benchmark]
     public ValueTask<BenchmarkResponse> SendCommand_MediatorSg()
     {
         if (_mediatorSgProvider is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         var scope = _mediatorSgProvider.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<global::Mediator.IMediator>();
@@ -148,18 +150,22 @@ public class CommandBenchmarks
     public ValueTask<BenchmarkResponse> SendCommand_SwitchMediator()
     {
         if (_switchMediatorProvider is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         var scope = _switchMediatorProvider.CreateScope();
         var sender = scope.ServiceProvider.GetRequiredService<global::Mediator.Switch.IValueSender>();
-        return sender.Send<BenchmarkResponse>(_switchMediatorCommand, CancellationToken.None);
+        return sender.Send(_switchMediatorCommand, CancellationToken.None);
     }
 
     [Benchmark]
     public ValueTask<BenchmarkResponse> SendCommand_ImmediateHandlers()
     {
         if (_immediateProvider is null)
+        {
             return new ValueTask<BenchmarkResponse>(new BenchmarkResponse(Guid.Empty));
+        }
 
         var scope = _immediateProvider.CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<IHandler<ImmediateCommandHandler.Command, BenchmarkResponse>>();

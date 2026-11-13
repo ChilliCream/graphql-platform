@@ -6,7 +6,7 @@
   "required": ["version"],
   "properties": {
     "version": {
-      "enum": ["1.0.0", "1.1.0", "1.2.0"]
+      "enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
     }
   },
   "allOf": [
@@ -47,6 +47,19 @@
       },
       "then": {
         "$ref": "#/$defs/v1_2_0_plan"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "version": {
+            "const": "1.3.0"
+          }
+        },
+        "required": ["version"]
+      },
+      "then": {
+        "$ref": "#/$defs/v1_3_0_plan"
       }
     }
   ],
@@ -244,6 +257,160 @@
         "expandedNodes",
         "nodes"
       ],
+      "additionalProperties": false
+    },
+    "v1_3_0_plan": {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "version": {
+          "const": "1.3.0"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "operation": {
+          "$ref": "#/$defs/requestOperation"
+        },
+        "searchSpace": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expandedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "appId": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "traceId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "nodes": {
+          "$ref": "#/$defs/v1_2_0_nodes"
+        },
+        "deliveryGroups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/deliveryGroup"
+          },
+          "minItems": 1
+        },
+        "incrementalPlans": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/v1_2_0_incrementalPlan"
+          },
+          "minItems": 1
+        },
+        "policies": {
+          "$ref": "#/$defs/policyPlan"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "operation",
+        "searchSpace",
+        "expandedNodes",
+        "nodes"
+      ],
+      "additionalProperties": false
+    },
+    "policyPlan": {
+      "type": "object",
+      "properties": {
+        "descriptors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/policyDescriptor"
+          },
+          "minItems": 1
+        },
+        "variables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/policyVariable"
+          }
+        }
+      },
+      "required": ["descriptors", "variables"],
+      "additionalProperties": false
+    },
+    "policyDescriptor": {
+      "type": "object",
+      "properties": {
+        "directiveName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policyName": {
+          "type": "string"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "minItems": 1
+        },
+        "selection": {
+          "$ref": "#/$defs/policySelection"
+        }
+      },
+      "required": ["directiveName", "selection"],
+      "additionalProperties": false
+    },
+    "policyVariable": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/policySelection"
+          },
+          "minItems": 1
+        },
+        "operands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+    "policySelection": {
+      "type": "object",
+      "properties": {
+        "incrementalPlan": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": ["path"],
       "additionalProperties": false
     },
     "requestOperation": {

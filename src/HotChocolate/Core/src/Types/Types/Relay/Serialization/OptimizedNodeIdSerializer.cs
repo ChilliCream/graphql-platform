@@ -24,7 +24,6 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
     private readonly SpanSerializerMap _spanSerializerMap;
     private readonly INodeIdValueSerializer[] _serializers;
     private readonly int _maxIdLength;
-    private readonly bool _outputNewIdFormat;
     private readonly NodeIdSerializerFormat _format;
 
     internal OptimizedNodeIdSerializer(
@@ -47,7 +46,6 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         }
 
         _maxIdLength = maxIdLength;
-        _outputNewIdFormat = outputNewIdFormat;
         _format = format;
     }
 
@@ -252,60 +250,35 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             delimiterOffset = 2;
         }
 
-        Type? runtimeType = null;
-        INodeIdValueSerializer? valueSerializer = null;
-        string? typeNameString = null;
+        INodeIdValueSerializer? valueSerializer;
+        string typeNameString;
         var typeName = span[..delimiterIndex];
 
-        if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
+        if (_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
-            typeNameString = ToString(typeName);
-            runtimeType = getType(typeNameString) ?? typeof(string);
-            valueSerializer = TryResolveSerializer(runtimeType);
+            // we resolve the runtime type for every id as there can be cases
+            // where we have multiple runtime types per type.
+            typeNameString = serializer.TypeName;
+            var runtimeType = getType(typeNameString) ?? s_objectType;
 
-            if (valueSerializer is null)
-            {
-                throw new NodeIdMissingSerializerException(typeNameString);
-            }
-
-            lock (_spanSerializerMap)
-            {
-                if (!_spanSerializerMap.TryGetValue(typeName, out serializer))
-                {
-                    serializer = new Serializer(
-                        typeNameString,
-                        valueSerializer,
-                        _outputNewIdFormat,
-                        _format);
-                    _spanSerializerMap.Add(serializer.FormattedTypeName, serializer);
-                }
-            }
+            // with the runtime type in hand we check if the default serializer
+            // for this GraphQL type can handle the current runtime type.
+            // if it cannot we try to find a different ad-hoc serializer that can.
+            valueSerializer =
+                runtimeType == s_objectType || serializer.ValueSerializer.IsSupported(runtimeType)
+                    ? serializer.ValueSerializer
+                    : TryResolveSerializer(runtimeType);
         }
-
-        // if we did not resolve the runtime type yet, we do it now.
-        // this is important as there can be cases where we have multiple runtime types
-        // per type.
-        typeNameString ??= serializer.TypeName;
-        runtimeType ??= getType(serializer.TypeName) ?? typeof(object);
-
-        // with the runtime type in hand we check if the default serializer
-        // for this GraphQL type can handle the current runtime type.
-        if (runtimeType == s_objectType
-            || serializer.ValueSerializer.IsSupported(runtimeType))
-        {
-            valueSerializer = serializer.ValueSerializer;
-        }
-
-        // if it cannot handle the runtime type we try to find a different
-        // ad-hoc serializer that can handle the runtime type.
         else
         {
-            valueSerializer ??= TryResolveSerializer(runtimeType);
+            // resolve type names that are not bound from the schema.
+            typeNameString = ToString(typeName);
+            valueSerializer = TryResolveSerializer(getType(typeNameString) ?? typeof(string));
         }
 
         if (valueSerializer is null)
         {
-            throw new NodeIdMissingSerializerException(serializer.TypeName);
+            throw new NodeIdMissingSerializerException(typeNameString);
         }
 
         var formattedValue = span[(delimiterIndex + delimiterOffset)..];
@@ -524,10 +497,8 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         }
     }
 
-    // we keep the initial bucket size small to reduce memory overhead since we usually will build the map
-    // once and then only read from it. Even in the case where we add serializers at runtime, the overhead
-    // of resizing the buckets is not that big as the map will become constant after a while since all types
-    // are known.
+    // we keep the initial bucket size small to reduce memory overhead since we build the map once
+    // from the types that are known to the schema and then only read from it.
     private sealed class SpanSerializerMap(int size = 100, int initialBucketSize = 1)
     {
         private readonly Entry[]?[] _buckets = new Entry[size][];

@@ -147,6 +147,18 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
+        internal static string ThrowHelper_HttpMultipartMiddleware_MixedOperationIndexPaths {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_MixedOperationIndexPaths", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_MissingOperationIndex {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_MissingOperationIndex", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_InvalidRequest {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidRequest", resourceCulture);
@@ -372,6 +384,12 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ErrorHelper_VariableBatchingDisabled {
             get {
                 return ResourceManager.GetString("ErrorHelper_VariableBatchingDisabled", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_VariableBatchingNotSupportedForWebSocket {
+            get {
+                return ResourceManager.GetString("ErrorHelper_VariableBatchingNotSupportedForWebSocket", resourceCulture);
             }
         }
         

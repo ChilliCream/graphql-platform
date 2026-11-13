@@ -294,12 +294,8 @@ internal sealed class FusionPublishCommand : Command
             SourceSchemaVersion[]? sourceSchemaVersions,
             Func<Task<Stream>> prepareArchive)
         {
-            string? requestId = null;
+            var requestId = await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken);
             var published = false;
-            if (legacyArchiveFile is not null)
-            {
-                requestId = await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken);
-            }
 
             try
             {
@@ -452,6 +448,14 @@ internal sealed class FusionPublishCommand : Command
                         console.Error.WriteErrorLine(exception.Message.EscapeMarkup());
                         console.Error.WriteErrorLine("This is the error that caused the publishing process to fail in the first place:");
                     }
+                }
+
+                if (!string.IsNullOrEmpty(requestId))
+                {
+                    await FusionConfigurationPublishingState.ClearRequestId(
+                        fileSystem,
+                        requestId,
+                        CancellationToken.None);
                 }
             }
         }
