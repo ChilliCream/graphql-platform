@@ -2150,6 +2150,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; reads from a context and cannot supply data for a requirement or a lookup key..
+        /// </summary>
+        internal static string SatisfiabilityValidator_ContextFieldNotRequirementSource {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_ContextFieldNotRequirementSource", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; reads from a context and needs a lookup for type &apos;{2}&apos; in schema &apos;{1}&apos;..
         /// </summary>
         internal static string SatisfiabilityValidator_ContextNoLookup {

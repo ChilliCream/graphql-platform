@@ -287,15 +287,14 @@ internal sealed class RequirementsValidator(
             }
 
             // A field whose requirement reads a context is never a candidate for requirement data.
-            if (_fieldOptions.GetContextNames(field, schemaName) is { IsEmpty: false } contextNames)
+            if (_fieldOptions.GetContextNames(field, schemaName) is { IsEmpty: false })
             {
                 errors.Add(
                     context.Budget.CreateError(
                         string.Format(
-                            SatisfiabilityValidator_ContextNotSet,
+                            SatisfiabilityValidator_ContextFieldNotRequirementSource,
                             $"{type.Name}.{field.Name}",
-                            schemaName,
-                            contextNames[0])));
+                            schemaName)));
 
                 continue;
             }

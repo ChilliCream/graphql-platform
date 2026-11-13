@@ -732,6 +732,9 @@
   <data name="SatisfiabilityValidator_ContextNotSet" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' reads from the context '{2}', which is not set on this path.</value>
   </data>
+  <data name="SatisfiabilityValidator_ContextFieldNotRequirementSource" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' reads from a context and cannot supply data for a requirement or a lookup key.</value>
+  </data>
   <data name="SatisfiabilityValidator_ContextNoLookup" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' reads from a context and needs a lookup for type '{2}' in schema '{1}'.</value>
   </data>
