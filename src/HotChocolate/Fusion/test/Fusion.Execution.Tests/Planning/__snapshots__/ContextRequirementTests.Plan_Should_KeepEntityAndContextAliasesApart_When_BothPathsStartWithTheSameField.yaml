@@ -1,0 +1,86 @@
+operation:
+  - document: |
+      {
+        me {
+          address(format: "short") {
+            city
+          }
+          transactions {
+            label
+            id @fusion__requirement
+            address @fusion__requirement {
+              city @fusion__requirement
+            }
+          }
+          fusion__requirement_address_0: address @fusion__requirement {
+            city @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        me {
+          address(format: "short") {
+            city
+          }
+          transactions {
+            id
+          }
+          fusion__requirement_address_0: address {
+            city
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_input: LabelInput!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          label(input: $__fusion_1_input)
+        }
+      }
+    source: $.transactionById
+    target: $.me.transactions
+    requirements:
+      - name: __fusion_1_input
+        selectionMap: >-
+          {
+            a: $userContext.fusion__requirement_address_0.city
+            b: address.city
+          }
+        contextRoots:
+          - name: userContext
+            path: $.me
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 3
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        transactionById(id: $__fusion_3_id) {
+          address {
+            city
+          }
+        }
+      }
+    source: $.transactionById
+    target: $.me.transactions
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

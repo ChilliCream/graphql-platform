@@ -1918,6 +1918,8 @@ public sealed partial class OperationPlanner
         }
 
         Dictionary<string, RequirementContextRoot>? contextRoots = null;
+        var contextAliases = new Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>>(
+            StringComparer.Ordinal);
 
         if (fieldRequirements is { ContextRequirements.Count: > 0 })
         {
@@ -1931,7 +1933,8 @@ public sealed partial class OperationPlanner
                 indexBuilder,
                 ref backlog,
                 ref steps,
-                requirementAliases);
+                requirementAliases,
+                contextAliases);
         }
 
         // if we have requirements that we could not inline into existing nodes of the
@@ -1979,7 +1982,9 @@ public sealed partial class OperationPlanner
                 argumentRequirementKey,
                 argument.Type,
                 workItem.Selection.Path,
-                fieldSelectionMap,
+                contextAliases.Count == 0
+                    ? fieldSelectionMap
+                    : RewriteContextAliases(fieldSelectionMap, contextAliases),
                 GetRequirementContextRoots(fieldSelectionMap, contextRoots),
                 requirementAliases.GetInternalAlias(fieldSelectionMap));
 
@@ -3372,6 +3377,10 @@ public sealed partial class OperationPlanner
 
         public RequirementAliasRegistry Registry => _registry;
 
+        public IReadOnlyList<(RequirementFieldSelectionKey Key, string Alias)> Aliases => _aliases;
+
+        public void Adopt(RequirementAliasRegistry registry) => _registry = registry;
+
         public string? GetInternalAlias(IValueSelectionNode fieldSelectionMap)
             => _aliasesByMap.GetValueOrDefault(fieldSelectionMap);
 
@@ -3469,14 +3478,18 @@ public sealed partial class OperationPlanner
         {
             switch (selection)
             {
+                case PathNode { ContextName: not null }:
+                    key = default;
+                    return false;
+
                 case PathNode path:
                     return TryCreateRootFieldSelectionKey(path.PathSegment, out key);
 
                 case PathObjectValueSelectionNode pathObject:
-                    return TryCreateRootFieldSelectionKey(pathObject.Path.PathSegment, out key);
+                    return TryCreateRootFieldSelectionKey(pathObject.Path, out key);
 
                 case PathListValueSelectionNode pathList:
-                    return TryCreateRootFieldSelectionKey(pathList.Path.PathSegment, out key);
+                    return TryCreateRootFieldSelectionKey(pathList.Path, out key);
 
                 case ObjectValueSelectionNode { Fields.Length: 1 } objectValue:
                     var field = objectValue.Fields[0];

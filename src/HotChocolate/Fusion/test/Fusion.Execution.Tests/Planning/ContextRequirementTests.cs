@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -708,6 +709,125 @@ public class ContextRequirementTests : FusionTestBase
             """);
 
         // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadTheAliasedContextField_When_AClientSiblingHasOtherArguments()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency(region: String): Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                userCurrency(region: "EU") {
+                  isoCode
+                }
+                transactions {
+                  amount
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_KeepEntityAndContextAliasesApart_When_BothPathsStartWithTheSameField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                address(format: String): Address!
+                transactions: [Transaction!]!
+            }
+
+            type Address {
+                city: String! @shareable
+            }
+
+            input LabelInput {
+                a: String!
+                b: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                label(
+                    input: LabelInput!
+                        @require(field: "{ a: $userContext.address.city, b: address.city }")
+                ): String!
+            }
+            """,
+            """
+            type Query {
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Address {
+                city: String! @shareable
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                address(format: String): Address!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                address(format: "short") {
+                  city
+                }
+                transactions {
+                  label
+                }
+              }
+            }
+            """);
+
+        // assert
+        Assert.All(
+            plan.AllNodes.OfType<OperationExecutionNode>().SelectMany(n => n.GetRequirementsArray()),
+            requirement => Assert.Null(requirement.InternalAlias));
         MatchSnapshot(plan);
     }
 
