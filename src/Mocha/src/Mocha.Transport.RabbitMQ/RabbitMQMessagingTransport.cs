@@ -63,6 +63,16 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     public IRabbitMQConnectionProvider Connection { get; private set; } = null!;
 
     /// <summary>
+    /// Gets the reason the transport is unhealthy, or <c>null</c> when it is started, both broker connections
+    /// are ready, the broker does not block the dispatcher connection, and every receive endpoint is healthy.
+    /// </summary>
+    public override string? HealthFailureReason
+        => !IsStarted ? "The transport is not started."
+            : !Dispatcher.IsConnected ? "The dispatcher connection is unavailable."
+            : Dispatcher.Connection.IsBlocked ? "The broker blocks the dispatcher connection."
+            : ConsumerManager.HealthFailureReason ?? base.HealthFailureReason;
+
+    /// <summary>
     /// Resolves the RabbitMQ connection provider, builds the transport topology URI, and creates
     /// the owners of the two connections used for the lifetime of this transport.
     /// </summary>
@@ -77,6 +87,9 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     protected override void OnAfterInitialized(IMessagingSetupContext context)
     {
         var configuration = (RabbitMQTransportConfiguration)Configuration;
+
+        // The descriptor and the configuration can both set the timeouts, and both end here.
+        configuration.ValidateTimeouts();
 
         Connection =
             configuration.ConnectionProvider?.Invoke(context.Services)
@@ -115,12 +128,12 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         var timeProvider = TimeProvider.System;
 
         var loggerFactory = context.Services.GetRequiredService<ILoggerFactory>();
+        var dispatcherLogger = loggerFactory.CreateLogger(DispatcherLogCategory);
         var consumerLogger = loggerFactory.CreateLogger(ConsumerLogCategory);
 
         Dispatcher = new RabbitMQDispatcher(
-            context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>(),
-            Connection.CreateAsync,
-            ProvisionTopologyAsync);
+            dispatcherLogger,
+            CreateConnectionManager(context, dispatcherLogger, timeProvider, DispatcherRole, ProvisionTopologyAsync));
 
         ConsumerManager = new RabbitMQConsumerManager(
             consumerLogger,
@@ -130,6 +143,17 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                 timeProvider,
                 ConsumerRole,
                 RabbitMQConsumerManager.SetUpConnectionAsync));
+
+        if (configuration.StartTimeout is { } startTimeout)
+        {
+            Dispatcher.Connection.StartTimeout = startTimeout;
+            ConsumerManager.Connection.StartTimeout = startTimeout;
+        }
+
+        if (configuration.PublishTimeout is { } publishTimeout)
+        {
+            Dispatcher.PublishTimeout = publishTimeout;
+        }
     }
 
     private async Task ProvisionTopologyAsync(IConnection connection, CancellationToken cancellationToken)
@@ -353,7 +377,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         await Task.WhenAll(
             ConsumerManager.StartAsync(cancellationToken),
-            Dispatcher.EnsureConnectedAsync(cancellationToken));
+            Dispatcher.StartAsync(cancellationToken));
     }
 
     /// <summary>

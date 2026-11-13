@@ -1,159 +1,258 @@
-using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
-/// Manages RabbitMQ connections and provides channel pooling for publishing messages.
+/// Owns the RabbitMQ connection that publishes messages, and leases its channels to one publish at a time.
 /// </summary>
-internal sealed class RabbitMQDispatcher(
-    ILogger<RabbitMQDispatcher> logger,
-    Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
-    Func<IConnection, CancellationToken, Task> onConnectionEstablished)
-    : RabbitMQConnectionManagerBase(logger, connectionFactory)
+internal sealed partial class RabbitMQDispatcher : IAsyncDisposable
 {
-    private const int MaxPooledChannels = 10;
+    /// <summary>
+    /// The largest number of publisher channels per connection, which is also the largest number of
+    /// publishes in flight.
+    /// </summary>
+    internal const int MaxPublisherChannels = 100;
 
-    private readonly ConcurrentQueue<IChannel> _channelPool = new();
-    private int _pooledChannelCount;
+    private static readonly CreateChannelOptions s_publishChannelOptions = new(
+        publisherConfirmationsEnabled: true,
+        publisherConfirmationTrackingEnabled: true,
+        outstandingPublisherConfirmationsRateLimiter: null);
+
+    private readonly ILogger _logger;
+    private readonly RabbitMQConnectionManager _connection;
+    private readonly object _sync = new();
+    private PublisherChannelPool? _pool;
+    private bool _isDisposed;
 
     /// <summary>
-    /// Rents a channel from the pool or creates a new one.
-    /// The caller is responsible for returning the channel via ReturnChannelAsync.
+    /// Creates a dispatcher.
     /// </summary>
-    public async ValueTask<IChannel> RentChannelAsync(CancellationToken cancellationToken = default)
+    /// <param name="logger">The logger for publish events.</param>
+    /// <param name="connection">The manager of the connection that publishes messages.</param>
+    public RabbitMQDispatcher(ILogger logger, RabbitMQConnectionManager connection)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        _logger = logger;
+        _connection = connection;
+    }
 
-        // Try to get a channel from the pool
-        while (_channelPool.TryDequeue(out var pooledChannel))
+    /// <summary>
+    /// Gets the manager of the connection that publishes messages.
+    /// </summary>
+    public RabbitMQConnectionManager Connection => _connection;
+
+    /// <summary>
+    /// Gets whether a ready connection exists.
+    /// </summary>
+    public bool IsConnected => _connection.IsConnected;
+
+    /// <summary>
+    /// Gets whether the dispatcher was disposed, after which no publish can succeed.
+    /// </summary>
+    public bool IsDisposed => Volatile.Read(ref _isDisposed);
+
+    /// <summary>
+    /// Gets or sets how long opening a publisher channel may take before its connection is closed and replaced.
+    /// </summary>
+    public TimeSpan ChannelOpenTimeout { get; set; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// Gets or sets how long a publish waits for the broker's confirmation, including the wait for a
+    /// connection and all retries. <see cref="Timeout.InfiniteTimeSpan"/> waits until the caller cancels.
+    /// </summary>
+    public TimeSpan PublishTimeout { get; set; } = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// Connects and starts the stalled publish check.
+    /// </summary>
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await _connection.StartAsync(cancellationToken);
+        StartStalledPublishCheck();
+    }
+
+    /// <summary>
+    /// Leases a channel of the ready connection to one publish, waiting while there is no connection, while
+    /// the broker blocks the connection and while all channels are leased. The caller gives the lease back
+    /// with <see cref="Return"/>.
+    /// </summary>
+    public async ValueTask<PublisherLease> RentChannelAsync(CancellationToken cancellationToken)
+    {
+        while (true)
         {
-            Interlocked.Decrement(ref _pooledChannelCount);
-
-            if (pooledChannel.IsOpen)
+            var connection = await _connection.GetConnectionAsync(cancellationToken);
+            if (GetPool(connection) is not { } pool)
             {
-                Logger.RentedChannelFromPool();
-
-                return pooledChannel;
+                // The connection was replaced in the meantime.
+                continue;
             }
 
-            // Channel is closed, dispose it
-            await DisposeChannelSafelyAsync(pooledChannel);
+            await pool.AcquireAsync(cancellationToken);
+
+            if (pool.IsRetired)
+            {
+                // The connection was replaced while this publish waited. The other waiters of the pool follow.
+                pool.Release(channel: null, reusable: false);
+                continue;
+            }
+
+            var ownsPermit = true;
+            try
+            {
+                while (true)
+                {
+                    if (_connection.IsBlocked)
+                    {
+                        // The broker does not read from a blocked connection. A message written to it is
+                        // accepted when the broker reads again, also when its publish has given up by then.
+                        // So the publish waits before it takes a channel, and has written nothing meanwhile.
+                        await _connection.WaitWhileBlockedAsync(cancellationToken);
+                        if (pool.IsRetired || !ReferenceEquals(_connection.Connection, connection))
+                        {
+                            break;
+                        }
+
+                        continue;
+                    }
+
+                    if (!pool.TryTakeIdle(out var idle))
+                    {
+                        break;
+                    }
+
+                    if (idle.IsOpen)
+                    {
+                        return new PublisherLease(pool, idle);
+                    }
+
+                    _ = RabbitMQConnectionManager.CloseChannelAsync(idle);
+                }
+
+                if (pool.IsRetired || !ReferenceEquals(_connection.Connection, connection))
+                {
+                    // The connection was lost while this publish waited.
+                    ownsPermit = false;
+                    pool.Release(channel: null, reusable: false);
+                    continue;
+                }
+
+                var opening = _connection.OpenChannelAsync(connection, s_publishChannelOptions, ChannelOpenTimeout);
+                try
+                {
+                    var channel = await opening.WaitAsync(cancellationToken);
+                    LogPublisherChannelOpened(channel);
+                    return new PublisherLease(pool, channel);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // The caller gave up. The channel keeps its permit until it is open and goes to the pool.
+                    ownsPermit = false;
+                    _ = ReturnWhenOpenedAsync(pool, opening);
+                    throw;
+                }
+                catch (ChannelOpenBlockedException)
+                {
+                    ownsPermit = false;
+                    OnChannelNumberLost(pool);
+                    throw;
+                }
+            }
+            catch when (ownsPermit)
+            {
+                pool.Release(channel: null, reusable: false);
+                throw;
+            }
         }
-
-        // No valid pooled channel, create a new one
-        var connection = await GetConnectionAsync(cancellationToken);
-        var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
-
-        Logger.CreatedNewChannel();
-
-        return channel;
     }
 
     /// <summary>
-    /// Returns a channel to the pool for reuse.
-    /// If the channel is closed or the pool is full, the channel is disposed.
+    /// Gives a lease back. The channel is leased again only when <paramref name="reusable"/> is <c>true</c>,
+    /// which requires that the broker answered the last publish on it. Otherwise the channel is closed.
     /// </summary>
-    public async ValueTask ReturnChannelAsync(IChannel channel)
+    public void Return(PublisherLease lease, bool reusable) => lease.Pool.Release(lease.Channel, reusable);
+
+    private async Task ReturnWhenOpenedAsync(PublisherChannelPool pool, Task<IChannel> opening)
     {
-        if (IsDisposed || !channel.IsOpen)
-        {
-            await DisposeChannelSafelyAsync(channel);
-
-            return;
-        }
-
-        // Check if pool has room
-        if (Interlocked.Increment(ref _pooledChannelCount) <= MaxPooledChannels)
-        {
-            _channelPool.Enqueue(channel);
-
-            Logger.ReturnedChannelToPool(_pooledChannelCount);
-        }
-        else
-        {
-            // Pool is full, dispose the channel
-            Interlocked.Decrement(ref _pooledChannelCount);
-
-            await DisposeChannelSafelyAsync(channel);
-
-            Logger.ChannelPoolFullDisposedChannel();
-        }
-    }
-
-    protected override async Task OnConnectionEstablished(IConnection connection, CancellationToken cancellationToken)
-    {
-        await onConnectionEstablished(connection, cancellationToken);
-    }
-
-    protected override async Task OnBeforeConnectionCreatedAsync(CancellationToken cancellationToken)
-    {
-        await ClearChannelPoolAsync();
-    }
-
-    protected override async Task OnConnectionLostAsync()
-    {
-        await ClearChannelPoolAsync();
-    }
-
-    protected override async Task OnConnectionRecoveredAsync(CancellationToken cancellationToken)
-    {
-        await ClearChannelPoolAsync();
-    }
-
-    private async Task ClearChannelPoolAsync()
-    {
-        while (_channelPool.TryDequeue(out var channel))
-        {
-            Interlocked.Decrement(ref _pooledChannelCount);
-            await DisposeChannelSafelyAsync(channel);
-        }
-
-        Logger.ClearedChannelPool();
-    }
-
-    private static async ValueTask DisposeChannelSafelyAsync(IChannel channel)
-    {
+        IChannel? channel = null;
         try
         {
-            if (channel.IsOpen)
-            {
-                await channel.CloseAsync();
-            }
-
-            await channel.DisposeAsync();
+            channel = await opening;
+        }
+        catch (ChannelOpenBlockedException)
+        {
+            OnChannelNumberLost(pool);
+            return;
         }
         catch
         {
-            // Ignore disposal errors
+            // The channel could not be opened.
+        }
+
+        pool.Release(channel, reusable: channel is not null);
+    }
+
+    /// <summary>
+    /// Keeps the permit of a channel number the client lost to a request the blocked connection did not
+    /// answer, so the connection never has more channels than permits. A connection that lost half of its
+    /// channels this way is replaced.
+    /// </summary>
+    private void OnChannelNumberLost(PublisherChannelPool pool)
+    {
+        if (pool.LoseChannelNumber())
+        {
+            _connection.ReportUnresponsive(
+                pool.Connection,
+                "half of its publisher channels were lost to requests the broker did not answer while it blocked the connection");
         }
     }
 
-    protected override async ValueTask DisposeAsyncCore()
+    private PublisherChannelPool? GetPool(IConnection connection)
     {
-        await ClearChannelPoolAsync();
+        var pool = Volatile.Read(ref _pool);
+        if (pool is not null && ReferenceEquals(pool.Connection, connection))
+        {
+            return pool;
+        }
+
+        lock (_sync)
+        {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+            pool = _pool;
+            if (pool is not null && ReferenceEquals(pool.Connection, connection))
+            {
+                return pool;
+            }
+
+            // Only the ready connection gets a pool, so a caller that still holds a lost connection asks again.
+            if (!ReferenceEquals(_connection.Connection, connection))
+            {
+                return null;
+            }
+
+            // The pool of a lost connection retired itself when the connection shut down.
+            pool?.Retire();
+            pool = new PublisherChannelPool(connection, MaxPublisherChannels);
+            Volatile.Write(ref _pool, pool);
+            return pool;
+        }
     }
-}
 
-// Add these log messages to your Logs class
-internal static partial class Logs
-{
-    [LoggerMessage(LogLevel.Debug, "Rented channel from pool")]
-    public static partial void RentedChannelFromPool(this ILogger logger);
+    /// <summary>
+    /// Stops the stalled publish check, closes the publisher channels and closes the connection.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        PublisherChannelPool? pool;
+        lock (_sync)
+        {
+            _isDisposed = true;
+            pool = _pool;
+            _pool = null;
+        }
 
-    [LoggerMessage(LogLevel.Debug, "Created new channel")]
-    public static partial void CreatedNewChannel(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Debug, "Returned channel to pool. Pool size: {PoolSize}")]
-    public static partial void ReturnedChannelToPool(this ILogger logger, int poolSize);
-
-    [LoggerMessage(LogLevel.Debug, "Channel pool full, disposed channel")]
-    public static partial void ChannelPoolFullDisposedChannel(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Debug, "Cleared channel pool")]
-    public static partial void ClearedChannelPool(this ILogger logger);
-
-    [LoggerMessage(LogLevel.Information, "RabbitMQ Dispatcher disposed")]
-    public static partial void DispatcherDisposed(this ILogger logger);
+        StopStalledPublishCheck();
+        pool?.Retire();
+        await _connection.DisposeAsync();
+    }
 }

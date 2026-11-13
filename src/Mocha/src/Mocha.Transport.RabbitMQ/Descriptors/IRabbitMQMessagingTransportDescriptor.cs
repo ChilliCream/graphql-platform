@@ -28,6 +28,30 @@ public interface IRabbitMQMessagingTransportDescriptor
         Func<IServiceProvider, IRabbitMQConnectionProvider> connectionFactory);
 
     /// <summary>
+    /// Sets how long the start of the transport keeps retrying while the broker cannot be reached before it
+    /// fails. The default is two minutes, <see cref="TimeSpan.Zero"/> fails the start after the first failed
+    /// attempt, and <see cref="Timeout.InfiniteTimeSpan"/> keeps retrying until the start is cancelled.
+    /// </summary>
+    /// <param name="timeout">
+    /// How long to keep retrying, between zero and 4,294,967,294 milliseconds, or
+    /// <see cref="Timeout.InfiniteTimeSpan"/>.
+    /// </param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQMessagingTransportDescriptor StartTimeout(TimeSpan timeout);
+
+    /// <summary>
+    /// Sets how long a publish waits for the broker's confirmation, including the wait for a connection and
+    /// every retry, before it fails with <see cref="TransportUnavailableException"/>. The default is two minutes,
+    /// and <see cref="Timeout.InfiniteTimeSpan"/> waits until the caller cancels.
+    /// </summary>
+    /// <param name="timeout">
+    /// How long to wait, more than zero and at most 4,294,967,294 milliseconds, or
+    /// <see cref="Timeout.InfiniteTimeSpan"/>.
+    /// </param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IRabbitMQMessagingTransportDescriptor PublishTimeout(TimeSpan timeout);
+
+    /// <summary>
     /// Configures bus-level defaults that are applied to all auto-provisioned queues and exchanges.
     /// </summary>
     /// <param name="configure">A delegate that configures the bus defaults.</param>
