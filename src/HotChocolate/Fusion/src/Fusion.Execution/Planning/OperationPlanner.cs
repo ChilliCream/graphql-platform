@@ -1918,11 +1918,12 @@ public sealed partial class OperationPlanner
         }
 
         Dictionary<string, RequirementContextRoot>? contextRoots = null;
-        var contextAliases = new Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>>(
-            StringComparer.Ordinal);
+        Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>>? contextAliases = null;
 
         if (fieldRequirements is { ContextRequirements.Count: > 0 })
         {
+            contextAliases = new Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>>(
+                StringComparer.Ordinal);
             contextRoots = InlineContextRequirements(
                 workItem,
                 lookup,
@@ -1988,7 +1989,7 @@ public sealed partial class OperationPlanner
                 argumentRequirementKey,
                 argument.Type,
                 workItem.Selection.Path,
-                contextAliases.Count == 0
+                contextAliases is not { Count: > 0 }
                     ? fieldSelectionMap
                     : RewriteContextAliases(fieldSelectionMap, contextAliases),
                 GetRequirementContextRoots(fieldSelectionMap, contextRoots),
