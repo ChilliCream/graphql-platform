@@ -423,12 +423,10 @@ public class ContextRequirementTests : FusionTestBase
     }
 
     [Fact]
-    public void Plan_Should_Throw_When_NoAncestorSetsTheContext()
+    public void Plan_Should_UseTheSchemaWithoutContextRequirement_When_NoAncestorSetsTheContext()
     {
         // arrange
-        // composition rejects this schema, so the context is removed from the composed schema
-        var schema = ComposeSchemaWithoutContext(
-            "User",
+        var schema = ComposeSchema(
             """
             type Query {
                 me: User
@@ -447,28 +445,152 @@ public class ContextRequirementTests : FusionTestBase
 
             type Transaction @key(fields: "id") {
                 id: ID!
-                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int! @shareable
+            }
+            """,
+            """
+            type Query {
+                latest: [Transaction!]!
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount: Int! @shareable
             }
             """);
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => PlanOperation(
-                schema,
-                """
-                {
-                  me {
-                    transactions {
-                      amount
-                    }
-                  }
-                }
-                """));
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              latest {
+                amount
+              }
+            }
+            """);
 
         // assert
-        Assert.Equal(
-            "The context 'userContext' required by field 'Transaction.amount' is not set on the query path.",
-            exception.Message);
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_FallBackToTheSchemaWithoutContextRequirement_When_TheContextSchemaServesASibling()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int! @shareable
+                note: String!
+            }
+            """,
+            """
+            type Query {
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount: Int! @shareable
+            }
+            """,
+            """
+            type Query {
+                latest: [Transaction!]!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              latest {
+                amount
+                note
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadTheContext_When_TheSameFieldIsAlsoServedWithoutContext()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int! @shareable
+            }
+            """,
+            """
+            type Query {
+                latest: [Transaction!]!
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount: Int! @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                transactions {
+                  amount
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
     }
 
     [Fact]
