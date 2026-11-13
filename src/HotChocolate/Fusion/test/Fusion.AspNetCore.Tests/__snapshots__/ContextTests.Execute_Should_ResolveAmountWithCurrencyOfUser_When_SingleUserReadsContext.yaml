@@ -1,4 +1,4 @@
-title: Context_Requirement_Reads_Context_Of_Single_User
+title: Execute_Should_ResolveAmountWithCurrencyOfUser_When_SingleUserReadsContext
 request:
   document: |
     {
@@ -50,7 +50,7 @@ sourceSchemas:
         id: ID! @shareable
       }
 
-      type User @context(name: "userContext") {
+      type User @key(fields: "id") @context(name: "userContext") {
         transactions: [Transaction!]!
         account: Account!
         id: ID! @shareable

@@ -1,10 +1,15 @@
-title: Context_Requirement_Reads_Currency_Of_Own_User_For_List_Of_Users
+title: Execute_Should_ResolveAmountsAtBothDepths_When_TransactionsAreReachedAtDifferentDepths
 request:
   document: |
     {
       users {
         transactions {
           amount
+        }
+        account {
+          transactions {
+            amount
+          }
         }
       }
     }
@@ -21,7 +26,14 @@ response:
               {
                 "amount": 200
               }
-            ]
+            ],
+            "account": {
+              "transactions": [
+                {
+                  "amount": 500
+                }
+              ]
+            }
           },
           {
             "transactions": [
@@ -31,7 +43,14 @@ response:
               {
                 "amount": 800
               }
-            ]
+            ],
+            "account": {
+              "transactions": [
+                {
+                  "amount": 1200
+                }
+              ]
+            }
           }
         ]
       }
@@ -62,7 +81,7 @@ sourceSchemas:
         id: ID! @shareable
       }
 
-      type User @context(name: "userContext") {
+      type User @key(fields: "id") @context(name: "userContext") {
         transactions: [Transaction!]!
         account: Account!
         id: ID! @shareable
@@ -72,10 +91,15 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_e660ead7_1 {
+            query Op_a755cf05_1 {
               users {
                 transactions {
                   id
+                }
+                account {
+                  transactions {
+                    id
+                  }
                 }
                 userCurrency {
                   isoCode
@@ -97,6 +121,13 @@ sourceSchemas:
                           "id": "2"
                         }
                       ],
+                      "account": {
+                        "transactions": [
+                          {
+                            "id": "5"
+                          }
+                        ]
+                      },
                       "userCurrency": {
                         "isoCode": "USD"
                       }
@@ -110,6 +141,13 @@ sourceSchemas:
                           "id": "4"
                         }
                       ],
+                      "account": {
+                        "transactions": [
+                          {
+                            "id": "6"
+                          }
+                        ]
+                      },
                       "userCurrency": {
                         "isoCode": "EUR"
                       }
@@ -120,7 +158,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_e660ead7_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+            query Op_a755cf05_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
               transactionById(id: $__fusion_2_id) {
                 amount(currency: $__fusion_1_currency)
               }
@@ -129,19 +167,57 @@ sourceSchemas:
             [
               {
                 "__fusion_1_currency": "USD",
-                "__fusion_2_id": "1"
-              },
-              {
-                "__fusion_1_currency": "USD",
-                "__fusion_2_id": "2"
+                "__fusion_2_id": "5"
               },
               {
                 "__fusion_1_currency": "EUR",
-                "__fusion_2_id": "3"
+                "__fusion_2_id": "6"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 500
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 1200
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_a755cf05_3($__fusion_3_currency: String!, $__fusion_4_id: ID!) {
+              transactionById(id: $__fusion_4_id) {
+                amount(currency: $__fusion_3_currency)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_currency": "USD",
+                "__fusion_4_id": "1"
               },
               {
-                "__fusion_1_currency": "EUR",
-                "__fusion_2_id": "4"
+                "__fusion_3_currency": "USD",
+                "__fusion_4_id": "2"
+              },
+              {
+                "__fusion_3_currency": "EUR",
+                "__fusion_4_id": "3"
+              },
+              {
+                "__fusion_3_currency": "EUR",
+                "__fusion_4_id": "4"
               }
             ]
         response:
@@ -188,12 +264,18 @@ operationPlan:
               amount
               id @fusion__requirement
             }
+            account {
+              transactions {
+                amount
+                id @fusion__requirement
+              }
+            }
             userCurrency @fusion__requirement {
               isoCode @fusion__requirement
             }
           }
         }
-      hash: 15cdafa880cbe7a3f6c2f767149d86ef
+      hash: 0c19c28367332320e09131dae33414cb
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -201,10 +283,15 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_e660ead7_1 {
+        query Op_a755cf05_1 {
           users {
             transactions {
               id
+            }
+            account {
+              transactions {
+                id
+              }
             }
             userCurrency {
               isoCode
@@ -215,13 +302,13 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_e660ead7_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+        query Op_a755cf05_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
           transactionById(id: $__fusion_2_id) {
             amount(currency: $__fusion_1_currency)
           }
         }
       source: $.transactionById
-      target: $.users.transactions
+      target: $.users.account.transactions
       requirements:
         - name: __fusion_1_currency
           selectionMap: >-
@@ -230,6 +317,30 @@ operationPlan:
             - name: userContext
               path: $.users
         - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 3
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query Op_a755cf05_3($__fusion_3_currency: String!, $__fusion_4_id: ID!) {
+          transactionById(id: $__fusion_4_id) {
+            amount(currency: $__fusion_3_currency)
+          }
+        }
+      source: $.transactionById
+      target: $.users.transactions
+      requirements:
+        - name: __fusion_3_currency
+          selectionMap: >-
+            $userContext.userCurrency.isoCode
+          contextRoots:
+            - name: userContext
+              path: $.users
+        - name: __fusion_4_id
           selectionMap: >-
             id
       dependencies:

@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion;
 public class ContextTests : FusionTestBase
 {
     [Fact]
-    public async Task Context_Requirement_Reads_Context_Of_Single_User()
+    public async Task Execute_Should_ResolveAmountWithCurrencyOfUser_When_SingleUserReadsContext()
     {
         // arrange
         var server1 = CreateSourceSchema(
@@ -46,7 +46,7 @@ public class ContextTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Context_Requirement_Reads_Currency_Of_Own_User_For_List_Of_Users()
+    public async Task Execute_Should_ResolveAmountWithCurrencyOfOwnUser_When_ListOfUsersHasDifferentCurrencies()
     {
         // arrange
         var server1 = CreateSourceSchema(
@@ -82,7 +82,7 @@ public class ContextTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Context_Requirement_Reads_Context_Field_From_Second_Source_Schema()
+    public async Task Execute_Should_ResolveAmountWithContextField_When_UserCurrencyComesFromSecondSourceSchema()
     {
         // arrange
         var server1 = CreateSourceSchema(
@@ -125,7 +125,7 @@ public class ContextTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Context_Requirement_Combines_Context_Value_And_Entity_Value_In_One_Map()
+    public async Task Execute_Should_ResolveTotal_When_RequirementMixesContextValueAndEntityValue()
     {
         // arrange
         var server1 = CreateSourceSchema(
@@ -168,7 +168,7 @@ public class ContextTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Context_Requirement_Reads_Context_For_Transactions_At_Different_Depths()
+    public async Task Execute_Should_ResolveAmountsAtBothDepths_When_TransactionsAreReachedAtDifferentDepths()
     {
         // arrange
         var server1 = CreateSourceSchema(
@@ -208,6 +208,50 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_ResolveAmountsWithCurrencyOfOwnUser_When_TwoTargetsShareOneLookup()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<Billing.Query>());
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<PendingTransactions.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              users {
+                transactions {
+                  amount
+                }
+                pending {
+                  amount
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     private static class Billing
     {
         private static readonly User[] s_users =
@@ -227,6 +271,7 @@ public class ContextTests : FusionTestBase
             public Transaction? GetTransactionById([ID] int id) => new Transaction(id);
         }
 
+        [EntityKey("id")]
         [Context("userContext")]
         public record User(
             [property: ID, Shareable] int Id,
@@ -299,6 +344,34 @@ public class ContextTests : FusionTestBase
         public record User([property: ID, Shareable] int Id, Currency UserCurrency);
 
         public record Currency(string IsoCode);
+    }
+
+    private static class PendingTransactions
+    {
+        private static readonly Dictionary<int, int[]> s_pendingIds = new()
+        {
+            { 1, [7] },
+            { 2, [8] }
+        };
+
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public User? GetUserById([ID] int id) => new User(id, s_pendingIds[id]);
+        }
+
+        [EntityKey("id")]
+        public record User(
+            [property: ID, Shareable] int Id,
+            [property: GraphQLIgnore] int[] PendingIds)
+        {
+            public Transaction[] GetPending()
+                => PendingIds.Select(id => new Transaction(id)).ToArray();
+        }
+
+        [EntityKey("id")]
+        public record Transaction([property: ID, Shareable] int Id);
     }
 
     private static class TaxRates
