@@ -163,6 +163,8 @@ Composition resolves Apollo Federation constructs before clients see the schema.
 | `@key(fields: "...")`                      | Generated lookup fields, one per key. Single, composite, and nested keys are supported.           |
 | `_entities` / `__resolveReference`         | Kept as the runtime contract. The gateway calls them over the `_entities` protocol like a router. |
 | `@requires(fields: "...")`                 | Translated to `@require`, including nested object requirements and requirement chains.            |
+| `@context(name: "...")`                    | Kept as the composite `@context`.                                                                 |
+| `@fromContext(field: "...")`               | Translated to a context path in `@require`. See [Context Arguments](#context-arguments).          |
 | `@provides(fields: "...")`                 | Honored. The `@external` fields it references are kept resolvable from the providing subgraph.    |
 | `@external`                                | External fields are resolved into the model.                                                      |
 | `@shareable`                               | Preserved. Key fields are marked shareable automatically.                                         |
@@ -171,6 +173,51 @@ Composition resolves Apollo Federation constructs before clients see the schema.
 | `@tag`                                     | Preserved.                                                                                        |
 | `@interfaceObject`                         | Projects fields onto the same-named interface and compatible implementations.                     |
 | Union members contributed across subgraphs | Merged into a single union in the composed schema.                                                |
+
+# Context Arguments
+
+Apollo Federation v2.8 adds `@context` and `@fromContext`. `@context` names a context on a type. `@fromContext` fills an argument of a field below that type with a value from the context. Composition keeps `@context` and translates each `@fromContext` argument into a `@require` argument with a context path:
+
+- `@fromContext(field: "$userContext { userCurrency { isoCode } }")` becomes `@require(field: "$userContext.userCurrency.isoCode")`.
+- The typed form `@fromContext(field: "$context1 ... on A { someField } ... on B { someField }")` becomes `@require(field: "$context1<A>.someField | $context1<B>.someField")`.
+
+The `field` value is a `$` and the context name, followed by one chain of fields, or by inline fragments with a type condition that each hold one chain of fields. The argument keeps its name and type.
+
+This example reads the currency of the current user in the `Transaction.amountInUserCurrency` argument:
+
+```graphql
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.8"
+    import: ["@key", "@context", "@fromContext"]
+  )
+
+type Query {
+  me: User
+}
+
+type User @key(fields: "id") @context(name: "userContext") {
+  id: ID!
+  userCurrency: Currency!
+  transactions: [Transaction!]!
+}
+
+type Currency {
+  isoCode: String!
+}
+
+type Transaction @key(fields: "id") {
+  id: ID!
+  amountInUserCurrency(
+    currencyCode: String
+      @fromContext(field: "$userContext { userCurrency { isoCode } }")
+  ): Float!
+}
+```
+
+The composed schema has no `currencyCode` argument. At runtime, the gateway resolves the value from the `User` above the `Transaction` and passes it as the `currencyCode` field argument in the `_entities` request. It sends one `_entities` request per distinct context value, with the representations of the entities that share that value.
+
+The rules of [`@context`](../directives-reference.md#context) apply to the translated schema. The parent type of a field that reads from a context needs a resolvable `@key`, and every query path to the field must pass through a type that provides the context.
 
 # Shareable Abstract Field Routing
 
@@ -396,6 +443,7 @@ The connector is under active development and ships as a preview. Composition re
 
 - **Apollo Federation v1 requires explicit source settings.** Set `extensions.chillicream.apolloFederationSupport.version` to exact `"1.0"` for that source. Raw v1 SDL without the marker is rejected with `FEDERATION_V1_NOT_SUPPORTED`. Federation v2 schemas continue to use their `@link`; for a remote source, the optional exact `"2.0"` marker selects `_service.sdl` acquisition without enabling the v1 parser.
 - **Several Apollo Federation v2 directives are not supported.** Composition rejects `@composeDirective`, `@authenticated`, `@requiresScopes`, and `@policy` with `FEDERATION_DIRECTIVE_NOT_SUPPORTED`. Remove the directive, or express the equivalent with a GraphQL Federation construct.
+- **Renamed or namespaced `@context` and `@fromContext` imports are not translated.** Import both directives under their default names, for example `import: ["@context", "@fromContext"]`.
 - **Enums used in input positions must define identical value sets across subgraphs.** When an Apollo Federation subgraph is part of the composition, enum value merging resolves to union, so enums used only in output positions compose even when their values diverge. Enums used in any input position must still agree exactly and are otherwise rejected with `ENUM_VALUES_MISMATCH`; Apollo's input-only intersection merge is not performed. The `enumValuesMergeBehavior` merger setting can force strict merging.
 
 These error codes are listed in the [Composition log-code reference](../composition.md#log-codes-reference).

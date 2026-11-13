@@ -426,6 +426,73 @@ public int GetDeliveryEstimate(
 }
 ```
 
+#### Convert Context Arguments
+
+Replace `@context` and `@fromContext` with `[Context]` and a context path in `[Require]`.
+
+**Apollo Federation (GraphQL SDL):**
+
+```graphql
+type Query {
+  me: User
+}
+
+type User @key(fields: "id") @context(name: "userContext") {
+  id: ID!
+  userCurrency: Currency!
+  transactions: [Transaction!]!
+}
+
+type Currency {
+  isoCode: String!
+}
+
+type Transaction @key(fields: "id") {
+  id: ID!
+  amount: Int!
+  amountInUserCurrency(
+    currency: String!
+      @fromContext(field: "$userContext { userCurrency { isoCode } }")
+  ): Int!
+}
+```
+
+**Fusion (C#):**
+
+```csharp
+[Context("userContext")]
+public sealed class User
+{
+    public required string Id { get; init; }
+
+    public required Currency UserCurrency { get; init; }
+
+    public required List<Transaction> Transactions { get; init; }
+}
+
+[QueryType]
+public static partial class TransactionQueries
+{
+    [Lookup, Internal]
+    public static async Task<Transaction?> GetTransactionByIdAsync(
+        [ID<Transaction>] int id,
+        ITransactionByIdDataLoader transactionById,
+        CancellationToken cancellationToken)
+        => await transactionById.LoadAsync(id, cancellationToken);
+}
+
+[ObjectType<Transaction>]
+public static partial class TransactionNode
+{
+    public static int GetAmountInUserCurrency(
+        [Parent] Transaction transaction,
+        [Require("$userContext.userCurrency.isoCode")] string currency)
+        => CurrencyConverter.Convert(transaction.Amount, currency);
+}
+```
+
+The path `$userContext.userCurrency.isoCode` replaces `$userContext { userCurrency { isoCode } }`. The `currency` parameter is hidden from the composed schema, like any other `[Require]` argument. The `Transaction` lookup must be `[Internal]` so that a client cannot reach `amountInUserCurrency` without a `User` above it. See [`@context`](../directives-reference.md#context) for the rules of contexts.
+
 ### Step 4: Convert External Fields and Provides
 
 **`@external`** has a direct equivalent in `[External]`, but it is less frequently needed. In Apollo Federation, you must mark any field referenced by `@requires` as `@external`. In Fusion, the `[Require]` selection syntax references fields from the composed graph directly, so no `@external` annotation is needed on the entity type.
