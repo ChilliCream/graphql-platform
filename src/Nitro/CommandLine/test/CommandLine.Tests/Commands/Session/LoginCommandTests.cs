@@ -80,10 +80,8 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.AssertSuccess(
             """
-            ✓ Logging in via browser
-            ├── Opening browser at https://identity.chillicream.com. Continue login there.
-            ├── ! You do not have any workspaces. Run `nitro launch` and create one.
-            └── ✓ Logged in as user@test.com
+            ✓ Logged in as user@test.com
+            ! You do not have any workspaces. Run `nitro launch` and create one.
             """);
 
         VerifyNoWorkspaceSelected();
@@ -104,9 +102,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.AssertSuccess(
             """
-            ✓ Logging in via browser
-            ├── Opening browser at https://identity.chillicream.com. Continue login there.
-            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            ✓ Logged in as user@test.com (Workspace: my-workspace)
             """);
 
         VerifyWorkspaceSelected("ws-1", "my-workspace");
@@ -129,10 +125,8 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.AssertSuccess(
             """
-            ✓ Logging in via browser
-            ├── Opening browser at https://identity.chillicream.com. Continue login there.
-            ├── ! Could not open a browser. Use this URL to log in: https://identity.chillicream.com/connect/authorize?client_id=nitro
-            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            ! Could not open a browser. Use this URL to log in: https://identity.chillicream.com/connect/authorize?client_id=nitro
+            ✓ Logged in as user@test.com (Workspace: my-workspace)
             """);
     }
 
@@ -153,15 +147,13 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.AssertSuccess(
             """
-            ✓ Logging in via browser
-            ├── Opening browser at https://identity.chillicream.com. Continue login there.
-            ├── If your browser does not open automatically, use this URL to log in: https://identity.chillicream.com/connect/authorize?client_id=nitro
-            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            Continue the login in your browser. If it does not open, use this URL: https://identity.chillicream.com/connect/authorize?client_id=nitro
+            ✓ Logged in as user@test.com (Workspace: my-workspace)
             """);
     }
 
     [Fact]
-    public async Task MultipleWorkspaces_PromptsForSelection_ReturnsSuccess()
+    public async Task MultipleWorkspaces_SelectsChosenWorkspace_ReturnsSuccess()
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
@@ -169,18 +161,18 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         SetupSelectWorkspaces(
             CreateWorkspaceNode("ws-1", "first-workspace"),
             CreateWorkspaceNode("ws-2", "second-workspace"));
-        SetupSelectWorkspace("ws-1", "first-workspace");
+        SetupSelectWorkspace("ws-2", "second-workspace");
 
         var command = StartInteractiveCommand("login");
 
         // act
-        command.SelectOption(0);
+        command.SelectOption(1);
         var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
 
-        VerifyWorkspaceSelected("ws-1", "first-workspace");
+        VerifyWorkspaceSelected("ws-2", "second-workspace");
     }
 
     [Fact]
@@ -216,9 +208,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.AssertSuccess(
             """
-            ✓ Logging in via browser
-            ├── Opening browser at http://custom.server.com. Continue login there.
-            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            ✓ Logged in as user@test.com (Workspace: my-workspace)
             """);
     }
 
@@ -257,9 +247,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.AssertSuccess(
             """
-            ✓ Logging in via browser
-            ├── Opening browser at http://custom.server.com. Continue login there.
-            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            ✓ Logged in as user@test.com (Workspace: my-workspace)
             """);
     }
 }
