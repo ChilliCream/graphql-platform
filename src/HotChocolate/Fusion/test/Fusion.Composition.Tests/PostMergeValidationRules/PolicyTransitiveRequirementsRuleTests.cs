@@ -485,6 +485,108 @@ public sealed class PolicyTransitiveRequirementsRuleTests : RuleTestBase
     }
 
     [Fact]
+    public void Validate_Should_Fail_When_ContextPathReachesAProtectedField()
+    {
+        // arrange & act & assert
+        AssertInvalid(
+        [
+            $$"""
+            # Schema A
+            type User @context(name: "userContext") {
+                id: ID!
+                locale: String @requiresScopes(scopes: [["pii"]])
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                label(locale: String @require(field: "$userContext.locale")): String
+            }
+
+            {{Directives}}
+            """
+        ],
+        [
+            """
+            {
+              "message": "The field 'Product.label' depends on 'User.locale' through 'Product.label(locale:)' in schema 'A', but does not declare all policy requirements of 'User.locale'. Not covered: @requiresScopes.",
+              "code": "POLICY_TRANSITIVE_REQUIREMENTS_MISSING",
+              "severity": "Error",
+              "coordinate": "Product.label",
+              "schema": "A",
+              "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_ContextPathWithTypeConditionReachesAProtectedField()
+    {
+        // arrange & act & assert
+        AssertInvalid(
+        [
+            $$"""
+            # Schema A
+            type User @context(name: "account") {
+                id: ID!
+                locale: String
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                defaultLocale: String @requiresScopes(scopes: [["pii"]])
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                label(
+                    locale: String
+                        @require(field: "$account<User>.locale | $account<Organization>.defaultLocale")
+                ): String
+            }
+
+            {{Directives}}
+            """
+        ],
+        [
+            """
+            {
+              "message": "The field 'Product.label' depends on 'Organization.defaultLocale' through 'Product.label(locale:)' in schema 'A', but does not declare all policy requirements of 'Organization.defaultLocale'. Not covered: @requiresScopes.",
+              "code": "POLICY_TRANSITIVE_REQUIREMENTS_MISSING",
+              "severity": "Error",
+              "coordinate": "Product.label",
+              "schema": "A",
+              "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_ContextPathReachesACoveredField()
+    {
+        // arrange & act & assert
+        AssertValid(
+        [
+            $$"""
+            # Schema A
+            type User @context(name: "userContext") {
+                id: ID!
+                locale: String @requiresScopes(scopes: [["pii"]])
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                label(locale: String @require(field: "$userContext.locale")): String
+                    @requiresScopes(scopes: [["pii"]])
+            }
+
+            {{Directives}}
+            """
+        ]);
+    }
+
+    [Fact]
     public void Validate_Should_Fail_When_ObjectConstructionReachesAProtectedField()
     {
         // arrange & act & assert
