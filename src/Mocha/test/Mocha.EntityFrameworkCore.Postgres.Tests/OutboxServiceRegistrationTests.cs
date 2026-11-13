@@ -11,6 +11,107 @@ public sealed class OutboxServiceRegistrationTests
 {
     private const string ConnectionString = "Host=localhost;Database=test";
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void UsePostgresOutbox_Should_RejectInvalidConcurrency_When_OptionsResolved(int concurrency)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(
+            ef => ef.UsePostgresOutbox(o => o.MaxConcurrentMessages = concurrency));
+        using var provider = services.BuildServiceProvider();
+
+        // act
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>()
+                .Get(typeof(TestDbContext).FullName));
+
+        // assert
+        Assert.Equal(["MaxConcurrentMessages must be greater than zero."], exception.Failures);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-2)]
+    [InlineData(25 * 24 * 60 * 60 * 1000L)]
+    public void UsePostgresOutbox_Should_RejectInvalidDispatchTimeout_When_OptionsResolved(long milliseconds)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(
+            ef => ef.UsePostgresOutbox(o => o.DispatchTimeout = TimeSpan.FromMilliseconds(milliseconds)));
+        using var provider = services.BuildServiceProvider();
+
+        // act
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>()
+                .Get(typeof(TestDbContext).FullName));
+
+        // assert
+        Assert.Equal(
+            ["DispatchTimeout must be greater than zero and at most 24 days, or Timeout.InfiniteTimeSpan."],
+            exception.Failures);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void UsePostgresOutbox_Should_RejectInvalidMaxAttempts_When_OptionsResolved(int maxAttempts)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(
+            ef => ef.UsePostgresOutbox(o => o.MaxAttempts = maxAttempts));
+        using var provider = services.BuildServiceProvider();
+
+        // act
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>()
+                .Get(typeof(TestDbContext).FullName));
+
+        // assert
+        Assert.Equal(["MaxAttempts must be greater than zero."], exception.Failures);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void UsePostgresOutbox_Should_RejectInvalidMaxRetryDelay_When_OptionsResolved(int milliseconds)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(
+            ef => ef.UsePostgresOutbox(o => o.MaxRetryDelay = TimeSpan.FromMilliseconds(milliseconds)));
+        using var provider = services.BuildServiceProvider();
+
+        // act
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>()
+                .Get(typeof(TestDbContext).FullName));
+
+        // assert
+        Assert.Equal(["MaxRetryDelay must be greater than zero."], exception.Failures);
+    }
+
+    [Fact]
+    public void UsePostgresOutbox_Should_UseDefaults_When_OptionsAreNotConfigured()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        using var provider = services.BuildServiceProvider();
+
+        // act
+        var options = provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>()
+            .Get(typeof(TestDbContext).FullName);
+
+        // assert
+        Assert.Equal(TimeSpan.FromSeconds(30), options.DispatchTimeout);
+        Assert.Equal(10, options.MaxAttempts);
+        Assert.Equal(TimeSpan.FromMinutes(10), options.MaxRetryDelay);
+    }
+
     [Fact]
     public void UsePostgresOutbox_Should_DeferConfiguration_When_OptionsHaveNotBeenResolved()
     {
