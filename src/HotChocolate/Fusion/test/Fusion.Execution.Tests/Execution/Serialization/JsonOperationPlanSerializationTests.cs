@@ -1257,34 +1257,33 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
         var formattedJson = new JsonOperationPlanFormatter(s_indentedOptions).Format(parsedPlan);
         var reparsedPlan = parser.Parse(Encoding.UTF8.GetBytes(formattedJson));
+        var reformattedJson = new JsonOperationPlanFormatter(s_indentedOptions).Format(reparsedPlan);
 
         // assert
-        var parsedRequirement = parsedPlan.AllNodes
-            .OfType<OperationExecutionNode>()
-            .SelectMany(t => t.Requirements.ToArray())
-            .Single();
-        var reparsedRequirement = reparsedPlan.AllNodes
-            .OfType<OperationExecutionNode>()
-            .SelectMany(t => t.Requirements.ToArray())
-            .Single();
         Assert.Equal("1.4.0", JsonNode.Parse(formattedJson)!["version"]!.GetValue<string>());
-        Assert.Collection(
-            parsedRequirement.ContextRoots,
-            root =>
+        GetNodeRequirement(reformattedJson).MatchInlineSnapshot(
+            """
             {
-                Assert.Equal("userContext", root.Name);
-                Assert.Equal("$.me", root.Path.ToString());
-                Assert.Equal(["User", "Admin"], root.TypeNames);
-            },
-            root =>
-            {
-                Assert.Equal("userContext", root.Name);
-                Assert.Equal("$.viewer", root.Path.ToString());
-                Assert.True(root.TypeNames.IsEmpty);
-            });
-        Assert.Equal(
-            parsedRequirement.ContextRoots.Select(t => (t.Name, t.Path.ToString(), t.TypeNames.ToArray())),
-            reparsedRequirement.ContextRoots.Select(t => (t.Name, t.Path.ToString(), t.TypeNames.ToArray())));
+              "name": "__fusion_1_id",
+              "type": "ID!",
+              "path": "$.user",
+              "selectionMap": "id",
+              "contextRoots": [
+                {
+                  "name": "userContext",
+                  "path": "$.me",
+                  "types": [
+                    "User",
+                    "Admin"
+                  ]
+                },
+                {
+                  "name": "userContext",
+                  "path": "$.viewer"
+                }
+              ]
+            }
+            """);
         MatchInline(
             reparsedPlan,
             """
@@ -1465,14 +1464,34 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
         var reparsedPlan = parser.Parse(
             Encoding.UTF8.GetBytes(new JsonOperationPlanFormatter(s_indentedOptions).Format(parsedPlan)));
+        var reformattedJson = new JsonOperationPlanFormatter(s_indentedOptions).Format(reparsedPlan);
 
         // assert
-        var requirement = Assert.Single(Assert.Single(reparsedPlan.IncrementalPlans).Requirements);
-        Assert.Equal(2, requirement.ContextRoots.Length);
-        Assert.Equal("userContext", requirement.ContextRoots[0].Name);
-        Assert.Equal("$.me", requirement.ContextRoots[0].Path.ToString());
-        Assert.Equal(["User", "Admin"], requirement.ContextRoots[0].TypeNames);
-        Assert.Equal("$.viewer", requirement.ContextRoots[1].Path.ToString());
+        JsonNode.Parse(reformattedJson)!["incrementalPlans"]![0]!["requirements"]![0]!
+            .ToJsonString(s_indentedSerializerOptions)
+            .MatchInlineSnapshot(
+                """
+                {
+                  "name": "__fusion_1_id",
+                  "type": "ID!",
+                  "path": "$.user",
+                  "selectionMap": "id",
+                  "contextRoots": [
+                    {
+                      "name": "userContext",
+                      "path": "$.me",
+                      "types": [
+                        "User",
+                        "Admin"
+                      ]
+                    },
+                    {
+                      "name": "userContext",
+                      "path": "$.viewer"
+                    }
+                  ]
+                }
+                """);
     }
 
     [Fact]
@@ -2463,10 +2482,8 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         """;
 
     /// <summary>
-    /// Composes a schema from two Apollo Federation subgraphs. Source schema
-    /// "a" exposes the entity root fields and source schema "b" owns the
-    /// entity name fields, so selecting a name plans an entity lookup that is
-    /// routed to an Apollo execution node.
+    /// Composes a schema from two source schemas that share a <c>User</c> entity through
+    /// <c>@lookup</c> fields.
     /// </summary>
     private static FusionSchemaDefinition ComposeLookupSchema()
         => ComposeSchema(
@@ -2524,8 +2541,17 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     {
         var lines = yaml.Split('\n');
         var start = Array.FindIndex(lines, t => t.TrimStart() == "requirements:");
+        if (start < 0)
+        {
+            Assert.Fail("The plan has no requirements block.");
+        }
+
         var indent = lines[start].Length - lines[start].TrimStart().Length;
         var end = Array.FindIndex(lines, start + 1, t => t.Length - t.TrimStart().Length <= indent);
+        if (end < 0)
+        {
+            end = lines.Length;
+        }
 
         return string.Join('\n', lines[start..end].Select(t => t[indent..]));
     }
@@ -2539,6 +2565,12 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             .Single()
             .ToJsonString(s_indentedSerializerOptions);
 
+    /// <summary>
+    /// Composes a schema from two Apollo Federation subgraphs. Source schema
+    /// "a" exposes the entity root fields and source schema "b" owns the
+    /// entity name fields, so selecting a name plans an entity lookup that is
+    /// routed to an Apollo execution node.
+    /// </summary>
     private static FusionSchemaDefinition ComposeApolloSchema()
     {
         const string sourceSchemaA =
