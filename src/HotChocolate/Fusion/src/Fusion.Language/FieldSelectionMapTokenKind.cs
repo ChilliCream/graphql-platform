@@ -11,6 +11,9 @@ internal enum FieldSelectionMapTokenKind
     /// <summary>:</summary>
     Colon,
 
+    /// <summary>$</summary>
+    Dollar,
+
     /// <summary>The end of file token.</summary>
     EndOfFile,
 

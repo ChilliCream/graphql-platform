@@ -15,7 +15,7 @@ internal static class CharExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsPunctuator(this char c)
-        => c is Colon or LeftAngleBracket or LeftBrace or LeftParenthesis or LeftSquareBracket or Period or Pipe or RightAngleBracket or RightBrace or RightParenthesis or RightSquareBracket;
+        => c is Colon or Dollar or LeftAngleBracket or LeftBrace or LeftParenthesis or LeftSquareBracket or Period or Pipe or RightAngleBracket or RightBrace or RightParenthesis or RightSquareBracket;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigit(this char c)

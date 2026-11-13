@@ -414,6 +414,11 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
         PathNode node,
         TContext context)
     {
+        if (node.ContextName is not null && Visit(node.ContextName, node, context).IsBreak())
+        {
+            return Break;
+        }
+
         if (node.TypeName is not null && Visit(node.TypeName, node, context).IsBreak())
         {
             return Break;
