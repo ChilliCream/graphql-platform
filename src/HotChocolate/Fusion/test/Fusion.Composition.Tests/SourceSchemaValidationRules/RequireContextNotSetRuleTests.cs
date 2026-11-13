@@ -12,7 +12,7 @@ public sealed class RequireContextNotSetRuleTests : RuleTestBase
         [
             """
             type Query {
-                tenant: Tenant @context(name: "tenantContext")
+                tenant: Tenant
                 product: Product
             }
 

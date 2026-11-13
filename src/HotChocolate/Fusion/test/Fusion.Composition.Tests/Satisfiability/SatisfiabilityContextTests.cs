@@ -313,6 +313,82 @@ public sealed class SatisfiabilityContextTests
     }
 
     [Fact]
+    public void Compose_Should_Fail_When_OnlyTheParentValueSetsTheContext()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    userById(id: ID!): User @lookup @internal
+                }
+
+                type User @key(fields: "id") @context(name: "userContext") {
+                    id: ID!
+                    locale: String!
+                    greeting(locale: String! @require(field: "$userContext.locale")): String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'User.greeting' on path 'A:Query.me<User>'.
+              The field 'User.greeting' in schema 'A' reads from the context 'userContext', which is not set on this path.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_TheContextIsSetAboveAnInterfaceField()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    postById(id: ID!): Post @lookup @internal
+                }
+
+                type User @context(name: "userContext") {
+                    id: ID!
+                    locale: String!
+                    feed: [Item!]!
+                }
+
+                interface Item {
+                    id: ID!
+                }
+
+                type Post implements Item @key(fields: "id") {
+                    id: ID!
+                    title(locale: String! @require(field: "$userContext.locale")): String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
     public void Compose_Should_LogUnsatisfiableQueryPath_When_TypeBelowDoesNotImplementTheContextInterface()
     {
         // arrange
