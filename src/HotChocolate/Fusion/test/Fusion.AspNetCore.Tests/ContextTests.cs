@@ -252,6 +252,70 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_ResolveAmountWithUnaliasedCurrency_When_ClientSelectsContextFieldWithArguments()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<RegionalBilling.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              me {
+                userCurrency(region: "EU") {
+                  isoCode
+                }
+                transactions {
+                  amount
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private static class RegionalBilling
+    {
+        public class Query
+        {
+            public User? GetMe() => new User(1, [1, 2]);
+
+            [Lookup]
+            [Internal]
+            public Billing.Transaction? GetTransactionById([ID] int id) => new Billing.Transaction(id);
+        }
+
+        [EntityKey("id")]
+        [Context("userContext")]
+        public record User(
+            [property: ID, Shareable] int Id,
+            [property: GraphQLIgnore] int[] TransactionIds)
+        {
+            public Billing.Currency GetUserCurrency(string? region)
+                => new Billing.Currency(region == "EU" ? "EUR" : "USD");
+
+            public Billing.Transaction[] GetTransactions()
+                => TransactionIds.Select(id => new Billing.Transaction(id)).ToArray();
+        }
+    }
+
     private static class Billing
     {
         private static readonly User[] s_users =

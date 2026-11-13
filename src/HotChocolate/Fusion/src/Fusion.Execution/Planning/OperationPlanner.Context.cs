@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
 using Lookup = HotChocolate.Fusion.Types.Metadata.Lookup;
 using static HotChocolate.Fusion.Planning.PlannerExtensions;
 using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
@@ -13,7 +15,8 @@ public sealed partial class OperationPlanner
 {
     // Inlines the selections that the context paths of a field read into the steps that select the
     // context roots, and returns the root of each context. The excluded step is the existing step
-    // the field is merged into, or null if the field gets a new step.
+    // the field is merged into, or null if the field gets a new step. The aliases minted for each
+    // context are added to contextAliases, and the alias registry of each context is adopted.
     private Dictionary<string, RequirementContextRoot> InlineContextRequirements(
         FieldRequirementWorkItem workItem,
         Lookup lookup,
@@ -24,7 +27,8 @@ public sealed partial class OperationPlanner
         SelectionSetIndexBuilder index,
         ref Backlog backlog,
         ref ImmutableList<PlanStep> steps,
-        RequirementAliasContext requirementAliases)
+        RequirementAliasContext requirementAliases,
+        Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>> contextAliases)
     {
         var contextRequirements =
             workItem.Selection.Field.Sources[current.SchemaName].Requirements!.ContextRequirements;
@@ -48,6 +52,7 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            var contextAliasContext = new RequirementAliasContext([], requirementAliases.Registry);
             var leftover = TryInlineRequirements(
                 selections,
                 target,
@@ -59,7 +64,14 @@ public sealed partial class OperationPlanner
                 index,
                 ref backlog,
                 ref steps,
-                requirementAliases);
+                contextAliasContext);
+
+            requirementAliases.Adopt(contextAliasContext.Registry);
+
+            if (contextAliasContext.Aliases.Count > 0)
+            {
+                contextAliases.Add(contextName, [.. contextAliasContext.Aliases]);
+            }
 
             if (leftover is not null)
             {
@@ -183,6 +195,97 @@ public sealed partial class OperationPlanner
         }
 
         return selections is null ? selectionSet : new SelectionSetNode(selections);
+    }
+
+    // Replaces the first segment of every context path whose field was aliased in the step of the
+    // context root with a segment that names the alias. Entity paths are not changed.
+    private static IValueSelectionNode RewriteContextAliases(
+        IValueSelectionNode node,
+        Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>> contextAliases)
+    {
+        switch (node)
+        {
+            case PathNode path:
+                return RewriteContextPath(path, contextAliases);
+
+            case PathObjectValueSelectionNode pathObject:
+            {
+                var rewritten = RewriteContextPath(pathObject.Path, contextAliases);
+
+                return ReferenceEquals(rewritten, pathObject.Path)
+                    ? pathObject
+                    : new PathObjectValueSelectionNode(
+                        pathObject.Location,
+                        rewritten,
+                        pathObject.ObjectValueSelection);
+            }
+
+            case PathListValueSelectionNode pathList:
+            {
+                var rewritten = RewriteContextPath(pathList.Path, contextAliases);
+
+                return ReferenceEquals(rewritten, pathList.Path)
+                    ? pathList
+                    : new PathListValueSelectionNode(
+                        pathList.Location,
+                        rewritten,
+                        pathList.ListValueSelection);
+            }
+
+            case ChoiceValueSelectionNode choice:
+                return new ChoiceValueSelectionNode(
+                    choice.Location,
+                    [.. choice.Branches.Select(b => RewriteContextAliases(b, contextAliases))]);
+
+            case ObjectValueSelectionNode objectValue:
+                return new ObjectValueSelectionNode(
+                    objectValue.Location,
+                    [.. objectValue.Fields.Select(f => f.ValueSelection is null
+                        ? f
+                        : new ObjectFieldSelectionNode(
+                            f.Location,
+                            f.Name,
+                            f.Arguments,
+                            RewriteContextAliases(f.ValueSelection, contextAliases)))]);
+
+            default:
+                return node;
+        }
+    }
+
+    private static PathNode RewriteContextPath(
+        PathNode path,
+        Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>> contextAliases)
+    {
+        if (path.ContextName is not { } contextName
+            || !contextAliases.TryGetValue(contextName.Value, out var aliases))
+        {
+            return path;
+        }
+
+        var segment = path.PathSegment;
+        var key = new RequirementFieldSelectionKey(
+            segment.FieldName.Value,
+            FieldSelectionMapValueNodeConverter.Convert(segment.Arguments));
+
+        foreach (var (aliasedKey, alias) in aliases)
+        {
+            if (aliasedKey.Equals(key))
+            {
+                return new PathNode(
+                    path.Location,
+                    contextName,
+                    new PathSegmentNode(
+                        segment.Location,
+                        new FusionNameNode(alias),
+                        [],
+                        segment.TypeName,
+                        segment.PathSegment),
+                    path.TypeName);
+            }
+        }
+
+        return path;
     }
 
     private static ImmutableArray<RequirementContextRoot> GetRequirementContextRoots(

@@ -1,0 +1,197 @@
+title: Execute_Should_ResolveAmountWithUnaliasedCurrency_When_ClientSelectsContextFieldWithArguments
+request:
+  document: |
+    {
+      me {
+        userCurrency(region: "EU") {
+          isoCode
+        }
+        transactions {
+          amount
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "me": {
+          "userCurrency": {
+            "isoCode": "EUR"
+          },
+          "transactions": [
+            {
+              "amount": 100
+            },
+            {
+              "amount": 200
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        me: User
+        transactionById(id: ID!): Transaction @lookup @internal
+      }
+
+      type Currency {
+        isoCode: String!
+      }
+
+      type Transaction @key(fields: "id") {
+        amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+        id: ID! @shareable
+      }
+
+      type User @key(fields: "id") @context(name: "userContext") {
+        userCurrency(region: String): Currency!
+        transactions: [Transaction!]!
+        id: ID! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_95613d24_1 {
+              me {
+                userCurrency(region: "EU") {
+                  isoCode
+                }
+                transactions {
+                  id
+                }
+                fusion__requirement_userCurrency_0: userCurrency {
+                  isoCode
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "me": {
+                    "userCurrency": {
+                      "isoCode": "EUR"
+                    },
+                    "transactions": [
+                      {
+                        "id": "1"
+                      },
+                      {
+                        "id": "2"
+                      }
+                    ],
+                    "fusion__requirement_userCurrency_0": {
+                      "isoCode": "USD"
+                    }
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_95613d24_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+              transactionById(id: $__fusion_2_id) {
+                amount(currency: $__fusion_1_currency)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_currency": "USD",
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_1_currency": "USD",
+                "__fusion_2_id": "2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 100
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 200
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          me {
+            userCurrency(region: "EU") {
+              isoCode
+            }
+            transactions {
+              amount
+              id @fusion__requirement
+            }
+            fusion__requirement_userCurrency_0: userCurrency @fusion__requirement {
+              isoCode @fusion__requirement
+            }
+          }
+        }
+      hash: ad4d342c37d19c3352676bb839f4bbfa
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_95613d24_1 {
+          me {
+            userCurrency(region: "EU") {
+              isoCode
+            }
+            transactions {
+              id
+            }
+            fusion__requirement_userCurrency_0: userCurrency {
+              isoCode
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_95613d24_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+          transactionById(id: $__fusion_2_id) {
+            amount(currency: $__fusion_1_currency)
+          }
+        }
+      source: $.transactionById
+      target: $.me.transactions
+      requirements:
+        - name: __fusion_1_currency
+          selectionMap: >-
+            $userContext.fusion__requirement_userCurrency_0.isoCode
+          contextRoots:
+            - name: userContext
+              path: $.me
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

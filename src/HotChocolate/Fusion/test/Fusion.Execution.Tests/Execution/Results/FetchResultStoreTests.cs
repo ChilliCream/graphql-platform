@@ -2513,6 +2513,75 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_ReadAliasedContextField_When_ContextPathStartsWithAlias()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              me: User
+            }
+
+            type User {
+              userCurrency(region: String): Currency
+              transactions: [Transaction]
+            }
+
+            type Transaction {
+              id: ID
+            }
+
+            type Currency {
+              isoCode: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            """
+            {
+              me {
+                userCurrency { isoCode }
+                fusion__requirement_userCurrency_0: userCurrency { isoCode }
+                transactions { id }
+              }
+            }
+            """,
+            """
+            {"data":{"me":{
+              "userCurrency":{"isoCode":"EUR"},
+              "fusion__requirement_userCurrency_0":{"isoCode":"USD"},
+              "transactions":[{"id":"t1"}]
+            }}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$userContext.fusion__requirement_userCurrency_0.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("userContext", SelectionPath.Root.AppendField("me"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_currency":"USD"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ReadContextOfOwnUser_When_TransactionsBelongToListOfUsers()
     {
         // arrange
