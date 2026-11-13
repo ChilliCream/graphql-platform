@@ -1,0 +1,253 @@
+title: Execute_Should_ResolveAmountWithCurrencyOfMemberOrOrganization_When_OnlyUsersSetTheContext
+request:
+  document: |
+    {
+      org {
+        members {
+          transactions {
+            amount
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "org": {
+          "members": [
+            {
+              "transactions": [
+                {
+                  "amount": 100
+                }
+              ]
+            },
+            {
+              "transactions": [
+                {
+                  "amount": 400
+                }
+              ]
+            },
+            {
+              "transactions": [
+                {
+                  "amount": 600
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        org: Organization!
+        transactionById(id: ID!): Transaction @lookup @internal
+      }
+
+      type Bot implements Member {
+        transactions: [Transaction!]!
+        id: Int!
+      }
+
+      type Organization @context(name: "account") {
+        members: [Member!]!
+        currency: String!
+      }
+
+      type Transaction @key(fields: "id") {
+        amount(currency: String! @require(field: "$account.currency")): Int!
+        id: ID! @shareable
+      }
+
+      type User implements Member @context(name: "account") {
+        transactions: [Transaction!]!
+        id: Int!
+        currency: String!
+      }
+
+      interface Member {
+        transactions: [Transaction!]!
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_491d5304_1 {
+              org {
+                members {
+                  __typename
+                  transactions {
+                    id
+                  }
+                  ... on User {
+                    currency
+                  }
+                }
+                currency
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "org": {
+                    "members": [
+                      {
+                        "__typename": "User",
+                        "transactions": [
+                          {
+                            "id": "1"
+                          }
+                        ],
+                        "currency": "USD"
+                      },
+                      {
+                        "__typename": "Bot",
+                        "transactions": [
+                          {
+                            "id": "2"
+                          }
+                        ]
+                      },
+                      {
+                        "__typename": "User",
+                        "transactions": [
+                          {
+                            "id": "3"
+                          }
+                        ],
+                        "currency": "EUR"
+                      }
+                    ],
+                    "currency": "EUR"
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_491d5304_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+              transactionById(id: $__fusion_2_id) {
+                amount(currency: $__fusion_1_currency)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_currency": "USD",
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "2"
+              },
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 100
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 400
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 600
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          org {
+            members {
+              __typename @fusion__requirement
+              transactions {
+                amount
+                id @fusion__requirement
+              }
+              ... on User {
+                currency @fusion__requirement
+              }
+            }
+            currency @fusion__requirement
+          }
+        }
+      hash: 45de2fbe971ff1aa33ea520108d00be7
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_491d5304_1 {
+          org {
+            members {
+              __typename
+              transactions {
+                id
+              }
+              ... on User {
+                currency
+              }
+            }
+            currency
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_491d5304_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+          transactionById(id: $__fusion_2_id) {
+            amount(currency: $__fusion_1_currency)
+          }
+        }
+      source: $.transactionById
+      target: $.org.members.transactions
+      requirements:
+        - name: __fusion_1_currency
+          selectionMap: >-
+            $account.currency
+          contextRoots:
+            - name: account
+              path: $.org.members
+              types:
+                - User
+            - name: account
+              path: $.org
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
