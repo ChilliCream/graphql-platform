@@ -592,7 +592,7 @@ internal static class TransformRequiresToRequire
         return fieldSelection + "[{ " + string.Join(", ", parts) + " }]";
     }
 
-    private static string FormatFieldSelection(FieldNode fieldNode)
+    internal static string FormatFieldSelection(FieldNode fieldNode)
     {
         if (fieldNode.Arguments.Count == 0)
         {

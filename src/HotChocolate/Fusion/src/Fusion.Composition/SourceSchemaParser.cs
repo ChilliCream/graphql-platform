@@ -74,6 +74,20 @@ internal sealed class SourceSchemaParser(
             {
                 schema.DirectiveDefinitions.Add(
                     new RequiresMutableDirectiveDefinition(fieldSelectionSetType));
+
+                // @fromContext has no Fusion-native definition either. Preprocessing rewrites it
+                // to @require and removes the definition.
+                schema.DirectiveDefinitions.Add(
+                    new MutableDirectiveDefinition(FederationDirectiveNames.FromContext)
+                    {
+                        Arguments =
+                        {
+                            new MutableInputFieldDefinition(
+                                WellKnownArgumentNames.Field,
+                                fieldSelectionSetType)
+                        },
+                        Locations = DirectiveLocation.ArgumentDefinition
+                    });
             }
 
             // Apollo Federation's @external may also be applied to object types, which the

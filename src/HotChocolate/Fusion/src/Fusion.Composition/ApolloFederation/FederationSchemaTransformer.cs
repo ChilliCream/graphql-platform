@@ -98,6 +98,7 @@ internal static class FederationSchemaTransformer
         GenerateLookupFields.Apply(schema);
         RewriteKeyDirectives.Apply(schema);
         TransformRequiresToRequire.Apply(schema);
+        TransformFromContextToRequire.Apply(schema);
         RemoveExternalFields.Apply(schema);
         GenerateNodeLookup.Apply(schema);
         SourceExternalFieldMetadata.WriteMarker(schema);

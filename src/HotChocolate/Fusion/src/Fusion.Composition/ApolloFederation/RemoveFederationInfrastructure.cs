@@ -22,7 +22,9 @@ internal static class RemoveFederationInfrastructure
         FederationDirectiveNames.Inaccessible,
         FederationDirectiveNames.Override,
         FederationDirectiveNames.Tag,
-        FederationDirectiveNames.ComposeDirective
+        FederationDirectiveNames.ComposeDirective,
+        FederationDirectiveNames.Context,
+        FederationDirectiveNames.FromContext
     ];
 
     private static readonly HashSet<string> s_federationScalarNames =
@@ -30,7 +32,9 @@ internal static class RemoveFederationInfrastructure
         with(StringComparer.Ordinal),
         FederationTypeNames.Any,
         FederationTypeNames.FieldSet,
-        FederationTypeNames.LegacyFieldSet
+        FederationTypeNames.LegacyFieldSet,
+        FederationTypeNames.ContextFieldValue,
+        FederationTypeNames.NamespacedContextFieldValue
     ];
 
     /// <summary>

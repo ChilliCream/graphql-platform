@@ -38,6 +38,7 @@ internal static class FederationSchemaAnalyzer
 
         ValidateFederationVersion(schema, log);
         ValidateUnsupportedDirectives(schema, log);
+        ValidateFromContextDirectives(schema, log);
 
         // Pre-existing entries on the log are not ours to report on; this run reports
         // failure only when it wrote new entries (all of which are errors) of its own.
@@ -114,6 +115,43 @@ internal static class FederationSchemaAnalyzer
                         .SetSeverity(LogSeverity.Error)
                         .SetSchema(schema)
                         .Build());
+            }
+        }
+    }
+
+    private static void ValidateFromContextDirectives(
+        MutableSchemaDefinition schema,
+        ICompositionLog log)
+    {
+        foreach (var type in schema.Types.OfType<MutableComplexTypeDefinition>())
+        {
+            foreach (var field in type.Fields)
+            {
+                foreach (var argument in field.Arguments)
+                {
+                    foreach (var directive in argument.Directives[FederationDirectiveNames.FromContext])
+                    {
+                        if (directive.Arguments.TryGetValue("field", out var fieldValue)
+                            && fieldValue is StringValueNode fieldString
+                            && TransformFromContextToRequire.ToFieldSelectionMap(
+                                fieldString.Value) is not null)
+                        {
+                            continue;
+                        }
+
+                        log.Write(
+                            LogEntryBuilder.New()
+                                .SetMessage(
+                                    FederationSchemaAnalyzer_FromContextInvalid,
+                                    argument.Coordinate.ToString(),
+                                    schema.Name)
+                                .SetCode(LogEntryCodes.FederationFromContextInvalid)
+                                .SetSeverity(LogSeverity.Error)
+                                .SetCoordinate(argument.Coordinate)
+                                .SetSchema(schema)
+                                .Build());
+                    }
+                }
             }
         }
     }

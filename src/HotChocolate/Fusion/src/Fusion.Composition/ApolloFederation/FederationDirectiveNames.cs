@@ -17,4 +17,6 @@ internal static class FederationDirectiveNames
     public const string Authenticated = "authenticated";
     public const string RequiresScopes = "requiresScopes";
     public const string Policy = "policy";
+    public const string Context = "context";
+    public const string FromContext = "fromContext";
 }

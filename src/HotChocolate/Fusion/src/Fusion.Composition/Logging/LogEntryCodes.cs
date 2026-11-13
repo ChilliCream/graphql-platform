@@ -38,6 +38,7 @@ public static class LogEntryCodes
     public const string ExternalTypeMismatch = "EXTERNAL_TYPE_MISMATCH";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
     public const string FederationDirectiveNotSupported = "FEDERATION_DIRECTIVE_NOT_SUPPORTED";
+    public const string FederationFromContextInvalid = "FEDERATION_FROM_CONTEXT_INVALID";
     public const string FederationV1NotSupported = "FEDERATION_V1_NOT_SUPPORTED";
     public const string FederationV1DirectiveNotSupported =
         "FEDERATION_V1_DIRECTIVE_NOT_SUPPORTED";
