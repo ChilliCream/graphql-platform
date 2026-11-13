@@ -1,4 +1,6 @@
-﻿namespace Mocha.Transport.RabbitMQ;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
 /// Extension methods for registering the RabbitMQ messaging transport on an <see cref="IMessageBusHostBuilder"/>.
@@ -18,7 +20,9 @@ public static class MessageBusBuilderExtensions
     {
         var transport = new RabbitMQMessagingTransport(x => configure(x.AddDefaults()));
 
-        busBuilder.ConfigureMessageBus(b => b.AddTransport(transport));
+        busBuilder.ConfigureMessageBus(b => b
+            .AddTransport(transport)
+            .ConfigureServices(s => s.AddSingleton<IMessageBusHealthCheck>(new TransportStartedHealthCheck(transport))));
 
         return busBuilder;
     }

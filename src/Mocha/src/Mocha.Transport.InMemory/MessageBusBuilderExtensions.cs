@@ -23,7 +23,9 @@ public static class InMemoryMessageBusBuilderExtensions
     {
         var transport = new InMemoryMessagingTransport(configure);
 
-        busBuilder.ConfigureMessageBus(b => b.AddTransport(transport));
+        busBuilder.ConfigureMessageBus(b => b
+            .AddTransport(transport)
+            .ConfigureServices(s => s.AddSingleton<IMessageBusHealthCheck>(new TransportStartedHealthCheck(transport))));
 
         busBuilder.Services.TryAddSingleton(
             static sp => new InMemoryTransportScheduledMessageStore(sp.GetTimeProvider()));

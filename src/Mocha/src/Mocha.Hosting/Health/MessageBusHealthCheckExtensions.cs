@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -8,6 +9,10 @@ namespace Mocha.Hosting;
 /// </summary>
 public static class MessageBusHealthCheckExtensions
 {
+    private const string DefaultName = "MessageBus";
+    private static readonly ImmutableArray<string> s_defaultTags = ["ready"];
+    private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(10);
+
     /// <summary>
     /// Registers the built-in health request handler so the message bus can respond to health check requests.
     /// </summary>
@@ -20,25 +25,64 @@ public static class MessageBusHealthCheckExtensions
     }
 
     /// <summary>
-    /// Adds a message bus health check to the ASP.NET Core health checks system, tagged with "ready" and "live".
+    /// Adds a message bus check with the default name, failure status, tags and timeout to the ASP.NET Core
+    /// health checks system.
+    /// </summary>
+    /// <param name="builder">The health checks builder to extend.</param>
+    /// <param name="endpoint">
+    /// The endpoint the health request is sent to, or <see langword="null"/> to use default routing.
+    /// </param>
+    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
+    public static IHealthChecksBuilder AddMessageBus(this IHealthChecksBuilder builder, Uri? endpoint)
+        => builder.AddMessageBus(endpoint, DefaultName);
+
+    /// <summary>
+    /// Adds a message bus check to the ASP.NET Core health checks system.
     /// </summary>
     /// <remarks>
-    /// The check sends a <see cref="HealthRequest"/> through the message bus and verifies the response.
-    /// When an <paramref name="endpoint"/> is provided, the request is routed to that specific endpoint
-    /// rather than using the default routing.
+    /// The check requires every local transport to be healthy and a <see cref="HealthRequest"/> to be answered
+    /// within <paramref name="timeout"/>. Each unhealthy transport is listed with its reason in the result data.
     /// </remarks>
     /// <param name="builder">The health checks builder to extend.</param>
-    /// <param name="endpoint">An optional endpoint URI to target with the health check request.</param>
+    /// <param name="endpoint">
+    /// The endpoint the health request is sent to, or <see langword="null"/> to use default routing.
+    /// </param>
+    /// <param name="name">The name of the health check.</param>
+    /// <param name="failureStatus">
+    /// The status reported when the check fails, or <see langword="null"/> for <see cref="HealthStatus.Unhealthy"/>.
+    /// </param>
+    /// <param name="tags">The tags of the health check, or <see langword="null"/> for the tag "ready".</param>
+    /// <param name="timeout">
+    /// The time within which the health request must be answered, or <see langword="null"/> for 10 seconds.
+    /// The health request expires after this time.
+    /// </param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
-    public static IHealthChecksBuilder AddMessageBus(this IHealthChecksBuilder builder, Uri? endpoint = null)
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="timeout"/> is zero or negative.</exception>
+    public static IHealthChecksBuilder AddMessageBus(
+        this IHealthChecksBuilder builder,
+        Uri? endpoint = null,
+        string name = DefaultName,
+        HealthStatus? failureStatus = null,
+        IEnumerable<string>? tags = null,
+        TimeSpan? timeout = null)
     {
-        if (endpoint is not null)
+        if (timeout is { } value)
         {
-            builder.Services.Configure<MessageBusHealthCheckOptions>(o => o.Endpoint = endpoint);
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(value, TimeSpan.Zero, nameof(timeout));
         }
 
-        builder.AddCheck<MessageBusHealthCheck>("MessageBus", HealthStatus.Unhealthy, ["ready", "live"]);
+        var options = new MessageBusHealthCheckOptions { Endpoint = endpoint };
 
-        return builder;
+        return builder.Add(
+            new HealthCheckRegistration(
+                name,
+                services => new MessageBusHealthCheck(
+                    services.GetRequiredService<IMessageBus>(),
+                    services.GetRequiredService<IMessagingRuntime>(),
+                    services.GetService<TimeProvider>() ?? TimeProvider.System,
+                    options),
+                failureStatus,
+                tags ?? s_defaultTags,
+                timeout ?? s_defaultTimeout));
     }
 }
