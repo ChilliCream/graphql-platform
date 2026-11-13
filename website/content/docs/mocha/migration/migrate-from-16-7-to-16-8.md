@@ -25,7 +25,8 @@ For a custom transport:
 
 - `ReceiveEndpoint.OnStopAsync` runs for several endpoints of the transport at the same time.
 - The cancellation token of `ReceiveEndpoint.OnStopAsync` and `MessagingTransport.OnAfterStopAsync` bounds the wait for running handlers. It can already be cancelled when the method is called. Release the resources of the endpoint, including temporary broker resources, without it.
-- Override `MessagingTransport.HealthFailureReason` to report the state of the transport to the health check.
+- When the start of the transport fails, `MessagingTransport.OnBeforeStopAsync` and `MessagingTransport.OnAfterStopAsync` run, also when `OnBeforeStartAsync` did not complete.
+- Register an `IMessageBusHealthCheck` in the services of the message bus to report the state of the transport to the health check. `TransportStartedHealthCheck` reports a transport or receive endpoint that is not started.
 
 ## Disposing the runtime without stopping it cancels running handlers
 
