@@ -734,6 +734,34 @@ public sealed class FieldSelectionMapValidatorTests
     }
 
     [Fact]
+    public void Validate_Should_ReturnNoErrors_When_TypedContextPathHasAnObjectSelection()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors =
+            ValidateContextPath("$account<User>.address.{ city }", "AddressInput", contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void Validate_Should_ReturnNoErrors_When_TypedContextPathHasAListSelection()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors =
+            ValidateContextPath("$account<User>.tags[{ name }]", "[TagInput!]!", contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
     public void ContextPath_Should_ReportTheListSelectionErrors_When_OneContextTypeLacksTheField()
     {
         // arrange
@@ -878,6 +906,10 @@ public sealed class FieldSelectionMapValidatorTests
 
             input AddressInput {
                 city: String!
+            }
+
+            input TagInput {
+                name: String!
             }
 
             input AccountInput {

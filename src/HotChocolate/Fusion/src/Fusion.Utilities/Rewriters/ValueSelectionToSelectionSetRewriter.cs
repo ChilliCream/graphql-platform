@@ -117,10 +117,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
 
     /// <summary>
     /// Turns the context paths of the value selections into one selection set per context name
-    /// without using a schema. The selection set of a context describes the value that sets the
-    /// context, so <c>$name.a.b</c> results in <c>a { b }</c>. Paths that do not start at a
-    /// context are ignored, and like the schema-free <c>Rewrite</c> it does not merge or remove
-    /// duplicate selections.
+    /// without using a schema. Paths that do not start at a context are ignored, and duplicate
+    /// selections are neither merged nor removed.
     /// </summary>
     /// <param name="nodes">
     /// The value selections to scan for context paths.
