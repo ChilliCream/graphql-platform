@@ -54,12 +54,12 @@ See [Configure the health check](../hosting.md#configure-the-health-check).
 
 ## The message bus health check reports transport health
 
-Before the check sends the health request, it asks every local transport for its state. When a transport is unhealthy, the check fails at once with the description `Transport '<name>' is unhealthy. <reason>`, and the `Data` of the entry lists each unhealthy transport with its reason. In 16.7 the check only sent the health request.
+Before the check sends the health request, it runs the health checks that the transports register. When a transport is unhealthy, the check fails at once with the reason as its description, and the `Data` of the entry lists each unhealthy transport with its reason. In 16.7 the check only sent the health request.
 
-| Reason                                      | Reported                                                        |
-| ------------------------------------------- | --------------------------------------------------------------- |
-| `The transport is not started.`             | Before the runtime has started and after it has stopped.        |
-| `Receive endpoint '<name>' is not started.` | While a receive endpoint of a started transport is not started. |
+| Reason                                                            | Reported                                                        |
+| ----------------------------------------------------------------- | --------------------------------------------------------------- |
+| `Transport '<name>' is not started.`                              | Before the runtime has started and after it has stopped.        |
+| `Receive endpoint '<name>' of transport '<name>' is not started.` | While a receive endpoint of a started transport is not started. |
 
 What to do:
 

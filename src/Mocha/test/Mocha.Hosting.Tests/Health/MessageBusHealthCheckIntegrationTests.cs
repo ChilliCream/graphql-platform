@@ -61,7 +61,7 @@ public sealed class MessageBusHealthCheckIntegrationTests
         // assert
         Assert.Equal(HealthStatus.Unhealthy, report.Status);
         Assert.Equal(
-            "Transport 'orders' is unhealthy. The transport is not started.",
+            "Transport 'orders' is not started.",
             report.Entries["MessageBus"].Description);
     }
 
@@ -97,10 +97,10 @@ public sealed class MessageBusHealthCheckIntegrationTests
             [HealthStatus.Healthy, HealthStatus.Unhealthy, HealthStatus.Healthy],
             new[] { initial.Status, stopped.Status, restarted.Status });
         Assert.Equal(
-            "Transport 'orders' is unhealthy. Receive endpoint 'orders' is not started.",
+            "Receive endpoint 'orders' of transport 'orders' is not started.",
             stopped.Entries["MessageBus"].Description);
         Assert.Equal(
-            new Dictionary<string, object> { ["orders"] = "Receive endpoint 'orders' is not started." },
+            new Dictionary<string, object> { ["orders"] = "Receive endpoint 'orders' of transport 'orders' is not started." },
             stopped.Entries["MessageBus"].Data);
     }
 

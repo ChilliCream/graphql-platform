@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Mocha.Hosting;
@@ -15,7 +16,9 @@ internal sealed class MessageBusHealthCheck(
     {
         var failureStatus = context.Registration.FailureStatus;
 
-        if (runtime.GetTransportHealthFailure(failureStatus) is { } unhealthy)
+        var checks = runtime.Services.GetServices<IMessageBusHealthCheck>();
+
+        if (await checks.CheckAsync(failureStatus, cancellationToken) is { } unhealthy)
         {
             return unhealthy;
         }
@@ -31,7 +34,7 @@ internal sealed class MessageBusHealthCheck(
         var request = new HealthRequest("Health Check");
         var response = await dispatcher.RequestAsync(request, sendOptions, cancellationToken);
 
-        if (runtime.GetTransportHealthFailure(failureStatus) is { } failedDuringRequest)
+        if (await checks.CheckAsync(failureStatus, cancellationToken) is { } failedDuringRequest)
         {
             return failedDuringRequest;
         }
@@ -45,27 +48,33 @@ internal sealed class MessageBusHealthCheck(
 file static class Extensions
 {
     /// <summary>
-    /// Creates the failed result that lists every unhealthy transport, or <c>null</c> when all are healthy.
+    /// Runs the checks and creates the failed result that lists every reported problem, or <c>null</c> when
+    /// no check reports a problem.
     /// </summary>
-    public static HealthCheckResult? GetTransportHealthFailure(
-        this IMessagingRuntime runtime,
-        HealthStatus failureStatus)
+    public static async ValueTask<HealthCheckResult?> CheckAsync(
+        this IEnumerable<IMessageBusHealthCheck> checks,
+        HealthStatus failureStatus,
+        CancellationToken cancellationToken)
     {
-        string? description = null;
-        Dictionary<string, object>? reasons = null;
+        var context = new MessageBusHealthContext();
 
-        foreach (var transport in runtime.Transports)
+        foreach (var check in checks)
         {
-            if (transport.HealthFailureReason is { } reason)
-            {
-                description ??= $"Transport '{transport.Name}' is unhealthy. {reason}";
-                reasons ??= [];
-                reasons[transport.Name] = reason;
-            }
+            await check.CheckAsync(context, cancellationToken);
         }
 
-        return description is null
-            ? null
-            : new HealthCheckResult(failureStatus, description, exception: null, reasons);
+        if (context.Failures.Count == 0)
+        {
+            return null;
+        }
+
+        var reasons = new Dictionary<string, object>();
+
+        foreach (var failure in context.Failures)
+        {
+            reasons.TryAdd(failure.Name, failure.Reason);
+        }
+
+        return new HealthCheckResult(failureStatus, context.Failures[0].Reason, exception: null, reasons);
     }
 }

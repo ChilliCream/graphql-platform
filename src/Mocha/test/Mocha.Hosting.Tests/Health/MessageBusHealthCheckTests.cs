@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
 
@@ -131,10 +132,10 @@ public sealed class MessageBusHealthCheckTests
     }
 
     [Fact]
-    public async Task CheckHealthAsync_Should_ReturnUnhealthy_When_TransportFailsDuringRequest()
+    public async Task CheckHealthAsync_Should_ReturnUnhealthy_When_CheckFailsDuringRequest()
     {
         // arrange
-        var transport = CreateTransport("orders", healthFailureReason: null);
+        var check = new StubHealthCheck("orders", reason: null);
         var bus = new Mock<IMessageBus>();
         bus.Setup(m => m.RequestAsync(
                 It.IsAny<HealthRequest>(),
@@ -142,32 +143,28 @@ public sealed class MessageBusHealthCheckTests
                 It.IsAny<CancellationToken>()))
             .Returns(() =>
             {
-                transport.SetupGet(t => t.HealthFailureReason).Returns("The dispatcher connection is unavailable.");
+                check.Reason = "The dispatcher connection is unavailable.";
                 return new ValueTask<HealthResponse>(new HealthResponse("OK"));
             });
-        var healthCheck = CreateHealthCheck(bus.Object, CreateRuntime(transport.Object));
+        var healthCheck = CreateHealthCheck(bus.Object, CreateRuntime(check));
 
         // act
         var result = await healthCheck.CheckHealthAsync(CreateContext(), TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HealthStatus.Unhealthy, result.Status);
-        Assert.Equal(
-            "Transport 'orders' is unhealthy. The dispatcher connection is unavailable.",
-            result.Description);
+        Assert.Equal("The dispatcher connection is unavailable.", result.Description);
     }
 
     [Fact]
-    public async Task CheckHealthAsync_Should_ReportEveryUnhealthyTransport_When_SeveralTransportsAreUnhealthy()
+    public async Task CheckHealthAsync_Should_ReportEveryFailure_When_SeveralChecksFail()
     {
         // arrange
-        var orders = CreateTransport("orders", "The dispatcher connection is unavailable.");
-        var payments = CreateTransport("payments", healthFailureReason: null);
-        var shipping = CreateTransport("shipping", "Receive endpoint 'parcels' is not started.");
+        var orders = new StubHealthCheck("orders", "The dispatcher connection is unavailable.");
+        var payments = new StubHealthCheck("payments", reason: null);
+        var shipping = new StubHealthCheck("shipping", "Receive endpoint 'parcels' is not started.");
         var bus = CreateBus(new HealthResponse("OK"));
-        var healthCheck = CreateHealthCheck(
-            bus.Object,
-            CreateRuntime(orders.Object, payments.Object, shipping.Object));
+        var healthCheck = CreateHealthCheck(bus.Object, CreateRuntime(orders, payments, shipping));
 
         // act
         var result = await healthCheck.CheckHealthAsync(
@@ -176,9 +173,7 @@ public sealed class MessageBusHealthCheckTests
 
         // assert
         Assert.Equal(HealthStatus.Degraded, result.Status);
-        Assert.Equal(
-            "Transport 'orders' is unhealthy. The dispatcher connection is unavailable.",
-            result.Description);
+        Assert.Equal("The dispatcher connection is unavailable.", result.Description);
         Assert.Equal(
             new Dictionary<string, object>
             {
@@ -223,18 +218,17 @@ public sealed class MessageBusHealthCheckTests
         return bus;
     }
 
-    private static Mock<MessagingTransport> CreateTransport(string name, string? healthFailureReason)
+    private static IMessagingRuntime CreateRuntime(params IMessageBusHealthCheck[] checks)
     {
-        var transport = new Mock<MessagingTransport>();
-        transport.Object.Name = name;
-        transport.SetupGet(t => t.HealthFailureReason).Returns(healthFailureReason);
-        return transport;
-    }
+        var services = new ServiceCollection();
 
-    private static IMessagingRuntime CreateRuntime(params MessagingTransport[] transports)
-    {
+        foreach (var check in checks)
+        {
+            services.AddSingleton(check);
+        }
+
         var runtime = new Mock<IMessagingRuntime>();
-        runtime.SetupGet(r => r.Transports).Returns([.. transports]);
+        runtime.SetupGet(r => r.Services).Returns(services.BuildServiceProvider());
         return runtime.Object;
     }
 
@@ -247,5 +241,20 @@ public sealed class MessageBusHealthCheckTests
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    private sealed class StubHealthCheck(string name, string? reason) : IMessageBusHealthCheck
+    {
+        public string? Reason { get; set; } = reason;
+
+        public ValueTask CheckAsync(MessageBusHealthContext context, CancellationToken cancellationToken)
+        {
+            if (Reason is not null)
+            {
+                context.ReportUnhealthy(name, Reason);
+            }
+
+            return ValueTask.CompletedTask;
+        }
     }
 }
