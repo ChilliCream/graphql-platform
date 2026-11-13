@@ -2454,6 +2454,7 @@ public sealed partial class OperationPlanner
         => ComputeCanonicalSignature(
             node.SchemaName,
             node.Source,
+            node.Target,
             node.OperationDocument,
             node.Requirements,
             node.Conditions);
@@ -2461,6 +2462,7 @@ public sealed partial class OperationPlanner
     private static string ComputeCanonicalSignature(
         string? schemaName,
         SelectionPath source,
+        SelectionPath target,
         Utf8OperationDocument document,
         ReadOnlySpan<OperationRequirement> requirements,
         ReadOnlySpan<ExecutionNodeCondition> conditions)
@@ -2468,8 +2470,70 @@ public sealed partial class OperationPlanner
         var replacements = BuildPrefixReplacements(requirements);
         var bodyText = FormatCanonicalSelectionSet(document, replacements);
         var formattedConditions = FormatCanonicalConditions(conditions);
+        var contextRoots = FormatCanonicalContextRoots(requirements, target, replacements);
 
-        return $"{schemaName}|{source}|{formattedConditions}|{bodyText}";
+        return $"{schemaName}|{source}|{formattedConditions}|{bodyText}{contextRoots}";
+    }
+
+    /// <summary>
+    /// Formats the context roots of the requirements together with their distance in field
+    /// segments to <paramref name="target"/>, or returns an empty string when no requirement has
+    /// context roots.
+    /// </summary>
+    private static string FormatCanonicalContextRoots(
+        ReadOnlySpan<OperationRequirement> requirements,
+        SelectionPath target,
+        ReadOnlySpan<(byte[] Original, byte[] Canonical)> replacements)
+    {
+        List<string>? entries = null;
+        var targetDepth = -1;
+
+        foreach (var requirement in requirements)
+        {
+            if (requirement.ContextRoots.IsDefaultOrEmpty)
+            {
+                continue;
+            }
+
+            if (targetDepth < 0)
+            {
+                targetDepth = CountFieldSegments(target);
+            }
+
+            var key = ApplyPrefixReplacements(requirement.Key, replacements);
+
+            foreach (var contextRoot in requirement.ContextRoots)
+            {
+                var distance = targetDepth - CountFieldSegments(contextRoot.Path);
+                var typeNames = string.Join(",", contextRoot.TypeNames.Order(StringComparer.Ordinal));
+
+                (entries ??= []).Add(
+                    $"{key}:{contextRoot.Name}:{contextRoot.Path}:{typeNames}:{distance}");
+            }
+        }
+
+        if (entries is null)
+        {
+            return string.Empty;
+        }
+
+        entries.Sort(StringComparer.Ordinal);
+        return $"|{string.Join(",", entries)}";
+    }
+
+    private static int CountFieldSegments(SelectionPath path)
+    {
+        var count = 0;
+
+        for (var i = 0; i < path.Length; i++)
+        {
+            if (path[i].Kind is SelectionPathSegmentKind.Field)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     /// <summary>
@@ -2545,6 +2609,12 @@ public sealed partial class OperationPlanner
             OperationDefinition operation => ComputeCanonicalSignature(
                 operation.SchemaName,
                 operation.Source,
+                operation switch
+                {
+                    SingleOperationDefinition single => single.Target,
+                    BatchOperationDefinition batch => batch.Targets[0],
+                    _ => throw new ArgumentOutOfRangeException(nameof(node))
+                },
                 operation.Document,
                 operation.Requirements,
                 operation.Conditions),
@@ -2575,13 +2645,14 @@ public sealed partial class OperationPlanner
                     $"{ApplyPrefixReplacements(r.Key, replacements)}:{r.Type}:"
                     + $"{r.Path.RelativeTo(node.Target)}:{r.InternalAlias}:{r.Map}")
                 .Order(StringComparer.Ordinal));
+        var contextRoots = FormatCanonicalContextRoots(node.Requirements, node.Target, replacements);
         var forwardedVariables = string.Join(
             ",",
             node.ForwardedVariables.ToArray().Order(StringComparer.Ordinal));
         var resultSelectionSet = node.ResultSelectionSet.ToString(indented: false);
 
         return $"{node.SchemaName}|{node.Lookup.EntityTypeName}|{conditions}|{forwardedVariables}"
-            + $"|{requirements}|{resultSelectionSet}|{bodyText}";
+            + $"|{requirements}|{resultSelectionSet}|{bodyText}{contextRoots}";
     }
 
     private static string FormatCanonicalSelectionSet(

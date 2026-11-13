@@ -2576,6 +2576,141 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_ReadContextOfOwnUser_When_TargetsAtTheSameDepthShareTheRoots()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              users: [User]
+            }
+
+            type User {
+              userCurrency: Currency
+              transactions: [Transaction]
+              pending: [Transaction]
+            }
+
+            type Transaction {
+              id: ID
+            }
+
+            type Currency {
+              isoCode: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ users { userCurrency { isoCode } transactions { id } pending { id } } }",
+            """
+            {"data":{"users":[
+              {"userCurrency":{"isoCode":"EUR"},"transactions":[{"id":"t1"}],"pending":[{"id":"p1"}]},
+              {"userCurrency":{"isoCode":"USD"},"transactions":[{"id":"t2"}],"pending":[{"id":"p2"}]}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$userContext.userCurrency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("userContext", SelectionPath.Root.AppendField("users"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            [
+                SelectionPath.Root.AppendField("users").AppendField("transactions"),
+                SelectionPath.Root.AppendField("users").AppendField("pending")
+            ],
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: users[0].transactions[0]
+            Additional paths: [users[0].pending[0]]
+            Variables: {"__fusion_1_currency":"EUR"}
+            Path: users[1].transactions[0]
+            Additional paths: [users[1].pending[0]]
+            Variables: {"__fusion_1_currency":"USD"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_ReturnAllVariableValueSets_When_EntityReuseTargetReadsContextRoots()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              users: [User]
+            }
+
+            type User {
+              userCurrency: Currency
+              transactions: [Transaction]
+            }
+
+            type Transaction {
+              id: ID
+            }
+
+            type Currency {
+              isoCode: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ users { userCurrency { isoCode } transactions { id } } }",
+            """
+            {"data":{"users":[
+              {"userCurrency":{"isoCode":"EUR"},"transactions":[{"id":"t1"},{"id":"t2"}]},
+              {"userCurrency":{"isoCode":"USD"},"transactions":[{"id":"t3"}]}
+            ]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        var transactions = SelectionPath.Root.AppendField("users").AppendField("transactions");
+        var candidates = new EntityReuseCandidateList([transactions], ["id"], ["id"], []);
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$userContext.userCurrency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("userContext", SelectionPath.Root.AppendField("users"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            [transactions],
+            [],
+            [requirement],
+            candidates,
+            out var reusedCount);
+
+        // assert
+        Assert.Equal(0, reusedCount);
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: users[0].transactions[0]
+            Additional paths: [users[0].transactions[1]]
+            Variables: {"__fusion_1_currency":"EUR"}
+            Path: users[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_currency":"USD"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_CombineContextAndEntityValue_When_MapMixesBoth()
     {
         // arrange

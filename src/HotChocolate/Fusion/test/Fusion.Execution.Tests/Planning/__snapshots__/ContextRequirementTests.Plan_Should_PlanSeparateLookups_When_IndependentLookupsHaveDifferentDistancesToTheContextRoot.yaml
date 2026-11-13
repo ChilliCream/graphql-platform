@@ -1,0 +1,107 @@
+operation:
+  - document: |
+      {
+        users {
+          transactions {
+            amount
+            id @fusion__requirement
+          }
+          account {
+            transactions {
+              amount
+              id @fusion__requirement
+            }
+          }
+          userCurrency @fusion__requirement {
+            isoCode @fusion__requirement
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 5
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        users {
+          transactions {
+            id
+          }
+          userCurrency {
+            isoCode
+          }
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          amount(currency: $__fusion_1_currency)
+        }
+      }
+    source: $.transactionById
+    target: $.users.transactions
+    requirements:
+      - name: __fusion_1_currency
+        selectionMap: >-
+          $userContext.userCurrency.isoCode
+        contextRoots:
+          - name: userContext
+            path: $.users
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        userById(id: $__fusion_3_id) {
+          account {
+            transactions {
+              id
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.users
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_5($__fusion_5_currency: String!, $__fusion_6_id: ID!) {
+        transactionById(id: $__fusion_6_id) {
+          amount(currency: $__fusion_5_currency)
+        }
+      }
+    source: $.transactionById
+    target: $.users.account.transactions
+    requirements:
+      - name: __fusion_5_currency
+        selectionMap: >-
+          $userContext.userCurrency.isoCode
+        contextRoots:
+          - name: userContext
+            path: $.users
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 3

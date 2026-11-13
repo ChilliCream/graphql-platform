@@ -1148,6 +1148,8 @@ AddErrors_Next:
 
         lock (_lock)
         {
+            AssertEqualTargetDepth(selectionSets, requiredData);
+
             var combinedCount = CollectCombinedElementsUnsafe(selectionSets, ref _collectTargetCombined);
 
             if (combinedCount == 0)
@@ -1192,6 +1194,8 @@ AddErrors_Next:
 
         lock (_lock)
         {
+            AssertEqualTargetDepth(selectionSets, requiredData);
+
             var targetCount = CollectCombinedElementsUnsafe(selectionSets, ref _collectTargetCombined);
 
             if (targetCount == 0)
@@ -2295,6 +2299,26 @@ AddErrors_Next:
         }
 
         return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
+    }
+
+    [Conditional("DEBUG")]
+    private static void AssertEqualTargetDepth(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        if (selectionSets.Length < 2 || !HasContextRoots(requiredData))
+        {
+            return;
+        }
+
+        var depth = CountFieldSegments(selectionSets[0]);
+
+        foreach (var selectionSet in selectionSets[1..])
+        {
+            Debug.Assert(
+                CountFieldSegments(selectionSet) == depth,
+                "The targets of a requirement with context roots must have the same number of field segments.");
+        }
     }
 
     private static bool HasContextRoots(ReadOnlySpan<OperationRequirement> requiredData)
