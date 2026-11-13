@@ -562,13 +562,6 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
-                // The incremental plan serves a requirement below the anchor itself.
-                if (descriptor.Path.IsParentOfOrSame(requirement.Path)
-                    && !requirement.Path.Equals(descriptor.Path))
-                {
-                    continue;
-                }
-
                 // A requirement must sit at or above the defer's own anchor: at the
                 // anchor itself (the common case), or at an ancestor of it (a nested
                 // defer bootstrapping a key at the enclosing defer's own anchor, several

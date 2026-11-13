@@ -1923,7 +1923,7 @@ public class ContextRequirementTests : FusionTestBase
     }
 
     [Fact]
-    public void Plan_Should_ImportTheContextOnce_When_TheDeferredFragmentReadsItAtTheAnchorAndBelow()
+    public void Plan_Should_ReadTheContext_When_TheDeferredFragmentReadsItAtTheAnchorAndBelow()
     {
         // arrange
         var schema = ComposeSchema(
