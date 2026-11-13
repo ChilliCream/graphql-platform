@@ -1,0 +1,126 @@
+operation:
+  - document: |
+      {
+        products {
+          id
+          id @fusion__requirement
+        }
+        tenantSettings @fusion__requirement {
+          currency @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+        }
+        tenantSettings {
+          currency
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $.products
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_4_currency
+        selectionMap: >-
+          $tenant.tenantSettings.currency
+        contextRoots:
+          - name: tenant
+            path: $
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 2
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_2($__fusion_2_currency: String!, $__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              price(currency: $__fusion_2_currency)
+            }
+          }
+        source: $.productById
+        target: $.products.related
+        requirements:
+          - name: __fusion_2_currency
+            selectionMap: >-
+              $tenant.tenantSettings.currency
+            contextRoots:
+              - name: tenant
+                path: $
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 5
+      - id: 1
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_1($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              related {
+                id
+              }
+              id
+            }
+          }
+        source: $.productById
+        target: $.products
+        batchingGroupId: 5
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+      - id: 3
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_3 {
+            tenantSettings {
+              currency
+            }
+          }
+        batchingGroupId: 5
+      - id: 4
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_4($__fusion_4_currency: String!, $__fusion_5_id: ID!) {
+            productById(id: $__fusion_5_id) {
+              price(currency: $__fusion_4_currency)
+            }
+          }
+        source: $.productById
+        target: $.products
+        batchingGroupId: 5
+        requirements:
+          - name: __fusion_4_currency
+            selectionMap: >-
+              $tenant.tenantSettings.currency
+            contextRoots:
+              - name: tenant
+                path: $
+          - name: __fusion_5_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1

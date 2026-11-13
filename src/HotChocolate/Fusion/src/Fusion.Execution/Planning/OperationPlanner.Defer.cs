@@ -1639,6 +1639,13 @@ public sealed partial class OperationPlanner
                 // deferred output, which the enclosing scope does not reach.
                 if (!requirement.Path.IsParentOfOrSame(anchorPath))
                 {
+                    if (anchorPath.IsParentOfOrSame(requirement.Path)
+                        && TryFindDeferRequirementProvider(incrementalPlanSteps, dependentStep, requirement)
+                            ?.Id == step.Id)
+                    {
+                        return false;
+                    }
+
                     continue;
                 }
 

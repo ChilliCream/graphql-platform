@@ -568,6 +568,46 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Execute_Should_DeliverPriceWithTenantCurrency_When_TheDeferredFragmentReadsTheContextAtTheAnchorAndBelow()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<TenantRelatedPricing.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              products {
+                id
+                ... @defer {
+                  price
+                  related {
+                    price
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
     private static class TenantReviews
     {
         public class Query
@@ -600,6 +640,32 @@ public class ContextTests : FusionTestBase
         [EntityKey("id")]
         public record Product([property: ID, Shareable] int Id)
         {
+            public int GetPrice([Require("$tenant.tenantSettings.currency")] string currency)
+                => Id * 100 * Billing.Transaction.Rate(currency);
+        }
+    }
+
+    private static class TenantRelatedPricing
+    {
+        [Context("tenant")]
+        public class Query
+        {
+            public TenantSettings GetTenantSettings() => new TenantSettings("EUR");
+
+            public Product[] GetProducts() => [new Product(1), new Product(2)];
+
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new Product(id);
+        }
+
+        public record TenantSettings(string Currency);
+
+        [EntityKey("id")]
+        public record Product([property: ID, Shareable] int Id)
+        {
+            public Product[] GetRelated() => [new Product(Id + 10), new Product(Id + 20)];
+
             public int GetPrice([Require("$tenant.tenantSettings.currency")] string currency)
                 => Id * 100 * Billing.Transaction.Rate(currency);
         }
