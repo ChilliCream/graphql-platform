@@ -44,6 +44,45 @@ public sealed class ContextCompositionTests
         // assert
         Assert.True(result.IsSuccess);
         Assert.Empty(log);
+        PrintTypes(result.Value, "User", "Transaction").MatchInlineSnapshot(
+            """
+            type User
+              @fusion__type(schema: A)
+              @fusion__context(schema: A, name: "userContext")
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_userById(id: ID!): User"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              userCurrency: Currency! @fusion__field(schema: A)
+              transactions: [Transaction!]! @fusion__field(schema: A)
+            }
+
+            type Transaction
+              @fusion__type(schema: A)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_transactionById(id: ID!): Transaction"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              amount: Float! @fusion__field(schema: A)
+              amountInUserCurrency: Float!
+                @fusion__field(schema: A)
+                @fusion__requires(
+                  schema: A
+                  field: "amountInUserCurrency(currencyCode: String): Float!"
+                  map: ["$userContext.userCurrency.isoCode"]
+                )
+            }
+            """);
     }
 
     [Fact]
@@ -93,6 +132,78 @@ public sealed class ContextCompositionTests
         // assert
         Assert.True(result.IsSuccess);
         Assert.Empty(log);
+        PrintTypes(result.Value, "A", "B", "C", "Child").MatchInlineSnapshot(
+            """
+            type A
+              @fusion__type(schema: A)
+              @fusion__context(schema: A, name: "context1")
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_aById(id: ID!): A"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              someField: String @fusion__field(schema: A)
+              child: Child @fusion__field(schema: A)
+            }
+
+            type B
+              @fusion__type(schema: A)
+              @fusion__context(schema: A, name: "context1")
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_bById(id: ID!): B"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              someField: String @fusion__field(schema: A)
+              child: Child @fusion__field(schema: A)
+            }
+
+            type C
+              @fusion__type(schema: A)
+              @fusion__context(schema: A, name: "context1")
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_cById(id: ID!): C"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              someOtherField: String @fusion__field(schema: A)
+              child: Child @fusion__field(schema: A)
+            }
+
+            type Child
+              @fusion__type(schema: A)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_childById(id: ID!): Child"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              label: String
+                @fusion__field(schema: A)
+                @fusion__requires(
+                  schema: A
+                  field: "label(value: String): String"
+                  map: [
+                    "$context1<A>.someField | $context1<B>.someField | $context1<C>.someOtherField"
+                  ]
+                )
+            }
+            """);
     }
 
     [Fact]
@@ -132,6 +243,60 @@ public sealed class ContextCompositionTests
         // assert
         Assert.True(result.IsSuccess);
         Assert.Empty(log);
+        PrintTypes(result.Value, "A", "B", "C").MatchInlineSnapshot(
+            """
+            type A
+              @fusion__type(schema: A)
+              @fusion__context(schema: A, name: "context1")
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_aById(id: ID!): A"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              prop: String! @fusion__field(schema: A)
+              b: B @fusion__field(schema: A)
+            }
+
+            type B
+              @fusion__type(schema: A)
+              @fusion__context(schema: A, name: "context1")
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_bById(id: ID!): B"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              prop: String! @fusion__field(schema: A)
+              c: C @fusion__field(schema: A)
+            }
+
+            type C
+              @fusion__type(schema: A)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_cById(id: ID!): C"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              value: String
+                @fusion__field(schema: A)
+                @fusion__requires(
+                  schema: A
+                  field: "value(arg: String): String"
+                  map: ["$context1.prop"]
+                )
+            }
+            """);
     }
 
     [Fact]
@@ -185,6 +350,55 @@ public sealed class ContextCompositionTests
         // assert
         Assert.True(result.IsSuccess);
         Assert.Empty(log);
+        PrintTypes(result.Value, "User", "Transaction").MatchInlineSnapshot(
+            """
+            type User
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__context(schema: A, name: "userContext")
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_userById(id: ID!): User"
+                map: ["id"]
+                path: null
+                internal: true
+              )
+              @fusion__lookup(
+                schema: B
+                key: "id"
+                field: "fusion__lookup_userById(id: ID!): User"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              userCurrency: Currency!
+                @fusion__field(schema: A, partial: true)
+                @fusion__field(schema: B)
+              transactions: [Transaction!]! @fusion__field(schema: A)
+            }
+
+            type Transaction
+              @fusion__type(schema: A)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "fusion__lookup_transactionById(id: ID!): Transaction"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A)
+              amountInUserCurrency: Float!
+                @fusion__field(schema: A)
+                @fusion__requires(
+                  schema: A
+                  field: "amountInUserCurrency(currencyCode: String): Float!"
+                  map: ["$userContext.userCurrency.isoCode"]
+                )
+            }
+            """);
     }
 
     [Fact]
@@ -310,6 +524,9 @@ public sealed class ContextCompositionTests
                 REQUIRE_CONTEXT_DEFAULT_VALUE: The argument 'Transaction.amountInUserCurrency(currencyCode:)' in schema 'A' reads from a context and must not have a default value.
             """);
     }
+
+    private static string PrintTypes(MutableSchemaDefinition schema, params string[] typeNames)
+        => string.Join("\n\n", typeNames.Select(n => schema.Types[n].ToString()));
 
     private static string FormatLog(CompositionLog log)
         => string.Join("\n", log.Select(e => $"{e.Code}: {e.Message}"));
