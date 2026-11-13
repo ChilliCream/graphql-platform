@@ -144,7 +144,7 @@ public sealed class MessageBusHealthCheckExtensionsTests
     private static ServiceCollection CreateServices(IMessageBus bus)
     {
         var runtime = new Mock<IMessagingRuntime>();
-        runtime.SetupGet(r => r.Transports).Returns([]);
+        runtime.SetupGet(r => r.Services).Returns(new ServiceCollection().BuildServiceProvider());
 
         var services = new ServiceCollection();
         services.AddLogging();
