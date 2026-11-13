@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -31,6 +32,13 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     /// The conditions that need to be met to execute this node.
     /// </summary>
     public abstract ReadOnlySpan<ExecutionNodeCondition> Conditions { get; }
+
+    /// <summary>
+    /// The alternative condition sets of this node. The node runs only when every entry of
+    /// <see cref="Conditions"/> passes and, if this list is not empty, at least one alternative
+    /// has all of its conditions passing.
+    /// </summary>
+    public virtual ReadOnlySpan<ExecutionNodeCondition[]> ConditionAlternatives => [];
 
     /// <summary>
     /// Gets the name of the source schema that this execution node operates in.
@@ -294,30 +302,65 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         => Id;
 
     protected virtual bool IsSkipped(OperationPlanContext context)
+        => IsSkipped(context.Variables, Conditions, ConditionAlternatives);
+
+    /// <summary>
+    /// Returns <c>true</c> when a condition fails or, if there are alternatives, when no
+    /// alternative has all of its conditions passing.
+    /// </summary>
+    internal static bool IsSkipped(
+        IVariableValueCollection variables,
+        ReadOnlySpan<ExecutionNodeCondition> conditions,
+        ReadOnlySpan<ExecutionNodeCondition[]> alternatives)
     {
-        if (Conditions.IsEmpty)
+        if (!AllPass(variables, conditions))
+        {
+            return true;
+        }
+
+        if (alternatives.IsEmpty)
         {
             return false;
         }
 
-        ref var condition = ref MemoryMarshal.GetReference(Conditions);
-        ref var end = ref Unsafe.Add(ref condition, Conditions.Length);
+        foreach (var alternative in alternatives)
+        {
+            if (AllPass(variables, alternative))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool AllPass(
+        IVariableValueCollection variables,
+        ReadOnlySpan<ExecutionNodeCondition> conditions)
+    {
+        if (conditions.IsEmpty)
+        {
+            return true;
+        }
+
+        ref var condition = ref MemoryMarshal.GetReference(conditions);
+        ref var end = ref Unsafe.Add(ref condition, conditions.Length);
 
         while (Unsafe.IsAddressLessThan(ref condition, ref end))
         {
-            if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
+            if (!variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
             {
                 throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
             }
 
             if (booleanValueNode.Value != condition.PassingValue)
             {
-                return true;
+                return false;
             }
 
             condition = ref Unsafe.Add(ref condition, 1)!;
         }
 
-        return false;
+        return true;
     }
 }

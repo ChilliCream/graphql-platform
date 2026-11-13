@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -381,27 +380,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     }
 
     private static bool IsSkipped(OperationPlanContext context, OperationDefinition operation)
-    {
-        if (operation.Conditions.Length == 0)
-        {
-            return false;
-        }
-
-        foreach (var condition in operation.Conditions)
-        {
-            if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
-            {
-                throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
-            }
-
-            if (booleanValueNode.Value != condition.PassingValue)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+        => IsSkipped(context.Variables, operation.Conditions, operation.ConditionAlternatives);
 
     protected override void OnSealingNode()
     {

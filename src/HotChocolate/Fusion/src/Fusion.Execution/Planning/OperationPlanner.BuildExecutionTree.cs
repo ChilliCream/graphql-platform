@@ -954,6 +954,7 @@ public sealed partial class OperationPlanner
                 forwardedVariables,
                 resultSelectionSet,
                 operationStep.Conditions,
+                [],
                 requiresFileUpload,
                 schema);
 
@@ -977,6 +978,7 @@ public sealed partial class OperationPlanner
             forwardedVariables,
             resultSelectionSet,
             operationStep.Conditions,
+            [],
             requiresFileUpload);
 
         foreach (var parentDependency in operationStep.ParentDependencies)
@@ -2027,6 +2029,7 @@ public sealed partial class OperationPlanner
             primary.ForwardedVariables.ToArray(),
             primary.ResultSelectionSet,
             primary.Conditions.ToArray(),
+            primary.ConditionAlternatives.ToArray(),
             primary.RequiresFileUpload);
 
         foreach (var parentDependency in primary.BufferedParentDependencies)
@@ -2050,6 +2053,7 @@ public sealed partial class OperationPlanner
             member.ForwardedVariables.ToArray(),
             member.ResultSelectionSet,
             member.Conditions.ToArray(),
+            member.ConditionAlternatives.ToArray(),
             member.RequiresFileUpload);
 
         foreach (var parentDependency in member.BufferedParentDependencies)
@@ -2080,6 +2084,7 @@ public sealed partial class OperationPlanner
             member.ForwardedVariables.ToArray(),
             member.ResultSelectionSet,
             member.Conditions.ToArray(),
+            member.ConditionAlternatives.ToArray(),
             member.RequiresFileUpload);
 
         foreach (var parentDependency in member.BufferedParentDependencies)
@@ -2119,6 +2124,7 @@ public sealed partial class OperationPlanner
             primary.ForwardedVariables.ToArray(),
             primary.ResultSelectionSet,
             primary.Conditions.ToArray(),
+            primary.ConditionAlternatives.ToArray(),
             primary.RequiresFileUpload);
 
         var parentDependencies = new HashSet<int>();
