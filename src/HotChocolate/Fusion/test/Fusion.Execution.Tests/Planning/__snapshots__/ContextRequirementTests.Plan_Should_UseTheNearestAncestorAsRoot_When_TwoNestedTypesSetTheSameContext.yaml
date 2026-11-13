@@ -1,0 +1,54 @@
+operation:
+  - document: |
+      {
+        organization {
+          teams {
+            transactions {
+              note
+              id @fusion__requirement
+            }
+            label @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        organization {
+          teams {
+            transactions {
+              id
+            }
+            label
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_label: String!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          note(label: $__fusion_1_label)
+        }
+      }
+    source: $.transactionById
+    target: $.organization.teams.transactions
+    requirements:
+      - name: __fusion_1_label
+        selectionMap: >-
+          $scope.label
+        contextRoots:
+          - name: scope
+            path: $.organization.teams
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

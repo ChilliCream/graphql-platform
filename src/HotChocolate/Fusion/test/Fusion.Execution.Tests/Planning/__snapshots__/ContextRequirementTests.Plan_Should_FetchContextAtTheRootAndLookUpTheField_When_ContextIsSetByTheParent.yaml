@@ -1,0 +1,54 @@
+operation:
+  - document: |
+      {
+        me {
+          transactions {
+            amount
+            id @fusion__requirement
+          }
+          userCurrency @fusion__requirement {
+            isoCode @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        me {
+          transactions {
+            id
+          }
+          userCurrency {
+            isoCode
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          amount(currency: $__fusion_1_currency)
+        }
+      }
+    source: $.transactionById
+    target: $.me.transactions
+    requirements:
+      - name: __fusion_1_currency
+        selectionMap: >-
+          $userContext.userCurrency.isoCode
+        contextRoots:
+          - name: userContext
+            path: $.me
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

@@ -1861,7 +1861,10 @@ public sealed partial class OperationPlanner
                 workItem.EstimatedDepth,
                 backlog,
                 workItem.Conditions,
-                allowSourceSchemaReentry: false,
+                // A field that reads from a context is resolved through a lookup of the schema
+                // that serves the step of its parent, so that step provides the lookup key.
+                allowSourceSchemaReentry: workItem.Selection.Field.Sources[current.SchemaName]
+                    .Requirements is { ContextRequirements.Count: > 0 },
                 workItem.SourceSchemaNodePolicy,
                 currentStep,
                 out _);
@@ -1895,6 +1898,11 @@ public sealed partial class OperationPlanner
         {
             requirementAliases = new RequirementAliasContext([], current.RequirementAliases);
         }
+        else if (fieldRequirements.Requirements is null)
+        {
+            // The requirements only read from contexts.
+            requirementAliases = new RequirementAliasContext(fieldRequirements.Fields, current.RequirementAliases);
+        }
         else
         {
             leftoverRequirements =
@@ -1907,6 +1915,23 @@ public sealed partial class OperationPlanner
                     ref backlog,
                     ref steps,
                     out requirementAliases);
+        }
+
+        Dictionary<string, RequirementContextRoot>? contextRoots = null;
+
+        if (fieldRequirements is { ContextRequirements.Count: > 0 })
+        {
+            contextRoots = InlineContextRequirements(
+                workItem,
+                lookup,
+                stepId,
+                stepDepth,
+                mergeWithExistingStep ? existingStep : null,
+                ref current,
+                indexBuilder,
+                ref backlog,
+                ref steps,
+                requirementAliases);
         }
 
         // if we have requirements that we could not inline into existing nodes of the
@@ -1955,7 +1980,7 @@ public sealed partial class OperationPlanner
                 argument.Type,
                 workItem.Selection.Path,
                 fieldSelectionMap,
-                [],
+                GetRequirementContextRoots(fieldSelectionMap, contextRoots),
                 requirementAliases.GetInternalAlias(fieldSelectionMap));
 
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
@@ -2845,6 +2870,42 @@ public sealed partial class OperationPlanner
         var requirements = sourceRequirements.Requirements!;
         requirementAliases = new RequirementAliasContext(sourceRequirements.Fields, current.RequirementAliases);
 
+        return TryInlineRequirements(
+            requirements,
+            new RequirementTarget(
+                workItem.Selection.SelectionSetId,
+                workItem.Selection.Field.DeclaringType,
+                workItem.Selection.Path),
+            workItem.SourceSchemaNodePolicy,
+            dependentStepId,
+            ref current,
+            currentStep,
+            allowRequiringSchemaSteps: false,
+            index,
+            ref backlog,
+            ref steps,
+            requirementAliases);
+    }
+
+    // Tries to inline the requirement selections into the steps that select the selection set of
+    // the target. Returns the selections that no step could take, or null if all were inlined.
+    // The excluded step and the steps that depend on it never take the selections, and steps of
+    // the requiring schema only take them when allowRequiringSchemaSteps is set.
+    private SelectionSetNode? TryInlineRequirements(
+        SelectionSetNode requirementSelections,
+        RequirementTarget target,
+        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy,
+        int dependentStepId,
+        ref PlanNode current,
+        OperationPlanStep? excludedStep,
+        bool allowRequiringSchemaSteps,
+        SelectionSetIndexBuilder index,
+        ref Backlog backlog,
+        ref ImmutableList<PlanStep> steps,
+        RequirementAliasContext requirementAliases)
+    {
+        var requirements = requirementSelections;
+
         if (index.IsRegistered(requirements))
         {
             // if we already used the same requirements object and have indexed it
@@ -2877,7 +2938,7 @@ public sealed partial class OperationPlanner
         // sibling selections and mint an alias so the requirement carries a distinct
         // response name through partitioning, leftover re-rooting and the internal
         // operation.
-        if (index.TryGetSelectionSet(workItem.Selection.SelectionSetId, out var siblingSelections))
+        if (index.TryGetSelectionSet(target.SelectionSetId, out var siblingSelections))
         {
             var mintedAlias = false;
 
@@ -2900,7 +2961,7 @@ public sealed partial class OperationPlanner
         var fullRequirements = requirements;
 
         index.Register(
-            workItem.Selection.SelectionSetId,
+            target.SelectionSetId,
             requirements);
 
         // Register the requirement's nested selection sets so the partitioner can
@@ -2910,23 +2971,17 @@ public sealed partial class OperationPlanner
         // inlining performs must happen up front here.
         RegisterRequirementSelectionSets(requirements, index);
 
-        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
+        foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(target.SelectionSetId))
         {
-            if (currentStep.Id == step.Id)
+            if (IsOrDependsOn(step, excludedStep, steps))
             {
-                // we cannot inline the field requirements
-                // into the step that requires.
+                // we cannot inline the field requirements into the step that requires
+                // or into an operation step that depends on it.
                 continue;
             }
 
-            if (step.DependsOn(currentStep, steps))
-            {
-                // we cannot inline the field requirements into
-                // an operation step that depends on the current step.
-                continue;
-            }
-
-            if (schemaName.Equals(current.SchemaName, StringComparison.Ordinal))
+            if (!allowRequiringSchemaSteps
+                && schemaName.Equals(current.SchemaName, StringComparison.Ordinal))
             {
                 // the required data is not natively resolvable in the requiring field's schema
                 // (composition forbids declaring the required leaves there), so a step of that
@@ -2936,9 +2991,9 @@ public sealed partial class OperationPlanner
 
             if (!TryInlineSelectionSetIntoStep(
                 step,
-                workItem.Selection.SelectionSetId,
-                workItem.Selection.Field.DeclaringType,
-                workItem.Selection.Path,
+                target.SelectionSetId,
+                target.Type,
+                target.Path,
                 requirements,
                 dependentStepId,
                 index,
@@ -2946,7 +3001,7 @@ public sealed partial class OperationPlanner
                 out var updatedStep,
                 out var unresolvable,
                 out var nestedFieldsWithRequirements,
-                treatSourceExternalAsUnresolvable: workItem.SourceSchemaNodePolicy is not null))
+                treatSourceExternalAsUnresolvable: sourceSchemaNodePolicy is not null))
             {
                 // if we cannot resolve any selection with the current source we cannot inline the
                 // field requirements into this step.
@@ -2963,7 +3018,7 @@ public sealed partial class OperationPlanner
                 new StepConsumer(step.Id),
                 [dependentStepId],
                 GetOperationStepDepth(current, step.Id),
-                workItem.SourceSchemaNodePolicy is null
+                sourceSchemaNodePolicy is null
                     ? null
                     : SourceSchemaNodePlanningPolicy.Descendant);
 
@@ -2974,7 +3029,7 @@ public sealed partial class OperationPlanner
                 // Unresolvable child selections are pushed to the backlog and will be processed
                 // in a later planing iteration.
                 var top = unresolvable.Peek();
-                if (top.SelectionSet.Id == workItem.Selection.SelectionSetId)
+                if (top.SelectionSet.Id == target.SelectionSetId)
                 {
                     unresolvable = unresolvable.Pop(out top);
                     requirements = top.SelectionSet.Node;
@@ -2993,7 +3048,7 @@ public sealed partial class OperationPlanner
                             Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                             ParentDepth = GetOperationStepDepth(current, step.Id),
                             Conditions = entry.Conditions,
-                            SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
+                            SourceSchemaNodePolicy = sourceSchemaNodePolicy is null
                                 ? null
                                 : SourceSchemaNodePlanningPolicy.Descendant
                         });
@@ -3009,14 +3064,14 @@ public sealed partial class OperationPlanner
         }
 
         var internalRequirements = requirementAliases.ApplyAliases(fullRequirements);
-        index.Register(workItem.Selection.SelectionSetId, internalRequirements);
+        index.Register(target.SelectionSetId, internalRequirements);
 
         var internalOperation =
             InlineSelectionsIntoOverallOperation(
                 current.InternalOperationDefinition,
                 index,
-                workItem.Selection.Field.DeclaringType,
-                workItem.Selection.SelectionSetId,
+                target.Type,
+                target.SelectionSetId,
                 internalRequirements);
         current = current with { InternalOperationDefinition = internalOperation };
 
@@ -3029,17 +3084,17 @@ public sealed partial class OperationPlanner
                 current.InternalOperationDefinition,
                 steps,
                 index,
-                workItem.Selection.SelectionSetId,
-                workItem.Selection.Path) is { } ancestorMatch
-            && currentStep.Id != ancestorMatch.Step.Id
-            && !ancestorMatch.Step.DependsOn(currentStep, steps)
-            && !string.Equals(ancestorMatch.Step.SchemaName, current.SchemaName, StringComparison.Ordinal))
+                target.SelectionSetId,
+                target.Path) is { } ancestorMatch
+            && !IsOrDependsOn(ancestorMatch.Step, excludedStep, steps)
+            && (allowRequiringSchemaSteps
+                || !string.Equals(ancestorMatch.Step.SchemaName, current.SchemaName, StringComparison.Ordinal)))
         {
             if (TryInlineIntoAncestorStep(
-                ancestorMatch, requirements, workItem.Selection.Path,
+                ancestorMatch, requirements, target.Path,
                 dependentStepId, index, ref steps, out var unresolvable,
                 out var nestedAncestorFieldsWithRequirements,
-                treatSourceExternalAsUnresolvable: workItem.SourceSchemaNodePolicy is not null))
+                treatSourceExternalAsUnresolvable: sourceSchemaNodePolicy is not null))
             {
                 requirements = null;
 
@@ -3048,14 +3103,14 @@ public sealed partial class OperationPlanner
                     new StepConsumer(ancestorMatch.Step.Id),
                     [dependentStepId],
                     GetOperationStepDepth(current, ancestorMatch.Step.Id),
-                    workItem.SourceSchemaNodePolicy is null
+                    sourceSchemaNodePolicy is null
                         ? null
                         : SourceSchemaNodePlanningPolicy.Descendant);
 
                 if (!unresolvable.IsEmpty)
                 {
                     var top = unresolvable.Peek();
-                    if (top.SelectionSet.Id == workItem.Selection.SelectionSetId)
+                    if (top.SelectionSet.Id == target.SelectionSetId)
                     {
                         unresolvable = unresolvable.Pop(out top);
                         requirements = top.SelectionSet.Node;
@@ -3072,7 +3127,7 @@ public sealed partial class OperationPlanner
                                 Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
                                 ParentDepth = GetOperationStepDepth(current, ancestorMatch.Step.Id),
                                 Conditions = entry.Conditions,
-                                SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy is null
+                                SourceSchemaNodePolicy = sourceSchemaNodePolicy is null
                                     ? null
                                     : SourceSchemaNodePlanningPolicy.Descendant
                             });
@@ -3083,6 +3138,13 @@ public sealed partial class OperationPlanner
 
         return requirements;
     }
+
+    private static bool IsOrDependsOn(
+        OperationPlanStep step,
+        OperationPlanStep? other,
+        ImmutableList<PlanStep> steps)
+        => other is not null
+            && (step.Id == other.Id || step.DependsOn(other, steps));
 
     private bool TryInlineSelectionSetIntoStep(
         OperationPlanStep step,
@@ -4430,6 +4492,11 @@ public sealed partial class OperationPlanner
         }
     }
 
+    private readonly record struct RequirementTarget(
+        uint SelectionSetId,
+        ITypeDefinition Type,
+        SelectionPath Path);
+
     private readonly record struct AncestorStepMatch(
         OperationPlanStep Step,
         int StepIndex,
@@ -4994,7 +5061,7 @@ internal static class PlannerExtensions
     /// A stack of path items from the terminal selection set back to the operation root, or
     /// <c>null</c> when the path cannot be resolved.
     /// </returns>
-    private static Stack<IPathItem>? ReverseSelectionPath(
+    internal static Stack<IPathItem>? ReverseSelectionPath(
         OperationDefinitionNode operationDefinitionNode,
         SelectionPath path,
         FusionSchemaDefinition compositeSchema,
@@ -5181,11 +5248,11 @@ internal static class PlannerExtensions
         return null;
     }
 
-    private interface IPathItem;
+    internal interface IPathItem;
 
-    private record FieldPathItem(FieldNode Node, FusionOutputFieldDefinition Field) : IPathItem;
+    internal record FieldPathItem(FieldNode Node, FusionOutputFieldDefinition Field) : IPathItem;
 
-    private record InlineFragmentPathItem(
+    internal record InlineFragmentPathItem(
         InlineFragmentNode Node,
         IOutputTypeDefinition? TypeCondition) : IPathItem;
 }

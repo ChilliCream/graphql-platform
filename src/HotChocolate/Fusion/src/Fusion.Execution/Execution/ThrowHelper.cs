@@ -133,6 +133,22 @@ internal static class ThrowHelper
             FusionExecutionResources.PlanQueue_NodeLookupNotFound,
             typeName));
 
+    public static InvalidOperationException ContextNotSetOnPath(
+        string contextName,
+        string fieldCoordinate)
+        => new(string.Format(
+            FusionExecutionResources.OperationPlanner_ContextNotSetOnPath,
+            contextName,
+            fieldCoordinate));
+
+    public static InvalidOperationException ContextSetForSomeTypesOnPath(
+        string contextName,
+        string fieldCoordinate)
+        => new(string.Format(
+            FusionExecutionResources.OperationPlanner_ContextSetForSomeTypesOnPath,
+            contextName,
+            fieldCoordinate));
+
     public static InvalidOperationException SingleOperationRequired()
         => new(FusionExecutionResources.JsonOperationPlanParser_SingleOperationRequired);
 
