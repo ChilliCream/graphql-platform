@@ -1181,7 +1181,11 @@ public class ContextRequirementTests : FusionTestBase
                 transactions: [Transaction!]!
             }
 
-            type User implements Member @context(name: "account") {
+            interface Account {
+                currency(region: String): Currency!
+            }
+
+            type User implements Member & Account @context(name: "account") {
                 id: ID!
                 currency(region: String): Currency!
                 transactions: [Transaction!]!
@@ -1209,7 +1213,7 @@ public class ContextRequirementTests : FusionTestBase
             {
               org {
                 members {
-                  ... on Member {
+                  ... on Account {
                     ... on User {
                       currency(region: "EU") {
                         isoCode

@@ -8,10 +8,14 @@ operation:
               amount
               id @fusion__requirement
             }
-            ... on User {
-              currency(region: "EU") {
-                isoCode
+            ... on Account {
+              ... on User {
+                currency(region: "EU") {
+                  isoCode
+                }
               }
+            }
+            ... on User {
               fusion__requirement_currency_0: currency @fusion__requirement {
                 isoCode @fusion__requirement
               }
@@ -37,9 +41,12 @@ nodes:
             transactions {
               id
             }
-            ... on User {
-              currency(region: "EU") {
-                isoCode
+            ... on Account {
+              __typename
+              ... on User {
+                currency(region: "EU") {
+                  isoCode
+                }
               }
             }
             ... on User {
