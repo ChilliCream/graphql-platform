@@ -2965,32 +2965,7 @@ public sealed partial class OperationPlanner
         // sibling selections and mint an alias so the requirement carries a distinct
         // response name through partitioning, leftover re-rooting and the internal
         // operation.
-        if (index.TryGetSelectionSet(target.SelectionSetId, out var siblingSelections))
-        {
-            foreach (var selection in requirements.Selections)
-            {
-                if (selection is FieldNode field
-                    && HasArgumentConflict(field, siblingSelections.Selections))
-                {
-                    requirementAliases.MintAlias(field);
-                }
-                else if (requirementAliases.AliasTypeConditions
-                    && selection is InlineFragmentNode { TypeCondition: { } typeCondition } fragment)
-                {
-                    foreach (var fragmentSelection in fragment.SelectionSet.Selections)
-                    {
-                        if (fragmentSelection is FieldNode fragmentField
-                            && HasArgumentConflict(
-                                fragmentField,
-                                siblingSelections.Selections,
-                                typeCondition.Name.Value))
-                        {
-                            requirementAliases.MintAlias(fragmentField);
-                        }
-                    }
-                }
-            }
-        }
+        MintSiblingCollisionAliases(requirements, target.SelectionSetId, index, requirementAliases);
 
         // The context aliases minted for an earlier root of the same context apply to this root too.
         requirements = requirementAliases.ApplyAliases(requirements);
@@ -3398,6 +3373,42 @@ public sealed partial class OperationPlanner
             field.Directives,
             field.Arguments,
             field.SelectionSet);
+
+    // Mints an alias for each requirement field that collides with a sibling client selection of the
+    // selection set, including fields inside type conditions if the alias context allows it.
+    private static void MintSiblingCollisionAliases(
+        SelectionSetNode requirements,
+        uint selectionSetId,
+        SelectionSetIndexBuilder index,
+        RequirementAliasContext requirementAliases)
+    {
+        if (index.TryGetSelectionSet(selectionSetId, out var siblingSelections))
+        {
+            foreach (var selection in requirements.Selections)
+            {
+                if (selection is FieldNode field
+                    && HasArgumentConflict(field, siblingSelections.Selections))
+                {
+                    requirementAliases.MintAlias(field);
+                }
+                else if (requirementAliases.AliasTypeConditions
+                    && selection is InlineFragmentNode { TypeCondition: { } typeCondition } fragment)
+                {
+                    foreach (var fragmentSelection in fragment.SelectionSet.Selections)
+                    {
+                        if (fragmentSelection is FieldNode fragmentField
+                            && HasArgumentConflict(
+                                fragmentField,
+                                siblingSelections.Selections,
+                                typeCondition.Name.Value))
+                        {
+                            requirementAliases.MintAlias(fragmentField);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Mints and applies the aliases of requirement fields that collide with client selections. With
     // aliasTypeConditions set, fields inside inline fragments with a type condition are aliased too.

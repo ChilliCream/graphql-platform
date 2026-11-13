@@ -910,6 +910,71 @@ public class ContextRequirementTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_ReadTheAliasedContextField_When_TheClientFieldIsAtTheFartherRoot()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                org: Organization
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                members: [Member!]!
+            }
+
+            interface Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type User implements Member @context(name: "account") {
+                id: ID!
+                currency(region: String): Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Bot implements Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$account.currency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              org {
+                currency(region: "EU") {
+                  isoCode
+                }
+                members {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_RestrictTheRootToTheSettingTypes_When_NoAncestorSetsTheContextForAllTypes()
     {
         // arrange
