@@ -526,6 +526,61 @@ public class ContextRequirementTests : FusionTestBase
             exception.Message);
     }
 
+    [Fact]
+    public void Plan_Should_PlanSeparateLookups_When_TheContextRootsHaveDifferentDistancesToTheTargets()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+                pending: [Transaction!]!
+                account: Account!
+            }
+
+            type Account {
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              users {
+                transactions {
+                  amount
+                }
+                account {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition ComposeSchemaWithoutContext(
         string typeName,
         [StringSyntax("graphql")] params string[] schemas)
