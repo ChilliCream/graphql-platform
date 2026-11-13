@@ -65,8 +65,7 @@ public sealed partial class OperationPlanner
 
             contextRoots.Add(contextName, roots);
 
-            // The aliases of all roots are settled before the first root is inlined, so that the
-            // rewritten requirement map fits every root of the context.
+            // Selects the context fields of each root and settles the aliases of all roots.
             var candidateSelections = new SelectionSetNode[candidates.Count];
 
             for (var i = 0; i < candidates.Count; i++)
