@@ -403,7 +403,10 @@ public sealed class SatisfiabilityFactsBuilderTests
     }
 
     private static SatisfiabilityFacts BuildFacts(MutableSchemaDefinition schema)
-        => new SatisfiabilityFactsBuilder(schema, new FusionLookupDirectiveCache(schema)).Build();
+        => new SatisfiabilityFactsBuilder(
+            schema,
+            new FusionLookupDirectiveCache(schema),
+            new FieldOptionCache(schema, new SchemaSetInterner([]))).Build();
 
     private static MutableSchemaDefinition CreateMergedSchema(string[] schemas)
     {

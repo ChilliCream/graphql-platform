@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -11,6 +12,7 @@ internal sealed class FieldOptionCache(MutableSchemaDefinition schema, SchemaSet
 {
     private readonly Dictionary<MutableOutputFieldDefinition, FieldOptionSet> _options = [];
     private readonly Dictionary<(ITypeDefinition, string), MutableObjectTypeDefinition[]> _possibleTypes = [];
+    private readonly Dictionary<(MutableOutputFieldDefinition, string), ImmutableArray<string>> _contextNames = [];
 
     /// <summary>
     /// Gets the options of <paramref name="field"/>.
@@ -25,6 +27,29 @@ internal sealed class FieldOptionCache(MutableSchemaDefinition schema, SchemaSet
 
         return options;
     }
+
+    /// <summary>
+    /// Gets the names of the contexts that the requirements of <paramref name="field"/> read in
+    /// <paramref name="schemaName"/>, which is empty if it reads none.
+    /// </summary>
+    public ImmutableArray<string> GetContextNames(MutableOutputFieldDefinition field, string schemaName)
+    {
+        if (!_contextNames.TryGetValue((field, schemaName), out var contextNames))
+        {
+            contextNames = field.GetFusionRequiresContextNames(schemaName);
+            _contextNames.Add((field, schemaName), contextNames);
+        }
+
+        return contextNames;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="field"/> has requirements in <paramref name="schemaName"/>,
+    /// either on its declaring type or on a context.
+    /// </summary>
+    public bool HasRequirements(MutableOutputFieldDefinition field, string schemaName)
+        => field.GetFusionRequiresRequirements(schemaName) is not null
+            || !GetContextNames(field, schemaName).IsEmpty;
 
     /// <summary>
     /// Gets the object types that the field of <paramref name="options"/> returns in the schema of
@@ -54,6 +79,7 @@ internal sealed class FieldOptionCache(MutableSchemaDefinition schema, SchemaSet
                 schemaSets.GetIndex(schemaName),
                 field.IsPartial(schemaName),
                 field.GetFusionRequiresRequirements(schemaName),
+                GetContextNames(field, schemaName),
                 field.GetFusionEventStreamMessage(schemaName));
         }
 
