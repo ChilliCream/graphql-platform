@@ -331,7 +331,7 @@ Do not use `@provides` as a substitute for proper entity ownership. If your subg
 
 # FieldSelectionMap Syntax Reference
 
-`@require` uses the FieldSelectionMap scalar for its `field` argument. This is a mini-language for describing how to map entity fields to argument shapes.
+`@require` uses the FieldSelectionMap scalar for its `field` argument. This is a mini-language for describing how to map entity fields, or the fields of a type that provides a context, to argument shapes.
 
 | Syntax           | Example                                | Meaning                                                          |
 | ---------------- | -------------------------------------- | ---------------------------------------------------------------- |
@@ -342,6 +342,8 @@ Do not use `@provides` as a substitute for proper entity ownership. If your subg
 | Mixed selection  | `"{ weight, len: dimensions.length }"` | Combines direct and renamed mappings                             |
 | List aggregation | `"addresses[countryCode]"`             | Selects `countryCode` from each element in the `addresses` list  |
 | List projection  | `"dimensions[{ weight, height }]"`     | Selects multiple fields from each list element into an object    |
+| Context path     | `"$userContext.userCurrency.isoCode"`  | Reads a path from the nearest value that provides the context    |
+| Typed context    | `"$account<User>.locale"`              | Reads a path from the context value when it is a `User`          |
 
 ## When to Use Which Syntax
 
@@ -374,6 +376,30 @@ countryCodes: [String!]! @require(field: "seller.addresses[countryCode]")
 ```graphql
 dims: [ProductDimensionInput!]! @require(field: "dimensions[{ weight, height }]")
 ```
+
+**Context path.** Use when the value comes from a type above the field that declares it with [`@context`](./directives-reference.md#context). A context path starts with `$` and the context name, followed by a path of fields on the type that provides the context.
+
+```graphql
+currency: String! @require(field: "$userContext.userCurrency.isoCode")
+```
+
+If several types provide the same context, a path without a type condition must be valid on every one of them. Add a type condition in angle brackets to read the path from one type only: `$name<Type>.path`. The type must be an object type that provides the context, directly or through an interface or union that declares it.
+
+**Choice of typed alternatives.** Use when different types provide the same context and expose the value under different fields. Separate the alternatives with `|`.
+
+```graphql
+locale: String!
+  @require(field: "$account<User>.locale | $account<Organization>.defaultLocale")
+```
+
+**Mixed selection with a context path.** Use when one input object combines a value from the context with a value from the entity. Context paths and normal paths can appear side by side in an object selection.
+
+```graphql
+conversion: ConversionInput!
+  @require(field: "{ currency: $userContext.userCurrency.isoCode, rate: exchange.rate }")
+```
+
+A normal path in the same map starts at the entity that the field is selected on, while a context path starts at the value that provides the context.
 
 > For the full FieldSelectionMap grammar, see the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
 
