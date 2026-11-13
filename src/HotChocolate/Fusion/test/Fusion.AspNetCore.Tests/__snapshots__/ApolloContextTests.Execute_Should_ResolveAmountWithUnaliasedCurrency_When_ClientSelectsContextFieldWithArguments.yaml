@@ -1,0 +1,496 @@
+title: Execute_Should_ResolveAmountWithUnaliasedCurrency_When_ClientSelectsContextFieldWithArguments
+request:
+  document: |
+    {
+      users {
+        userCurrency(region: "EU") {
+          isoCode
+        }
+        transactions {
+          amountInUserCurrency
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "users": [
+          {
+            "userCurrency": {
+              "isoCode": "EUR"
+            },
+            "transactions": [
+              {
+                "amountInUserCurrency": 100
+              },
+              {
+                "amountInUserCurrency": 200
+              }
+            ]
+          },
+          {
+            "userCurrency": {
+              "isoCode": "EUR"
+            },
+            "transactions": [
+              {
+                "amountInUserCurrency": 600
+              },
+              {
+                "amountInUserCurrency": 800
+              }
+            ]
+          },
+          {
+            "userCurrency": {
+              "isoCode": "EUR"
+            },
+            "transactions": [
+              {
+                "amountInUserCurrency": 500
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: users
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@key", "@shareable", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Currency @shareable {
+        isoCode: String!
+      }
+
+      type Transaction @key(fields: "id") {
+        id: ID!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        userCurrency(region: String): Currency!
+        transactions: [Transaction!]!
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = User | Transaction
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_30f4cfd9_1 {
+              users {
+                userCurrency(region: "EU") {
+                  isoCode
+                }
+                transactions {
+                  id
+                }
+                fusion__requirement_userCurrency_0: userCurrency {
+                  isoCode
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "userCurrency": {
+                        "isoCode": "EUR"
+                      },
+                      "transactions": [
+                        {
+                          "id": "1"
+                        },
+                        {
+                          "id": "2"
+                        }
+                      ],
+                      "fusion__requirement_userCurrency_0": {
+                        "isoCode": "USD"
+                      }
+                    },
+                    {
+                      "userCurrency": {
+                        "isoCode": "EUR"
+                      },
+                      "transactions": [
+                        {
+                          "id": "3"
+                        },
+                        {
+                          "id": "4"
+                        }
+                      ],
+                      "fusion__requirement_userCurrency_0": {
+                        "isoCode": "EUR"
+                      }
+                    },
+                    {
+                      "userCurrency": {
+                        "isoCode": "EUR"
+                      },
+                      "transactions": [
+                        {
+                          "id": "5"
+                        }
+                      ],
+                      "fusion__requirement_userCurrency_0": {
+                        "isoCode": "USD"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: pending
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@key", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Transaction @key(fields: "id") {
+        id: ID!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        pending: [Transaction!]!
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = User | Transaction
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+  - name: amounts
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@external", "@key", "@shareable", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Currency @shareable {
+        isoCode: String!
+      }
+
+      type Transaction @key(fields: "id") {
+        id: ID!
+        amountInUserCurrency(
+          currencyCode: String @fromContext(field: "$userContext { userCurrency { isoCode } }")
+        ): Float!
+      }
+
+      type User @key(fields: "id") @context(name: "userContext") {
+        id: ID!
+        userCurrency(region: String): Currency! @external
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = User | Transaction
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      directive @fromContext(field: String!) on ARGUMENT_DEFINITION
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
+                  _entities(representations: $representations) {
+                    ... on Transaction {
+                      amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "representations": [
+                    {
+                      "__typename": "Transaction",
+                      "id": "1"
+                    },
+                    {
+                      "__typename": "Transaction",
+                      "id": "2"
+                    },
+                    {
+                      "__typename": "Transaction",
+                      "id": "5"
+                    }
+                  ],
+                  "__fusion_2_currencyCode": "USD"
+                }
+            - document: |
+                query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
+                  _entities(representations: $representations) {
+                    ... on Transaction {
+                      amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "representations": [
+                    {
+                      "__typename": "Transaction",
+                      "id": "3"
+                    },
+                    {
+                      "__typename": "Transaction",
+                      "id": "4"
+                    }
+                  ],
+                  "__fusion_2_currencyCode": "EUR"
+                }
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "amountInUserCurrency": 100
+                    },
+                    {
+                      "amountInUserCurrency": 200
+                    },
+                    {
+                      "amountInUserCurrency": 500
+                    }
+                  ]
+                }
+              }
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "amountInUserCurrency": 600
+                    },
+                    {
+                      "amountInUserCurrency": 800
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          users {
+            userCurrency(region: "EU") {
+              isoCode
+            }
+            transactions {
+              amountInUserCurrency
+              id @fusion__requirement
+            }
+            fusion__requirement_userCurrency_0: userCurrency @fusion__requirement {
+              isoCode @fusion__requirement
+            }
+          }
+        }
+      hash: 449e99d94691dfbdebba20b31a49c6c4
+      searchSpace: 1
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: users
+      operation: |
+        query Op_30f4cfd9_1 {
+          users {
+            userCurrency(region: "EU") {
+              isoCode
+            }
+            transactions {
+              id
+            }
+            fusion__requirement_userCurrency_0: userCurrency {
+              isoCode
+            }
+          }
+        }
+    - id: 3
+      type: ApolloOperation
+      schema: amounts
+      operation: |
+        query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
+          _entities(representations: $representations) {
+            ... on Transaction {
+              amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+            }
+          }
+        }
+      source: $._entities
+      target: $.users.transactions
+      requirements:
+        - name: __fusion_2_currencyCode
+          selectionMap: >-
+            $userContext.fusion__requirement_userCurrency_0.isoCode
+          contextRoots:
+            - name: userContext
+              path: $.users
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

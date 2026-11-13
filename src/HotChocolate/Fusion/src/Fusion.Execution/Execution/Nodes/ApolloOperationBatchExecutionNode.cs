@@ -142,7 +142,9 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        if (_operations.Length == 1)
+        // An operation that reads from contexts sends one request per group of entities that
+        // share their context values, so it takes the batch path even when it is alone.
+        if (_operations.Length == 1 && !_hasContextRequirements)
         {
             return ExecuteSingleAsync(context, cancellationToken);
         }
@@ -161,12 +163,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         {
             context.TrackSkippedDefinition(this, operation);
             return ExecutionStatus.Skipped;
-        }
-
-        if (_hasContextRequirements)
-        {
-            return await ExecuteContextGroupsAsync(context, operation, lookup, cancellationToken)
-                .ConfigureAwait(false);
         }
 
         var representation = CreateRepresentationVariableValue(context, operation, lookup, out var reusedCount);
@@ -192,48 +188,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
         return await ExecuteRepresentationAsync(context, operation, lookup, representation, cancellationToken)
             .ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Sends one <c>_entities</c> request per group of entities that share their context
-    /// values, and merges the result of each group into the paths of its entities.
-    /// </summary>
-    private async ValueTask<ExecutionStatus> ExecuteContextGroupsAsync(
-        OperationPlanContext context,
-        OperationDefinition operation,
-        ApolloEntityLookup lookup,
-        CancellationToken cancellationToken)
-    {
-        var representations = CreateContextRepresentationVariableValues(context, operation, lookup);
-
-        if (representations.IsEmpty)
-        {
-            context.TrackSkippedDefinition(this, operation);
-            return ExecutionStatus.Skipped;
-        }
-
-        var requestVariables = new VariableValues[representations.Length];
-
-        for (var i = 0; i < requestVariables.Length; i++)
-        {
-            requestVariables[i] = new VariableValues(CompactPath.Root, representations[i].Value);
-        }
-
-        context.TrackVariableValueSets(this, ImmutableCollectionsMarshal.AsImmutableArray(requestVariables));
-
-        var statuses = new ExecutionStatus[representations.Length];
-
-        for (var i = 0; i < statuses.Length; i++)
-        {
-            statuses[i] = await ExecuteRepresentationAsync(
-                context,
-                operation,
-                lookup,
-                representations[i],
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        return ApolloOperationExecutionNode.AggregateStatus(statuses);
     }
 
     private async ValueTask<ExecutionStatus> ExecuteRepresentationAsync(
@@ -386,6 +340,14 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             }
 
             var requests = requestBuilder.DrainToImmutable();
+            var variableValueSets = new VariableValues[requests.Length];
+
+            for (var i = 0; i < variableValueSets.Length; i++)
+            {
+                variableValueSets[i] = requests[i].Variables[0];
+            }
+
+            context.TrackVariableValueSets(this, ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets));
 
             // Obtain a transport client for the source schema and stream the batch
             // response. As each individual result arrives, we queue its merge for
@@ -575,7 +537,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 foreach (var group in groups)
                 {
                     AddRequest(
-                        context,
                         schemaName,
                         requestBuilder,
                         operation,
@@ -608,7 +569,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             }
 
             AddRequest(
-                context,
                 schemaName,
                 requestBuilder,
                 operation,
@@ -624,7 +584,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
     }
 
     private void AddRequest(
-        OperationPlanContext context,
         string schemaName,
         ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
         OperationDefinition operation,
@@ -640,7 +599,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         // per-entity variable value sets are only used for error attribution.
         var requestVariables = ImmutableArray.Create(
             new VariableValues(CompactPath.Root, representation.Value));
-        context.TrackVariableValueSets(this, requestVariables);
 
         requestBuilder.Add(new SourceSchemaClientRequest
         {
