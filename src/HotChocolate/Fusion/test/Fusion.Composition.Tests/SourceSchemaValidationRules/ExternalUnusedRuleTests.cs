@@ -25,6 +25,32 @@ public sealed class ExternalUnusedRuleTests : RuleTestBase
         ]);
     }
 
+    [Fact]
+    public void Validate_Should_Succeed_When_TheExternalFieldIsOnlyReadByAContextPath()
+    {
+        // arrange & act & assert
+        AssertValid(
+        [
+            """
+            type Query {
+                me: User
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type User @context(name: "userContext") {
+                id: ID!
+                locale: String! @external
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name(locale: String! @require(field: "$userContext.locale")): String!
+            }
+            """
+        ]);
+    }
+
     // Provides two fields.
     [Fact]
     public void Validate_ExternalUsedInProvidesTwoFields_Succeeds()
