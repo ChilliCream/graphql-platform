@@ -342,8 +342,9 @@ internal sealed partial class SatisfiabilityValidator
         }
 
         // A field whose requirement reads a context is usable only when a value above the object sets
-        // that context in the schema of the option.
-        if (!HasContexts(option.ContextNames, field, schemaName, work.Key.ContextScope, type, errors))
+        // that context in the schema of the option, the field the context path selects resolves from that
+        // value, and a parent value held in the schema of the option can be entered again through a lookup.
+        if (!HasContexts(field, schemaName, option.ContextNames, work, errors))
         {
             return null;
         }
@@ -455,23 +456,104 @@ internal sealed partial class SatisfiabilityValidator
     }
 
     /// <summary>
-    /// Determines whether <paramref name="scope"/> has an entry in <paramref name="schemaName"/> for every one of
-    /// <paramref name="contextNames"/>, which <paramref name="field"/> reads, and adds the reason it has not to
+    /// Determines whether <paramref name="field"/>, which reads <paramref name="contextNames"/>, can be resolved
+    /// in <paramref name="schemaName"/> on the object of <paramref name="work"/>, and adds the reason it cannot to
     /// <paramref name="errors"/> unless it is <c>null</c>.
     /// </summary>
     private bool HasContexts(
-        ImmutableArray<string> contextNames,
         MutableOutputFieldDefinition field,
         string schemaName,
-        ContextScopeRef scope,
-        MutableComplexTypeDefinition type,
+        ImmutableArray<string> contextNames,
+        in WorkItem work,
         List<SatisfiabilityError>? errors)
     {
+        if (contextNames.IsEmpty)
+        {
+            return true;
+        }
+
+        SatisfiabilityPathItem[] arrivalPath = work.Path is null ? [] : [.. work.Path.EnumerateFromLeaf()];
+        var budget = errors is null
+            ? _decisionBudget
+            : SatisfiabilityExplanationBudget.Pruning(MaxExplanationEntries, MaxExplanationFailures);
+        var hasContexts = HasContexts(
+            field,
+            schemaName,
+            contextNames,
+            work.Key.ObjectType,
+            work.Key.ContextScope,
+            arrivalPath,
+            work.Key,
+            budget,
+            errors);
+
+        if (errors is not null)
+        {
+            _explanationEntryCount += budget.EntryCount;
+        }
+
+        return hasContexts;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="field"/>, which reads <paramref name="contextNames"/>, can be resolved
+    /// in <paramref name="schemaName"/> on the object of <paramref name="type"/>, held on
+    /// <paramref name="arrivalPath"/>, given from the leaf to the root, with the context
+    /// <paramref name="scope"/>: every context is set, the selections of its context path resolve from the value
+    /// that sets it, and a parent value held in <paramref name="schemaName"/> can be entered again through a
+    /// lookup. A walk anchored at <paramref name="key"/>, the visit key of the object, reads only the visit
+    /// keys; without a key the walk reads the whole path. The reason it cannot is added to
+    /// <paramref name="errors"/> unless it is <c>null</c>.
+    /// </summary>
+    private bool HasContexts(
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        ImmutableArray<string> contextNames,
+        MutableObjectTypeDefinition type,
+        ContextScopeRef scope,
+        SatisfiabilityPathItem[] arrivalPath,
+        VisitKey? key,
+        SatisfiabilityExplanationBudget budget,
+        List<SatisfiabilityError>? errors)
+    {
+        var selectionsByContext = _fieldOptions.GetContextSelections(field, schemaName);
+        var fieldName = $"{type.Name}.{field.Name}";
         var hasContexts = true;
 
         foreach (var contextName in contextNames)
         {
-            if (_contextScopes.Contains(scope, schemaName, contextName))
+            if (!_contextScopes.TryGetValue(scope, schemaName, contextName, out var value))
+            {
+                hasContexts = false;
+
+                if (errors is null)
+                {
+                    break;
+                }
+
+                errors.Add(
+                    new SatisfiabilityError(
+                        string.Format(SatisfiabilityValidator_ContextNotSet, fieldName, schemaName, contextName)));
+
+                continue;
+            }
+
+            if (!selectionsByContext.TryGetValue(contextName, out var selections))
+            {
+                continue;
+            }
+
+            var anchored = key is not null;
+            var contextErrors = ValidateContextPath(selections, value, arrivalPath, anchored, budget);
+
+            Debug.Assert(
+                !anchored
+                    || AgreesWithWalk(
+                        contextErrors.IsEmpty,
+                        walkBudget => ValidateContextPath(selections, value, arrivalPath, false, walkBudget).IsEmpty),
+                "The visit key disagrees with the walk of the context path along the path.");
+
+            if (contextErrors.IsEmpty)
             {
                 continue;
             }
@@ -486,14 +568,155 @@ internal sealed partial class SatisfiabilityValidator
             errors.Add(
                 new SatisfiabilityError(
                     string.Format(
-                        SatisfiabilityValidator_ContextNotSet,
-                        $"{type.Name}.{field.Name}",
+                        SatisfiabilityValidator_ContextPathNotResolvable,
+                        fieldName,
                         schemaName,
-                        contextName)));
+                        selections.ToString(indented: false).AsSpan()[2..^2].ToString(),
+                        contextName,
+                        value.ObjectType.Name),
+                    contextErrors));
+        }
+
+        // The context value is fetched before the field is resolved, so a parent value that the schema of the
+        // field produced must be entered again through a lookup of that schema.
+        if (hasContexts
+            && arrivalPath.Length > 0
+            && arrivalPath[0].SchemaName == schemaName
+            && !CanReenterParent(type, schemaName, arrivalPath, key, budget))
+        {
+            hasContexts = false;
+
+            errors?.Add(
+                new SatisfiabilityError(
+                    string.Format(SatisfiabilityValidator_ContextNoLookup, fieldName, schemaName, type.Name)));
         }
 
         return hasContexts;
     }
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> can enter <paramref name="type"/>, held on
+    /// <paramref name="arrivalPath"/>, given from the leaf to the root, again through a lookup. A walk anchored at
+    /// <paramref name="key"/> reads only the visit key; without a key the walk reads the whole path.
+    /// </summary>
+    private bool CanReenterParent(
+        MutableObjectTypeDefinition type,
+        string schemaName,
+        SatisfiabilityPathItem[] arrivalPath,
+        VisitKey? key,
+        SatisfiabilityExplanationBudget budget)
+    {
+        if (key is null)
+        {
+            return _requirementsValidator.CanReenterThroughLookup(
+                type,
+                schemaName,
+                arrivalPath[0],
+                arrivalPath[1..],
+                CreateArrivalScope(arrivalPath),
+                budget);
+        }
+
+        var canReenter = _requirementsValidator.CanReenterThroughLookup(
+            type,
+            schemaName,
+            arrivalPath[0],
+            [],
+            CreateAnchoredScope(key, arrivalPath[0]),
+            budget);
+
+        Debug.Assert(
+            AgreesWithWalk(
+                canReenter,
+                walkBudget => CanReenterParent(type, schemaName, arrivalPath, key: null, walkBudget)),
+            "The visit key disagrees with the lookups that enter the parent value again along the path.");
+
+        return canReenter;
+    }
+
+    /// <summary>
+    /// Validates that the <paramref name="selections"/> of a context path resolve from <paramref name="value"/>, the
+    /// value that sets the context, which is held on <paramref name="arrivalPath"/>, given from the leaf to the
+    /// root, and returns the errors, which are empty when they do. An <paramref name="anchored"/> walk reads only the
+    /// visit key of the value; otherwise the walk reads the whole path.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> ValidateContextPath(
+        SelectionSetNode selections,
+        ContextValue value,
+        SatisfiabilityPathItem[] arrivalPath,
+        bool anchored,
+        SatisfiabilityExplanationBudget budget)
+    {
+        var index = FindContextValue(value, arrivalPath);
+
+        Debug.Assert(index >= 0, "The value of a context scope is not on the access path.");
+
+        // The items above the value hold it, so the path to the value starts at the item that produced it.
+        var valuePath = index < 0 ? [] : arrivalPath[(index + 1)..];
+
+        if (valuePath.Length == 0)
+        {
+            return _requirementsValidator.Validate(
+                selections,
+                value.ObjectType,
+                parentPathItem: null,
+                [],
+                RequirementScope.Unanchored,
+                excludeSchemaName: null,
+                budget);
+        }
+
+        Debug.Assert(!anchored || value.Key is not null, "An anchored walk needs the visit key of the value.");
+
+        return anchored
+            ? _requirementsValidator.Validate(
+                selections,
+                value.ObjectType,
+                valuePath[0],
+                [],
+                CreateAnchoredScope(value.Key!, valuePath[0]),
+                excludeSchemaName: null,
+                budget)
+            : _requirementsValidator.Validate(
+                selections,
+                value.ObjectType,
+                valuePath[0],
+                valuePath[1..],
+                CreateArrivalScope(valuePath),
+                excludeSchemaName: null,
+                budget);
+    }
+
+    /// <summary>
+    /// Gets the index in <paramref name="arrivalPath"/>, given from the leaf to the root, of the nearest item
+    /// declared on the object that <paramref name="value"/> describes, or -1 if there is none.
+    /// </summary>
+    private static int FindContextValue(ContextValue value, SatisfiabilityPathItem[] arrivalPath)
+    {
+        for (var i = 0; i < arrivalPath.Length; i++)
+        {
+            var holderSchemaName = i + 1 < arrivalPath.Length ? arrivalPath[i + 1].SchemaName : null;
+
+            if (ReferenceEquals(arrivalPath[i].Type, value.ObjectType) && holderSchemaName == value.SchemaName)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Creates the scope of a walk that reads only <paramref name="key"/>, the visit key of the object held
+    /// through <paramref name="item"/>.
+    /// </summary>
+    private RequirementScope CreateAnchoredScope(VisitKey key, SatisfiabilityPathItem item)
+        => new(
+            new VisitAnchor(this, key, item),
+            ArrivalPath: null,
+            AllowsReRootedCalls: true,
+            BelowReRootedViewer: null,
+            ResolvesFieldAtParent: null);
 
     /// <summary>
     /// Determines whether a field without an option is not reported as an error, because it is
@@ -1123,7 +1346,16 @@ internal sealed partial class SatisfiabilityValidator
         var contextNames = _fieldOptions.GetContextNames(item.Field, schemaName);
 
         if (!contextNames.IsEmpty
-            && !HasContexts(contextNames, item.Field, schemaName, GetContextScope(parentPath), type, errors: null))
+            && !HasContexts(
+                item.Field,
+                schemaName,
+                contextNames,
+                type,
+                GetContextScope(parentPath),
+                parentPath,
+                key: null,
+                budget,
+                errors: null))
         {
             return false;
         }

@@ -732,6 +732,12 @@
   <data name="SatisfiabilityValidator_ContextNotSet" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' reads from the context '{2}', which is not set on this path.</value>
   </data>
+  <data name="SatisfiabilityValidator_ContextNoLookup" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' reads from a context and needs a lookup for type '{2}' in schema '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_ContextPathNotResolvable" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' reads '{2}' from the context '{3}', which cannot be resolved from type '{4}'.</value>
+  </data>
   <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected: {0} -&gt; {1}.</value>
   </data>

@@ -40,6 +40,21 @@ internal sealed class ContextScopes
         ContextScopeRef scope,
         MutableObjectTypeDefinition type,
         string? schemaName)
+        => Extend(scope, type, schemaName, key: null);
+
+    /// <summary>
+    /// Gets the scope of the values below the value of <paramref name="key"/>, given the
+    /// <paramref name="scope"/> of that value, with the key recorded in the value of every context that
+    /// the value sets.
+    /// </summary>
+    public ContextScopeRef Extend(ContextScopeRef scope, VisitKey key)
+        => Extend(scope, key.ObjectType, key.SchemaName, key);
+
+    private ContextScopeRef Extend(
+        ContextScopeRef scope,
+        MutableObjectTypeDefinition type,
+        string? schemaName,
+        VisitKey? key)
     {
         var settings = GetSettings(type);
 
@@ -48,7 +63,7 @@ internal sealed class ContextScopes
             return scope;
         }
 
-        var value = new ContextValue(type, schemaName);
+        var value = new ContextValue(type, schemaName, key);
 
         if (_extensions.TryGetValue((scope, value), out var extended))
         {

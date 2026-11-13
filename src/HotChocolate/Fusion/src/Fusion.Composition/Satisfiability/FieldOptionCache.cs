@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
@@ -13,6 +14,8 @@ internal sealed class FieldOptionCache(MutableSchemaDefinition schema, SchemaSet
     private readonly Dictionary<MutableOutputFieldDefinition, FieldOptionSet> _options = [];
     private readonly Dictionary<(ITypeDefinition, string), MutableObjectTypeDefinition[]> _possibleTypes = [];
     private readonly Dictionary<(MutableOutputFieldDefinition, string), ImmutableArray<string>> _contextNames = [];
+    private readonly Dictionary<(MutableOutputFieldDefinition, string), ImmutableDictionary<string, SelectionSetNode>>
+        _contextSelections = [];
 
     /// <summary>
     /// Gets the options of <paramref name="field"/>.
@@ -41,6 +44,23 @@ internal sealed class FieldOptionCache(MutableSchemaDefinition schema, SchemaSet
         }
 
         return contextNames;
+    }
+
+    /// <summary>
+    /// Gets the selections that the requirements of <paramref name="field"/> read from each context in
+    /// <paramref name="schemaName"/>, keyed by context name, which is empty if it reads none.
+    /// </summary>
+    public ImmutableDictionary<string, SelectionSetNode> GetContextSelections(
+        MutableOutputFieldDefinition field,
+        string schemaName)
+    {
+        if (!_contextSelections.TryGetValue((field, schemaName), out var contextSelections))
+        {
+            contextSelections = field.GetFusionRequiresContextSelections(schemaName);
+            _contextSelections.Add((field, schemaName), contextSelections);
+        }
+
+        return contextSelections;
     }
 
     /// <summary>
