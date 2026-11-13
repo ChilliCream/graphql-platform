@@ -1239,47 +1239,18 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     public void Parse_Should_RoundTripContextRoots_When_RequirementHasContextRoots()
     {
         // arrange
-        var compositeSchema = ComposeSchema(
-            """
-            # name: a
-            type Query {
-              user(id: ID!): User @lookup
-            }
-
-            type User @key(fields: "id") {
-              id: ID!
-              name: String
-            }
-            """,
-            """
-            # name: b
-            type Query {
-              userById(id: ID!): User @lookup
-            }
-
-            type User @key(fields: "id") {
-              id: ID!
-              email: String
-            }
-            """);
+        var compositeSchema = ComposeLookupSchema();
         var originalPlan = PlanWithPooledFields(
             compositeSchema,
             "{ user(id: 1) { name email } }",
             TestPolicyResolver.Create());
         var json = JsonNode.Parse(new JsonOperationPlanFormatter(s_indentedOptions).Format(originalPlan))!;
-        var requirementNode = json["nodes"]!
+        json["nodes"]!
             .AsArray()
             .Select(t => t!.AsObject())
             .Where(t => t["requirements"] is not null)
             .Select(t => t["requirements"]!.AsArray()[0]!.AsObject())
-            .Single();
-        requirementNode["contextRoots"] = JsonNode.Parse(
-            """
-            [
-              { "name": "userContext", "path": "$.me", "types": ["User", "Admin"] },
-              { "name": "userContext", "path": "$.viewer" }
-            ]
-            """);
+            .Single()["contextRoots"] = CreateContextRootsNode();
         var parser = CreateParser(compositeSchema, TestPolicyResolver.Create());
 
         // act
@@ -1369,7 +1340,94 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Format_Should_WriteContextRoots_When_RequirementHasContextRoots()
+    {
+        // arrange
+        var plan = ParseLookupPlanWithContextRoots();
+
+        // act
+        var json = new JsonOperationPlanFormatter(s_indentedOptions).Format(plan);
+
+        // assert
+        GetNodeRequirement(json).MatchInlineSnapshot(
+            """
+            {
+              "name": "__fusion_1_id",
+              "type": "ID!",
+              "path": "$.user",
+              "selectionMap": "id",
+              "contextRoots": [
+                {
+                  "name": "userContext",
+                  "path": "$.me",
+                  "types": [
+                    "User",
+                    "Admin"
+                  ]
+                },
+                {
+                  "name": "userContext",
+                  "path": "$.viewer"
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
     public void Format_Should_OmitContextRoots_When_RequirementHasNoContextRoots()
+    {
+        // arrange
+        var compositeSchema = ComposeLookupSchema();
+        var plan = PlanWithPooledFields(
+            compositeSchema,
+            "{ user(id: 1) { name email } }",
+            TestPolicyResolver.Create());
+
+        // act
+        var json = new JsonOperationPlanFormatter(s_indentedOptions).Format(plan);
+
+        // assert
+        GetNodeRequirement(json).MatchInlineSnapshot(
+            """
+            {
+              "name": "__fusion_1_id",
+              "type": "ID!",
+              "path": "$.user",
+              "selectionMap": "id"
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_Should_WriteContextRoots_When_PlanIsFormattedAsYaml()
+    {
+        // arrange
+        var plan = ParseLookupPlanWithContextRoots();
+
+        // act
+        var yaml = new YamlOperationPlanFormatter().Format(plan);
+
+        // assert
+        GetYamlRequirements(yaml).MatchInlineSnapshot(
+            """
+            requirements:
+              - name: __fusion_1_id
+                selectionMap: >-
+                  id
+                contextRoots:
+                  - name: userContext
+                    path: $.me
+                    types:
+                      - User
+                      - Admin
+                  - name: userContext
+                    path: $.viewer
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_RoundTripContextRoots_When_IncrementalPlanHasRequirements()
     {
         // arrange
         var compositeSchema = ComposeSchema(
@@ -1381,7 +1439,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
             type User @key(fields: "id") {
               id: ID!
-              name: String
+              name: String!
             }
             """,
             """
@@ -1392,25 +1450,29 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
             type User @key(fields: "id") {
               id: ID!
-              email: String
+              email: String!
             }
             """);
-        var plan = PlanWithPooledFields(
+        var originalPlan = PlanWithPooledFields(
             compositeSchema,
-            "{ user(id: 1) { name email } }",
+            "{ user(id: 1) { name ... @defer { email } } }",
             TestPolicyResolver.Create());
+        var json = JsonNode.Parse(new JsonOperationPlanFormatter(s_indentedOptions).Format(originalPlan))!;
+        json["incrementalPlans"]![0]!["requirements"]![0]!["contextRoots"] = CreateContextRootsNode();
+        var parser = CreateParser(compositeSchema, TestPolicyResolver.Create());
 
         // act
-        var json = new JsonOperationPlanFormatter(s_indentedOptions).Format(plan);
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+        var reparsedPlan = parser.Parse(
+            Encoding.UTF8.GetBytes(new JsonOperationPlanFormatter(s_indentedOptions).Format(parsedPlan)));
 
         // assert
-        var requirement = JsonNode.Parse(json)!["nodes"]!
-            .AsArray()
-            .Select(t => t!.AsObject())
-            .Where(t => t["requirements"] is not null)
-            .Select(t => t["requirements"]!.AsArray()[0]!.AsObject())
-            .Single();
-        Assert.Null(requirement["contextRoots"]);
+        var requirement = Assert.Single(Assert.Single(reparsedPlan.IncrementalPlans).Requirements);
+        Assert.Equal(2, requirement.ContextRoots.Length);
+        Assert.Equal("userContext", requirement.ContextRoots[0].Name);
+        Assert.Equal("$.me", requirement.ContextRoots[0].Path.ToString());
+        Assert.Equal(["User", "Admin"], requirement.ContextRoots[0].TypeNames);
+        Assert.Equal("$.viewer", requirement.ContextRoots[1].Path.ToString());
     }
 
     [Fact]
@@ -2406,6 +2468,77 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     /// entity name fields, so selecting a name plans an entity lookup that is
     /// routed to an Apollo execution node.
     /// </summary>
+    private static FusionSchemaDefinition ComposeLookupSchema()
+        => ComposeSchema(
+            """
+            # name: a
+            type Query {
+              user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              email: String
+            }
+            """);
+
+    private static JsonNode CreateContextRootsNode()
+        => JsonNode.Parse(
+            """
+            [
+              { "name": "userContext", "path": "$.me", "types": ["User", "Admin"] },
+              { "name": "userContext", "path": "$.viewer" }
+            ]
+            """)!;
+
+    private static OperationPlan ParseLookupPlanWithContextRoots()
+    {
+        var compositeSchema = ComposeLookupSchema();
+        var originalPlan = PlanWithPooledFields(
+            compositeSchema,
+            "{ user(id: 1) { name email } }",
+            TestPolicyResolver.Create());
+        var json = JsonNode.Parse(new JsonOperationPlanFormatter(s_indentedOptions).Format(originalPlan))!;
+        json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .Where(t => t["requirements"] is not null)
+            .Select(t => t["requirements"]!.AsArray()[0]!.AsObject())
+            .Single()["contextRoots"] = CreateContextRootsNode();
+        return CreateParser(compositeSchema, TestPolicyResolver.Create())
+            .Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+    }
+
+    private static string GetYamlRequirements(string yaml)
+    {
+        var lines = yaml.Split('\n');
+        var start = Array.FindIndex(lines, t => t.TrimStart() == "requirements:");
+        var indent = lines[start].Length - lines[start].TrimStart().Length;
+        var end = Array.FindIndex(lines, start + 1, t => t.Length - t.TrimStart().Length <= indent);
+
+        return string.Join('\n', lines[start..end].Select(t => t[indent..]));
+    }
+
+    private static string GetNodeRequirement(string planJson)
+        => JsonNode.Parse(planJson)!["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .Where(t => t["requirements"] is not null)
+            .Select(t => t["requirements"]!.AsArray()[0]!)
+            .Single()
+            .ToJsonString(s_indentedSerializerOptions);
+
     private static FusionSchemaDefinition ComposeApolloSchema()
     {
         const string sourceSchemaA =
@@ -2478,6 +2611,12 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     private static readonly JsonWriterOptions s_indentedOptions = new()
     {
         Indented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    private static readonly JsonSerializerOptions s_indentedSerializerOptions = new()
+    {
+        WriteIndented = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
