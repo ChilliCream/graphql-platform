@@ -145,7 +145,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             // we read the responses from the response stream.
             if (client is HttpSourceSchemaClient httpClient
-                && httpClient.CanExecuteBuffered(_operation.Type, _requiresFileUpload, variables.Length))
+                && HttpSourceSchemaClient.CanExecuteBuffered(_operation.Type, _requiresFileUpload))
             {
                 await httpClient
                     .ExecuteBufferedAsync(context, CreateRequest(schemaName, variables), results, cancellationToken)
