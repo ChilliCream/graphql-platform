@@ -131,7 +131,7 @@ internal static class LogEntryHelper
         => string.Join(", ", schemaNames.Select(static n => $"'{n}'"));
 
     public static LogEntry ContextNameInvalid(
-        IDirective contextDirective,
+        Directive contextDirective,
         ITypeDefinition type,
         string name,
         MutableSchemaDefinition schema)

@@ -51,7 +51,6 @@ public sealed class ContextDefinitionTests
             """);
         var log = new CompositionLog();
         var parseResult = new SourceSchemaParser(sourceSchemaText, log).Parse();
-        Assert.True(parseResult.IsSuccess);
         var schema = parseResult.Value;
         new SourceSchemaPreprocessor(schema, [schema], log).Preprocess();
         new SourceSchemaEnricher(schema, [schema]).Enrich();
@@ -64,6 +63,7 @@ public sealed class ContextDefinitionTests
         var validationResult = validator.Validate();
 
         // assert
+        Assert.True(parseResult.IsSuccess);
         Assert.True(validationResult.IsSuccess);
         Assert.True(log.IsEmpty);
     }

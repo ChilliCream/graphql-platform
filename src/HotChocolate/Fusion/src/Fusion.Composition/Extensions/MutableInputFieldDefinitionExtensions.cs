@@ -45,7 +45,7 @@ internal static class MutableInputFieldDefinitionExtensions
 
                 foreach (var sourceType in sourceSchema.Types)
                 {
-                    if (SetsContext(sourceType, contextName)
+                    if (sourceType.SetsContext(contextName)
                         && mergedSchema.Types.TryGetType(sourceType.Name, out var mergedType))
                     {
                         types.Add(mergedType);
@@ -57,29 +57,5 @@ internal static class MutableInputFieldDefinitionExtensions
 
             return contextTypes;
         }
-    }
-
-    private static bool SetsContext(ITypeDefinition type, string contextName)
-    {
-        if (type is not (MutableObjectTypeDefinition
-                or MutableInterfaceTypeDefinition
-                or MutableUnionTypeDefinition)
-            || type is not IDirectivesProvider provider)
-        {
-            return false;
-        }
-
-        foreach (var directive in provider.Directives.AsEnumerable())
-        {
-            if (directive.Name == DirectiveNames.Context
-                && directive.Arguments.TryGetValue(ArgumentNames.Name, out var value)
-                && value is HotChocolate.Language.StringValueNode { Value: var name }
-                && name == contextName)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

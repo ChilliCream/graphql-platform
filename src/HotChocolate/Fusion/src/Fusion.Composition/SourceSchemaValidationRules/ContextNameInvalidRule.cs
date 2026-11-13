@@ -1,7 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
@@ -20,15 +19,19 @@ internal sealed class ContextNameInvalidRule : IEventHandler<TypeEvent>
     {
         var (type, schema) = @event;
 
-        if (type is not (MutableObjectTypeDefinition
-                or MutableInterfaceTypeDefinition
-                or MutableUnionTypeDefinition)
-            || type is not IDirectivesProvider provider)
+        var directives = type switch
+        {
+            MutableComplexTypeDefinition complexType => complexType.Directives,
+            MutableUnionTypeDefinition unionType => unionType.Directives,
+            _ => null
+        };
+
+        if (directives is null)
         {
             return;
         }
 
-        foreach (var directive in provider.Directives.AsEnumerable())
+        foreach (var directive in directives.AsEnumerable())
         {
             if (directive.Name == DirectiveNames.Context
                 && directive.Arguments.TryGetValue(ArgumentNames.Name, out var value)

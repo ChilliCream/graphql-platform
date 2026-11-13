@@ -83,7 +83,7 @@ public sealed class SourceSchemaEnricherTests
     }
 
     [Fact]
-    public void Enrich_RequireWithContextPath_SetsContextNames()
+    public void Enrich_Should_SetContextNames_When_RequireHasContextPath()
     {
         // arrange
         var sourceSchemaText =
@@ -108,7 +108,7 @@ public sealed class SourceSchemaEnricherTests
     }
 
     [Fact]
-    public void Enrich_RequireWithNestedContextPaths_SetsDistinctContextNames()
+    public void Enrich_Should_SetDistinctContextNames_When_RequireHasNestedContextPaths()
     {
         // arrange
         var sourceSchemaText =
@@ -142,7 +142,7 @@ public sealed class SourceSchemaEnricherTests
     }
 
     [Fact]
-    public void Enrich_RequireWithoutContextPath_SetsEmptyContextNames()
+    public void Enrich_Should_SetEmptyContextNames_When_RequireHasNoContextPath()
     {
         // arrange
         var sourceSchemaText =
@@ -167,7 +167,7 @@ public sealed class SourceSchemaEnricherTests
     }
 
     [Fact]
-    public void Enrich_RequireWithInvalidSyntax_SetsEmptyContextNames()
+    public void Enrich_Should_SetEmptyContextNames_When_RequireHasInvalidSyntax()
     {
         // arrange
         var sourceSchemaText =
@@ -193,7 +193,7 @@ public sealed class SourceSchemaEnricherTests
     }
 
     [Fact]
-    public void Enrich_IsWithContextPath_SetsContextNames()
+    public void Enrich_Should_SetContextNames_When_IsHasContextPath()
     {
         // arrange
         var sourceSchemaText =

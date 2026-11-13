@@ -1,12 +1,7 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
-using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
-using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
-using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
@@ -26,40 +21,31 @@ internal sealed class RequireContextNotSetRule : IEventHandler<FieldArgumentEven
             return;
         }
 
+        var unsetNames = new HashSet<string>(requireInfo.ContextNames);
+
+        foreach (var type in schema.Types)
+        {
+            foreach (var contextName in requireInfo.ContextNames)
+            {
+                if (unsetNames.Contains(contextName) && type.SetsContext(contextName))
+                {
+                    unsetNames.Remove(contextName);
+                }
+            }
+
+            if (unsetNames.Count == 0)
+            {
+                return;
+            }
+        }
+
         foreach (var contextName in requireInfo.ContextNames)
         {
-            if (!IsContextSet(schema, contextName))
+            if (unsetNames.Contains(contextName))
             {
                 context.Log.Write(
                     RequireContextNotSet(requireInfo.Directive, argument, contextName, schema));
             }
         }
-    }
-
-    private static bool IsContextSet(MutableSchemaDefinition schema, string contextName)
-    {
-        foreach (var type in schema.Types)
-        {
-            if (type is not (MutableObjectTypeDefinition
-                    or MutableInterfaceTypeDefinition
-                    or MutableUnionTypeDefinition)
-                || type is not IDirectivesProvider provider)
-            {
-                continue;
-            }
-
-            foreach (var directive in provider.Directives.AsEnumerable())
-            {
-                if (directive.Name == DirectiveNames.Context
-                    && directive.Arguments.TryGetValue(ArgumentNames.Name, out var value)
-                    && value is StringValueNode { Value: var name }
-                    && name == contextName)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 }

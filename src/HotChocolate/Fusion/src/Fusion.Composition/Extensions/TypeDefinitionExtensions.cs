@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
@@ -10,6 +11,33 @@ internal static class TypeDefinitionExtensions
 {
     extension(ITypeDefinition type)
     {
+        /// <summary>
+        /// Determines whether the type is an object, interface or union type that declares an
+        /// <c>@context</c> directive with the specified name.
+        /// </summary>
+        public bool SetsContext(string contextName)
+        {
+            if (type is not (MutableObjectTypeDefinition
+                or MutableInterfaceTypeDefinition
+                or MutableUnionTypeDefinition))
+            {
+                return false;
+            }
+
+            foreach (var directive in type.Directives.AsEnumerable())
+            {
+                if (directive.Name == WellKnownDirectiveNames.Context
+                    && directive.Arguments.TryGetValue(WellKnownArgumentNames.Name, out var value)
+                    && value is StringValueNode { Value: var name }
+                    && name == contextName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public IEnumerable<MutableObjectTypeDefinition> GetPossibleTypes(
             string schemaName,
             MutableSchemaDefinition schema)
