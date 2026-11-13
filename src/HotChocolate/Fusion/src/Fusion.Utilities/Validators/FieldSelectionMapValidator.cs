@@ -106,9 +106,7 @@ public sealed class FieldSelectionMapValidator(
         return base.Enter(node, context);
     }
 
-    // A context path without a type condition is rooted at every type that sets the context. The
-    // node that owns the path (the path itself, or the path with its object or list selection)
-    // is validated as a whole once per context type.
+    // Returns the context path without a type condition that the node owns, or null.
     private static PathNode? TryGetContextPath(
         IFieldSelectionMapSyntaxNode node,
         FieldSelectionMapValidatorContext context)
@@ -214,8 +212,7 @@ public sealed class FieldSelectionMapValidator(
             return Break;
         }
 
-        // A context path without a type condition is validated per context type before it
-        // reaches this method, so the path has a type condition here.
+        // Context paths without a type condition are resolved per context type before this point.
         var typeName = node.TypeName!;
 
         if (!schema.Types.TryGetType(typeName.Value, out var conditionType))
@@ -681,10 +678,7 @@ public sealed class FieldSelectionMapValidatorContext
 
     public IReadOnlyDictionary<string, ImmutableArray<ITypeDefinition>> ContextTypes { get; }
 
-    /// <summary>
-    /// Gets the context path whose root is already set to a context type, or <c>null</c>.
-    /// </summary>
-    public PathNode? ResolvedContextPath { get; }
+    internal PathNode? ResolvedContextPath { get; }
 
     public Stack<IFieldSelectionMapSyntaxNode> Nodes { get; } = [];
 
