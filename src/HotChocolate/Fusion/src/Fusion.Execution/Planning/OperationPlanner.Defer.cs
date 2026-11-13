@@ -261,7 +261,7 @@ public sealed partial class OperationPlanner
             var backlog = Backlog.Empty.Push(
                 new NodeFieldWorkItem(new NodeField { Field = nodeFieldNode, ParentFragments = null }));
 
-            node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+            node = CreateIncrementalPlanNode(deferredOperation, descriptor.Path, index, backlog);
             possiblePlans.EnqueueBranches(node);
         }
         else
@@ -322,7 +322,7 @@ public sealed partial class OperationPlanner
 
                 var backlog = Backlog.Empty.Push(new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet));
 
-                node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+                node = CreateIncrementalPlanNode(deferredOperation, descriptor.Path, index, backlog);
                 possiblePlans.EnqueueBranches(node);
             }
         }
@@ -359,6 +359,7 @@ public sealed partial class OperationPlanner
     /// </summary>
     private PlanNode CreateIncrementalPlanNode(
         OperationDefinitionNode deferredOperation,
+        SelectionPath anchorPath,
         ISelectionSetIndex index,
         Backlog backlog)
     {
@@ -382,7 +383,8 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             RemainingCost = remainingCost,
-            OperationStepCount = 0
+            OperationStepCount = 0,
+            DeferAnchorPath = anchorPath
         };
     }
 
@@ -462,54 +464,6 @@ public sealed partial class OperationPlanner
         ParentPlanContext parentContext,
         PlanContextGraph contextGraph)
     {
-        if (incrementalPlanSteps.Count < 2)
-        {
-            return incrementalPlanSteps;
-        }
-
-        // A producer step exists purely to supply another incremental-plan step's
-        // requirement: it targets the defer's own anchor (the same entity the
-        // enclosing scope already fetches down to) and every field it selects is
-        // consumed as a requirement by its dependents, so it never carries
-        // client-visible deferred output of its own. Such a step's data can always
-        // be routed to the enclosing scope instead of being fetched a second time
-        // inside this incremental plan. Earlier seeding always produced exactly one
-        // such step at index 0; a lookup-anchored seed may produce it anywhere in
-        // the list (or several, chained through each other), so every step is
-        // considered.
-        var producers = FindDeferRequirementProducers(incrementalPlanSteps, descriptor.Path);
-
-        if (producers.IsEmpty)
-        {
-            return incrementalPlanSteps;
-        }
-
-        var producerIds = new HashSet<int>();
-        foreach (var producer in producers)
-        {
-            producerIds.Add(producer.Id);
-        }
-
-        // Collect every step that depends directly on a producer; that is exactly
-        // the set of steps whose requirements need to be routed to the enclosing
-        // scope.
-        var downstreamByStepId = new Dictionary<int, OperationPlanStep>();
-        foreach (var producer in producers)
-        {
-            foreach (var dependentStepId in producer.Dependents)
-            {
-                if (incrementalPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep)
-                {
-                    downstreamByStepId[dependentStepId] = dependentStep;
-                }
-            }
-        }
-
-        if (downstreamByStepId.Count == 0)
-        {
-            return incrementalPlanSteps;
-        }
-
         // Route each requirement through a scope-walker: at each scope, try
         // same-subgraph inline first, then cross-subgraph promote; on both
         // failing, escalate to the next enclosing scope. The walker exits on
@@ -539,10 +493,75 @@ public sealed partial class OperationPlanner
             return rootScopeState;
         }
 
+        // A requirement that reads a context set above the anchor of this defer is served by
+        // the enclosing scope.
+        var hasParentContext = LiftParentContextRoots(
+            descriptor,
+            incrementalPlanSteps,
+            parentContext,
+            contextGraph,
+            ScopeStateFor,
+            lifted);
+
+        if (incrementalPlanSteps.Count < 2 && !hasParentContext)
+        {
+            return incrementalPlanSteps;
+        }
+
+        // A producer step exists purely to supply another incremental-plan step's
+        // requirement: it targets the defer's own anchor (the same entity the
+        // enclosing scope already fetches down to) and every field it selects is
+        // consumed as a requirement by its dependents, so it never carries
+        // client-visible deferred output of its own. Such a step's data can always
+        // be routed to the enclosing scope instead of being fetched a second time
+        // inside this incremental plan. Earlier seeding always produced exactly one
+        // such step at index 0; a lookup-anchored seed may produce it anywhere in
+        // the list (or several, chained through each other), so every step is
+        // considered.
+        var producers = FindDeferRequirementProducers(incrementalPlanSteps, descriptor.Path);
+
+        if (producers.IsEmpty && !hasParentContext)
+        {
+            return incrementalPlanSteps;
+        }
+
+        var producerIds = new HashSet<int>();
+        foreach (var producer in producers)
+        {
+            producerIds.Add(producer.Id);
+        }
+
+        // Collect every step that depends directly on a producer; that is exactly
+        // the set of steps whose requirements need to be routed to the enclosing
+        // scope.
+        var downstreamByStepId = new Dictionary<int, OperationPlanStep>();
+        foreach (var producer in producers)
+        {
+            foreach (var dependentStepId in producer.Dependents)
+            {
+                if (incrementalPlanSteps.ById(dependentStepId) is OperationPlanStep dependentStep)
+                {
+                    downstreamByStepId[dependentStepId] = dependentStep;
+                }
+            }
+        }
+
+        if (downstreamByStepId.Count == 0 && !hasParentContext)
+        {
+            return incrementalPlanSteps;
+        }
+
         foreach (var (downstreamStepId, downstreamStep) in downstreamByStepId)
         {
             foreach (var (_, requirement) in downstreamStep.Requirements)
             {
+                // The enclosing scope already serves a requirement that only reads imported contexts.
+                if (GetImportedContextRoots(descriptor, requirement).Count > 0
+                    && !ReadsEntityData(requirement.Map))
+                {
+                    continue;
+                }
+
                 // A requirement must sit at or above the defer's own anchor: at the
                 // anchor itself (the common case), or at an ancestor of it (a nested
                 // defer bootstrapping a key at the enclosing defer's own anchor, several
@@ -587,9 +606,9 @@ public sealed partial class OperationPlanner
                     // selection into an existing parent-scope step that
                     // already targets the path on the same source schema.
                     if (TryInlineDeferRequirementInScope(
-                        sourceRequirement,
+                        sourceRequirement.Path,
+                        targetType => resolver.Rewrite(sourceRequirement.Map, targetType),
                         schemaHint,
-                        resolver,
                         scopeState,
                         out var parentStepId,
                         out var isPartiallyResolvable))
@@ -600,9 +619,17 @@ public sealed partial class OperationPlanner
                     }
 
                     // A partially hostable requirement lifts nothing, so the incremental plan
-                    // stays self-contained.
+                    // stays self-contained, unless it already relies on a context of the enclosing scope.
                     if (isPartiallyResolvable)
                     {
+                        if (hasParentContext)
+                        {
+                            throw CreateUnsatisfiableDeferRequirementException(
+                                producers[0],
+                                requirement,
+                                "the enclosing scope can host only part of the requirement");
+                        }
+
                         return incrementalPlanSteps;
                     }
 
@@ -639,7 +666,8 @@ public sealed partial class OperationPlanner
                 {
                     // A requirement whose map names no single root field has no provider the
                     // scope walker can lift, so the incremental plan stays self-contained.
-                    if ((requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString())) is null)
+                    if ((requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString())) is null
+                        && !hasParentContext)
                     {
                         return incrementalPlanSteps;
                     }
@@ -699,9 +727,9 @@ public sealed partial class OperationPlanner
                     .Distinct(StringComparer.Ordinal))
                 {
                     if (TryInlineDeferRequirementInScope(
-                        requirement,
+                        requirement.Path,
+                        targetType => resolver.Rewrite(requirement.Map, targetType),
                         candidateSchema!,
-                        resolver,
                         scopeState,
                         out var parentStepId,
                         out _))
@@ -1221,21 +1249,20 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Tries to inline the field selection implied by a defer's
-    /// <paramref name="requirement"/> into a parent-scope step that already
-    /// targets the requirement's path on the same source schema. Uses the
+    /// Tries to inline the selections created for the type at <paramref name="path"/> into a
+    /// parent-scope step that already targets that path on the same source schema. Uses the
     /// planner's same helper as intra-plan field-requirement inlining so the
     /// operation document rewrite and selection-set index bookkeeping match.
     /// Mirrors the inline onto the parent's internal operation so the
     /// compiled parent Operation carries the field (the runtime composite
     /// result document relies on that field being preserved during result
     /// merging). Nothing is injected and <paramref name="isPartiallyResolvable"/> is set
-    /// when the step can host only part of the requirement.
+    /// when the step can host only part of the selections.
     /// </summary>
     private bool TryInlineDeferRequirementInScope(
-        OperationRequirement requirement,
+        SelectionPath path,
+        Func<ITypeDefinition, SelectionSetNode> createSelections,
         string schemaName,
-        ValueSelectionToSelectionSetRewriter resolver,
         ScopeState scopeState,
         out int parentStepId,
         out bool isPartiallyResolvable)
@@ -1255,14 +1282,14 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            if (!parentStep.Target.IsParentOfOrSame(requirement.Path))
+            if (!parentStep.Target.IsParentOfOrSame(path))
             {
                 continue;
             }
 
             if (!TryLocateDeferRequirementTarget(
                 parentStep,
-                requirement.Path,
+                path,
                 out _,
                 out var targetType))
             {
@@ -1272,7 +1299,7 @@ public sealed partial class OperationPlanner
             SelectionSetNode injectionSelections;
             try
             {
-                injectionSelections = resolver.Rewrite(requirement.Map, targetType);
+                injectionSelections = createSelections(targetType);
             }
             catch
             {
@@ -1283,7 +1310,7 @@ public sealed partial class OperationPlanner
             var targetId = stepIndex.GetId(
                 LocateSelectionSetAtPath(
                     GetStepEntitySelectionSet(parentStep),
-                    requirement.Path,
+                    path,
                     parentStep.Target.Length));
 
             var dependentsBeforeInline = parentStep.Dependents;
@@ -1294,7 +1321,7 @@ public sealed partial class OperationPlanner
                 parentStep,
                 targetId,
                 targetType,
-                requirement.Path,
+                path,
                 injectionSelections,
                 dependentStepId: 0,
                 stepIndex,
@@ -1325,7 +1352,7 @@ public sealed partial class OperationPlanner
             // document bound to it) also carries the selection.
             if (TryLocateInternalSelectionSetAtPath(
                 scopeState.InternalOperation.SelectionSet,
-                requirement.Path,
+                path,
                 out var internalTargetSelectionSet))
             {
                 var overallIndex = SelectionSetIndexer.Create(scopeState.InternalOperation).ToBuilder();

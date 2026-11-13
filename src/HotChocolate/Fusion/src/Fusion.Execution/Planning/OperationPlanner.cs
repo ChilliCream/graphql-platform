@@ -1247,7 +1247,8 @@ public sealed partial class OperationPlanner
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
             OperationStepDepths = costState.StepDepths,
-            EventStreamDirective = current.EventStreamDirective
+            EventStreamDirective = current.EventStreamDirective,
+            DeferAnchorPath = current.DeferAnchorPath
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -1813,7 +1814,8 @@ public sealed partial class OperationPlanner
             ExcessFanout = current.ExcessFanout,
             OpsPerLevel = current.OpsPerLevel,
             OperationStepDepths = current.OperationStepDepths,
-            EventStreamDirective = current.EventStreamDirective
+            EventStreamDirective = current.EventStreamDirective,
+            DeferAnchorPath = current.DeferAnchorPath
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -2102,7 +2104,8 @@ public sealed partial class OperationPlanner
                 ExcessFanout = current.ExcessFanout,
                 OpsPerLevel = current.OpsPerLevel,
                 OperationStepDepths = current.OperationStepDepths,
-                EventStreamDirective = current.EventStreamDirective
+                EventStreamDirective = current.EventStreamDirective,
+                DeferAnchorPath = current.DeferAnchorPath
             };
 
             possiblePlans.EnqueueBranches(mergeNext);
@@ -2186,7 +2189,8 @@ public sealed partial class OperationPlanner
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
             OperationStepDepths = costState.StepDepths,
-            EventStreamDirective = current.EventStreamDirective
+            EventStreamDirective = current.EventStreamDirective,
+            DeferAnchorPath = current.DeferAnchorPath
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -2421,7 +2425,8 @@ public sealed partial class OperationPlanner
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
             OperationStepDepths = costState.StepDepths,
-            EventStreamDirective = current.EventStreamDirective
+            EventStreamDirective = current.EventStreamDirective,
+            DeferAnchorPath = current.DeferAnchorPath
         };
 
         possiblePlans.EnqueueBranches(next);
@@ -2636,7 +2641,8 @@ public sealed partial class OperationPlanner
             ExcessFanout = costState.ExcessFanout,
             OpsPerLevel = costState.OpsPerLevel,
             OperationStepDepths = costState.StepDepths,
-            EventStreamDirective = current.EventStreamDirective
+            EventStreamDirective = current.EventStreamDirective,
+            DeferAnchorPath = current.DeferAnchorPath
         };
 
         possiblePlans.EnqueueBranches(next);

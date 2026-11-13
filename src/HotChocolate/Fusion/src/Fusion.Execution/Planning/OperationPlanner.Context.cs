@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
@@ -18,6 +19,8 @@ public sealed partial class OperationPlanner
     // existing step the field is merged into, or null if the field gets a new step. The aliases
     // minted for each context are added to contextAliases, and the alias registry of each context is
     // adopted. Returns null if the path of the field has no ancestor that sets one of the contexts.
+    // A context whose root lies above the anchor of the planned deferred fragment is not inlined,
+    // only its root is returned.
     private Dictionary<string, List<RequirementContextRoot>>? InlineContextRequirements(
         FieldRequirementWorkItem workItem,
         Lookup lookup,
@@ -34,6 +37,9 @@ public sealed partial class OperationPlanner
         var contextRequirements =
             workItem.Selection.Field.Sources[current.SchemaName].Requirements!.ContextRequirements;
         var contextRoots = new Dictionary<string, List<RequirementContextRoot>>(StringComparer.Ordinal);
+        var deferAnchorPath = workItem.Selection.Path.Equals(current.DeferAnchorPath)
+            ? current.DeferAnchorPath
+            : null;
 
         // The enumeration order of an immutable dictionary is not stable, and the order
         // decides how the planner allocates identifiers.
@@ -42,6 +48,13 @@ public sealed partial class OperationPlanner
             if (FindContextRoots(workItem.Selection, current, index, contextName) is not { } candidates)
             {
                 return null;
+            }
+
+            if (deferAnchorPath is not null && IsImportedContextRoot(candidates, deferAnchorPath, out var importedRoot))
+            {
+                // The incremental plan reads the context from the plan that encloses it.
+                contextRoots.Add(contextName, [new RequirementContextRoot(contextName, importedRoot, [])]);
+                continue;
             }
 
             var roots = new List<RequirementContextRoot>(candidates.Count);
@@ -132,6 +145,27 @@ public sealed partial class OperationPlanner
 
         return contextRoots;
     }
+
+    // A context is imported when its single complete root lies above the anchor of the deferred
+    // fragment and the field that reads it is a direct child of that anchor.
+    private static bool IsImportedContextRoot(
+        List<ContextRootCandidate> candidates,
+        SelectionPath deferAnchorPath,
+        out SelectionPath rootPath)
+    {
+        if (candidates is [{ TypeNames.IsEmpty: true } candidate]
+            && IsAboveDeferAnchor(candidate.Target.Path, deferAnchorPath))
+        {
+            rootPath = candidate.Target.Path;
+            return true;
+        }
+
+        rootPath = SelectionPath.Root;
+        return false;
+    }
+
+    private static bool IsAboveDeferAnchor(SelectionPath rootPath, SelectionPath deferAnchorPath)
+        => rootPath.IsParentOfOrSame(deferAnchorPath) && !rootPath.Equals(deferAnchorPath);
 
     // Creates the selections a context reads from a candidate root. A candidate restricted to
     // types reads the selections of each type in a type condition.
@@ -456,6 +490,159 @@ public sealed partial class OperationPlanner
             CollectContextNames(child, names);
         }
     }
+
+    // Gets the roots of the requirement that the incremental plan of the descriptor imports from
+    // the enclosing scope. They are the single complete roots above the anchor of a requirement
+    // that sits at the anchor.
+    private static List<RequirementContextRoot> GetImportedContextRoots(
+        IncrementalPlanDescriptor descriptor,
+        OperationRequirement requirement)
+    {
+        var imported = new List<RequirementContextRoot>();
+
+        if (descriptor.Operation.Operation != OperationType.Query
+            || requirement.ContextRoots.IsDefaultOrEmpty
+            || !requirement.Path.Equals(descriptor.Path))
+        {
+            return imported;
+        }
+
+        foreach (var contextRoot in requirement.ContextRoots)
+        {
+            if (contextRoot.TypeNames.IsEmpty
+                && IsAboveDeferAnchor(contextRoot.Path, descriptor.Path)
+                && requirement.ContextRoots.Count(r => r.Name.Equals(contextRoot.Name, StringComparison.Ordinal)) == 1)
+            {
+                imported.Add(contextRoot);
+            }
+        }
+
+        return imported;
+    }
+
+    // Inlines the selections that the requirements of the incremental plan read from imported
+    // contexts into the steps of the enclosing scopes that select the context roots, and records
+    // those steps as the parent steps of the requirements. Returns whether a requirement imports a
+    // context.
+    private bool LiftParentContextRoots(
+        IncrementalPlanDescriptor descriptor,
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        ParentPlanContext parentContext,
+        PlanContextGraph contextGraph,
+        Func<ParentPlanContext, ScopeState> scopeStateFor,
+        List<LiftedDeferRequirement> lifted)
+    {
+        var importsContext = false;
+
+        foreach (var step in incrementalPlanSteps)
+        {
+            if (step is not OperationPlanStep consumer)
+            {
+                continue;
+            }
+
+            foreach (var (_, requirement) in consumer.Requirements)
+            {
+                var importedRoots = GetImportedContextRoots(descriptor, requirement);
+
+                if (importedRoots.Count == 0)
+                {
+                    continue;
+                }
+
+                // A requirement takes its value from a single scope.
+                if (importedRoots.Count != requirement.ContextRoots.Length)
+                {
+                    throw CreateUnsatisfiableDeferRequirementException(
+                        consumer,
+                        requirement,
+                        "the requirement reads contexts from the enclosing scope and from the incremental plan");
+                }
+
+                var contextSelections =
+                    ValueSelectionToSelectionSetRewriter.RewriteContextPaths([requirement.Map]);
+
+                foreach (var importedRoot in importedRoots)
+                {
+                    var parentStepId =
+                        contextSelections.TryGetValue(importedRoot.Name, out var selections)
+                            ? TryInlineContextRootInEnclosingScopes(
+                                importedRoot.Path,
+                                selections,
+                                consumer.SchemaName,
+                                parentContext,
+                                contextGraph,
+                                scopeStateFor)
+                            : null;
+
+                    if (parentStepId is not { } resolvedParentStepId)
+                    {
+                        throw CreateUnsatisfiableDeferRequirementException(
+                            consumer,
+                            requirement,
+                            $"no parent-reachable subgraph provides the context '{importedRoot.Name}'");
+                    }
+
+                    lifted.Add(new LiftedDeferRequirement(requirement, consumer.Id, resolvedParentStepId));
+                    importsContext = true;
+                }
+            }
+        }
+
+        return importsContext;
+    }
+
+    private int? TryInlineContextRootInEnclosingScopes(
+        SelectionPath rootPath,
+        SelectionSetNode selections,
+        string? preferredSchemaName,
+        ParentPlanContext parentContext,
+        PlanContextGraph contextGraph,
+        Func<ParentPlanContext, ScopeState> scopeStateFor)
+    {
+        for (var scope = parentContext; scope is not null; scope = contextGraph.GetEnclosingScope(scope))
+        {
+            var scopeState = scopeStateFor(scope);
+            var schemaNames = scopeState.Steps
+                .OfType<OperationPlanStep>()
+                .Select(step => step.SchemaName)
+                .Where(schemaName => schemaName is not null)
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(schemaName => !string.Equals(schemaName, preferredSchemaName, StringComparison.Ordinal))
+                .ToList();
+
+            foreach (var schemaName in schemaNames)
+            {
+                if (TryInlineDeferRequirementInScope(
+                    rootPath,
+                    _ => selections,
+                    schemaName!,
+                    scopeState,
+                    out var parentStepId,
+                    out _))
+                {
+                    return parentStepId;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // Whether the value selection reads data of the entity that declares the field, as opposed to
+    // data of a context.
+    private static bool ReadsEntityData(IValueSelectionNode node)
+        => node switch
+        {
+            PathNode path => path.ContextName is null,
+            PathObjectValueSelectionNode pathObject => pathObject.Path.ContextName is null,
+            PathListValueSelectionNode pathList => pathList.Path.ContextName is null,
+            ChoiceValueSelectionNode choice => choice.Branches.Any(ReadsEntityData),
+            ObjectValueSelectionNode objectValue => objectValue.Fields.Any(
+                f => f.ValueSelection is null || ReadsEntityData(f.ValueSelection)),
+            ListValueSelectionNode list => ReadsEntityData(list.ElementSelection),
+            _ => true
+        };
 
     private readonly record struct ContextRootCandidate(
         RequirementTarget Target,

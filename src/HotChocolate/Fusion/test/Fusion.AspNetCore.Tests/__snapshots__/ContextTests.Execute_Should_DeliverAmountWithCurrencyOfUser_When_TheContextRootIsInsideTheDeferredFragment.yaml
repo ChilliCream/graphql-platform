@@ -1,0 +1,280 @@
+title: Execute_Should_DeliverAmountWithCurrencyOfUser_When_TheContextRootIsInsideTheDeferredFragment
+request:
+  document: |
+    {
+      ... @defer {
+        users {
+          transactions {
+            amount
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {}
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": []
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [],
+        "data": {
+          "users": [
+            {
+              "transactions": [
+                {
+                  "amount": 100
+                },
+                {
+                  "amount": 200
+                }
+              ]
+            },
+            {
+              "transactions": [
+                {
+                  "amount": 600
+                },
+                {
+                  "amount": 800
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "users": [
+          {
+            "transactions": [
+              {
+                "amount": 100
+              },
+              {
+                "amount": 200
+              }
+            ]
+          },
+          {
+            "transactions": [
+              {
+                "amount": 600
+              },
+              {
+                "amount": 800
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+        userById(id: ID!): User @lookup @internal
+        transactionById(id: ID!): Transaction @lookup @internal
+      }
+
+      type Currency {
+        isoCode: String!
+      }
+
+      type Transaction @key(fields: "id") {
+        amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+        id: ID! @shareable
+      }
+
+      type User @key(fields: "id") @context(name: "userContext") {
+        transactions: [Transaction!]!
+        id: ID! @shareable
+        userCurrency: Currency!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1 {
+              users {
+                transactions {
+                  id
+                }
+                userCurrency {
+                  isoCode
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "transactions": [
+                        {
+                          "id": "1"
+                        },
+                        {
+                          "id": "2"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "USD"
+                      }
+                    },
+                    {
+                      "transactions": [
+                        {
+                          "id": "3"
+                        },
+                        {
+                          "id": "4"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "EUR"
+                      }
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+              transactionById(id: $__fusion_2_id) {
+                amount(currency: $__fusion_1_currency)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_currency": "USD",
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_1_currency": "USD",
+                "__fusion_2_id": "2"
+              },
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "3"
+              },
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "4"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 100
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 200
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 600
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "transactionById": {
+                    "amount": 800
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __typename @fusion__empty
+        }
+      hash: 2d4aa66f0827212d18771dc00b901454
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+  deliveryGroups:
+    - id: 0
+      path: $
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 0
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              users {
+                transactions {
+                  id
+                }
+                userCurrency {
+                  isoCode
+                }
+              }
+            }
+        - id: 2
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+              transactionById(id: $__fusion_2_id) {
+                amount(currency: $__fusion_1_currency)
+              }
+            }
+          source: $.transactionById
+          target: $.users.transactions
+          requirements:
+            - name: __fusion_1_currency
+              selectionMap: >-
+                $userContext.userCurrency.isoCode
+              contextRoots:
+                - name: userContext
+                  path: $.users
+            - name: __fusion_2_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1
