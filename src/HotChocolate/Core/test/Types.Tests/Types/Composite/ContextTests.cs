@@ -33,9 +33,9 @@ public static class ContextTests
             }
 
             """
-            The @context directive declares that instances of the annotated type provide the named
-            context, which other source schemas can reference with $name in a @require field
-            selection map.
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
             """
             directive @context("The name of the context." name: String!) repeatable on
               | OBJECT
@@ -72,9 +72,9 @@ public static class ContextTests
             }
 
             """
-            The @context directive declares that instances of the annotated type provide the named
-            context, which other source schemas can reference with $name in a @require field
-            selection map.
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
             """
             directive @context("The name of the context." name: String!) repeatable on
               | OBJECT
@@ -117,9 +117,9 @@ public static class ContextTests
             }
 
             """
-            The @context directive declares that instances of the annotated type provide the named
-            context, which other source schemas can reference with $name in a @require field
-            selection map.
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
             """
             directive @context("The name of the context." name: String!) repeatable on
               | OBJECT
@@ -157,9 +157,9 @@ public static class ContextTests
             }
 
             """
-            The @context directive declares that instances of the annotated type provide the named
-            context, which other source schemas can reference with $name in a @require field
-            selection map.
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
             """
             directive @context("The name of the context." name: String!) repeatable on
               | OBJECT
@@ -206,9 +206,9 @@ public static class ContextTests
             }
 
             """
-            The @context directive declares that instances of the annotated type provide the named
-            context, which other source schemas can reference with $name in a @require field
-            selection map.
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
             """
             directive @context("The name of the context." name: String!) repeatable on
               | OBJECT
@@ -251,9 +251,68 @@ public static class ContextTests
             }
 
             """
-            The @context directive declares that instances of the annotated type provide the named
-            context, which other source schemas can reference with $name in a @require field
-            selection map.
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
+            """
+            directive @context("The name of the context." name: String!) repeatable on
+              | OBJECT
+              | INTERFACE
+              | UNION
+            """");
+    }
+
+    [Fact]
+    public static async Task Context_Should_PrintDirective_When_UntypedInterfaceDescriptorExtensionIsUsed()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("account").Type("Account").Resolve(_ => new object());
+            })
+            .AddInterfaceType(d =>
+            {
+                d.Name("Account");
+                d.Context("accountContext");
+                d.Field("id").Type<NonNullType<IdType>>();
+            })
+            .AddObjectType(d =>
+            {
+                d.Name("User");
+                d.Implements("Account");
+                d.Field("id").Type<NonNullType<IdType>>().Resolve("1");
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.MatchInlineSnapshot(
+            """"
+            schema {
+              query: Query
+            }
+
+            type Query {
+              account: Account
+            }
+
+            type User implements Account {
+              id: ID!
+            }
+
+            interface Account @context(name: "accountContext") {
+              id: ID!
+            }
+
+            """
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
             """
             directive @context("The name of the context." name: String!) repeatable on
               | OBJECT
@@ -302,9 +361,9 @@ public static class ContextTests
             union IAccount6 @context(name: "accountContext") = User6 | Organization6
 
             """
-            The @context directive declares that instances of the annotated type provide the named
-            context, which other source schemas can reference with $name in a @require field
-            selection map.
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
             """
             directive @context("The name of the context." name: String!) repeatable on
               | OBJECT
@@ -345,9 +404,9 @@ public static class ContextTests
             union IAccount7 @context(name: "accountContext") = User7
 
             """
-            The @context directive declares that instances of the annotated type provide the named
-            context, which other source schemas can reference with $name in a @require field
-            selection map.
+            The @context directive declares that every value of the annotated type sets the named
+            context. A @require field selection map in the same source schema reads from the context
+            with a context path such as $name.field.
             """
             directive @context("The name of the context." name: String!) repeatable on
               | OBJECT
@@ -410,18 +469,51 @@ public static class ContextTests
     }
 
     [Fact]
-    public static async Task Context_Should_Throw_When_DescriptorExtensionNameIsNullOrEmpty()
+    public static async Task Context_Should_Throw_When_GenericDescriptorExtensionNameIsNullOrEmpty()
     {
         // arrange
         IObjectTypeDescriptor<User4>? objectDescriptor = null;
         IInterfaceTypeDescriptor<IAccount5>? interfaceDescriptor = null;
-        IUnionTypeDescriptor? unionDescriptor = null;
 
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query4>()
             .AddObjectType<User4>(d => objectDescriptor = d)
             .AddInterfaceType<IAccount5>(d => interfaceDescriptor = d)
+            .AddObjectType<Account5>()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act, assert
+        Assert.Throws<ArgumentException>(() => objectDescriptor!.Context(""));
+        Assert.Throws<ArgumentNullException>(() => objectDescriptor!.Context(null!));
+        Assert.Throws<ArgumentException>(() => interfaceDescriptor!.Context(""));
+        Assert.Throws<ArgumentNullException>(() => interfaceDescriptor!.Context(null!));
+    }
+
+    [Fact]
+    public static async Task Context_Should_Throw_When_NonGenericDescriptorExtensionNameIsNullOrEmpty()
+    {
+        // arrange
+        IObjectTypeDescriptor? objectDescriptor = null;
+        IInterfaceTypeDescriptor? interfaceDescriptor = null;
+        IUnionTypeDescriptor? unionDescriptor = null;
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query4>()
+            .AddObjectType<User4>()
+            .AddObjectType(d =>
+            {
+                d.Name("Probe");
+                d.Field("id").Type<NonNullType<IdType>>().Resolve("1");
+                objectDescriptor = d;
+            })
+            .AddInterfaceType(d =>
+            {
+                d.Name("ProbeInterface");
+                d.Field("id").Type<NonNullType<IdType>>();
+                interfaceDescriptor = d;
+            })
             .AddUnionType<IAccount6>(d =>
             {
                 unionDescriptor = d;
@@ -434,6 +526,20 @@ public static class ContextTests
         Assert.Throws<ArgumentException>(() => objectDescriptor!.Context(""));
         Assert.Throws<ArgumentNullException>(() => interfaceDescriptor!.Context(null!));
         Assert.Throws<ArgumentException>(() => unionDescriptor!.Context(""));
+    }
+
+    [Fact]
+    public static void Context_Should_Throw_When_NonGenericDescriptorIsNull()
+    {
+        // arrange
+        IObjectTypeDescriptor objectDescriptor = null!;
+        IInterfaceTypeDescriptor interfaceDescriptor = null!;
+        IUnionTypeDescriptor unionDescriptor = null!;
+
+        // act, assert
+        Assert.Throws<ArgumentNullException>(() => objectDescriptor.Context("name"));
+        Assert.Throws<ArgumentNullException>(() => interfaceDescriptor.Context("name"));
+        Assert.Throws<ArgumentNullException>(() => unionDescriptor.Context("name"));
     }
 
     public class Query1
