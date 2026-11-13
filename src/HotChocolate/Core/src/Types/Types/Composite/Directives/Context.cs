@@ -1,9 +1,9 @@
 namespace HotChocolate.Types.Composite;
 
 /// <summary>
-/// The @context directive declares that instances of the annotated type provide the named
-/// context, which other source schemas can reference with <c>$name</c> in a @require field
-/// selection map.
+/// The @context directive declares that every value of the annotated type sets the named
+/// context. A @require field selection map in the same source schema reads from the context
+/// with a context path such as <c>$name.field</c>.
 /// </summary>
 [DirectiveType(
     DirectiveNames.Context.Name,
@@ -13,9 +13,9 @@ namespace HotChocolate.Types.Composite;
     IsRepeatable = true)]
 [GraphQLDescription(
     """
-    The @context directive declares that instances of the annotated type provide the named
-    context, which other source schemas can reference with $name in a @require field
-    selection map.
+    The @context directive declares that every value of the annotated type sets the named
+    context. A @require field selection map in the same source schema reads from the context
+    with a context path such as $name.field.
     """)]
 public sealed class Context
 {
