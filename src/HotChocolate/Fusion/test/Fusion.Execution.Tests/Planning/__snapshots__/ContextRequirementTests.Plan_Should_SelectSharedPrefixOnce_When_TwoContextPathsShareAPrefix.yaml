@@ -1,0 +1,62 @@
+operation:
+  - document: |
+      {
+        me {
+          transactions {
+            amountText
+            id @fusion__requirement
+          }
+          userCurrency @fusion__requirement {
+            isoCode @fusion__requirement
+            symbol @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        me {
+          transactions {
+            id
+          }
+          userCurrency {
+            isoCode
+            symbol
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_format: CurrencyFormatInput!
+        $__fusion_2_id: ID!
+      ) {
+        transactionById(id: $__fusion_2_id) {
+          amountText(format: $__fusion_1_format)
+        }
+      }
+    source: $.transactionById
+    target: $.me.transactions
+    requirements:
+      - name: __fusion_1_format
+        selectionMap: >-
+          {
+            code: $userContext.userCurrency.isoCode
+            symbol: $userContext.userCurrency.symbol
+          }
+        contextRoots:
+          - name: userContext
+            path: $.me
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

@@ -1377,6 +1377,59 @@ public class ContextRequirementTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_SelectSharedPrefixOnce_When_TwoContextPathsShareAPrefix()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+                symbol: String!
+            }
+
+            input CurrencyFormatInput {
+                code: String!
+                symbol: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amountText(
+                    format: CurrencyFormatInput!
+                        @require(field: "{ code: $userContext.userCurrency.isoCode, symbol: $userContext.userCurrency.symbol }")
+                ): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                transactions {
+                  amountText
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition ComposeSchemaWithoutContext(
         string typeName,
         [StringSyntax("graphql")] params string[] schemas)
