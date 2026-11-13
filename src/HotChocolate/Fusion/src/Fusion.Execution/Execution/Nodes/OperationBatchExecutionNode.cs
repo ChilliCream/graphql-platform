@@ -73,7 +73,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             var client = context.GetClient(schemaName, operationType);
 
             if (client is HttpSourceSchemaClient httpClient
-                && httpClient.CanExecuteBuffered(operationType, operation.RequiresFileUpload, variables.Length))
+                && HttpSourceSchemaClient.CanExecuteBuffered(operationType, operation.RequiresFileUpload))
             {
                 await httpClient
                     .ExecuteBufferedAsync(
