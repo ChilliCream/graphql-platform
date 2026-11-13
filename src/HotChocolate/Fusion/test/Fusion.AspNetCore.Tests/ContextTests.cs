@@ -410,6 +410,52 @@ public class ContextTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Execute_Should_ResolveAmountWithUnargumentedCurrency_When_TheClientSelectsTheCurrencyInsideATypeCondition()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<RegionalAccountBilling.Query>()
+                .AddType<RegionalAccountBilling.User>()
+                .AddType<RegionalAccountBilling.Bot>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              org {
+                members {
+                  ... on User {
+                    currency(region: "EU") {
+                      isoCode
+                    }
+                  }
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
     public async Task Execute_Should_DeliverAmountWithCurrencyOfUser_When_TheContextRootIsInsideTheDeferredFragment()
     {
         // arrange
@@ -607,6 +653,67 @@ public class ContextTests : FusionTestBase
         public record Transaction([property: ID, Shareable] int Id)
         {
             public int GetAmount([Require("$account.currency")] string currency)
+                => Id * 100 * Billing.Transaction.Rate(currency);
+        }
+    }
+
+    private static class RegionalAccountBilling
+    {
+        public class Query
+        {
+            public Organization GetOrg()
+                => new Organization(
+                    "EUR",
+                    [
+                        new User(1, "USD", [1]),
+                        new Bot(2, [2]),
+                        new User(3, "EUR", [3])
+                    ]);
+
+            [Lookup]
+            [Internal]
+            public Transaction? GetTransactionById([ID] int id) => new Transaction(id);
+        }
+
+        [Context("account")]
+        public record Organization(string CurrencyCode, [property: GraphQLIgnore] IMember[] MemberList)
+        {
+            public Billing.Currency GetCurrency(string? region)
+                => new Billing.Currency(region == "EU" ? "EUR" : CurrencyCode);
+
+            public IMember[] GetMembers() => MemberList;
+        }
+
+        [InterfaceType("Member")]
+        public interface IMember
+        {
+            int Id { get; }
+
+            Transaction[] GetTransactions();
+        }
+
+        [Context("account")]
+        public record User(
+            int Id,
+            [property: GraphQLIgnore] string CurrencyCode,
+            [property: GraphQLIgnore] int[] TransactionIds) : IMember
+        {
+            public Billing.Currency GetCurrency(string? region)
+                => new Billing.Currency(region == "EU" ? "EUR" : CurrencyCode);
+
+            public Transaction[] GetTransactions()
+                => TransactionIds.Select(id => new Transaction(id)).ToArray();
+        }
+
+        public record Bot(int Id, [property: GraphQLIgnore] int[] TransactionIds) : IMember
+        {
+            public Transaction[] GetTransactions()
+                => TransactionIds.Select(id => new Transaction(id)).ToArray();
+        }
+
+        public record Transaction([property: ID, Shareable] int Id)
+        {
+            public int GetAmount([Require("$account.currency.isoCode")] string currency)
                 => Id * 100 * Billing.Transaction.Rate(currency);
         }
     }
