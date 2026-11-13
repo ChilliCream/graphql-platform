@@ -128,7 +128,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         parsedJson.MatchInlineSnapshot(
             """
             {
-              "version": "1.3.0",
+              "version": "1.4.0",
               "id": "3d4ae8bf9805fddd74ade860c3c6ed54b3421658fcd4e005ee243af2842ae9a9",
               "operation": {
                 "kind": "Query",
@@ -557,7 +557,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         parsedJson.MatchInlineSnapshot(
             """
             {
-              "version": "1.3.0",
+              "version": "1.4.0",
               "id": "ddeb9a07a1ce2925db3f619131745ad7f71a87d88becc06033d7958550dee877",
               "operation": {
                 "kind": "Query",
@@ -1233,6 +1233,184 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         Assert.Equal(
             resultSelectionSet,
             parsedOperationNode.ResultSelectionSet.ToString(indented: false));
+    }
+
+    [Fact]
+    public void Parse_Should_RoundTripContextRoots_When_RequirementHasContextRoots()
+    {
+        // arrange
+        var compositeSchema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              email: String
+            }
+            """);
+        var originalPlan = PlanWithPooledFields(
+            compositeSchema,
+            "{ user(id: 1) { name email } }",
+            TestPolicyResolver.Create());
+        var json = JsonNode.Parse(new JsonOperationPlanFormatter(s_indentedOptions).Format(originalPlan))!;
+        var requirementNode = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .Where(t => t["requirements"] is not null)
+            .Select(t => t["requirements"]!.AsArray()[0]!.AsObject())
+            .Single();
+        requirementNode["contextRoots"] = JsonNode.Parse(
+            """
+            [
+              { "name": "userContext", "path": "$.me", "types": ["User", "Admin"] },
+              { "name": "userContext", "path": "$.viewer" }
+            ]
+            """);
+        var parser = CreateParser(compositeSchema, TestPolicyResolver.Create());
+
+        // act
+        var parsedPlan = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+        var formattedJson = new JsonOperationPlanFormatter(s_indentedOptions).Format(parsedPlan);
+        var reparsedPlan = parser.Parse(Encoding.UTF8.GetBytes(formattedJson));
+
+        // assert
+        var parsedRequirement = parsedPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .SelectMany(t => t.Requirements.ToArray())
+            .Single();
+        var reparsedRequirement = reparsedPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .SelectMany(t => t.Requirements.ToArray())
+            .Single();
+        Assert.Equal("1.4.0", JsonNode.Parse(formattedJson)!["version"]!.GetValue<string>());
+        Assert.Collection(
+            parsedRequirement.ContextRoots,
+            root =>
+            {
+                Assert.Equal("userContext", root.Name);
+                Assert.Equal("$.me", root.Path.ToString());
+                Assert.Equal(["User", "Admin"], root.TypeNames);
+            },
+            root =>
+            {
+                Assert.Equal("userContext", root.Name);
+                Assert.Equal("$.viewer", root.Path.ToString());
+                Assert.True(root.TypeNames.IsEmpty);
+            });
+        Assert.Equal(
+            parsedRequirement.ContextRoots.Select(t => (t.Name, t.Path.ToString(), t.TypeNames.ToArray())),
+            reparsedRequirement.ContextRoots.Select(t => (t.Name, t.Path.ToString(), t.TypeNames.ToArray())));
+        MatchInline(
+            reparsedPlan,
+            """
+            operation:
+              - document: |
+                  {
+                    user(id: 1) {
+                      name
+                      email
+                      id @fusion__requirement
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 1
+                expandedNodes: 2
+            nodes:
+              - id: 1
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_1 {
+                    user(id: 1) {
+                      name
+                      id
+                    }
+                  }
+              - id: 2
+                type: Operation
+                schema: b
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_id: ID!) {
+                    userById(id: $__fusion_1_id) {
+                      email
+                    }
+                  }
+                source: $.userById
+                target: $.user
+                requirements:
+                  - name: __fusion_1_id
+                    selectionMap: >-
+                      id
+                    contextRoots:
+                      - name: userContext
+                        path: $.me
+                        types:
+                          - User
+                          - Admin
+                      - name: userContext
+                        path: $.viewer
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
+    public void Format_Should_OmitContextRoots_When_RequirementHasNoContextRoots()
+    {
+        // arrange
+        var compositeSchema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              email: String
+            }
+            """);
+        var plan = PlanWithPooledFields(
+            compositeSchema,
+            "{ user(id: 1) { name email } }",
+            TestPolicyResolver.Create());
+
+        // act
+        var json = new JsonOperationPlanFormatter(s_indentedOptions).Format(plan);
+
+        // assert
+        var requirement = JsonNode.Parse(json)!["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .Where(t => t["requirements"] is not null)
+            .Select(t => t["requirements"]!.AsArray()[0]!.AsObject())
+            .Single();
+        Assert.Null(requirement["contextRoots"]);
     }
 
     [Fact]

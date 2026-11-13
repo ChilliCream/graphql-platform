@@ -6,7 +6,7 @@
   "required": ["version"],
   "properties": {
     "version": {
-      "enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
+      "enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"]
     }
   },
   "allOf": [
@@ -60,6 +60,19 @@
       },
       "then": {
         "$ref": "#/$defs/v1_3_0_plan"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "version": {
+            "const": "1.4.0"
+          }
+        },
+        "required": ["version"]
+      },
+      "then": {
+        "$ref": "#/$defs/v1_4_0_plan"
       }
     }
   ],
@@ -327,6 +340,74 @@
       ],
       "additionalProperties": false
     },
+    "v1_4_0_plan": {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "version": {
+          "const": "1.4.0"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "operation": {
+          "$ref": "#/$defs/requestOperation"
+        },
+        "searchSpace": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expandedNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "appId": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "traceId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "nodes": {
+          "$ref": "#/$defs/v1_4_0_nodes"
+        },
+        "deliveryGroups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/deliveryGroup"
+          },
+          "minItems": 1
+        },
+        "incrementalPlans": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/v1_4_0_incrementalPlan"
+          },
+          "minItems": 1
+        },
+        "policies": {
+          "$ref": "#/$defs/policyPlan"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "operation",
+        "searchSpace",
+        "expandedNodes",
+        "nodes"
+      ],
+      "additionalProperties": false
+    },
     "policyPlan": {
       "type": "object",
       "properties": {
@@ -489,6 +570,55 @@
       "required": ["name", "type", "path", "selectionMap"],
       "additionalProperties": false
     },
+    "v1_4_0_requirement": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "internalAlias": {
+          "type": "string"
+        },
+        "selectionMap": {
+          "type": "string"
+        },
+        "contextRoots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contextRoot"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["name", "type", "path", "selectionMap"],
+      "additionalProperties": false
+    },
+    "contextRoot": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["name", "path"],
+      "additionalProperties": false
+    },
     "condition": {
       "type": "object",
       "properties": {
@@ -533,6 +663,13 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/requirement"
+      },
+      "minItems": 1
+    },
+    "v1_4_0_requirements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/v1_4_0_requirement"
       },
       "minItems": 1
     },
@@ -658,6 +795,34 @@
       "required": ["deliveryGroupIds", "parentNodeId", "operation"],
       "additionalProperties": false
     },
+    "v1_4_0_incrementalPlan": {
+      "type": "object",
+      "properties": {
+        "deliveryGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "parentNodeId": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The id of the execution node of the enclosing plan that this plan is anchored at. 0 means the plan is anchored at the operation root of an enclosing plan that has no execution node."
+        },
+        "requirements": {
+          "$ref": "#/$defs/v1_4_0_requirements"
+        },
+        "operation": {
+          "$ref": "#/$defs/requestOperation"
+        },
+        "nodes": {
+          "$ref": "#/$defs/v1_4_0_nodes"
+        }
+      },
+      "required": ["deliveryGroupIds", "parentNodeId", "operation"],
+      "additionalProperties": false
+    },
     "operationNode": {
       "type": "object",
       "properties": {
@@ -692,6 +857,87 @@
         },
         "requirements": {
           "$ref": "#/$defs/requirements"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "forwardedVariables": {
+          "$ref": "#/$defs/forwardedVariables"
+        },
+        "requiresFileUpload": {
+          "const": true
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["id", "type", "operation", "resultSelectionSet"],
+      "additionalProperties": false
+    },
+    "v1_4_0_operationNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "Operation"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/sourceOperation"
+        },
+        "lookupTypeName": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "batchingGroupId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requirements": {
+          "$ref": "#/$defs/v1_4_0_requirements"
         },
         "conditions": {
           "$ref": "#/$defs/conditions"
@@ -830,6 +1076,97 @@
       ],
       "additionalProperties": false
     },
+    "v1_4_0_operationBatchNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "OperationBatch"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/sourceOperation"
+        },
+        "lookupTypeName": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "batchingGroupId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requirements": {
+          "$ref": "#/$defs/v1_4_0_requirements"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "forwardedVariables": {
+          "$ref": "#/$defs/forwardedVariables"
+        },
+        "requiresFileUpload": {
+          "const": true
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "operation",
+        "resultSelectionSet",
+        "targets",
+        "batchingGroupId"
+      ],
+      "additionalProperties": false
+    },
     "apolloOperationNode": {
       "type": "object",
       "properties": {
@@ -860,6 +1197,89 @@
         },
         "requirements": {
           "$ref": "#/$defs/requirements"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "forwardedVariables": {
+          "$ref": "#/$defs/forwardedVariables"
+        },
+        "requiresFileUpload": {
+          "const": true
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "operation",
+        "entityType",
+        "resultSelectionSet"
+      ],
+      "additionalProperties": false
+    },
+    "v1_4_0_apolloOperationNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "ApolloOperation"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/sourceOperation"
+        },
+        "entityType": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "requirements": {
+          "$ref": "#/$defs/v1_4_0_requirements"
         },
         "conditions": {
           "$ref": "#/$defs/conditions"
@@ -1042,6 +1462,101 @@
         },
         "requirements": {
           "$ref": "#/$defs/requirements"
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "forwardedVariables": {
+          "$ref": "#/$defs/forwardedVariables"
+        },
+        "requiresFileUpload": {
+          "const": true
+        },
+        "dependencies": {
+          "$ref": "#/$defs/dependencies"
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "status": {
+          "enum": ["Success", "PartialSuccess", "Skipped", "Failed"]
+        },
+        "variableSets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "transport": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "format": "uri"
+            },
+            "contentType": {
+              "type": "string"
+            }
+          },
+          "required": ["uri", "contentType"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "operation",
+        "entityType",
+        "resultSelectionSet",
+        "batchingGroupId"
+      ],
+      "additionalProperties": false
+    },
+    "v1_4_0_apolloOperationBatchNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "type": {
+          "const": "ApolloOperationBatch"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/sourceOperation"
+        },
+        "entityType": {
+          "type": "string"
+        },
+        "resultSelectionSet": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2
+        },
+        "batchingGroupId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requirements": {
+          "$ref": "#/$defs/v1_4_0_requirements"
         },
         "conditions": {
           "$ref": "#/$defs/conditions"
@@ -1551,6 +2066,116 @@
         }
       ]
     },
+    "v1_4_0_node": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": [
+            "Operation",
+            "OperationBatch",
+            "ApolloOperation",
+            "ApolloOperationBatch",
+            "EventStream",
+            "Introspection",
+            "Node"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Operation"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/v1_4_0_operationNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "OperationBatch"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/v1_4_0_operationBatchNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ApolloOperation"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/v1_4_0_apolloOperationNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ApolloOperationBatch"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/v1_4_0_apolloOperationBatchNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "EventStream"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/eventStreamNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Introspection"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/introspectionNode"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "Node"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "$ref": "#/$defs/nodeFieldNode"
+          }
+        }
+      ]
+    },
     "nodes": {
       "type": "array",
       "items": {
@@ -1561,6 +2186,12 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/v1_2_0_node"
+      }
+    },
+    "v1_4_0_nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/v1_4_0_node"
       }
     }
   }

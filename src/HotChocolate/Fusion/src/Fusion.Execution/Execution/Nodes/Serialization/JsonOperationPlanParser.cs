@@ -261,6 +261,40 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         return selection;
     }
 
+    private static ImmutableArray<RequirementContextRoot> ParseContextRoots(JsonElement requirementElement)
+    {
+        if (!requirementElement.TryGetProperty("contextRoots", out var contextRootsElement))
+        {
+            return [];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<RequirementContextRoot>();
+
+        foreach (var contextRootElement in contextRootsElement.EnumerateArray())
+        {
+            var typeNames = ImmutableArray<string>.Empty;
+
+            if (contextRootElement.TryGetProperty("types", out var typesElement))
+            {
+                var typeNamesBuilder = ImmutableArray.CreateBuilder<string>();
+
+                foreach (var typeElement in typesElement.EnumerateArray())
+                {
+                    typeNamesBuilder.Add(typeElement.GetString()!);
+                }
+
+                typeNames = typeNamesBuilder.ToImmutable();
+            }
+
+            builder.Add(new RequirementContextRoot(
+                contextRootElement.GetProperty("name").GetString()!,
+                SelectionPath.Parse(contextRootElement.GetProperty("path").GetString()!),
+                typeNames));
+        }
+
+        return builder.ToImmutable();
+    }
+
     private static ImmutableArray<DeliveryGroup> ParseDeliveryGroups(
         JsonElement deliveryGroupsElement,
         Dictionary<int, DeliveryGroup> deliveryGroupMap)
@@ -374,6 +408,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         requirementTypeNode,
                         SelectionPath.Parse(requirementPath),
                         FieldSelectionMapParser.Parse(selectionMap),
+                        ParseContextRoots(requirementElement),
                         internalAlias));
                 }
 
@@ -1095,6 +1130,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     requirementTypeNode,
                     SelectionPath.Parse(requirementPath),
                     FieldSelectionMapParser.Parse(selectionMap),
+                    ParseContextRoots(requirementElement),
                     internalAlias));
             }
         }

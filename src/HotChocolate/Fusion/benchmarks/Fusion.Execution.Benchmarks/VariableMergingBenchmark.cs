@@ -319,6 +319,7 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
             new NamedTypeNode("String"),
             SelectionPath.Root,
             new PathNode(new PathSegmentNode(new FusionNameNode(key))),
+            [],
             null);
 
     private static CompactPath Path(params int[] segments)

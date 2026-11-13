@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -269,6 +270,9 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                     selectionMapLine = selectionMapReader.ReadLine();
                 }
                 writer.Unindent();
+
+                WriteContextRoots(requirement.ContextRoots, writer);
+
                 writer.Unindent();
             }
 
@@ -662,11 +666,51 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                     selectionMapLine = selectionMapReader.ReadLine();
                 }
                 writer.Unindent();
+
+                WriteContextRoots(requirement.ContextRoots, writer);
+
                 writer.Unindent();
             }
 
             writer.Unindent();
         }
+    }
+
+    private static void WriteContextRoots(
+        ImmutableArray<RequirementContextRoot> contextRoots,
+        CodeWriter writer)
+    {
+        if (contextRoots.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        writer.WriteLine("contextRoots:");
+        writer.Indent();
+
+        foreach (var contextRoot in contextRoots)
+        {
+            writer.WriteLine("- name: {0}", contextRoot.Name);
+            writer.Indent();
+            writer.WriteLine("path: {0}", contextRoot.Path.ToString());
+
+            if (!contextRoot.TypeNames.IsDefaultOrEmpty)
+            {
+                writer.WriteLine("types:");
+                writer.Indent();
+
+                foreach (var typeName in contextRoot.TypeNames)
+                {
+                    writer.WriteLine("- {0}", typeName);
+                }
+
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
+
+        writer.Unindent();
     }
 
     private static void WriteConditions(ReadOnlySpan<ExecutionNodeCondition> conditions, CodeWriter writer)
