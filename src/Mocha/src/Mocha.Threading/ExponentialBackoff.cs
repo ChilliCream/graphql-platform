@@ -4,10 +4,9 @@ namespace Mocha.Threading;
 /// Implements an exponential backoff strategy with jitter to manage retry delays.
 /// </summary>
 /// <remarks>
-/// Uses a randomized multiplier derived from the base delay to avoid the thundering herd problem
-/// when multiple consumers retry simultaneously. The delay doubles with each attempt, capped at
-/// a configurable maximum. Call <see cref="Reset"/> after a successful operation to restart the
-/// backoff sequence.
+/// The delay doubles with each attempt up to a configurable maximum, and each wait is randomized
+/// between half of that value and the full value. Call <see cref="Reset"/> after a successful
+/// operation to restart the backoff sequence.
 /// </remarks>
 public sealed class ExponentialBackoff
 {
@@ -21,7 +20,7 @@ public sealed class ExponentialBackoff
     /// Creates a new exponential backoff instance with the specified retry limits and delay bounds.
     /// </summary>
     /// <param name="maxRetries">The maximum number of retry attempts before <see cref="ShouldRetry"/> returns <c>false</c>.</param>
-    /// <param name="delay">The base delay used to compute the randomized multiplier for each backoff interval.</param>
+    /// <param name="delay">The base delay, which doubles with each retry.</param>
     /// <param name="maxDelay">The upper bound on the computed delay; no single wait will exceed this duration.</param>
     public ExponentialBackoff(int maxRetries, TimeSpan delay, TimeSpan maxDelay)
     {
@@ -64,24 +63,43 @@ public sealed class ExponentialBackoff
     }
 
     /// <summary>
-    /// Computes the next backoff delay using the current power level and a randomized jitter multiplier.
+    /// Computes the randomized delay for the next retry.
     /// </summary>
     /// <returns>
-    /// A <see cref="TimeSpan"/> representing the delay, clamped to the configured maximum delay.
+    /// A <see cref="TimeSpan"/> representing the delay, which never exceeds the configured maximum delay.
     /// </returns>
     public TimeSpan CalculateDelay()
+        => CalculateDelay(_power, TimeSpan.FromMilliseconds(_delayInMs), TimeSpan.FromMilliseconds(_maxDelayInMs));
+
+    /// <summary>
+    /// Computes a randomized exponential delay for a failed attempt. The result lies between half of
+    /// the exponential delay and the exponential delay, which is capped at <paramref name="maxDelay"/>.
+    /// </summary>
+    /// <param name="attempt">The number of the failed attempt, starting at 1.</param>
+    /// <param name="delay">
+    /// The base delay, which doubles with each attempt. The first attempt waits between one and two base delays.
+    /// </param>
+    /// <param name="maxDelay">The upper bound on the computed delay.</param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="delay"/> or <paramref name="maxDelay"/> is negative.
+    /// </exception>
+    public static TimeSpan CalculateDelay(int attempt, TimeSpan delay, TimeSpan maxDelay)
     {
-        // we use a random multiplier because we don't want to have a thundering herd problem
-        var multiplier = Random.Shared.Next(_delayInMs / 2, _delayInMs);
-        if (multiplier == 0)
+        if (delay < TimeSpan.Zero)
         {
-            multiplier = 1;
+            throw ThrowHelper.DelayMustNotBeNegative(nameof(delay), delay);
         }
 
-        var waitTimeInMs = Math.Pow(2, _power) * multiplier;
+        if (maxDelay < TimeSpan.Zero)
+        {
+            throw ThrowHelper.DelayMustNotBeNegative(nameof(maxDelay), maxDelay);
+        }
 
-        // we make sure that we don't exceed the max delay
-        return TimeSpan.FromMilliseconds(Math.Min(_maxDelayInMs, waitTimeInMs));
+        // delay * 2^attempt
+        var exponentialDelayInMs = Math.ScaleB(delay.TotalMilliseconds, Math.Max(attempt, 1));
+        var ceilingInMs = Math.Min(maxDelay.TotalMilliseconds, exponentialDelayInMs);
+
+        return TimeSpan.FromMilliseconds(ceilingInMs * (0.5 + Random.Shared.NextDouble() / 2));
     }
 
     /// <summary>
