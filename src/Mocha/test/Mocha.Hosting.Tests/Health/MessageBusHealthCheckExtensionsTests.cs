@@ -24,6 +24,7 @@ public sealed class MessageBusHealthCheckExtensionsTests
         Assert.Equal("MessageBus", registration.Name);
         Assert.Equal(HealthStatus.Unhealthy, registration.FailureStatus);
         Assert.Equal(["ready"], registration.Tags);
+        Assert.Equal(TimeSpan.FromSeconds(10), registration.Timeout);
     }
 
     [Fact]
@@ -121,7 +122,7 @@ public sealed class MessageBusHealthCheckExtensionsTests
         // assert
         var entry = report.Entries["MessageBus"];
         Assert.Equal(HealthStatus.Degraded, entry.Status);
-        Assert.Equal("Message Bus did not answer the health request within 00:00:00.1000000.", entry.Description);
+        Assert.Equal("A timeout occurred while running check.", entry.Description);
     }
 
     [Theory]

@@ -123,7 +123,7 @@ public sealed class MessageBusHealthCheckIntegrationTests
         // assert
         var entry = report.Entries["MessageBus"];
         Assert.Equal(HealthStatus.Unhealthy, entry.Status);
-        Assert.Equal("Message Bus did not answer the health request within 00:00:00.2500000.", entry.Description);
+        Assert.Equal("A timeout occurred while running check.", entry.Description);
     }
 
     [Fact]

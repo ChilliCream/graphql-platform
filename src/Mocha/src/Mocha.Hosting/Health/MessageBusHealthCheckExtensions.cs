@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -9,7 +10,7 @@ namespace Mocha.Hosting;
 public static class MessageBusHealthCheckExtensions
 {
     private const string DefaultName = "MessageBus";
-    private static readonly string[] s_defaultTags = ["ready"];
+    private static readonly ImmutableArray<string> s_defaultTags = ["ready"];
     private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
@@ -70,9 +71,8 @@ public static class MessageBusHealthCheckExtensions
             ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(value, TimeSpan.Zero, nameof(timeout));
         }
 
-        var options = new MessageBusHealthCheckOptions { Endpoint = endpoint, Timeout = timeout ?? s_defaultTimeout };
+        var options = new MessageBusHealthCheckOptions { Endpoint = endpoint };
 
-        // The check applies the timeout itself, so the registration carries none.
         return builder.Add(
             new HealthCheckRegistration(
                 name,
@@ -82,6 +82,7 @@ public static class MessageBusHealthCheckExtensions
                     services.GetService<TimeProvider>() ?? TimeProvider.System,
                     options),
                 failureStatus,
-                tags ?? s_defaultTags));
+                tags ?? s_defaultTags,
+                timeout ?? s_defaultTimeout));
     }
 }
