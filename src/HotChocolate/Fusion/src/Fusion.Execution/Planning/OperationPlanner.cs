@@ -1898,12 +1898,18 @@ public sealed partial class OperationPlanner
 
         if (fieldRequirements is null)
         {
-            requirementAliases = new RequirementAliasContext([], current.RequirementAliases);
+            requirementAliases = new RequirementAliasContext(
+                [],
+                current.RequirementAliases,
+                aliasTypeConditions: false);
         }
         else if (fieldRequirements.Requirements is null)
         {
             // The requirements only read from contexts.
-            requirementAliases = new RequirementAliasContext(fieldRequirements.Fields, current.RequirementAliases);
+            requirementAliases = new RequirementAliasContext(
+                fieldRequirements.Fields,
+                current.RequirementAliases,
+                aliasTypeConditions: false);
         }
         else
         {
@@ -2886,7 +2892,10 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var sourceRequirements = sourceField.Requirements!;
         var requirements = sourceRequirements.Requirements!;
-        requirementAliases = new RequirementAliasContext(sourceRequirements.Fields, current.RequirementAliases);
+        requirementAliases = new RequirementAliasContext(
+            sourceRequirements.Fields,
+            current.RequirementAliases,
+            aliasTypeConditions: false);
 
         return TryInlineRequirements(
             requirements,
@@ -2958,23 +2967,33 @@ public sealed partial class OperationPlanner
         // operation.
         if (index.TryGetSelectionSet(target.SelectionSetId, out var siblingSelections))
         {
-            var mintedAlias = false;
-
             foreach (var selection in requirements.Selections)
             {
                 if (selection is FieldNode field
                     && HasArgumentConflict(field, siblingSelections.Selections))
                 {
                     requirementAliases.MintAlias(field);
-                    mintedAlias = true;
+                }
+                else if (requirementAliases.AliasTypeConditions
+                    && selection is InlineFragmentNode { TypeCondition: { } typeCondition } fragment)
+                {
+                    foreach (var fragmentSelection in fragment.SelectionSet.Selections)
+                    {
+                        if (fragmentSelection is FieldNode fragmentField
+                            && HasArgumentConflict(
+                                fragmentField,
+                                siblingSelections.Selections,
+                                typeCondition.Name.Value))
+                        {
+                            requirementAliases.MintAlias(fragmentField);
+                        }
+                    }
                 }
             }
-
-            if (mintedAlias)
-            {
-                requirements = requirementAliases.ApplyAliases(requirements);
-            }
         }
+
+        // The context aliases minted for an earlier root of the same context apply to this root too.
+        requirements = requirementAliases.ApplyAliases(requirements);
 
         var fullRequirements = requirements;
 
@@ -3380,15 +3399,20 @@ public sealed partial class OperationPlanner
             field.Arguments,
             field.SelectionSet);
 
+    // Mints and applies the aliases of requirement fields that collide with client selections. With
+    // aliasTypeConditions set, fields inside inline fragments with a type condition are aliased too.
     private sealed class RequirementAliasContext(
         ImmutableArray<IValueSelectionNode?> fieldSelectionMaps,
-        RequirementAliasRegistry registry)
+        RequirementAliasRegistry registry,
+        bool aliasTypeConditions)
     {
         private readonly Dictionary<IValueSelectionNode, string> _aliasesByMap = [];
         private readonly List<(RequirementFieldSelectionKey Key, string Alias)> _aliases = [];
         private RequirementAliasRegistry _registry = registry;
 
         public RequirementAliasRegistry Registry => _registry;
+
+        public bool AliasTypeConditions => aliasTypeConditions;
 
         public IReadOnlyList<(RequirementFieldSelectionKey Key, string Alias)> Aliases => _aliases;
 
@@ -3433,6 +3457,20 @@ public sealed partial class OperationPlanner
                     rewritten = field.Alias?.Value.Equals(alias, StringComparison.Ordinal) == true
                         ? field
                         : CreateFieldWithAlias(field, alias);
+                }
+                else if (aliasTypeConditions
+                    && selection is InlineFragmentNode { TypeCondition: not null } fragment)
+                {
+                    var fragmentSelections = ApplyAliases(fragment.SelectionSet);
+
+                    if (!ReferenceEquals(fragmentSelections, fragment.SelectionSet))
+                    {
+                        rewritten = new InlineFragmentNode(
+                            fragment.Location,
+                            fragment.TypeCondition,
+                            fragment.Directives,
+                            fragmentSelections);
+                    }
                 }
 
                 if (!ReferenceEquals(rewritten, selection) && selections is null)
@@ -3614,6 +3652,29 @@ public sealed partial class OperationPlanner
             alias = $"fusion__requirement_{field.Name.Value}_{entries.Length}";
             return new(entries.Add((new RequirementFieldSelectionKey(field), alias)));
         }
+    }
+
+    private static bool HasArgumentConflict(
+        FieldNode requirementField,
+        IReadOnlyList<ISelectionNode> existingSelections,
+        string typeCondition)
+    {
+        if (HasArgumentConflict(requirementField, existingSelections))
+        {
+            return true;
+        }
+
+        foreach (var selection in existingSelections)
+        {
+            if (selection is InlineFragmentNode { TypeCondition: { } existingTypeCondition } fragment
+                && existingTypeCondition.Name.Value.Equals(typeCondition, StringComparison.Ordinal)
+                && HasArgumentConflict(requirementField, fragment.SelectionSet.Selections))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool HasArgumentConflict(

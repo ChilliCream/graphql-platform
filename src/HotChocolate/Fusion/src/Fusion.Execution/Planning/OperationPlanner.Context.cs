@@ -58,7 +58,10 @@ public sealed partial class OperationPlanner
             }
 
             var roots = new List<RequirementContextRoot>(candidates.Count);
-            var contextAliasContext = new RequirementAliasContext([], requirementAliases.Registry);
+            var contextAliasContext = new RequirementAliasContext(
+                [],
+                requirementAliases.Registry,
+                aliasTypeConditions: true);
 
             contextRoots.Add(contextName, roots);
 
