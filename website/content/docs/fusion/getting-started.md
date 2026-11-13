@@ -779,7 +779,11 @@ builder.Services
 builder
     .AddGraphQLGateway()
     .AddFileSystemConfiguration("./gateway.far")
-    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
+    .ModifyRequestOptions(o =>
+    {
+        o.AllowOperationPlanRequests = true;
+        o.CollectOperationPlanTelemetry = true;
+    });
 
 var app = builder.Build();
 
@@ -792,7 +796,8 @@ Three things to notice:
 - **`#!csharp AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The gateway uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
 - **`AddGraphQLGateway()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
 - **`#!csharp AddFileSystemConfiguration("./gateway.far")`** tells the gateway to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
-- **`#!csharp ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enables operation-plan telemetry. This is off by default.
+- **`#!csharp ModifyRequestOptions(o => o.AllowOperationPlanRequests = true)`** allows clients to retrieve the operation-plan computed for the operation they've sent. This is off by default.
+- **`#!csharp ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enriches the return operation-plan nodes with telemetry. This is off by default.
 
 ## Start Everything
 
