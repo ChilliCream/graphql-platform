@@ -183,6 +183,8 @@ Apollo Federation v2.8 adds `@context` and `@fromContext`. `@context` names a co
 
 The `field` value is a `$` and the context name, followed by one chain of fields, or by inline fragments with a type condition that each hold one chain of fields. The argument keeps its name and type.
 
+A field in the chain can have arguments, and a field can be followed by inline fragments with a type condition. Aliases, directives, fragment spreads and a selection set with more than one field are not supported. Composition reports them with `FEDERATION_FROM_CONTEXT_INVALID`.
+
 This example reads the currency of the current user in the `Transaction.amountInUserCurrency` argument:
 
 ```graphql
@@ -217,7 +219,9 @@ type Transaction @key(fields: "id") {
 
 The composed schema has no `currencyCode` argument. At runtime, the gateway resolves the value from the `User` above the `Transaction` and passes it as the `currencyCode` field argument in the `_entities` request. It sends one `_entities` request per distinct context value, with the representations of the entities that share that value.
 
-The rules of [`@context`](../directives-reference.md#context) apply to the translated schema. The parent type of a field that reads from a context needs a resolvable `@key`, and every query path to the field must pass through a type that provides the context.
+The rules of [`@context`](../directives-reference.md#context) apply to the translated schema. Every query path to a field that reads from a context must pass through a type that provides the context.
+
+Apollo Federation requires a resolvable `@key` on a type that uses `@fromContext` (`CONTEXT_NO_RESOLVABLE_KEY`). Fusion reports a missing key as `UNSATISFIABLE_QUERY_PATH`.
 
 # Shareable Abstract Field Routing
 
