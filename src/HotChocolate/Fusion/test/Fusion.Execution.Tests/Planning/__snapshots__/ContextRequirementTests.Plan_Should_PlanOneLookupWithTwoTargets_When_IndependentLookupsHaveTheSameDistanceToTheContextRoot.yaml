@@ -1,0 +1,83 @@
+operation:
+  - document: |
+      {
+        users {
+          transactions {
+            amount
+            id @fusion__requirement
+          }
+          pending {
+            amount
+            id @fusion__requirement
+          }
+          userCurrency @fusion__requirement {
+            isoCode @fusion__requirement
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 5
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        users {
+          transactions {
+            id
+          }
+          userCurrency {
+            isoCode
+          }
+          id
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        userById(id: $__fusion_3_id) {
+          pending {
+            id
+          }
+        }
+      }
+    source: $.userById
+    target: $.users
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 2
+    type: OperationBatch
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          amount(currency: $__fusion_1_currency)
+        }
+      }
+    source: $.transactionById
+    targets:
+      - $.users.transactions
+      - $.users.pending
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_1_currency
+        selectionMap: >-
+          $userContext.userCurrency.isoCode
+        contextRoots:
+          - name: userContext
+            path: $.users
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 3

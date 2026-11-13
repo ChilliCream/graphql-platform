@@ -581,6 +581,136 @@ public class ContextRequirementTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_PlanSeparateLookups_When_IndependentLookupsHaveDifferentDistancesToTheContextRoot()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+            }
+            """,
+            """
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                account: Account!
+            }
+
+            type Account {
+                transactions: [Transaction!]!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+            }
+            """
+        );
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              users {
+                transactions {
+                  amount
+                }
+                account {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_PlanOneLookupWithTwoTargets_When_IndependentLookupsHaveTheSameDistanceToTheContextRoot()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+            }
+            """,
+            """
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                pending: [Transaction!]!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+            }
+            """
+        );
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              users {
+                transactions {
+                  amount
+                }
+                pending {
+                  amount
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition ComposeSchemaWithoutContext(
         string typeName,
         [StringSyntax("graphql")] params string[] schemas)
