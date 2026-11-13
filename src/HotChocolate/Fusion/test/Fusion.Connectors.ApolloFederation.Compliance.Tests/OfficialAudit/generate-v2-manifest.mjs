@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const expectedRevision = "f59c05e3f48f4a4f8e8a731d67a1b71a9788a96f";
+const expectedRevision = "9c874b9ed250d0715f04c3def41abdca596e2788";
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const auditDirectory = process.argv[2]
   ? resolve(process.argv[2])
