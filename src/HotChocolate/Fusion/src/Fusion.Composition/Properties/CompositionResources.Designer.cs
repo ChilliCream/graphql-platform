@@ -2150,11 +2150,29 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; reads from a context and needs a lookup for type &apos;{2}&apos; in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_ContextNoLookup {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_ContextNoLookup", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; reads from the context &apos;{2}&apos;, which is not set on this path..
         /// </summary>
         internal static string SatisfiabilityValidator_ContextNotSet {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_ContextNotSet", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; reads &apos;{2}&apos; from the context &apos;{3}&apos;, which cannot be resolved from type &apos;{4}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_ContextPathNotResolvable {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_ContextPathNotResolvable", resourceCulture);
             }
         }
 
