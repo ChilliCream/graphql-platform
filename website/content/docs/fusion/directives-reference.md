@@ -376,6 +376,16 @@ public sealed class User
     public required string Id { get; init; }
 
     public required Currency UserCurrency { get; init; }
+
+    public required IReadOnlyList<Transaction> Transactions { get; init; }
+}
+
+[QueryType]
+public static partial class TransactionQueries
+{
+    [Lookup, Internal]
+    public static Transaction? GetTransactionById([ID<Transaction>] int id)
+        => new(id);
 }
 
 [ObjectType<Transaction>]
@@ -396,6 +406,7 @@ public static partial class TransactionNode
 - A context name starts with a letter and contains only letters and digits. Violations raise `CONTEXT_NAME_INVALID`.
 - The context must be provided by a type in the same source schema as the field that reads it. Otherwise composition raises `REQUIRE_CONTEXT_NOT_SET`. The fields that the path selects can be served by any source schema.
 - The source schema that declares the field needs a lookup for the field's parent type. Without one, composition raises `UNSATISFIABLE_QUERY_PATH`.
+- A lookup for the type of a field that reads from a context must be `@internal`. A public lookup lets a client reach the field without a value that sets the context, and composition fails with `UNSATISFIABLE_QUERY_PATH`.
 - A context path is not allowed on interface fields or on fields that implement an interface field (`REQUIRE_CONTEXT_ON_INTERFACE`).
 - An argument that reads from a context cannot have a default value (`REQUIRE_CONTEXT_DEFAULT_VALUE`).
 - `@context` is not allowed on types that are annotated with `@interfaceObject` (`CONTEXT_ON_INTERFACE_OBJECT`).
