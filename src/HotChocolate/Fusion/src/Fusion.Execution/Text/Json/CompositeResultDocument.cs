@@ -311,6 +311,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool IsNullOrInvalidated(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
@@ -598,6 +599,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// Creates an object for <paramref name="selectionSet"/> and assigns it to the undefined
     /// slot at <paramref name="target"/>.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void InitializeObject(
         Cursor target,
         SelectionSet selectionSet,
@@ -725,6 +727,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// <c>true</c> if the source holds a non-null leaf value that was assigned;
     /// otherwise, <c>false</c> and the target is unchanged.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool TryAssignLeafValue(Cursor target, Cursor source)
     {
         var row = _metaDb.Get(source);
@@ -766,6 +769,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             : LeafValueState.Unsupported;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsAssignableLeafValue(DbRow row)
         => (row.TokenType is ElementTokenType.String
                 or ElementTokenType.Number
@@ -781,6 +785,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// <returns>
     /// <c>true</c> if the value is readable; otherwise, <c>false</c>.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool TryGetRawLeafValue(Cursor cursor, out ElementTokenType tokenType, out ReadOnlySpan<byte> value)
     {
         var row = _metaDb.Get(cursor);
@@ -813,6 +818,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// <returns>
     /// <c>true</c> if the cursor refers to an object with a selection set; otherwise, <c>false</c>.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool TryGetSelectionSetObject(
         Cursor cursor,
         out Cursor startCursor,
@@ -839,6 +845,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// Gets the row offset of the value slot of <paramref name="selection"/> from the first row
     /// of an object that <paramref name="selectionSet"/> describes.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int GetValueRowOffset(SelectionSet selectionSet, Selection selection)
     {
         Debug.Assert(selection.Id > selectionSet.Id);

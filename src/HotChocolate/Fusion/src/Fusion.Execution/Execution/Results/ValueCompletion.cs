@@ -1316,6 +1316,7 @@ TryCompleteList_MoveNext:
         return (path, null, selection);
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void CompleteEnumValue(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
@@ -1342,6 +1343,7 @@ TryCompleteList_MoveNext:
         }
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void CompleteEnumValue(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
