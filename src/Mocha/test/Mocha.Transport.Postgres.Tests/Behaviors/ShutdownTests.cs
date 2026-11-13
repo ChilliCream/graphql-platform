@@ -91,6 +91,43 @@ public sealed class ShutdownTests(PostgresFixture fixture)
         Assert.Contains("delete blocked", message.ErrorReason);
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_UnregisterConsumer_When_HostIsDisposedWithoutStop()
+    {
+        // arrange
+        await using var db = await fixture.CreateDatabaseAsync("dispose_unregister");
+        await using var provider = CreateProvider<NoOpHandler>(db.ConnectionString, new HandlerGate());
+        await StartAsync(provider.GetServices<IHostedService>().ToArray());
+        var consumersBeforeDispose = await CountConsumersAsync(db.ConnectionString);
+
+        // act
+        await DisposeAsync(provider);
+
+        // assert
+        Assert.Equal(1, consumersBeforeDispose);
+        Assert.Equal(0, await CountConsumersAsync(db.ConnectionString));
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Should_ReleaseInterruptedMessages_When_HostIsDisposedWithoutStop()
+    {
+        // arrange
+        await using var db = await fixture.CreateDatabaseAsync("dispose_release");
+        // the handler takes a second to unwind after the stop cancelled it
+        var gate = new HandlerGate { DelayAfterCancellation = TimeSpan.FromSeconds(1) };
+        await using var provider = CreateProvider<BlockingHandler>(db.ConnectionString, gate);
+        await StartAsync(provider.GetServices<IHostedService>().ToArray());
+        await PublishAsync(provider, count: 2);
+        await gate.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // act
+        await DisposeAsync(provider);
+
+        // assert
+        Assert.True(gate.Cancelled);
+        Assert.Equal([(false, null, 0, false), (false, null, 0, false)], await ReadMessagesAsync(db.ConnectionString));
+    }
+
     private static ServiceProvider CreateProvider<THandler>(
         string connectionString,
         HandlerGate gate)
@@ -122,6 +159,9 @@ public sealed class ShutdownTests(PostgresFixture fixture)
                 .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
         }
     }
+
+    private static Task DisposeAsync(ServiceProvider provider)
+        => provider.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
 
     private static async Task PublishAsync(IServiceProvider provider, int count)
     {
@@ -189,6 +229,7 @@ public sealed class ShutdownTests(PostgresFixture fixture)
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public bool Cancelled { get; set; }
         public bool FailAfterCancellation { get; init; }
+        public TimeSpan DelayAfterCancellation { get; init; }
     }
 
     public sealed class NoOpHandler : IEventHandler<TestEvent>
@@ -209,6 +250,7 @@ public sealed class ShutdownTests(PostgresFixture fixture)
             catch (OperationCanceledException)
             {
                 gate.Cancelled = true;
+                await Task.Delay(gate.DelayAfterCancellation, CancellationToken.None);
                 if (gate.FailAfterCancellation)
                 {
                     throw new InvalidOperationException("Handler failed after shutdown cancellation.");

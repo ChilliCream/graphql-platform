@@ -65,6 +65,64 @@ public sealed class TemporaryEndpointCleanupTests(AzureServiceBusFixture fixture
             """);
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_RemoveTemporaryEndpointResources_When_RuntimeIsNotStopped()
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var context = fixture.CreateTestContext();
+        var queueName = context.QueueName("temporary-orders");
+        await using var provider = new ServiceCollection()
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddAzureServiceBus(t =>
+            {
+                t.ConnectionString(context.ConnectionString);
+                t.AdministrationConnectionString(context.AdminConnectionString);
+                t.Endpoint(queueName).Handler<OrderCreatedHandler>().Temporary();
+            })
+            .Services.BuildServiceProvider();
+
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(Xunit.TestContext.Current.CancellationToken);
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var subscription = topology.Subscriptions.Single(s => s.Destination.Name == queueName);
+        var administrationClient = new ServiceBusAdministrationClient(context.AdminConnectionString);
+        using var scope = provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        var result = await TemporaryEndpointCleanupScenario.ExecuteAsync(
+            messageBus,
+            recorder,
+            ct => InspectResourcesAsync(
+                administrationClient,
+                queueName,
+                subscription.Source.Name,
+                subscription.Name,
+                ct),
+            _ => runtime.DisposeAsync(),
+            Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "MessageDelivered": true,
+              "BeforeStop": {
+                "QueueExists": true,
+                "BindingExists": true
+              },
+              "AfterStop": {
+                "QueueExists": false,
+                "BindingExists": false
+              }
+            }
+            """);
+    }
+
     private static async Task<TemporaryEndpointResourceState> InspectResourcesAsync(
         ServiceBusAdministrationClient administrationClient,
         string queueName,
