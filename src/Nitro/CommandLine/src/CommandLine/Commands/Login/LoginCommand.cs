@@ -44,32 +44,31 @@ internal sealed class LoginCommand : Command
         url ??= cloudUrl;
         url = NormalizeIdentityUrl(url);
 
-        await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
-        {
-            activity.Update($"Opening browser at {url.EscapeMarkup()}. Continue login there.");
-
-            var session = await sessionService.LoginAsync(
-                url,
-                (startUrl, browserOpened) => activity.Update(
+        var session = await sessionService.LoginAsync(
+            url,
+            (loginUrl, browserOpened) =>
+            {
+                console.MarkupLine(
                     browserOpened
-                        ? $"If your browser does not open automatically, use this URL to log in: {startUrl.EscapeMarkup()}"
-                        : $"Could not open a browser. Use this URL to log in: {startUrl.EscapeMarkup()}",
-                    browserOpened ? ActivityUpdateKind.Regular : ActivityUpdateKind.Warning),
-                cancellationToken);
+                        ? "Continue the login in your browser. If it does not open, use this URL:"
+                        : $"{Glyphs.ExclamationMark.Space()}Could not open a browser. Use this URL to log in:");
+                console.MarkupLine($"  {loginUrl.EscapeMarkup()}");
+            },
+            cancellationToken);
 
-            clientContext.Configure(
-                session.ApiUrl,
-                new NitroClientAccessTokenAuthorization(session.Tokens!.AccessToken));
+        console.OkLine($"Logged in as [green]{session.Email.EscapeMarkup()}[/]");
 
+        clientContext.Configure(
+            session.ApiUrl,
+            new NitroClientAccessTokenAuthorization(session.Tokens!.AccessToken));
+
+        await using (var activity = console.StartActivity("Loading workspaces", "Failed to load workspaces."))
+        {
             var page = await client.SelectWorkspacesAsync(null, 5, cancellationToken);
-            var email = session.Email.EscapeMarkup();
 
             if (page.Items.Count == 0)
             {
-                activity.Update(
-                    "You do not have any workspaces. Run `nitro launch` and create one.",
-                    ActivityUpdateKind.Warning);
-                activity.Success($"Logged in as [green]{email}[/]");
+                activity.Warning("You do not have any workspaces. Run `nitro launch` and create one.");
                 return ExitCodes.Success;
             }
 
@@ -79,12 +78,11 @@ internal sealed class LoginCommand : Command
                 await sessionService.SelectWorkspaceAsync(
                     new Workspace(only.Id, only.Name),
                     cancellationToken);
-                activity.Success(
-                    $"Logged in as [green]{email}[/] (Workspace: [green]{only.Name.EscapeMarkup()}[/])");
+                activity.Success($"Workspace: [green]{only.Name.EscapeMarkup()}[/]");
                 return ExitCodes.Success;
             }
 
-            activity.Success($"Logged in as [green]{email}[/]");
+            activity.Success("Loaded workspaces");
         }
 
         var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
