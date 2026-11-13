@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Mocha.Events;
 
 namespace Mocha.Hosting;
 
@@ -16,40 +15,23 @@ internal sealed class MessageBusHealthCheck(
     {
         var failureStatus = context.Registration.FailureStatus;
 
-        if (GetTransportHealthFailure(failureStatus) is { } unhealthy)
+        if (runtime.GetTransportHealthFailure(failureStatus) is { } unhealthy)
         {
             return unhealthy;
         }
 
-        var timeout = options.Timeout;
+        // The registration timeout cancels the request. The request expires at the same time.
+        var timeout = context.Registration.Timeout;
         var sendOptions = new SendOptions
         {
             Endpoint = options.Endpoint,
-            ExpirationTime = timeProvider.GetUtcNow().Add(timeout)
+            ExpirationTime = timeout > TimeSpan.Zero ? timeProvider.GetUtcNow().Add(timeout) : null
         };
 
-        HealthResponse response;
-        using var timeoutSource = new CancellationTokenSource(timeout, timeProvider);
-        using var requestSource = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken,
-            timeoutSource.Token);
+        var request = new HealthRequest("Health Check");
+        var response = await dispatcher.RequestAsync(request, sendOptions, cancellationToken);
 
-        try
-        {
-            var request = new HealthRequest("Health Check");
-            response = await dispatcher.RequestAsync(request, sendOptions, requestSource.Token);
-        }
-        catch (OperationCanceledException)
-            when (timeoutSource.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
-        {
-            return new HealthCheckResult(failureStatus, CreateTimeoutDescription(timeout));
-        }
-        catch (ResponseTimeoutException ex)
-        {
-            return new HealthCheckResult(failureStatus, CreateTimeoutDescription(ex.Timeout), ex);
-        }
-
-        if (GetTransportHealthFailure(failureStatus) is { } failedDuringRequest)
+        if (runtime.GetTransportHealthFailure(failureStatus) is { } failedDuringRequest)
         {
             return failedDuringRequest;
         }
@@ -58,8 +40,16 @@ internal sealed class MessageBusHealthCheck(
             ? HealthCheckResult.Healthy("Message Bus is healthy.")
             : new HealthCheckResult(failureStatus, "Message Bus is unhealthy.");
     }
+}
 
-    private HealthCheckResult? GetTransportHealthFailure(HealthStatus failureStatus)
+file static class Extensions
+{
+    /// <summary>
+    /// Creates the failed result that lists every unhealthy transport, or <c>null</c> when all are healthy.
+    /// </summary>
+    public static HealthCheckResult? GetTransportHealthFailure(
+        this IMessagingRuntime runtime,
+        HealthStatus failureStatus)
     {
         string? description = null;
         Dictionary<string, object>? reasons = null;
@@ -78,7 +68,4 @@ internal sealed class MessageBusHealthCheck(
             ? null
             : new HealthCheckResult(failureStatus, description, exception: null, reasons);
     }
-
-    private static string CreateTimeoutDescription(TimeSpan timeout)
-        => $"Message Bus did not answer the health request within {timeout}.";
 }

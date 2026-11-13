@@ -38,7 +38,7 @@ The check gives the bus 10 seconds to answer the health request. In 16.7 the che
 
 What you will observe:
 
-- A health request that is not answered in time fails the check with the description `Message Bus did not answer the health request within 00:00:10.`
+- A health request that is not answered in time fails the check with the description `A timeout occurred while running check.`
 - The health request travels through the broker and waits in a queue of the service like every other request. This can fail the check when the receive endpoint that handles the health request has a backlog of more than 10 seconds. Raise the timeout, or [target a specific endpoint](../hosting.md#target-a-specific-endpoint):
 
   ```csharp

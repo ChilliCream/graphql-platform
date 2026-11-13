@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Mocha.Events;
 using Moq;
 
 namespace Mocha.Hosting.Tests.Health;
@@ -95,60 +94,15 @@ public sealed class MessageBusHealthCheckTests
             bus.Object,
             CreateRuntime(),
             new FixedTimeProvider(now),
-            new MessageBusHealthCheckOptions { Timeout = TimeSpan.FromSeconds(7) });
+            new MessageBusHealthCheckOptions());
 
         // act
-        await healthCheck.CheckHealthAsync(CreateContext(), TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.Equal(now.AddSeconds(7), sendOptions?.ExpirationTime);
-    }
-
-    [Fact]
-    public async Task CheckHealthAsync_Should_ReturnFailureStatus_When_BusDoesNotAnswerWithinTimeout()
-    {
-        // arrange
-        var bus = new Mock<IMessageBus>();
-        bus.Setup(m => m.RequestAsync(
-                It.IsAny<HealthRequest>(),
-                It.IsAny<SendOptions>(),
-                It.IsAny<CancellationToken>()))
-            .Returns((IEventRequest<HealthResponse> _, SendOptions _, CancellationToken cancellationToken)
-                => new ValueTask<HealthResponse>(WaitForCancellationAsync(cancellationToken)));
-        var healthCheck = CreateHealthCheck(bus.Object, CreateRuntime(), timeout: TimeSpan.FromMilliseconds(100));
-
-        // act
-        var result = await healthCheck
-            .CheckHealthAsync(CreateContext(HealthStatus.Degraded), TestContext.Current.CancellationToken)
-            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.Equal(HealthStatus.Degraded, result.Status);
-        Assert.Equal("Message Bus did not answer the health request within 00:00:00.1000000.", result.Description);
-    }
-
-    [Fact]
-    public async Task CheckHealthAsync_Should_ReturnFailureStatus_When_ResponseTimesOut()
-    {
-        // arrange
-        var failure = new ResponseTimeoutException("correlation-1", TimeSpan.FromMinutes(2));
-        var bus = new Mock<IMessageBus>();
-        bus.Setup(m => m.RequestAsync(
-                It.IsAny<HealthRequest>(),
-                It.IsAny<SendOptions>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(ValueTask.FromException<HealthResponse>(failure));
-        var healthCheck = CreateHealthCheck(bus.Object, CreateRuntime());
-
-        // act
-        var result = await healthCheck.CheckHealthAsync(
-            CreateContext(HealthStatus.Degraded),
+        await healthCheck.CheckHealthAsync(
+            CreateContext(timeout: TimeSpan.FromSeconds(7)),
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(HealthStatus.Degraded, result.Status);
-        Assert.Equal("Message Bus did not answer the health request within 00:02:00.", result.Description);
-        Assert.Same(failure, result.Exception);
+        Assert.Equal(now.AddSeconds(7), sendOptions?.ExpirationTime);
     }
 
     [Fact]
@@ -238,18 +192,24 @@ public sealed class MessageBusHealthCheckTests
     private static MessageBusHealthCheck CreateHealthCheck(
         IMessageBus bus,
         IMessagingRuntime runtime,
-        Uri? endpoint = null,
-        TimeSpan? timeout = null)
+        Uri? endpoint = null)
         => new(
             bus,
             runtime,
             TimeProvider.System,
-            new MessageBusHealthCheckOptions { Endpoint = endpoint, Timeout = timeout ?? s_timeout });
+            new MessageBusHealthCheckOptions { Endpoint = endpoint });
 
-    private static HealthCheckContext CreateContext(HealthStatus failureStatus = HealthStatus.Unhealthy)
+    private static HealthCheckContext CreateContext(
+        HealthStatus failureStatus = HealthStatus.Unhealthy,
+        TimeSpan? timeout = null)
         => new()
         {
-            Registration = new HealthCheckRegistration("MessageBus", Mock.Of<IHealthCheck>(), failureStatus, tags: null)
+            Registration = new HealthCheckRegistration(
+                "MessageBus",
+                Mock.Of<IHealthCheck>(),
+                failureStatus,
+                tags: null,
+                timeout ?? s_timeout)
         };
 
     private static Mock<IMessageBus> CreateBus(HealthResponse response)
