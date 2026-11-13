@@ -689,6 +689,7 @@ From the `fusion-getting-started` directory, run:
 ```shell
 mkdir Gateway
 nitro fusion compose -f Products/schema.graphqls -f Reviews/schema.graphqls -a Gateway/gateway.far
+nitro fusion settings set default-list-size 10 --archive Gateway/gateway.far
 ```
 
 If composition succeeds, you will see output similar to:
@@ -700,6 +701,8 @@ Fusion archive created: gateway.far
 ```
 
 The exact output may vary by Nitro CLI version. Confirm that `Gateway/gateway.far` was created. This file contains the composed gateway configuration, and the gateway loads it directly.
+
+The first command composes the source schemas into `gateway.far`. The second command sets a default list size of 10 and recomposes the archive. The gateway rejects queries whose estimated cost exceeds its limit, and it treats a list field without a size hint as unbounded. The `products` and `reviews` lists in this tutorial have no pagination or size hint, so without a default every query that selects them is rejected. Later runs of `nitro fusion compose` on the same archive keep this setting. See [Cost Analysis](./cost-analysis.md#list-size) for how the gateway estimates list sizes.
 
 ## What Happens During Composition
 
@@ -776,7 +779,11 @@ builder.Services
 builder
     .AddGraphQLGateway()
     .AddFileSystemConfiguration("./gateway.far")
-    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
+    .ModifyRequestOptions(o =>
+    {
+        o.AllowOperationPlanRequests = true;
+        o.CollectOperationPlanTelemetry = true;
+    });
 
 var app = builder.Build();
 
@@ -789,7 +796,8 @@ Three things to notice:
 - **`#!csharp AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The gateway uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
 - **`AddGraphQLGateway()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
 - **`#!csharp AddFileSystemConfiguration("./gateway.far")`** tells the gateway to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
-- **`#!csharp ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enables operation-plan telemetry. This is off by default.
+- **`#!csharp ModifyRequestOptions(o => o.AllowOperationPlanRequests = true)`** allows clients to retrieve the operation-plan computed for the operation they've sent. This is off by default.
+- **`#!csharp ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enriches the return operation-plan nodes with telemetry. This is off by default.
 
 ## Start Everything
 
