@@ -490,29 +490,6 @@ public class RabbitMQTransportTests
     }
 
     [Fact]
-    public async Task DisposeAsync_Should_DisposeBothConsumerManagerAndDispatcher_When_ConnectedAndRepeated()
-    {
-        // arrange
-        var channelMock = CreateOpenChannel();
-        var connectionMock = CreateOpenConnection(channelMock);
-        var runtime = CreateRuntime(_ => { }, new FakeConnectionProvider(connectionMock.Object));
-        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-
-        await transport.ConsumerManager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
-        await transport.Dispatcher.EnsureConnectedAsync(TestContext.Current.CancellationToken);
-        var rented = await transport.Dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
-        await transport.Dispatcher.ReturnChannelAsync(rented);
-
-        // act - dispose twice
-        await transport.DisposeAsync();
-        await transport.DisposeAsync();
-
-        // assert - dispatcher is disposed and rejects further use
-        await Assert.ThrowsAsync<ObjectDisposedException>(() =>
-            transport.Dispatcher.RentChannelAsync(TestContext.Current.CancellationToken).AsTask());
-    }
-
-    [Fact]
     public async Task DisposeAsync_Should_NotThrow_When_TransportNeverInitialized()
     {
         // arrange

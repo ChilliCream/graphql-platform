@@ -349,3 +349,61 @@ file static class Extensions
         return sb.ToString();
     }
 }
+
+internal static partial class Logs
+{
+    [LoggerMessage(LogLevel.Information, "Connection closed by application")]
+    public static partial void ConnectionClosedByApplication(this ILogger logger);
+
+    [LoggerMessage(LogLevel.Error, "Connection recovery failed. Will retry. Error: {ErrorMessage}")]
+    public static partial void ConnectionRecoveryFailedWillRetry(
+        this ILogger logger,
+        Exception? exception,
+        string? errorMessage);
+
+    [LoggerMessage(LogLevel.Information, "Connection recovery succeeded")]
+    public static partial void ConnectionRecoverySucceeded(this ILogger logger);
+
+    [LoggerMessage(LogLevel.Warning, "Connection shutdown detected. Initiator: {Initiator}, Reason: {Reason}")]
+    public static partial void ConnectionShutdownDetected(
+        this ILogger logger,
+        ShutdownInitiator initiator,
+        string reason);
+
+    [LoggerMessage(LogLevel.Information, "Creating RabbitMQ connection using factory delegate")]
+    public static partial void CreatingConnectionUsingFactoryDelegate(this ILogger logger);
+
+    [LoggerMessage(LogLevel.Error, "Error disposing connection")]
+    public static partial void ErrorDisposingConnection(this ILogger logger, Exception ex);
+
+    [LoggerMessage(LogLevel.Error, "Error during post-recovery operations")]
+    public static partial void ErrorDuringPostRecoveryOperations(this ILogger logger, Exception ex);
+
+    [LoggerMessage(LogLevel.Error, "Exception in connection callback. Detail: {Detail}")]
+    public static partial void ExceptionInConnectionCallback(this ILogger logger, Exception ex, string detail);
+
+    [LoggerMessage(LogLevel.Error, "Failed to create connection after {Attempts} attempts")]
+    public static partial void FailedToCreateConnectionAfterAttempts(this ILogger logger, Exception ex, int attempts);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Failed to create connection (attempt {Attempt}/{MaxAttempts}). Retrying in {Delay}")]
+    public static partial void FailedToCreateConnectionRetrying(
+        this ILogger logger,
+        Exception ex,
+        int attempt,
+        int maxAttempts,
+        TimeSpan delay);
+
+    [LoggerMessage(LogLevel.Warning, "Connection blocked: {Reason}")]
+    public static partial void LegacyConnectionBlocked(this ILogger logger, string reason);
+
+    [LoggerMessage(LogLevel.Information, "Connection unblocked")]
+    public static partial void LegacyConnectionUnblocked(this ILogger logger);
+
+    [LoggerMessage(LogLevel.Information, "Successfully created connection: {ConnectionName}")]
+    public static partial void SuccessfullyCreatedConnection(this ILogger logger, string? connectionName);
+
+    [LoggerMessage(LogLevel.Information, "Successfully recovered connection, topology, and consumers")]
+    public static partial void SuccessfullyRecoveredConnectionTopologyAndConsumers(this ILogger logger);
+}
