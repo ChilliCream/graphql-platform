@@ -1,0 +1,61 @@
+operation:
+  - document: |
+      {
+        reviews {
+          product {
+            price
+            id @fusion__requirement
+          }
+        }
+        tenantSettings @fusion__requirement {
+          currency @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        reviews {
+          product {
+            id
+          }
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_3($__fusion_2_currency: String!, $__fusion_3_id: ID!) {
+        productById(id: $__fusion_3_id) {
+          price(currency: $__fusion_2_currency)
+        }
+      }
+    source: $.productById
+    target: $.reviews.product
+    requirements:
+      - name: __fusion_2_currency
+        selectionMap: >-
+          $tenant.tenantSettings.currency
+        contextRoots:
+          - name: tenant
+            path: $
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 4
+  - id: 4
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_4 {
+        tenantSettings {
+          currency
+        }
+      }
