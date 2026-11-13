@@ -48,11 +48,11 @@ internal sealed class LoginCommand : Command
             url,
             (loginUrl, browserOpened) =>
             {
+                var escapedUrl = loginUrl.EscapeMarkup();
                 console.MarkupLine(
                     browserOpened
-                        ? "Continue the login in your browser. If it does not open, use this URL:"
-                        : $"{Glyphs.ExclamationMark.Space()}Could not open a browser. Use this URL to log in:");
-                console.MarkupLine($"  {loginUrl.EscapeMarkup()}");
+                        ? $"Continue the login in your browser. If it does not open, use this URL: {escapedUrl}"
+                        : $"{Glyphs.ExclamationMark.Space()}Could not open a browser. Use this URL to log in: {escapedUrl}");
             },
             cancellationToken);
 
