@@ -852,6 +852,109 @@ public sealed class SatisfiabilityContextTests
     }
 
     [Fact]
+    public void Compose_Should_Succeed_When_TheContextTypeIsReachedAgainThroughACycle()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    transactionById(id: ID!): Transaction @lookup @internal
+                    userById(id: ID!): User @lookup @internal
+                }
+
+                type User @context(name: "userContext") @key(fields: "id") {
+                    id: ID!
+                    userCurrency: Currency!
+                    friends: [User!]!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    owner: User!
+                    amount(
+                        currency: String! @require(field: "$userContext.userCurrency.isoCode")
+                    ): Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_TheContextTypeIsReachedAgainThroughACycleAcrossSchemas()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                }
+
+                type User @context(name: "userContext") @key(fields: "id") {
+                    id: ID!
+                    userCurrency: Currency!
+                    friends: [User!]!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    owner: User!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    transactionById(id: ID!): Transaction @lookup @internal
+                    userById(id: ID!): User @lookup @internal
+                }
+
+                type User @context(name: "userContext") @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(
+                        currency: String! @require(field: "$userContext.userCurrency.isoCode")
+                    ): Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.Empty(log);
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
     public void Compose_Should_LogUnsatisfiableQueryPath_When_TheAlternativeOfTheValueTypeCannotBeResolved()
     {
         // arrange

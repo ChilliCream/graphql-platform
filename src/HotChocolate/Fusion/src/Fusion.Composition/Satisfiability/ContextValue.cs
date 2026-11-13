@@ -10,7 +10,8 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// The schema that holds the value, or <c>null</c> if the value is an operation root.
 /// </param>
 /// <param name="Key">
-/// The visit key of the value, or <c>null</c> if the scope was created from an access path.
+/// The visit key of the value without its context scope, or <c>null</c> if the scope was created
+/// from an access path.
 /// </param>
 internal sealed record ContextValue(
     MutableObjectTypeDefinition ObjectType,
