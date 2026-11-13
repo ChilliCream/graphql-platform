@@ -29,6 +29,8 @@ public sealed class DefaultMessageBus(
     private readonly DeferredResponseManager _deferredResponseManager =
         runtime.Services.GetRequiredService<DeferredResponseManager>();
 
+    private readonly TimeProvider _timeProvider = runtime.Services.GetTimeProvider();
+
     /// <summary>
     /// Publishes a message to all subscribed consumers using default publish options.
     /// </summary>
@@ -265,7 +267,7 @@ public sealed class DefaultMessageBus(
 
         var headers = options.Headers;
 
-        using var timeoutSource = _deferredResponseManager.CreateRequestTimeout();
+        using var timeoutSource = new CancellationTokenSource(_deferredResponseManager.DefaultTimeout, _timeProvider);
         var timeoutToken = timeoutSource.Token;
         var waitHandle = _deferredResponseManager.AddPromise(correlationId, timeoutToken);
         using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutToken);
@@ -292,7 +294,7 @@ public sealed class DefaultMessageBus(
             catch (OperationCanceledException)
                 when (timeoutToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
             {
-                await waitHandle.Task;
+                // The timeout completed the response promise, and the wait below reports its outcome.
             }
             finally
             {
@@ -308,7 +310,16 @@ public sealed class DefaultMessageBus(
         }
         finally
         {
-            await _deferredResponseManager.ReleasePromiseAsync(correlationId, waitHandle.Task);
+            _deferredResponseManager.ReleasePromise(correlationId);
+
+            try
+            {
+                await waitHandle.Task;
+            }
+            catch
+            {
+                // The request has already reported its response or dispatch failure.
+            }
         }
     }
 
