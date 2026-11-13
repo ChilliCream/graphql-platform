@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
@@ -19,7 +20,8 @@ namespace Mocha;
 internal sealed class ReceiveRedeliveryMiddleware(
     ImmutableArray<ExceptionPolicyRule> exceptionPolicyRules,
     TimeProvider timeProvider,
-    IMessagingPools pools)
+    IMessagingPools pools,
+    ILogger<ReceiveRedeliveryMiddleware> logger)
 {
     public async ValueTask InvokeAsync(IReceiveContext context, ReceiveDelegate next)
     {
@@ -48,12 +50,19 @@ internal sealed class ReceiveRedeliveryMiddleware(
             switch (decision.Action)
             {
                 case RedeliveryAction.Discard:
+                    logger.MessageDiscarded(ex, context.MessageId);
                     context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
                     return;
 
                 case RedeliveryAction.Redeliver:
                     var scheduledTime = timeProvider.GetUtcNow().Add(decision.Delay);
-                    await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
+                    logger.RedeliveringMessage(ex, context.MessageId, delayedRetryCount + 1, decision.Delay);
+                    var isScheduled = await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
+                    logger.MessageRedelivered(
+                        context.MessageId,
+                        delayedRetryCount + 1,
+                        isScheduled ? scheduledTime : null);
+
                     context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
                     return;
 
@@ -63,7 +72,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
         }
     }
 
-    private async ValueTask DispatchRedeliveryAsync(
+    private async ValueTask<bool> DispatchRedeliveryAsync(
         IReceiveContext context,
         int delayedRetryCount,
         DateTimeOffset scheduledTime)
@@ -99,7 +108,8 @@ internal sealed class ReceiveRedeliveryMiddleware(
 
             var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
 
-            if (resolver.CanSchedule(dispatchContext))
+            var isScheduled = resolver.CanSchedule(dispatchContext);
+            if (isScheduled)
             {
                 dispatchContext.ScheduledTime = scheduledTime;
             }
@@ -110,6 +120,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             }
 
             await dispatchEndpoint.ExecuteAsync(dispatchContext);
+            return isScheduled;
         }
         finally
         {
@@ -133,7 +144,11 @@ internal sealed class ReceiveRedeliveryMiddleware(
                 var timeProvider = context.Services.GetRequiredService<TimeProvider>();
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
 
-                var middleware = new ReceiveRedeliveryMiddleware(feature.Rules.ToImmutableArray(), timeProvider, pools);
+                var middleware = new ReceiveRedeliveryMiddleware(
+                    feature.Rules.ToImmutableArray(),
+                    timeProvider,
+                    pools,
+                    context.Services.GetRequiredService<ILogger<ReceiveRedeliveryMiddleware>>());
 
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
