@@ -291,7 +291,7 @@ file static class Extensions
         {
             var prompt = new MultiSelectionPrompt<string>()
                 .AddChoices(conditions)
-                .Title($"Select the stages before {selectedStage.Name}")
+                .Title($"Select the stages before {selectedStage.Name}".AsQuestion())
                 .NotRequired();
 
             foreach (var condition in selectedStage.AfterStages)
@@ -317,7 +317,7 @@ file static class Extensions
         IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
     {
-        console.MarkupLine("Do you want to save the following changes?");
+        console.MarkupLine("Do you want to save the following changes?".AsQuestion());
         var resultTable = new Table().AddColumn("Name").AddColumn("DisplayName").AddColumn("After");
 
         foreach (var stage in updatedStages)

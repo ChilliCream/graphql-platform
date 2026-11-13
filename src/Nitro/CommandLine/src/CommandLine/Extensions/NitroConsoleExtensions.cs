@@ -42,7 +42,7 @@ internal static class NitroConsoleExtensions
                 "Attempted to prompt the user for input, but the console is running in non-interactive mode.");
         }
 
-        var prompt = new TextPrompt<string>(question);
+        var prompt = new TextPrompt<string>(question.AsQuestion());
 
         if (defaultValue is not null)
         {
@@ -66,7 +66,7 @@ internal static class NitroConsoleExtensions
         }
 
         var prompt = new SelectionPrompt<T>()
-            .Title(question)
+            .Title(question.AsQuestion())
             .AddChoices(items);
 
         return await prompt.ShowAsync(console, cancellationToken);
@@ -112,7 +112,7 @@ internal static class NitroConsoleExtensions
                 "Attempted to prompt the user for confirmation, but the console is running in non-interactive mode.");
         }
 
-        var prompt = new ConfirmationPrompt(question)
+        var prompt = new ConfirmationPrompt(question.AsQuestion())
         {
             DefaultValue = defaultValue
         };
@@ -186,7 +186,7 @@ internal static class NitroConsoleExtensions
         string defaultValue,
         CancellationToken cancellationToken)
     {
-        var prompt = new TextPrompt<string>(question).DefaultValue(defaultValue);
+        var prompt = new TextPrompt<string>(question.AsQuestion()).DefaultValue(defaultValue);
         return await prompt.ShowAsync(console, cancellationToken);
     }
 }

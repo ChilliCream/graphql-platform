@@ -85,7 +85,7 @@ internal sealed class LoginCommand : Command
         var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
         var selected = await PagedSelectionPrompt
             .New(paginationContainer)
-            .Title(Prompts.SelectDefaultWorkspace)
+            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
             .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
 

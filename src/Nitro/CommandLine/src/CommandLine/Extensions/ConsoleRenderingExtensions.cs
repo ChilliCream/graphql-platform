@@ -48,4 +48,9 @@ internal static class ConsoleRenderingExtensions
     {
         return value ? Glyphs.Check : Glyphs.Cross;
     }
+
+    public static string AsQuestion(this string str)
+    {
+        return $"{Glyphs.QuestionMark} {str}";
+    }
 }

@@ -61,7 +61,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         var selected = await PagedSelectionPrompt
             .New(paginationContainer)
-            .Title(Prompts.SelectDefaultWorkspace)
+            .Title(Prompts.SelectDefaultWorkspace.AsQuestion())
             .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
 
