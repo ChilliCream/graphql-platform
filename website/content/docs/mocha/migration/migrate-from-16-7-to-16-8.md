@@ -73,6 +73,17 @@ What to do:
 - For a subscriber queue that must not miss events, use `x-overflow: drop-head` or a dead-letter exchange instead of `reject-publish`. A queue with `reject-publish` suits a queue that receives sent messages, where the sender waits until the queue has room.
 - Through the Postgres outbox, a sent message that its queue keeps rejecting is released without counting an attempt. The other three outcomes count as attempts. For a rejected event, every attempt delivers the event once more to the queues that accepted it. See [The Postgres outbox no longer counts an unavailable transport as an attempt](#the-postgres-outbox-no-longer-counts-an-unavailable-transport-as-an-attempt).
 
+## A message for a RabbitMQ queue that does not exist is returned
+
+This entry applies to messages whose destination is a queue address, such as `queue:orders`, and to messages that Mocha moves to an error or skipped queue. RabbitMQ now returns such a message when the queue does not exist. In 16.7 RabbitMQ dropped the message and the call completed.
+
+- With auto-provisioning enabled for the queue, Mocha declares the queue and its bindings again and sends the message once more. The log shows `MessageReturned` (Warning) and `QueueRedeclared` (Information). A queue that is deleted while a sending application runs is created again by the next send.
+- With auto-provisioning disabled for the queue, for an exclusive queue, or when the queue is still missing after it was declared, the call throws `InvalidOperationException` with the text `The broker returned the message because no queue named '<queue>' exists.`
+
+Messages for an exchange and replies are not returned. RabbitMQ drops a message for an exchange that no binding matches, and a reply whose requester has stopped, as in 16.7.
+
+See [Missing queues and bindings](../transports/rabbitmq.md#missing-queues-and-bindings).
+
 ## A failed RabbitMQ message is acknowledged only after it was moved
 
 When a handler fails, Mocha sends a fault to the requester or moves the message to the error queue of its endpoint. This send now waits for the broker's confirmation. In 16.7 the received message was acknowledged as soon as the fault or the moved message was written to the connection.

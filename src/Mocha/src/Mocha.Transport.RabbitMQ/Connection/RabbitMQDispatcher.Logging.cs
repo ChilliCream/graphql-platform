@@ -73,4 +73,20 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Debug, "RabbitMQ {ConnectionRole} connection opened publisher channel {ChannelNumber}")]
     public static partial void PublisherChannelOpened(this ILogger logger, string connectionRole, int channelNumber);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "RabbitMQ publish of {MessageId} returned: queue {Queue} does not exist; declaring it again")]
+    public static partial void MessageReturned(
+        this ILogger logger,
+        string? messageId,
+        string queue);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "RabbitMQ queue {Queue} declared again with its bindings; publishing {MessageId} again")]
+    public static partial void QueueRedeclared(
+        this ILogger logger,
+        string queue,
+        string? messageId);
 }

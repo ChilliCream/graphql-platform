@@ -245,6 +245,24 @@ internal sealed partial class RabbitMQDispatcher
         }
     }
 
+    public void LogMessageReturned(IDispatchContext context, string queueName)
+    {
+        using (_connection.BeginLogScope())
+        using (_logger.BeginMessageScope(context))
+        {
+            _logger.MessageReturned(context.Envelope?.MessageId, queueName);
+        }
+    }
+
+    public void LogQueueRedeclared(IDispatchContext context, string queueName)
+    {
+        using (_connection.BeginLogScope())
+        using (_logger.BeginMessageScope(context))
+        {
+            _logger.QueueRedeclared(queueName, context.Envelope?.MessageId);
+        }
+    }
+
     private void LogPublisherChannelOpened(IChannel channel)
     {
         if (!_logger.IsEnabled(LogLevel.Debug))
