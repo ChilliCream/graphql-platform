@@ -765,7 +765,7 @@ ls Gateway/gateway.far
 
 ## Configure the Gateway
 
-The template generates `Gateway/Program.cs`. For this tutorial, enable operation-plan telemetry so Nitro can show execution metrics in the Operation Plan view:
+The template generates `Gateway/Program.cs`. For this tutorial, enable operation-plan telemetry so Nitro can show execution metrics in the Operation Plan view, and turn off cost limit enforcement:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -776,7 +776,8 @@ builder.Services
 builder
     .AddGraphQLGateway()
     .AddFileSystemConfiguration("./gateway.far")
-    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
+    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
+    .ModifyCostOptions(o => o.EnforceCostLimits = false);
 
 var app = builder.Build();
 
@@ -784,12 +785,13 @@ app.MapGraphQL();
 app.Run();
 ```
 
-Three things to notice:
+Things to notice:
 
 - **`#!csharp AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The gateway uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
 - **`AddGraphQLGateway()`** registers the Fusion gateway services. This is what makes this project a gateway rather than a regular GraphQL server.
 - **`#!csharp AddFileSystemConfiguration("./gateway.far")`** tells the gateway to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
 - **`#!csharp ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enables operation-plan telemetry. This is off by default.
+- **`#!csharp ModifyCostOptions(o => o.EnforceCostLimits = false)`** turns off cost limit enforcement. The gateway rejects any request whose estimated cost exceeds the limit. The list fields in this tutorial (`products` and `reviews`) have no pagination, so the gateway can't bound their size, estimates their cost as infinite, and rejects every query that selects them. Keep enforcement on in production and add pagination to your list fields instead.
 
 ## Start Everything
 
