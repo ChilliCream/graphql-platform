@@ -183,7 +183,7 @@ internal static class NitroConsoleExtensions
     public static void OkQuestion(this INitroConsole console, string question, string result)
     {
         console.MarkupLine(
-            $"{Glyphs.QuestionMark.Space()}[bold]{question}[/]: [darkseagreen4]{result}[/]");
+            $"{Glyphs.QuestionMark.Space()}[bold]{question}[/]: [green]{result}[/]");
     }
 
     public static async Task<string> AskAsync(
