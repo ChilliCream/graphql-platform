@@ -208,6 +208,12 @@ What you will observe:
 
 The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).
 
+## RabbitMQ requests wait for the reply consumer
+
+A request is sent only while the reply queue of the service instance exists and its consumer is attached. While the reply consumer attaches again, for example after a connection loss, `RequestAsync` waits. The wait counts towards the response timeout and towards `PublishTimeout`.
+
+A request that is sent before the transport has started or after it has stopped throws `InvalidOperationException` with the text `The RabbitMQ reply endpoint is not started.` Send requests only while the host runs.
+
 ## RabbitMQ startup retries for up to two minutes
 
 When RabbitMQ cannot be reached at startup, the transport retries with delays of about 1 to 10 seconds until `StartTimeout` elapses, two minutes by default. Then the start fails. In 16.7 the start failed after five attempts, which took about 15 seconds plus the time of the attempts.

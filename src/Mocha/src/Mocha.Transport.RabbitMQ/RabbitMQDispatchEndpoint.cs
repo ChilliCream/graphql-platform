@@ -62,7 +62,7 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             {
                 try
                 {
-                    var lease = await PrepareChannelAsync(cancellationToken);
+                    var lease = await PrepareChannelAsync(envelope, cancellationToken);
 
                     // The attempt writes the message from here on. A failure before this point means that
                     // the broker did not receive it.
@@ -123,9 +123,18 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
     /// Leases a channel for one attempt of a publish, and declares the destination of the endpoint when
     /// that is still to do. Nothing of the message is written to the broker.
     /// </summary>
-    private async ValueTask<PublisherLease> PrepareChannelAsync(CancellationToken cancellationToken)
+    private async ValueTask<PublisherLease> PrepareChannelAsync(
+        MessageEnvelope envelope,
+        CancellationToken cancellationToken)
     {
         var dispatcher = transport.Dispatcher;
+
+        // A request is published once its reply queue exists and is consumed, so the reply cannot be dropped.
+        if (transport.ReplyReceiveEndpoint is RabbitMQReceiveEndpoint replyEndpoint
+            && envelope.ResponseAddress == replyEndpoint.Source.Address.ToString())
+        {
+            await replyEndpoint.WaitUntilAttachedAsync(cancellationToken);
+        }
 
         var lease = await dispatcher.RentChannelAsync(cancellationToken);
         try
