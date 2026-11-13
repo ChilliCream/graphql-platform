@@ -36,7 +36,7 @@ public sealed class ProductType : ObjectType<Product>
         => ProductData.Products.FirstOrDefault(
             product => string.Equals(product.Id, id, StringComparison.Ordinal));
 
-    // Resolving a field for a product of another kind means the gateway overfetched.
+    // Throws when the field is resolved for a product of another kind.
     private static string? ResolveFor(IResolverContext context, string kind)
     {
         var product = context.Parent<Product>();

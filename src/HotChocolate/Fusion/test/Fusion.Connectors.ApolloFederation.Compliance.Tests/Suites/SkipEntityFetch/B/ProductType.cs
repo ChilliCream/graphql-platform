@@ -17,7 +17,7 @@ public sealed class ProductType : ObjectType<Product>
         descriptor.Field(p => p.Inventory).Type<ProductInventoryType>();
     }
 
-    // A fetch whose selections are all skipped is one the gateway should never have made.
+    // Throws when no field other than __typename remains selected after applying skip and include.
     private static Product? ResolveReference(string id, IResolverContext context)
     {
         if (!EntitySelection.SelectsAnyField(context))
