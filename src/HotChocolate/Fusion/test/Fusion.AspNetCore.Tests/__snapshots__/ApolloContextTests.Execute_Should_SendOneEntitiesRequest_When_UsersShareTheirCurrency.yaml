@@ -1,0 +1,278 @@
+title: Execute_Should_SendOneEntitiesRequest_When_UsersShareTheirCurrency
+request:
+  document: |
+    {
+      dollarUsers {
+        transactions {
+          id
+          amountInUserCurrency
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "dollarUsers": [
+          {
+            "transactions": [
+              {
+                "id": "1",
+                "amountInUserCurrency": 100
+              },
+              {
+                "id": "2",
+                "amountInUserCurrency": 200
+              }
+            ]
+          },
+          {
+            "transactions": [
+              {
+                "id": "5",
+                "amountInUserCurrency": 500
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: billing
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@key", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+        dollarUsers: [User!]!
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Currency {
+        isoCode: String!
+      }
+
+      type Invoice @key(fields: "id") @key(fields: "id") {
+        totalInUserCurrency(
+          currencyCode: String @fromContext(field: "$userContext { userCurrency { isoCode } }")
+        ): Float!
+        id: ID!
+      }
+
+      type Transaction @key(fields: "id") @key(fields: "id") {
+        amountInUserCurrency(
+          currencyCode: String @fromContext(field: "$userContext { userCurrency { isoCode } }")
+        ): Float!
+        id: ID!
+      }
+
+      type User @key(fields: "id") @context(name: "userContext") @key(fields: "id") {
+        transactions: [Transaction!]!
+        invoices: [Invoice!]!
+        id: ID!
+        userCurrency: Currency!
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = User | Transaction | Invoice
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      directive @fromContext(field: String!) on ARGUMENT_DEFINITION
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a38ce816_1 {
+              dollarUsers {
+                transactions {
+                  id
+                }
+                userCurrency {
+                  isoCode
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "dollarUsers": [
+                    {
+                      "transactions": [
+                        {
+                          "id": "1"
+                        },
+                        {
+                          "id": "2"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "USD"
+                      }
+                    },
+                    {
+                      "transactions": [
+                        {
+                          "id": "5"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "USD"
+                      }
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!, $__fusion_1_currencyCode: String) {
+              _entities(representations: $representations) {
+                ... on Transaction {
+                  amountInUserCurrency(currencyCode: $__fusion_1_currencyCode)
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "Transaction",
+                  "id": "1"
+                },
+                {
+                  "__typename": "Transaction",
+                  "id": "2"
+                },
+                {
+                  "__typename": "Transaction",
+                  "id": "5"
+                }
+              ],
+              "__fusion_1_currencyCode": "USD"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "amountInUserCurrency": 100
+                    },
+                    {
+                      "amountInUserCurrency": 200
+                    },
+                    {
+                      "amountInUserCurrency": 500
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          dollarUsers {
+            transactions {
+              id
+              id @fusion__requirement
+              amountInUserCurrency
+            }
+            userCurrency @fusion__requirement {
+              isoCode @fusion__requirement
+            }
+          }
+        }
+      hash: 3500c63c02abccc74849d9abc855641b
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: billing
+      operation: |
+        query Op_a38ce816_1 {
+          dollarUsers {
+            transactions {
+              id
+            }
+            userCurrency {
+              isoCode
+            }
+          }
+        }
+    - id: 2
+      type: ApolloOperation
+      schema: billing
+      operation: |
+        query($representations: [_Any!]!, $__fusion_1_currencyCode: String) {
+          _entities(representations: $representations) {
+            ... on Transaction {
+              amountInUserCurrency(currencyCode: $__fusion_1_currencyCode)
+            }
+          }
+        }
+      source: $._entities
+      target: $.dollarUsers.transactions
+      requirements:
+        - name: __fusion_1_currencyCode
+          selectionMap: >-
+            $userContext.userCurrency.isoCode
+          contextRoots:
+            - name: userContext
+              path: $.dollarUsers
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -19,6 +19,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
+    private readonly bool _hasContextRequirements;
     private readonly ApolloEntityLookup _lookup;
     private readonly string _schemaName;
     private readonly SelectionPath _target;
@@ -65,6 +66,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         _resultSelectionSet = resultSelectionSet;
         _conditions = conditions;
         _requiresFileUpload = requiresFileUpload;
+        _hasContextRequirements = HasContextRequirements(requirements);
     }
 
     internal static ApolloOperationExecutionNode CreateFromLookup(
@@ -192,7 +194,11 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var diagnosticEvents = context.DiagnosticEvents;
+        if (_hasContextRequirements)
+        {
+            return await ExecuteContextGroupsAsync(context, cancellationToken).ConfigureAwait(false);
+        }
+
         var reusedCount = 0;
         var representation = context.GetEntityReuseCandidates(Id) is { } candidates
             ? context.CreateRepresentationVariableValue(
@@ -216,15 +222,106 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
-        var variables = representation.ToVariableValues();
-        var schemaName = _schemaName;
-
         // The combined representations object must be the request's single
         // variable set so the request is routed as a single operation. The
         // per-entity variable value sets are only used for error attribution.
+        context.TrackVariableValueSets(
+            this,
+            [new VariableValues(CompactPath.Root, representation.Value)]);
+
+        return await ExecuteRepresentationAsync(context, representation, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends one <c>_entities</c> request per group of entities that share their context
+    /// values, and merges the result of each group into the paths of its entities.
+    /// </summary>
+    private async ValueTask<ExecutionStatus> ExecuteContextGroupsAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken)
+    {
+        // Entity reuse does not apply to requirements that read from contexts.
+        var representations = context.CreateRepresentationVariableValues(
+            [_target],
+            _forwardedVariables,
+            _requirements,
+            _lookup.RepresentationShape,
+            _lookup.EntityTypeName);
+
+        if (representations.IsEmpty)
+        {
+            return ExecutionStatus.Skipped;
+        }
+
+        var requestVariables = new VariableValues[representations.Length];
+
+        for (var i = 0; i < requestVariables.Length; i++)
+        {
+            requestVariables[i] = new VariableValues(CompactPath.Root, representations[i].Value);
+        }
+
+        context.TrackVariableValueSets(this, ImmutableCollectionsMarshal.AsImmutableArray(requestVariables));
+
+        var statuses = new ExecutionStatus[representations.Length];
+
+        for (var i = 0; i < statuses.Length; i++)
+        {
+            statuses[i] = await ExecuteRepresentationAsync(context, representations[i], cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        return AggregateStatus(statuses);
+    }
+
+    internal static ExecutionStatus AggregateStatus(ExecutionStatus[] statuses)
+    {
+        var failed = 0;
+        var partial = false;
+
+        foreach (var status in statuses)
+        {
+            if (status is ExecutionStatus.Failed)
+            {
+                failed++;
+            }
+            else if (status is ExecutionStatus.PartialSuccess)
+            {
+                partial = true;
+            }
+        }
+
+        if (failed == statuses.Length)
+        {
+            return ExecutionStatus.Failed;
+        }
+
+        return failed > 0 || partial ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
+    }
+
+    private static bool HasContextRequirements(OperationRequirement[] requirements)
+    {
+        foreach (var requirement in requirements)
+        {
+            if (!requirement.ContextRoots.IsDefaultOrEmpty)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async ValueTask<ExecutionStatus> ExecuteRepresentationAsync(
+        OperationPlanContext context,
+        RepresentationValue representation,
+        CancellationToken cancellationToken)
+    {
+        var diagnosticEvents = context.DiagnosticEvents;
+        var variables = representation.ToVariableValues();
+        var schemaName = _schemaName;
         var requestVariables = ImmutableArray.Create(
             new VariableValues(CompactPath.Root, representation.Value));
-        context.TrackVariableValueSets(this, requestVariables);
 
         var request = new SourceSchemaClientRequest
         {

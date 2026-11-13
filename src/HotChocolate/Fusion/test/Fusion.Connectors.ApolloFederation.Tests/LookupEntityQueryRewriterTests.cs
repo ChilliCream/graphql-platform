@@ -183,6 +183,137 @@ public class LookupEntityQueryRewriterTests
         }
         """;
 
+    private const string BillingSchema =
+        """
+        # name: billing
+        schema {
+          query: Query
+        }
+
+        type Query {
+          me: User
+          transactionById(id: ID! @is(field: "id")): Transaction @lookup @internal
+        }
+
+        type User @key(fields: "id") @context(name: "userContext") {
+          id: ID!
+          userCurrency: Currency!
+          transactions: [Transaction!]!
+        }
+
+        type Currency {
+          isoCode: String!
+        }
+
+        type Transaction @key(fields: "id") {
+          id: ID!
+          amountInUserCurrency(
+            currencyCode: String @require(field: "$userContext.userCurrency.isoCode")): Float!
+        }
+        """;
+
+    [Fact]
+    public void Rewrite_Should_RetainArgumentAndDeclareVariable_When_RequirementReadsContext()
+    {
+        // arrange
+        var schema = ComposeSchema(BillingSchema);
+        var operation = CreateOperation(
+            """
+            query($__fusion_1_id: ID!, $__fusion_2_currencyCode: String) {
+              transactionById(id: $__fusion_1_id) {
+                amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+              }
+            }
+            """);
+
+        // act
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "billing", operation);
+
+        // assert
+        Assert.Equal("Transaction", rewritten.EntityTypeName);
+        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+            "query($representations: [_Any!]!, $__fusion_2_currencyCode: String) "
+            + "{ _entities(representations: $representations) "
+            + "{ ... on Transaction { amountInUserCurrency(currencyCode: $__fusion_2_currencyCode) } } }");
+    }
+
+    [Fact]
+    public void Build_Should_LeaveContextRequirementOutOfTheShape_When_RequirementReadsContext()
+    {
+        // arrange
+        var schema = ComposeSchema(BillingSchema);
+        var operation = CreateOperation(
+            """
+            query($__fusion_1_id: ID!, $__fusion_2_currencyCode: String) {
+              transactionById(id: $__fusion_1_id) {
+                amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+              }
+            }
+            """);
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "billing", operation);
+        var requirements = new[]
+        {
+            CreateRequirement(schema, "__fusion_1_id", new FieldSelectionMapParser("id").Parse()),
+            CreateRequirement(
+                schema,
+                "__fusion_2_currencyCode",
+                GetRequireMap(schema, "billing", "Transaction", "amountInUserCurrency", "currencyCode"),
+                [new RequirementContextRoot("userContext", SelectionPath.Root.AppendField("me"), [])])
+        };
+
+        // act
+        var shape = RepresentationShapeBuilder.Build(
+            rewritten.LookupField,
+            requirements,
+            schema,
+            rewritten.EntityTypeName);
+
+        // assert
+        RenderShape(shape).ToString(indented: true).MatchInlineSnapshot(
+            """
+            {
+              id
+            }
+            """);
+    }
+
+    [Fact]
+    public void Build_Should_LeaveContextRequirementOutOfTheShape_When_RequirementIsOutsideTheTarget()
+    {
+        // arrange
+        var schema = ComposeSchema(BillingSchema);
+        var operation = CreateOperation(
+            """
+            query($__fusion_1_id: ID!, $__fusion_2_currencyCode: String) {
+              transactionById(id: $__fusion_1_id) {
+                amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+              }
+            }
+            """);
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "billing", operation);
+        var target = SelectionPath.Root.AppendField("me").AppendField("transactions");
+        var requirements = new[]
+        {
+            CreateRequirement(
+                schema,
+                "__fusion_2_currencyCode",
+                GetRequireMap(schema, "billing", "Transaction", "amountInUserCurrency", "currencyCode"),
+                [new RequirementContextRoot("userContext", SelectionPath.Root.AppendField("me"), [])])
+        };
+
+        // act
+        var shape = RepresentationShapeBuilder.Build(
+            rewritten.SourceText,
+            rewritten.EntityTypeName,
+            target,
+            requirements,
+            ResultSelectionSet.Create(new SelectionSetNode([])),
+            schema);
+
+        // assert
+        Assert.Empty(shape);
+    }
+
     [Fact]
     public void Rewrite_Should_CreateCompactText_When_LookupIsRewritten()
     {
@@ -524,12 +655,19 @@ public class LookupEntityQueryRewriterTests
         FusionSchemaDefinition schema,
         string key,
         IValueSelectionNode map)
+        => CreateRequirement(schema, key, map, []);
+
+    private static OperationRequirement CreateRequirement(
+        FusionSchemaDefinition schema,
+        string key,
+        IValueSelectionNode map,
+        ImmutableArray<RequirementContextRoot> contextRoots)
         => new(
             key,
             new NamedTypeNode("String"),
             SelectionPath.Root,
             map,
-            []);
+            contextRoots);
 
     private static IValueSelectionNode GetRequireMap(
         FusionSchemaDefinition schema,

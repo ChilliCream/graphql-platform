@@ -1,0 +1,500 @@
+title: Execute_Should_DeliverAmountOfOwnUser_When_TheContextRootIsTheAnchorOfTheDeferredFragment
+request:
+  document: |
+    {
+      users {
+        ... @defer {
+          transactions {
+            id
+            amountInUserCurrency
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "users": [
+          {},
+          {},
+          {}
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "transactions": [
+            {
+              "amountInUserCurrency": 100,
+              "id": "1"
+            },
+            {
+              "amountInUserCurrency": 200,
+              "id": "2"
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "transactions": [
+            {
+              "amountInUserCurrency": 600,
+              "id": "3"
+            },
+            {
+              "amountInUserCurrency": 800,
+              "id": "4"
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "transactions": [
+            {
+              "amountInUserCurrency": 500,
+              "id": "5"
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "users": [
+          {
+            "transactions": [
+              {
+                "amountInUserCurrency": 100,
+                "id": "1"
+              },
+              {
+                "amountInUserCurrency": 200,
+                "id": "2"
+              }
+            ]
+          },
+          {
+            "transactions": [
+              {
+                "amountInUserCurrency": 600,
+                "id": "3"
+              },
+              {
+                "amountInUserCurrency": 800,
+                "id": "4"
+              }
+            ]
+          },
+          {
+            "transactions": [
+              {
+                "amountInUserCurrency": 500,
+                "id": "5"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: billing
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@key", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+        dollarUsers: [User!]!
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Currency {
+        isoCode: String!
+      }
+
+      type Invoice @key(fields: "id") @key(fields: "id") {
+        totalInUserCurrency(
+          currencyCode: String @fromContext(field: "$userContext { userCurrency { isoCode } }")
+        ): Float!
+        id: ID!
+      }
+
+      type Transaction @key(fields: "id") @key(fields: "id") {
+        amountInUserCurrency(
+          currencyCode: String @fromContext(field: "$userContext { userCurrency { isoCode } }")
+        ): Float!
+        id: ID!
+      }
+
+      type User @key(fields: "id") @context(name: "userContext") @key(fields: "id") {
+        transactions: [Transaction!]!
+        invoices: [Invoice!]!
+        id: ID!
+        userCurrency: Currency!
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = User | Transaction | Invoice
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      directive @fromContext(field: String!) on ARGUMENT_DEFINITION
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_03c4a779_1 {
+              users {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "1"
+                    },
+                    {
+                      "id": "2"
+                    },
+                    {
+                      "id": "3"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on User {
+                  transactions {
+                    id
+                  }
+                  userCurrency {
+                    isoCode
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "User",
+                  "id": "1"
+                },
+                {
+                  "__typename": "User",
+                  "id": "2"
+                },
+                {
+                  "__typename": "User",
+                  "id": "3"
+                }
+              ]
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "transactions": [
+                        {
+                          "id": "1"
+                        },
+                        {
+                          "id": "2"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "USD"
+                      }
+                    },
+                    {
+                      "transactions": [
+                        {
+                          "id": "3"
+                        },
+                        {
+                          "id": "4"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "EUR"
+                      }
+                    },
+                    {
+                      "transactions": [
+                        {
+                          "id": "5"
+                        }
+                      ],
+                      "userCurrency": {
+                        "isoCode": "USD"
+                      }
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
+              _entities(representations: $representations) {
+                ... on Transaction {
+                  amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "Transaction",
+                  "id": "1"
+                },
+                {
+                  "__typename": "Transaction",
+                  "id": "2"
+                },
+                {
+                  "__typename": "Transaction",
+                  "id": "5"
+                }
+              ],
+              "__fusion_2_currencyCode": "USD"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "amountInUserCurrency": 100
+                    },
+                    {
+                      "amountInUserCurrency": 200
+                    },
+                    {
+                      "amountInUserCurrency": 500
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
+              _entities(representations: $representations) {
+                ... on Transaction {
+                  amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "Transaction",
+                  "id": "3"
+                },
+                {
+                  "__typename": "Transaction",
+                  "id": "4"
+                }
+              ],
+              "__fusion_2_currencyCode": "EUR"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "amountInUserCurrency": 600
+                    },
+                    {
+                      "amountInUserCurrency": 800
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          users {
+            __typename @fusion__empty
+            id @fusion__requirement
+          }
+        }
+      hash: 6ad6f061bc8ce380c68ae4e3c46ded64
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: billing
+      operation: |
+        query Op_03c4a779_1 {
+          users {
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.users
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: ApolloOperation
+          schema: billing
+          operation: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on User {
+                  transactions {
+                    id
+                  }
+                  userCurrency {
+                    isoCode
+                  }
+                }
+              }
+            }
+          source: $._entities
+          target: $.users
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+        - id: 2
+          type: ApolloOperation
+          schema: billing
+          operation: |
+            query($representations: [_Any!]!, $__fusion_2_currencyCode: String) {
+              _entities(representations: $representations) {
+                ... on Transaction {
+                  amountInUserCurrency(currencyCode: $__fusion_2_currencyCode)
+                }
+              }
+            }
+          source: $._entities
+          target: $.users.transactions
+          requirements:
+            - name: __fusion_2_currencyCode
+              selectionMap: >-
+                $userContext.userCurrency.isoCode
+              contextRoots:
+                - name: userContext
+                  path: $.users
+            - name: __fusion_3_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1

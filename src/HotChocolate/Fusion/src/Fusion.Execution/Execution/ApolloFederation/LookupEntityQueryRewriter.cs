@@ -3,6 +3,8 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using IFieldSelectionMapSyntaxNode = HotChocolate.Fusion.Language.IFieldSelectionMapSyntaxNode;
+using PathNode = HotChocolate.Fusion.Language.PathNode;
 
 namespace HotChocolate.Fusion.Execution.ApolloFederation;
 
@@ -15,7 +17,8 @@ namespace HotChocolate.Fusion.Execution.ApolloFederation;
 /// against the composite schema, lifts the lookup field's selection set into an
 /// <c>... on &lt;EntityType&gt;</c> inline fragment, and strips the key and
 /// <c>@require</c> arguments whose values move into the representation objects at
-/// execution time.
+/// execution time. An argument whose requirement reads a context is a field argument of
+/// the source schema and stays in the selection.
 /// </para>
 /// </summary>
 internal static class LookupEntityQueryRewriter
@@ -213,8 +216,8 @@ internal static class LookupEntityQueryRewriter
     }
 
     /// <summary>
-    /// Returns the selection set with every variable-bound <c>@require</c> argument
-    /// removed at any nesting depth.
+    /// Returns the selection set with every variable-bound <c>@require</c> argument that is
+    /// part of the representation removed at any nesting depth.
     /// </summary>
     private static SelectionSetNode StripRequireArguments(
         FusionSchemaDefinition schema,
@@ -400,8 +403,8 @@ internal static class LookupEntityQueryRewriter
     }
 
     /// <summary>
-    /// Returns the names of the field's arguments that carry a <c>@require</c>
-    /// selection in the given source schema, or <c>null</c> when the field has none.
+    /// Returns the names of the field's arguments that carry a <c>@require</c> selection
+    /// without a context path in the given source schema, or <c>null</c> when the field has none.
     /// </summary>
     private static HashSet<string>? GetRequireArguments(
         string schemaName,
@@ -417,7 +420,7 @@ internal static class LookupEntityQueryRewriter
 
         for (var i = 0; i < requirements.Arguments.Length; i++)
         {
-            if (requirements.Fields[i] is null)
+            if (requirements.Fields[i] is not { } map || HasContextPath(map))
             {
                 continue;
             }
@@ -427,6 +430,24 @@ internal static class LookupEntityQueryRewriter
         }
 
         return requireArguments;
+    }
+
+    private static bool HasContextPath(IFieldSelectionMapSyntaxNode node)
+    {
+        if (node is PathNode { ContextName: not null })
+        {
+            return true;
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            if (HasContextPath(child))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static DocumentNode BuildEntitiesDocument(

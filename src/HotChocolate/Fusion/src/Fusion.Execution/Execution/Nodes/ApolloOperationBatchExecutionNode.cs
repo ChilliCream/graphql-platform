@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
@@ -28,6 +29,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
     private readonly OperationDefinition[] _operations;
     private readonly ApolloEntityLookup[] _lookups;
     private readonly string _schemaName;
+    private readonly bool _hasContextRequirements;
 
     private ApolloOperationBatchExecutionNode(
         int id,
@@ -61,6 +63,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 schema);
 
             _lookups[i] = lookup with { RepresentationShape = representationShape };
+            _hasContextRequirements |= HasContextRequirements(operations[i]);
         }
     }
 
@@ -151,8 +154,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken)
     {
-        var diagnosticEvents = context.DiagnosticEvents;
-        var schemaName = _schemaName;
         var operation = _operations[0];
         var lookup = _lookups[0];
 
@@ -160,6 +161,12 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         {
             context.TrackSkippedDefinition(this, operation);
             return ExecutionStatus.Skipped;
+        }
+
+        if (_hasContextRequirements)
+        {
+            return await ExecuteContextGroupsAsync(context, operation, lookup, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         var representation = CreateRepresentationVariableValue(context, operation, lookup, out var reusedCount);
@@ -176,14 +183,71 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             return ExecutionStatus.Skipped;
         }
 
-        var variables = representation.ToVariableValues();
-
         // The combined representations object must be the request's single
         // variable set so the request is routed as a single operation. The
         // per-entity variable value sets are only used for error attribution.
+        context.TrackVariableValueSets(
+            this,
+            [new VariableValues(CompactPath.Root, representation.Value)]);
+
+        return await ExecuteRepresentationAsync(context, operation, lookup, representation, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends one <c>_entities</c> request per group of entities that share their context
+    /// values, and merges the result of each group into the paths of its entities.
+    /// </summary>
+    private async ValueTask<ExecutionStatus> ExecuteContextGroupsAsync(
+        OperationPlanContext context,
+        OperationDefinition operation,
+        ApolloEntityLookup lookup,
+        CancellationToken cancellationToken)
+    {
+        var representations = CreateContextRepresentationVariableValues(context, operation, lookup);
+
+        if (representations.IsEmpty)
+        {
+            context.TrackSkippedDefinition(this, operation);
+            return ExecutionStatus.Skipped;
+        }
+
+        var requestVariables = new VariableValues[representations.Length];
+
+        for (var i = 0; i < requestVariables.Length; i++)
+        {
+            requestVariables[i] = new VariableValues(CompactPath.Root, representations[i].Value);
+        }
+
+        context.TrackVariableValueSets(this, ImmutableCollectionsMarshal.AsImmutableArray(requestVariables));
+
+        var statuses = new ExecutionStatus[representations.Length];
+
+        for (var i = 0; i < statuses.Length; i++)
+        {
+            statuses[i] = await ExecuteRepresentationAsync(
+                context,
+                operation,
+                lookup,
+                representations[i],
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        return ApolloOperationExecutionNode.AggregateStatus(statuses);
+    }
+
+    private async ValueTask<ExecutionStatus> ExecuteRepresentationAsync(
+        OperationPlanContext context,
+        OperationDefinition operation,
+        ApolloEntityLookup lookup,
+        RepresentationValue representation,
+        CancellationToken cancellationToken)
+    {
+        var diagnosticEvents = context.DiagnosticEvents;
+        var schemaName = _schemaName;
+        var variables = representation.ToVariableValues();
         var requestVariables = ImmutableArray.Create(
             new VariableValues(CompactPath.Root, representation.Value));
-        context.TrackVariableValueSets(this, requestVariables);
 
         var request = new SourceSchemaClientRequest
         {
@@ -300,7 +364,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         var operationByIndex = ArrayPool<OperationDefinition>.Shared.Rent(_operations.Length);
         var representationByIndex = ArrayPool<RepresentationValue>.Shared.Rent(_operations.Length);
         var variablesByIndex = ArrayPool<ImmutableArray<VariableValues>>.Shared.Rent(_operations.Length);
-        var receivedResults = ArrayPool<bool>.Shared.Rent(_operations.Length);
+        bool[]? receivedResults = null;
         var operationCount = 0;
         var reusedOperationCount = 0;
 
@@ -310,9 +374,9 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 context,
                 schemaName,
                 requestBuilder,
-                operationByIndex,
-                representationByIndex,
-                variablesByIndex,
+                ref operationByIndex,
+                ref representationByIndex,
+                ref variablesByIndex,
                 out reusedOperationCount);
 
             if (operationCount == 0)
@@ -327,6 +391,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             // response. As each individual result arrives, we queue its merge for
             // the executor loop so downstream nodes can consume the data after completion.
             var client = context.GetClient(schemaName, requests[0].OperationType);
+            receivedResults = ArrayPool<bool>.Shared.Rent(operationCount);
             receivedResults.AsSpan(0, operationCount).Clear();
             var overallStatus = ExecutionStatus.Success;
 
@@ -459,7 +524,11 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             ArrayPool<OperationDefinition>.Shared.Return(operationByIndex);
             ArrayPool<RepresentationValue>.Shared.Return(representationByIndex);
             ArrayPool<ImmutableArray<VariableValues>>.Shared.Return(variablesByIndex);
-            ArrayPool<bool>.Shared.Return(receivedResults);
+
+            if (receivedResults is not null)
+            {
+                ArrayPool<bool>.Shared.Return(receivedResults);
+            }
         }
     }
 
@@ -467,9 +536,9 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         OperationPlanContext context,
         string schemaName,
         ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
-        OperationDefinition[] operationByIndex,
-        RepresentationValue[] representationByIndex,
-        ImmutableArray<VariableValues>[] variablesByIndex,
+        ref OperationDefinition[] operationByIndex,
+        ref RepresentationValue[] representationByIndex,
+        ref ImmutableArray<VariableValues>[] variablesByIndex,
         out int reusedOperationCount)
     {
         var operationCount = 0;
@@ -492,6 +561,35 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 continue;
             }
 
+            if (_hasContextRequirements && HasContextRequirements(operation))
+            {
+                var groups = CreateContextRepresentationVariableValues(context, operation, lookup);
+
+                if (groups.IsEmpty)
+                {
+                    context.TrackSkippedDefinition(this, operation);
+                    continue;
+                }
+
+                // Every group of entities that share their context values is its own request.
+                foreach (var group in groups)
+                {
+                    AddRequest(
+                        context,
+                        schemaName,
+                        requestBuilder,
+                        operation,
+                        lookup,
+                        group,
+                        ref operationByIndex,
+                        ref representationByIndex,
+                        ref variablesByIndex,
+                        operationCount++);
+                }
+
+                continue;
+            }
+
             var representation = CreateRepresentationVariableValue(context, operation, lookup, out var reusedCount);
 
             if (representation.IsEmpty)
@@ -509,32 +607,73 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 continue;
             }
 
-            // The combined representations object must be the request's single
-            // variable set so the request is routed as a single operation. The
-            // per-entity variable value sets are only used for error attribution.
-            var requestVariables = ImmutableArray.Create(
-                new VariableValues(CompactPath.Root, representation.Value));
-            context.TrackVariableValueSets(this, requestVariables);
-
-            requestBuilder.Add(new SourceSchemaClientRequest
-            {
-                Node = this,
-                SchemaName = schemaName,
-                OperationType = lookup.Operation.Type,
-                OperationSourceText = lookup.Operation,
-                OperationDocument = lookup.OperationDocument,
-                LookupTypeName = lookup.EntityTypeName,
-                Variables = requestVariables,
-                RequiresFileUpload = false
-            });
-
-            operationByIndex[operationCount] = operation;
-            representationByIndex[operationCount] = representation;
-            variablesByIndex[operationCount] = representation.ToVariableValues();
-            operationCount++;
+            AddRequest(
+                context,
+                schemaName,
+                requestBuilder,
+                operation,
+                lookup,
+                representation,
+                ref operationByIndex,
+                ref representationByIndex,
+                ref variablesByIndex,
+                operationCount++);
         }
 
         return operationCount;
+    }
+
+    private void AddRequest(
+        OperationPlanContext context,
+        string schemaName,
+        ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
+        OperationDefinition operation,
+        ApolloEntityLookup lookup,
+        RepresentationValue representation,
+        ref OperationDefinition[] operationByIndex,
+        ref RepresentationValue[] representationByIndex,
+        ref ImmutableArray<VariableValues>[] variablesByIndex,
+        int index)
+    {
+        // The combined representations object must be the request's single
+        // variable set so the request is routed as a single operation. The
+        // per-entity variable value sets are only used for error attribution.
+        var requestVariables = ImmutableArray.Create(
+            new VariableValues(CompactPath.Root, representation.Value));
+        context.TrackVariableValueSets(this, requestVariables);
+
+        requestBuilder.Add(new SourceSchemaClientRequest
+        {
+            Node = this,
+            SchemaName = schemaName,
+            OperationType = lookup.Operation.Type,
+            OperationSourceText = lookup.Operation,
+            OperationDocument = lookup.OperationDocument,
+            LookupTypeName = lookup.EntityTypeName,
+            Variables = requestVariables,
+            RequiresFileUpload = false
+        });
+
+        EnsureCapacity(ref operationByIndex, index + 1, index);
+        EnsureCapacity(ref representationByIndex, index + 1, index);
+        EnsureCapacity(ref variablesByIndex, index + 1, index);
+
+        operationByIndex[index] = operation;
+        representationByIndex[index] = representation;
+        variablesByIndex[index] = representation.ToVariableValues();
+    }
+
+    private static void EnsureCapacity<T>(ref T[] array, int capacity, int count)
+    {
+        if (array.Length >= capacity)
+        {
+            return;
+        }
+
+        var larger = ArrayPool<T>.Shared.Rent(capacity);
+        array.AsSpan(0, count).CopyTo(larger);
+        ArrayPool<T>.Shared.Return(array, clearArray: true);
+        array = larger;
     }
 
     protected override bool IsSkipped(OperationPlanContext context)
@@ -691,6 +830,48 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             default:
                 throw ThrowHelper.UnknownOperationDefinition(operation.GetType());
         }
+    }
+
+    private static ImmutableArray<RepresentationValue> CreateContextRepresentationVariableValues(
+        OperationPlanContext context,
+        OperationDefinition operation,
+        ApolloEntityLookup lookup)
+    {
+        // Entity reuse does not apply to requirements that read from contexts.
+        switch (operation)
+        {
+            case SingleOperationDefinition single:
+                return context.CreateRepresentationVariableValues(
+                    [single.Target],
+                    single.ForwardedVariables,
+                    single.Requirements,
+                    lookup.RepresentationShape,
+                    lookup.EntityTypeName);
+
+            case BatchOperationDefinition batch:
+                return context.CreateRepresentationVariableValues(
+                    batch.Targets,
+                    batch.ForwardedVariables,
+                    batch.Requirements,
+                    lookup.RepresentationShape,
+                    lookup.EntityTypeName);
+
+            default:
+                throw ThrowHelper.UnknownOperationDefinition(operation.GetType());
+        }
+    }
+
+    private static bool HasContextRequirements(OperationDefinition operation)
+    {
+        foreach (var requirement in operation.Requirements)
+        {
+            if (!requirement.ContextRoots.IsDefaultOrEmpty)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static SelectionPath GetPrimaryTarget(OperationDefinition operation)
