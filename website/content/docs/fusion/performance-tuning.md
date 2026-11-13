@@ -11,6 +11,7 @@ This page covers:
 - Enabling HTTP/2 for multiplexed subgraph communication
 - Deduplicating identical in-flight requests
 - Limiting concurrent request processing to maximize throughput
+- Publishing the gateway with Native AOT
 
 # Configure the HTTP Transport
 
@@ -215,6 +216,21 @@ builder
 ```
 
 If executions routinely time out at the gate, that is a signal to scale out or raise `MaxConcurrentExecutions`. Increasing `ExecutionTimeout` only defers the problem.
+
+# Native AOT
+
+`HotChocolate.Fusion.AspNetCore` ships a static profile-guided optimization (PGO) profile. When you publish the gateway with `PublishAot` set to `true`, the package passes this profile to the Native AOT compiler, which uses it to decide how to inline and lay out the code of Hot Chocolate and Fusion methods. Your own code, the .NET libraries, and builds without `PublishAot` are compiled as before.
+
+Each package version ships a profile recorded from that version. The profile does not change `OptimizationPreference` or any other publish setting.
+
+To publish without the profile, set `HotChocolateFusionStaticPgo` to `disable` in the gateway project:
+
+```xml
+<PropertyGroup>
+  <PublishAot>true</PublishAot>
+  <HotChocolateFusionStaticPgo>disable</HotChocolateFusionStaticPgo>
+</PropertyGroup>
+```
 
 # Next Steps
 
