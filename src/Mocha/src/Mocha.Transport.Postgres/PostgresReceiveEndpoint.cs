@@ -310,7 +310,9 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
         {
             try
             {
-                await _pollingTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+                // The loop is already cancelled. The wait covers its unwinding and the release of its
+                // leased messages, so it does not observe the stop token.
+                await _pollingTask.WaitAsync(TimeSpan.FromSeconds(5));
             }
             catch (TimeoutException)
             {
