@@ -247,6 +247,8 @@ The PostgreSQL, InMemory, and Azure Service Bus transports each have a schedulin
 
 This section applies to the Postgres-backed scheduled message store, used natively by the PostgreSQL transport or through the `UsePostgresScheduling()` fallback for RabbitMQ. If a scheduled message fails to dispatch, the scheduler retries with exponential backoff. Each failed attempt increases the wait time before the next retry. After 10 attempts (the default `max_attempts`), the message is no longer eligible for dispatch. You can inspect failed messages by querying the `scheduled_messages` table and checking the `last_error` column.
 
+A dispatch that fails with `TransportUnavailableException`, which the RabbitMQ transport throws when the broker cannot be reached or does not confirm in time, does not count as an attempt. Neither does a dispatch that a host stop interrupts. The message keeps its scheduled time and is dispatched again after a pause of about 100 milliseconds to 10 seconds.
+
 The InMemory transport's store does not retry failed dispatches. If a scheduled message fails to dispatch, it is dropped and the failure is logged.
 
 ## Multiple service instances

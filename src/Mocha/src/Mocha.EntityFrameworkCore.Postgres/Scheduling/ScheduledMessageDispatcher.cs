@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
 using Mocha.Outbox;
+using Mocha.Threading;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -16,12 +18,19 @@ namespace Mocha.Scheduling;
 /// </summary>
 public sealed class ScheduledMessageDispatcher
 {
+    private static readonly TimeSpan s_pauseDelay = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan s_maxPauseDelay = TimeSpan.FromSeconds(10);
+
+    // The pause before the dispatcher looks again for a due message that another dispatcher holds.
+    private static readonly TimeSpan s_heldMessagePollingInterval = TimeSpan.FromSeconds(1);
+
     private readonly ILogger<ScheduledMessageDispatcher> _logger;
     private readonly IServiceProvider _services;
     private readonly IMessagingRuntime _runtime;
     private readonly ISchedulerSignal _signal;
     private readonly ObjectPool<DispatchContext> _contextPool;
     private readonly PostgresScheduledMessageOptions _options;
+    private readonly TimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScheduledMessageDispatcher"/> class.
@@ -58,6 +67,7 @@ public sealed class ScheduledMessageDispatcher
         _signal = signal;
         _contextPool = pools.DispatchContext;
         _options = options;
+        _timeProvider = services.GetService<TimeProvider>() ?? TimeProvider.System;
     }
 
     /// <summary>
@@ -67,21 +77,37 @@ public sealed class ScheduledMessageDispatcher
     /// <param name="cancellationToken">A token that signals when the dispatcher should stop.</param>
     public async Task ProcessAsync(CancellationToken cancellationToken)
     {
+        // The pause before a released message is claimed again, which grows until a message is sent.
+        var pause = new ExponentialBackoff(int.MaxValue, s_pauseDelay, s_maxPauseDelay);
+
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                var nextWakeTime = await ProcessPendingAsync(cancellationToken);
+                var pass = await ProcessPendingAsync(pause, cancellationToken);
 
-                if (nextWakeTime is not null)
+                if (pass.IsPaused)
                 {
-                    _logger.SchedulerSleepingUntil(nextWakeTime.Value);
-                    await _signal.WaitUntilAsync(nextWakeTime.Value, cancellationToken);
+                    // The released message is claimed again after the pause, with or without a signal.
+                    await pause.WaitAsync(cancellationToken);
                 }
-                else
+                else if (pass.SecondsUntilDue is not { } secondsUntilDue)
                 {
                     // No scheduled messages - sleep until notified.
                     await _signal.WaitUntilAsync(DateTimeOffset.MaxValue, cancellationToken);
+                }
+                else if (secondsUntilDue > 0)
+                {
+                    var wakeTime = GetWakeTime(secondsUntilDue);
+                    _logger.SchedulerSleepingUntil(wakeTime);
+                    await _signal.WaitUntilAsync(wakeTime, cancellationToken);
+                }
+                else
+                {
+                    // The claim did not return the message that is due, so another dispatcher holds it.
+                    await _signal.WaitUntilAsync(
+                        _timeProvider.GetUtcNow() + s_heldMessagePollingInterval,
+                        cancellationToken);
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -91,147 +117,219 @@ public sealed class ScheduledMessageDispatcher
         }
     }
 
-    private async ValueTask<DateTimeOffset?> ProcessPendingAsync(CancellationToken cancellationToken)
+    private DateTimeOffset GetWakeTime(double secondsUntilDue)
+    {
+        var now = _timeProvider.GetUtcNow();
+
+        return secondsUntilDue < (DateTimeOffset.MaxValue - now).TotalSeconds
+            ? now.AddSeconds(secondsUntilDue)
+            : DateTimeOffset.MaxValue;
+    }
+
+    private async ValueTask<PassResult> ProcessPendingAsync(
+        ExponentialBackoff pause,
+        CancellationToken cancellationToken)
     {
         await using var scope = _services.CreateAsyncScope();
         await using var connection = _options.CreateConnection(scope.ServiceProvider);
         await connection.OpenAsync(cancellationToken);
 
-        while (await ProcessMessageAsync(connection, cancellationToken))
+        while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-        }
 
-        return await GetNextWakeTimeAsync(connection, cancellationToken);
+            // An exception before the commit rolls the claim back when the transaction is disposed.
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+            switch (await ProcessMessageAsync(connection, transaction, pause, cancellationToken))
+            {
+                case ClaimResult.Empty:
+                    // The time is read in the transaction of the claim, so that both see the same time.
+                    return new PassResult(
+                        IsPaused: false,
+                        await GetSecondsUntilDueAsync(connection, transaction, cancellationToken));
+
+                case ClaimResult.Released:
+                    return new PassResult(IsPaused: true, SecondsUntilDue: null);
+            }
+        }
     }
 
-    private async Task<DateTimeOffset?> GetNextWakeTimeAsync(
+    private async Task<double?> GetSecondsUntilDueAsync(
         NpgsqlConnection connection,
+        NpgsqlTransaction transaction,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = _options.Queries.NextWakeTime;
+        command.Transaction = transaction;
+        command.CommandText = _options.Queries.NextWakeInterval;
         await command.PrepareAsync(cancellationToken);
 
-        var result = await command.ExecuteScalarAsync(cancellationToken);
-
-        return result is not null and not DBNull
-            ? new DateTimeOffset((DateTime)result, TimeSpan.Zero)
-            : null;
+        return await command.ExecuteScalarAsync(cancellationToken) as double?;
     }
 
-    private async Task<bool> ProcessMessageAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
+    private async Task<ClaimResult> ProcessMessageAsync(
+        NpgsqlConnection connection,
+        NpgsqlTransaction transaction,
+        ExponentialBackoff pause,
+        CancellationToken cancellationToken)
     {
         using var activity = OpenTelemetry.Source.StartActivity(
             "Process Scheduled Message Event",
             ActivityKind.Producer,
             new ActivityContext());
 
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
         try
         {
-            await using var command = connection.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText = _options.Queries.ProcessMessage;
+            Guid id;
+            int timesSent;
+            int maxAttempts;
+            var outcome = DispatchOutcome.Failed;
+            Exception? dispatchError = null;
 
-            await command.PrepareAsync(cancellationToken);
-
-            try
+            await using (var command = connection.CreateCommand())
             {
+                command.Transaction = transaction;
+                command.CommandText = _options.Queries.ProcessMessage;
+
+                await command.PrepareAsync(cancellationToken);
+
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-                if (await reader.ReadAsync(cancellationToken))
+                if (!await reader.ReadAsync(cancellationToken))
                 {
-                    var id = reader.GetGuid(0);
-                    var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
-                    var timesSent = reader.GetInt32(2);
-                    var maxAttempts = reader.GetInt32(3);
+                    return ClaimResult.Empty;
+                }
 
-                    // A message this instance cannot read or route stays in the table and is
-                    // retried after its backoff.
-                    if (envelope is null)
-                    {
-                        _logger.CouldNotDeserializeScheduledMessageBody(id);
-                        LogIfExhausted(id, timesSent, maxAttempts);
+                id = reader.GetGuid(0);
+                var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
+                timesSent = reader.GetInt32(2);
+                maxAttempts = reader.GetInt32(3);
 
-                        return true;
-                    }
-
-                    var messageType = GetMessageType(envelope.MessageType);
-
-                    if (messageType is null)
-                    {
-                        _logger.CouldNotResolveScheduledMessageType(id, envelope.MessageType);
-                        LogIfExhausted(id, timesSent, maxAttempts);
-
-                        return true;
-                    }
-
-                    var endpoint = ResolveDispatchEndpoint(envelope);
-
-                    if (endpoint is null)
-                    {
-                        _logger.CouldNotDetermineScheduledMessageDestination(id, envelope.DestinationAddress);
-                        LogIfExhausted(id, timesSent, maxAttempts);
-
-                        return true;
-                    }
-
+                if (TryResolve(id, envelope, out var messageType, out var endpoint))
+                {
                     try
                     {
                         await SendAsync(envelope, endpoint, messageType, cancellationToken);
 
-                        await reader.CloseAsync();
-
-                        await DeleteMessageAsync(connection, id, transaction, cancellationToken);
+                        outcome = DispatchOutcome.Sent;
                     }
-                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    catch (Exception ex)
                     {
-                        _logger.ScheduledMessageDispatchFailed(id, ex);
-
-                        await reader.CloseAsync();
-
-                        await UpdateLastErrorAsync(connection, id, ex, transaction, cancellationToken);
-
-                        LogIfExhausted(id, timesSent, maxAttempts);
+                        outcome = OnDispatchFailed(ex, id, envelope, cancellationToken);
+                        dispatchError = ex;
                     }
-
-                    return true;
-                }
-                else
-                {
-                    return false;
                 }
             }
-            finally
+
+            switch (outcome)
             {
-                try
-                {
+                case DispatchOutcome.Sent:
+                    // The transport has the message, so its row is removed whatever the token says.
+                    await DeleteMessageAsync(connection, id, transaction, CancellationToken.None);
+                    await transaction.CommitAsync(CancellationToken.None);
+                    pause.Reset();
+                    return ClaimResult.Processed;
+
+                case DispatchOutcome.Released:
+                    // The rollback restores the attempt count and the due time of the row.
+                    await transaction.RollbackAsync(CancellationToken.None);
+                    return ClaimResult.Released;
+
+                default:
+                    if (dispatchError is not null)
+                    {
+                        await UpdateLastErrorAsync(connection, id, dispatchError, transaction, cancellationToken);
+                    }
+
+                    // The commit stores the incremented attempt count and the backoff of the row.
                     await transaction.CommitAsync(cancellationToken);
-                }
-                catch
-                {
-                    // Commit failed (e.g., connection lost). Attempt rollback.
-                    // If commit actually succeeded server-side, the message stays
-                    // with times_sent incremented - safe, just causes a retry.
-                    try
-                    {
-                        await transaction.RollbackAsync(CancellationToken.None);
-                    }
-                    catch
-                    {
-                        /* swallow */
-                    }
-                }
+                    LogIfExhausted(id, timesSent, maxAttempts);
+                    return ClaimResult.Processed;
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
-            // Log only - no RollbackAsync here (commit already handled in finally)
             _logger.UnexpectedErrorWhileProcessingScheduledMessage(ex);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Resolves what a dispatch of the message needs, and logs why when the message cannot be dispatched.
+    /// </summary>
+    private bool TryResolve(
+        Guid id,
+        [NotNullWhen(true)] MessageEnvelope? envelope,
+        [NotNullWhen(true)] out MessageType? messageType,
+        [NotNullWhen(true)] out DispatchEndpoint? endpoint)
+    {
+        messageType = null;
+        endpoint = null;
+
+        // A message this instance cannot read or route stays in the table and is
+        // retried after its backoff.
+        if (envelope is null)
+        {
+            _logger.CouldNotDeserializeScheduledMessageBody(id);
+            return false;
+        }
+
+        messageType = GetMessageType(envelope.MessageType);
+
+        if (messageType is null)
+        {
+            _logger.CouldNotResolveScheduledMessageType(id, envelope.MessageType);
+            return false;
+        }
+
+        endpoint = ResolveDispatchEndpoint(envelope);
+
+        if (endpoint is null)
+        {
+            _logger.CouldNotDetermineScheduledMessageDestination(id, envelope.DestinationAddress);
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Logs why the dispatch did not complete and returns whether the attempt counts.
+    /// </summary>
+    private DispatchOutcome OnDispatchFailed(
+        Exception exception,
+        Guid id,
+        MessageEnvelope envelope,
+        CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.ScheduledMessageDispatchCancelled(
+                exception,
+                id,
+                envelope.MessageId,
+                envelope.MessageType,
+                envelope.DestinationAddress);
+
+            return DispatchOutcome.Released;
+        }
+
+        if (exception is TransportUnavailableException)
+        {
+            _logger.ScheduledMessageTransportUnavailable(
+                exception,
+                id,
+                envelope.MessageId,
+                envelope.MessageType,
+                envelope.DestinationAddress);
+
+            return DispatchOutcome.Released;
+        }
+
+        _logger.ScheduledMessageDispatchFailed(id, exception);
+
+        return DispatchOutcome.Failed;
     }
 
     private void LogIfExhausted(Guid id, int timesSent, int maxAttempts)
@@ -388,6 +486,33 @@ public sealed class ScheduledMessageDispatcher
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
+
+    private enum ClaimResult
+    {
+        // No message was due.
+        Empty,
+
+        // A message was claimed and its outcome was stored.
+        Processed,
+
+        // A message was claimed and handed back unchanged.
+        Released
+    }
+
+    private enum DispatchOutcome
+    {
+        // The transport accepted the message.
+        Sent,
+
+        // The attempt failed and counts.
+        Failed,
+
+        // The attempt was cut short and does not count.
+        Released
+    }
+
+    // What the dispatcher does after a pass: it pauses after a released claim and waits for a signal otherwise.
+    private readonly record struct PassResult(bool IsPaused, double? SecondsUntilDue);
 }
 
 internal static partial class SchedulerLogs
@@ -426,6 +551,30 @@ internal static partial class SchedulerLogs
     public static partial void CouldNotDetermineScheduledMessageDestination(
         this ILogger logger,
         Guid id,
+        string? destinationAddress);
+
+    [LoggerMessage(
+        8,
+        LogLevel.Warning,
+        "The dispatch of scheduled message {Id} (message ID {MessageId}, type {MessageType}) to {DestinationAddress} failed because the transport is unavailable. The attempt is not counted and the message is dispatched again.")]
+    public static partial void ScheduledMessageTransportUnavailable(
+        this ILogger logger,
+        Exception exception,
+        Guid id,
+        string? messageId,
+        string? messageType,
+        string? destinationAddress);
+
+    [LoggerMessage(
+        9,
+        LogLevel.Debug,
+        "The dispatch of scheduled message {Id} (message ID {MessageId}, type {MessageType}) to {DestinationAddress} was cancelled because the host is stopping. The attempt is not counted.")]
+    public static partial void ScheduledMessageDispatchCancelled(
+        this ILogger logger,
+        Exception exception,
+        Guid id,
+        string? messageId,
+        string? messageType,
         string? destinationAddress);
 }
 

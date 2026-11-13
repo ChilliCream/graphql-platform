@@ -12,6 +12,7 @@ internal sealed class ScheduledMessageWorker(ScheduledMessageDispatcher dispatch
 {
     private readonly object _lock = new();
     private ContinuousTask? _task;
+    private Task _processing = Task.CompletedTask;
 
     /// <summary>
     /// Starts the scheduled message processing background task. This call is idempotent: invoking it
@@ -28,14 +29,15 @@ internal sealed class ScheduledMessageWorker(ScheduledMessageDispatcher dispatch
                 return Task.CompletedTask;
             }
 
-            _task = new ContinuousTask(dispatcher.ProcessAsync);
+            _task = new ContinuousTask(ProcessAsync);
         }
 
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Stops the scheduled message processing background task and waits for it to complete gracefully.
+    /// Stops the scheduled message processing background task and waits until the message that was being
+    /// dispatched is either removed from the schedule or kept for a later dispatch.
     /// </summary>
     /// <param name="cancellationToken">A token that signals when shutdown should be forced.</param>
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -54,5 +56,18 @@ internal sealed class ScheduledMessageWorker(ScheduledMessageDispatcher dispatch
         }
 
         await task.DisposeAsync();
+
+        // The continuous task stops waiting once it is cancelled, while the dispatcher still removes the
+        // message a transport has already accepted. The wait ends early when the shutdown is forced.
+        await Volatile.Read(ref _processing)
+            .WaitAsync(cancellationToken)
+            .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+    }
+
+    private Task ProcessAsync(CancellationToken cancellationToken)
+    {
+        var processing = dispatcher.ProcessAsync(cancellationToken);
+        Volatile.Write(ref _processing, processing);
+        return processing;
     }
 }
