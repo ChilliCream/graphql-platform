@@ -17,7 +17,8 @@ public sealed partial class OperationPlanner
     // context roots, and returns the root of each context. The excluded step is the existing step
     // the field is merged into, or null if the field gets a new step. The aliases minted for each
     // context are added to contextAliases, and the alias registry of each context is adopted.
-    private Dictionary<string, RequirementContextRoot> InlineContextRequirements(
+    // Returns null if the path of the field has no ancestor that sets one of the contexts.
+    private Dictionary<string, RequirementContextRoot>? InlineContextRequirements(
         FieldRequirementWorkItem workItem,
         Lookup lookup,
         int dependentStepId,
@@ -38,7 +39,11 @@ public sealed partial class OperationPlanner
         // decides how the planner allocates identifiers.
         foreach (var contextName in contextRequirements.Keys.Order(StringComparer.Ordinal))
         {
-            var target = FindContextRoot(workItem.Selection, current, index, contextName);
+            if (FindContextRoot(workItem.Selection, current, index, contextName) is not { } target)
+            {
+                return null;
+            }
+
             var selections = SelectAlternativesOfType(
                 _mergeRewriter.Merge([contextRequirements[contextName]], target.Type),
                 target.Type);
@@ -94,8 +99,9 @@ public sealed partial class OperationPlanner
     }
 
     // Finds the nearest ancestor of the selection whose possible object types all set the context
-    // in the schema of the plan node. Selection sets of the object of the selection are not ancestors.
-    private RequirementTarget FindContextRoot(
+    // in the schema of the plan node, or null if there is none. Selection sets of the object of the
+    // selection are not ancestors.
+    private RequirementTarget? FindContextRoot(
         FieldSelection selection,
         PlanNode current,
         SelectionSetIndexBuilder index,
@@ -167,7 +173,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        throw ThrowHelper.ContextNotSetOnPath(contextName, selection.Field.Coordinate.ToString());
+        return null;
     }
 
     // Drops the typed alternatives of a context path that no possible type of the root can take.
