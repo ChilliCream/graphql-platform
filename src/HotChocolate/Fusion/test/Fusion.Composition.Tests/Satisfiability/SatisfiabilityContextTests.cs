@@ -464,7 +464,7 @@ public sealed class SatisfiabilityContextTests
               Unable to satisfy the requirement '{ amount }' on field 'B:Transaction.fee<Int>'.
                 Unable to satisfy the requirement 'amount'.
                   Unable to access the required field 'Transaction.amount' on path 'A:User.transactions<Transaction>'.
-                    The field 'Transaction.amount' in schema 'A' reads from the context 'userContext', which is not set on this path.
+                    The field 'Transaction.amount' in schema 'A' reads from a context and cannot supply data for a requirement or a lookup key.
             """
         ]);
     }
@@ -578,7 +578,7 @@ public sealed class SatisfiabilityContextTests
                 Unable to satisfy the requirement '{ reference }' for lookup 'transactionByReference' in schema 'B'.
                   Unable to satisfy the requirement 'reference'.
                     Unable to access the required field 'Transaction.reference' on path 'A:User.transactions<Transaction>'.
-                      The field 'Transaction.reference' in schema 'A' reads from the context 'userContext', which is not set on this path.
+                      The field 'Transaction.reference' in schema 'A' reads from a context and cannot supply data for a requirement or a lookup key.
             """
         ]);
     }
