@@ -1636,6 +1636,68 @@ public class DeferTests : FusionTestBase
         rawBody.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Defer_Should_NotSendLookupRequest_When_SkipsOnDifferentVariablesOfDeferredFieldsAreTrue()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+                id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+                id: Int!
+                delta: Int!
+                epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+                thing {
+                    id
+                    ... @defer {
+                        delta @skip(if: $skipDelta)
+                        epsilon @skip(if: $skipEpsilon)
+                    }
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skipDelta"] = true, ["skipEpsilon"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
     [Fact(Skip = "Requires validation of @skip/@include interaction with @defer at the planning level")]
     public async Task Defer_With_Skip_Directive_Should_Skip_Deferred_Fragment()
     {

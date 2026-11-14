@@ -1954,6 +1954,75 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Parse_Should_RoundTripConditionAlternatives_When_DeferredOperationNodeHasAlternatives()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                phone: String!
+            }
+            """);
+        var originalPlan = PlanOperation(
+            schema,
+            """
+            query($skipEmail: Boolean!, $skipPhone: Boolean!) {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email @skip(if: $skipEmail)
+                        phone @skip(if: $skipPhone)
+                    }
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var planSource = Encoding.UTF8.GetBytes(formatter.Format(originalPlan));
+
+        // act
+        var parsedPlan = CreateParser(schema, TestPolicyResolver.Create()).Parse(planSource);
+
+        // assert
+        var originalNode = originalPlan.IncrementalPlans
+            .Single()
+            .AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(t => t.ConditionAlternatives.Length > 0);
+        var parsedNode = parsedPlan.IncrementalPlans
+            .Single()
+            .AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(t => t.Id == originalNode.Id);
+        Assert.Equal(2, parsedNode.ConditionAlternatives.Length);
+        Assert.Equal(
+            originalNode.ConditionAlternatives.ToArray().Select(a => a.Select(t => (t.VariableName, t.PassingValue))),
+            parsedNode.ConditionAlternatives.ToArray().Select(a => a.Select(t => (t.VariableName, t.PassingValue))));
+    }
+
+    [Fact]
     public void Parse_Plan_Without_BatchingGroupId_As_StandaloneOperations()
     {
         // arrange
