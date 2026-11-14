@@ -144,7 +144,27 @@ public sealed class QueryContextConnectionCodeFixProvider : CodeFixProvider
             }
         }
 
+        // Check the base types for a stream page connection (like a class derived from StreamPageConnection<T>)
+        for (var baseType = connectionType.BaseType; baseType is not null; baseType = baseType.BaseType)
+        {
+            if (IsStreamPageConnectionType(baseType))
+            {
+                return baseType.TypeArguments[0];
+            }
+        }
+
         return null;
+    }
+
+    private static bool IsStreamPageConnectionType(INamedTypeSymbol type)
+    {
+        if (type is not { Name: "StreamPageConnection", IsGenericType: true, TypeArguments.Length: 1 })
+        {
+            return false;
+        }
+
+        var namespaceName = type.ContainingNamespace?.ToDisplayString();
+        return namespaceName == "HotChocolate.Types.Pagination";
     }
 
     private static bool IsConnectionType(INamedTypeSymbol type)

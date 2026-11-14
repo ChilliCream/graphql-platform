@@ -14,8 +14,9 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Policies;
 
 /// <summary>
-/// Answers every request with the data of an unrestricted source schema, reduced to the fields
-/// the request selects and does not skip, and records the requests it received. A subscription
+/// Answers every request, and every variable set of a request, with the data of an unrestricted
+/// source schema, reduced to the fields the request selects and does not skip, and records the
+/// requests it received. A subscription
 /// delivers the events published to the client in the same reduced form.
 /// </summary>
 internal sealed class PolicyTestClient(string data) : ISourceSchemaClient
@@ -40,14 +41,39 @@ internal sealed class PolicyTestClient(string data) : ISourceSchemaClient
     {
         await Task.Yield();
 
-        yield return CreateResult(context, request, data);
+        if (request.Variables.IsEmpty)
+        {
+            yield return CreateResult(context, request, data, CompactPath.Root, default, recordRequest: true);
+            yield break;
+        }
+
+        for (var i = 0; i < request.Variables.Length; i++)
+        {
+            var variables = request.Variables[i];
+
+            yield return CreateResult(
+                context,
+                request,
+                data,
+                variables.Path,
+                variables.AdditionalPaths,
+                recordRequest: i == 0);
+        }
     }
 
-    public IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
+    public async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
-        CancellationToken cancellationToken)
-        => throw new NotSupportedException();
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        for (var i = 0; i < requests.Length; i++)
+        {
+            await foreach (var result in ExecuteAsync(context, requests[i], cancellationToken))
+            {
+                yield return new SourceSchemaBatchResult(i, result);
+            }
+        }
+    }
 
     public async IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
         OperationPlanContext context,
@@ -58,7 +84,7 @@ internal sealed class PolicyTestClient(string data) : ISourceSchemaClient
 
         await foreach (var eventData in _events.Reader.ReadAllAsync(cancellationToken))
         {
-            yield return CreateResult(context, request, eventData);
+            yield return CreateResult(context, request, eventData, CompactPath.Root, default, recordRequest: true);
         }
     }
 
@@ -67,10 +93,15 @@ internal sealed class PolicyTestClient(string data) : ISourceSchemaClient
     private SourceSchemaResult CreateResult(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
-        string resultData)
+        string resultData,
+        CompactPath path,
+        CompactPathSegment additionalPaths,
+        bool recordRequest)
     {
-        var sourceText = Encoding.UTF8.GetString(request.OperationSourceText.Value.Span);
-        _requests.Enqueue(sourceText);
+        if (recordRequest)
+        {
+            _requests.Enqueue(Encoding.UTF8.GetString(request.OperationSourceText.Value.Span));
+        }
 
         var variables = ReadVariables(request);
         var operation = Utf8GraphQLParser.Parse(request.OperationSourceText.Value.Span)
@@ -87,7 +118,7 @@ internal sealed class PolicyTestClient(string data) : ISourceSchemaClient
             response,
             response.Length);
 
-        return new SourceSchemaResult(CompactPath.Root, document);
+        return new SourceSchemaResult(path, document, additionalPaths: additionalPaths);
     }
 
     private static Dictionary<string, bool> ReadVariables(SourceSchemaClientRequest request)

@@ -10,8 +10,21 @@ internal sealed class OperationResultFormatterContext : IDisposable
     private Dictionary<Path, CachedJsonValue>? _cachedDataByPath;
     private PooledArrayWriter? _cacheBuffer;
     private PooledArrayWriter? _scratchBuffer;
+    private List<ReadOnlyMemorySegment>? _carriedEntries;
     private DeferSelectionLookup? _deferSelectionLookup;
     private bool _disposed;
+
+    /// <summary>
+    /// Gets a value indicating whether the incremental entries of the first result are written with the next payload.
+    /// </summary>
+    public bool CarryInitialEntries { get; init; }
+
+    public bool IsInitialProcessed { get; set; }
+
+    public bool HasFinalCarriedPayload { get; set; }
+
+    public List<ReadOnlyMemorySegment>? CarriedEntries
+        => _carriedEntries;
 
     public Dictionary<int, PendingResultState> PendingResults
         => _pendingResults ??= [];
@@ -27,6 +40,14 @@ internal sealed class OperationResultFormatterContext : IDisposable
 
     public DeferSelectionLookup? DeferSelectionLookup
         => _deferSelectionLookup;
+
+    public static OperationResultFormatterContext? CreateForResponseStream(bool useIncrementalRfc1)
+        => useIncrementalRfc1
+            ? new OperationResultFormatterContext { CarryInitialEntries = true }
+            : null;
+
+    public void Carry(ReadOnlyMemorySegment entry)
+        => (_carriedEntries ??= []).Add(entry);
 
     public void InitializeDocument(DocumentNode? document)
     {

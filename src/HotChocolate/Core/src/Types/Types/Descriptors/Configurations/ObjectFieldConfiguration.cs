@@ -255,6 +255,11 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     }
 
     /// <summary>
+    /// Gets or sets the execution group of which this field is the root, or <c>null</c> if the field has no group.
+    /// </summary>
+    public ExecutionGroupConfiguration? ExecutionGroup { get; set; }
+
+    /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
     /// </summary>
     internal IReadOnlyList<FieldMiddlewareConfiguration> GetMiddlewareDefinitions()
@@ -359,6 +364,11 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
         target.HasStreamResult = HasStreamResult;
         target.SubscribeWith = SubscribeWith;
         target.ResultPostProcessor = ResultPostProcessor;
+
+        if (ExecutionGroup is not null)
+        {
+            target.ExecutionGroup = new ExecutionGroupConfiguration(ExecutionGroup.Entries);
+        }
     }
 
     internal void MergeInto(ObjectFieldConfiguration target)
@@ -450,6 +460,11 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
         if (SubscribeWith is not null)
         {
             target.SubscribeWith = SubscribeWith;
+        }
+
+        if (ExecutionGroup is not null)
+        {
+            target.ExecutionGroup = new ExecutionGroupConfiguration(ExecutionGroup.Entries);
         }
 
         if (ResultPostProcessor is not null)

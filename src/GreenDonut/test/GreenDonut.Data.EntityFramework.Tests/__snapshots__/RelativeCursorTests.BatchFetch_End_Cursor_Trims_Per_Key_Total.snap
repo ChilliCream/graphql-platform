@@ -1,0 +1,33 @@
+{
+  "Key1": {
+    "Index": 3,
+    "TotalCount": 25,
+    "HasNextPage": false,
+    "HasPreviousPage": true,
+    "Items": [
+      "A0021",
+      "A0022",
+      "A0023",
+      "A0024",
+      "A0025"
+    ]
+  },
+  "Key2": {
+    "Index": 3,
+    "TotalCount": 30,
+    "HasNextPage": false,
+    "HasPreviousPage": true,
+    "Items": [
+      "B0021",
+      "B0022",
+      "B0023",
+      "B0024",
+      "B0025",
+      "B0026",
+      "B0027",
+      "B0028",
+      "B0029",
+      "B0030"
+    ]
+  }
+}

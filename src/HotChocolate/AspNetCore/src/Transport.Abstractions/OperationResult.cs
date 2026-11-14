@@ -43,6 +43,58 @@ public sealed class OperationResult : IDisposable
         JsonElement extensions = default,
         int? requestIndex = null,
         int? variableIndex = null)
+        : this(
+            memoryOwner,
+            data,
+            errors,
+            extensions,
+            requestIndex,
+            variableIndex,
+            incremental: default,
+            hasNext: null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OperationResult"/> class for a result
+    /// of an incremental delivery response.
+    /// </summary>
+    /// <param name="memoryOwner">
+    /// The memory owner of the JSON elements.
+    /// </param>
+    /// <param name="data">
+    /// A <see cref="JsonElement"/> object representing the data returned by the operation.
+    /// </param>
+    /// <param name="errors">
+    /// A <see cref="JsonElement"/> object representing any errors that occurred during
+    /// the operation.
+    /// </param>
+    /// <param name="extensions">
+    /// A <see cref="JsonElement"/> object representing any extensions returned by the
+    /// operation.
+    /// </param>
+    /// <param name="requestIndex">
+    /// The request index of this result. This is only set if the result is part of a batched operation.
+    /// </param>
+    /// <param name="variableIndex">
+    /// The variable index of this result. This is only set if the result is part of a variable batch operation.
+    /// </param>
+    /// <param name="incremental">
+    /// A <see cref="JsonElement"/> object representing the incremental entries of this result.
+    /// </param>
+    /// <param name="hasNext">
+    /// Indicates whether more results follow this result, or <see langword="null"/> if the result
+    /// does not carry the information.
+    /// </param>
+    public OperationResult(
+        IDisposable? memoryOwner,
+        JsonElement data,
+        JsonElement errors,
+        JsonElement extensions,
+        int? requestIndex,
+        int? variableIndex,
+        JsonElement incremental,
+        bool? hasNext)
     {
         _memoryOwner = memoryOwner;
         Data = data;
@@ -50,6 +102,8 @@ public sealed class OperationResult : IDisposable
         Extensions = extensions;
         RequestIndex = requestIndex;
         VariableIndex = variableIndex;
+        Incremental = incremental;
+        HasNext = hasNext;
     }
 
     /// <summary>
@@ -81,6 +135,17 @@ public sealed class OperationResult : IDisposable
     public JsonElement Extensions { get; }
 
     /// <summary>
+    /// Gets the <see cref="JsonElement"/> object representing the incremental entries of this result.
+    /// </summary>
+    public JsonElement Incremental { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether more results follow this result, or <see langword="null"/>
+    /// if the result does not carry the information.
+    /// </summary>
+    public bool? HasNext { get; }
+
+    /// <summary>
     /// Releases all resources used by the <see cref="OperationResult"/> object.
     /// </summary>
     public void Dispose()
@@ -92,13 +157,7 @@ public sealed class OperationResult : IDisposable
 
         var root = documentOwner.Document.RootElement;
 
-        return new OperationResult(
-            documentOwner,
-            root.TryGetProperty(DataProp, out var data) ? data : default,
-            root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
-            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
-            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
-            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
+        return Create(documentOwner, root);
     }
 
     public static OperationResult Parse(JsonDocument document)
@@ -107,13 +166,7 @@ public sealed class OperationResult : IDisposable
 
         var root = document.RootElement;
 
-        return new OperationResult(
-            document,
-            root.TryGetProperty(DataProp, out var data) ? data : default,
-            root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
-            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
-            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
-            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
+        return Create(document, root);
     }
 
     public static OperationResult Parse(ReadOnlySpan<byte> span)
@@ -134,13 +187,7 @@ public sealed class OperationResult : IDisposable
         var root = document.RootElement;
         var documentOwner = new JsonDocumentOwner(document, buffer);
 
-        return new OperationResult(
-            documentOwner,
-            root.TryGetProperty(DataProp, out var data) ? data : default,
-            root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
-            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
-            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
-            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
+        return Create(documentOwner, root);
     }
 
     public static OperationResult Parse(PooledArrayWriter buffer)
@@ -156,12 +203,20 @@ public sealed class OperationResult : IDisposable
         var root = document.RootElement;
         var documentOwner = new JsonDocumentOwner(document, buffer);
 
-        return new OperationResult(
-            documentOwner,
+        return Create(documentOwner, root);
+    }
+
+    private static OperationResult Create(IDisposable owner, JsonElement root)
+        => new(
+            owner,
             root.TryGetProperty(DataProp, out var data) ? data : default,
             root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
             root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
             root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
-            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
-    }
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null,
+            root.TryGetProperty(IncrementalProp, out var incremental) ? incremental : default,
+            root.TryGetProperty(HasNextProp, out var hasNext)
+                && hasNext.ValueKind is JsonValueKind.True or JsonValueKind.False
+                    ? hasNext.GetBoolean()
+                    : null);
 }

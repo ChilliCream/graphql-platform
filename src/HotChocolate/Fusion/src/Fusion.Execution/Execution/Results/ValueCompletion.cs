@@ -1126,6 +1126,11 @@ internal sealed class ValueCompletion
     {
         AssertDepthAllowed(ref depth);
 
+        if (target.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
         // A shared list slot may already be populated by a sibling subgraph
         // result. Create the array only on the first write; otherwise reuse it
         // so sibling contributions accumulate through the positional merge below.
@@ -1492,6 +1497,11 @@ TryCompleteList_MoveNext:
         SelectionSet? preparedSelectionSet)
     {
         AssertDepthAllowed(ref depth);
+
+        if (target.IsNullOrInvalidated)
+        {
+            return true;
+        }
 
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.

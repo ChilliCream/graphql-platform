@@ -1,0 +1,56 @@
+{
+  "Key1": {
+    "Index": 2,
+    "TotalCount": 25,
+    "HasNextPage": true,
+    "HasPreviousPage": true,
+    "Items": [
+      "A0011",
+      "A0012",
+      "A0013",
+      "A0014",
+      "A0015",
+      "A0016",
+      "A0017",
+      "A0018",
+      "A0019",
+      "A0020"
+    ]
+  },
+  "Key2": {
+    "Index": 2,
+    "TotalCount": 30,
+    "HasNextPage": true,
+    "HasPreviousPage": true,
+    "Items": [
+      "B0011",
+      "B0012",
+      "B0013",
+      "B0014",
+      "B0015",
+      "B0016",
+      "B0017",
+      "B0018",
+      "B0019",
+      "B0020"
+    ]
+  },
+  "Key3": {
+    "Index": 3,
+    "TotalCount": 40,
+    "HasNextPage": true,
+    "HasPreviousPage": true,
+    "Items": [
+      "C0021",
+      "C0022",
+      "C0023",
+      "C0024",
+      "C0025",
+      "C0026",
+      "C0027",
+      "C0028",
+      "C0029",
+      "C0030"
+    ]
+  }
+}

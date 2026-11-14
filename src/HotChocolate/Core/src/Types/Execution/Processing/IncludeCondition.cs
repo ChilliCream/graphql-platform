@@ -6,59 +6,45 @@ namespace HotChocolate.Execution.Processing;
 
 internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
 {
-    private readonly string? _skip;
-    private readonly string? _include;
+    private readonly VariableNode? _skip;
+    private readonly VariableNode? _include;
 
-    public IncludeCondition(string? skip, string? include)
+    public IncludeCondition(VariableNode? skip, VariableNode? include)
     {
         _skip = skip;
         _include = include;
     }
 
-    public string? Skip => _skip;
+    public VariableNode? Skip => _skip;
 
-    public string? Include => _include;
+    public VariableNode? Include => _include;
 
     public bool IsIncluded(IVariableValueCollection variableValues)
     {
-        if (_skip is not null)
+        if (_skip is not null
+            && DirectiveIfCondition.IsEnabled(DirectiveNames.Skip.Name, _skip, variableValues))
         {
-            if (!variableValues.TryGetValue<BooleanValueNode>(_skip, out var value))
-            {
-                throw new InvalidOperationException($"The variable {_skip} has an invalid value.");
-            }
-
-            if (value.Value)
-            {
-                return false;
-            }
+            return false;
         }
 
-        if (_include is not null)
+        if (_include is not null
+            && !DirectiveIfCondition.IsEnabled(DirectiveNames.Include.Name, _include, variableValues))
         {
-            if (!variableValues.TryGetValue<BooleanValueNode>(_include, out var value))
-            {
-                throw new InvalidOperationException($"The variable {_include} has an invalid value.");
-            }
-
-            if (!value.Value)
-            {
-                return false;
-            }
+            return false;
         }
 
         return true;
     }
 
     public bool Equals(IncludeCondition other)
-        => string.Equals(Skip, other.Skip, StringComparison.Ordinal)
-            && string.Equals(Include, other.Include, StringComparison.Ordinal);
+        => string.Equals(Skip?.Name.Value, other.Skip?.Name.Value, StringComparison.Ordinal)
+            && string.Equals(Include?.Name.Value, other.Include?.Name.Value, StringComparison.Ordinal);
 
     public override bool Equals([NotNullWhen(true)] object? obj)
         => obj is IncludeCondition other && Equals(other);
 
     public override int GetHashCode()
-        => HashCode.Combine(Skip, Include);
+        => HashCode.Combine(Skip?.Name.Value, Include?.Name.Value);
 
     public static bool TryCreate(FieldNode field, out IncludeCondition includeCondition)
         => TryCreate(field.Directives, out includeCondition);
@@ -68,8 +54,8 @@ internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
 
     private static bool TryCreate(IReadOnlyList<DirectiveNode> directives, out IncludeCondition includeCondition)
     {
-        string? skip = null;
-        string? include = null;
+        VariableNode? skip = null;
+        VariableNode? include = null;
 
         if (directives.Count == 0)
         {
@@ -135,19 +121,19 @@ internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
         }
     }
 
-    private static void TryParseDirective(DirectiveNode directive, ref string? skip, ref string? include)
+    private static void TryParseDirective(DirectiveNode directive, ref VariableNode? skip, ref VariableNode? include)
     {
         if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
             && directive.Arguments.Count == 1
             && directive.Arguments[0].Value is VariableNode skipVariable)
         {
-            skip = skipVariable.Name.Value;
+            skip = skipVariable;
         }
         else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
             && directive.Arguments.Count == 1
             && directive.Arguments[0].Value is VariableNode includeVariable)
         {
-            include = includeVariable.Name.Value;
+            include = includeVariable;
         }
     }
 }

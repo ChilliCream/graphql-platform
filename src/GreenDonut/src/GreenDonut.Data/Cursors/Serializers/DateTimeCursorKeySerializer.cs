@@ -35,7 +35,7 @@ internal sealed class DateTimeCursorKeySerializer : ICursorKeySerializer
         return DateTime.ParseExact(
             dateTimeChars,
             DateTimeFormat,
-            null,
+            CultureInfo.InvariantCulture,
             kind switch
             {
                 DateTimeKind.Unspecified
@@ -54,7 +54,7 @@ internal sealed class DateTimeCursorKeySerializer : ICursorKeySerializer
         Span<char> characters = stackalloc char[DateTimeFormat.Length + 2]; // 2 = '#' + 0/1/2
 
         // Format date and time.
-        if (!dateTime.TryFormat(characters, out var charsWritten, DateTimeFormat))
+        if (!dateTime.TryFormat(characters, out var charsWritten, DateTimeFormat, CultureInfo.InvariantCulture))
         {
             written = 0;
             return false;

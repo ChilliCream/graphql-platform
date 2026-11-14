@@ -107,6 +107,21 @@ public sealed class OperationResult : ExecutionResult
     }
 
     /// <summary>
+    /// Initializes a new instance of <see cref="OperationResult"/> that carries only incremental delivery information.
+    /// </summary>
+    /// <param name="incremental">
+    /// The incremental delivery information of the payload.
+    /// </param>
+    internal OperationResult(IncrementalDataFeature incremental)
+    {
+        ArgumentNullException.ThrowIfNull(incremental);
+
+        _errors = [];
+        _extensions = [];
+        Features.Set(incremental);
+    }
+
+    /// <summary>
     /// Gets the kind of execution result.
     /// </summary>
     public override ExecutionResultKind Kind => ExecutionResultKind.SingleResult;

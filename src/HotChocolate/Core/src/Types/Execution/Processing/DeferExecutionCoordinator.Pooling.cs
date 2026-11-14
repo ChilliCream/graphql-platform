@@ -44,6 +44,7 @@ internal sealed partial class DeferExecutionCoordinator
         _completed.Clear();
         _delivered.Clear();
         _results.Clear();
+        _discarded = null;
         _branchTracker = null!;
         _pendingBuilder = null;
         _incrementalBuilder = null;

@@ -20,6 +20,28 @@ public static class ConnectionFlagsHelper
     public static ConnectionFlags GetConnectionFlags(IResolverContext context)
         => context.Selection.Features.GetOrSetSafe(CreateConnectionFlags, context);
 
+    /// <summary>
+    /// Determines whether the current selection matches a relative cursor field pattern.
+    /// </summary>
+    internal static bool AreRelativeCursorFieldsSelected(
+        IResolverContext context,
+        PagingOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (options.RelativeCursorFields.Count == 0)
+        {
+            return false;
+        }
+
+        var startSelections = context.Select();
+        return AreRelativeCursorFieldsSelected(
+            startSelections,
+            new IsSelectedContext(context.Schema, startSelections),
+            options);
+    }
+
     private static ConnectionFlags CreateConnectionFlags(IResolverContext context)
     {
         if (!context.Selection.Field.Flags.HasFlag(CoreFieldFlags.Connection))
@@ -62,17 +84,21 @@ public static class ConnectionFlagsHelper
             }
 
             if ((options.EnableRelativeCursors ?? PagingDefaults.EnableRelativeCursors)
-                && options.RelativeCursorFields.Count > 0)
+                && AreRelativeCursorFieldsSelected(startSelections, selectionContext, options))
             {
-                if (ArePatternsMatched(startSelections, selectionContext, options.RelativeCursorFields))
-                {
-                    connectionFlags |= ConnectionFlags.RelativeCursor;
-                }
+                connectionFlags |= ConnectionFlags.RelativeCursor;
             }
         }
 
         return connectionFlags;
     }
+
+    private static bool AreRelativeCursorFieldsSelected(
+        ISelectionCollection startSelections,
+        IsSelectedContext selectionContext,
+        PagingOptions options)
+        => options.RelativeCursorFields.Count > 0
+            && ArePatternsMatched(startSelections, selectionContext, options.RelativeCursorFields);
 
     private static bool ArePatternsMatched(
         ISelectionCollection startSelections,

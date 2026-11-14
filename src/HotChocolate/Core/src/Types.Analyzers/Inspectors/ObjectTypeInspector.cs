@@ -297,12 +297,18 @@ public class ObjectTypeInspector : ISyntaxInspector
         INamedTypeSymbol resolverType,
         IMethodSymbol resolverMethod,
         string? subscribeWith = null)
-        => CreateResolver(context.SemanticModel.Compilation, resolverType, resolverMethod, subscribeWith: subscribeWith);
+        => CreateResolver(
+            context.SemanticModel.Compilation,
+            resolverType,
+            resolverMethod,
+            FieldFlags.None,
+            subscribeWith: subscribeWith);
 
     public static Resolver CreateResolver(
         Compilation compilation,
         INamedTypeSymbol resolverType,
         IMethodSymbol resolverMethod,
+        FieldFlags flags,
         string? resolverTypeName = null,
         string? subscribeWith = null)
     {
@@ -345,6 +351,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                 : compilation.IsConnectionType(resolverMethod.ReturnType)
                     ? ResolverKind.ConnectionResolver
                     : ResolverKind.Default,
+            flags: flags,
             subscribeWith: subscribeWith);
     }
 

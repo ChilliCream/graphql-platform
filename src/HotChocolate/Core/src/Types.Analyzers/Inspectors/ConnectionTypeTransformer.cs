@@ -383,13 +383,13 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
     private static INamedTypeSymbol? GetEdgeType(
         INamedTypeSymbol connectionType)
     {
-        var property = GetEdgesProperty(connectionType);
-        var returnType = property?.GetReturnType();
+        var member = GetEdgesMember(connectionType);
+        var returnType = member?.GetReturnType();
 
         if (returnType is not INamedTypeSymbol namedType
             || !namedType.IsGenericType
             || namedType.TypeArguments.Length != 1
-            || namedType.Name != "IReadOnlyList")
+            || namedType.Name is not ("IReadOnlyList" or "IAsyncEnumerable"))
         {
             return null;
         }
@@ -397,14 +397,17 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
         return (INamedTypeSymbol)namedType.TypeArguments[0];
     }
 
-    private static IPropertySymbol? GetEdgesProperty(
+    private static ISymbol? GetEdgesMember(
         INamedTypeSymbol connectionType)
     {
-        var member = connectionType.AllPublicInstanceMembers().FirstOrDefault(p => p.Name == "Edges");
-
-        if (member is IPropertySymbol property)
+        foreach (var member in connectionType.AllPublicInstanceMembers())
         {
-            return property;
+            switch (member)
+            {
+                case IPropertySymbol { Name: "Edges" }:
+                case IMethodSymbol { MethodKind: MethodKind.Ordinary, Name: "GetEdgesAsync" }:
+                    return member;
+            }
         }
 
         return null;

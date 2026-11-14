@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Reflection;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -9,6 +11,11 @@ namespace HotChocolate.Fusion.Execution;
 
 public class IncrementalPlanActivationTests : FusionTestBase
 {
+    private static readonly MethodInfo s_resolveDeliveryGroupsByPlan =
+        typeof(OperationPlanExecutor).GetMethod(
+            "ResolveDeliveryGroupsByPlan",
+            BindingFlags.NonPublic | BindingFlags.Static)!;
+
     [Fact]
     public void GetRunningPlans_Should_MarkOnlyPlansOfActiveGroups_When_PlanHasMoreThan64IncrementalPlans()
     {
@@ -71,10 +78,10 @@ public class IncrementalPlanActivationTests : FusionTestBase
 
     [Theory]
     [InlineData(true, true, "a,b")]
-    [InlineData(true, false, "a")]
-    [InlineData(false, true, "")]
+    [InlineData(true, false, "a,b")]
+    [InlineData(false, true, "b")]
     [InlineData(false, false, "")]
-    public void GetRunningPlans_Should_RequireTheParentPlanToRun_When_DefersAreNested(
+    public void GetRunningPlans_Should_RunPlansDeliveredByAnActiveGroup_When_DefersAreNested(
         bool a,
         bool b,
         string expected)
@@ -93,6 +100,104 @@ public class IncrementalPlanActivationTests : FusionTestBase
 
         // assert
         Assert.Equal(expected, string.Join(",", DescribeRunning(plan, running)));
+    }
+
+    [Theory]
+    [InlineData("query($d: Boolean!) { plain: foo ... @defer(if: $d) { x: foo ... @defer { y: foo } } }")]
+    [InlineData(
+        """
+        query($d: Boolean! $e: Boolean!) {
+          plain: foo ... @defer(if: $d) { x: foo ... @defer(if: $e) { y: foo } }
+        }
+        """)]
+    [InlineData(
+        """
+        query($d: Boolean!) {
+          plain: foo ... @defer { x: foo ... @defer(if: $d) { ... @defer { y: foo } } }
+        }
+        """)]
+    [InlineData(
+        """
+        query($a: Boolean! $b: Boolean! $c: Boolean!) {
+          plain: foo
+          ... @defer(if: $a) { x: foo ... @defer(if: $b) { y: foo ... @defer(if: $c) { z: foo } } }
+        }
+        """)]
+    [InlineData(
+        """
+        query($a: Boolean! $b: Boolean!) {
+          plain: foo ... @defer(if: $a) { x: foo } ... @defer(if: $b) { y: foo }
+        }
+        """)]
+    [InlineData(
+        """
+        query($a: Boolean! $b: Boolean!) {
+          plain: foo ... @defer(if: $a) { x: foo } ... @defer(if: $b) { x: foo }
+        }
+        """)]
+    public void GetRunningPlans_Should_MatchThePlansTheExecutorDelivers_When_DefersAreConditional(string operation)
+    {
+        // arrange
+        var schema = CreateSchema();
+        var plan = PlanOperation(schema, operation);
+        var variableNames = plan.DeliveryGroups
+            .Select(g => g.IfVariable)
+            .OfType<string>()
+            .Distinct()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        // act
+        var executorRows = new List<string>();
+        var evaluatorRows = new List<string>();
+
+        for (var mask = 0; mask < 1 << variableNames.Length; mask++)
+        {
+            var values = variableNames.Select((name, i) => (name, (mask & (1 << i)) != 0)).ToArray();
+            var activeDeliveryGroups = DeliveryGroup.GetActive(plan.DeliveryGroups, CreateVariables(schema, values));
+            var row = string.Join(",", values.Select(v => $"{v.name}={v.Item2}"));
+            executorRows.Add(row + ": " + DescribePlans(plan, GetPlansTheExecutorDelivers(plan, activeDeliveryGroups)));
+            evaluatorRows.Add(row + ": " + DescribePlans(
+                plan,
+                IncrementalPlan.GetRunningPlans(plan.IncrementalPlans, activeDeliveryGroups)));
+        }
+
+        // assert
+        Assert.Equal(executorRows, evaluatorRows);
+    }
+
+    [Fact]
+    public void GetRunningPlans_Should_RunASharedPlan_When_AnyOfItsGroupsIsActive()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var plan = PlanOperation(
+            schema,
+            """
+            query($a: Boolean! $b: Boolean!) {
+              plain: foo ... @defer(if: $a) { x: foo } ... @defer(if: $b) { x: foo }
+            }
+            """);
+        var rows = new List<string>();
+
+        // act
+        foreach (var (a, b) in new[] { (false, false), (true, false), (false, true), (true, true) })
+        {
+            var activeDeliveryGroups = DeliveryGroup.GetActive(
+                plan.DeliveryGroups,
+                CreateVariables(schema, ("a", a), ("b", b)));
+            var running = IncrementalPlan.GetRunningPlans(plan.IncrementalPlans, activeDeliveryGroups);
+            rows.Add($"a={a},b={b}: {DescribePlans(plan, running)}");
+        }
+
+        // assert
+        rows.MatchInlineSnapshots(
+        [
+            "a=False,b=False:",
+            "a=True,b=False: [a,b]",
+            "a=False,b=True: [a,b]",
+            "a=True,b=True: [a,b]"
+        ]);
     }
 
     [Fact]
@@ -133,6 +238,48 @@ public class IncrementalPlanActivationTests : FusionTestBase
         }
 
         return count;
+    }
+
+    private static ConditionFlags GetPlansTheExecutorDelivers(
+        OperationPlan plan,
+        ConditionFlags activeDeliveryGroups)
+    {
+        var activeDeliveryGroupIds = plan.DeliveryGroups
+            .Where(g => activeDeliveryGroups.IsSet(g.Id))
+            .Select(g => g.Id)
+            .ToHashSet();
+        var deliveryGroupsByPlan = (Dictionary<IncrementalPlan, ImmutableArray<DeliveryGroup>>)
+            s_resolveDeliveryGroupsByPlan.Invoke(null, [plan, activeDeliveryGroupIds])!;
+        var word0 = 0ul;
+
+        for (var i = 0; i < plan.IncrementalPlans.Length; i++)
+        {
+            if (!deliveryGroupsByPlan[plan.IncrementalPlans[i]].IsEmpty)
+            {
+                word0 |= 1ul << i;
+            }
+        }
+
+        return new ConditionFlags(word0, null);
+    }
+
+    private static string DescribePlans(OperationPlan plan, ConditionFlags running)
+    {
+        var names = new List<string>();
+
+        for (var i = 0; i < plan.IncrementalPlans.Length; i++)
+        {
+            if (running.IsSet(i))
+            {
+                var groups = plan.IncrementalPlans[i].DeliveryGroups
+                    .Select(g => g.IfVariable ?? "-")
+                    .Order(StringComparer.Ordinal);
+                names.Add("[" + string.Join(",", groups) + "]");
+            }
+        }
+
+        names.Sort(StringComparer.Ordinal);
+        return string.Join(" ", names);
     }
 
     private static string[] DescribeRunning(OperationPlan plan, ConditionFlags running)

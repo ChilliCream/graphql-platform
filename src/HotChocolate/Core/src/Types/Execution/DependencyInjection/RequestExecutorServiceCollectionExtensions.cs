@@ -147,6 +147,7 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
         builder.TryAddTypeInterceptor<SourceSchemaKeyInferenceTypeInterceptor>();
+        builder.TryAddTypeInterceptor<PageInfoShareableTypeInterceptor>();
 
         builder.AddDocumentCache();
 

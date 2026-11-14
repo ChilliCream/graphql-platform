@@ -196,6 +196,9 @@ public static class CompilationExtensions
     public static INamedTypeSymbol? GetConnectionBaseSymbol(this Compilation compilation)
         => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.ConnectionBase`3");
 
+    public static INamedTypeSymbol? GetStreamPageConnectionSymbol(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.StreamPageConnection`1");
+
     public static INamedTypeSymbol? GetEdgeInterfaceSymbol(this Compilation compilation)
         => compilation.GetTypeByMetadataName("HotChocolate.Types.Pagination.IEdge`1");
 
@@ -248,7 +251,8 @@ public static class CompilationExtensions
             return false;
         }
 
-        return IsDerivedFromGenericBase(namedType, compilation.GetConnectionBaseSymbol());
+        return IsDerivedFromGenericBase(namedType, compilation.GetConnectionBaseSymbol())
+            || IsDerivedFromGenericBase(namedType, compilation.GetStreamPageConnectionSymbol());
     }
 
     public static bool IsEdgeType(this Compilation compilation, ITypeSymbol possibleEdgeType)

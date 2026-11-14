@@ -188,7 +188,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
         if (cleanAfter is CleanAfter.Request)
         {
-            _operationContext.Result.RegisterForCleanup(action);
+            _operationContext.RegisterRequestCleanup(action);
         }
         else
         {

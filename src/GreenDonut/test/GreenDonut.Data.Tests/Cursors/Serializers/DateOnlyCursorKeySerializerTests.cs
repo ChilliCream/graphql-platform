@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace GreenDonut.Data.Cursors.Serializers;
 
 public class DateOnlyCursorKeySerializerTests
@@ -29,6 +31,67 @@ public class DateOnlyCursorKeySerializerTests
 
         // assert
         Assert.Equal(result, dateOnly);
+    }
+
+    [Theory]
+    [InlineData("th-TH")]
+    [InlineData("sv-SE")]
+    public void TryFormat_Should_ProduceInvariantBytes_When_CurrentCultureIsNonInvariant(string cultureName)
+    {
+        // arrange
+        var dateOnly = new DateOnly(2026, 3, 5);
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            Span<byte> invariantBuffer = stackalloc byte[8];
+            s_serializer.TryFormat(dateOnly, invariantBuffer, out _);
+            var invariantBytes = invariantBuffer.ToArray();
+
+            // act
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+            Span<byte> buffer = stackalloc byte[8];
+            var success = s_serializer.TryFormat(dateOnly, buffer, out var written);
+            var parsed = (DateOnly)s_serializer.Parse(buffer);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(8, written);
+            Assert.Equal(invariantBytes, buffer.ToArray());
+            Assert.Equal(dateOnly, parsed);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Fact]
+    public void Parse_Should_DecodeCorrectly_When_FormattedUnderThTh_AndParsedUnderInvariant()
+    {
+        // arrange
+        var dateOnly = new DateOnly(2026, 3, 5);
+        var originalCulture = CultureInfo.CurrentCulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("th-TH");
+            Span<byte> buffer = stackalloc byte[8];
+            s_serializer.TryFormat(dateOnly, buffer, out _);
+            var formatted = buffer.ToArray();
+
+            // act
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            var parsed = (DateOnly)s_serializer.Parse(formatted);
+
+            // assert
+            Assert.Equal(dateOnly, parsed);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
     }
 
     public static TheoryData<DateOnly, byte[]> Data()

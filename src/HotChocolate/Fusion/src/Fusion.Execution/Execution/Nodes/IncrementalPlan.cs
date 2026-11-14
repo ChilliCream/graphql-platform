@@ -161,7 +161,7 @@ public sealed class IncrementalPlan : IOperationPlan
 
     /// <summary>
     /// Determines which incremental plans run, indexed like <paramref name="incrementalPlans"/>. A plan
-    /// runs when one of its delivery groups is active and its parent plan, if any, also runs.
+    /// runs when one of its delivery groups is active or has an active enclosing delivery group.
     /// </summary>
     internal static ConditionFlags GetRunningPlans(
         ImmutableArray<IncrementalPlan> incrementalPlans,
@@ -169,78 +169,38 @@ public sealed class IncrementalPlan : IOperationPlan
     {
         var count = incrementalPlans.Length;
         var overflow = count > 64 ? new ulong[(count - 1) >> 6] : null;
-        var running = new ConditionFlags(0, overflow);
         var word0 = 0ul;
-        var changed = true;
 
-        while (changed)
+        for (var i = 0; i < count; i++)
         {
-            changed = false;
-
-            for (var i = 0; i < count; i++)
+            if (!IsDelivered(incrementalPlans[i], activeDeliveryGroups))
             {
-                if (!running.IsSet(i)
-                    && IsAnyDeliveryGroupActive(incrementalPlans[i], activeDeliveryGroups)
-                    && IsParentRunning(incrementalPlans[i], incrementalPlans, running))
-                {
-                    if (i < 64)
-                    {
-                        word0 |= 1ul << i;
-                    }
-                    else
-                    {
-                        overflow![(i >> 6) - 1] |= 1ul << (i & 63);
-                    }
+                continue;
+            }
 
-                    running = new ConditionFlags(word0, overflow);
-                    changed = true;
-                }
+            if (i < 64)
+            {
+                word0 |= 1ul << i;
+            }
+            else
+            {
+                overflow![(i >> 6) - 1] |= 1ul << (i & 63);
             }
         }
 
-        return running;
+        return new ConditionFlags(word0, overflow);
     }
 
-    private static bool IsAnyDeliveryGroupActive(
+    private static bool IsDelivered(
         IncrementalPlan incrementalPlan,
         ConditionFlags activeDeliveryGroups)
     {
         foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
         {
-            if (activeDeliveryGroups.IsSet(deliveryGroup.Id))
+            if (activeDeliveryGroups.IsSet(deliveryGroup.Id)
+                || deliveryGroup.GetActiveParent(activeDeliveryGroups) is not null)
             {
                 return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool IsParentRunning(
-        IncrementalPlan incrementalPlan,
-        ImmutableArray<IncrementalPlan> incrementalPlans,
-        ConditionFlags running)
-    {
-        var parent = incrementalPlan.DeliveryGroups[0].Parent;
-
-        if (parent is null)
-        {
-            return true;
-        }
-
-        for (var i = 0; i < incrementalPlans.Length; i++)
-        {
-            if (!running.IsSet(i))
-            {
-                continue;
-            }
-
-            foreach (var deliveryGroup in incrementalPlans[i].DeliveryGroups)
-            {
-                if (ReferenceEquals(deliveryGroup, parent))
-                {
-                    return true;
-                }
             }
         }
 

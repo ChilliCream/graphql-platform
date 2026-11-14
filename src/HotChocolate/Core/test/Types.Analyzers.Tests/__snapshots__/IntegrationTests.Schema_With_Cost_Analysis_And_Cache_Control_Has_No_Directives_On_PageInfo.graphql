@@ -1,0 +1,407 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @cost(weight: "10")
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10")
+  authors(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): AuthorsConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  authorById(id: ID!): Author @cacheControl(maxAge: 0) @cost(weight: "10")
+  publishers(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): PublisherConnection!
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  magazines(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): MagazineConnection!
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  addressById(id: Int!): Address @cacheControl(maxAge: 0) @cost(weight: "10")
+  queryFieldCollocatedWithAuthor: String!
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  books(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): BooksConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  bookById(id: Int!): Book @cacheControl(maxAge: 0) @cost(weight: "10")
+  staticField: String! @cacheControl(maxAge: 0) @cost(weight: "10")
+}
+
+type Mutation {
+  createBook(input: CreateBookInput!): CreateBookPayload! @cost(weight: "10")
+}
+
+type Address {
+  id: Int!
+  authorId: Int!
+  authorName: String!
+  street: String!
+  city: String!
+}
+
+type Author implements Entity & Node {
+  books(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): BooksConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  "This is some information."
+  someInfo: String @cacheControl(maxAge: 0) @cost(weight: "10")
+  """
+  Gets the additional info.
+  
+  
+  **Returns:**
+  
+  Returns a string.
+  """
+  additionalInfo("Some argument" someArg: String!): String!
+  additionalInfo1(someArg1: String!, someArg2: String!): String!
+  authorsPure: [Author!]!
+  authorsQuery: [Author!]! @cacheControl(maxAge: 0) @cost(weight: "10")
+  authorsNeedsPostProcessor: [Author!]!
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  authorsHasPostProcessor: [Author!]!
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  id: ID!
+  name: String!
+  address: Address @cacheControl(maxAge: 0) @cost(weight: "10")
+  idString: String!
+}
+
+"A connection to a list of items."
+type AuthorsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [AuthorsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Author!]
+}
+
+"An edge in a connection."
+type AuthorsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Author!
+}
+
+type Book implements Node & Entity @shareable {
+  id: ID!
+  author: Author @cacheControl(maxAge: 0) @cost(weight: "10")
+  chapter(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): ChapterConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cacheControl(maxAge: 0)
+    @cost(weight: "10")
+  idAndTitle: String!
+  bookUri: String!
+  title: String!
+  genre: BookGenre!
+  idString: String!
+}
+
+"A connection to a list of items."
+type BooksConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [BooksEdge!]
+  "A flattened list of the nodes."
+  nodes: [Book!]
+}
+
+"An edge in a connection."
+type BooksEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Book!
+}
+
+type Chapter implements Node {
+  id: ID! @cost(weight: "10")
+  fooBar: String!
+  book: Book @cacheControl(maxAge: 0) @cost(weight: "10")
+  number: Int!
+  title: String!
+  bookId: Int!
+}
+
+"A connection to a list of items."
+type ChapterConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ChapterEdge!]
+  "A flattened list of the nodes."
+  nodes: [Chapter!]
+}
+
+"An edge in a connection."
+type ChapterEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Chapter!
+}
+
+type CreateBookPayload {
+  book: Book
+}
+
+type Magazine {
+  id: Int!
+  title: String!
+}
+
+"A connection to a list of items."
+type MagazineConnection {
+  "A list of edges."
+  edges: [MagazineEdge!] @cacheControl(maxAge: 0) @cost(weight: "10")
+  "A flattened list of the nodes"
+  nodes: [Magazine!] @cacheControl(maxAge: 0) @cost(weight: "10")
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cacheControl(maxAge: 0) @cost(weight: "10")
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+type MagazineEdge {
+  "The item at the end of the edge."
+  node: Magazine!
+  "A cursor for use in pagination."
+  cursor: String!
+}
+
+"A cursor that points to a specific page."
+type PageCursor {
+  "The page number."
+  page: Int!
+  "The cursor."
+  cursor: String!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+  "A list of cursors to continue paginating forwards."
+  forwardCursors: [PageCursor!]!
+  "A list of cursors to continue paginating backwards."
+  backwardCursors: [PageCursor!]!
+}
+
+type Publisher {
+  id: Int!
+  name: String!
+}
+
+"A connection to a list of items."
+type PublisherConnection {
+  "A list of edges."
+  edges: [PublisherEdge!]
+  "A flattened list of the nodes"
+  nodes: [Publisher!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+type PublisherEdge {
+  "The item at the end of the edge."
+  node: Publisher!
+  "A cursor for use in pagination."
+  cursor: String!
+}
+
+interface Entity {
+  idString: String!
+  id: ID!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+input CreateBookInput {
+  title: String!
+  authorId: Int!
+  genre: BookGenre!
+}
+
+enum BookGenre {
+  FICTION
+  NON_FICTION
+}
+
+"The scope of a cache hint."
+enum CacheControlScope {
+  "The value to cache is not tied to a single user."
+  PUBLIC
+  "The value to cache is specific to a single user."
+  PRIVATE
+}
+
+"The `@cacheControl` directive may be provided for individual fields or entire object, interface or union types to provide caching hints to the executor."
+directive @cacheControl(
+  "The maximum amount of time this field's cached value is valid, in seconds."
+  maxAge: Int
+  "The maximum amount of time this field's cached value is valid in shared caches like CDNs, in seconds."
+  sharedMaxAge: Int
+  "If `true`, the field inherits the `maxAge` of its parent field."
+  inheritMaxAge: Boolean
+  "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user."
+  scope: CacheControlScope
+  "The Vary HTTP response header describes the parts of the request message aside from the method and URL that influenced the content of the response it occurs in. Most often, this is used to create a cache key when content negotiation is in use."
+  vary: [String]
+) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost(
+  "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
+  weight: String!
+) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
+
+"The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
+directive @listSize(
+  "The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field."
+  assumedSize: Int
+  "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments."
+  slicingArguments: [String!]
+  "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query."
+  slicingArgumentDefaultValue: Int
+  "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields."
+  sizedFields: [String!]
+  "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error."
+  requireOneSlicingArgument: Boolean = true
+) on FIELD_DEFINITION
+
+"""
+By default, only a single source schema is allowed to contribute
+a particular field to an object type.
+
+            
+This prevents source schemas from inadvertently defining similarly named
+fields that are not semantically equivalent.
+
+            
+Fields must be explicitly marked as @shareable to allow multiple source
+schemas to define them, ensuring that the decision to serve a field from
+more than one source schema is intentional and coordinated.
+
+
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+"""
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
