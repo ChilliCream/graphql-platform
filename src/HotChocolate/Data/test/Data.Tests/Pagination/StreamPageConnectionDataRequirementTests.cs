@@ -651,8 +651,8 @@ public class StreamPageConnectionDataRequirementTests(PostgreSqlResource resourc
         var executor = await new ServiceCollection()
             .AddSingleton(store)
             .AddGraphQLServer()
-            .AddType<global::HotChocolate.Types.Pagination.ItemConnectionType>()
-            .AddType<global::HotChocolate.Types.Pagination.ItemEdgeType>()
+            .AddType<HotChocolate.Types.Pagination.ItemConnectionType>()
+            .AddType<ItemEdgeType>()
             .ConfigureDescriptorContext(
                 context => context.TypeConfiguration.TryAdd(
                     "StreamPageConnectionTests::HotChocolate.Data.Pagination.GeneratedQuery",
