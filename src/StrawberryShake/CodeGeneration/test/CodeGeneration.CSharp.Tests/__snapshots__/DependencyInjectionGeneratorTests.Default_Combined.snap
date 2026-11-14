@@ -597,11 +597,8 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetPersonQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetPersonQuery : global::StrawberryShake.IOperationRequestFactory<global::Foo.Bar.IGetPersonQuery>
     {
-        global::Foo.Bar.IGetPersonQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
-        global::Foo.Bar.IGetPersonQuery WithRequestUri(global::System.Uri requestUri);
-        global::Foo.Bar.IGetPersonQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPersonResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPersonResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -846,11 +843,8 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface ICreatePersonMutation : global::StrawberryShake.IOperationRequestFactory
+    public partial interface ICreatePersonMutation : global::StrawberryShake.IOperationRequestFactory<global::Foo.Bar.ICreatePersonMutation>
     {
-        global::Foo.Bar.ICreatePersonMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
-        global::Foo.Bar.ICreatePersonMutation WithRequestUri(global::System.Uri requestUri);
-        global::Foo.Bar.ICreatePersonMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreatePersonResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ICreatePersonResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
