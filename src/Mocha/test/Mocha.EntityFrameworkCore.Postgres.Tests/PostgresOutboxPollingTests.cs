@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Outbox;
@@ -67,7 +68,7 @@ public sealed class PostgresOutboxPollingTests(PostgresFixture fixture) : IClass
         var firstPassEnded = NewSignal();
         await using var provider = await CreateProviderAsync(
             connectionString, dispatch, firstPassEnded, static o => o.MaxAttempts = 1);
-        provider.GetRequiredService<PostgresOutboxProcessor>().IdlePollingInterval = s_idlePollingInterval;
+        UseShortIdlePollingInterval(provider);
         var id = await MessageRows.InsertOutboxAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
         int? timesSentWhenIdle;
         long remaining;
@@ -98,7 +99,7 @@ public sealed class PostgresOutboxPollingTests(PostgresFixture fixture) : IClass
         var firstPassEnded = NewSignal();
         await using var provider = await CreateProviderAsync(
             connectionString, dispatch, firstPassEnded, static _ => { });
-        provider.GetRequiredService<PostgresOutboxProcessor>().IdlePollingInterval = s_idlePollingInterval;
+        UseShortIdlePollingInterval(provider);
         long remaining;
 
         // act
@@ -171,6 +172,14 @@ public sealed class PostgresOutboxPollingTests(PostgresFixture fixture) : IClass
             DestinationAddress = runtime.GetPublishEndpoint(type).Address.ToString(),
             Body = JsonSerializer.SerializeToUtf8Bytes(new PollingEvent(messageId))
         };
+    }
+
+    private static void UseShortIdlePollingInterval(ServiceProvider provider)
+    {
+        provider
+            .GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
+            .Get(typeof(TestDbContext).FullName)
+            .IdlePollingInterval = s_idlePollingInterval;
     }
 
     /// <summary>

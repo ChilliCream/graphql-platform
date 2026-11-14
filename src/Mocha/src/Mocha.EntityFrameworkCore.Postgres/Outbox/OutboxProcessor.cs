@@ -15,15 +15,6 @@ namespace Mocha.Outbox;
 /// </summary>
 public sealed class PostgresOutboxProcessor
 {
-    private static readonly TimeSpan s_pauseDelay = TimeSpan.FromMilliseconds(100);
-    private static readonly TimeSpan s_maxPauseDelay = TimeSpan.FromSeconds(10);
-
-    // An idle worker reads the outbox again after this time, which finds a message that nobody signalled.
-    private static readonly TimeSpan s_idlePollingInterval = TimeSpan.FromSeconds(30);
-
-    // The pause before a worker looks again for a due message that another worker holds.
-    private static readonly TimeSpan s_heldMessagePollingInterval = TimeSpan.FromSeconds(1);
-
     private readonly ILogger<PostgresOutboxProcessor> _logger;
     private readonly IServiceProvider _services;
     private readonly IMessagingRuntime _runtime;
@@ -71,11 +62,6 @@ public sealed class PostgresOutboxProcessor
     }
 
     /// <summary>
-    /// Gets or sets the longest time a worker waits before it reads the outbox again.
-    /// </summary>
-    internal TimeSpan IdlePollingInterval { get; set; } = s_idlePollingInterval;
-
-    /// <summary>
     /// Runs the outbox processing loop, dispatching pending messages and waiting
     /// until the next message is due or a signal is received.
     /// </summary>
@@ -93,7 +79,7 @@ public sealed class PostgresOutboxProcessor
 
     private async Task ProcessWorkerAsync(CancellationToken cancellationToken)
     {
-        using var worker = new WorkerState(_options.DispatchTimeout, cancellationToken);
+        using var worker = new WorkerState(_options, cancellationToken);
         Task? signaled = null;
 
         while (!cancellationToken.IsCancellationRequested)
@@ -190,18 +176,18 @@ public sealed class PostgresOutboxProcessor
 
         if (await command.ExecuteScalarAsync(cancellationToken) is not double secondsUntilDue)
         {
-            return IdlePollingInterval;
+            return _options.IdlePollingInterval;
         }
 
         if (secondsUntilDue <= 0)
         {
             // The claim did not return the message that is due, so another worker holds it.
-            return s_heldMessagePollingInterval;
+            return _options.HeldMessagePollingInterval;
         }
 
-        return secondsUntilDue < IdlePollingInterval.TotalSeconds
+        return secondsUntilDue < _options.IdlePollingInterval.TotalSeconds
             ? TimeSpan.FromSeconds(secondsUntilDue)
-            : IdlePollingInterval;
+            : _options.IdlePollingInterval;
     }
 
     private async Task<ClaimResult> ProcessEventAsync(
@@ -578,23 +564,23 @@ public sealed class PostgresOutboxProcessor
     private readonly record struct PassResult(bool IsPaused, TimeSpan PollingInterval);
 
     // The state one worker keeps across the messages it dispatches.
-    private sealed class WorkerState(TimeSpan dispatchTimeout, CancellationToken stopToken) : IDisposable
+    private sealed class WorkerState(PostgresMessageOutboxOptions options, CancellationToken stopToken) : IDisposable
     {
         private CancellationTokenSource? _dispatchCancellation;
 
         // The pause between two passes after a released claim or a failure of the worker.
-        public ExponentialBackoff Backoff { get; } = new(int.MaxValue, s_pauseDelay, s_maxPauseDelay);
+        public ExponentialBackoff Backoff { get; } = new(int.MaxValue, options.PauseDelay, options.MaxPauseDelay);
 
         // Returns the token of the next dispatch, which the dispatch timeout and a host stop cancel.
         public CancellationToken StartDispatch()
         {
-            if (dispatchTimeout == Timeout.InfiniteTimeSpan)
+            if (options.DispatchTimeout == Timeout.InfiniteTimeSpan)
             {
                 return stopToken;
             }
 
             _dispatchCancellation ??= CancellationTokenSource.CreateLinkedTokenSource(stopToken);
-            _dispatchCancellation.CancelAfter(dispatchTimeout);
+            _dispatchCancellation.CancelAfter(options.DispatchTimeout);
 
             return _dispatchCancellation.Token;
         }
