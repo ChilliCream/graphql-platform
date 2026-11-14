@@ -51,7 +51,7 @@ public class StreamPageConnectionExecutionTests(PostgreSqlResource resource)
                     }
                     """)
                 .Build(),
-            Xunit.TestContext.Current.CancellationToken);
+            TestContext.Current.CancellationToken);
         var resultJson = result.ToJson();
         await result.DisposeAsync();
 
@@ -84,7 +84,7 @@ public class StreamPageConnectionExecutionTests(PostgreSqlResource resource)
                         }
                         """)
                     .Build(),
-                Xunit.TestContext.Current.CancellationToken);
+                TestContext.Current.CancellationToken);
             var singleResultJson = singleResult.ToJson();
             await singleResult.DisposeAsync();
 
@@ -302,15 +302,15 @@ public class StreamPageConnectionExecutionTests(PostgreSqlResource resource)
 
             await store.ReaderGateEntered.Task.WaitAsync(
                 TimeSpan.FromSeconds(10),
-                Xunit.TestContext.Current.CancellationToken);
+                TestContext.Current.CancellationToken);
             await store.SiblingCompleted.Task.WaitAsync(
                 TimeSpan.FromSeconds(10),
-                Xunit.TestContext.Current.CancellationToken);
+                TestContext.Current.CancellationToken);
             var readerWasBlocked = !readerGate.Task.IsCompleted;
             cancellation.Cancel();
             await result.DisposeAsync().AsTask().WaitAsync(
                 TimeSpan.FromSeconds(10),
-                Xunit.TestContext.Current.CancellationToken);
+                TestContext.Current.CancellationToken);
             await store.WaitForReleaseAsync();
 
             // assert
@@ -360,7 +360,7 @@ public class StreamPageConnectionExecutionTests(PostgreSqlResource resource)
                 options.MaxTypeCost = 20_000;
             })
             .ModifyOptions(options => options.EnableDefer = true)
-            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
     public sealed class Item
     {
@@ -531,7 +531,7 @@ public class StreamPageConnectionExecutionTests(PostgreSqlResource resource)
             var store = new Store(connectionString, authorIds);
 
             await using var context = store.CreateContext();
-            await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+            await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
             foreach (var authorId in authorIds)
             {
@@ -546,7 +546,7 @@ public class StreamPageConnectionExecutionTests(PostgreSqlResource resource)
                 }
             }
 
-            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             return store;
         }
@@ -560,7 +560,7 @@ public class StreamPageConnectionExecutionTests(PostgreSqlResource resource)
         public Task WaitForReleaseAsync()
             => _releasedSignal.Task.WaitAsync(
                 TimeSpan.FromSeconds(10),
-                Xunit.TestContext.Current.CancellationToken);
+                TestContext.Current.CancellationToken);
 
         public override ValueTask<DbDataReader> ReaderExecutedAsync(
             DbCommand command,

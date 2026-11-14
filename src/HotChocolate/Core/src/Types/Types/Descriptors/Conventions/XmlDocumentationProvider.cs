@@ -247,6 +247,8 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     {
         try
         {
+            member = GetMemberDefinition(member);
+
             if (_documentationResolver.TryGetMemberLookup(
                 member.Module.Assembly,
                 out var elementLookup))
@@ -276,13 +278,14 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                 parameter.Member.Module.Assembly,
                 out var elementLookup))
             {
-                var name = GetMemberElementName(parameter.Member);
+                var member = GetMemberDefinition(parameter.Member);
+                var name = GetMemberElementName(member);
                 if (!elementLookup.TryGetValue(name, out var element))
                 {
                     return null;
                 }
 
-                element = ReplaceInheritdocElements(parameter.Member, element);
+                element = ReplaceInheritdocElements(member, element);
 
                 if (parameter.IsRetval
                     || string.IsNullOrEmpty(parameter.Name))
@@ -301,6 +304,28 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         {
             return null;
         }
+    }
+
+    private static MemberInfo GetMemberDefinition(MemberInfo member)
+    {
+        if (member is Type { IsConstructedGenericType: true } type)
+        {
+            return type.GetGenericTypeDefinition();
+        }
+
+        if (member is MethodInfo { IsConstructedGenericMethod: true } method)
+        {
+            member = method.GetGenericMethodDefinition();
+        }
+
+        if (member.DeclaringType is { IsConstructedGenericType: true } declaringType)
+        {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - the generic type definition declares the member that is being resolved.
+            member = declaringType.GetGenericTypeDefinition().GetMemberWithSameMetadataDefinitionAs(member);
+#pragma warning restore IL2075
+        }
+
+        return member;
     }
 
     private IEnumerable<XNode>? ProcessInheritdocInterfaceElements(
@@ -462,23 +487,19 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                 case MemberTypes.Method:
                     prefixCode = 'M';
 
-                    var parameters = ((MethodBase)member).GetParameters();
+                    var methodBase = (MethodBase)member;
+                    if (methodBase.IsGenericMethod)
+                    {
+                        builder.Append("``").Append(methodBase.GetGenericArguments().Length);
+                    }
+
+                    var parameters = methodBase.GetParameters();
                     if (parameters.Length > 0)
                     {
                         builder.Append('(');
                         for (var index = 0; index < parameters.Length; index++)
                         {
-                            var parameterInfo = parameters[index];
-                            var result = NormalizeParameterNameRegex()
-                                .Replace(parameterInfo.ParameterType.FullName!,
-                                    static m => m.Value switch
-                                    {
-                                        "[[" => "{",
-                                        "]]" => "}",
-                                        "],[" => ",",
-                                        _ => ""
-                                    });
-                            builder.Append(result);
+                            AppendParameterTypeName(builder, parameters[index].ParameterType);
                             if (index < parameters.Length - 1)
                             {
                                 builder.Append(',');
@@ -524,9 +545,108 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         }
     }
 
+    private static void AppendParameterTypeName(StringBuilder builder, Type type)
+    {
+        if (type.IsGenericParameter)
+        {
+            builder
+                .Append(type.DeclaringMethod is null ? "`" : "``")
+                .Append(type.GenericParameterPosition);
+            return;
+        }
+
+        if (type.IsArray)
+        {
+            AppendParameterTypeName(builder, type.GetElementType()!);
+            var rank = type.GetArrayRank();
+            if (rank == 1)
+            {
+                builder.Append("[]");
+            }
+            else
+            {
+                builder.Append('[');
+                for (var dimension = 0; dimension < rank; dimension++)
+                {
+                    if (dimension > 0)
+                    {
+                        builder.Append(',');
+                    }
+
+                    builder.Append("0:");
+                }
+
+                builder.Append(']');
+            }
+
+            return;
+        }
+
+        if (type.IsByRef || type.IsPointer)
+        {
+            AppendParameterTypeName(builder, type.GetElementType()!);
+            builder.Append(type.IsByRef ? '@' : '*');
+            return;
+        }
+
+        if (type.IsGenericType)
+        {
+            var arguments = type.GetGenericArguments();
+            AppendGenericParameterTypeName(builder, type.GetGenericTypeDefinition(), arguments, arguments.Length);
+            return;
+        }
+
+        builder.Append(type.FullName ?? type.Name);
+    }
+
+    private static void AppendGenericParameterTypeName(
+        StringBuilder builder,
+        Type definition,
+        Type[] arguments,
+        int argumentCount)
+    {
+        var parentArgumentCount = 0;
+
+        if (definition.DeclaringType is { } declaringType)
+        {
+            if (declaringType.IsGenericType)
+            {
+                parentArgumentCount = declaringType.GetGenericArguments().Length;
+                AppendGenericParameterTypeName(builder, declaringType, arguments, parentArgumentCount);
+            }
+            else
+            {
+                AppendParameterTypeName(builder, declaringType);
+            }
+
+            builder.Append('.');
+        }
+        else if (!string.IsNullOrEmpty(definition.Namespace))
+        {
+            builder.Append(definition.Namespace).Append('.');
+        }
+
+        var name = definition.Name.AsSpan();
+        var arityIndex = name.IndexOf('`');
+        builder.Append(arityIndex < 0 ? name : name[..arityIndex]);
+
+        if (argumentCount > parentArgumentCount)
+        {
+            builder.Append('{');
+            for (var index = parentArgumentCount; index < argumentCount; index++)
+            {
+                if (index > parentArgumentCount)
+                {
+                    builder.Append(',');
+                }
+
+                AppendParameterTypeName(builder, arguments[index]);
+            }
+
+            builder.Append('}');
+        }
+    }
+
     [GeneratedRegex("(\\n[ \\t]*)")]
     private static partial Regex DetectWhitespaceIndentRegex();
-
-    [GeneratedRegex(@"(`\d+)|(, .*?PublicKeyToken=[0-9a-z]*)|\[\[|\]\]|\],\[")]
-    private static partial Regex NormalizeParameterNameRegex();
 }

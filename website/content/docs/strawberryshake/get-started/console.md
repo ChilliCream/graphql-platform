@@ -1,5 +1,6 @@
 ---
 title: "Get started with Strawberry Shake in a Console application"
+metaTitle: "Get started with Strawberry Shake in a Console application"
 description: "Add a Strawberry Shake GraphQL client to a .NET console application: install the CLI tools, generate a typed client from a schema, and fetch your first data."
 ---
 

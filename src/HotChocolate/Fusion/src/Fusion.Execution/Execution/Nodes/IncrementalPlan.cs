@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -156,6 +157,54 @@ public sealed class IncrementalPlan : IOperationPlan
         }
 
         throw ThrowHelper.NodeNotFound(planNode.Id);
+    }
+
+    /// <summary>
+    /// Determines which incremental plans run, indexed like <paramref name="incrementalPlans"/>. A plan
+    /// runs when one of its delivery groups is active or has an active enclosing delivery group.
+    /// </summary>
+    internal static ConditionFlags GetRunningPlans(
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        ConditionFlags activeDeliveryGroups)
+    {
+        var count = incrementalPlans.Length;
+        var overflow = count > 64 ? new ulong[(count - 1) >> 6] : null;
+        var word0 = 0ul;
+
+        for (var i = 0; i < count; i++)
+        {
+            if (!IsDelivered(incrementalPlans[i], activeDeliveryGroups))
+            {
+                continue;
+            }
+
+            if (i < 64)
+            {
+                word0 |= 1ul << i;
+            }
+            else
+            {
+                overflow![(i >> 6) - 1] |= 1ul << (i & 63);
+            }
+        }
+
+        return new ConditionFlags(word0, overflow);
+    }
+
+    private static bool IsDelivered(
+        IncrementalPlan incrementalPlan,
+        ConditionFlags activeDeliveryGroups)
+    {
+        foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
+        {
+            if (activeDeliveryGroups.IsSet(deliveryGroup.Id)
+                || deliveryGroup.GetActiveParent(activeDeliveryGroups) is not null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static ExecutionNode?[] CreateNodeLookup(

@@ -2694,7 +2694,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             Latest,
             o =>
             {
-                o.AllowedGetOperations = AllowedGetOperations.Mutation;
+                o.AllowedGetOperations = AllowedGetOperations.Subscription;
                 o.EnableQueryRequests = enableQueryRequests;
             });
         var query = Uri.EscapeDataString("{ __typename }");

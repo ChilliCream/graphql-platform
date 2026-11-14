@@ -381,34 +381,52 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
             return true;
         }
 
-        var matchedArray = ArrayPool<bool>.Shared.Rent(count);
-        var matched = matchedArray.AsSpan(0, count);
-        matched.Clear();
+        var sameOrder = true;
+
+        for (var i = 0; i < count; i++)
+        {
+            if (!Equals(xFields[i].Name, yFields[i].Name))
+            {
+                sameOrder = false;
+                break;
+            }
+        }
+
+        if (sameOrder)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                if (!Equals(xFields[i].Value, yFields[i].Value))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        var xOrder = ArrayPool<int>.Shared.Rent(count);
+        var yOrder = ArrayPool<int>.Shared.Rent(count);
 
         try
         {
             for (var i = 0; i < count; i++)
             {
-                var xField = xFields[i];
-                var found = false;
+                xOrder[i] = i;
+                yOrder[i] = i;
+            }
 
-                for (var j = 0; j < count; j++)
-                {
-                    if (matched[j])
-                    {
-                        continue;
-                    }
+#if NETSTANDARD2_0
+            Array.Sort(xOrder, 0, count, new ObjectFieldOrderComparer(xFields));
+            Array.Sort(yOrder, 0, count, new ObjectFieldOrderComparer(yFields));
+#else
+            xOrder.AsSpan(0, count).Sort(new ObjectFieldOrderComparer(xFields));
+            yOrder.AsSpan(0, count).Sort(new ObjectFieldOrderComparer(yFields));
+#endif
 
-                    var yField = yFields[j];
-                    if (Equals(xField, yField))
-                    {
-                        matched[j] = true;
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
+            for (var i = 0; i < count; i++)
+            {
+                if (!Equals(xFields[xOrder[i]], yFields[yOrder[i]]))
                 {
                     return false;
                 }
@@ -418,7 +436,18 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
         }
         finally
         {
-            ArrayPool<bool>.Shared.Return(matchedArray);
+            ArrayPool<int>.Shared.Return(xOrder);
+            ArrayPool<int>.Shared.Return(yOrder);
+        }
+    }
+
+    private readonly struct ObjectFieldOrderComparer(IReadOnlyList<ObjectFieldNode> fields)
+        : IComparer<int>
+    {
+        public int Compare(int x, int y)
+        {
+            var result = string.CompareOrdinal(fields[x].Name.Value, fields[y].Name.Value);
+            return result != 0 ? result : x.CompareTo(y);
         }
     }
 

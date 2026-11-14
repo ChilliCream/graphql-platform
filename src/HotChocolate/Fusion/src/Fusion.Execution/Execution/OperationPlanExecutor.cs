@@ -6,6 +6,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ internal static partial class OperationPlanExecutor
         RequestContext requestContext,
         IVariableValueCollection variables,
         int variableIndex,
+        PolicyEvaluationResult policyResult,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
@@ -34,6 +36,7 @@ internal static partial class OperationPlanExecutor
                 requestContext,
                 variables,
                 variableIndex,
+                policyResult,
                 operationPlan,
                 executionCts);
 
@@ -77,6 +80,7 @@ internal static partial class OperationPlanExecutor
     public static async Task<IExecutionResult> ExecuteWithDeferAsync(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        PolicyEvaluationResult policyResult,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
@@ -93,6 +97,7 @@ internal static partial class OperationPlanExecutor
                 requestContext,
                 variables,
                 variableIndex: -1,
+                policyResult,
                 operationPlan,
                 executionCts);
 
@@ -119,12 +124,14 @@ internal static partial class OperationPlanExecutor
             var initialResult = rootContext.Complete(retainMemoryForDefer: true);
 
             // Compute the active delivery groups (one per @defer occurrence whose
-            // @defer(if:) evaluates to true) and the incremental plans that will actually run.
-            // An incremental plan is active if at least one of its delivery groups is active.
+            // @defer(if:) evaluates to true). A plan runs when one of its delivery groups is
+            // active or has an active enclosing group, the rule the policy evaluator shares.
+            rootContext.ActivateIncrementalPlans(operationPlan, variables);
+            var activeDeliveryGroups = rootContext.ActiveDeliveryGroups;
             var activeDeliveryGroupIds = new HashSet<int>();
             foreach (var deliveryGroup in operationPlan.DeliveryGroups)
             {
-                if (IsDeliveryGroupActive(deliveryGroup, variables))
+                if (activeDeliveryGroups.IsSet(deliveryGroup.Id))
                 {
                     activeDeliveryGroupIds.Add(deliveryGroup.Id);
                 }
@@ -176,6 +183,7 @@ internal static partial class OperationPlanExecutor
                 () => CreateIncrementalStream(
                     requestContext,
                     variables,
+                    policyResult,
                     operationPlan,
                     initialResult,
                     activeDeliveryGroupIds,
@@ -204,6 +212,7 @@ internal static partial class OperationPlanExecutor
     private static async IAsyncEnumerable<OperationResult> CreateIncrementalStream(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        PolicyEvaluationResult policyResult,
         OperationPlan operationPlan,
         OperationResult initialResult,
         HashSet<int> activeDeliveryGroupIds,
@@ -304,6 +313,7 @@ internal static partial class OperationPlanExecutor
                 BeginIncrementalPlan(
                     requestContext,
                     variables,
+                    policyResult,
                     incrementalPlan,
                     deliveryGroups,
                     rootContext.GetResultStoreForChildDefer(),
@@ -479,6 +489,7 @@ internal static partial class OperationPlanExecutor
                     BeginIncrementalPlan(
                         requestContext,
                         variables,
+                        policyResult,
                         candidate,
                         candidateGroups,
                         parentStore,
@@ -575,6 +586,7 @@ internal static partial class OperationPlanExecutor
     private static void BeginIncrementalPlan(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        PolicyEvaluationResult policyResult,
         IncrementalPlan incrementalPlan,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         FetchResultStore parentResultStore,
@@ -600,6 +612,7 @@ internal static partial class OperationPlanExecutor
                 requestContext,
                 variables,
                 variableIndex: -1,
+                policyResult,
                 incrementalPlan,
                 executionCts,
                 requestArena);
@@ -787,22 +800,6 @@ internal static partial class OperationPlanExecutor
                 throw ThrowHelper.DeferIfVariableIsNull(name);
             }
         }
-    }
-
-    private static bool IsDeliveryGroupActive(DeliveryGroup deliveryGroup, IVariableValueCollection variables)
-    {
-        if (deliveryGroup.IfVariable is null)
-        {
-            return true;
-        }
-
-        if (!variables.TryGetValue<BooleanValueNode>(deliveryGroup.IfVariable, out var boolValue))
-        {
-            throw new InvalidOperationException(
-                $"The variable {deliveryGroup.IfVariable} has an invalid value.");
-        }
-
-        return boolValue.Value;
     }
 
     private static DeliveryGroup? GetEnabledDeliveryGroup(
@@ -1234,6 +1231,7 @@ internal static partial class OperationPlanExecutor
                 requestContext,
                 requestContext.VariableValues[0],
                 variableIndex: -1,
+                requestContext.GetPolicyEvaluationResult(0),
                 operationPlan,
                 executionCts);
 

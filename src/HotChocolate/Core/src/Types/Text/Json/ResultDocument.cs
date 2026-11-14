@@ -338,9 +338,12 @@ public sealed partial class ResultDocument : IDisposable
         {
             parent = _metaDb.GetParentCursor(parent);
 
-            // in this case the parent must be a reference, otherwise we would have
-            // found an inconsistency in the database.
-            Debug.Assert(_metaDb.GetElementTokenType(parent, resolveReferences: false) == ElementTokenType.Reference);
+            // in this case the parent must be a reference to the live value or a null row when the
+            // value was nulled by null propagation, otherwise we would have found an inconsistency
+            // in the database.
+            Debug.Assert(
+                _metaDb.GetElementTokenType(parent, resolveReferences: false)
+                    is ElementTokenType.Reference or ElementTokenType.Null);
         }
 
         return new ResultElement(this, parent);
@@ -1070,12 +1073,6 @@ public sealed partial class ResultDocument : IDisposable
 
     public void Dispose()
     {
-        ReleaseTrackingArrays();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ReleaseTrackingArrays()
-    {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
@@ -1101,6 +1098,4 @@ public sealed partial class ResultDocument : IDisposable
         s_arrayPool.Return(_data);
         _data = [];
     }
-
-    ~ResultDocument() => ReleaseTrackingArrays();
 }

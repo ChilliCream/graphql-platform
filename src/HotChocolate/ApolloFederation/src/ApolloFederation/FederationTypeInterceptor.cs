@@ -82,6 +82,9 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 objectType,
                 objectTypeCfg,
                 discoveryContext);
+
+            ApplySdlResolver(objectTypeCfg);
+
             return;
         }
 
@@ -481,6 +484,22 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         if (_entityTypes.Count > 0)
         {
             objectTypeCfg.Fields.Add(ServerFields.CreateEntitiesField(_context));
+        }
+    }
+
+    private static void ApplySdlResolver(ObjectTypeConfiguration objectTypeCfg)
+    {
+        if (objectTypeCfg.RuntimeType != typeof(_Service))
+        {
+            return;
+        }
+
+        foreach (var field in objectTypeCfg.Fields)
+        {
+            if (field.Name.Equals(WellKnownFieldNames.Sdl, StringComparison.Ordinal))
+            {
+                field.Resolvers = new FieldResolverDelegates(pureResolver: ServerFields.ResolveSdl);
+            }
         }
     }
 

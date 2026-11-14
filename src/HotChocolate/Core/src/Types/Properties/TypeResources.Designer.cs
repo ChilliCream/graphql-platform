@@ -3005,6 +3005,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The topic resolved from the arguments of `{0}` is the topic of another subscription field..
+        /// </summary>
+        internal static string ThrowHelper_SubscribeResolver_TopicOfOtherField {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SubscribeResolver_TopicOfOtherField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to resolve type reference `{0}`..
         /// </summary>
         internal static string ThrowHelper_TypeCompletionContext_UnableToResolveType {

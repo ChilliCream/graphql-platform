@@ -1,4 +1,3 @@
-import * as page from "./page";
 import {
   createPageShareCardImage,
   shareCardContentType,
@@ -7,8 +6,10 @@ import {
 
 export const dynamic = "force-static";
 
-export const alt = "Fusion GraphQL Federation router";
+export const alt = "Fusion GraphQL Federation router (gateway)";
 export const size = shareCardSize;
 export const contentType = shareCardContentType;
 
-export default createPageShareCardImage(page);
+export default createPageShareCardImage({
+  metadata: { title: "Fusion: GraphQL Federation Router" },
+});

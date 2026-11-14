@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Text.Json;
@@ -50,39 +51,49 @@ internal static class AliasBatchResponseSplitter
             return AliasBatchSplitStatus.Invalid;
         }
 
-        var roots = new SourceResultElement[items.Length];
+        var roots = ArrayPool<SourceResultElement>.Shared.Rent(items.Length);
 
-        foreach (var property in data.EnumerateObject())
+        try
         {
-            if (!TryResolveItem(property.NameSpan, items, out var index))
+            roots.AsSpan(0, items.Length).Clear();
+
+            foreach (var property in data.EnumerateObject())
             {
-                return AliasBatchSplitStatus.Invalid;
+                if (!TryResolveItem(property.NameSpan, items, out var index))
+                {
+                    return AliasBatchSplitStatus.Invalid;
+                }
+
+                roots[index] = property.Value;
             }
 
-            roots[index] = property.Value;
+            var documentOwner = new SourceResultDocumentOwner(document, items.Length);
+
+            for (var i = 0; i < items.Length; i++)
+            {
+                var variables = items[i].Variables;
+                var root = roots[i];
+                var itemErrors = routedErrors?[i];
+
+                results[i] = new SourceSchemaResult(
+                    variables.Path,
+                    document,
+                    documentOwner: documentOwner,
+                    // An item whose field the response does not carry has no lookup data.
+                    lookupData: root.ValueKind is JsonValueKind.Undefined ? null : root,
+                    errors: itemErrors is null
+                        ? null
+                        : SourceSchemaErrors.Create(CollectionsMarshal.AsSpan(itemErrors)),
+                    additionalPaths: variables.AdditionalPaths);
+            }
+
+            return AliasBatchSplitStatus.Split;
         }
-
-        var documentOwner = new SourceResultDocumentOwner(document, items.Length);
-
-        for (var i = 0; i < items.Length; i++)
+        finally
         {
-            var variables = items[i].Variables;
-            var root = roots[i];
-            var itemErrors = routedErrors?[i];
-
-            results[i] = new SourceSchemaResult(
-                variables.Path,
-                document,
-                documentOwner: documentOwner,
-                // An item whose field the response does not carry has no lookup data.
-                lookupData: root.ValueKind is JsonValueKind.Undefined ? null : root,
-                errors: itemErrors is null
-                    ? null
-                    : SourceSchemaErrors.Create(CollectionsMarshal.AsSpan(itemErrors)),
-                additionalPaths: variables.AdditionalPaths);
+            roots.AsSpan(0, items.Length).Clear();
+            ArrayPool<SourceResultElement>.Shared.Return(roots);
         }
-
-        return AliasBatchSplitStatus.Split;
     }
 
     /// <summary>

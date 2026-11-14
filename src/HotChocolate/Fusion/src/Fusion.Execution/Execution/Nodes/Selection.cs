@@ -91,6 +91,11 @@ public sealed class Selection : ISelection
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
+        if (field is FusionOutputFieldDefinition { HasPolicy: true })
+        {
+            _flags |= Flags.HasPolicies;
+        }
+
         var type = field.Type;
         _type = type;
 
@@ -151,9 +156,12 @@ public sealed class Selection : ISelection
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName
-        => MemoryMarshal.CreateReadOnlySpan(
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_utf8JsonPropertyName), 1),
             _utf8JsonPropertyNameLength - 3);
+    }
 
     /// <summary>
     /// Gets the response name as a minimized JSON property name token: the quoted
@@ -203,6 +211,11 @@ public sealed class Selection : ISelection
     /// Gets a value indicating whether the selection's field type is non-nullable.
     /// </summary>
     internal bool IsNonNull => (_flags & Flags.NonNull) == Flags.NonNull;
+
+    /// <summary>
+    /// Gets a value indicating whether the field of this selection carries a policy requirement.
+    /// </summary>
+    internal bool HasPolicies => (_flags & Flags.HasPolicies) == Flags.HasPolicies;
 
     /// <summary>
     /// Gets the selection's field type with its non-null wrapper removed.
@@ -268,26 +281,26 @@ public sealed class Selection : ISelection
     /// The child selection set, or <c>null</c> when this selection has no child
     /// selection set.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SelectionSet? GetSelectionSet(IComplexTypeDefinition typeContext)
+    {
+        // _childSelectionSet is only set for non-leaf fields whose named type is a concrete object type.
+        // When it is set, we can return it right away because that child selection set is plan-stable.
+        // A concurrent recompute produces the same instance, so no synchronization is needed.
+        return _childSelectionSet ?? ResolveSelectionSet(typeContext);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private SelectionSet? ResolveSelectionSet(IComplexTypeDefinition typeContext)
     {
         if ((_flags & Flags.Leaf) == Flags.Leaf)
         {
             return null;
         }
 
-        // _childSelectionSet is only set for non-leaf fields whose named type is a concrete object type.
-        // When it is set, we can return it right away because that child selection set is plan-stable.
-        // A concurrent recompute produces the same instance, so no synchronization is needed.
-        var childSelectionSet = _childSelectionSet;
-
-        if (childSelectionSet is not null)
-        {
-            return childSelectionSet;
-        }
-
         if (_namedType is IObjectTypeDefinition)
         {
-            childSelectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+            var childSelectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
             _childSelectionSet = childSelectionSet;
             return childSelectionSet;
         }
@@ -795,6 +808,7 @@ nextItem:
         ValueTypeNamedType = 32,
         NonNullListElement = 64,
         RequiresWideIncludeFlags = 128,
-        RequiresWideDeferFlags = 256
+        RequiresWideDeferFlags = 256,
+        HasPolicies = 512
     }
 }

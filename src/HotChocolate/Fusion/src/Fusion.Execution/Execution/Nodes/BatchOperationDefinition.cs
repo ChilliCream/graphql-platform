@@ -17,6 +17,7 @@ internal sealed class BatchOperationDefinition : OperationDefinition
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
+        ExecutionNodeCondition[][] conditionAlternatives,
         bool requiresFileUpload)
         : base(
             id,
@@ -28,6 +29,7 @@ internal sealed class BatchOperationDefinition : OperationDefinition
             forwardedVariables,
             resultSelectionSet,
             conditions,
+            conditionAlternatives,
             requiresFileUpload)
     {
         _targets = targets;

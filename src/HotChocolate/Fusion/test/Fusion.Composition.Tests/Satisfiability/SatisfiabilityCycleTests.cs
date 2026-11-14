@@ -514,4 +514,60 @@ public sealed class SatisfiabilityCycleTests
                 """)
         ];
     }
+
+    [Fact]
+    public void Compose_Should_Fail_When_RequirementRepeatsFieldOfItsPath()
+    {
+        // arrange
+        // The requirement selects T.next twice in A, so its path holds the same item twice.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    t: T
+                }
+
+                type T {
+                    id: ID! @shareable
+                    next: T @shareable
+                    f(x: String @require(field: "n.next.next.x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    tById(id: ID!): T @lookup @internal
+                }
+
+                type T {
+                    id: ID! @shareable
+                    n: T
+                    next: T @shareable
+                    x: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'T.f' on path 'A:Query.t<T>'.
+              Unable to satisfy the requirement '{ n { next { next { x } } } }' on field 'A:T.f<String>'.
+                The field 'T.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'T' that could resolve the field once the required data has been fetched.
+            """,
+            """
+            Unable to access the field 'T.f' on path 'A:Query.t<T> -> B:T.next<T>'.
+              Unable to satisfy the requirement '{ n { next { next { x } } } }' on field 'A:T.f<String>'.
+                The field 'T.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'T' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
 }

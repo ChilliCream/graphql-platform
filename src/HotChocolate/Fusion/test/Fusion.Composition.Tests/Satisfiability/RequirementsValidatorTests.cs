@@ -72,6 +72,7 @@ public sealed class RequirementsValidatorTests
                 schema,
                 lookupCache,
                 new SatisfiabilityFactsBuilder(schema, lookupCache).Build(),
+                queryViewerField: null,
                 includeSatisfiabilityPaths: false);
         var selectedValue = new FieldSelectionMapParser("specialField").Parse();
         var selectionSet =
@@ -87,7 +88,9 @@ public sealed class RequirementsValidatorTests
                 (MutableObjectTypeDefinition)productByIdField.Type,
                 parentPathItem,
                 ancestors: [],
-                excludeSchemaName: "A");
+                RequirementScope.Unanchored,
+                excludeSchemaName: "A",
+                SatisfiabilityExplanationBudget.Unlimited());
 
         // assert
         Assert.Empty(errors);
@@ -163,6 +166,7 @@ public sealed class RequirementsValidatorTests
                 schema,
                 lookupCache,
                 new SatisfiabilityFactsBuilder(schema, lookupCache).Build(),
+                queryViewerField: null,
                 includeSatisfiabilityPaths: true);
         var selectionSet =
             new ValueSelectionToSelectionSetRewriter(schema).Rewrite(
@@ -178,7 +182,9 @@ public sealed class RequirementsValidatorTests
                 (MutableObjectTypeDefinition)e0Field.Type,
                 parentPathItem,
                 ancestors: [],
-                excludeSchemaName: "C");
+                RequirementScope.Unanchored,
+                excludeSchemaName: "C",
+                SatisfiabilityExplanationBudget.Unlimited());
 
         // assert
         errors.Select(e => e.ToString()).MatchInlineSnapshots(

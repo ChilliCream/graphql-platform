@@ -4,10 +4,9 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class EndpointMiddlewareTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public EndpointMiddlewareTests(RabbitMQFixture fixture)
@@ -51,7 +50,7 @@ public class EndpointMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-MW" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message within timeout");
         Assert.Contains("receive-mw", tracker.Invocations);
     }
 
@@ -92,7 +91,7 @@ public class EndpointMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-MW2" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message within timeout");
         Assert.Contains("append-receive-mw", tracker.Invocations);
     }
 
@@ -133,7 +132,7 @@ public class EndpointMiddlewareTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-MW3" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message within timeout");
         Assert.Contains("prepend-receive-mw", tracker.Invocations);
     }
 
@@ -173,7 +172,7 @@ public class EndpointMiddlewareTests
         await messageBus.PublishAsync(new ProcessPayment { OrderId = "ORD-DM", Amount = 50.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the message within timeout");
         Assert.Contains("dispatch-mw", tracker.Invocations);
     }
 
@@ -214,7 +213,7 @@ public class EndpointMiddlewareTests
         await messageBus.PublishAsync(new ProcessPayment { OrderId = "ORD-DM2", Amount = 25.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the message within timeout");
         Assert.Contains("append-dispatch-mw", tracker.Invocations);
     }
 
@@ -255,7 +254,7 @@ public class EndpointMiddlewareTests
         await messageBus.PublishAsync(new ProcessPayment { OrderId = "ORD-DM3", Amount = 10.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the message within timeout");
         Assert.Contains("prepend-dispatch-mw", tracker.Invocations);
     }
 

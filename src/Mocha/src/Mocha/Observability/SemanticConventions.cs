@@ -173,6 +173,27 @@ internal static class SemanticConventions
     }
 
     /// <summary>
+    /// Sets the <see cref="MessagingType"/> tag on the activity to record the message type identity.
+    /// </summary>
+    /// <remarks>
+    /// If <paramref name="value"/> is <see langword="null"/>, the activity is returned unchanged.
+    /// </remarks>
+    /// <param name="activity">The activity to enrich.</param>
+    /// <param name="value">The message type identity, or <see langword="null"/> to skip tagging.</param>
+    /// <returns>The same <see cref="Activity"/> instance for fluent chaining.</returns>
+    public static Activity SetMessageType(this Activity activity, string? value)
+    {
+        if (value is null)
+        {
+            return activity;
+        }
+
+        activity.SetTag(MessagingType, value);
+
+        return activity;
+    }
+
+    /// <summary>
     /// Sets the <see cref="MessagingHandlerName"/> tag on the activity to identify which consumer handled the message.
     /// </summary>
     /// <remarks>
@@ -283,6 +304,22 @@ internal static class SemanticConventions
     public static Activity SetBodySize(this Activity activity, long value)
     {
         activity.SetTag(MessageBodySize, value);
+        return activity;
+    }
+
+    /// <summary>
+    /// Sets the status of the activity to <see cref="ActivityStatusCode.Ok"/>, unless it is
+    /// <see cref="ActivityStatusCode.Error"/>.
+    /// </summary>
+    /// <param name="activity">The activity to complete.</param>
+    /// <returns>The same <see cref="Activity"/> instance for fluent chaining.</returns>
+    public static Activity SetOkStatusUnlessError(this Activity activity)
+    {
+        if (activity.Status != ActivityStatusCode.Error)
+        {
+            activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
         return activity;
     }
 }

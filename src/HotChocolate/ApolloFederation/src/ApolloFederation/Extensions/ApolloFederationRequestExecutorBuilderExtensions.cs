@@ -1,6 +1,7 @@
 using HotChocolate.ApolloFederation;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Features;
 using FederationVersion = HotChocolate.ApolloFederation.FederationVersion;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -28,9 +29,31 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddApolloFederation(
         this IRequestExecutorBuilder builder,
         FederationVersion version = FederationVersion.Default)
+        => AddApolloFederation(builder, o => o.Version = version);
+
+    /// <summary>
+    /// Adds support for Apollo Federation to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// An action to configure the <see cref="ApolloFederationOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder AddApolloFederation(
+        this IRequestExecutorBuilder builder,
+        Action<ApolloFederationOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.ConfigureSchema(b => b.Features.Set(new ApolloFederationFeature(version)));
+        ArgumentNullException.ThrowIfNull(configure);
+        builder.ConfigureSchema(
+            b => configure(b.Features.GetOrSet<ApolloFederationFeature>().Options));
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
         builder.BindRuntimeType<Policy, StringType>();
         builder.AddTypeConverter<Policy, string>(from => from.Value);

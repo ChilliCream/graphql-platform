@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -16,6 +17,7 @@ internal ref struct SourceElementSnapshotEnumerator
     private SourceResultDocument.Cursor _cursor;
     private SourceResultDocument.DbRow _row;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal SourceElementSnapshotEnumerator(
         SourceResultDocument parent,
         SourceResultDocument.Cursor arrayCursor,
@@ -33,7 +35,11 @@ internal ref struct SourceElementSnapshotEnumerator
     /// <summary>
     /// Gets the current element.
     /// </summary>
-    public readonly SourceResultElementSnapshot Current => new(_parent, _cursor, _row);
+    public readonly SourceResultElementSnapshot Current
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => new(_parent, _cursor, _row);
+    }
 
     /// <summary>
     /// Advances to the next element of the array.
@@ -42,6 +48,7 @@ internal ref struct SourceElementSnapshotEnumerator
     /// <c>true</c>, if the enumerator advanced to an element;
     /// <c>false</c>, if there are no more elements.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool MoveNext()
     {
         var cursor = _nextCursor;

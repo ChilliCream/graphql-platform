@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
@@ -517,6 +518,67 @@ public class DeferPlannerTests : FusionTestBase
         Assert.Null(outerGroup.Parent);
         Assert.NotNull(innerGroup.Parent);
         Assert.Equal(outerGroup.Id, innerGroup.Parent.Id);
+    }
+
+    [Fact]
+    public void Defer_UnlabeledUnconditionalDefer_Should_ProduceOwnGroup_When_EnclosingDeferIsConditional()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query ($d: Boolean!) {
+                user(id: "1") {
+                    name
+                    ... @defer(if: $d) {
+                        email
+                        ... @defer {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Collection(
+            plan.IncrementalPlans.Select(p => p.DeliveryGroups[0]).OrderBy(g => g.Id),
+            outer =>
+            {
+                Assert.Equal("d", outer.IfVariable);
+                Assert.Null(outer.Parent);
+            },
+            inner =>
+            {
+                Assert.Null(inner.IfVariable);
+                Assert.Equal("d", inner.Parent?.IfVariable);
+            });
     }
 
     [Fact]
@@ -3168,7 +3230,7 @@ public class DeferPlannerTests : FusionTestBase
         var schema = ComposeProductReviewSchema();
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
-        var planner = new OperationPlanner(schema, new OperationCompiler(schema, pool));
+        var planner = new OperationPlanner(schema, new OperationCompiler(schema, pool), TestPolicyResolver.Create());
 
         // the requirement of the consumer is anchored beside the defer anchor
         var anchor = SelectionPath.Parse("$.products");
@@ -3380,7 +3442,7 @@ public class DeferPlannerTests : FusionTestBase
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
 
-        return new OperationPlanner(schema, new OperationCompiler(schema, pool));
+        return new OperationPlanner(schema, new OperationCompiler(schema, pool), TestPolicyResolver.Create());
     }
 
     private static IncrementalPlanDescriptor CreateDescriptor(string operation, string path)

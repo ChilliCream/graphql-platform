@@ -29,6 +29,27 @@ internal static class OpenTelemetry
         return headers;
     }
 
+    public static IHeaders OverrideActivity(this IHeaders headers)
+    {
+        if (Activity.Current is not { } activity)
+        {
+            return headers;
+        }
+
+        var traceparent = TraceparentHelper.FormatTraceparent(activity);
+        if (traceparent is not null)
+        {
+            headers.Set(MessageHeaders.Traceparent, traceparent);
+        }
+
+        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            headers.Set(MessageHeaders.Tracestate, activity.TraceStateString);
+        }
+
+        return headers;
+    }
+
     // TODO this needs to be adjusted - this is still leagcy
     public static class Meters
     {

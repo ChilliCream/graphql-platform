@@ -82,6 +82,9 @@ export function BenchmarkPage({ initialScenario }: BenchmarkPageProps) {
         </div>
         <BenchmarkTestSetup report={report} history={history} />
       </article>
+      {/* Holds the first paint until the page is parsed, so a reload restores its scroll position without showing the top first. */}
+      <link rel="expect" href="#benchmark-page-end" blocking="render" />
+      <div id="benchmark-page-end" />
     </>
   );
 }

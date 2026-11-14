@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 
@@ -373,29 +374,46 @@ public sealed partial class CompositeResultDocument
     /// <c>true</c> with the object context for an object, and throws for any other
     /// value kind.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool TryGetObjectContext(Cursor startCursor, out CompositeObjectContext objectContext)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref startCursor);
+        var tokenType = row.TokenType;
 
-        if (row.TokenType is ElementTokenType.None)
+        if (tokenType is ElementTokenType.None)
         {
             objectContext = default;
             return false;
         }
 
-        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
-
-        SelectionSet? selectionSet = null;
-
-        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
+        if (tokenType is ElementTokenType.StartObject
+            && row.OperationReferenceType is OperationReferenceType.SelectionSet)
         {
-            selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
+            objectContext = new CompositeObjectContext(
+                this,
+                startCursor,
+                _operation.GetSelectionSetById(row.OperationReferenceId),
+                row.NumberOfRows);
+            return true;
         }
 
-        objectContext = new CompositeObjectContext(this, startCursor, selectionSet, row.NumberOfRows);
+        objectContext = GetRawObjectContext(startCursor, row);
         return true;
+    }
+
+    /// <summary>
+    /// Creates the object context for the object row <paramref name="row"/> at
+    /// <paramref name="startCursor"/> that no selection set describes, and throws for any other
+    /// value kind.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private CompositeObjectContext GetRawObjectContext(Cursor startCursor, DbRow row)
+    {
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        return new CompositeObjectContext(this, startCursor, selectionSet: null, row.NumberOfRows);
     }
 
     internal CompositeObjectContext GetObjectContext(Cursor startCursor)

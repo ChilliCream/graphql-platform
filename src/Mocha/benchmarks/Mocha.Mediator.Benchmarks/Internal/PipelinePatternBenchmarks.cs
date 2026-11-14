@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
-using Mocha.Mediator;
 
 namespace Mocha.Mediator.Benchmarks.Internal;
 
@@ -16,7 +15,7 @@ public class PipelinePatternBenchmarks
 {
     public sealed record PipelineRequest(Guid Id);
 
-    private static readonly Guid _responseId = Guid.NewGuid();
+    private static readonly Guid s_responseId = Guid.NewGuid();
 
     private PipelineRequest _request = null!;
 
@@ -34,7 +33,7 @@ public class PipelinePatternBenchmarks
         _request = new PipelineRequest(Guid.NewGuid());
         _directHandler = static ctx =>
         {
-            ctx.Result = _responseId;
+            ctx.Result = s_responseId;
             return ValueTask.CompletedTask;
         };
 
@@ -106,7 +105,7 @@ public class PipelinePatternBenchmarks
     [Benchmark]
     public ValueTask<Guid> RawInlined_NoBehaviors()
     {
-        return new ValueTask<Guid>(_responseId);
+        return new ValueTask<Guid>(s_responseId);
     }
 
     [Benchmark]
@@ -157,9 +156,9 @@ public class PipelinePatternBenchmarks
     public sealed class InlinedHandler
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ValueTask<Guid> HandleDirect(PipelineRequest message, CancellationToken ct)
+        public ValueTask<Guid> HandleDirect(PipelineRequest _, CancellationToken __)
         {
-            return new ValueTask<Guid>(_responseId);
+            return new ValueTask<Guid>(s_responseId);
         }
     }
 

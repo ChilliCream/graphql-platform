@@ -5,6 +5,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
@@ -32,6 +33,7 @@ public sealed partial class OperationPlanner
         int searchSpace,
         int expandedNodes,
         int nextNodeId,
+        PolicyPlanContext? policyContext,
         CancellationToken cancellationToken)
     {
         if (operation.IsIntrospectionOnly())
@@ -50,6 +52,7 @@ public sealed partial class OperationPlanner
                 nodes,
                 deliveryGroups,
                 incrementalPlans,
+                PolicyPlan.Empty,
                 searchSpace,
                 expandedNodes);
 
@@ -59,9 +62,20 @@ public sealed partial class OperationPlanner
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
-        var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
+        var marker = policyContext is null
+            ? null
+            : PolicyMarker.TryCreate(_schema, policyContext, operation);
 
-        planSteps = TransformPlanSteps(planSteps, operationDefinition);
+        planSteps = TransformPlanSteps(planSteps, operationDefinition, marker);
+
+        var hasVariables = operationDefinition.VariableDefinitions.Count > 0
+            || marker is { HasVariables: true };
+
+        if (policyContext is not null && marker is not null)
+        {
+            policyContext.AddRoot(marker);
+        }
+
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
         var splitForEntityReuse = _options.EnableEntityReuseSplitting
@@ -113,6 +127,7 @@ public sealed partial class OperationPlanner
             allNodes,
             deliveryGroups,
             incrementalPlans,
+            policyContext?.CreatePlan() ?? PolicyPlan.Empty,
             searchSpace,
             expandedNodes);
 
@@ -515,15 +530,27 @@ public sealed partial class OperationPlanner
 
     private static ImmutableList<PlanStep> TransformPlanSteps(
         ImmutableList<PlanStep> planSteps,
-        OperationDefinitionNode originalOperation)
+        OperationDefinitionNode originalOperation,
+        PolicyMarker? marker)
     {
-        var updatedPlanSteps = planSteps;
         var forwardVariableContext = new ForwardVariableRewriter.Context();
 
         foreach (var variableDef in originalOperation.VariableDefinitions)
         {
             forwardVariableContext.Variables[variableDef.Variable.Name.Value] = variableDef;
         }
+
+        if (marker is not null)
+        {
+            planSteps = marker.Mark(planSteps);
+
+            foreach (var variableDef in marker.GetVariableDefinitions())
+            {
+                forwardVariableContext.Variables[variableDef.Variable.Name.Value] = variableDef;
+            }
+        }
+
+        var updatedPlanSteps = planSteps;
 
         foreach (var step in planSteps)
         {
@@ -927,6 +954,7 @@ public sealed partial class OperationPlanner
                 forwardedVariables,
                 resultSelectionSet,
                 operationStep.Conditions,
+                operationStep.ConditionAlternatives,
                 requiresFileUpload,
                 schema);
 
@@ -950,6 +978,7 @@ public sealed partial class OperationPlanner
             forwardedVariables,
             resultSelectionSet,
             operationStep.Conditions,
+            operationStep.ConditionAlternatives,
             requiresFileUpload);
 
         foreach (var parentDependency in operationStep.ParentDependencies)
@@ -1077,7 +1106,9 @@ public sealed partial class OperationPlanner
             ctx,
             nodeFieldBoundCache,
             mergePolicy,
-            serialScopes);
+            splitForEntityReuse,
+            serialScopes,
+            schema);
 
         // Capture each node's dependency identifiers now, because the batching
         // step below will rewrite the dependency lookup as it merges nodes.
@@ -1208,13 +1239,17 @@ public sealed partial class OperationPlanner
     /// a source schema into one lookup with a target per merged node, subject to the merge policy.
     /// Cross-depth merges require the shallower lookup to have no dependents and the deeper
     /// lookup to already wait for all of its dependencies. Lookups in different
-    /// <paramref name="serialScopes"/> are never merged.
+    /// <paramref name="serialScopes"/> are never merged. When <paramref name="splitForEntityReuse"/>
+    /// is set, reusable lookups at different dependency depths stay apart and each deeper
+    /// lookup runs after the next shallower one, so that entity reuse can serve it.
     /// </summary>
     private static Dictionary<int, ApolloOperationExecutionNode[]> MergeStructurallyIdenticalApolloLookups(
         ExecutionPlanBuildContext ctx,
         Dictionary<int, bool> nodeFieldBoundCache,
         OperationMergePolicy mergePolicy,
-        Dictionary<int, int>? serialScopes)
+        bool splitForEntityReuse,
+        Dictionary<int, int>? serialScopes,
+        FusionSchemaDefinition schema)
     {
         if (mergePolicy is OperationMergePolicy.None)
         {
@@ -1284,7 +1319,18 @@ public sealed partial class OperationPlanner
         // it inspects already references the merged lookups.
         foreach (var groups in groupsBySignature.Values)
         {
-            if (groups.Count > 1 && mergePolicy is not OperationMergePolicy.Conservative)
+            if (groups.Count > 1
+                && splitForEntityReuse
+                && IsReusableApolloLookup(groups[0].Nodes[0], schema))
+            {
+                groups.Sort((a, b) => a.Depth.CompareTo(b.Depth));
+
+                for (var i = 1; i < groups.Count; i++)
+                {
+                    AddDependency(ctx, groups[i].Nodes[0].Id, groups[i - 1].Nodes[0].Id);
+                }
+            }
+            else if (groups.Count > 1 && mergePolicy is not OperationMergePolicy.Conservative)
             {
                 FoldLeafApolloLookupGroups(ctx, groups, mergePolicy);
             }
@@ -1443,14 +1489,46 @@ public sealed partial class OperationPlanner
     }
 
     private static bool IsReusableLookup(OperationExecutionNode node, FusionSchemaDefinition schema)
-    {
-        if (node.LookupTypeName is null
-            || !schema.Types.TryGetType<FusionComplexTypeDefinition>(node.LookupTypeName, out var lookupType)
-            || !EntityReuseCandidateMap.TryGetReusableFields(
+        => IsReusableLookup(
+            node.LookupTypeName,
+            node.ResultSelectionSet,
+            node.Requirements,
+            node.ForwardedVariables.Length,
+            node.Conditions.Length + node.ConditionAlternatives.Length,
+            schema);
+
+    private static bool IsReusableApolloLookup(ApolloOperationExecutionNode node, FusionSchemaDefinition schema)
+        => IsReusableLookup(
+                node.Lookup.EntityTypeName,
                 node.ResultSelectionSet,
                 node.Requirements,
                 node.ForwardedVariables.Length,
-                node.Conditions.Length,
+                node.Conditions.Length + node.ConditionAlternatives.Length,
+                schema)
+            && EntityReuseCandidateMap.TryGetReusableFields(
+                node.ResultSelectionSet,
+                node.Requirements,
+                node.ForwardedVariables.Length,
+                node.Conditions.Length + node.ConditionAlternatives.Length,
+                out _,
+                out var requirementFields)
+            && EntityReuseCandidateMap.IsFlatRepresentationShape(node.Lookup.RepresentationShape, requirementFields);
+
+    private static bool IsReusableLookup(
+        string? lookupTypeName,
+        ResultSelectionSet resultSelectionSet,
+        ReadOnlySpan<OperationRequirement> requirements,
+        int forwardedVariableCount,
+        int conditionCount,
+        FusionSchemaDefinition schema)
+    {
+        if (lookupTypeName is null
+            || !schema.Types.TryGetType<FusionComplexTypeDefinition>(lookupTypeName, out var lookupType)
+            || !EntityReuseCandidateMap.TryGetReusableFields(
+                resultSelectionSet,
+                requirements,
+                forwardedVariableCount,
+                conditionCount,
                 out var responseNames,
                 out _))
         {
@@ -1842,6 +1920,8 @@ public sealed partial class OperationPlanner
             }
         }
 
+        var apolloDefinitions = IndexApolloDefinitions(ctx.ExecutionNodes.Values);
+
         foreach (var (batchNode, memberDependencies) in perOperationDependencies)
         {
             foreach (var (operationId, dependencyIds) in memberDependencies)
@@ -1853,8 +1933,16 @@ public sealed partial class OperationPlanner
                     {
                         if (planNodeById.TryGetValue(dependencyId, out var dependencyNode))
                         {
-                            if (batchNode is OperationBatchExecutionNode
-                                && IsEntityReuseOrderingDependency(operationDefinition, dependencyNode))
+                            if ((batchNode is OperationBatchExecutionNode
+                                    && IsEntityReuseOrderingDependency(operationDefinition, dependencyNode))
+                                || (batchNode is ApolloOperationBatchExecutionNode apolloBatch
+                                    && apolloDefinitions.TryGetValue(operationDefinition.Id, out var location)
+                                    && ReferenceEquals(location.Batch, apolloBatch)
+                                    && IsEntityReuseOrderingDependency(
+                                        apolloBatch,
+                                        location.Index,
+                                        dependencyNode,
+                                        apolloDefinitions)))
                             {
                                 operationDefinition.AddOptionalDependency(dependencyNode);
                             }
@@ -1941,6 +2029,7 @@ public sealed partial class OperationPlanner
             primary.ForwardedVariables.ToArray(),
             primary.ResultSelectionSet,
             primary.Conditions.ToArray(),
+            primary.ConditionAlternatives.ToArray(),
             primary.RequiresFileUpload);
 
         foreach (var parentDependency in primary.BufferedParentDependencies)
@@ -1964,6 +2053,7 @@ public sealed partial class OperationPlanner
             member.ForwardedVariables.ToArray(),
             member.ResultSelectionSet,
             member.Conditions.ToArray(),
+            member.ConditionAlternatives.ToArray(),
             member.RequiresFileUpload);
 
         foreach (var parentDependency in member.BufferedParentDependencies)
@@ -1994,6 +2084,7 @@ public sealed partial class OperationPlanner
             member.ForwardedVariables.ToArray(),
             member.ResultSelectionSet,
             member.Conditions.ToArray(),
+            member.ConditionAlternatives.ToArray(),
             member.RequiresFileUpload);
 
         foreach (var parentDependency in member.BufferedParentDependencies)
@@ -2033,6 +2124,7 @@ public sealed partial class OperationPlanner
             primary.ForwardedVariables.ToArray(),
             primary.ResultSelectionSet,
             primary.Conditions.ToArray(),
+            primary.ConditionAlternatives.ToArray(),
             primary.RequiresFileUpload);
 
         var parentDependencies = new HashSet<int>();
@@ -2429,20 +2521,23 @@ public sealed partial class OperationPlanner
             node.Source,
             node.OperationDocument,
             node.Requirements,
-            node.Conditions);
+            node.Conditions,
+            node.ConditionAlternatives);
 
     private static string ComputeCanonicalSignature(
         string? schemaName,
         SelectionPath source,
         Utf8OperationDocument document,
         ReadOnlySpan<OperationRequirement> requirements,
-        ReadOnlySpan<ExecutionNodeCondition> conditions)
+        ReadOnlySpan<ExecutionNodeCondition> conditions,
+        ReadOnlySpan<ExecutionNodeCondition[]> conditionAlternatives)
     {
         var replacements = BuildPrefixReplacements(requirements);
         var bodyText = FormatCanonicalSelectionSet(document, replacements);
         var formattedConditions = FormatCanonicalConditions(conditions);
+        var formattedAlternatives = FormatCanonicalConditionAlternatives(conditionAlternatives);
 
-        return $"{schemaName}|{source}|{formattedConditions}|{bodyText}";
+        return $"{schemaName}|{source}|{formattedConditions}|{formattedAlternatives}|{bodyText}";
     }
 
     /// <summary>
@@ -2468,12 +2563,177 @@ public sealed partial class OperationPlanner
             return false;
         }
 
+        if (dependent is ApolloOperationExecutionNode apolloDependent)
+        {
+            return IsApolloEntityReuseOrderingDependency(
+                ApolloLookupSignatureSource.From(apolloDependent),
+                dependency);
+        }
+
+        if (dependency is ApolloOperationExecutionNode or ApolloOperationBatchExecutionNode)
+        {
+            return false;
+        }
+
         return TryGetLookupKey(dependent, out var schemaName, out var lookupTypeName)
             && TryGetLookupKey(dependency, out var dependencySchemaName, out var dependencyLookupTypeName)
             && string.Equals(schemaName, dependencySchemaName, StringComparison.Ordinal)
             && string.Equals(lookupTypeName, dependencyLookupTypeName, StringComparison.Ordinal)
             && SelectsOnlyReusableFields(dependent)
             && ComputeLookupSignature(dependent).Equals(ComputeLookupSignature(dependency), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether the operation at <paramref name="index"/> of an Apollo batch runs after
+    /// <paramref name="dependency"/> only so that entity reuse can serve it.
+    /// </summary>
+    internal static bool IsEntityReuseOrderingDependency(
+        ApolloOperationBatchExecutionNode dependentBatch,
+        int index,
+        IOperationPlanNode dependency,
+        IReadOnlyDictionary<int, (ApolloOperationBatchExecutionNode Batch, int Index)> apolloDefinitions)
+        => IsApolloEntityReuseOrderingDependency(
+            ApolloLookupSignatureSource.From(dependentBatch, index),
+            dependency,
+            apolloDefinitions);
+
+    /// <summary>
+    /// Maps the id of every operation definition in an Apollo batch to its batch and index.
+    /// </summary>
+    internal static Dictionary<int, (ApolloOperationBatchExecutionNode Batch, int Index)> IndexApolloDefinitions(
+        IEnumerable<IOperationPlanNode> nodes)
+    {
+        var map = new Dictionary<int, (ApolloOperationBatchExecutionNode, int)>();
+
+        foreach (var node in nodes)
+        {
+            if (node is ApolloOperationBatchExecutionNode batch)
+            {
+                for (var i = 0; i < batch.Operations.Length; i++)
+                {
+                    map[batch.Operations[i].Id] = (batch, i);
+                }
+            }
+        }
+
+        return map;
+    }
+
+    private static bool IsApolloEntityReuseOrderingDependency(
+        ApolloLookupSignatureSource dependent,
+        IOperationPlanNode dependency,
+        IReadOnlyDictionary<int, (ApolloOperationBatchExecutionNode Batch, int Index)>? apolloDefinitions = null)
+    {
+        if (!dependent.SelectsOnlyReusableFields())
+        {
+            return false;
+        }
+
+        var signature = dependent.ComputeSignature();
+
+        switch (dependency)
+        {
+            case ApolloOperationExecutionNode apolloOperation:
+                return signature.Equals(
+                    ApolloLookupSignatureSource.From(apolloOperation).ComputeSignature(),
+                    StringComparison.Ordinal);
+
+            case ApolloOperationBatchExecutionNode apolloBatch:
+                for (var i = 0; i < apolloBatch.Operations.Length; i++)
+                {
+                    if (signature.Equals(
+                        ApolloLookupSignatureSource.From(apolloBatch, i).ComputeSignature(),
+                        StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            case OperationDefinition definition
+                when apolloDefinitions is not null
+                && apolloDefinitions.TryGetValue(definition.Id, out var location)
+                && ReferenceEquals(location.Batch.Operations[location.Index], definition):
+                return signature.Equals(
+                    ApolloLookupSignatureSource.From(location.Batch, location.Index).ComputeSignature(),
+                    StringComparison.Ordinal);
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// The parts of an Apollo entity lookup that make two lookups interchangeable.
+    /// </summary>
+    private readonly record struct ApolloLookupSignatureSource(
+        string SchemaName,
+        ApolloEntityLookup Lookup,
+        SelectionPath Target,
+        OperationRequirement[] Requirements,
+        string[] ForwardedVariables,
+        ExecutionNodeCondition[] Conditions,
+        ExecutionNodeCondition[][] ConditionAlternatives,
+        ResultSelectionSet ResultSelectionSet)
+    {
+        public static ApolloLookupSignatureSource From(ApolloOperationExecutionNode node)
+            => new(
+                node.SchemaName,
+                node.Lookup,
+                node.Target,
+                node.Requirements.ToArray(),
+                node.ForwardedVariables.ToArray(),
+                node.Conditions.ToArray(),
+                node.ConditionAlternatives.ToArray(),
+                node.ResultSelectionSet);
+
+        public static ApolloLookupSignatureSource From(ApolloOperationBatchExecutionNode batch, int index)
+        {
+            var definition = batch.Operations[index];
+            var target = definition switch
+            {
+                SingleOperationDefinition single => single.Target,
+                BatchOperationDefinition merged => merged.Targets[0],
+                _ => throw new ArgumentOutOfRangeException(nameof(index))
+            };
+
+            return new(
+                batch.SchemaName,
+                batch.Lookups[index],
+                target,
+                definition.Requirements.ToArray(),
+                definition.ForwardedVariables.ToArray(),
+                definition.Conditions.ToArray(),
+                definition.ConditionAlternatives.ToArray(),
+                definition.ResultSelectionSet);
+        }
+
+        public bool SelectsOnlyReusableFields()
+            => EntityReuseCandidateMap.TryGetReusableFields(
+                ResultSelectionSet,
+                Requirements,
+                ForwardedVariables.Length,
+                Conditions.Length + ConditionAlternatives.Length,
+                out _,
+                out _);
+
+        public string ComputeSignature()
+        {
+            var target = Target;
+            var requirements = string.Join(
+                ",",
+                Requirements
+                    .Select(r => $"{r.Type}:{r.Path.RelativeTo(target)}:{r.InternalAlias}:{r.Map}")
+                    .Order(StringComparer.Ordinal));
+            var conditions = FormatCanonicalConditions(Conditions);
+            var conditionAlternatives = FormatCanonicalConditionAlternatives(ConditionAlternatives);
+            var forwardedVariables = string.Join(",", ForwardedVariables.Order(StringComparer.Ordinal));
+            var bodyText = FormatCanonicalSelectionSet(Lookup.OperationDocument, []);
+
+            return $"{SchemaName}|{Lookup.EntityTypeName}|{conditions}|{conditionAlternatives}|{forwardedVariables}"
+                + $"|{requirements}|{ResultSelectionSet.ToString(indented: false)}|{bodyText}";
+        }
     }
 
     private static bool TryGetLookupKey(
@@ -2498,14 +2758,14 @@ public sealed partial class OperationPlanner
                 operation.ResultSelectionSet,
                 operation.Requirements,
                 operation.ForwardedVariables.Length,
-                operation.Conditions.Length,
+                operation.Conditions.Length + operation.ConditionAlternatives.Length,
                 out _,
                 out _),
             OperationDefinition operation => EntityReuseCandidateMap.TryGetReusableFields(
                 operation.ResultSelectionSet,
                 operation.Requirements,
                 operation.ForwardedVariables.Length,
-                operation.Conditions.Length,
+                operation.Conditions.Length + operation.ConditionAlternatives.Length,
                 out _,
                 out _),
             _ => false
@@ -2520,7 +2780,8 @@ public sealed partial class OperationPlanner
                 operation.Source,
                 operation.Document,
                 operation.Requirements,
-                operation.Conditions),
+                operation.Conditions,
+                operation.ConditionAlternatives),
             _ => throw new ArgumentOutOfRangeException(nameof(node))
         };
 
@@ -2541,6 +2802,7 @@ public sealed partial class OperationPlanner
         var lookupDocument = Utf8GraphQLOperationParser.Parse(lookupOperation.Value, ParserOptions.Trusted);
         var bodyText = FormatCanonicalSelectionSet(lookupDocument, replacements);
         var conditions = FormatCanonicalConditions(node.Conditions);
+        var conditionAlternatives = FormatCanonicalConditionAlternatives(node.ConditionAlternatives);
         var requirements = string.Join(
             ",",
             node.Requirements.ToArray()
@@ -2553,7 +2815,7 @@ public sealed partial class OperationPlanner
             node.ForwardedVariables.ToArray().Order(StringComparer.Ordinal));
         var resultSelectionSet = node.ResultSelectionSet.ToString(indented: false);
 
-        return $"{node.SchemaName}|{node.Lookup.EntityTypeName}|{conditions}|{forwardedVariables}"
+        return $"{node.SchemaName}|{node.Lookup.EntityTypeName}|{conditions}|{conditionAlternatives}|{forwardedVariables}"
             + $"|{requirements}|{resultSelectionSet}|{bodyText}";
     }
 
@@ -2577,8 +2839,27 @@ public sealed partial class OperationPlanner
 
     private static string FormatCanonicalConditions(ReadOnlySpan<ExecutionNodeCondition> conditions)
         => string.Join(",", conditions.ToArray()
-            .OrderBy(c => c.VariableName)
+            .OrderBy(c => c.VariableName, StringComparer.Ordinal)
             .Select(c => $"{c.VariableName}:{c.PassingValue}"));
+
+    private static string FormatCanonicalConditionAlternatives(
+        ReadOnlySpan<ExecutionNodeCondition[]> alternatives)
+    {
+        if (alternatives.IsEmpty)
+        {
+            return string.Empty;
+        }
+
+        var formatted = new string[alternatives.Length];
+
+        for (var i = 0; i < formatted.Length; i++)
+        {
+            formatted[i] = FormatCanonicalConditions(alternatives[i]);
+        }
+
+        Array.Sort(formatted, StringComparer.Ordinal);
+        return string.Join(";", formatted);
+    }
 
     private static string ApplyPrefixReplacements(
         string text,
@@ -3345,10 +3626,10 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Promotes the @skip and @include directives that gate every selection of the step
-    /// to node-level conditions and removes them from the operation document.
-    /// Returns <see langword="false"/> when there is no such common condition, in which
-    /// case <paramref name="updated"/> is <see langword="null"/> and the step must be used as is.
+    /// Promotes the @skip and @include conditions shared by every selection of the step to node
+    /// conditions and derives the condition alternatives from the remaining per-selection conditions.
+    /// Returns <see langword="false"/> when there are neither, in which case <paramref name="updated"/>
+    /// is <see langword="null"/> and the step must be used as is.
     /// </summary>
     private static bool TryExtractCommonConditionsAndRewrite(
         OperationPlanStep step,
@@ -3398,26 +3679,33 @@ public sealed partial class OperationPlanner
             commonConditions.IntersectWith(leafConditions[i]);
         }
 
-        if (commonConditions.Count == 0)
+        var conditionAlternatives = BuildConditionAlternatives(leafConditions, commonConditions);
+
+        if (commonConditions.Count == 0 && conditionAlternatives.Length == 0)
         {
             return false;
         }
 
-        var newSelectionSet = RewriteConditionalSelectionSet(targetSelectionSet, commonConditions);
+        var newSelectionSet = step.Definition.SelectionSet;
 
-        if (enclosingFields is not null)
+        if (commonConditions.Count > 0)
         {
-            for (var i = enclosingFields.Count - 1; i >= 0; i--)
-            {
-                var enclosingField = enclosingFields[i];
-                var parentSelectionSet = i == 0
-                    ? step.Definition.SelectionSet
-                    : enclosingFields[i - 1].SelectionSet!;
+            newSelectionSet = RewriteConditionalSelectionSet(targetSelectionSet, commonConditions);
 
-                newSelectionSet = ReplaceSelection(
-                    parentSelectionSet,
-                    enclosingField,
-                    enclosingField.WithSelectionSet(newSelectionSet));
+            if (enclosingFields is not null)
+            {
+                for (var i = enclosingFields.Count - 1; i >= 0; i--)
+                {
+                    var enclosingField = enclosingFields[i];
+                    var parentSelectionSet = i == 0
+                        ? step.Definition.SelectionSet
+                        : enclosingFields[i - 1].SelectionSet!;
+
+                    newSelectionSet = ReplaceSelection(
+                        parentSelectionSet,
+                        enclosingField,
+                        enclosingField.WithSelectionSet(newSelectionSet));
+                }
             }
         }
 
@@ -3429,14 +3717,133 @@ public sealed partial class OperationPlanner
         updated = step with
         {
             Definition = step.Definition.WithSelectionSet(newSelectionSet),
-            Conditions = commonConditions
-                .OrderBy(c => c.VariableName, StringComparer.Ordinal)
-                .ThenBy(c => c.PassingValue)
-                .ToArray()
+            Conditions = SortConditions(commonConditions),
+            ConditionAlternatives = conditionAlternatives
         };
 
         return true;
     }
+
+    /// <summary>
+    /// Builds the condition alternatives from the conditions that gate each leaf selection
+    /// without the common conditions. Returns an empty array when a leaf selection has no
+    /// remaining condition or when the alternatives contain a pair that always passes.
+    /// </summary>
+    private static ExecutionNodeCondition[][] BuildConditionAlternatives(
+        List<HashSet<ExecutionNodeCondition>> leafConditions,
+        HashSet<ExecutionNodeCondition> commonConditions)
+    {
+        // The common conditions are a subset of every leaf set, so a leaf has no remaining
+        // condition exactly when its set is as large as the common set.
+        foreach (var leaf in leafConditions)
+        {
+            if (leaf.Count == commonConditions.Count)
+            {
+                return [];
+            }
+        }
+
+        var residuals = new List<(string Key, ExecutionNodeCondition[] Conditions)>();
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var leaf in leafConditions)
+        {
+            var residual = new HashSet<ExecutionNodeCondition>(leaf);
+            residual.ExceptWith(commonConditions);
+
+            var sorted = SortConditions(residual);
+            var key = FormatCanonicalConditions(sorted);
+
+            if (keys.Add(key))
+            {
+                residuals.Add((key, sorted));
+            }
+        }
+
+        var alternatives = new List<(string Key, ExecutionNodeCondition[] Conditions)>(residuals.Count);
+
+        foreach (var candidate in residuals)
+        {
+            var isRedundant = false;
+
+            foreach (var other in residuals)
+            {
+                if (other.Conditions.Length < candidate.Conditions.Length
+                    && IsSubset(other.Conditions, candidate.Conditions))
+                {
+                    isRedundant = true;
+                    break;
+                }
+            }
+
+            if (!isRedundant)
+            {
+                alternatives.Add(candidate);
+            }
+        }
+
+        if (HasComplementaryPair(alternatives))
+        {
+            return [];
+        }
+
+        alternatives.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
+
+        var result = new ExecutionNodeCondition[alternatives.Count][];
+
+        for (var i = 0; i < result.Length; i++)
+        {
+            result[i] = alternatives[i].Conditions;
+        }
+
+        return result;
+
+        static bool HasComplementaryPair(List<(string Key, ExecutionNodeCondition[] Conditions)> alternatives)
+        {
+            for (var i = 0; i < alternatives.Count; i++)
+            {
+                var first = alternatives[i].Conditions;
+
+                if (first.Length != 1)
+                {
+                    continue;
+                }
+
+                for (var j = i + 1; j < alternatives.Count; j++)
+                {
+                    var second = alternatives[j].Conditions;
+
+                    if (second.Length == 1
+                        && first[0].VariableName == second[0].VariableName
+                        && first[0].PassingValue != second[0].PassingValue)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        static bool IsSubset(ExecutionNodeCondition[] subset, ExecutionNodeCondition[] superset)
+        {
+            foreach (var condition in subset)
+            {
+                if (Array.IndexOf(superset, condition) < 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private static ExecutionNodeCondition[] SortConditions(HashSet<ExecutionNodeCondition> conditions)
+        => conditions
+            .OrderBy(c => c.VariableName, StringComparer.Ordinal)
+            .ThenBy(c => c.PassingValue)
+            .ToArray();
 
     private static bool TryFindFieldWithSelectionSet(
         SelectionSetNode selectionSetNode,

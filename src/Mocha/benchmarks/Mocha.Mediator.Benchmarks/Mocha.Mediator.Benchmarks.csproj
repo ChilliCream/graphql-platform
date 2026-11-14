@@ -4,7 +4,6 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>$(NoWarn);NU1605;NU1608</NoWarn>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
@@ -22,9 +21,6 @@
     <PackageReference Include="Mediator.Switch" VersionOverride="3.1.0" />
     <PackageReference Include="Mediator.Switch.SourceGenerator" VersionOverride="3.1.0" />
     <PackageReference Include="Mediator.Switch.Extensions.Microsoft.DependencyInjection" VersionOverride="3.1.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" VersionOverride="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" VersionOverride="10.0.0" />
     <PackageReference Include="WolverineFx" VersionOverride="5.17.0" />
   </ItemGroup>
   <ItemGroup>

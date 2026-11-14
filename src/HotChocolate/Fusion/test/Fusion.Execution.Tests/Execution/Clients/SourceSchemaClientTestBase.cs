@@ -1,6 +1,7 @@
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
@@ -83,6 +84,7 @@ public abstract class SourceSchemaClientTestBase : FusionTestBase
                 requestContext,
                 VariableValueCollection.Empty,
                 variableIndex: -1,
+                PolicyEvaluationResult.Empty,
                 _operationPlan,
                 cts,
                 new MemoryArena());

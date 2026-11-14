@@ -1353,6 +1353,68 @@ public class ConditionalTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Lookup_Should_SendRequestWithoutConditionAlternatives_When_SkipAndIncludeUseSameVariable(
+        bool f)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($f: Boolean!) {
+              thing {
+                delta @skip(if: $f)
+                epsilon @include(if: $f)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["f"] = f });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: f.ToString());
+    }
+
     [Fact]
     public async Task Lookup_With_Path_And_Common_Condition_Is_Hoisted()
     {
@@ -1469,6 +1531,382 @@ public class ConditionalTests : FusionTestBase
             }
             """,
             variables: new Dictionary<string, object?> { ["f"] = false });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Should_NotSendRequest_When_SkipAndIncludeOnDifferentVariablesAreOff()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skipDelta: Boolean!, $includeEpsilon: Boolean!) {
+              thing {
+                id
+                delta @skip(if: $skipDelta)
+                epsilon @include(if: $includeEpsilon)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skipDelta"] = true, ["includeEpsilon"] = false });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Should_NotSendRequest_When_TwoSkipsOnDifferentVariablesAreTrue()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+              thing {
+                id
+                delta @skip(if: $skipDelta)
+                epsilon @skip(if: $skipEpsilon)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skipDelta"] = true, ["skipEpsilon"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Should_SendRequestOnce_When_OneOfTwoSkipsOnDifferentVariablesIsFalse()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+              thing {
+                id
+                delta @skip(if: $skipDelta)
+                epsilon @skip(if: $skipEpsilon)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skipDelta"] = true, ["skipEpsilon"] = false });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Should_AlwaysSendRequest_When_OtherFieldOfSourceSchemaIsUnconditional()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skipDelta: Boolean!) {
+              thing {
+                id
+                delta @skip(if: $skipDelta)
+                epsilon
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skipDelta"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Should_NotSendBatchedRequest_When_AliasedEntitiesHaveSkipsOnDifferentVariablesThatAreTrue()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+              first: thing {
+                id
+                delta @skip(if: $skipDelta)
+                epsilon @skip(if: $skipEpsilon)
+              }
+              second: thing {
+                id
+                delta @skip(if: $skipDelta)
+                epsilon @skip(if: $skipEpsilon)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["skipDelta"] = true, ["skipEpsilon"] = true });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Lookup_Should_SendOnlyRunningOperation_When_OneBatchedOperationIsSkippedByAlternatives()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Thing @key(fields: "id") {
+              id: Int!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              thingById(id: Int!): Thing @lookup
+            }
+
+            type Thing {
+              id: Int!
+              delta: Int!
+              epsilon: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($a: Boolean!, $b: Boolean!, $c: Boolean!, $d: Boolean!) {
+              first: thing {
+                id
+                delta @skip(if: $a)
+                epsilon @skip(if: $b)
+              }
+              second: thing {
+                id
+                delta @skip(if: $c)
+                epsilon @skip(if: $d)
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["a"] = true,
+                ["b"] = true,
+                ["c"] = true,
+                ["d"] = false
+            });
 
         using var result = await client.PostAsync(
             request,

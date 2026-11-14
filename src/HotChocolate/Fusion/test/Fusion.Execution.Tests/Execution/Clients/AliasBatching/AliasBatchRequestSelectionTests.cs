@@ -5,6 +5,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
@@ -352,7 +353,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
 
         public async Task<string> SendAsync(
             SourceSchemaClientRequest request,
-            VariableValueCollection variables)
+            IVariableValueCollection variables)
         {
             var context = CreateContext(variables);
 
@@ -394,7 +395,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         /// </summary>
         public async Task<List<int>> SendBatchAsync(
             ImmutableArray<SourceSchemaClientRequest> requests,
-            VariableValueCollection variables)
+            IVariableValueCollection variables)
         {
             var context = CreateContext(variables);
             var requestIndices = new List<int>();
@@ -411,7 +412,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             return requestIndices;
         }
 
-        private OperationPlanContext CreateContext(VariableValueCollection variables)
+        private OperationPlanContext CreateContext(IVariableValueCollection variables)
         {
             var contextPool = _executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();
             var context = contextPool.Rent();
@@ -432,6 +433,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
                 requestContext,
                 variables,
                 variableIndex: -1,
+                PolicyEvaluationResult.Empty,
                 _operationPlan,
                 cts,
                 new MemoryArena());
