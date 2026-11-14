@@ -1,0 +1,10 @@
+﻿{
+  "data": {
+    "test": [
+      {
+        "value": "Query",
+        "description": "The query type has fields to get data."
+      }
+    ]
+  }
+}

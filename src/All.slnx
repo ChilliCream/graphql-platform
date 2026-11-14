@@ -360,6 +360,13 @@
   <Folder Name="/HotChocolate/Primitives/test/">
     <Project Path="HotChocolate/Primitives/test/Primitives.Tests/HotChocolate.Primitives.Tests.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/ElasticSearch/" />
+  <Folder Name="/HotChocolate/ElasticSearch/src/">
+    <Project Path="HotChocolate/ElasticSearch/src/Data/HotChocolate.Data.ElasticSearch.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/ElasticSearch/test/">
+    <Project Path="HotChocolate/ElasticSearch/test/Data.ElasticSearch.Tests/HotChocolate.Data.ElasticSearch.Tests.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/Raven/" />
   <Folder Name="/HotChocolate/Raven/src/">
     <Project Path="HotChocolate/Raven/src/Data/HotChocolate.Data.Raven.csproj" />

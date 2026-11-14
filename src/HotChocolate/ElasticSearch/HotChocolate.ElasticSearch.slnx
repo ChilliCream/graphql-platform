@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Data/HotChocolate.Data.ElasticSearch.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Data.ElasticSearch.Tests/HotChocolate.Data.ElasticSearch.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "ES|QL cannot skip rows: a page must start at the first row.",
+      "path": [
+        "test"
+      ],
+      "extensions": {
+        "code": "ELASTICSEARCH_SKIP_NOT_SUPPORTED"
+      }
+    }
+  ],
+  "data": {
+    "test": null
+  }
+}

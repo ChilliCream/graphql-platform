@@ -4,6 +4,8 @@ items:
     title: Entity Framework
   - path: mongodb
     title: MongoDB
+  - path: elasticsearch
+    title: Elasticsearch
   - path: marten
     title: Marten
   - path: extending-filtering

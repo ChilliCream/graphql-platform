@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "test": [
+      {
+        "value": "Query",
+        "description": "The query type has fields to get data."
+      },
+      {
+        "value": "Subscription",
+        "description": "The subscription type can be used to directly notify on changes"
+      }
+    ]
+  }
+}

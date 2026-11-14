@@ -117,4 +117,5 @@ public class EntityFrameworkExecutable<T> : QueryableExecutable<T>
 
 - [Entity Framework integration](./entity-framework.md) for EF Core executables
 - [MongoDB integration](./mongodb.md) for MongoDB executables
+- [Elasticsearch integration](./elasticsearch.md) for Elasticsearch through ES|QL
 - [Filtering](../filtering.md) for applying filters to executables

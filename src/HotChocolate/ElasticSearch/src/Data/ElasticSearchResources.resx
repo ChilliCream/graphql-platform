@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ErrorHelper_ListFilter_NotSupported" xml:space="preserve">
+    <value>This condition is not supported on a list: `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_ListFilter_RequiresNested" xml:space="preserve">
+    <value>This filter on `{0}` needs the field to be mapped as nested and marked with `ElasticSearchNestedAttribute`: an object mapping keeps the values of each field apart.</value>
+  </data>
+  <data name="ErrorHelper_ListFilter_ReservedCharacter" xml:space="preserve">
+    <value>KQL cannot express this pattern on a nested field: `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_Paging_SkipNotSupported" xml:space="preserve">
+    <value>ES|QL cannot skip rows: a page must start at the first row.</value>
+  </data>
+</root>
