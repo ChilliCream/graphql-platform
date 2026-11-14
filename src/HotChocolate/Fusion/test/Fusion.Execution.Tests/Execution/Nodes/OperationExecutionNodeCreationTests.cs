@@ -126,6 +126,7 @@ public sealed class OperationExecutionNodeCreationTests : FusionTestBase
             [],
             node.ResultSelectionSet,
             [],
+            [],
             requiresFileUpload: false);
 
         // assert

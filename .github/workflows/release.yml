@@ -113,10 +113,47 @@ jobs:
             --generate-notes \
             --target "$GITHUB_SHA"
 
+  record-fusion-pgo-profile:
+    name: 📈 Record Fusion PGO profile
+    runs-on: ubuntu-26.04
+    needs: [compute-release-context]
+    permissions:
+      contents: read
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          show-progress: false
+
+      - name: 🛠 Install .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: 🧰 Install k6
+        shell: bash
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6 -y
+
+      - name: 📈 Record profile
+        shell: bash
+        run: .github/scripts/fusion-pgo-profile.sh --output "${{ runner.temp }}/fusion-pgo/HotChocolate.Fusion.AspNetCore.mibc"
+
+      - name: 📤 Upload profile as artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fusion-pgo-profile
+          path: ${{ runner.temp }}/fusion-pgo/HotChocolate.Fusion.AspNetCore.mibc
+
   pack-nuget:
     name: 📦 Build NuGet Packages
     runs-on: ubuntu-26.04
-    needs: [compute-release-context]
+    needs: [compute-release-context, record-fusion-pgo-profile]
     permissions:
       contents: read
     env:
@@ -127,6 +164,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           show-progress: false
+
+      - name: 📥 Download Fusion PGO profile
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: fusion-pgo-profile
+          path: src/HotChocolate/Fusion/src/MSBuild
 
       - name: 🛠 Install .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0

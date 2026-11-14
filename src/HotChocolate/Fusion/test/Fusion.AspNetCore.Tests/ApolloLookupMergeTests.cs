@@ -14,7 +14,7 @@ public sealed class ApolloLookupMergeTests : FusionTestBase
     public async Task ApolloEntityLookups_Should_SendOneDeduplicatedLookup_When_TargetPathsShareLookup()
     {
         // arrange
-        using var gateway = await CreateGatewayAsync();
+        using var gateway = await CreateGatewayAsync(enableEntityReuse: true);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -38,7 +38,31 @@ public sealed class ApolloLookupMergeTests : FusionTestBase
     public async Task ApolloEntityLookups_Should_FoldLeafLookupIntoDeeperLookup_When_NothingDependsOnLeaf()
     {
         // arrange
-        using var gateway = await CreateGatewayAsync();
+        using var gateway = await CreateGatewayAsync(enableEntityReuse: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task ApolloEntityLookups_Should_ReuseLeafLookupEntities_When_DeeperLookupTargetsSameEntities()
+    {
+        // arrange
+        using var gateway = await CreateGatewayAsync(enableEntityReuse: true);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -294,7 +318,7 @@ public sealed class ApolloLookupMergeTests : FusionTestBase
             enableGlobalObjectIdentification: false);
     }
 
-    private Task<Gateway> CreateGatewayAsync()
+    private Task<Gateway> CreateGatewayAsync(bool enableEntityReuse)
     {
         var catalog = CreateSourceSchema(
             "catalog",
@@ -318,6 +342,8 @@ public sealed class ApolloLookupMergeTests : FusionTestBase
 
         return CreateCompositeSchemaAsync(
             [("catalog", catalog), ("featured", featured), ("details", details)],
+            configureGatewayBuilder: builder =>
+                builder.ModifyOptions(options => options.EnableEntityReuse = enableEntityReuse),
             enableGlobalObjectIdentification: false);
     }
 

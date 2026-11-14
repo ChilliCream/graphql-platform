@@ -11,9 +11,6 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   pageExtensions: ["ts", "tsx", "md", "mdx"],
-  experimental: {
-    inlineCss: true,
-  },
   serverExternalPackages: [
     "rehype-mermaid",
     "mermaid-isomorphic",

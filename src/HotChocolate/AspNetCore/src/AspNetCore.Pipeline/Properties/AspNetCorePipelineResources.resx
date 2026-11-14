@@ -72,6 +72,12 @@
   <data name="ThrowHelper_HttpMultipartMiddleware_MapNotSpecified" xml:space="preserve">
     <value>No `map` specified.</value>
   </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_MixedOperationIndexPaths" xml:space="preserve">
+    <value>The variable paths must either all start with an operation index or all start with `variables`.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_MissingOperationIndex" xml:space="preserve">
+    <value>The variable path must start with an operation index in a batched request.</value>
+  </data>
   <data name="ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed" xml:space="preserve">
     <value>This form is being accessed with a failed antiforgery validation. Validate the `IAntiforgeryValidationFeature` on the request before reading from the form.</value>
   </data>

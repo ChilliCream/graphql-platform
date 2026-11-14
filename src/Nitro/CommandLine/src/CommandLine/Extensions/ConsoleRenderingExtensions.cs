@@ -51,6 +51,6 @@ internal static class ConsoleRenderingExtensions
 
     public static string AsQuestion(this string str)
     {
-        return $"{Glyphs.QuestionMark} [bold]{str}[/]";
+        return $"{Glyphs.QuestionMark} {str}";
     }
 }

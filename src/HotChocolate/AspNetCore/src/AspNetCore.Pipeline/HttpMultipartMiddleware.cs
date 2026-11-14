@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -121,7 +122,20 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
         // Parse the string values of interest from the IFormCollection
         var multipartRequest = ParseMultipartRequest(form);
+        var fileMap = multipartRequest.FileMap;
         var requests = session.ParseRequest(multipartRequest.Operations);
+
+        foreach (var request in requests)
+        {
+            context.Response.RegisterForDispose(request);
+        }
+
+        if (requests.Length > 1
+            && fileMap.HasUnindexedPaths
+            && options.Batching.HasFlag(AllowedBatching.RequestBatching))
+        {
+            throw ThrowHelper.HttpMultipartMiddleware_MissingOperationIndex();
+        }
 
         // we add the file lookup as a feature on the HttpContext and can grab it from
         // there and put it on the GraphQL request.
@@ -130,20 +144,24 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         for (var i = 0; i < requests.Length; i++)
         {
             var current = requests[i];
+            FileMapTrieNode? operationRoot;
 
-            context.Response.RegisterForDispose(current);
-
-            if (!multipartRequest.FileMap.Root.TryGetNode(i.ToString(), out var operationRoot))
+            if (fileMap.HasIndexedPaths)
             {
-                // Legacy multipart maps do not include an operation index.
-                if (requests.Length == 1)
-                {
-                    operationRoot = multipartRequest.FileMap.Root;
-                }
-                else
+                var operationIndex = i.ToString(CultureInfo.InvariantCulture);
+
+                if (!fileMap.Root.TryGetNode(operationIndex, out operationRoot))
                 {
                     continue;
                 }
+            }
+            else if (requests.Length == 1)
+            {
+                operationRoot = fileMap.Root;
+            }
+            else
+            {
+                continue;
             }
 
             if (current.Variables is null)

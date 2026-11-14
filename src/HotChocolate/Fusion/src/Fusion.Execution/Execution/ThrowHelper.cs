@@ -165,9 +165,6 @@ internal static class ThrowHelper
     public static InvalidOperationException MissingBatchRequestIndex()
         => new("Expected requestIndex in batch response but it was missing.");
 
-    public static InvalidOperationException FlattenedRequestIndexOutOfRange(int flattenedIndex)
-        => new($"Flattened index {flattenedIndex} is out of range.");
-
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
         => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");
 

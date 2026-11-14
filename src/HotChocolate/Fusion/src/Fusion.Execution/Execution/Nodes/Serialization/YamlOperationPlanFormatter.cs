@@ -425,7 +425,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
 
         WriteRequirements(opDef.Requirements, writer);
-        WriteConditions(opDef.Conditions, writer);
+        WriteConditions(opDef.Conditions, opDef.ConditionAlternatives, writer);
         WriteForwardedVariables(opDef.ForwardedVariables, writer);
 
         if (opDef.RequiresFileUpload)
@@ -485,7 +485,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
 
         WriteRequirements(opDef.Requirements, writer);
-        WriteConditions(opDef.Conditions, writer);
+        WriteConditions(opDef.Conditions, opDef.ConditionAlternatives, writer);
         WriteForwardedVariables(opDef.ForwardedVariables, writer);
 
         if (opDef.RequiresFileUpload)
@@ -622,7 +622,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
 
         WriteRequirements(opDef.Requirements, writer);
-        WriteConditions(opDef.Conditions, writer);
+        WriteConditions(opDef.Conditions, opDef.ConditionAlternatives, writer);
         WriteForwardedVariables(opDef.ForwardedVariables, writer);
 
         if (opDef.RequiresFileUpload)
@@ -669,21 +669,46 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
     }
 
-    private static void WriteConditions(ReadOnlySpan<ExecutionNodeCondition> conditions, CodeWriter writer)
+    private static void WriteConditions(
+        ReadOnlySpan<ExecutionNodeCondition> conditions,
+        ReadOnlySpan<ExecutionNodeCondition[]> conditionAlternatives,
+        CodeWriter writer)
     {
         if (conditions.Length > 0)
         {
             writer.WriteLine("conditions:");
             writer.Indent();
-            foreach (var condition in conditions)
-            {
-                writer.WriteLine("- variable: {0}", "$" + condition.VariableName);
-                writer.Indent();
+            WriteConditionItems(conditions, writer);
+            writer.Unindent();
+        }
 
-                writer.WriteLine("passingValue: {0}", condition.PassingValue ? "true" : "false");
+        if (conditionAlternatives.Length > 0)
+        {
+            writer.WriteLine("conditionAlternatives:");
+            writer.Indent();
+
+            foreach (var alternative in conditionAlternatives)
+            {
+                writer.WriteLine("-");
+                writer.Indent();
+                WriteConditionItems(alternative, writer);
                 writer.Unindent();
             }
 
+            writer.Unindent();
+        }
+    }
+
+    private static void WriteConditionItems(
+        ReadOnlySpan<ExecutionNodeCondition> conditions,
+        CodeWriter writer)
+    {
+        foreach (var condition in conditions)
+        {
+            writer.WriteLine("- variable: {0}", "$" + condition.VariableName);
+            writer.Indent();
+
+            writer.WriteLine("passingValue: {0}", condition.PassingValue ? "true" : "false");
             writer.Unindent();
         }
     }
@@ -813,21 +838,5 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
     }
 
     private static void TryWriteConditions(CodeWriter writer, ExecutionNode node)
-    {
-        if (node.Conditions.Length > 0)
-        {
-            writer.WriteLine("conditions:");
-            writer.Indent();
-            foreach (var condition in node.Conditions)
-            {
-                writer.WriteLine("- variable: {0}", "$" + condition.VariableName);
-                writer.Indent();
-
-                writer.WriteLine("passingValue: {0}", condition.PassingValue ? "true" : "false");
-                writer.Unindent();
-            }
-
-            writer.Unindent();
-        }
-    }
+        => WriteConditions(node.Conditions, node.ConditionAlternatives, writer);
 }
