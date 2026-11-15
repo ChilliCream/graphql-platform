@@ -121,7 +121,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
     /// <summary>
     /// Turns the context paths of the value selections into one selection set per context name
     /// without using a schema. The selection set of a context describes the value that sets the
-    /// context, so <c>$name.a.b</c> results in <c>a { b }</c>. Paths that do not start at a
+    /// context, so <c>$name.a.b</c> results in <c>a { b }</c>. The selection sets contain no
+    /// inline fragments without a type condition. Paths that do not start at a
     /// context are ignored, and like the schema-free <c>Rewrite</c> it does not merge or remove
     /// duplicate selections.
     /// </summary>
@@ -227,7 +228,49 @@ public sealed class ValueSelectionToSelectionSetRewriter(
             contexts.Add(contextName.Value, selections);
         }
 
-        Flatten(selection, selections);
+        FlattenNested(selection, selections);
+    }
+
+    // Removes the inline fragments without a type condition at every depth and keeps the
+    // fields and the type-conditioned inline fragments.
+    private static void FlattenNested(ISelectionNode selection, List<ISelectionNode> selections)
+    {
+        switch (selection)
+        {
+            case InlineFragmentNode { TypeCondition: null } inlineFragment:
+                foreach (var inner in inlineFragment.SelectionSet.Selections)
+                {
+                    FlattenNested(inner, selections);
+                }
+
+                break;
+
+            case InlineFragmentNode inlineFragment:
+                selections.Add(
+                    inlineFragment.WithSelectionSet(
+                        FlattenNested(inlineFragment.SelectionSet)));
+                break;
+
+            case FieldNode { SelectionSet: { } selectionSet } field:
+                selections.Add(field.WithSelectionSet(FlattenNested(selectionSet)));
+                break;
+
+            default:
+                selections.Add(selection);
+                break;
+        }
+    }
+
+    private static SelectionSetNode FlattenNested(SelectionSetNode selectionSet)
+    {
+        var selections = new List<ISelectionNode>();
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            FlattenNested(selection, selections);
+        }
+
+        return new SelectionSetNode(selections);
     }
 
     private static void Flatten(ISelectionNode selection, List<ISelectionNode> selections)
