@@ -580,6 +580,99 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
             """);
     }
 
+    [Fact]
+    public void Rewrite_Should_SelectTypeName_When_TheSelectionOfAPathReadsOnlyContexts()
+    {
+        // arrange
+        var values = new IValueSelectionNode[]
+        {
+            new FieldSelectionMapParser("items[{ currency: $tenant.currency }]").Parse(),
+            new FieldSelectionMapParser("dimension.{ currency: $tenant.currency }").Parse()
+        };
+
+        // act
+        var selectionSet = s_valueSelectionToSelectionSetRewriter.Rewrite(values, s_schema.Types["Shipment"]);
+
+        // assert
+        selectionSet.Print().MatchInlineSnapshot(
+            """
+            {
+                items {
+                    __typename
+                }
+                dimension {
+                    __typename
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_SelectTypeName_When_TheListSelectionIsAContextPath()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("items[$tenant.currency]").Parse();
+
+        // act
+        var selectionSet = s_valueSelectionToSelectionSetRewriter.Rewrite(value, s_schema.Types["Shipment"]);
+
+        // assert
+        selectionSet.Print().MatchInlineSnapshot(
+            """
+            {
+                items {
+                    __typename
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_SelectTypeName_When_UsedWithoutSchemaAndTheSelectionReadsOnlyContexts()
+    {
+        // arrange
+        var values = new IValueSelectionNode[]
+        {
+            new FieldSelectionMapParser("items[{ currency: $tenant.currency }]").Parse(),
+            new FieldSelectionMapParser("dimension.{ currency: $tenant.currency }").Parse()
+        };
+
+        // act
+        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite(values);
+
+        // assert
+        Assert.Equal(
+            "{ items { __typename } dimension { __typename } }",
+            selectionSet.ToString(indented: false));
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_SelectTypeName_When_TheSelectionOfAContextPathReadsOnlyAnotherContext()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("$tenant.settings.{ locale: $user.locale }").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        Assert.Equal(["tenant", "user"], contexts.Keys.Order());
+        contexts["tenant"].Print().MatchInlineSnapshot(
+            """
+            {
+                settings {
+                    __typename
+                }
+            }
+            """);
+        contexts["user"].Print().MatchInlineSnapshot(
+            """
+            {
+                locale
+            }
+            """);
+    }
+
     private static readonly ISchemaDefinition s_schema = SchemaParser.Parse(
         """
         type Query {
@@ -641,6 +734,11 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
         type Order {
             id: ID!
             exchange: Exchange!
+        }
+
+        type Shipment {
+            items: [Part!]!
+            dimension: Dimensions
         }
 
         type Exchange {

@@ -15,7 +15,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
 
     /// <summary>
     /// Turns the value selection into a selection set on the given type. Context paths add no
-    /// selections.
+    /// selections, and a path whose object or list selection reads only contexts selects
+    /// <c>__typename</c>.
     /// </summary>
     /// <param name="node">
     /// The value selection to convert.
@@ -44,7 +45,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
 
     /// <summary>
     /// Turns the value selections into a selection set on the given type. Context paths add no
-    /// selections.
+    /// selections, and a path whose object or list selection reads only contexts selects
+    /// <c>__typename</c>.
     /// </summary>
     /// <param name="nodes">
     /// The value selections to convert.
@@ -90,7 +92,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
     /// <summary>
     /// Turns the value selections into a single selection set without using a schema, so it can
     /// run before the schema is built. Unlike the schema-based overloads, it does not merge or
-    /// remove duplicate selections. Context paths add no selections.
+    /// remove duplicate selections. Context paths add no selections, and a path whose object or
+    /// list selection reads only contexts selects <c>__typename</c>.
     /// </summary>
     /// <param name="nodes">
     /// The value selections to convert.
@@ -172,7 +175,9 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                 AddContextSelection(
                     contexts,
                     contextName,
-                    CreatePathSelection(obj.Path, Visit(obj.ObjectValueSelection)));
+                    CreatePathSelection(
+                        obj.Path,
+                        Visit(obj.ObjectValueSelection) ?? CreateTypeNameSelection()));
                 CollectContextPaths(obj.ObjectValueSelection, contexts);
                 break;
 
@@ -184,7 +189,9 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                 AddContextSelection(
                     contexts,
                     contextName,
-                    CreatePathSelection(list.Path, Visit(list.ListValueSelection)));
+                    CreatePathSelection(
+                        list.Path,
+                        Visit(list.ListValueSelection) ?? CreateTypeNameSelection()));
                 CollectContextPaths(list.ListValueSelection, contexts);
                 break;
 
@@ -289,6 +296,16 @@ public sealed class ValueSelectionToSelectionSetRewriter(
     private static ISelectionNode? Visit(PathNode path)
         => path.ContextName is null ? CreatePathSelection(path, null) : null;
 
+    // A path with an object or list selection is always fetched, so a selection that reads no
+    // field of the value still selects its type name.
+    private static FieldNode CreateTypeNameSelection()
+        => new(
+            new HotChocolate.Language.NameNode(IntrospectionFieldNames.TypeName),
+            null,
+            [],
+            [],
+            null);
+
     private static ISelectionNode CreatePathSelection(PathNode path, ISelectionNode? selection)
     {
         var pathSelection = Visit(path.PathSegment, selection);
@@ -342,8 +359,9 @@ public sealed class ValueSelectionToSelectionSetRewriter(
             return null;
         }
 
-        var objectSelection = Visit(node.ObjectValueSelection);
-        return objectSelection is null ? null : CreatePathSelection(node.Path, objectSelection);
+        return CreatePathSelection(
+            node.Path,
+            Visit(node.ObjectValueSelection) ?? CreateTypeNameSelection());
     }
 
     private static ISelectionNode? Visit(ObjectValueSelectionNode node)
@@ -380,8 +398,9 @@ public sealed class ValueSelectionToSelectionSetRewriter(
             return null;
         }
 
-        var listSelection = Visit(node.ListValueSelection);
-        return listSelection is null ? null : CreatePathSelection(node.Path, listSelection);
+        return CreatePathSelection(
+            node.Path,
+            Visit(node.ListValueSelection) ?? CreateTypeNameSelection());
     }
 
     private static ISelectionNode? Visit(ListValueSelectionNode node)

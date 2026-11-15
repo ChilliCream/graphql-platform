@@ -634,10 +634,35 @@ public sealed class FieldSelectionMapValidator(
         ListValueSelectionNode selectionNode,
         FieldSelectionMapValidatorContext context)
     {
+        // The node itself is on top of the stack, its parent is below.
+        if (context.Nodes.ElementAtOrDefault(1) is PathListValueSelectionNode pathList
+            && context.OutputTypes.Peek().NullableType() is ListType listType
+            && listType.ElementType().NamedType().IsLeafType())
+        {
+            context.Errors.Add(
+                string.Format(
+                    FieldSelectionMapValidator_FieldInvalidSubselections,
+                    GetLastFieldName(pathList.Path)));
+
+            return Break;
+        }
+
         context.InputTypes.Push(context.InputTypes.Peek().ElementType());
         context.OutputTypes.Push(context.OutputTypes.Peek().ElementType());
 
         return Continue;
+    }
+
+    private static string GetLastFieldName(PathNode path)
+    {
+        var segment = path.PathSegment;
+
+        while (segment.PathSegment is { } next)
+        {
+            segment = next;
+        }
+
+        return segment.FieldName.Value;
     }
 
     protected override ISyntaxVisitorAction Leave(
