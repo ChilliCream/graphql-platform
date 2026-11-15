@@ -583,7 +583,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // act
         var outbox = new CapturingOutbox();
         await ((DefaultMessageBus)bus).PublishAsync(
-            new StartFactoryWork(), PublishOptions.Default, outbox.Configure, TestToken);
+            new StartFactoryWork(), PublishOptions.Default, outbox, TestToken);
         var incoming = outbox.Envelope;
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var endpoint = (InMemoryDispatchEndpoint)runtime.GetDispatchEndpoint(
@@ -2039,8 +2039,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     private sealed class CapturingOutbox : IMessageOutbox
     {
         public MessageEnvelope Envelope { get; private set; } = null!;
-
-        public Action<IDispatchContext> Configure => context => context.Features.Set<IMessageOutbox>(this);
 
         public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
         {

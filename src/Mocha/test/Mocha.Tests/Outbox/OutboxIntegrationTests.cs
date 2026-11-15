@@ -139,12 +139,12 @@ public class OutboxIntegrationTests
         await dispatcher.PublishAsync(
             new OutboxBatchInputEvent { Payload = "batch-1" },
             PublishOptions.Default,
-            new CapturingOutbox(envelope => first = MessageEnvelope.CopyWithOwnedBody(envelope)).Configure,
+            new CapturingOutbox(envelope => first = MessageEnvelope.CopyWithOwnedBody(envelope)),
             CancellationToken.None);
         await dispatcher.PublishAsync(
             new OutboxBatchInputEvent { Payload = "batch-2" },
             PublishOptions.Default,
-            new CapturingOutbox(envelope => second = MessageEnvelope.CopyWithOwnedBody(envelope)).Configure,
+            new CapturingOutbox(envelope => second = MessageEnvelope.CopyWithOwnedBody(envelope)),
             CancellationToken.None);
 
         // act
@@ -163,8 +163,6 @@ public class OutboxIntegrationTests
 
     private sealed class CapturingOutbox(Action<MessageEnvelope> callback) : IMessageOutbox
     {
-        public Action<IDispatchContext> Configure => context => context.Features.Set<IMessageOutbox>(this);
-
         public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
         {
             callback(envelope);

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 using Mocha.Scheduling;
 
 namespace Mocha;
@@ -63,16 +64,16 @@ public sealed class DefaultMessageBus(
     internal async ValueTask PublishAsync<T>(
         T message,
         PublishOptions options,
-        Action<IDispatchContext> configure,
+        IMessageOutbox outbox,
         CancellationToken cancellationToken)
         where T : notnull
-        => await PublishCoreAsync(message, options, options.ScheduledTime, configure, cancellationToken);
+        => await PublishCoreAsync(message, options, options.ScheduledTime, outbox, cancellationToken);
 
     private async ValueTask<(string? Token, DateTimeOffset ScheduledTime)> PublishCoreAsync<T>(
         T message,
         PublishOptions options,
         DateTimeOffset? scheduledTime,
-        Action<IDispatchContext>? configure,
+        IMessageOutbox? outbox,
         CancellationToken cancellationToken)
         where T : notnull
     {
@@ -90,7 +91,10 @@ public sealed class DefaultMessageBus(
             context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = scheduledTime;
             context.DeliverBy = options.ExpirationTime;
-            configure?.Invoke(context);
+            if (outbox is not null)
+            {
+                context.Features.Set<IMessageOutbox>(outbox);
+            }
 
             await endpoint.ExecuteAsync(context);
 
@@ -137,16 +141,16 @@ public sealed class DefaultMessageBus(
     internal async ValueTask SendAsync<T>(
         T message,
         SendOptions options,
-        Action<IDispatchContext> configure,
+        IMessageOutbox outbox,
         CancellationToken cancellationToken)
         where T : notnull
-        => await SendCoreAsync(message, options, options.ScheduledTime, configure, cancellationToken);
+        => await SendCoreAsync(message, options, options.ScheduledTime, outbox, cancellationToken);
 
     private async ValueTask<(string? Token, DateTimeOffset ScheduledTime)> SendCoreAsync<T>(
         T message,
         SendOptions options,
         DateTimeOffset? scheduledTime,
-        Action<IDispatchContext>? configure,
+        IMessageOutbox? outbox,
         CancellationToken cancellationToken)
         where T : notnull
     {
@@ -167,7 +171,10 @@ public sealed class DefaultMessageBus(
             context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = scheduledTime;
             context.DeliverBy = options.ExpirationTime;
-            configure?.Invoke(context);
+            if (outbox is not null)
+            {
+                context.Features.Set<IMessageOutbox>(outbox);
+            }
 
             await endpoint.ExecuteAsync(context);
 

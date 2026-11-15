@@ -757,7 +757,9 @@ public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
 }
 ```
 
-After the transaction commits, the outbox processor detects the new message (via EF Core interceptors that signal on save and transaction commit) and dispatches it to the transport.
+After the transaction commits, the outbox processor dispatches the new message to the transport. Commits through EF Core wake the worker immediately. Commits made directly through an externally owned database transaction are detected when the worker next checks the database.
+
+Without a notification, the worker waits up to ten seconds before checking the database for messages to send. Configure this wait with `UsePostgresOutbox(options => options.QueryDelay = TimeSpan.FromSeconds(1))`.
 
 ## Transaction requirements
 

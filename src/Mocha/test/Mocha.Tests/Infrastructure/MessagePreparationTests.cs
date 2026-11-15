@@ -729,8 +729,8 @@ public class MessagePreparationTests(ITestOutputHelper output)
 
         // act
         var exception = await Record.ExceptionAsync(async () => await (send
-            ? bus.SendAsync(new TargetMessage("cancelled"), SendOptions.Default, outbox.Configure, cancellation.Token)
-            : bus.PublishAsync(new TargetMessage("cancelled"), PublishOptions.Default, outbox.Configure,
+            ? bus.SendAsync(new TargetMessage("cancelled"), SendOptions.Default, outbox, cancellation.Token)
+            : bus.PublishAsync(new TargetMessage("cancelled"), PublishOptions.Default, outbox,
                 cancellation.Token)));
 
         // assert
@@ -778,9 +778,9 @@ public class MessagePreparationTests(ITestOutputHelper output)
         // act
         await (send
             ? dispatcher.SendAsync(new TargetMessage("scheduled"),
-                new SendOptions { ScheduledTime = optionsScheduledTime }, target.Configure, CancellationToken.None)
+                new SendOptions { ScheduledTime = optionsScheduledTime }, target, CancellationToken.None)
             : dispatcher.PublishAsync(new TargetMessage("scheduled"),
-                new PublishOptions { ScheduledTime = optionsScheduledTime }, target.Configure, CancellationToken.None));
+                new PublishOptions { ScheduledTime = optionsScheduledTime }, target, CancellationToken.None));
 
         // assert
         Assert.Equal(scheduledTime, captured!.ScheduledTime);
@@ -813,9 +813,9 @@ public class MessagePreparationTests(ITestOutputHelper output)
         // act
         await (send
             ? dispatcher.SendAsync(new TargetMessage("scheduled"),
-                new SendOptions { ScheduledTime = time }, outbox.Configure, CancellationToken.None)
+                new SendOptions { ScheduledTime = time }, outbox, CancellationToken.None)
             : dispatcher.PublishAsync(new TargetMessage("scheduled"),
-                new PublishOptions { ScheduledTime = time }, outbox.Configure, CancellationToken.None));
+                new PublishOptions { ScheduledTime = time }, outbox, CancellationToken.None));
 
         // assert
         new
@@ -854,9 +854,9 @@ public class MessagePreparationTests(ITestOutputHelper output)
         // act
         await Assert.ThrowsAsync<NotSupportedException>(async () => await (send
             ? dispatcher.SendAsync(new TargetMessage("scheduled"),
-                new SendOptions { ScheduledTime = time }, outbox.Configure, CancellationToken.None)
+                new SendOptions { ScheduledTime = time }, outbox, CancellationToken.None)
             : dispatcher.PublishAsync(new TargetMessage("scheduled"),
-                new PublishOptions { ScheduledTime = time }, outbox.Configure, CancellationToken.None)));
+                new PublishOptions { ScheduledTime = time }, outbox, CancellationToken.None)));
 
         // assert
         Assert.False(staged);
@@ -1006,7 +1006,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     {
         if (prepare)
         {
-            ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, s_noopOutbox.Configure, CancellationToken.None)
+            ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, s_noopOutbox, CancellationToken.None)
                 .GetAwaiter().GetResult();
         }
         else
@@ -1028,8 +1028,8 @@ public class MessagePreparationTests(ITestOutputHelper output)
         bool send,
         Action<MessageEnvelope, CancellationToken> onPrepared)
         => send
-            ? ((DefaultMessageBus)bus).SendAsync(message, SendOptions.Default, new CallbackOutbox(onPrepared).Configure, CancellationToken.None)
-            : ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, new CallbackOutbox(onPrepared).Configure, CancellationToken.None);
+            ? ((DefaultMessageBus)bus).SendAsync(message, SendOptions.Default, new CallbackOutbox(onPrepared), CancellationToken.None)
+            : ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, new CallbackOutbox(onPrepared), CancellationToken.None);
 
     private static TargetMessage Deserialize(MessageEnvelope envelope)
         => JsonSerializer.Deserialize<TargetMessage>(envelope.Body.Span, JsonSerializerOptions.Web)!;
@@ -1120,10 +1120,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
         public CallbackOutbox(Action<MessageEnvelope, CancellationToken> callback)
         {
             _callback = callback;
-            Configure = context => context.Features.Set<IMessageOutbox>(this);
         }
-
-        public Action<IDispatchContext> Configure { get; }
 
         public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
         {

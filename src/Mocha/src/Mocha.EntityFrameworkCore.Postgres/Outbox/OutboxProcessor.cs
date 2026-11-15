@@ -21,6 +21,7 @@ public sealed class PostgresOutboxProcessor
     private readonly ObjectPool<DispatchContext> _contextPool;
     private readonly PostgresMessageOutboxOptions _options;
     private readonly TimeProvider _timeProvider;
+    private readonly TimeSpan _queryDelay;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgresOutboxProcessor"/> class.
@@ -43,13 +44,15 @@ public sealed class PostgresOutboxProcessor
     /// <param name="options">
     /// The outbox options containing the SQL queries and connection factory.
     /// </param>
+    /// <param name="queryDelay">How long an idle worker waits before checking for messages to send.</param>
     internal PostgresOutboxProcessor(
         ILogger<PostgresOutboxProcessor> logger,
         IServiceProvider services,
         IMessagingRuntime runtime,
         IMessagingPools pools,
         IOutboxSignal signal,
-        PostgresMessageOutboxOptions options)
+        PostgresMessageOutboxOptions options,
+        TimeSpan queryDelay)
     {
         _logger = logger;
         _services = services;
@@ -58,6 +61,7 @@ public sealed class PostgresOutboxProcessor
         _contextPool = pools.DispatchContext;
         _options = options;
         _timeProvider = services.GetTimeProvider();
+        _queryDelay = queryDelay;
     }
 
     /// <summary>
@@ -67,36 +71,37 @@ public sealed class PostgresOutboxProcessor
     /// <param name="cancellationToken">A token that signals when the processor should stop.</param>
     public async Task ProcessAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        using var signalCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        try
         {
-            using var joinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var signaled = _signal.WaitAsync(signalCts.Token);
 
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var signaled = _signal.WaitAsync(joinedCts.Token);
-
                 var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
+                var delay = nextPollingInterval is { } interval && interval < _queryDelay
+                    ? interval
+                    : _queryDelay;
+                _logger.OutboxProcessorSleeping(delay);
 
-                if (nextPollingInterval is not null)
-                {
-                    _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
+                using var delayCts = new CancellationTokenSource();
+                await Task.WhenAny(Task.Delay(delay, _timeProvider, delayCts.Token), signaled);
+                delayCts.TryCancel();
 
-                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, _timeProvider, cancellationToken), signaled);
-                }
-                else
+                if (signaled.IsCompleted)
                 {
                     await signaled;
+                    signaled = _signal.WaitAsync(signalCts.Token);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                joinedCts.TryCancel();
-            }
-            catch
-            {
-                joinedCts.TryCancel();
-                throw;
-            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            signalCts.TryCancel();
         }
     }
 

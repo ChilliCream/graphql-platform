@@ -14,7 +14,6 @@ public sealed class DbContextOutbox : IMessageOutbox
     private readonly IDbContextOutbox _outbox;
     private readonly DbContextOutboxState _state;
     private readonly int _version;
-    private readonly Action<IDispatchContext> _configureDispatch;
 
     internal DbContextOutbox(
         DbContext context,
@@ -27,7 +26,6 @@ public sealed class DbContextOutbox : IMessageOutbox
         _outbox = outbox;
         _state = state;
         _version = state.Version;
-        _configureDispatch = dispatchContext => dispatchContext.Features.Set<IMessageOutbox>(this);
     }
 
     /// <summary>
@@ -63,7 +61,7 @@ public sealed class DbContextOutbox : IMessageOutbox
             var checkpoint = _outbox.CreateCheckpoint();
             try
             {
-                await _bus.PublishAsync(message, options, _configureDispatch, cancellationToken);
+                await _bus.PublishAsync(message, options, this, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch
@@ -111,7 +109,7 @@ public sealed class DbContextOutbox : IMessageOutbox
             var checkpoint = _outbox.CreateCheckpoint();
             try
             {
-                await _bus.SendAsync(message, options, _configureDispatch, cancellationToken);
+                await _bus.SendAsync(message, options, this, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch

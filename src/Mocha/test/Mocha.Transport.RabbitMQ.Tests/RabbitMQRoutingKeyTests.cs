@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Middlewares;
@@ -154,17 +153,8 @@ public class RabbitMQRoutingKeyTests
         }
 
         // assert
-        new
-        {
-            ExtractedBeforeOverride = extractedRoutingKey,
-            PreparedRoutingKey = preparedRoutingKey
-        }.MatchInlineSnapshot(
-            """
-            {
-              "ExtractedBeforeOverride": "ORD-123",
-              "PreparedRoutingKey": "from-middleware"
-            }
-            """);
+        Assert.Equal("ORD-123", extractedRoutingKey);
+        Assert.Equal("from-middleware", preparedRoutingKey);
     }
 
     [Fact]

@@ -13,32 +13,11 @@ using Npgsql;
 
 namespace Mocha.Outbox;
 
-/// <summary>
-/// Provides extension methods on <see cref="IEntityFrameworkCoreBuilder"/> for registering
-/// the Postgres outbox infrastructure including the outbox processor, worker, and message persistence.
-/// </summary>
 public static class OutboxServiceCollectionExtensions
 {
-    /// <summary>
-    /// Registers the full Postgres outbox pipeline: table info discovery from the EF Core model,
-    /// the <see cref="PostgresOutboxProcessor"/>, a hosted background worker, and a scoped
-    /// <see cref="IMessageOutbox"/> backed by direct Npgsql inserts.
-    /// </summary>
-    /// <remarks>
-    /// This method also calls <see cref="OutboxEntityFrameworkCorePersistenceBuilderExtensions.UseOutboxCore"/>
-    /// to register the EF Core interceptors that signal the processor on save and commit.
-    /// </remarks>
-    /// <param name="builder">The Entity Framework Core builder to configure.</param>
-    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(this IEntityFrameworkCoreBuilder builder)
         => builder.UsePostgresOutbox(static _ => { });
 
-    /// <summary>
-    /// Registers the full Postgres outbox pipeline with the specified <see cref="PostgresOutboxOptions"/>.
-    /// </summary>
-    /// <param name="builder">The Entity Framework Core builder to configure.</param>
-    /// <param name="configure">A delegate that configures the <see cref="PostgresOutboxOptions"/>.</param>
-    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(
         this IEntityFrameworkCoreBuilder builder,
         Action<PostgresOutboxOptions> configure)
@@ -46,7 +25,9 @@ public static class OutboxServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configure);
 
         builder.UseOutboxCore();
-        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name).Configure(configure);
+        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
+            .Configure(configure)
+            .Validate(options => options.QueryDelay > TimeSpan.Zero, "The outbox query delay must be greater than zero.");
 
         if (builder.Services.Any(descriptor =>
             descriptor.ServiceType == typeof(PostgresOutboxRegistration)
@@ -89,13 +70,15 @@ public static class OutboxServiceCollectionExtensions
         {
             var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
             var options = optionsMonitor.Get(builder.Name);
+            var outboxOptions = sp.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>().Get(builder.Name);
             return new PostgresOutboxProcessor(
                 sp.GetRequiredService<ILogger<PostgresOutboxProcessor>>(),
                 sp,
                 sp.GetRequiredService<IMessagingRuntime>(),
                 sp.GetRequiredService<IMessagingPools>(),
                 sp.GetRequiredService<IOutboxSignal>(),
-                options);
+                options,
+                outboxOptions.QueryDelay);
         });
 
         builder.Services.AddSingleton<IHostedService>(sp =>

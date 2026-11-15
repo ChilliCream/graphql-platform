@@ -227,7 +227,6 @@ public sealed class DispatchContext : IDispatchContext
         Runtime = runtime;
         Endpoint = endpoint;
         Transport = endpoint.Transport;
-        Runtime = runtime;
         Host = runtime.Host;
         CancellationToken = cancellationToken;
         MessageType = messageType;
