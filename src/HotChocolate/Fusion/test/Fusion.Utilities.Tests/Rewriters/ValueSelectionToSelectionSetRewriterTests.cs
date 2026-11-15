@@ -515,9 +515,7 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
             """
             {
                 settings {
-                    ... {
-                        currency
-                    }
+                    currency
                 }
             }
             """);
@@ -545,9 +543,7 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
             """
             {
                 regions {
-                    ... {
-                        code
-                    }
+                    code
                 }
             }
             """);
@@ -557,6 +553,22 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
                 locale
             }
             """);
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_ReturnNoFragmentWithoutTypeCondition_When_ObjectSelectionsAreNested()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser(
+            "$tenant.settings.{ currency: currency, region: region.{ code: code } }").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        var context = Assert.Single(contexts);
+        Assert.Equal("tenant", context.Key);
+        Assert.Equal("{ settings { currency region { code } } }", context.Value.ToString(indented: false));
     }
 
     [Fact]
