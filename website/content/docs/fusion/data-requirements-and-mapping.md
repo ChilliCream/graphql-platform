@@ -401,6 +401,21 @@ conversion: ConversionInput!
 
 A normal path in the same map starts at the entity that the field is selected on, while a context path starts at the value that provides the context.
 
+**Context path inside a selection.** Use when each entry of a list, or a nested input object, needs a value from the context. A context path can appear inside the object or list selection of another path. It still starts at the value that provides the context.
+
+```graphql
+lines: [LineInput!]!
+  @require(field: "items[{ weight: weight, currency: $tenant.currency }]")
+```
+
+The gateway builds one `LineInput` for each item. `weight` is read from the item and `currency` from the tenant.
+
+A selection can read from contexts only. The path in front of it still decides the shape of the value: a `null` value gives `null`, and a list gives one entry for each element.
+
+```graphql
+lines: [CurrencyInput!]! @require(field: "items[{ currency: $tenant.currency }]")
+```
+
 > For the full FieldSelectionMap grammar, see the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
 
 # Troubleshooting

@@ -410,6 +410,7 @@ public static partial class TransactionNode
 - The context must be provided by a type in the same source schema as the field that reads it. Otherwise composition raises `REQUIRE_CONTEXT_NOT_SET`. The fields that the path selects can be served by any source schema.
 - The source schema that declares the field needs a lookup for the field's parent type. Without one, composition raises `UNSATISFIABLE_QUERY_PATH`.
 - That lookup must be `@internal`. A public lookup lets a client reach the field without a value that provides the context, and composition raises `UNSATISFIABLE_QUERY_PATH`.
+- A context path can appear inside the object or list selection of another path, for example `items[{ weight: weight, currency: $tenant.currency }]`.
 - A context path is not allowed on interface fields or on fields that implement an interface field (`REQUIRE_CONTEXT_ON_INTERFACE`).
 - An argument that reads from a context cannot have a default value (`REQUIRE_CONTEXT_DEFAULT_VALUE`).
 - `@context` is not allowed on types that are annotated with `@interfaceObject` (`CONTEXT_ON_INTERFACE_OBJECT`).
