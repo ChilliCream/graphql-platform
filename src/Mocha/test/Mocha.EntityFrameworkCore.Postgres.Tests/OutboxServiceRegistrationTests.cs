@@ -114,6 +114,21 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Equal(ConnectionString, connection.ConnectionString);
     }
 
+    [Fact]
+    public async Task UsePostgresOutbox_Should_ConfigureTransactionQueries_When_DefaultTableNames()
+    {
+        // Arrange
+        await using var provider = BuildProvider();
+
+        // Act
+        var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
+        var options = optionsMonitor.Get(typeof(TestDbContext).FullName);
+
+        // Assert
+        Assert.False(string.IsNullOrWhiteSpace(options.Queries.DeleteTransactionEvents));
+        Assert.False(string.IsNullOrWhiteSpace(options.Queries.RescheduleEvent));
+    }
+
     private static ServiceProvider BuildProvider()
     {
         var services = new ServiceCollection();

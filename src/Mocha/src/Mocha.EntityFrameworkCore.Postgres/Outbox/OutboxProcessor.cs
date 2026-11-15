@@ -8,11 +8,13 @@ using Npgsql;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Continuously polls the Postgres outbox table for pending messages and dispatches them
-/// through the messaging runtime, using exponential backoff for retry scheduling.
+/// Continuously polls the Postgres outbox table and dispatches pending messages through the messaging
+/// runtime, one transaction at a time and in the order they were written.
 /// </summary>
 public sealed class PostgresOutboxProcessor
 {
+    private static readonly TimeSpan s_contendedPollingInterval = TimeSpan.FromSeconds(1);
+
     private readonly ILogger<PostgresOutboxProcessor> _logger;
     private readonly IServiceProvider _services;
     private readonly IMessagingRuntime _runtime;
@@ -131,7 +133,12 @@ public sealed class PostgresOutboxProcessor
 
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
-        return result is not null and not DBNull ? ((DateTime)result - DateTimeOffset.UtcNow).Duration() : null;
+        if (result is not double seconds)
+        {
+            return null;
+        }
+
+        return seconds > 0 ? TimeSpan.FromSeconds(seconds) : s_contendedPollingInterval;
     }
 
     private async Task<bool> ProcessEventAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
@@ -145,109 +152,189 @@ public sealed class PostgresOutboxProcessor
 
         try
         {
-            // Lock an event for processing and increment TimesSent in case of failure
-            await using var command = connection.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText = _options.Queries.ProcessEvent;
+            Guid? transactionId = null;
+            var lastHandledId = Guid.Empty;
+            var handled = 0;
+            var rows = 0;
+            var failedId = Guid.Empty;
+            var failedAttempt = 0;
+            var failed = false;
 
-            await command.PrepareAsync(cancellationToken);
-
-            try
+            // Lock the first message of a transaction, count an attempt for it and load the batch
+            await using (var command = connection.CreateCommand())
             {
+                command.Transaction = transaction;
+                command.CommandText = _options.Queries.ProcessEvent;
+
+                await command.PrepareAsync(cancellationToken);
+
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-                if (await reader.ReadAsync(cancellationToken))
+                try
                 {
-                    var id = reader.GetGuid(0);
-                    var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
-                    var timesSent = reader.GetInt32(2);
-
-                    // A message this instance cannot read or route stays in the outbox and is
-                    // retried after its backoff.
-                    if (envelope is null)
+                    while (!cancellationToken.IsCancellationRequested && await reader.ReadAsync(cancellationToken))
                     {
-                        _logger.CouldNotDeserializeMessageBody(id);
-                        LogIfExhausted(id, timesSent);
+                        rows++;
 
-                        return true;
+                        var id = reader.GetGuid(0);
+
+                        if (rows == 1)
+                        {
+                            transactionId = reader.IsDBNull(2) ? null : reader.GetGuid(2);
+                        }
+
+                        var attempt = reader.GetInt32(3);
+                        var envelope = Serializer.ReadMessageEnvelopeSafe(reader, 1, _logger);
+
+                        if (await TryDispatchAsync(id, envelope, cancellationToken))
+                        {
+                            lastHandledId = id;
+                            handled++;
+                        }
+                        else
+                        {
+                            failed = true;
+                            failedId = id;
+                            failedAttempt = attempt;
+                            break;
+                        }
                     }
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Shutdown stops the batch, the completion below keeps the progress.
+                }
+            }
 
-                    if (envelope.DeliverBy is { } deadline && deadline <= _timeProvider.GetUtcNow())
-                    {
-                        await reader.CloseAsync();
-                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
-                        _logger.OutboxMessageExpired(id);
-                        return true;
-                    }
+            if (!failed && handled == 0 && cancellationToken.IsCancellationRequested)
+            {
+                // The attempt counted for the first message is released.
+                await transaction.RollbackAsync(CancellationToken.None);
+                return true;
+            }
 
-                    var messageType = GetMessageType(envelope.MessageType);
+            if (rows == 0)
+            {
+                await CommitAsync(transaction);
+                return false;
+            }
 
-                    if (messageType is null)
-                    {
-                        _logger.CouldNotResolveMessageType(id, envelope.MessageType);
-                        LogIfExhausted(id, timesSent);
-
-                        return true;
-                    }
-
-                    var endpoint = ResolveDispatchEndpoint(envelope);
-
-                    if (endpoint is null)
-                    {
-                        _logger.CouldNotDetermineDestination(id, envelope.DestinationAddress);
-                        LogIfExhausted(id, timesSent);
-
-                        return true;
-                    }
-
-                    await SendAsync(envelope, endpoint, messageType, cancellationToken);
-
-                    await reader.CloseAsync();
-
-                    await DeleteEventAsync(connection, id, transaction, cancellationToken);
-
-                    return true;
+            // Progress is kept on shutdown, so the completion statements ignore the cancellation token.
+            if (handled > 0)
+            {
+                if (transactionId is { } handledTransactionId)
+                {
+                    await DeleteTransactionEventsAsync(
+                        connection,
+                        handledTransactionId,
+                        lastHandledId,
+                        transaction,
+                        CancellationToken.None);
                 }
                 else
                 {
-                    return false;
+                    await DeleteEventAsync(connection, lastHandledId, transaction, CancellationToken.None);
                 }
             }
-            finally
+
+            if (failed)
             {
-                try
+                // The claim already counted the attempt of the first message.
+                if (handled > 0)
                 {
-                    await transaction.CommitAsync(cancellationToken);
+                    await RescheduleEventAsync(connection, failedId, transaction, CancellationToken.None);
                 }
-                catch
-                {
-                    // Commit failed (e.g., connection lost). Attempt rollback.
-                    // If commit actually succeeded server-side, the message stays
-                    // with times_sent incremented - safe, just causes a retry.
-                    try
-                    {
-                        await transaction.RollbackAsync(CancellationToken.None);
-                    }
-                    catch
-                    {
-                        /* swallow */
-                    }
-                }
+
+                LogIfExhausted(failedId, transactionId ?? failedId, failedAttempt);
             }
+
+            await CommitAsync(transaction);
+
+            return true;
         }
         catch (Exception ex)
         {
-            // Log only - no RollbackAsync here (commit already handled in finally)
+            // Log only - the transaction is rolled back when it is disposed
             _logger.UnexpectedErrorWhileProcessingOutboxEvent(ex);
             throw;
         }
     }
 
-    private void LogIfExhausted(Guid id, int timesSent)
+    private static async Task CommitAsync(NpgsqlTransaction transaction)
+    {
+        try
+        {
+            await transaction.CommitAsync(CancellationToken.None);
+        }
+        catch
+        {
+            // Commit failed (e.g., connection lost). Attempt rollback.
+            // If commit actually succeeded server-side, the sent messages are deleted and the
+            // rest stays with times_sent incremented - safe, just causes a retry.
+            try
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+            }
+            catch
+            {
+                /* swallow */
+            }
+        }
+    }
+
+    // Returns true when the message can be deleted (sent or expired) and false when it must be retried.
+    private async ValueTask<bool> TryDispatchAsync(
+        Guid id,
+        MessageEnvelope? envelope,
+        CancellationToken cancellationToken)
+    {
+        // A message this instance cannot read or route stays in the outbox and is
+        // retried after its backoff.
+        if (envelope is null)
+        {
+            _logger.CouldNotDeserializeMessageBody(id);
+            return false;
+        }
+
+        if (envelope.DeliverBy is { } deadline && deadline <= _timeProvider.GetUtcNow())
+        {
+            _logger.OutboxMessageExpired(id);
+            return true;
+        }
+
+        var messageType = GetMessageType(envelope.MessageType);
+
+        if (messageType is null)
+        {
+            _logger.CouldNotResolveMessageType(id, envelope.MessageType);
+            return false;
+        }
+
+        var endpoint = ResolveDispatchEndpoint(envelope);
+
+        if (endpoint is null)
+        {
+            _logger.CouldNotDetermineDestination(id, envelope.DestinationAddress);
+            return false;
+        }
+
+        try
+        {
+            await SendAsync(envelope, endpoint, messageType, cancellationToken);
+            return true;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            _logger.OutboxMessageDispatchFailed(ex, id);
+            return false;
+        }
+    }
+
+    private void LogIfExhausted(Guid id, Guid transactionId, int timesSent)
     {
         if (timesSent >= PostgresMessageOutboxQueries.MaxAttempts)
         {
-            _logger.OutboxMessageExhausted(id, PostgresMessageOutboxQueries.MaxAttempts);
+            _logger.OutboxMessageExhausted(id, transactionId, PostgresMessageOutboxQueries.MaxAttempts);
         }
     }
 
@@ -371,6 +458,42 @@ public sealed class PostgresOutboxProcessor
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
+
+    private async Task DeleteTransactionEventsAsync(
+        NpgsqlConnection connection,
+        Guid transactionId,
+        Guid lastEventId,
+        NpgsqlTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = _options.Queries.DeleteTransactionEvents;
+        command.Connection = connection;
+        command.Transaction = transaction;
+        command.Parameters.AddWithValue("@TransactionId", transactionId);
+        command.Parameters.AddWithValue("@LastEventId", lastEventId);
+
+        await command.PrepareAsync(cancellationToken);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private async Task RescheduleEventAsync(
+        NpgsqlConnection connection,
+        Guid eventId,
+        NpgsqlTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = _options.Queries.RescheduleEvent;
+        command.Connection = connection;
+        command.Transaction = transaction;
+        command.Parameters.AddWithValue("@EventId", eventId);
+
+        await command.PrepareAsync(cancellationToken);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
 }
 
 internal static partial class Logs
@@ -405,11 +528,21 @@ internal static partial class Logs
     [LoggerMessage(
         7,
         LogLevel.Critical,
-        "Message with ID {Id} exhausted all {MaxAttempts} attempts and will not be retried.")]
-    public static partial void OutboxMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
+        "Message with ID {Id} of outbox transaction {TransactionId} exhausted all {MaxAttempts} attempts and will not be retried. Later messages of the same transaction stay in the outbox.")]
+    public static partial void OutboxMessageExhausted(
+        this ILogger logger,
+        Guid id,
+        Guid transactionId,
+        int maxAttempts);
 
     [LoggerMessage(8, LogLevel.Information, "Expired outbox message with ID {Id} was discarded.")]
     public static partial void OutboxMessageExpired(this ILogger logger, Guid id);
+
+    [LoggerMessage(
+        9,
+        LogLevel.Error,
+        "Dispatching message with ID {Id} failed. The message and the later messages of its outbox transaction will be retried.")]
+    public static partial void OutboxMessageDispatchFailed(this ILogger logger, Exception exception, Guid id);
 }
 
 file static class Serializer
