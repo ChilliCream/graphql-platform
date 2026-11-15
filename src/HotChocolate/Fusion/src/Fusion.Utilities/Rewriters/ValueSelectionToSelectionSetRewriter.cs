@@ -173,6 +173,7 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                     contexts,
                     contextName,
                     CreatePathSelection(obj.Path, Visit(obj.ObjectValueSelection)));
+                CollectContextPaths(obj.ObjectValueSelection, contexts);
                 break;
 
             case PathObjectValueSelectionNode obj:
@@ -184,6 +185,7 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                     contexts,
                     contextName,
                     CreatePathSelection(list.Path, Visit(list.ListValueSelection)));
+                CollectContextPaths(list.ListValueSelection, contexts);
                 break;
 
             case PathListValueSelectionNode list:

@@ -1,0 +1,265 @@
+title: Execute_Should_ResolveShippingSummaryWithUnargumentedCurrency_When_TheClientSelectsTheCurrencyWithArguments
+request:
+  document: |
+    {
+      tenant {
+        currency(region: "EU")
+        users {
+          orders {
+            shippingSummary
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "tenant": {
+          "currency": "EUR-EU",
+          "users": [
+            {
+              "orders": [
+                {
+                  "shippingSummary": "2:EUR,5:EUR"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        tenant: Tenant!
+        orderById(id: ID!): Order @lookup @internal
+      }
+
+      type Order @key(fields: "id") {
+        shippingSummary(
+          lines: [LineInput!]! @require(field: "items[{\n  weight: weight\n  currency: $tenant.currency\n}]")
+        ): String!
+        id: ID! @shareable
+      }
+
+      type Tenant @context(name: "tenant") {
+        currency(region: String): String!
+        users: [User!]!
+        id: ID!
+      }
+
+      type User {
+        orders: [Order!]!
+        id: ID!
+      }
+
+      input LineInput {
+        weight: Int!
+        currency: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_925f3d4a_1 {
+              tenant {
+                currency(region: "EU")
+                users {
+                  orders {
+                    id
+                  }
+                }
+                fusion__requirement_currency_0: currency
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "tenant": {
+                    "currency": "EUR-EU",
+                    "users": [
+                      {
+                        "orders": [
+                          {
+                            "id": "1"
+                          }
+                        ]
+                      }
+                    ],
+                    "fusion__requirement_currency_0": "EUR"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_925f3d4a_2($__fusion_1_lines: [LineInput!]!, $__fusion_2_id: ID!) {
+              orderById(id: $__fusion_2_id) {
+                shippingSummary(lines: $__fusion_1_lines)
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_lines": [
+                {
+                  "weight": 2,
+                  "currency": "EUR"
+                },
+                {
+                  "weight": 5,
+                  "currency": "EUR"
+                }
+              ],
+              "__fusion_2_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "shippingSummary": "2:EUR,5:EUR"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        orderById(id: ID!): Order @lookup @internal
+      }
+
+      type Order @key(fields: "id") {
+        items: [OrderItem!]!
+        id: ID! @shareable
+      }
+
+      type OrderItem {
+        weight: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_925f3d4a_3($__fusion_3_id: ID!) {
+              orderById(id: $__fusion_3_id) {
+                items {
+                  weight
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "items": [
+                      {
+                        "weight": 2
+                      },
+                      {
+                        "weight": 5
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          tenant {
+            currency(region: "EU")
+            users {
+              orders {
+                shippingSummary
+                id @fusion__requirement
+                items @fusion__requirement {
+                  weight @fusion__requirement
+                }
+              }
+            }
+            fusion__requirement_currency_0: currency @fusion__requirement
+          }
+        }
+      hash: fc72c539bae3d4da91043803c0355ad7
+      searchSpace: 1
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_925f3d4a_1 {
+          tenant {
+            currency(region: "EU")
+            users {
+              orders {
+                id
+              }
+            }
+            fusion__requirement_currency_0: currency
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_925f3d4a_2($__fusion_1_lines: [LineInput!]!, $__fusion_2_id: ID!) {
+          orderById(id: $__fusion_2_id) {
+            shippingSummary(lines: $__fusion_1_lines)
+          }
+        }
+      source: $.orderById
+      target: $.tenant.users.orders
+      requirements:
+        - name: __fusion_1_lines
+          selectionMap: >-
+            items[{
+              weight: weight
+              currency: $tenant.fusion__requirement_currency_0
+            }]
+          contextRoots:
+            - name: tenant
+              path: $.tenant
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 3
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_925f3d4a_3($__fusion_3_id: ID!) {
+          orderById(id: $__fusion_3_id) {
+            items {
+              weight
+            }
+          }
+        }
+      source: $.orderById
+      target: $.tenant.users.orders
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

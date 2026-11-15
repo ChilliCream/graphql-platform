@@ -499,6 +499,87 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
         Assert.Empty(contexts);
     }
 
+    [Fact]
+    public void RewriteContextPaths_Should_CollectBothContexts_When_AContextPathIsInTheObjectSelectionOfAnotherContextPath()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser(
+            "$tenant.settings.{ currency: currency, locale: $user.locale }").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        Assert.Equal(["tenant", "user"], contexts.Keys.Order());
+        contexts["tenant"].Print().MatchInlineSnapshot(
+            """
+            {
+                settings {
+                    ... {
+                        currency
+                    }
+                }
+            }
+            """);
+        contexts["user"].Print().MatchInlineSnapshot(
+            """
+            {
+                locale
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_CollectBothContexts_When_AContextPathIsInTheListSelectionOfAnotherContextPath()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser(
+            "$tenant.regions[{ code: code, locale: $user.locale }]").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        Assert.Equal(["tenant", "user"], contexts.Keys.Order());
+        contexts["tenant"].Print().MatchInlineSnapshot(
+            """
+            {
+                regions {
+                    ... {
+                        code
+                    }
+                }
+            }
+            """);
+        contexts["user"].Print().MatchInlineSnapshot(
+            """
+            {
+                locale
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_CollectTheContext_When_TheContextPathIsInTheListSelectionOfAnEntityPath()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser(
+            "items[{ weight: weight, currency: $tenant.currency }]").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        var context = Assert.Single(contexts);
+        Assert.Equal("tenant", context.Key);
+        context.Value.Print().MatchInlineSnapshot(
+            """
+            {
+                currency
+            }
+            """);
+    }
+
     private static readonly ISchemaDefinition s_schema = SchemaParser.Parse(
         """
         type Query {

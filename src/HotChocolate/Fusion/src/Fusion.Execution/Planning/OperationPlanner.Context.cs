@@ -378,8 +378,9 @@ public sealed partial class OperationPlanner
         return selections is null ? selectionSet : new SelectionSetNode(selections);
     }
 
-    // Replaces the first segment of every context path whose field was aliased in the step of the
-    // context root with a segment that names the alias. Entity paths are not changed.
+    // Replaces the first segment of every context path, at any depth of the value selection, whose
+    // field was aliased in the step of the context root with a segment that names the alias. Entity
+    // paths are not changed, and a node in which no path changed is returned as the same instance.
     private static IValueSelectionNode RewriteContextAliases(
         IValueSelectionNode node,
         Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>> contextAliases)
@@ -391,43 +392,97 @@ public sealed partial class OperationPlanner
 
             case PathObjectValueSelectionNode pathObject:
             {
-                var rewritten = RewriteContextPath(pathObject.Path, contextAliases);
+                var path = RewriteContextPath(pathObject.Path, contextAliases);
+                var value = RewriteContextAliases(pathObject.ObjectValueSelection, contextAliases);
 
-                return ReferenceEquals(rewritten, pathObject.Path)
+                return ReferenceEquals(path, pathObject.Path)
+                    && ReferenceEquals(value, pathObject.ObjectValueSelection)
                     ? pathObject
                     : new PathObjectValueSelectionNode(
                         pathObject.Location,
-                        rewritten,
-                        pathObject.ObjectValueSelection);
+                        path,
+                        (ObjectValueSelectionNode)value);
             }
 
             case PathListValueSelectionNode pathList:
             {
-                var rewritten = RewriteContextPath(pathList.Path, contextAliases);
+                var path = RewriteContextPath(pathList.Path, contextAliases);
+                var value = RewriteContextAliases(pathList.ListValueSelection, contextAliases);
 
-                return ReferenceEquals(rewritten, pathList.Path)
+                return ReferenceEquals(path, pathList.Path)
+                    && ReferenceEquals(value, pathList.ListValueSelection)
                     ? pathList
                     : new PathListValueSelectionNode(
                         pathList.Location,
-                        rewritten,
-                        pathList.ListValueSelection);
+                        path,
+                        (ListValueSelectionNode)value);
             }
 
+            case ListValueSelectionNode list:
+                var element = RewriteContextAliases(list.ElementSelection, contextAliases);
+
+                return ReferenceEquals(element, list.ElementSelection)
+                    ? list
+                    : new ListValueSelectionNode(list.Location, element);
+
             case ChoiceValueSelectionNode choice:
-                return new ChoiceValueSelectionNode(
-                    choice.Location,
-                    [.. choice.Branches.Select(b => RewriteContextAliases(b, contextAliases))]);
+            {
+                ImmutableArray<IValueSelectionNode>.Builder? branches = null;
+
+                for (var i = 0; i < choice.Branches.Length; i++)
+                {
+                    var branch = RewriteContextAliases(choice.Branches[i], contextAliases);
+
+                    if (branches is null && !ReferenceEquals(branch, choice.Branches[i]))
+                    {
+                        branches = ImmutableArray.CreateBuilder<IValueSelectionNode>(choice.Branches.Length);
+                        branches.AddRange(choice.Branches.Take(i));
+                    }
+
+                    branches?.Add(branch);
+                }
+
+                return branches is null
+                    ? choice
+                    : new ChoiceValueSelectionNode(choice.Location, branches.ToImmutable());
+            }
 
             case ObjectValueSelectionNode objectValue:
-                return new ObjectValueSelectionNode(
-                    objectValue.Location,
-                    [.. objectValue.Fields.Select(f => f.ValueSelection is null
-                        ? f
-                        : new ObjectFieldSelectionNode(
-                            f.Location,
-                            f.Name,
-                            f.Arguments,
-                            RewriteContextAliases(f.ValueSelection, contextAliases)))]);
+            {
+                ImmutableArray<ObjectFieldSelectionNode>.Builder? fields = null;
+
+                for (var i = 0; i < objectValue.Fields.Length; i++)
+                {
+                    var field = objectValue.Fields[i];
+                    var rewritten = field;
+
+                    if (field.ValueSelection is { } valueSelection)
+                    {
+                        var value = RewriteContextAliases(valueSelection, contextAliases);
+
+                        if (!ReferenceEquals(value, valueSelection))
+                        {
+                            rewritten = new ObjectFieldSelectionNode(
+                                field.Location,
+                                field.Name,
+                                field.Arguments,
+                                value);
+                        }
+                    }
+
+                    if (fields is null && !ReferenceEquals(rewritten, field))
+                    {
+                        fields = ImmutableArray.CreateBuilder<ObjectFieldSelectionNode>(objectValue.Fields.Length);
+                        fields.AddRange(objectValue.Fields.Take(i));
+                    }
+
+                    fields?.Add(rewritten);
+                }
+
+                return fields is null
+                    ? objectValue
+                    : new ObjectValueSelectionNode(objectValue.Location, fields.ToImmutable());
+            }
 
             default:
                 return node;
