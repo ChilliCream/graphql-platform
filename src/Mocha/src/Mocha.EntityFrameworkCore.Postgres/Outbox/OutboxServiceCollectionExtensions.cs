@@ -27,19 +27,18 @@ public static class OutboxServiceCollectionExtensions
         builder.UseOutboxCore();
         builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
             .Configure(configure)
-            .Validate(options => options.QueryDelay > TimeSpan.Zero, "The outbox query delay must be greater than zero.");
+            .Validate(
+                options => options.PollingInterval > TimeSpan.Zero,
+                "PostgresOutboxOptions.PollingInterval must be greater than zero.");
+
+        var contextType = builder.ContextType;
 
         if (builder.Services.Any(descriptor =>
-            descriptor.ServiceType == typeof(PostgresOutboxRegistration)
-            && descriptor.ImplementationInstance is PostgresOutboxRegistration registration
-            && registration.ContextType == builder.ContextType))
+            descriptor.ServiceType == typeof(PostgresOutboxProcessor)
+            && Equals(descriptor.ServiceKey, contextType)))
         {
             return builder;
         }
-
-        builder.Services.AddSingleton(new PostgresOutboxRegistration(builder.ContextType, builder.Name));
-
-        var contextType = builder.ContextType;
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)
@@ -78,47 +77,26 @@ public static class OutboxServiceCollectionExtensions
                 sp.GetRequiredService<IMessagingPools>(),
                 sp.GetRequiredService<IOutboxSignal>(),
                 options,
-                outboxOptions.QueryDelay);
+                outboxOptions.PollingInterval);
         });
 
         builder.Services.AddSingleton<IHostedService>(sp =>
             new PostgresMessageBusOutboxWorker(sp.GetRequiredKeyedService<PostgresOutboxProcessor>(contextType)));
 
-        builder.Services.TryAddScoped<IMessageOutbox>(CreateDefaultOutbox);
+        builder.Services.TryAddScoped<IMessageOutbox>(sp =>
+            PostgresMessageOutbox.Create(contextType, builder.Name, sp));
 
         builder.ConfigureEntityFrameworkServices((applicationServices, services) =>
         {
-            services.AddScoped(_ => new PostgresDbContextOutbox(applicationServices.GetTimeProvider()));
+            services.AddScoped(sp => new PostgresDbContextOutbox(
+                applicationServices.GetTimeProvider(),
+                sp.GetRequiredService<ICurrentDbContext>()));
             services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
             services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
-            services.AddScoped<IDbContextOutbox>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddScoped<IMessageOutbox>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
         });
 
         return builder;
-    }
-
-    private static IMessageOutbox CreateDefaultOutbox(IServiceProvider services)
-    {
-        var registrations = services.GetServices<PostgresOutboxRegistration>().ToArray();
-        var defaultContext = services.GetService<DefaultOutboxDbContextRegistration>();
-        PostgresOutboxRegistration registration;
-
-        if (defaultContext is not null)
-        {
-            registration = registrations.FirstOrDefault(r => r.ContextType == defaultContext.ContextType)
-                ?? throw Mocha.EntityFrameworkCore.ThrowHelper.DefaultOutboxDbContextNotRegistered(
-                    defaultContext.ContextType);
-        }
-        else if (registrations.Length == 1)
-        {
-            registration = registrations[0];
-        }
-        else
-        {
-            throw Mocha.EntityFrameworkCore.ThrowHelper.AmbiguousOutboxDbContext();
-        }
-
-        return PostgresMessageOutbox.Create(registration.ContextType, registration.Name, services);
     }
 
     private static void ConfigureOutboxTableInfo(OutboxTableInfo outbox, IModel model)
@@ -188,6 +166,4 @@ public static class OutboxServiceCollectionExtensions
             }
         }
     }
-
-    private sealed record PostgresOutboxRegistration(Type ContextType, string Name);
 }

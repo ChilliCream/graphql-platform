@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Mocha.Middlewares;
 using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
@@ -7,21 +5,15 @@ namespace Mocha.EntityFrameworkCore;
 /// <summary>
 /// Stages messages for persistence in the same transaction as the owning DbContext's next save.
 /// </summary>
-public sealed class DbContextOutbox : IMessageOutbox
+public sealed class DbContextOutbox
 {
-    private readonly DbContext _context;
     private readonly DefaultMessageBus _bus;
-    private readonly IDbContextOutbox _outbox;
+    private readonly IMessageOutbox _outbox;
     private readonly DbContextOutboxState _state;
     private readonly int _version;
 
-    internal DbContextOutbox(
-        DbContext context,
-        DefaultMessageBus bus,
-        IDbContextOutbox outbox,
-        DbContextOutboxState state)
+    internal DbContextOutbox(DefaultMessageBus bus, IMessageOutbox outbox, DbContextOutboxState state)
     {
-        _context = context;
         _bus = bus;
         _outbox = outbox;
         _state = state;
@@ -44,36 +36,9 @@ public sealed class DbContextOutbox : IMessageOutbox
         CancellationToken cancellationToken)
         where T : notnull
     {
-        ArgumentNullException.ThrowIfNull(message);
-        if (_version != _state.Version)
-        {
-            throw ThrowHelper.OutboxContextDisposed();
-        }
+        EnsureCanStage(message, cancellationToken);
 
-        if (Interlocked.CompareExchange(ref _state.Preparing, 1, 0) != 0)
-        {
-            throw ThrowHelper.ConcurrentOutboxOperation();
-        }
-
-        try
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var checkpoint = _outbox.CreateCheckpoint();
-            try
-            {
-                await _bus.PublishAsync(message, options, this, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-            catch
-            {
-                _outbox.Discard(_context, checkpoint);
-                throw;
-            }
-        }
-        finally
-        {
-            Volatile.Write(ref _state.Preparing, 0);
-        }
+        await _bus.PublishAsync(message, options, _outbox, cancellationToken);
     }
 
     /// <summary>
@@ -92,48 +57,19 @@ public sealed class DbContextOutbox : IMessageOutbox
         CancellationToken cancellationToken)
         where T : notnull
     {
+        EnsureCanStage(message, cancellationToken);
+
+        await _bus.SendAsync(message, options, _outbox, cancellationToken);
+    }
+
+    private void EnsureCanStage(object message, CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(message);
         if (_version != _state.Version)
         {
             throw ThrowHelper.OutboxContextDisposed();
         }
 
-        if (Interlocked.CompareExchange(ref _state.Preparing, 1, 0) != 0)
-        {
-            throw ThrowHelper.ConcurrentOutboxOperation();
-        }
-
-        try
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var checkpoint = _outbox.CreateCheckpoint();
-            try
-            {
-                await _bus.SendAsync(message, options, this, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-            catch
-            {
-                _outbox.Discard(_context, checkpoint);
-                throw;
-            }
-        }
-        finally
-        {
-            Volatile.Write(ref _state.Preparing, 0);
-        }
-    }
-
-    ValueTask IMessageOutbox.PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
-    {
         cancellationToken.ThrowIfCancellationRequested();
-        if (_version != _state.Version)
-        {
-            throw ThrowHelper.OutboxContextDisposed();
-        }
-
-        _outbox.Stage(_context, envelope, cancellationToken);
-
-        return default;
     }
 }

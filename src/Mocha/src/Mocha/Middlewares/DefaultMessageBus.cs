@@ -69,7 +69,7 @@ public sealed class DefaultMessageBus(
         where T : notnull
         => await PublishCoreAsync(message, options, options.ScheduledTime, outbox, cancellationToken);
 
-    private async ValueTask<(string? Token, DateTimeOffset ScheduledTime)> PublishCoreAsync<T>(
+    private async ValueTask<string?> PublishCoreAsync<T>(
         T message,
         PublishOptions options,
         DateTimeOffset? scheduledTime,
@@ -77,7 +77,6 @@ public sealed class DefaultMessageBus(
         CancellationToken cancellationToken)
         where T : notnull
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var messageType = runtime.GetMessageType(message.GetType());
         var endpoint = runtime.GetPublishEndpoint(messageType);
         var context = _contextPool.Get();
@@ -98,8 +97,7 @@ public sealed class DefaultMessageBus(
 
             await endpoint.ExecuteAsync(context);
 
-            var feature = context.Features.Get<ScheduledMessageFeature>();
-            return (feature?.Token, context.Envelope?.ScheduledTime ?? scheduledTime ?? default);
+            return context.Features.Get<ScheduledMessageFeature>()?.Token;
         }
         finally
         {
@@ -146,7 +144,7 @@ public sealed class DefaultMessageBus(
         where T : notnull
         => await SendCoreAsync(message, options, options.ScheduledTime, outbox, cancellationToken);
 
-    private async ValueTask<(string? Token, DateTimeOffset ScheduledTime)> SendCoreAsync<T>(
+    private async ValueTask<string?> SendCoreAsync<T>(
         T message,
         SendOptions options,
         DateTimeOffset? scheduledTime,
@@ -154,7 +152,6 @@ public sealed class DefaultMessageBus(
         CancellationToken cancellationToken)
         where T : notnull
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var messageType = runtime.GetMessageType(message.GetType());
         var endpoint = options.Endpoint is { } address
             ? runtime.GetDispatchEndpoint(address)
@@ -178,8 +175,7 @@ public sealed class DefaultMessageBus(
 
             await endpoint.ExecuteAsync(context);
 
-            var feature = context.Features.Get<ScheduledMessageFeature>();
-            return (feature?.Token, context.Envelope?.ScheduledTime ?? scheduledTime ?? default);
+            return context.Features.Get<ScheduledMessageFeature>()?.Token;
         }
         finally
         {
@@ -371,7 +367,16 @@ public sealed class DefaultMessageBus(
         PublishOptions options,
         CancellationToken cancellationToken)
         where T : notnull
-        => CreateSchedulingResult(await PublishCoreAsync(message, options, scheduledTime, null, cancellationToken));
+    {
+        var token = await PublishCoreAsync(message, options, scheduledTime, null, cancellationToken);
+
+        return new SchedulingResult
+        {
+            Token = token,
+            ScheduledTime = scheduledTime,
+            IsCancellable = token is not null
+        };
+    }
 
     /// <summary>
     /// Sends a message scheduled for delivery at the specified time using default options.
@@ -394,15 +399,14 @@ public sealed class DefaultMessageBus(
         SendOptions options,
         CancellationToken cancellationToken)
         where T : notnull
-        => CreateSchedulingResult(await SendCoreAsync(message, options, scheduledTime, null, cancellationToken));
-
-    private static SchedulingResult CreateSchedulingResult((string? Token, DateTimeOffset ScheduledTime) result)
     {
+        var token = await SendCoreAsync(message, options, scheduledTime, null, cancellationToken);
+
         return new SchedulingResult
         {
-            Token = result.Token,
-            ScheduledTime = result.ScheduledTime,
-            IsCancellable = result.Token is not null
+            Token = token,
+            ScheduledTime = scheduledTime,
+            IsCancellable = token is not null
         };
     }
 

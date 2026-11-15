@@ -147,6 +147,8 @@ internal sealed class InMemoryScheduledMessageWorker(
         }
         catch (Exception ex)
         {
+            activity?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error);
             logger.ScheduledMessageDispatchFailed(entry.Id, ex);
         }
         finally

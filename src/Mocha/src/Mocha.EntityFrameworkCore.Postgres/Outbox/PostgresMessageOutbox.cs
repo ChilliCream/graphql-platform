@@ -81,7 +81,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     {
         if (_requireTransaction && RequiresTransaction(envelope) && !HasTransaction())
         {
-            throw Mocha.EntityFrameworkCore.Postgres.ThrowHelper.OutboxRequiresTransaction(_dbContext.GetType());
+            throw ThrowHelper.OutboxRequiresTransaction(_dbContext.GetType());
         }
 
         await _semaphore.WaitAsync(cancellationToken);

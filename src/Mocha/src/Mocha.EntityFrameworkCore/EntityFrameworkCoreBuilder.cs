@@ -1,26 +1,23 @@
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
-/// Configures Entity Framework Core messaging features for a DbContext type.
+/// Default implementation of <see cref="IEntityFrameworkCoreBuilder"/> that carries the service
+/// collection, host builder, DbContext type, and logical name used during Entity Framework Core
+/// feature registration.
 /// </summary>
-internal sealed class EntityFrameworkCoreBuilder<
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TContext>(
-    IMessageBusHostBuilder hostBuilder) : IEntityFrameworkCoreBuilder
-    where TContext : DbContext
+internal class EntityFrameworkCoreBuilder : IEntityFrameworkCoreBuilder
 {
     /// <inheritdoc />
-    public IServiceCollection Services => hostBuilder.Services;
+    public required IServiceCollection Services { get; init; }
 
     /// <inheritdoc />
-    public IMessageBusHostBuilder HostBuilder => hostBuilder;
+    public required IMessageBusHostBuilder HostBuilder { get; init; }
 
     /// <inheritdoc />
-    public Type ContextType => typeof(TContext);
+    public required Type ContextType { get; init; }
 
     /// <inheritdoc />
-    public string Name { get; } = typeof(TContext).FullName ?? typeof(TContext).Name;
+    public required string Name { get; init; }
 }

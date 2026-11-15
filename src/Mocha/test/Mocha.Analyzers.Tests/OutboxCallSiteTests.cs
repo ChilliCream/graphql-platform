@@ -7,25 +7,7 @@ public class OutboxCallSiteTests
 {
     [Theory]
     [InlineData("db.Outbox(bus).PublishAsync(new OutboundMessage(), cancellationToken)")]
-    [InlineData("db.Outbox(bus).PublishAsync<OutboundMessage>(new(), cancellationToken)")]
-    [InlineData("db.Outbox(bus).PublishAsync(new OutboundMessage(), PublishOptions.Default, cancellationToken)")]
-    [InlineData("outbox.PublishAsync(new OutboundMessage(), cancellationToken)")]
-    [InlineData("outbox.PublishAsync<OutboundMessage>(new(), PublishOptions.Default, cancellationToken)")]
-    [InlineData("typedOutbox.PublishAsync(new OutboundMessage(), cancellationToken)")]
-    [InlineData("typedOutbox.PublishAsync<OutboundMessage>(new(), PublishOptions.Default, cancellationToken)")]
     [InlineData("db.Outbox(bus).SendAsync(new OutboundMessage(), cancellationToken)")]
-    [InlineData("db.Outbox(bus).SendAsync<OutboundMessage>(new(), cancellationToken)")]
-    [InlineData("db.Outbox(bus).SendAsync(new OutboundMessage(), SendOptions.Default, cancellationToken)")]
-    [InlineData("outbox.SendAsync(new OutboundMessage(), cancellationToken)")]
-    [InlineData("outbox.SendAsync<OutboundMessage>(new(), SendOptions.Default, cancellationToken)")]
-    [InlineData("typedOutbox.SendAsync(new OutboundMessage(), cancellationToken)")]
-    [InlineData("typedOutbox.SendAsync<OutboundMessage>(new(), SendOptions.Default, cancellationToken)")]
-    [InlineData("db.Outbox(bus).PublishAsync(new OutboundMessage(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
-    [InlineData("db.Outbox(bus).SendAsync(new OutboundMessage(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
-    [InlineData("outbox.PublishAsync<OutboundMessage>(new(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
-    [InlineData("outbox.SendAsync<OutboundMessage>(new(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
-    [InlineData("typedOutbox.PublishAsync(new OutboundMessage(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
-    [InlineData("typedOutbox.SendAsync(new OutboundMessage(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
     public void Generate_Should_RegisterOutboundMessage_When_OutboxDispatches(string expression)
     {
         // arrange
@@ -46,22 +28,12 @@ public class OutboxCallSiteTests
             """);
     }
 
-    [Theory]
-    [InlineData("db.Outbox(bus)", "PublishAsync", "Publish", "PublishOptions")]
-    [InlineData("db.Outbox(bus)", "SendAsync", "Send", "SendOptions")]
-    [InlineData("outbox", "PublishAsync", "Publish", "PublishOptions")]
-    [InlineData("outbox", "SendAsync", "Send", "SendOptions")]
-    [InlineData("typedOutbox", "PublishAsync", "Publish", "PublishOptions")]
-    [InlineData("typedOutbox", "SendAsync", "Send", "SendOptions")]
-    public void Generate_Should_ReportMissingJsonType_When_OutboxDispatchesInAotMode(
-        string receiver,
-        string method,
-        string kind,
-        string options)
+    [Fact]
+    public void Generate_Should_ReportMissingJsonType_When_OutboxDispatchesInAotMode()
     {
         // arrange
         var source = CreateSource(
-            $"{receiver}.{method}(new OutboundMessage(), {options}.Default, cancellationToken)",
+            "db.Outbox(bus).PublishAsync(new OutboundMessage(), PublishOptions.Default, cancellationToken)",
             jsonContext: true);
 
         // act
@@ -71,24 +43,18 @@ public class OutboxCallSiteTests
         var diagnostic = Assert.Single(diagnostics);
         Assert.Equal("MO0018", diagnostic.Id);
         Assert.Equal(
-            $"Type 'global::TestApp.OutboundMessage' is used in a {kind} call but is not included "
+            "Type 'global::TestApp.OutboundMessage' is used in a Publish call but is not included "
             + "in JsonSerializerContext 'global::TestApp.TestJsonContext'. "
             + "Add [JsonSerializable(typeof(global::TestApp.OutboundMessage))] to the context.",
             diagnostic.GetMessage());
     }
 
-    [Theory]
-    [InlineData("db.Outbox(bus)", "PublishAsync")]
-    [InlineData("db.Outbox(bus)", "SendAsync")]
-    [InlineData("outbox", "PublishAsync")]
-    [InlineData("outbox", "SendAsync")]
-    [InlineData("typedOutbox", "PublishAsync")]
-    [InlineData("typedOutbox", "SendAsync")]
-    public void Generate_Should_AcceptJsonType_When_OutboxMessageIsRegistered(string receiver, string method)
+    [Fact]
+    public void Generate_Should_AcceptJsonType_When_OutboxMessageIsRegistered()
     {
         // arrange
         var source = CreateSource(
-            $"{receiver}.{method}(new OutboundMessage(), cancellationToken)",
+            "db.Outbox(bus).PublishAsync(new OutboundMessage(), cancellationToken)",
             jsonContext: true,
             registerOutboundMessage: true);
 
@@ -99,13 +65,11 @@ public class OutboxCallSiteTests
         Assert.Empty(diagnostics);
     }
 
-    [Theory]
-    [InlineData("PublishAsync")]
-    [InlineData("SendAsync")]
-    public void Generate_Should_IgnoreMessage_When_UnrelatedOutboxDispatches(string method)
+    [Fact]
+    public void Generate_Should_IgnoreMessage_When_UnrelatedOutboxDispatches()
     {
         // arrange
-        var source = CreateSource($"unrelated.{method}(new OutboundMessage(), cancellationToken)");
+        var source = CreateSource("unrelated.PublishAsync(new OutboundMessage(), cancellationToken)");
 
         // act
         var diagnostics = MessagingTestHelper.GetCompilationDiagnostics([source]);
@@ -121,13 +85,11 @@ public class OutboxCallSiteTests
             """);
     }
 
-    [Theory]
-    [InlineData("PublishAsync")]
-    [InlineData("SendAsync")]
-    public void Generate_Should_RegisterOutboundMessage_When_ApplicationHasNoHandlers(string method)
+    [Fact]
+    public void Generate_Should_RegisterOutboundMessage_When_ApplicationHasNoHandlers()
     {
         // arrange
-        var source = $$"""
+        const string source = """
             using System.Threading;
             using System.Threading.Tasks;
             using Microsoft.EntityFrameworkCore;
@@ -143,7 +105,7 @@ public class OutboxCallSiteTests
             public sealed class Dispatcher
             {
                 public ValueTask DispatchAsync(DbContext db, IMessageBus bus, CancellationToken cancellationToken)
-                    => db.Outbox(bus).{{method}}(new OutboundMessage(), cancellationToken);
+                    => db.Outbox(bus).PublishAsync(new OutboundMessage(), cancellationToken);
             }
             """;
 
@@ -250,8 +212,6 @@ public class OutboxCallSiteTests
                     DbContextOutbox unrelated,
                     CancellationToken cancellationToken)
                 {
-                    var outbox = db.Outbox(bus);
-                    Mocha.EntityFrameworkCore.DbContextOutbox typedOutbox = db.Outbox(bus);
                     await {{expression}};
                 }
             }

@@ -1,7 +1,10 @@
 using System.Collections.Concurrent;
 using System.Data;
+using System.Data.Common;
 using System.Threading.Channels;
+using System.Transactions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -22,7 +25,11 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
-        var provider = await CreateProviderAsync(connectionString, TimeSpan.FromMinutes(1));
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMinutes(1),
+            TimeProvider.System,
+            static _ => { });
         var polls = ObserveOutboxPolls(provider);
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
         await polls.ReadAsync(TestToken).AsTask().WaitAsync(s_timeout, TestToken);
@@ -63,7 +70,11 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
-        var provider = await CreateProviderAsync(connectionString, TimeSpan.FromMinutes(1));
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMinutes(1),
+            TimeProvider.System,
+            static _ => { });
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
         var recorder = provider.GetRequiredService<MessageRecorder>();
         await using var scope = provider.CreateAsyncScope();
@@ -88,7 +99,11 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
-        var provider = await CreateProviderAsync(connectionString, TimeSpan.FromMilliseconds(100));
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMilliseconds(100),
+            TimeProvider.System,
+            static _ => { });
         var polls = ObserveOutboxPolls(provider);
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
         await polls.ReadAsync(TestToken).AsTask().WaitAsync(s_timeout, TestToken);
@@ -124,7 +139,172 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         Assert.Equal([new OrderPlaced(1, 1)], recorder.Messages);
     }
 
-    private static async Task<ServiceProvider> CreateProviderAsync(string connectionString, TimeSpan queryDelay)
+    [Fact]
+    public async Task OutboxPublishAsync_Should_DiscardBothSaves_When_TransactionIsRolledBack()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMilliseconds(100),
+            TimeProvider.System,
+            static _ => { });
+        var polls = ObserveOutboxPolls(provider);
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await using (var transaction = await db.Database.BeginTransactionAsync(TestToken))
+        {
+            db.Orders.Add(new Order { Id = 1, Attempt = 1 });
+            await db.Outbox(bus).PublishAsync(new OrderPlaced(1, 1), TestToken);
+            await db.SaveChangesAsync(TestToken);
+
+            db.Orders.Add(new Order { Id = 2, Attempt = 1 });
+            await db.Outbox(bus).PublishAsync(new OrderPlaced(2, 1), TestToken);
+            await db.SaveChangesAsync(TestToken);
+
+            await transaction.RollbackAsync(TestToken);
+        }
+
+        await WaitForPollStartedAfterNowAsync(polls);
+        var afterRollback = await CountRowsAsync(provider);
+
+        // assert
+        Assert.Equal((0, 0), afterRollback);
+        Assert.Empty(recorder.Messages);
+    }
+
+    [Fact]
+    public async Task OutboxPublishAsync_Should_DiscardSave_When_TransactionScopeIsNotCompleted()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMilliseconds(100),
+            TimeProvider.System,
+            static _ => { });
+        var polls = ObserveOutboxPolls(provider);
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+
+        // act
+        using (new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            await using var scope = provider.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            db.Orders.Add(new Order { Id = 1, Attempt = 1 });
+            await db.Outbox(bus).PublishAsync(new OrderPlaced(1, 1), TestToken);
+            await db.SaveChangesAsync(TestToken);
+        }
+
+        await WaitForPollStartedAfterNowAsync(polls);
+        var afterRollback = await CountRowsAsync(provider);
+
+        // assert
+        Assert.Equal((0, 0), afterRollback);
+        Assert.Empty(recorder.Messages);
+    }
+
+    [Fact]
+    public async Task OutboxPublishAsync_Should_DeliverOnce_When_ExecutionStrategyRetriesTransaction()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var failFirstInsert = new FailFirstOutboxInsertInterceptor();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMinutes(1),
+            TimeProvider.System,
+            options => options
+                .UseNpgsql(connectionString, o => o.EnableRetryOnFailure(3, TimeSpan.FromMilliseconds(100), null))
+                .AddInterceptors(failFirstInsert));
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var attempts = 0;
+        var messagesBeforeCommit = 0;
+
+        // act
+        await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            attempts++;
+            db.ChangeTracker.Clear();
+            await using var transaction = await db.Database.BeginTransactionAsync(TestToken);
+            db.Orders.Add(new Order { Id = 1, Attempt = attempts });
+            await db.Outbox(bus).PublishAsync(new OrderPlaced(1, attempts), TestToken);
+            await db.SaveChangesAsync(TestToken);
+            messagesBeforeCommit = await db.Set<OutboxMessage>().CountAsync(TestToken);
+            await transaction.CommitAsync(TestToken);
+        });
+        await recorder.WaitAsync(1, TestToken);
+        await WaitForEmptyOutboxAsync(provider);
+        var orderAttempts = await db.Orders.Select(o => o.Attempt).ToArrayAsync(TestToken);
+
+        // assert
+        Assert.Equal((2, 1, 1), (attempts, failFirstInsert.Failures, messagesBeforeCommit));
+        Assert.Equal([2], orderAttempts);
+        Assert.Equal([new OrderPlaced(1, 2)], recorder.Messages);
+    }
+
+    [Fact]
+    public async Task OutboxPublishAsync_Should_DeliverPromptly_When_ApplicationClockIsAheadOfDatabase()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMinutes(1),
+            new SkewedTimeProvider(TimeSpan.FromSeconds(30)),
+            static _ => { });
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        db.Orders.Add(new Order { Id = 1, Attempt = 1 });
+        await db.Outbox(bus).PublishAsync(new OrderPlaced(1, 1), TestToken);
+        await db.SaveChangesAsync(TestToken);
+        await recorder.WaitAsync(1, TestToken).WaitAsync(TimeSpan.FromSeconds(10), TestToken);
+
+        // assert
+        Assert.Equal([new OrderPlaced(1, 1)], recorder.Messages);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void UsePostgresOutbox_Should_RejectPollingInterval_When_NotPositive(int seconds)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus().AddEntityFramework<TransactionDbContext>(
+            ef => ef.UsePostgresOutbox(options => options.PollingInterval = TimeSpan.FromSeconds(seconds)));
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>();
+
+        // act
+        var exception = Assert.Throws<OptionsValidationException>(
+            () => options.Get(typeof(TransactionDbContext).FullName));
+
+        // assert
+        Assert.Equal("PostgresOutboxOptions.PollingInterval must be greater than zero.", exception.Message);
+    }
+
+    private static async Task<ServiceProvider> CreateProviderAsync(
+        string connectionString,
+        TimeSpan pollingInterval,
+        TimeProvider timeProvider,
+        Action<DbContextOptionsBuilder> configureContext)
     {
         await using (var db = new TransactionDbContext(new DbContextOptionsBuilder<TransactionDbContext>()
             .UseTestNpgsql(connectionString).Options))
@@ -135,11 +315,16 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton<MessageRecorder>();
-        services.AddDbContext<TransactionDbContext>(options => options.UseTestNpgsql(connectionString));
+        services.AddSingleton(timeProvider);
+        services.AddDbContext<TransactionDbContext>(options =>
+        {
+            options.UseTestNpgsql(connectionString);
+            configureContext(options);
+        });
         services.AddMessageBus()
             .AddEntityFramework<TransactionDbContext>(ef =>
             {
-                ef.UsePostgresOutbox(options => options.QueryDelay = queryDelay);
+                ef.UsePostgresOutbox(options => options.PollingInterval = pollingInterval);
                 ef.UseTransaction();
             })
             .AddRequestHandler<PlaceOrderHandler>()
@@ -170,6 +355,17 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         };
 
         return polls.Reader;
+    }
+
+    private static async Task WaitForPollStartedAfterNowAsync(ChannelReader<bool> polls)
+    {
+        while (polls.TryRead(out _))
+        {
+        }
+
+        // The second poll starts after the first one has ended, so it starts after this call.
+        await polls.ReadAsync(TestToken).AsTask().WaitAsync(s_timeout, TestToken);
+        await polls.ReadAsync(TestToken).AsTask().WaitAsync(s_timeout, TestToken);
     }
 
     private static async Task<(int Orders, int Messages)> CountRowsAsync(IServiceProvider provider)
@@ -273,4 +469,29 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
     }
 
     private sealed class RetryOrderException : Exception;
+
+    private sealed class SkewedTimeProvider(TimeSpan skew) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => TimeProvider.System.GetUtcNow() + skew;
+    }
+
+    private sealed class FailFirstOutboxInsertInterceptor : DbCommandInterceptor
+    {
+        public int Failures { get; private set; }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            if (Failures == 0 && command.CommandText.Contains("INSERT INTO outbox_messages", StringComparison.Ordinal))
+            {
+                Failures++;
+                throw new NpgsqlException("The outbox insert failed transiently.", new TimeoutException());
+            }
+
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
+    }
 }

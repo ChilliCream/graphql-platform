@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,61 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         Assert.Equal((1, 1, 1), (preparationAtInvocation, recorder.PreparationCount, recorder.DispatchCount));
         Assert.Equal("prepared", delivered.Value);
         Assert.Equal("prepared", JsonSerializer.Deserialize<PreparedEvent>(stored.Body.Span)!.Value);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_Should_RecordErrorOnOutboxSendActivity_When_SendFails()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var recorder = new DeliveryRecorder { FailFirstDelivery = true };
+        await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: true);
+        ActivityTraceId traceId;
+        using (var parent = new Activity("publish-outboxed-message").Start())
+        {
+            traceId = parent.TraceId;
+            await using var scope = provider.CreateAsyncScope();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+            await db.Outbox(bus).PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken);
+            await db.SaveChangesAsync(TestToken);
+        }
+
+        var sends = new ConcurrentQueue<Activity>();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == "Mocha",
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = activity =>
+            {
+                if (activity.OperationName == "outbox send" && activity.TraceId == traceId)
+                {
+                    sends.Enqueue(activity);
+                }
+            }
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        // act
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
+        await WaitForEmptyOutboxAsync(connectionString);
+        var observed = sends
+            .Select(activity => (
+                activity.Status,
+                Events: activity.Events.Count(),
+                Type: GetExceptionTag(activity, "exception.type"),
+                Message: GetExceptionTag(activity, "exception.message")))
+            .ToArray();
+
+        // assert
+        Assert.Equal(
+            [
+                (ActivityStatusCode.Error, 1, "System.InvalidOperationException", "The first delivery failed deliberately."),
+                (ActivityStatusCode.Unset, 0, null, null)
+            ],
+            observed);
+        Assert.Equal(2, recorder.Attempts.Count);
     }
 
     [Fact]
@@ -208,6 +264,13 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync(TestToken);
         return provider;
     }
+
+    private static string? GetExceptionTag(Activity activity, string key)
+        => activity.Events
+            .Where(e => e.Name == "exception")
+            .SelectMany(e => e.Tags)
+            .FirstOrDefault(t => t.Key == key)
+            .Value as string;
 
     private static async Task WaitForEmptyOutboxAsync(string connectionString)
     {

@@ -4,35 +4,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Mocha.EntityFrameworkCore;
 using Mocha.Middlewares;
 using Mocha.Utils;
 
 namespace Mocha.Outbox;
 
-internal sealed class PostgresDbContextOutbox(TimeProvider timeProvider)
-    : SaveChangesInterceptor, IDbContextOutbox, IResettableService, IDisposable
+internal sealed class PostgresDbContextOutbox(TimeProvider timeProvider, ICurrentDbContext currentContext)
+    : SaveChangesInterceptor, IMessageOutbox, IResettableService, IDisposable
 {
     private readonly List<EntityEntry<OutboxMessage>> _entries = [];
     private PooledArrayWriter? _arrayWriter;
     private Utf8JsonWriter? _jsonWriter;
 
-    public int CreateCheckpoint() => _entries.Count;
-
-    public void Discard(DbContext context, int checkpoint)
+    public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
-        for (var i = _entries.Count - 1; i >= checkpoint; i--)
-        {
-            var entry = _entries[i];
-            context.Entry(entry.Entity).State = EntityState.Detached;
-            entry.Entity.Dispose();
-            _entries.RemoveAt(i);
-        }
-    }
-
-    public void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
         _arrayWriter ??= new PooledArrayWriter();
         _jsonWriter ??= new Utf8JsonWriter(_arrayWriter);
         JsonDocument? document = null;
@@ -44,14 +29,9 @@ internal sealed class PostgresDbContextOutbox(TimeProvider timeProvider)
             _jsonWriter.Flush();
             var reader = new Utf8JsonReader(_arrayWriter.WrittenMemory.Span);
             document = JsonDocument.ParseValue(ref reader);
-            cancellationToken.ThrowIfCancellationRequested();
-
-#if NET9_0_OR_GREATER
-            var id = Guid.CreateVersion7();
-#else
-            var id = Guid.NewGuid();
-#endif
-            Track(context, new OutboxMessage(id, document, timeProvider.GetUtcNow().UtcDateTime));
+            Track(
+                currentContext.Context,
+                new OutboxMessage(OutboxMessageIdGenerator.Next(), document, timeProvider.GetUtcNow().UtcDateTime));
             document = null;
         }
         finally
@@ -60,6 +40,8 @@ internal sealed class PostgresDbContextOutbox(TimeProvider timeProvider)
             _jsonWriter.Reset();
             _arrayWriter.Reset();
         }
+
+        return default;
     }
 
     public override InterceptionResult<int> SavingChanges(
@@ -129,7 +111,7 @@ internal sealed class PostgresDbContextOutbox(TimeProvider timeProvider)
             && context.Database.CurrentTransaction is null
             && Transaction.Current is null)
         {
-            throw Mocha.EntityFrameworkCore.Postgres.ThrowHelper.OutboxRequiresAtomicSave(context.GetType());
+            throw ThrowHelper.OutboxRequiresAtomicSave(context.GetType());
         }
     }
 

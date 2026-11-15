@@ -85,47 +85,6 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
     }
 
     [Fact]
-    public async Task PublishAsync_Should_DiscardOnlyFailedMessage_When_MiddlewareThrowsAfterNext()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var fail = false;
-        var middleware = new DispatchMiddlewareConfiguration((_, next) => async context =>
-        {
-            await next(context);
-            if (fail)
-            {
-                throw new InvalidOperationException("after-next");
-            }
-        }, "FailAfterNext");
-        await using var provider = await CreateProviderAsync(connectionString, middleware: middleware);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
-        await db.Outbox(bus).PublishAsync(new ScheduledEvent("keep"), TestToken);
-
-        // act
-        fail = true;
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox(bus).PublishAsync(
-                new ScheduledEvent("discard"), new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow }, TestToken));
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        new
-        {
-            Error = exception.Message,
-            Rows = await ReadCountsAsync(connectionString)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Error": "after-next",
-              "Rows": "orders=0,outbox=1"
-            }
-            """);
-    }
-
-    [Fact]
     public async Task SaveChangesAsync_Should_RetainScheduledMessage_When_SaveFails()
     {
         // arrange
@@ -308,7 +267,6 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
     private static async Task<ServiceProvider> CreateProviderAsync(
         string connectionString,
         bool pooled = false,
-        DispatchMiddlewareConfiguration? middleware = null,
         IOutboxSignal? signal = null)
     {
         var services = new ServiceCollection();
@@ -330,10 +288,6 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         builder.AddEventHandler<ScheduledEventHandler>();
         builder.AddRequestHandler<ScheduledCommandHandler>();
         builder.AddInMemory();
-        if (middleware is not null)
-        {
-            builder.ConfigureMessageBus(bus => bus.UseDispatch(middleware));
-        }
 
         var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);

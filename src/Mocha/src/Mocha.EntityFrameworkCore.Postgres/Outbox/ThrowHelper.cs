@@ -1,4 +1,4 @@
-namespace Mocha.EntityFrameworkCore.Postgres;
+namespace Mocha.Outbox;
 
 internal static class ThrowHelper
 {

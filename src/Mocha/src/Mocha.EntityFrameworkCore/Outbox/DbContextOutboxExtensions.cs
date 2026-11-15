@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+#if NET9_0_OR_GREATER
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Outbox;
+#endif
 
 namespace Mocha.EntityFrameworkCore;
 
@@ -18,17 +21,24 @@ public static class DbContextOutboxExtensions
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(bus);
 
+#if !NET9_0_OR_GREATER
+        throw ThrowHelper.OutboxRequiresEntityFrameworkCore9();
+#else
         if (bus is not DefaultMessageBus defaultBus)
         {
             throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
         }
 
         var services = context.GetInfrastructure();
-        var state = services.GetService<DbContextOutboxState>()
-            ?? throw ThrowHelper.OutboxNotConfigured(context.GetType());
-        var outbox = services.GetService<IDbContextOutbox>()
-            ?? throw ThrowHelper.OutboxStagingNotSupported(context.GetType());
+        var state = services.GetService<DbContextOutboxState>();
+        var outbox = services.GetService<IMessageOutbox>();
 
-        return new DbContextOutbox(context, defaultBus, outbox, state);
+        if (state is null || outbox is null)
+        {
+            throw ThrowHelper.OutboxNotConfigured(context.GetType());
+        }
+
+        return new DbContextOutbox(defaultBus, outbox, state);
+#endif
     }
 }

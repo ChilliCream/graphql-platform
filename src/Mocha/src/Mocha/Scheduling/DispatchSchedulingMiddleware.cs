@@ -9,7 +9,7 @@ namespace Mocha.Scheduling;
 /// Persists scheduled messages for later delivery.
 /// Unscheduled messages pass through to the next middleware.
 /// </summary>
-public sealed class DispatchSchedulingMiddleware
+internal sealed class DispatchSchedulingMiddleware
 {
     /// <summary>
     /// Evaluates whether the message should be persisted to the scheduled message store or

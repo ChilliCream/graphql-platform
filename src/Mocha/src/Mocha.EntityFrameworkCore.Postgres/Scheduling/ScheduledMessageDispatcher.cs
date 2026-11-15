@@ -339,6 +339,12 @@ public sealed class ScheduledMessageDispatcher
 
             await endpoint.DispatchInternalAsync(context);
         }
+        catch (Exception ex)
+        {
+            activity?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
+        }
         finally
         {
             _contextPool.Return(context);

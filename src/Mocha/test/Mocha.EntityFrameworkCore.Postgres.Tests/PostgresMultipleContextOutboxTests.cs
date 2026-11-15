@@ -36,7 +36,7 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
             await second.Database.EnsureCreatedAsync(TestToken);
         }
 
-        await using var provider = await CreateProviderAsync(firstConnection, secondConnection, false);
+        await using var provider = await CreateProviderAsync(firstConnection, secondConnection);
         var firstIdle = ObserveFirstPollCompletion<FirstDbContext>(provider);
         var secondIdle = ObserveFirstPollCompletion<SecondDbContext>(provider);
         var signal = provider.GetRequiredService<IOutboxSignal>();
@@ -87,7 +87,7 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         // arrange
         var firstConnection = await fixture.CreateDatabaseAsync();
         var secondConnection = await fixture.CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(firstConnection, secondConnection, false);
+        await using var provider = await CreateProviderAsync(firstConnection, secondConnection);
         await using var scope = provider.CreateAsyncScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var first = scope.ServiceProvider.GetRequiredService<FirstDbContext>();
@@ -137,16 +137,17 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
     }
 
     [Fact]
-    public async Task PublishAsync_Should_PersistToSelectedDefault_When_MultipleContextsAreRegistered()
+    public async Task PublishAsync_Should_PersistToFirstRegisteredContext_When_MultipleContextsAreRegistered()
     {
         // arrange
         var firstConnection = await fixture.CreateDatabaseAsync();
         var secondConnection = await fixture.CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(firstConnection, secondConnection, true);
+        await using var provider = await CreateProviderAsync(firstConnection, secondConnection);
         await using var scope = provider.CreateAsyncScope();
-        var second = scope.ServiceProvider.GetRequiredService<SecondDbContext>();
+        var first = scope.ServiceProvider.GetRequiredService<FirstDbContext>();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await using var transaction = await second.Database.BeginTransactionAsync(TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var transaction = await first.Database.BeginTransactionAsync(TestToken);
 
         // act
         await bus.PublishAsync(new ContextEvent("default"), TestToken);
@@ -154,8 +155,67 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         await transaction.CommitAsync(TestToken);
         var afterCommit = await CountRowsAsync(provider);
 
-        // assert
-        Assert.Equal(((0, 0), (0, 1)), (beforeCommit, afterCommit));
+        var workers = provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>().ToArray();
+        foreach (var worker in workers)
+        {
+            await worker.StartAsync(TestToken);
+        }
+
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(30));
+            while (recorder.Messages.IsEmpty)
+            {
+                await Task.Delay(25, timeout.Token);
+            }
+
+            // assert
+            Assert.Equal(((0, 0), (1, 0)), (beforeCommit, afterCommit));
+            Assert.Equal(["default"], recorder.Messages.ToArray());
+        }
+        finally
+        {
+            foreach (var worker in workers)
+            {
+                await worker.StopAsync(TestToken);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task RequestAsync_Should_ReturnResponse_When_MultipleContextsAreRegistered()
+    {
+        // arrange
+        var firstConnection = await fixture.CreateDatabaseAsync();
+        var secondConnection = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(firstConnection, secondConnection);
+        var workers = provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>().ToArray();
+        foreach (var worker in workers)
+        {
+            await worker.StartAsync(TestToken);
+        }
+
+        try
+        {
+            await using var scope = provider.CreateAsyncScope();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+            // act
+            var response = await bus.RequestAsync(new ContextRequest("request"), TestToken)
+                .AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(30), TestToken);
+
+            // assert
+            Assert.Equal("request", response.Context);
+        }
+        finally
+        {
+            foreach (var worker in workers)
+            {
+                await worker.StopAsync(TestToken);
+            }
+        }
     }
 
     private static Task ObserveFirstPollCompletion<TContext>(ServiceProvider provider)
@@ -192,8 +252,7 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
 
     private static async Task<ServiceProvider> CreateProviderAsync(
         string firstConnection,
-        string secondConnection,
-        bool selectDefault)
+        string secondConnection)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -204,11 +263,8 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         builder.AddEntityFramework<FirstDbContext>(ef => ef.UsePostgresOutbox().UseTransaction());
         builder.AddEntityFramework<SecondDbContext>(ef => ef.UsePostgresOutbox());
         builder.AddEventHandler<ContextEventHandler>();
+        builder.AddRequestHandler<ContextRequestHandler>();
         builder.AddInMemory();
-        if (selectDefault)
-        {
-            builder.UseDefaultOutbox<SecondDbContext>();
-        }
 
         var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
@@ -219,6 +275,16 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
     }
 
     public sealed record ContextEvent(string Context);
+
+    public sealed record ContextRequest(string Context) : IEventRequest<ContextResponse>;
+
+    public sealed record ContextResponse(string Context);
+
+    public sealed class ContextRequestHandler : IEventRequestHandler<ContextRequest, ContextResponse>
+    {
+        public ValueTask<ContextResponse> HandleAsync(ContextRequest request, CancellationToken cancellationToken)
+            => new(new ContextResponse(request.Context));
+    }
 
     public sealed class ContextEventHandler(
         MessageRecorder recorder,

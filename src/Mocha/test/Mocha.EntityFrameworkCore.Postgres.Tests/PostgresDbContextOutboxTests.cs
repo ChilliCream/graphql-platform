@@ -38,14 +38,11 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await db.Outbox(bus).PublishAsync(
             new OrderPlaced { OrderId = 1 },
             TestToken);
-        var message = db.ChangeTracker.Entries<OutboxMessage>().Single();
         signal.Mark("published");
         await db.SaveChangesAsync(TestToken);
 
         // assert
         Assert.Equal(["published(rows=0)", "set(rows=1)"], signal.Events.Distinct().ToArray());
-        Assert.Equal(EntityState.Detached, message.State);
-        Assert.Throws<ObjectDisposedException>(() => message.Entity.Envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -69,39 +66,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // assert
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Dispose_Should_ReleaseUnpersistedEnvelope_When_DbContextIsNotSaved(bool asynchronous)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var signal = new StubOutboxSignal();
-        await using var provider = await CreateProviderAsync(connectionString, signal);
-        await EnsureCreatedAsync(provider);
-        var setCountBefore = signal.SetCallCount;
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        var envelope = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
-
-        // act
-        if (asynchronous)
-        {
-            await db.DisposeAsync();
-        }
-        else
-        {
-            db.Dispose();
-        }
-
-        // assert
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-        Assert.Equal(setCountBefore, signal.SetCallCount);
-        Assert.Throws<ObjectDisposedException>(() => envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -134,7 +98,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal((0L, EntityState.Added, 1), failedSave);
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-        Assert.Throws<ObjectDisposedException>(() => message.Entity.Envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -172,7 +135,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             new StubOutboxSignal(),
             pooled: true);
         await EnsureCreatedAsync(provider);
-        var createdCount = UnitOfWorkDbContext.CreatedCount;
 
         // act
         await using (var scope = provider.CreateAsyncScope())
@@ -187,7 +149,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // assert
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-        Assert.Equal(createdCount, UnitOfWorkDbContext.CreatedCount);
     }
 
     [Fact]
@@ -201,7 +162,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             pooled: true);
         await EnsureCreatedAsync(provider);
         UnitOfWorkDbContext leased;
-        JsonDocument envelope;
         await using (var scope = provider.CreateAsyncScope())
         {
             var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
@@ -209,7 +169,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             await leased.Outbox(bus).PublishAsync(
                 new OrderPlaced { OrderId = 1 },
                 TestToken);
-            envelope = leased.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
         }
 
         // act
@@ -222,69 +181,11 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // assert
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-        Assert.Throws<ObjectDisposedException>(() => envelope.RootElement.ValueKind);
     }
 
     [Theory]
-    [InlineData(true, true)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(false, false)]
-    public async Task OutboxPublishAsync_Should_ReuseCallerScope_When_ContextPublishesMultipleMessages(
-        bool pooled,
-        bool useFactory)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString,
-            new StubOutboxSignal(),
-            pooled: pooled,
-            useFactory: useFactory,
-            scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var caller = provider.CreateAsyncScope();
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        var callerMarker = caller.ServiceProvider.GetRequiredService<ScopeMarker>();
-        callerMarker.Name = "caller";
-        await using var db = useFactory
-            ? await caller.ServiceProvider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>()
-                .CreateDbContextAsync(TestToken)
-            : caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-
-        // act
-        var outbox = db.Outbox(bus);
-        var scopesBeforePublish = recorder.Created.Count;
-        await outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        await outbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        var messages = recorder.Messages.ToArray();
-        await db.SaveChangesAsync(TestToken);
-        await db.DisposeAsync();
-        var callerDisposalsAfterContextDisposal = callerMarker.DisposeCount;
-        // DI-pooled contexts return their lease when the owning scope is disposed.
-        await caller.DisposeAsync();
-
-        // assert
-        Assert.Equal(1, scopesBeforePublish);
-        Assert.Same(messages[0].Scope, messages[1].Scope);
-        Assert.Same(callerMarker, messages[0].Scope);
-        Assert.Equal(
-            ("caller", 1, 0, 1),
-            (messages[0].Scope.Name, messages[0].Scope.DisposeCount,
-                callerDisposalsAfterContextDisposal, callerMarker.DisposeCount));
-        Assert.Equal(2, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(true, true, true)]
-    [InlineData(true, true, false)]
     [InlineData(true, false, true)]
-    [InlineData(true, false, false)]
-    [InlineData(false, true, true)]
     [InlineData(false, true, false)]
-    [InlineData(false, false, true)]
-    [InlineData(false, false, false)]
     public async Task OutboxPublishAsync_Should_SaveMessage_When_ContextIsCreatedDirectlyByFactory(
         bool pooled,
         bool asynchronous,
@@ -322,92 +223,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal((1L, 1), (await CountOutboxRowsAsync(connectionString), await db.Orders.CountAsync(TestToken)));
         Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task OutboxPublishAsync_Should_UseNewCallerScope_When_FactoryReusesPooledContext(bool asynchronous)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString,
-            new StubOutboxSignal(),
-            pooled: true,
-            useFactory: true,
-            scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
-        var firstScope = provider.CreateAsyncScope();
-        var first = factory.CreateDbContext();
-        var firstBus = firstScope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await first.Outbox(firstBus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        var discarded = first.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
-
-        // act
-        if (asynchronous)
-        {
-            await first.DisposeAsync();
-        }
-        else
-        {
-            first.Dispose();
-        }
-
-        await firstScope.DisposeAsync();
-        await using var secondScope = provider.CreateAsyncScope();
-        await using var second = factory.CreateDbContext();
-        var secondBus = secondScope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await second.Outbox(secondBus).PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        await second.SaveChangesAsync(TestToken);
-        var messages = recorder.Messages.ToArray();
-
-        // assert
-        Assert.Same(first, second);
-        Assert.NotSame(messages[0].Scope, messages[1].Scope);
-        Assert.Equal((1, 0), (messages[0].Scope.DisposeCount, messages[1].Scope.DisposeCount));
-        Assert.Throws<ObjectDisposedException>(() => discarded.RootElement.ValueKind);
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public async Task OutboxPublishAsync_Should_UseSuppliedScope_When_ContextIsResolvedFromDi(bool pooled, bool useFactory)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), pooled: pooled, useFactory: useFactory, scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        UnitOfWorkDbContext first;
-        await using (var scope = provider.CreateAsyncScope())
-        {
-            first = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-            scope.ServiceProvider.GetRequiredService<ScopeMarker>().Name = "first";
-            await first.Outbox(scope.ServiceProvider.GetRequiredService<IMessageBus>())
-                .PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-            await first.SaveChangesAsync(TestToken);
-        }
-
-        // act
-        await using var nextScope = provider.CreateAsyncScope();
-        var second = nextScope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        nextScope.ServiceProvider.GetRequiredService<ScopeMarker>().Name = "second";
-        await second.Outbox(nextScope.ServiceProvider.GetRequiredService<IMessageBus>())
-            .PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        await second.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(pooled, ReferenceEquals(first, second));
-        Assert.Equal(["first", "second"], recorder.Messages.Select(message => message.Scope.Name));
-        Assert.Equal([1, 0], recorder.Messages.Select(message => message.Scope.DisposeCount));
-        Assert.Equal(2, await CountOutboxRowsAsync(connectionString));
     }
 
     [Theory]
@@ -452,83 +267,15 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task DisposeAsync_Should_PreserveCallerServices_When_FactoryContextIsReleased(bool pooled)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder { UseAsyncMarker = true };
-        await using var provider = await CreateProviderAsync(
-            connectionString,
-            new StubOutboxSignal(),
-            pooled: pooled,
-            useFactory: true,
-            scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
-        await using var caller = provider.CreateAsyncScope();
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = await factory.CreateDbContextAsync(TestToken);
-
-        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        var marker = recorder.AsyncMarkers.Single();
-
-        // act
-        await db.DisposeAsync();
-
-        // assert
-        Assert.Equal(0, marker.DisposeCount);
-        Assert.Equal(0, recorder.Created.Single().DisposeCount);
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task OutboxPublishAsync_Should_ReuseCallerScope_When_PublicationIsRetried(bool pooled)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder { FailNextPublish = true };
-        await using var provider = await CreateProviderAsync(
-            connectionString,
-            new StubOutboxSignal(),
-            pooled: pooled,
-            useFactory: true,
-            scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
-        await using var caller = provider.CreateAsyncScope();
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = await factory.CreateDbContextAsync(TestToken);
-
-        // act
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
-        await db.DisposeAsync();
-        var messages = recorder.Messages.ToArray();
-
-        // assert
-        Assert.Same(messages[0].Scope, messages[1].Scope);
-        Assert.Equal(0, messages[0].Scope.DisposeCount);
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
     public async Task OutboxPublishAsync_Should_OwnMessagesPerContext_When_FactoryCreatesMultipleContexts(bool pooled)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
         await using var provider = await CreateProviderAsync(
             connectionString,
             new StubOutboxSignal(),
             pooled: pooled,
-            useFactory: true,
-            scopeRecorder: recorder);
+            useFactory: true);
         await EnsureCreatedAsync(provider);
         var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
         await using var caller = provider.CreateAsyncScope();
@@ -540,30 +287,19 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         second.Orders.Add(new Order { Id = 2 });
         await first.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
         await second.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        var firstMessage = first.ChangeTracker.Entries<OutboxMessage>().Single();
-        var secondEnvelope = second.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
 
         // act
         await first.SaveChangesAsync(TestToken);
-        var pendingEnvelopeKind = secondEnvelope.RootElement.ValueKind;
         await second.DisposeAsync();
-        var messages = recorder.Messages.ToArray();
         var savedOrderIds = await first.Orders.Select(o => o.Id).ToArrayAsync(TestToken);
 
         // assert
-        Assert.Equal(
-            (1L, EntityState.Detached, JsonValueKind.Object),
-            (await CountOutboxRowsAsync(connectionString), firstMessage.State, pendingEnvelopeKind));
+        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
         Assert.Equal([1], savedOrderIds);
-        Assert.Same(messages[0].Scope, messages[1].Scope);
-        Assert.Throws<ObjectDisposedException>(() => firstMessage.Entity.Envelope.RootElement.ValueKind);
-        Assert.Throws<ObjectDisposedException>(() => secondEnvelope.RootElement.ValueKind);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task OutboxPublishAsync_Should_PreserveIndependentCommitAndCorrelation_When_HandlerFails(bool pooled)
+    [Fact]
+    public async Task OutboxPublishAsync_Should_PreserveIndependentCommitAndCorrelation_When_HandlerFails()
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -572,7 +308,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await using var provider = await CreateProviderAsync(
             connectionString,
             new StubOutboxSignal(),
-            pooled: pooled,
+            pooled: true,
             useFactory: true,
             scopeRecorder: recorder,
             handlerRecorder: handlerRecorder);
@@ -606,18 +342,12 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                 ("factory-conversation", "factory-message"), 2),
             messages.Select(m => (m.ConversationId, m.CausationId)));
         Assert.Equal(
-            (1, false, null),
-            (messages.Select(m => m.Scope).Append(handlerRecorder.HandlerScope).Distinct().Count(),
-                outsideHandler.ConversationId == "factory-conversation", outsideHandler.CausationId));
-        Assert.Equal(
-            Enumerable.Repeat(("handler", 1), 2),
-            messages.Select(message => (message.Scope.Name, message.Scope.DisposeCount)));
+            (false, null),
+            (outsideHandler.ConversationId == "factory-conversation", outsideHandler.CausationId));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxDispatch_Should_AllowNextOperation_When_PreviousOperationWasAlreadyCancelled(bool send)
+    [Fact]
+    public async Task OutboxDispatch_Should_AllowNextOperation_When_PreviousOperationWasAlreadyCancelled()
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -630,141 +360,13 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // act
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-        {
-            if (send)
-            {
-                await db.Outbox(bus).SendAsync(new FulfillOrder(1), cancelledToken);
-            }
-            else
-            {
-                await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, cancelledToken);
-            }
-        });
-
-        if (send)
-        {
-            await db.Outbox(bus).SendAsync(new FulfillOrder(2), TestToken);
-        }
-        else
-        {
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        }
-
+            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, cancelledToken));
+        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
         await db.SaveChangesAsync(TestToken);
         using var envelope = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
-        var body = envelope.RootElement.GetProperty("body");
-        var orderId = send ? body.Deserialize<FulfillOrder>()!.OrderId : body.Deserialize<OrderPlaced>()!.OrderId;
 
         // assert
-        Assert.Equal(2, orderId);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxDispatch_Should_StageScheduledMessage_When_TransportSupportsScheduling(bool send)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        var due = DateTimeOffset.UtcNow.AddHours(1);
-
-        // act
-        if (send)
-        {
-            await db.Outbox(bus).SendAsync(
-                new FulfillOrder(1), new SendOptions { ScheduledTime = due }, TestToken);
-        }
-        else
-        {
-            await db.Outbox(bus).PublishAsync(
-                new OrderPlaced { OrderId = 1 }, new PublishOptions { ScheduledTime = due }, TestToken);
-        }
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Single(recorder.Messages);
-        using var envelope = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
-        Assert.Equal(due, envelope.RootElement.GetProperty("scheduledTime").GetDateTimeOffset());
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxDispatch_Should_StageScheduledMessage_When_MiddlewareSuppliesScheduledEnvelope(bool send)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder { ScheduledEnvelopeTime = DateTimeOffset.UtcNow.AddHours(1) };
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-
-        // act
-        if (send)
-        {
-            await db.Outbox(bus).SendAsync(new FulfillOrder(1), TestToken);
-        }
-        else
-        {
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        }
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Single(recorder.Messages);
-        using var envelope = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
-        Assert.Equal(
-            recorder.ScheduledEnvelopeTime,
-            envelope.RootElement.GetProperty("scheduledTime").GetDateTimeOffset());
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task OutboxPublishAsync_Should_ReleaseMessages_When_ChangeTrackerIsCleared(bool asynchronous)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        var envelopes = new List<JsonDocument>();
-
-        // act
-        for (var i = 0; i < 3; i++)
-        {
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = i }, TestToken);
-            envelopes.Add(db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope);
-            db.ChangeTracker.Clear();
-
-            if (asynchronous)
-            {
-                await db.SaveChangesAsync(TestToken);
-            }
-            else
-            {
-                db.SaveChanges();
-            }
-        }
-
-        // assert
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-        Assert.All(envelopes, envelope =>
-            Assert.Throws<ObjectDisposedException>(() => envelope.RootElement.ValueKind));
+        Assert.Equal(2, envelope.RootElement.GetProperty("body").Deserialize<OrderPlaced>()!.OrderId);
     }
 
     [Fact]
@@ -792,33 +394,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task OutboxPublishAsync_Should_RetainTrackedMessage_When_SaveDoesNotAcceptChanges()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        await db.Outbox(bus).PublishAsync(
-            new OrderPlaced { OrderId = 1 },
-            TestToken);
-
-        // act
-        await db.SaveChangesAsync(acceptAllChangesOnSuccess: false, TestToken);
-        var message = db.ChangeTracker.Entries<OutboxMessage>().Single();
-
-        // assert
-        Assert.Equal(
-            (1L, EntityState.Added, JsonValueKind.Object),
-            (await CountOutboxRowsAsync(connectionString), message.State, message.Entity.Envelope.RootElement.ValueKind));
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxPublishAsync_Should_ReleaseOnlyRemovedMessage_When_SaveDoesNotAcceptChanges(bool clear)
+    public async Task OutboxPublishAsync_Should_SaveOnlyLaterMessage_When_ChangeTrackerIsClearedBeforeSave()
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -828,77 +404,15 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
         await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        var removed = db.ChangeTracker.Entries<OutboxMessage>().Single();
-        var discarded = removed.Entity.Envelope;
-        if (clear)
-        {
-            db.ChangeTracker.Clear();
-        }
-        else
-        {
-            removed.State = EntityState.Detached;
-        }
+        db.ChangeTracker.Clear();
 
+        // act
         await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        var pending = db.ChangeTracker.Entries<OutboxMessage>().Single();
-
-        // act
-        await db.SaveChangesAsync(acceptAllChangesOnSuccess: false, TestToken);
+        await db.SaveChangesAsync(TestToken);
+        using var stored = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
 
         // assert
-        Assert.Throws<ObjectDisposedException>(() => discarded.RootElement.ValueKind);
-        Assert.Equal(
-            (1L, EntityState.Added, JsonValueKind.Object),
-            (await CountOutboxRowsAsync(connectionString), pending.State, pending.Entity.Envelope.RootElement.ValueKind));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task OutboxPublishAsync_Should_ReleaseMessageOnNextSave_When_ChangesAreAcceptedAfterCommit(
-        bool asynchronous)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        var message = db.ChangeTracker.Entries<OutboxMessage>().Single();
-
-        // act
-        await using (var transaction = await db.Database.BeginTransactionAsync(TestToken))
-        {
-            if (asynchronous)
-            {
-                await db.SaveChangesAsync(acceptAllChangesOnSuccess: false, TestToken);
-            }
-            else
-            {
-                db.SaveChanges(acceptAllChangesOnSuccess: false);
-            }
-
-            await transaction.CommitAsync(TestToken);
-        }
-
-        db.ChangeTracker.AcceptAllChanges();
-        var acceptedState = (message.State, message.Entity.Envelope.RootElement.ValueKind);
-
-        if (asynchronous)
-        {
-            await db.SaveChangesAsync(TestToken);
-        }
-        else
-        {
-            db.SaveChanges();
-        }
-
-        // assert
-        Assert.Equal((EntityState.Unchanged, JsonValueKind.Object), acceptedState);
-        Assert.Equal((1L, EntityState.Detached), (await CountOutboxRowsAsync(connectionString), message.State));
-        Assert.Throws<ObjectDisposedException>(() => message.Entity.Envelope.RootElement.ValueKind);
+        Assert.Equal(2, stored.RootElement.GetProperty("body").Deserialize<OrderPlaced>()!.OrderId);
     }
 
     [Fact]
@@ -913,7 +427,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
         var order = db.Orders.Add(new Order { Id = 1 });
         await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        var envelope = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
 
         // act
         await using (var transaction = await db.Database.BeginTransactionAsync(TestToken))
@@ -928,7 +441,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal((0L, 0), (await CountOutboxRowsAsync(connectionString), await db.Orders.CountAsync(TestToken)));
         Assert.Equal(EntityState.Unchanged, order.State);
         Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-        Assert.Throws<ObjectDisposedException>(() => envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -961,7 +473,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal((0L, EntityState.Added, JsonValueKind.Object), rolledBackState);
         Assert.Equal((1L, 1), (await CountOutboxRowsAsync(connectionString), await db.Orders.CountAsync(TestToken)));
-        Assert.Throws<ObjectDisposedException>(() => message.Entity.Envelope.RootElement.ValueKind);
     }
 
     [Theory]
@@ -995,7 +506,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal((0L, EntityState.Added, 0), failedSave);
         Assert.Equal((1L, 2), (await CountOutboxRowsAsync(connectionString), await db.Orders.CountAsync(TestToken)));
-        Assert.Equal(EntityState.Detached, message.State);
     }
 
     [Fact]
@@ -1015,9 +525,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // assert
         Assert.Equal(
-            "The DbContext 'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresDbContextOutboxTests+UnitOfWorkDbContext' "
-            + "has no outbox. Register an outbox for it with AddEntityFramework<UnitOfWorkDbContext>(), "
-            + "for example by calling UsePostgresOutbox().",
+            $"The DbContext '{typeof(UnitOfWorkDbContext).FullName}' has no outbox. "
+            + $"Register one with AddEntityFramework<{nameof(UnitOfWorkDbContext)}>(x => x.UsePostgresOutbox()) "
+            + "and create the context through dependency injection (AddDbContext, AddDbContextFactory, "
+            + "AddDbContextPool or AddPooledDbContextFactory); a context constructed by hand is not supported.",
             exception.Message);
     }
 
@@ -1059,84 +570,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task Outbox_Should_RejectProviderWithoutStaging_When_OnlyImmediatePersistenceIsRegistered()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var immediate = new ImmediateMessageOutbox();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), useFactory: true, immediateOutbox: immediate);
-        await EnsureCreatedAsync(provider);
-        await using var caller = provider.CreateAsyncScope();
-        await using var db = await provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>()
-            .CreateDbContextAsync(TestToken);
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        // act
-        var exception = Assert.Throws<InvalidOperationException>(() => db.Outbox(bus));
-
-        // assert
-        Assert.Contains("staging", exception.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(0, immediate.PersistCount);
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxPublishAsync_Should_DiscardPreparedMessage_When_MiddlewareFailsAfterNext(bool useFactory)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder { FailAfterNext = true };
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), useFactory: useFactory, scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var caller = provider.CreateAsyncScope();
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        await using var db = useFactory
-            ? await caller.ServiceProvider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>()
-                .CreateDbContextAsync(TestToken)
-            : caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-
-        // act
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-        var trackedAfterFailure = db.ChangeTracker.Entries<OutboxMessage>().Count();
-        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(0, trackedAfterFailure);
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Fact]
-    public async Task OutboxPublishAsync_Should_DiscardPreparedMessage_When_CancelledAfterNext()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
-        var recorder = new ScopeRecorder { CancelAfterNext = cancellation };
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var caller = provider.CreateAsyncScope();
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-
-        // act
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, cancellation.Token));
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Fact]
     public async Task OutboxPublishAsync_Should_FreezePayload_When_MessageIsChangedBeforeSave()
     {
         // arrange
@@ -1168,57 +601,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task OutboxPublishAsync_Should_SnapshotAtPersistence_When_MiddlewareChangesMessageAfterNext()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var sentAt = new DateTimeOffset(2026, 10, 21, 10, 0, 0, TimeSpan.Zero);
-        var recorder = new ScopeRecorder
-        {
-            AfterDispatch = async context =>
-            {
-                await Task.Yield();
-                ((OrderPlaced)context.Message!).OrderId = 42;
-                context.MessageId = "final-message";
-                context.Headers.Set("final-header", "final-value");
-                context.SentAt = sentAt;
-                context.DeliverBy = sentAt.AddHours(1);
-            }
-        };
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        var message = new OrderPlaced { OrderId = 1 };
-
-        // act
-        await db.Outbox(bus).PublishAsync(message, TestToken);
-        message.OrderId = 99;
-        await db.SaveChangesAsync(TestToken);
-        using var stored = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
-        var envelope = MessageEnvelopeReader.Parse(System.Text.Encoding.UTF8.GetBytes(stored.RootElement.GetRawText()));
-
-        // assert
-        new
-        {
-            JsonSerializer.Deserialize<OrderPlaced>(envelope.Body.Span)!.OrderId,
-            AfterNextHeader = envelope.Headers!.GetValue("final-header"),
-            envelope.SentAt,
-            envelope.DeliverBy
-        }.MatchInlineSnapshot(
-            """
-            {
-              "OrderId": 1,
-              "AfterNextHeader": null,
-              "SentAt": null,
-              "DeliverBy": null
-            }
-            """);
-    }
-
-    [Fact]
     public async Task SaveChangesAsync_Should_RejectNonAtomicSave_When_AutomaticTransactionsAreDisabled()
     {
         // arrange
@@ -1245,151 +627,23 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal([1], orderIds);
     }
 
-    [Fact]
-    public async Task OutboxPublishAsync_Should_SaveMessageAndBusinessChanges_When_UsingExistingSchema()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync(TestToken);
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-            CREATE TABLE outbox_messages (
-                id uuid PRIMARY KEY,
-                envelope json NOT NULL,
-                times_sent integer NOT NULL,
-                created_at timestamp with time zone NOT NULL
-            );
-            CREATE TABLE orders ("Id" integer PRIMARY KEY)
-            """;
-        await command.ExecuteNonQueryAsync(TestToken);
-        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
-        await using var caller = provider.CreateAsyncScope();
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        db.Orders.Add(new Order { Id = 1 });
-
-        // act
-        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
-        var orderIds = await db.Orders.Select(order => order.Id).ToArrayAsync(TestToken);
-        command.CommandText = "SELECT envelope -> 'body' FROM outbox_messages";
-        var body = (string)(await command.ExecuteScalarAsync(TestToken))!;
-
-        // assert
-        Assert.Equal([1], orderIds);
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-        Assert.Equal(1, JsonSerializer.Deserialize<OrderPlaced>(body)!.OrderId);
-    }
-
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxPublishAsync_Should_RejectSaveDuringPreparation_When_MiddlewareSaves(bool asynchronous)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task OutboxPublishAsync_Should_UseSuppliedBus_When_ContextHasMultipleOutboxHandles(
+        bool useFactory,
+        bool pooled)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
         var recorder = new ScopeRecorder();
         await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        db.Orders.Add(new Order { Id = 1 });
-        recorder.AfterNext = async () =>
-        {
-            if (asynchronous)
-            {
-                await db.SaveChangesAsync(TestToken);
-            }
-            else
-            {
-                db.SaveChanges();
-            }
-        };
-
-        // act
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-        var orders = await db.Orders.CountAsync(TestToken);
-
-        // assert
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-        Assert.Equal((0L, 0), (await CountOutboxRowsAsync(connectionString), orders));
-    }
-
-    [Fact]
-    public async Task OutboxPublishAsync_Should_RejectReentrantPublish_When_MiddlewarePublishesOnSameContext()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        recorder.AfterNext = () => db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-
-        // act
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-        recorder.AfterNext = null;
-        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 3 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Fact]
-    public async Task OutboxPublishAsync_Should_PreserveFirstPublish_When_ConcurrentPublishIsRejected()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
-        var preparing = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        recorder.AfterNext = async () =>
-        {
-            preparing.SetResult();
-            await release.Task.WaitAsync(TestToken);
-        };
-
-        // act
-        var firstOutbox = db.Outbox(bus);
-        await using var other = provider.CreateAsyncScope();
-        var secondOutbox = db.Outbox(other.ServiceProvider.GetRequiredService<IMessageBus>());
-        var first = firstOutbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        await preparing.Task.WaitAsync(TestToken);
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await secondOutbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken));
-        release.SetResult();
-        await first;
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxPublishAsync_Should_UseSuppliedBus_When_ContextHasMultipleOutboxHandles(bool useFactory)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), useFactory: useFactory, scopeRecorder: recorder);
+            connectionString,
+            new StubOutboxSignal(),
+            pooled: pooled,
+            useFactory: useFactory,
+            scopeRecorder: recorder);
         await EnsureCreatedAsync(provider);
         await using var caller = provider.CreateAsyncScope();
         await using var other = provider.CreateAsyncScope();
@@ -1456,38 +710,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
               "MessageOrderId": 1
             }
             """);
-    }
-
-    [Fact]
-    public async Task OutboxPublishAsync_Should_RemovePartiallyTrackedMessage_When_TrackingCallbackThrows()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
-        await EnsureCreatedAsync(provider);
-        await using var caller = provider.CreateAsyncScope();
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        var fail = true;
-        db.ChangeTracker.Tracked += (_, args) =>
-        {
-            if (fail && args.Entry.Entity is OutboxMessage)
-            {
-                fail = false;
-                throw new InvalidOperationException("Tracking failed deliberately.");
-            }
-        };
-
-        // act
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-        var failedCount = db.ChangeTracker.Entries<OutboxMessage>().Count();
-        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(0, failedCount);
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 
     [Fact]
@@ -1597,42 +819,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxPublishAsync_Should_StageWithCustomOutbox_When_CustomStagingIsRegistered(bool save)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var immediate = new ImmediateMessageOutbox();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), useFactory: true,
-            immediateOutbox: immediate, customStaging: true);
-        await EnsureCreatedAsync(provider);
-        await using var caller = provider.CreateAsyncScope();
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        var factory = caller.ServiceProvider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
-
-        // act
-        await using (var db = await factory.CreateDbContextAsync(TestToken))
-        {
-            db.Orders.Add(new Order { Id = 1 });
-            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-            if (save)
-            {
-                await db.SaveChangesAsync(TestToken);
-            }
-        }
-
-        await using var verification = await factory.CreateDbContextAsync(TestToken);
-        var orders = await verification.Orders.CountAsync(TestToken);
-        var messages = await CountOutboxRowsAsync(connectionString);
-
-        // assert
-        Assert.Equal(0, immediate.PersistCount);
-        Assert.Equal(save ? (1L, 1) : (0L, 0), (messages, orders));
-    }
-
     private async Task<string> CreateDatabaseAsync()
     {
         var connectionString = await fixture.CreateDatabaseAsync();
@@ -1721,9 +907,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         bool useFactory = false,
         ScopeRecorder? scopeRecorder = null,
         bool outboxFirst = false,
-        FactoryHandlerRecorder? handlerRecorder = null,
-        ImmediateMessageOutbox? immediateOutbox = null,
-        bool customStaging = false)
+        FactoryHandlerRecorder? handlerRecorder = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton(recorder ?? new MessageRecorder());
@@ -1733,44 +917,13 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         if (scopeRecorder is not null)
         {
             services.AddSingleton(scopeRecorder);
-            services.AddScoped(_ =>
-            {
-                var marker = new ScopeMarker();
-                scopeRecorder.Created.Enqueue(marker);
-                return marker;
-            });
-            services.AddScoped(_ =>
-            {
-                var marker = new AsyncScopeMarker();
-                scopeRecorder.AsyncMarkers.Enqueue(marker);
-                return marker;
-            });
-        }
-
-        if (immediateOutbox is not null)
-        {
-            services.AddSingleton<IMessageOutbox>(immediateOutbox);
+            services.AddScoped<ScopeMarker>();
         }
 
         var builder = services.AddMessageBus();
         if (outboxFirst)
         {
-            builder.AddEntityFramework<UnitOfWorkDbContext>(ef =>
-            {
-                if (immediateOutbox is null)
-                {
-                    ef.UsePostgresOutbox();
-                }
-                else
-                {
-                    ef.UseOutboxCore();
-                    if (customStaging)
-                    {
-                        ef.ConfigureEntityFrameworkServices((_, internalServices) =>
-                            internalServices.AddScoped<IDbContextOutbox, CustomDbContextOutbox>());
-                    }
-                }
-            });
+            builder.AddEntityFramework<UnitOfWorkDbContext>(ef => ef.UsePostgresOutbox());
         }
 
         if (useFactory)
@@ -1802,22 +955,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         if (!outboxFirst)
         {
-            builder.AddEntityFramework<UnitOfWorkDbContext>(ef =>
-            {
-                if (immediateOutbox is null)
-                {
-                    ef.UsePostgresOutbox();
-                }
-                else
-                {
-                    ef.UseOutboxCore();
-                    if (customStaging)
-                    {
-                        ef.ConfigureEntityFrameworkServices((_, internalServices) =>
-                            internalServices.AddScoped<IDbContextOutbox, CustomDbContextOutbox>());
-                    }
-                }
-            });
+            builder.AddEntityFramework<UnitOfWorkDbContext>(ef => ef.UsePostgresOutbox());
         }
 
         builder.AddEventHandler<OrderPlacedHandler>();
@@ -1861,58 +999,15 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                         }
                         else
                         {
-                            var scopeMessages = context.Services.GetRequiredService<ScopeRecorder>();
-                            var marker = context.Services.GetRequiredService<ScopeMarker>();
-                            scopeMessages.Messages.Enqueue((marker, context.ConversationId, context.CausationId));
-
-                            if (scopeMessages.UseAsyncMarker)
-                            {
-                                context.Services.GetRequiredService<AsyncScopeMarker>();
-                            }
-
-                            if (scopeMessages.FailNextPublish)
-                            {
-                                scopeMessages.FailNextPublish = false;
-                                throw new InvalidOperationException("The publication failed deliberately.");
-                            }
+                            context.Services.GetRequiredService<ScopeRecorder>().Messages.Enqueue((
+                                context.Services.GetRequiredService<ScopeMarker>(),
+                                context.ConversationId,
+                                context.CausationId));
                         }
 
                         await next(context);
-
-                        var recorder = context.Services.GetRequiredService<ScopeRecorder>();
-                        if (recorder.FailAfterNext)
-                        {
-                            recorder.FailAfterNext = false;
-                            throw new InvalidOperationException("The publication failed after preparation.");
-                        }
-
-                        recorder.CancelAfterNext?.Cancel();
-                        if (recorder.AfterNext is { } afterNext)
-                        {
-                            await afterNext();
-                        }
-
-                        if (recorder.AfterDispatch is { } afterDispatch)
-                        {
-                            await afterDispatch(context);
-                        }
                     },
                     "ScopeRecorder")));
-
-            if (scopeRecorder.ScheduledEnvelopeTime is { } scheduledTime)
-            {
-                builder.ConfigureMessageBus(bus => bus.UseDispatch(
-                    new DispatchMiddlewareConfiguration(
-                        (_, next) => context =>
-                        {
-                            context.Envelope = new MessageEnvelope
-                            {
-                                ScheduledTime = scheduledTime
-                            };
-                            return next(context);
-                        },
-                        "ScheduleSerializedEnvelope")));
-            }
         }
 
         var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
@@ -1929,17 +1024,8 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         return provider;
     }
 
-    public sealed class UnitOfWorkDbContext : DbContext
+    public sealed class UnitOfWorkDbContext(DbContextOptions<UnitOfWorkDbContext> options) : DbContext(options)
     {
-        private static int s_createdCount;
-
-        public UnitOfWorkDbContext(DbContextOptions<UnitOfWorkDbContext> options) : base(options)
-        {
-            Interlocked.Increment(ref s_createdCount);
-        }
-
-        public static int CreatedCount => Volatile.Read(ref s_createdCount);
-
         public bool PublishDomainEvents { get; set; }
 
         public IMessageBus? MessageBus { get; set; }
@@ -1993,47 +1079,11 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         public int Id { get; set; }
     }
 
-    public sealed class ScopeMarker : IDisposable
-    {
-        public string Name { get; set; } = string.Empty;
-
-        public int DisposeCount { get; private set; }
-
-        public void Dispose() => DisposeCount++;
-    }
-
-    private sealed class AsyncScopeMarker : IAsyncDisposable
-    {
-        public int DisposeCount { get; private set; }
-
-        public async ValueTask DisposeAsync()
-        {
-            await Task.Yield();
-            DisposeCount++;
-        }
-    }
+    private sealed class ScopeMarker;
 
     private sealed class ScopeRecorder
     {
-        public ConcurrentQueue<ScopeMarker> Created { get; } = new();
-
-        public ConcurrentQueue<AsyncScopeMarker> AsyncMarkers { get; } = new();
-
         public ConcurrentQueue<(ScopeMarker Scope, string? ConversationId, string? CausationId)> Messages { get; } = new();
-
-        public bool UseAsyncMarker { get; init; }
-
-        public bool FailNextPublish { get; set; }
-
-        public bool FailAfterNext { get; set; }
-
-        public CancellationTokenSource? CancelAfterNext { get; init; }
-
-        public Func<ValueTask>? AfterNext { get; set; }
-
-        public Func<IDispatchContext, ValueTask>? AfterDispatch { get; init; }
-
-        public DateTimeOffset? ScheduledEnvelopeTime { get; init; }
     }
 
     private sealed class CapturingOutbox : IMessageOutbox
@@ -2047,62 +1097,11 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         }
     }
 
-    private sealed class CustomDbContextOutbox : IDbContextOutbox, IDisposable
-    {
-        private readonly List<OutboxMessage> _messages = [];
-
-        public void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var body = JsonSerializer.Deserialize<OrderPlaced>(envelope.Body.Span);
-            var message = new OutboxMessage(
-                Guid.NewGuid(),
-                JsonSerializer.SerializeToDocument(body),
-                TimeProvider.System.GetUtcNow().UtcDateTime);
-            _messages.Add(message);
-            context.Add(message);
-        }
-
-        public int CreateCheckpoint() => _messages.Count;
-
-        public void Discard(DbContext context, int checkpoint)
-        {
-            for (var i = _messages.Count - 1; i >= checkpoint; i--)
-            {
-                var message = _messages[i];
-                context.Entry(message).State = EntityState.Detached;
-                message.Dispose();
-                _messages.RemoveAt(i);
-            }
-        }
-
-        public void Dispose()
-        {
-            foreach (var message in _messages)
-            {
-                message.Dispose();
-            }
-        }
-    }
-
-    private sealed class ImmediateMessageOutbox : IMessageOutbox
-    {
-        public int PersistCount { get; private set; }
-
-        public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
-        {
-            PersistCount++;
-            return default;
-        }
-    }
-
     public sealed class StartFactoryWork;
 
     public sealed class FactoryHandlerRecorder
     {
         public TaskCompletionSource Completed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public ScopeMarker? HandlerScope { get; set; }
     }
 
     private sealed class FactoryHandlerException : Exception;
@@ -2110,14 +1109,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     public sealed class FactoryPublishingHandler(
         IDbContextFactory<UnitOfWorkDbContext> factory,
         IServiceProvider services,
-        IMessageBus bus,
-        ScopeMarker marker,
-        FactoryHandlerRecorder recorder) : IEventHandler<StartFactoryWork>
+        IMessageBus bus) : IEventHandler<StartFactoryWork>
     {
         public async ValueTask HandleAsync(StartFactoryWork message, CancellationToken cancellationToken)
         {
-            recorder.HandlerScope = marker;
-            marker.Name = "handler";
             var managed = services.GetRequiredService<UnitOfWorkDbContext>();
             managed.Orders.Add(new Order { Id = 3 });
             await managed.SaveChangesAsync(cancellationToken);

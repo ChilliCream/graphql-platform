@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -20,13 +19,18 @@ public static class MessageBusHostBuilderExtensions
     /// <param name="builder">The message bus host builder to configure.</param>
     /// <param name="configure">A delegate that configures Entity Framework Core features on the builder.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
-    public static IMessageBusHostBuilder AddEntityFramework<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TContext>(
+    public static IMessageBusHostBuilder AddEntityFramework<TContext>(
         this IMessageBusHostBuilder builder,
         Action<IEntityFrameworkCoreBuilder> configure)
         where TContext : DbContext
     {
-        var efBuilder = new EntityFrameworkCoreBuilder<TContext>(builder);
+        var efBuilder = new EntityFrameworkCoreBuilder
+        {
+            Services = builder.Services,
+            HostBuilder = builder,
+            ContextType = typeof(TContext),
+            Name = typeof(TContext).FullName ?? typeof(TContext).Name
+        };
 
         configure(efBuilder);
 

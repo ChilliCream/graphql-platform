@@ -1,6 +1,6 @@
 ---
 title: Migrate Mocha from 16.7 to 16.8
-description: "Migration guide for Mocha v16.7 to v16.8: dispatch middleware behavior, default outbox selection, and publishing or scheduling with SaveChanges."
+description: "Migration guide for Mocha v16.7 to v16.8: dispatch middleware ordering, keyed outbox processors, and publishing or scheduling with SaveChanges."
 ---
 
 Update every `Mocha.*` package in the application to version 16.8 before applying these changes.
@@ -11,19 +11,24 @@ Update every `Mocha.*` package in the application to version 16.8 before applyin
 
 `SkipOutbox()`, `SkipScheduler()`, `OutboxMiddlewareFeature`, and `SchedulingMiddlewareFeature` are removed. Remove calls and registrations that set these flags.
 
+## `DispatchSchedulingMiddleware` is internal
+
+`DispatchSchedulingMiddleware` is no longer public. To position your middleware relative to scheduling, anchor it to the `DispatchMiddlewares.Scheduling` key, for example `UseDispatch(config, before: "Scheduling")`.
+
 # Behavioral breaking changes
 
 ## Stored messages bypass middleware during delivery
 
 Dispatch middleware runs when a message is published or sent, including scheduled messages. After commit, the outbox processor sends immediate messages directly through the transport and hands scheduled messages to the native scheduling store or configured fallback. Scheduler delivery also uses the stored envelope. Dispatch middleware does not run again during handoff, delivery, or retries.
 
-The built-in ordering keys are `"Instrumentation"`, `"Scheduling"`, `"Serialization"`, and `"Outbox"` when enabled. Place enrichment middleware before `"Scheduling"`. The scheduling and outbox middleware serialize and persist their messages without invoking downstream middleware.
+Dispatch spans and metrics are therefore emitted when a stored (outboxed or scheduled) message is staged or stored, not when it is delivered. The delivery itself is traced by the `outbox send` and `scheduler send` spans, which record failures.
 
-For a new message, `context.Envelope` is unset before serialization unless middleware supplies one. Update the message and metadata before calling `next(context)`. Changes made after `await next(context)` do not affect the stored message, including when publishing through `db.Outbox(bus)`.
+## Dispatch middleware ordering
 
-## Select a default when configuring multiple outbox contexts
+The built-in ordering keys are `"Instrumentation"`, `"Scheduling"`, `"Serialization"`, and `"Outbox"` when enabled. The scheduling and outbox middleware serialize and persist their messages without invoking downstream middleware.
 
-Direct `IMessageBus` publication now requires `UseDefaultOutbox<TContext>()` when more than one outbox context is configured; it previously used the first registration. Publication through `db.Outbox(bus)` uses that context instance and does not require a default.
+- Dispatch middleware registered without an anchor runs before serialization, so `context.Envelope` is not set yet unless middleware supplies one. Update the message and metadata before calling `next(context)`. Changes made after `await next(context)` do not affect the stored message, including when publishing through `db.Outbox(bus)`.
+- Middleware anchored with `before: "Serialization"` runs after `"Scheduling"`, and after `"Outbox"` when the outbox registers first, so it is skipped for scheduled messages and can be skipped for outboxed messages. Anchor it with `before: "Scheduling"` instead.
 
 ## Resolve PostgreSQL outbox processors by DbContext type
 
@@ -37,7 +42,7 @@ var processor = serviceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>
     typeof(AppDbContext));
 ```
 
-The host continues to start an outbox worker for each registered context automatically.
+The host continues to start an outbox worker for each registered context automatically. Each outbox context has its own relay, and the first context registered with `UsePostgresOutbox()` serves `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers. Publication through `db.Outbox(bus)` uses the context it is called on.
 
 # Publish with SaveChanges
 
@@ -55,7 +60,7 @@ The save persists staged messages and entity changes in the same transaction. Wi
 
 ## Use contexts created directly through a factory
 
-The new API supports contexts resolved from DI and contexts created directly through regular or pooled factories. DbContext and outbox registrations can appear in either order:
+The new API supports contexts registered with `AddDbContext`, `AddDbContextFactory`, `AddDbContextPool`, or `AddPooledDbContextFactory`. A context constructed by hand is not supported, and `db.Outbox(bus)` throws for it. For example, with a pooled factory:
 
 ```csharp
 builder.Services
@@ -70,6 +75,7 @@ builder.Services.AddPooledDbContextFactory<AppDbContext>(options =>
 await using var db = await factory.CreateDbContextAsync(cancellationToken);
 DbContextOutbox outbox = db.Outbox(bus);
 
+var order = new Order { Id = Guid.NewGuid() };
 db.Orders.Add(order);
 
 await outbox.PublishAsync(message, cancellationToken);
@@ -77,6 +83,8 @@ await db.SaveChangesAsync(cancellationToken);
 ```
 
 Use the same `db.Outbox(bus)` call for scoped contexts and contexts created through regular or pooled factories. Use the returned outbox only during that context's lifetime or pooled lease.
+
+`db.Outbox(bus)` requires Entity Framework Core 9 or later and throws a `NotSupportedException` on .NET 8. A context registered only with `AddPooledDbContextFactory` requires EF Core 10 or later. See [Supported contexts](../reliability.md#supported-contexts).
 
 Context instances must use the database and outbox table mapping configured for their relay. Configure a relay for every additional database or outbox table used by the application.
 

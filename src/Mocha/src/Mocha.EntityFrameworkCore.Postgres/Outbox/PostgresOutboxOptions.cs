@@ -6,10 +6,10 @@ namespace Mocha.Outbox;
 public sealed class PostgresOutboxOptions
 {
     /// <summary>
-    /// How long an idle worker waits before checking the database for messages to send, unless notified sooner.
-    /// Defaults to ten seconds.
+    /// Gets or sets how long an idle worker waits before checking the database for messages to send
+    /// when no notification arrives. The default is 10 seconds.
     /// </summary>
-    public TimeSpan QueryDelay { get; set; } = TimeSpan.FromSeconds(10);
+    public TimeSpan PollingInterval { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// Gets or sets whether a publish or send through the outbox requires an active database or ambient

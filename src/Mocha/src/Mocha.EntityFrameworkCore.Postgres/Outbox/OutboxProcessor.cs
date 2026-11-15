@@ -21,7 +21,7 @@ public sealed class PostgresOutboxProcessor
     private readonly ObjectPool<DispatchContext> _contextPool;
     private readonly PostgresMessageOutboxOptions _options;
     private readonly TimeProvider _timeProvider;
-    private readonly TimeSpan _queryDelay;
+    private readonly TimeSpan _pollingInterval;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgresOutboxProcessor"/> class.
@@ -44,7 +44,7 @@ public sealed class PostgresOutboxProcessor
     /// <param name="options">
     /// The outbox options containing the SQL queries and connection factory.
     /// </param>
-    /// <param name="queryDelay">How long an idle worker waits before checking for messages to send.</param>
+    /// <param name="pollingInterval">How long an idle worker waits before checking for messages to send.</param>
     internal PostgresOutboxProcessor(
         ILogger<PostgresOutboxProcessor> logger,
         IServiceProvider services,
@@ -52,7 +52,7 @@ public sealed class PostgresOutboxProcessor
         IMessagingPools pools,
         IOutboxSignal signal,
         PostgresMessageOutboxOptions options,
-        TimeSpan queryDelay)
+        TimeSpan pollingInterval)
     {
         _logger = logger;
         _services = services;
@@ -61,7 +61,7 @@ public sealed class PostgresOutboxProcessor
         _contextPool = pools.DispatchContext;
         _options = options;
         _timeProvider = services.GetTimeProvider();
-        _queryDelay = queryDelay;
+        _pollingInterval = pollingInterval;
     }
 
     /// <summary>
@@ -80,10 +80,14 @@ public sealed class PostgresOutboxProcessor
             while (!cancellationToken.IsCancellationRequested)
             {
                 var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
-                var delay = nextPollingInterval is { } interval && interval < _queryDelay
+                var delay = nextPollingInterval is { } interval && interval < _pollingInterval
                     ? interval
-                    : _queryDelay;
-                _logger.OutboxProcessorSleeping(delay);
+                    : _pollingInterval;
+
+                if (nextPollingInterval is not null)
+                {
+                    _logger.OutboxProcessorSleeping(delay);
+                }
 
                 using var delayCts = new CancellationTokenSource();
                 await Task.WhenAny(Task.Delay(delay, _timeProvider, delayCts.Token), signaled);
@@ -358,6 +362,12 @@ public sealed class PostgresOutboxProcessor
             {
                 await endpoint.DispatchInternalAsync(context);
             }
+        }
+        catch (Exception ex)
+        {
+            activity?.AddException(ex);
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
         }
         finally
         {
