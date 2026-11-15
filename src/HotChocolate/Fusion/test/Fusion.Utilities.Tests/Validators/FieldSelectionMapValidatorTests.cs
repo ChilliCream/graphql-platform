@@ -807,6 +807,72 @@ public sealed class FieldSelectionMapValidatorTests
             selectedFields.Select(f => f.Coordinate.ToString()).Order());
     }
 
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_ItIsTheListSelectionOfAListOfLeafValues()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors = ValidateContextPath("tags[$account.locale]", "[String!]!", contextTypes);
+
+        // assert
+        Assert.Equal(
+            ["The field 'tags' does not return a composite type and cannot have subselections."],
+            errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_BeValid_When_ItIsInTheListSelectionOfAnEntityPath()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors =
+            ValidateContextPath(
+                "items[{ weight: weight, currency: $account.locale }]",
+                "[ItemInput!]!",
+                contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_BeValid_When_ItIsInTheObjectSelectionOfAnotherContextPath()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("tenant", ["Tenant"]), ("account", ["User"]));
+
+        // act
+        var errors =
+            ValidateContextPath(
+                "$tenant.settings.{ locale: $account.locale }",
+                "SettingsInput",
+                contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportTheFieldError_When_TheNestedContextTypeLacksTheField()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("tenant", ["Tenant"]), ("account", ["User", "Organization"]));
+
+        // act
+        var errors =
+            ValidateContextPath(
+                "$tenant.settings.{ locale: $account.locale }",
+                "SettingsInput",
+                contextTypes);
+
+        // assert
+        Assert.Equal(["The field 'locale' does not exist on the type 'Organization'."], errors);
+    }
+
     private static ImmutableArray<string> ValidateContextPath(
         string fieldSelectionMap,
         string inputTypeReference,
@@ -843,6 +909,8 @@ public sealed class FieldSelectionMapValidatorTests
             """
             type Query {
                 user: User
+                tags: [String!]!
+                items: [Item!]!
             }
 
             interface Node {
@@ -874,6 +942,27 @@ public sealed class FieldSelectionMapValidatorTests
 
             type Tag {
                 name: String!
+            }
+
+            type Item {
+                weight: Float!
+            }
+
+            type Tenant {
+                settings: Settings
+            }
+
+            type Settings {
+                currency: String!
+            }
+
+            input ItemInput {
+                weight: Float!
+                currency: String!
+            }
+
+            input SettingsInput {
+                locale: String!
             }
 
             input AddressInput {
