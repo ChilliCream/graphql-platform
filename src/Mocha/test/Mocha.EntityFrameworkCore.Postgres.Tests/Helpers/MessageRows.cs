@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Text;
 using System.Text.Json;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -15,18 +16,71 @@ internal static class MessageRows
     private const string OutboxTable = "outbox_messages";
     private const string ScheduledTable = "scheduled_messages";
 
+    public static Task<Guid> InsertOutboxAsync(
+        string connectionString,
+        MessageEnvelope envelope,
+        CancellationToken cancellationToken)
+        => InsertOutboxAsync(connectionString, envelope, null, 0, TimeSpan.Zero, cancellationToken);
+
+    /// <summary>
+    /// Inserts an outbox row with an ordered identifier and returns the identifier.
+    /// </summary>
     public static async Task<Guid> InsertOutboxAsync(
         string connectionString,
         MessageEnvelope envelope,
+        Guid? transactionId,
+        int timesSent,
+        TimeSpan dueIn,
         CancellationToken cancellationToken)
     {
         const string sql =
             $"""
-             INSERT INTO "{OutboxTable}" ("id", "envelope", "times_sent", "created_at")
-             VALUES (@id, @envelope, 0, NOW());
+             INSERT INTO "{OutboxTable}" ("id", "envelope", "times_sent", "created_at", "transaction_id")
+             VALUES (@id, @envelope, @timesSent, NOW() + @dueIn, @transactionId);
              """;
 
-        return await InsertAsync(connectionString, sql, envelope, cancellationToken);
+        var id = OutboxMessageIdGenerator.Next();
+
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("@id", id);
+        command.Parameters.AddWithValue("@envelope", NpgsqlDbType.Json, Serialize(envelope));
+        command.Parameters.AddWithValue("@timesSent", timesSent);
+        command.Parameters.AddWithValue("@dueIn", dueIn);
+        command.Parameters.Add(
+            new NpgsqlParameter("@transactionId", NpgsqlDbType.Uuid) { Value = (object?)transactionId ?? DBNull.Value });
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return id;
+    }
+
+    /// <summary>
+    /// Reads the identifier, transaction identifier and attempt count of every outbox row in identifier order.
+    /// </summary>
+    public static async Task<List<(Guid Id, Guid? TransactionId, int TimesSent)>> ReadOutboxAsync(
+        string connectionString,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"""SELECT "id", "transaction_id", "times_sent" FROM "{OutboxTable}" ORDER BY "id";""";
+
+        var rows = new List<(Guid Id, Guid? TransactionId, int TimesSent)>();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            rows.Add((reader.GetGuid(0), reader.IsDBNull(1) ? null : reader.GetGuid(1), reader.GetInt32(2)));
+        }
+
+        return rows;
     }
 
     public static async Task<Guid> InsertScheduledAsync(

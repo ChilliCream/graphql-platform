@@ -29,6 +29,8 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private PooledArrayWriter? _arrayWriter;
     private readonly string? _insertSql;
+    private Transaction? _ambientTransaction;
+    private Guid _ambientTransactionId;
 
     /// <summary>
     /// Creates a new <see cref="PostgresMessageOutbox"/> using the provided DbContext connection,
@@ -112,9 +114,11 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
                 // Execute the INSERT command
                 await using var command = connection.CreateCommand();
                 command.CommandText = _insertSql;
-                command.Parameters.AddWithValue("@id", OutboxMessageIdGenerator.Next());
+                var id = OutboxMessageIdGenerator.Next();
+                command.Parameters.AddWithValue("@id", id);
                 command.Parameters.Add(
                     new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
+                command.Parameters.AddWithValue("@transactionId", GetTransactionId(id));
                 await command.PrepareAsync(cancellationToken);
 
                 await command.ExecuteNonQueryAsync(cancellationToken);
@@ -134,6 +138,28 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
             _arrayWriter?.Reset();
             _semaphore.Release();
         }
+    }
+
+    // Must run while the semaphore is held.
+    private Guid GetTransactionId(Guid messageId)
+    {
+        if (_originalDbContext.Database.CurrentTransaction is { } transaction)
+        {
+            return transaction.TransactionId;
+        }
+
+        if (Transaction.Current is { } ambient)
+        {
+            if (_ambientTransaction != ambient)
+            {
+                _ambientTransaction = ambient;
+                _ambientTransactionId = messageId;
+            }
+
+            return _ambientTransactionId;
+        }
+
+        return messageId;
     }
 
     private bool HasTransaction()

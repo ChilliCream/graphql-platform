@@ -69,6 +69,27 @@ public sealed class OutboxEntityConfigurationTests
         Assert.Equal("created_at", entityType.FindProperty(nameof(OutboxMessage.CreatedAt))!.GetColumnName());
     }
 
+    [Fact]
+    public void Configure_Should_MapNullableTransactionIdColumn_When_Applied()
+    {
+        var entityType = GetOutboxMessageEntityType();
+        var transactionIdProp = entityType.FindProperty(nameof(OutboxMessage.TransactionId))!;
+
+        Assert.Equal("transaction_id", transactionIdProp.GetColumnName());
+        Assert.True(transactionIdProp.IsNullable);
+    }
+
+    [Fact]
+    public void Configure_Should_CreateTransactionIdIndex_When_Applied()
+    {
+        var entityType = GetOutboxMessageEntityType();
+        var transactionIdProp = entityType.FindProperty(nameof(OutboxMessage.TransactionId))!;
+        var idProp = entityType.FindProperty(nameof(OutboxMessage.Id))!;
+        var index = entityType.FindIndex([transactionIdProp, idProp])!;
+
+        Assert.Equal("ix_outbox_messages_transaction_id", index.GetDatabaseName());
+    }
+
     private static IEntityType GetOutboxMessageEntityType()
     {
         var model = CreateModel();

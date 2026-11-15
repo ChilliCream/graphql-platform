@@ -44,8 +44,8 @@ internal sealed class PostgresMessageOutboxQueries
         return new PostgresMessageOutboxQueries
         {
             InsertEnvelope = $"""
-                INSERT INTO {t.QualifiedTableName} ("{t.Id}", "{t.Envelope}", "{t.TimesSent}", "{t.CreatedAt}")
-                VALUES (@id, @envelope, 0, NOW());
+                INSERT INTO {t.QualifiedTableName} ("{t.Id}", "{t.Envelope}", "{t.TimesSent}", "{t.CreatedAt}", "{t.TransactionId}")
+                VALUES (@id, @envelope, 0, NOW(), @transactionId);
                 """,
 
             NextPollingInterval = $"""

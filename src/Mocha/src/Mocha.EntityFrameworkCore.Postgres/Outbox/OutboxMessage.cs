@@ -28,4 +28,10 @@ public sealed class OutboxMessage(Guid id, JsonDocument envelope)
     /// Gets the UTC timestamp when this outbox message was created.
     /// </summary>
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Gets the identifier of the transaction that wrote the message. Messages with the same identifier are
+    /// dispatched in the order they were written. <c>null</c> means the message is dispatched on its own.
+    /// </summary>
+    public Guid? TransactionId { get; private set; }
 }
