@@ -229,6 +229,61 @@ public sealed class FusionSchemaDefinitionContextTests
             """);
     }
 
+    [Fact]
+    public void Create_Should_SelectTypeNameUnderThePath_When_TheSelectionReadsOnlyAContext()
+    {
+        // arrange
+        var schema = CreateSchema();
+
+        // act
+        var requirements = GetRequirements(schema, "Transaction", "itemCurrencies");
+
+        // assert
+        requirements.Requirements!.ToString().MatchInlineSnapshot(
+            """
+            {
+              items {
+                __typename
+              }
+            }
+            """);
+        Assert.Equal(["tenant"], requirements.ContextRequirements.Keys);
+        requirements.ContextRequirements["tenant"].ToString().MatchInlineSnapshot(
+            """
+            {
+              currency
+            }
+            """);
+    }
+
+    [Fact]
+    public void Create_Should_SelectTypeNameUnderTheContextPath_When_ItsSelectionReadsOnlyAnotherContext()
+    {
+        // arrange
+        var schema = CreateSchema();
+
+        // act
+        var requirements = GetRequirements(schema, "Transaction", "settingsLocale");
+
+        // assert
+        Assert.Null(requirements.Requirements);
+        Assert.Equal(["tenant", "user"], requirements.ContextRequirements.Keys.Order());
+        requirements.ContextRequirements["tenant"].ToString().MatchInlineSnapshot(
+            """
+            {
+              settings {
+                __typename
+              }
+            }
+            """);
+        requirements.ContextRequirements["user"].ToString().MatchInlineSnapshot(
+            """
+            {
+              locale
+            }
+            """);
+    }
+
     private static FieldRequirements GetRequirements(
         FusionSchemaDefinition schema,
         string typeName,
@@ -284,6 +339,28 @@ public sealed class FusionSchemaDefinitionContextTests
                   isoCode: String! @fusion__field(schema: A)
                 }
 
+                type Item @fusion__type(schema: A) {
+                  weight: Int!
+                }
+
+                type Tenant @fusion__type(schema: A) @fusion__context(schema: A, name: "tenant") {
+                  id: ID!
+                  currency: String! @fusion__field(schema: A)
+                  settings: TenantSettings! @fusion__field(schema: A)
+                }
+
+                type TenantSettings @fusion__type(schema: A) {
+                  locale: String! @fusion__field(schema: A)
+                }
+
+                input CurrencyInput @fusion__type(schema: A) {
+                  currency: String!
+                }
+
+                input LocaleInput @fusion__type(schema: A) {
+                  locale: String!
+                }
+
                 type Exchange @fusion__type(schema: A) {
                   rate: Float! @fusion__field(schema: A)
                 }
@@ -291,6 +368,7 @@ public sealed class FusionSchemaDefinitionContextTests
                 type Transaction @fusion__type(schema: A) {
                   id: ID!
                   exchange: Exchange @fusion__field(schema: A)
+                  items: [Item!]! @fusion__field(schema: A)
                   amount(currency: String!): Float
                     @fusion__field(schema: A)
                     @fusion__requires(
@@ -327,6 +405,21 @@ public sealed class FusionSchemaDefinitionContextTests
                       schema: A
                       field: "tagNames(names: [String!]!): String"
                       map: ["$userContext.tags[name]"]
+                    )
+                  itemCurrencies(lines: [CurrencyInput!]!): String!
+                    @fusion__field(schema: A)
+                    @fusion__requires(
+                      schema: A
+                      requirements: "items { __typename }"
+                      field: "itemCurrencies(lines: [CurrencyInput!]!): String!"
+                      map: ["items[{ currency: $tenant.currency }]"]
+                    )
+                  settingsLocale(format: LocaleInput!): String!
+                    @fusion__field(schema: A)
+                    @fusion__requires(
+                      schema: A
+                      field: "settingsLocale(format: LocaleInput!): String!"
+                      map: ["$tenant.settings.{ locale: $user.locale }"]
                     )
                   label(locale: String!): String
                     @fusion__field(schema: A)

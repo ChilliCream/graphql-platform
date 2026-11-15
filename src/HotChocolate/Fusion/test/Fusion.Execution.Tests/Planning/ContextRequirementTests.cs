@@ -2280,6 +2280,128 @@ public class ContextRequirementTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_FetchTheListWithTypeName_When_TheListSelectionReadsOnlyAContext()
+    {
+        // arrange
+        var schema = ComposeSchema(ContextOnlySelectionSchemaA, NestedContextSchemaB);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    itemCurrencies
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchTheObjectWithTypeName_When_TheObjectSelectionReadsOnlyAContext()
+    {
+        // arrange
+        var schema = ComposeSchema(ContextOnlySelectionSchemaA, NestedContextSchemaB);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    boxCurrency
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchTheContextObjectWithTypeName_When_ItsSelectionReadsOnlyAnotherContext()
+    {
+        // arrange
+        var schema = ComposeSchema(ContextOnlySelectionSchemaA, NestedContextSchemaB);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    userLocale
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private const string ContextOnlySelectionSchemaA =
+        """
+        type Query {
+            tenant: Tenant
+            orderById(id: ID!): Order @lookup @internal
+        }
+
+        type Tenant @context(name: "tenant") {
+            id: ID!
+            currency: String!
+            settings: TenantSettings!
+            users: [User!]!
+        }
+
+        type TenantSettings {
+            currency: String!
+            locale: String!
+        }
+
+        type User @context(name: "user") {
+            id: ID!
+            locale: String!
+            orders: [Order!]!
+        }
+
+        type Order @key(fields: "id") {
+            id: ID!
+            itemCurrencies(
+                lines: [CurrencyInput!]! @require(field: "items[{ currency: $tenant.currency }]")
+            ): String!
+            boxCurrency(
+                box: CurrencyInput @require(field: "dimension.{ currency: $tenant.currency }")
+            ): String
+            userLocale(
+                format: LocaleInput! @require(field: "$tenant.settings.{ locale: $user.locale }")
+            ): String!
+        }
+
+        input CurrencyInput {
+            currency: String!
+        }
+
+        input LocaleInput {
+            locale: String!
+        }
+        """;
+
     private const string NestedContextSchemaA =
         """
         type Query {
