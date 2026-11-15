@@ -133,12 +133,19 @@ jobs:
 
       - name: 🧰 Install k6
         shell: bash
+        env:
+          K6_VERSION: v2.3.0
+          K6_SHA256: 39c3117b6af817592dcd0ce4242105c0a7af10948c2a425306f0be8f7a8a8ab1
         run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install k6 -y
+          archive="k6-${K6_VERSION}-linux-amd64.tar.gz"
+          curl -fsSL --retry 5 --retry-all-errors \
+            -o "$RUNNER_TEMP/$archive" \
+            "https://github.com/grafana/k6/releases/download/${K6_VERSION}/${archive}"
+          echo "${K6_SHA256}  $RUNNER_TEMP/$archive" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/k6"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/k6" --strip-components=1
+          echo "$RUNNER_TEMP/k6" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/k6/k6" version
 
       - name: 📈 Record profile
         shell: bash
