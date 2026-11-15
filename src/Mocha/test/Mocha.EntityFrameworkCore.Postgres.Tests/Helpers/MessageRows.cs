@@ -30,20 +30,45 @@ internal static class MessageRows
     }
 
     /// <summary>
-    /// Inserts an outbox row whose envelope column holds <paramref name="envelopeJson"/> as it is.
+    /// Inserts a due outbox row that has already failed <paramref name="timesSent"/> dispatch attempts.
+    /// </summary>
+    public static async Task<Guid> InsertOutboxAsync(
+        string connectionString,
+        MessageEnvelope envelope,
+        int timesSent,
+        CancellationToken cancellationToken)
+        => await InsertOutboxAsync(connectionString, Serialize(envelope), timesSent, cancellationToken);
+
+    /// <summary>
+    /// Inserts a due outbox row that holds <paramref name="envelopeJson"/> as its envelope and has already
+    /// failed <paramref name="timesSent"/> dispatch attempts.
     /// </summary>
     public static async Task<Guid> InsertOutboxAsync(
         string connectionString,
         string envelopeJson,
+        int timesSent,
         CancellationToken cancellationToken)
     {
         const string sql =
             $"""
              INSERT INTO "{OutboxTable}" ("id", "envelope", "times_sent", "created_at")
-             VALUES (@id, @envelope, 0, NOW());
+             VALUES (@id, @envelope, @timesSent, NOW());
              """;
 
-        return await InsertAsync(connectionString, sql, envelopeJson, cancellationToken);
+        var id = Guid.NewGuid();
+
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("@id", id);
+        command.Parameters.AddWithValue("@envelope", NpgsqlDbType.Json, envelopeJson);
+        command.Parameters.AddWithValue("@timesSent", timesSent);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return id;
     }
 
     /// <summary>
@@ -62,6 +87,28 @@ internal static class MessageRows
         command.Parameters.AddWithValue("@id", id);
 
         return (int?)await command.ExecuteScalarAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns the seconds until the outbox row is due, measured by the database clock.
+    /// </summary>
+    public static async Task<double> GetOutboxSecondsUntilDueAsync(
+        string connectionString,
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"""
+             SELECT EXTRACT(EPOCH FROM "created_at") - EXTRACT(EPOCH FROM NOW())
+             FROM "{OutboxTable}" WHERE "id" = @id;
+             """;
+        command.Parameters.AddWithValue("@id", id);
+
+        return Convert.ToDouble(await command.ExecuteScalarAsync(cancellationToken));
     }
 
     /// <summary>
@@ -88,26 +135,8 @@ internal static class MessageRows
     }
 
     /// <summary>
-    /// Waits until the outbox row is gone and returns whether it is.
+    /// Counts the outbox rows.
     /// </summary>
-    public static async Task<bool> WaitForOutboxRemovalAsync(
-        string connectionString,
-        Guid id,
-        TimeSpan timeout,
-        CancellationToken cancellationToken)
-    {
-        var deadline = DateTime.UtcNow + timeout;
-        var timesSent = await GetOutboxTimesSentAsync(connectionString, id, cancellationToken);
-
-        while (timesSent is not null && DateTime.UtcNow < deadline)
-        {
-            await Task.Delay(20, cancellationToken);
-            timesSent = await GetOutboxTimesSentAsync(connectionString, id, cancellationToken);
-        }
-
-        return timesSent is null;
-    }
-
     public static async Task<long> CountOutboxAsync(string connectionString, CancellationToken cancellationToken)
     {
         await using var connection = new NpgsqlConnection(connectionString);
@@ -141,88 +170,17 @@ internal static class MessageRows
     }
 
     /// <summary>
-    /// Makes every outbox row eligible for dispatch, as if it had been due for <paramref name="dueFor"/>.
+    /// Makes every outbox row due, as if its retry delay had elapsed.
     /// </summary>
-    public static async Task MakeOutboxDueAsync(
-        string connectionString,
-        TimeSpan dueFor,
-        CancellationToken cancellationToken)
+    public static async Task MakeOutboxDueAsync(string connectionString, CancellationToken cancellationToken)
     {
         await using var connection = new NpgsqlConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
 
         await using var command = connection.CreateCommand();
-        command.CommandText = $"""UPDATE "{OutboxTable}" SET "created_at" = NOW() - @dueFor;""";
-        command.Parameters.AddWithValue("@dueFor", dueFor);
+        command.CommandText = $"""UPDATE "{OutboxTable}" SET "created_at" = NOW() - INTERVAL '1 second';""";
 
         await command.ExecuteNonQueryAsync(cancellationToken);
-    }
-
-    public static async Task SetOutboxTimesSentAsync(
-        string connectionString,
-        Guid id,
-        int timesSent,
-        CancellationToken cancellationToken)
-    {
-        await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync(cancellationToken);
-
-        await using var command = connection.CreateCommand();
-        command.CommandText = $"""UPDATE "{OutboxTable}" SET "times_sent" = @timesSent WHERE "id" = @id;""";
-        command.Parameters.AddWithValue("@timesSent", timesSent);
-        command.Parameters.AddWithValue("@id", id);
-
-        await command.ExecuteNonQueryAsync(cancellationToken);
-    }
-
-    public static async Task<long> CountScheduledAsync(string connectionString, CancellationToken cancellationToken)
-    {
-        await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync(cancellationToken);
-
-        await using var command = connection.CreateCommand();
-        command.CommandText = $"""SELECT COUNT(*) FROM "{ScheduledTable}";""";
-
-        return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
-    }
-
-    /// <summary>
-    /// Waits until the schedule holds the expected number of rows and returns the last count that was read.
-    /// </summary>
-    public static async Task<long> WaitForScheduledCountAsync(
-        string connectionString,
-        long expected,
-        TimeSpan timeout,
-        CancellationToken cancellationToken)
-    {
-        var deadline = DateTime.UtcNow + timeout;
-        var count = await CountScheduledAsync(connectionString, cancellationToken);
-
-        while (count != expected && DateTime.UtcNow < deadline)
-        {
-            await Task.Delay(20, cancellationToken);
-            count = await CountScheduledAsync(connectionString, cancellationToken);
-        }
-
-        return count;
-    }
-
-    /// <summary>
-    /// Returns the attempt count of the scheduled row, or <c>null</c> when the row is gone.
-    /// </summary>
-    public static async Task<int?> GetScheduledTimesSentAsync(
-        string connectionString,
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync(cancellationToken);
-
-        await using var command = connection.CreateCommand();
-        command.CommandText = $"""SELECT "times_sent" FROM "{ScheduledTable}" WHERE "id" = @id;""";
-        command.Parameters.AddWithValue("@id", id);
-
-        return (int?)await command.ExecuteScalarAsync(cancellationToken);
     }
 
     public static async Task<Guid> InsertScheduledAsync(
@@ -261,17 +219,10 @@ internal static class MessageRows
         CancellationToken cancellationToken)
         => WaitForRetryAsync(connectionString, ScheduledTable, id, timeout, cancellationToken);
 
-    private static Task<Guid> InsertAsync(
-        string connectionString,
-        string sql,
-        MessageEnvelope envelope,
-        CancellationToken cancellationToken)
-        => InsertAsync(connectionString, sql, Serialize(envelope), cancellationToken);
-
     private static async Task<Guid> InsertAsync(
         string connectionString,
         string sql,
-        string envelopeJson,
+        MessageEnvelope envelope,
         CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid();
@@ -282,7 +233,7 @@ internal static class MessageRows
         await using var command = connection.CreateCommand();
         command.CommandText = sql;
         command.Parameters.AddWithValue("@id", id);
-        command.Parameters.AddWithValue("@envelope", NpgsqlDbType.Json, envelopeJson);
+        command.Parameters.AddWithValue("@envelope", NpgsqlDbType.Json, Serialize(envelope));
 
         await command.ExecuteNonQueryAsync(cancellationToken);
 

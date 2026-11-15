@@ -1,4 +1,3 @@
-using System.Globalization;
 using Mocha.EntityFrameworkCore.Postgres;
 
 namespace Mocha.Outbox;
@@ -9,9 +8,10 @@ namespace Mocha.Outbox;
 /// </summary>
 internal sealed class PostgresMessageOutboxQueries
 {
-    // Two to the power of 30 seconds is about 34 years, and a larger exponent would overflow for a high
-    // attempt count.
-    private const int MaxBackoffExponent = 30;
+    /// <summary>
+    /// The number of seconds a message waits before it is dispatched again after a failed attempt.
+    /// </summary>
+    public const int RetryDelaySeconds = 10;
 
     /// <summary>
     /// Gets or sets the SQL statement to insert a new message envelope into the outbox table.
@@ -39,17 +39,9 @@ internal sealed class PostgresMessageOutboxQueries
     /// Creates a new <see cref="PostgresMessageOutboxQueries"/> instance with SQL queries built from the provided table metadata.
     /// </summary>
     /// <param name="t">The outbox table info containing column and table names.</param>
-    /// <param name="options">The outbox options that supply the attempt limit and the retry delay cap.</param>
     /// <returns>A fully initialized <see cref="PostgresMessageOutboxQueries"/> instance.</returns>
-    public static PostgresMessageOutboxQueries From(OutboxTableInfo t, PostgresOutboxOptions options)
+    public static PostgresMessageOutboxQueries From(OutboxTableInfo t)
     {
-        var maxAttempts = options.MaxAttempts.ToString(CultureInfo.InvariantCulture);
-        var maxRetryDelay = options.MaxRetryDelay.TotalSeconds.ToString("R", CultureInfo.InvariantCulture);
-        var retryDelay =
-            $"""
-            INTERVAL '1 second' * LEAST(POWER(2, LEAST("{t.TimesSent}", {MaxBackoffExponent})), {maxRetryDelay})
-            """;
-
         return new PostgresMessageOutboxQueries
         {
             InsertEnvelope = $"""
@@ -60,17 +52,16 @@ internal sealed class PostgresMessageOutboxQueries
             NextPollingInterval = $"""
                 SELECT (EXTRACT(EPOCH FROM MIN("{t.CreatedAt}")) - EXTRACT(EPOCH FROM NOW()))::double precision
                     AS "SecondsUntilDue"
-                FROM {t.QualifiedTableName}
-                WHERE "{t.TimesSent}" < {maxAttempts};
+                FROM {t.QualifiedTableName};
                 """,
 
             ProcessEvent = $"""
                 UPDATE {t.QualifiedTableName}
                 SET "{t.TimesSent}" = "{t.TimesSent}" + 1,
-                    "{t.CreatedAt}" = NOW() + {retryDelay}
+                    "{t.CreatedAt}" = NOW() + INTERVAL '{RetryDelaySeconds} seconds'
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < {maxAttempts} AND "{t.CreatedAt}" <= NOW()
+                    WHERE "{t.CreatedAt}" <= NOW()
                     ORDER BY "{t.CreatedAt}", "{t.Id}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1

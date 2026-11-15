@@ -46,8 +46,6 @@ internal sealed class DispatchAttempt(
     /// </summary>
     public int Number => number;
 
-    public CancellationToken CancellationToken => context.CancellationToken;
-
     /// <summary>
     /// Hands the message to the transport.
     /// </summary>
@@ -55,16 +53,5 @@ internal sealed class DispatchAttempt(
     {
         await next(context);
         dispatch.Accepted.Enqueue(messageId);
-    }
-
-    /// <summary>
-    /// Waits until the dispatch is cancelled or <paramref name="release"/> completes, and returns without an
-    /// error in both cases, as a transport does that has already handed the message to its broker.
-    /// </summary>
-    public async Task WaitForCancellationAsync(Task release)
-    {
-        var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var registration = CancellationToken.Register(() => cancelled.TrySetResult());
-        await Task.WhenAny(cancelled.Task, release);
     }
 }

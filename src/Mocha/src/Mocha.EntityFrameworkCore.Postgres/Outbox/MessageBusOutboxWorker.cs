@@ -12,7 +12,6 @@ internal sealed class PostgresMessageBusOutboxWorker(PostgresOutboxProcessor pro
 {
     private readonly object _lock = new();
     private ContinuousTask? _task;
-    private volatile Task _processing = Task.CompletedTask;
 
     /// <summary>
     /// Starts the outbox processing background task. This call is idempotent: invoking it again
@@ -29,15 +28,14 @@ internal sealed class PostgresMessageBusOutboxWorker(PostgresOutboxProcessor pro
                 return Task.CompletedTask;
             }
 
-            _task = new ContinuousTask(ProcessAsync);
+            _task = new ContinuousTask(processor.ProcessAsync);
         }
 
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Stops the outbox processing background task and waits until the messages that were being dispatched
-    /// are either removed from the outbox or released.
+    /// Stops the outbox processing background task and waits for it to complete gracefully.
     /// </summary>
     /// <param name="cancellationToken">A token that signals when shutdown should be forced.</param>
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -56,18 +54,5 @@ internal sealed class PostgresMessageBusOutboxWorker(PostgresOutboxProcessor pro
         }
 
         await task.DisposeAsync();
-
-        // The continuous task stops waiting once it is cancelled, while the processor still removes the
-        // messages a transport has already accepted. The wait ends early when the shutdown is forced.
-        await _processing
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
-    }
-
-    private Task ProcessAsync(CancellationToken cancellationToken)
-    {
-        var processing = processor.ProcessAsync(cancellationToken);
-        _processing = processing;
-        return processing;
     }
 }
