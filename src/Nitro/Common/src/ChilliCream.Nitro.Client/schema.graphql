@@ -16,6 +16,7 @@ type Query {
   clientVersionById(id: ID!): ClientVersion
   deploymentById(id: ID!): Deployment
   fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
+  groupById(id: ID!): Group
   mcpFeatureCollectionById(id: ID!): McpFeatureCollection
   mcpFeatureCollectionVersionById(id: ID!): McpFeatureCollectionVersion
   me: Viewer @deprecated(reason: "Use `viewer` instead.")
@@ -27,6 +28,7 @@ type Query {
   openApiCollectionVersionById(id: ID!): OpenApiCollectionVersion
   operationById(id: ID!): Operation
   organizationById(id: ID!): Organization
+  organizationMemberById(id: ID!): OrganizationMember
   schemaChangeLogById(id: ID!): SchemaChangeLog
   stageById(id: ID!): Stage
   version: String
@@ -46,6 +48,9 @@ type Query {
 
 type Mutation {
   approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload!
+  assignGroupToGroup(input: AssignGroupToGroupInput!): AssignGroupToGroupPayload!
+  assignRoleToGroup(input: AssignRoleToGroupInput!): AssignRoleToGroupPayload!
+  assignUserToGroup(input: AssignUserToGroupInput!): AssignUserToGroupPayload!
   beginFusionConfigurationPublish(input: BeginFusionConfigurationPublishInput!): BeginFusionConfigurationPublishPayload!
   cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload!
   cancelFusionConfigurationComposition(
@@ -54,10 +59,11 @@ type Mutation {
   commitFusionConfigurationPublish(
     input: CommitFusionConfigurationPublishInput!
   ): CommitFusionConfigurationPublishPayload!
-  createAccount: CreateAccountPayload!
+  createAccount: CreateAccountPayload! @deprecated(reason: "Accounts are created when the user signs up or signs in.")
   createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload!
   createApiKeyForApi(input: CreateApiKeyForApiInput!): CreateApiKeyForApiPayload!
   createClient(input: CreateClientInput!): CreateClientPayload!
+  createGroup(input: CreateGroupInput!): CreateGroupPayload!
   createMcpFeatureCollection(input: CreateMcpFeatureCollectionInput!): CreateMcpFeatureCollectionPayload!
   createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
   createOpenApiCollection(input: CreateOpenApiCollectionInput!): CreateOpenApiCollectionPayload!
@@ -66,6 +72,7 @@ type Mutation {
   deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
   deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload!
   deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
+  deleteGroup(input: DeleteGroupInput!): DeleteGroupPayload!
   deleteMcpFeatureCollectionById(input: DeleteMcpFeatureCollectionByIdInput!): DeleteMcpFeatureCollectionByIdPayload!
   deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload!
   deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload!
@@ -86,17 +93,22 @@ type Mutation {
   pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload!
     @deprecated(reason: "Use pushWorkspaceChanges")
   pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload!
+  removeGroupFromGroup(input: RemoveGroupFromGroupInput!): RemoveGroupFromGroupPayload!
+  removeUserFromGroup(input: RemoveUserFromGroupInput!): RemoveUserFromGroupPayload!
   removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
   renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
   revokePersonalAccessToken(input: RevokePersonalAccessTokenInput!): RevokePersonalAccessTokenPayload!
   setActiveWorkspace(input: SetActiveWorkspaceInput!): SetActiveWorkspacePayload!
+    @deprecated(reason: "The active workspace is tracked by the client.")
   startFusionConfigurationComposition(
     input: StartFusionConfigurationCompositionInput!
   ): StartFusionConfigurationCompositionPayload!
+  unassignRoleFromGroup(input: UnassignRoleFromGroupInput!): UnassignRoleFromGroupPayload!
   unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload!
   updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
   updateClientVersionLifecycle(input: UpdateClientVersionLifecycleInput!): UpdateClientVersionLifecyclePayload!
   updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload!
+  updateGroup(input: UpdateGroupInput!): UpdateGroupPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
   updateSchemaLintRuleSetting(input: UpdateSchemaLintRuleSettingInput!): UpdateSchemaLintRuleSettingPayload!
@@ -142,6 +154,7 @@ type AfterStageCondition {
 
 type Api implements Node {
   actions: ApiActions!
+  check(number: Int!): Check
   clients(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -158,6 +171,7 @@ type Api implements Node {
   ): ApiClientVersionsConnection
   createdAt: DateTime!
   createdBy: UserInfo!
+  deployment(number: Int!): Deployment
   documents(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
@@ -654,6 +668,24 @@ type ArgumentRemoved implements SchemaChange {
   typeName: String!
 }
 
+type AssignGroupToGroupPayload {
+  errors: [AssignGroupToGroupError!]
+  group: Group
+  subgroupMember: GroupGroupMember
+}
+
+type AssignRoleToGroupPayload {
+  errors: [AssignRoleToGroupError!]
+  group: Group
+  roleAssignment: RoleAssignment
+}
+
+type AssignUserToGroupPayload {
+  errors: [AssignUserToGroupError!]
+  group: Group
+  groupMember: OrganizationMemberGroupMember
+}
+
 type Attribute {
   key: String!
   value: String!
@@ -702,6 +734,7 @@ type AzureDevOpsSourceMetadata implements SourceMetadata {
   commitUrl: URL
   pullRequest: SourceMetadataPullRequest
   ref: SourceMetadataRef
+  repository: SourceMetadataRepository
   shortCommitHash: String
   workflowRunName: String!
   workflowRunUrl: URL!
@@ -732,6 +765,16 @@ type CancelFusionConfigurationCompositionPayload {
   requestId: ID
 }
 
+type CannotModifyDefaultGroupError implements Error {
+  groupId: ID!
+  message: String!
+}
+
+type CannotRemoveLastOwnerGroupError implements Error {
+  groupId: ID!
+  message: String!
+}
+
 "A connection to a list of items."
 type ChangesConnection {
   "A list of edges."
@@ -758,6 +801,12 @@ type ChangeValidationFailed implements Error {
   errors: [ValidationErrorProperty!]!
   message: String!
   workspaceId: ID!
+}
+
+type CircularGroupNestingDetectedError implements Error {
+  childGroupId: ID!
+  message: String!
+  parentGroupId: ID!
 }
 
 type Client implements Node {
@@ -815,6 +864,8 @@ type Client implements Node {
 
 type ClientActions {
   canDelete: Boolean!
+  canPublish(stage: String!): Boolean!
+  canUnpublish(stage: String!): Boolean!
 }
 
 type ClientChangeLog implements StageChangeLog & Node {
@@ -822,6 +873,17 @@ type ClientChangeLog implements StageChangeLog & Node {
   id: ID!
   kind: StageChangeLogKind!
   tag: String!
+}
+
+type ClientCheck implements Node & Check {
+  client: Client
+  completedAt: DateTime
+  createdAt: DateTime!
+  id: ID!
+  number: Int!
+  source: SourceMetadata
+  startedAt: DateTime
+  status: CheckStatus!
 }
 
 type ClientDeletedStageChangeEvent implements StageChangedEvent {
@@ -837,6 +899,7 @@ type ClientDeployment implements Node & Deployment {
   errors: [ClientDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  number: Int!
   publicationState: DeploymentPublicationState!
   source: SourceMetadata
   stage: Stage
@@ -1135,6 +1198,11 @@ type ConcurrentOperationError implements Error & SchemaVersionPublishError & Cli
   message: String!
 }
 
+"API keys only support stage conditions."
+type ConditionNotSupportedForApiKeysError implements Error {
+  message: String!
+}
+
 type CoordinateClientUsage {
   client: Client
   metrics: CoordinateClientUsageMetrics!
@@ -1261,6 +1329,11 @@ type CreateClientPayload {
   errors: [CreateClientError!]
 }
 
+type CreateGroupPayload {
+  errors: [CreateGroupError!]
+  group: Group
+}
+
 type CreateMcpFeatureCollectionPayload {
   errors: [CreateMcpFeatureCollectionError!]
   mcpFeatureCollection: McpFeatureCollection
@@ -1299,6 +1372,11 @@ type DeleteApiKeyPayload {
 type DeleteClientByIdPayload {
   client: Client
   errors: [DeleteClientByIdError!]
+}
+
+type DeleteGroupPayload {
+  errors: [DeleteGroupError!]
+  group: Group
 }
 
 type DeleteMcpFeatureCollectionByIdPayload {
@@ -1709,10 +1787,12 @@ type FieldCoordinateMetrics implements CoordinateMetrics {
   usages(from: DateTime!, resolution: Int! = 300, to: DateTime!): CoordinateUsageGraph
 }
 
+"Field duration metrics with percentiles"
 type FieldDurationGraph {
   dataset: [FieldDurationGraphData!]!
 }
 
+"Field duration metrics with percentiles"
 type FieldDurationGraphData {
   epoch: Long!
   max: Float!
@@ -1751,6 +1831,42 @@ type FusionConfigurationChangeLog implements StageChangeLog & Node {
   tag: String!
 }
 
+type FusionConfigurationCheck implements Node & Check {
+  completedAt: DateTime
+  createdAt: DateTime!
+  id: ID!
+  number: Int!
+  schemaChanges(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): FusionConfigurationCheckSchemaChangesConnection
+  source: SourceMetadata
+  startedAt: DateTime
+  status: CheckStatus!
+}
+
+"A connection to a list of items."
+type FusionConfigurationCheckSchemaChangesConnection {
+  "A list of edges."
+  edges: [FusionConfigurationCheckSchemaChangesEdge!]
+  "A flattened list of the nodes."
+  nodes: [SchemaChangeLogEntry!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type FusionConfigurationCheckSchemaChangesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: SchemaChangeLogEntry!
+}
+
 type FusionConfigurationDeployment implements Node & Deployment {
   actions: FusionConfigurationDeploymentActions!
   approval: DeploymentApproval
@@ -1758,6 +1874,7 @@ type FusionConfigurationDeployment implements Node & Deployment {
   errors: [FusionConfigurationDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  number: Int!
   publicationState: DeploymentPublicationState!
   schemaChanges: FusionConfigurationDeploymentSchemaChanges
   source: SourceMetadata
@@ -1873,6 +1990,7 @@ type GitHubSourceMetadata implements SourceMetadata {
   commitUrl: URL!
   pullRequest: SourceMetadataPullRequest
   ref: SourceMetadataRef
+  repository: SourceMetadataRepository!
   shortCommitHash: String!
   workflowRunName: String!
   workflowRunUrl: URL!
@@ -2068,6 +2186,10 @@ type Group implements Node {
   ): GroupGroupsConnection
   id: ID!
   isDefault: Boolean!
+  """
+  The members of the group. Pass kind to return only users or only
+  nested groups.
+  """
   members(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -2075,6 +2197,7 @@ type Group implements Node {
     before: String
     "Returns the first _n_ elements from the list."
     first: Int
+    kind: GroupMemberKind
     "Returns the last _n_ elements from the list."
     last: Int
   ): GroupMembersConnection
@@ -2133,6 +2256,22 @@ type GroupMembersEdge {
   node: GroupMember!
 }
 
+type GroupNameAlreadyExistsError implements Error {
+  message: String!
+  name: String!
+}
+
+type GroupNotFoundError implements Error {
+  groupId: ID!
+  message: String!
+}
+
+type GroupNotInOrganizationError implements Error {
+  groupId: ID!
+  message: String!
+  organizationId: ID!
+}
+
 "A connection to a list of items."
 type GroupRoleAssignmentsConnection {
   "A list of edges."
@@ -2149,6 +2288,10 @@ type GroupRoleAssignmentsEdge {
   cursor: String!
   "The item at the end of the edge."
   node: RoleAssignment!
+}
+
+type GroupValidationError implements Error {
+  message: String!
 }
 
 type HasBeenChangedConflict implements Error {
@@ -2197,6 +2340,10 @@ type InterfaceModifiedChange implements SchemaChange {
   severity: SchemaChangeSeverity!
 }
 
+type InvalidConditionError implements Error {
+  message: String!
+}
+
 type InvalidFusionSourceSchemaArchiveError implements Error {
   message: String!
 }
@@ -2221,6 +2368,11 @@ type InvalidPersistedQueryError implements Error {
 }
 
 type InvalidProcessingStateTransitionError implements Error {
+  message: String!
+}
+
+type InvalidRoleScopeError implements Error {
+  groupId: ID!
   message: String!
 }
 
@@ -2269,6 +2421,17 @@ type McpFeatureCollectionChangeLog implements StageChangeLog & Node {
   tag: String!
 }
 
+type McpFeatureCollectionCheck implements Node & Check {
+  completedAt: DateTime
+  createdAt: DateTime!
+  id: ID!
+  mcpFeatureCollection: McpFeatureCollection
+  number: Int!
+  source: SourceMetadata
+  startedAt: DateTime
+  status: CheckStatus!
+}
+
 type McpFeatureCollectionDeletedStageChangeEvent implements StageChangedEvent {
   kind: StageChangeKind!
   mcpFeatureCollectionId: ID!
@@ -2282,6 +2445,7 @@ type McpFeatureCollectionDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   mcpFeatureCollection: McpFeatureCollection
+  number: Int!
   publicationState: DeploymentPublicationState!
   source: SourceMetadata
   stage: Stage
@@ -2640,6 +2804,17 @@ type OpenApiCollectionChangeLog implements StageChangeLog & Node {
   tag: String!
 }
 
+type OpenApiCollectionCheck implements Node & Check {
+  completedAt: DateTime
+  createdAt: DateTime!
+  id: ID!
+  number: Int!
+  openApiCollection: OpenApiCollection
+  source: SourceMetadata
+  startedAt: DateTime
+  status: CheckStatus!
+}
+
 type OpenApiCollectionDeletedStageChangeEvent implements StageChangedEvent {
   kind: StageChangeKind!
   openApiCollectionId: ID!
@@ -2652,6 +2827,7 @@ type OpenApiCollectionDeployment implements Node & Deployment {
   errors: [OpenApiCollectionDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  number: Int!
   openApiCollection: OpenApiCollection
   publicationState: DeploymentPublicationState!
   source: SourceMetadata
@@ -3153,6 +3329,7 @@ type OpenTelemetryLog {
   traceId: String!
 }
 
+"The body of a log record, in one of the shapes an OTLP log body can take."
 type OpenTelemetryLogBody {
   json: String
   kind: OpenTelemetryLogBodyKind!
@@ -3174,6 +3351,10 @@ type OpenTelemetryLongAttribute implements OpenTelemetryAttribute {
   value: Long!
 }
 
+"""
+The OTLP instrumentation scope that produced a log record. Name,
+Version, and SchemaUrl are null when the scope leaves them empty.
+"""
 type OpenTelemetryScope {
   attributes: [OpenTelemetryAttribute!]!
   name: String
@@ -3341,6 +3522,7 @@ type Operation {
   kind: OperationKind!
   metrics(stageId: ID!): StageOperationMetrics
   name: String
+  plan(stage: String!): OperationPlan
 }
 
 type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & FusionConfigurationValidationResult & OpenApiCollectionVersionPublishResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionPublishResult & McpFeatureCollectionVersionValidationResult {
@@ -3447,6 +3629,12 @@ type OperationMetricsSummary {
   successRate: Float!
   totalCount: Long!
   totalCountWithErrors: Long!
+}
+
+type OperationPlan {
+  content: String
+  createdAt: DateTime!
+  hash: String!
 }
 
 type OperationsAreNotAllowedError implements SchemaVersionValidationError & SchemaVersionPublishError & ProcessingError {
@@ -3614,11 +3802,26 @@ type Organization implements Node {
   specified date range, defaulting to the current calendar month when bounds are omitted.
   """
   usage(from: DateTime, to: DateTime): OrganizationUsage
+  "The workspaces of the organization."
+  workspaces(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+  ): OrganizationWorkspacesConnection
 }
 
 type OrganizationActions {
+  canCreateGroup: Boolean!
   canCreateWorkspace: Boolean!
+  canDeleteGroups: Boolean!
+  canEditGroups: Boolean!
   canManageMembers: Boolean!
+  canManagePermissions: Boolean!
   canViewAuthorizationEventLog: Boolean!
   canViewBilling: Boolean!
   canViewGroups: Boolean!
@@ -3731,6 +3934,11 @@ type OrganizationMemberGroupsConnection {
 type OrganizationMemberGroupsEdge {
   cursor: String!
   node: Group!
+}
+
+type OrganizationMemberNotFoundError implements Error {
+  message: String!
+  organizationMemberId: ID!
 }
 
 "A connection to a list of items."
@@ -4078,6 +4286,24 @@ type OrganizationUsageTransactionsSummary {
   remaining: Long
   "The total number of transactions recorded for the organization in the current billing period."
   total: Long!
+}
+
+"A connection to a list of items."
+type OrganizationWorkspacesConnection {
+  "A list of edges."
+  edges: [OrganizationWorkspacesEdge!]
+  "A flattened list of the nodes."
+  nodes: [Workspace!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OrganizationWorkspacesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Workspace!
 }
 
 type OutputFieldChanged implements SchemaChange {
@@ -4682,6 +4908,18 @@ type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValid
   message: String!
 }
 
+type RemoveGroupFromGroupPayload {
+  errors: [RemoveGroupFromGroupError!]
+  group: Group
+  subgroupMember: GroupGroupMember
+}
+
+type RemoveUserFromGroupPayload {
+  errors: [RemoveUserFromGroupError!]
+  group: Group
+  groupMember: OrganizationMemberGroupMember
+}
+
 type RemoveWorkspacePayload {
   errors: [RemoveWorkspaceError!]
   workspace: Workspace
@@ -4762,18 +5000,53 @@ type RevokePersonalAccessTokenPayload {
   personalAccessToken: PersonalAccessToken
 }
 
+"A role is a collection of permission assignments."
 type Role {
+  """
+  Whether the role can be assigned with a service condition. True when the role only
+  grants telemetry read permissions.
+  """
+  acceptsTelemetryCondition: Boolean!
   description: String!
   id: ID!
   name: String!
 }
 
+"A role assignment is a relationship between a principal and a role."
 type RoleAssignment {
   condition: RoleAssignmentCondition
   effect: RoleEffect!
   id: ID!
   role: Role
   scope: PermissionScope
+}
+
+"Matches when every one of Conditions matches. An empty list matches nothing."
+type RoleAssignmentAndAuthorizationCondition {
+  conditions: [RoleAssignmentCondition!]!
+}
+
+type RoleAssignmentNotFoundError implements Error {
+  message: String!
+  roleAssignmentId: ID!
+}
+
+type RoleAssignmentNotSupportedError implements Error {
+  message: String!
+  reason: String!
+}
+
+"Matches when at least one of Conditions matches. An empty list matches nothing."
+type RoleAssignmentOrAuthorizationCondition {
+  conditions: [RoleAssignmentCondition!]!
+}
+
+"""
+Narrows a telemetry grant to the rows whose service.name resource label equals
+Name.
+"""
+type RoleAssignmentServiceAuthorizationCondition {
+  name: String!
 }
 
 type RoleAssignmentStageAuthorizationCondition {
@@ -4842,6 +5115,42 @@ type SchemaChangeViolationError {
   message: String!
 }
 
+type SchemaCheck implements Node & Check {
+  completedAt: DateTime
+  createdAt: DateTime!
+  id: ID!
+  number: Int!
+  schemaChanges(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): SchemaCheckSchemaChangesConnection
+  source: SourceMetadata
+  startedAt: DateTime
+  status: CheckStatus!
+}
+
+"A connection to a list of items."
+type SchemaCheckSchemaChangesConnection {
+  "A list of edges."
+  edges: [SchemaCheckSchemaChangesEdge!]
+  "A flattened list of the nodes."
+  nodes: [SchemaChangeLogEntry!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type SchemaCheckSchemaChangesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: SchemaChangeLogEntry!
+}
+
 type SchemaCoordinateMetrics implements CoordinateMetrics {
   clientUsage(clientId: ID, from: DateTime!, to: DateTime!): CoordinateClientUsage
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
@@ -4856,6 +5165,7 @@ type SchemaDeployment implements Node & Deployment {
   errors: [SchemaDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  number: Int!
   publicationState: DeploymentPublicationState!
   schemaChanges: SchemaDeploymentSchemaChanges
   source: SourceMetadata
@@ -4992,6 +5302,7 @@ type SearchApisEdge {
   version: String
 }
 
+"A workspace-level service, identified by the service.name resource label."
 type Service {
   """
   Gets values seen for one attribute key within one telemetry signal, narrowed to this
@@ -5017,6 +5328,7 @@ type Service {
     "Only include data at or before this point in time."
     to: DateTime
   ): ServiceAttributeValuesConnection
+  "Distinct coalesced environment names seen for this service."
   environmentNames: [String!]!
   """
   Gets log counts per time bucket for one service, optionally split into series by
@@ -5050,6 +5362,7 @@ type Service {
     "Only include data at or before this point in time."
     to: DateTime
   ): ServiceLogsConnection
+  "The service.name resource label value."
   name: String!
   """
   Gets span counts per time bucket for one service, optionally split into series by
@@ -5120,6 +5433,7 @@ type ServiceAttributeValuesEdge {
   node: OpenTelemetryAttributeValue!
 }
 
+"Latency totals for a service's transaction family over the whole requested window."
 type ServiceLatencySummary {
   max: Float
   mean: Float
@@ -5175,6 +5489,7 @@ type ServiceSpansEdge {
   node: OpenTelemetrySpan!
 }
 
+"Throughput totals for a service's transaction family over the whole requested window."
 type ServiceThroughputSummary {
   errorRate: Float
   opm: Float
@@ -5287,6 +5602,11 @@ type SourceMetadataPullRequest {
   url: URL
 }
 
+type SourceMetadataRepository {
+  name: String!
+  url: URL!
+}
+
 type SourceMetadataTag {
   name: String!
   url: URL
@@ -5327,6 +5647,18 @@ type Stage implements Node {
     last: Int
     search: String
   ): StageChangeLogConnection
+  checks(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    kinds: [CheckKind!]
+    "Returns the last _n_ elements from the list."
+    last: Int
+    statuses: [CheckStatus!]
+  ): StageChecksConnection
   clientDeployments(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -5377,6 +5709,7 @@ type Stage implements Node {
     "Only include data at or before this point in time."
     to: DateTime!
   ): WorkspaceLogDistributionGraph
+  "Gets the logs recorded for this stage."
   logs(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -5471,6 +5804,7 @@ type Stage implements Node {
     "Only include data at or before this point in time."
     to: DateTime!
   ): WorkspaceSpanDistributionGraph
+  "Gets the spans recorded for this stage."
   spans(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -5495,8 +5829,11 @@ type Stage implements Node {
 type StageActions {
   canDelete: Boolean!
   canEditApiCompositionSettings: Boolean!
+  canViewChecks: Boolean!
   canViewDeployments: Boolean!
   canViewLogs: Boolean!
+  canViewSchemaCoordinateMetrics: Boolean!
+  canViewSchemaCoordinates: Boolean!
   canViewTraces: Boolean!
 }
 
@@ -5528,6 +5865,24 @@ type StageChangeLogEdge {
   cursor: String!
   "The item at the end of the edge."
   node: StageChangeLog!
+}
+
+"A connection to a list of items."
+type StageChecksConnection {
+  "A list of edges."
+  edges: [StageChecksEdge!]
+  "A flattened list of the nodes."
+  nodes: [Check!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type StageChecksEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Check!
 }
 
 "A connection to a list of items."
@@ -5563,11 +5918,15 @@ type StageClientsMetrics {
 }
 
 type StageCompositionSettings {
+  allowNonResolvableInterfaceObjects: Boolean
   cacheControlMergeBehavior: CompositionDirectiveMergeBehavior
+  defaultListSize: Int
   enableGlobalObjectIdentification: Boolean
+  enumValuesMergeBehavior: CompositionEnumValuesMergeBehavior
   excludeByTag: [String!]
   nodeResolution: CompositionNodeResolution
   removeUnreferencedDefinitions: Boolean
+  shareableFieldRuntimeTypeRouting: CompositionShareableFieldRuntimeTypeRouting
   tagMergeBehavior: CompositionDirectiveMergeBehavior
 }
 
@@ -5994,6 +6353,11 @@ type SubgraphThroughputGraphData {
   totalCountWithError: Long!
 }
 
+type TelemetryConditionNotAllowedForRoleError implements Error {
+  message: String!
+  roleId: ID!
+}
+
 type TextMatch {
   ranges: [TextMatchRange!]!
 }
@@ -6040,6 +6404,12 @@ type TypeSystemMemberRemovedChange implements SchemaChange {
   coordinate: String!
   kind: TypeSystemMemberKind!
   severity: SchemaChangeSeverity!
+}
+
+type UnassignRoleFromGroupPayload {
+  errors: [UnassignRoleFromGroupError!]
+  group: Group
+  roleAssignment: RoleAssignment
 }
 
 type UnauthorizedOperation implements Error {
@@ -6095,6 +6465,11 @@ type UpdateClientVersionLifecyclePayload {
 type UpdateFeatureFlagsPayload {
   errors: [UpdateFeatureFlagsError!]
   settings: UserSettings
+}
+
+type UpdateGroupPayload {
+  errors: [UpdateGroupError!]
+  group: Group
 }
 
 type UpdateMockSchemaPayload {
@@ -6212,7 +6587,7 @@ type ValidationInProgress implements FusionConfigurationPublishingResult & Fusio
 
 type Viewer {
   activeOrganization: Organization
-  activeWorkspace: Workspace
+  activeWorkspace: Workspace @deprecated(reason: "The active workspace is tracked by the client.")
   billingUrl: String
   manageTenantUrl: String
   organization: OrganizationInfo
@@ -6363,6 +6738,7 @@ type Workspace implements Node {
     "Only include data at or before this point in time."
     to: DateTime!
   ): WorkspaceLogDistributionGraph
+  "Gets the logs recorded for this workspace."
   logs(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -6456,6 +6832,7 @@ type Workspace implements Node {
     "Only include data at or before this point in time."
     to: DateTime!
   ): WorkspaceSpanDistributionGraph
+  "Gets the spans recorded for this workspace."
   spans(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -6481,10 +6858,14 @@ type Workspace implements Node {
 }
 
 type WorkspaceActions {
+  canCreateApi: Boolean!
   canCreateApiKey: Boolean!
   canDelete: Boolean!
   canRename: Boolean!
   canViewApiKeys: Boolean!
+  canViewLogs: Boolean!
+  canViewServices: Boolean!
+  canViewTraces: Boolean!
 }
 
 "A connection to a list of items."
@@ -6755,6 +7136,16 @@ interface ApiDocumentChangeLog implements WorkspaceChangeLog {
   workspaceId: ID!
 }
 
+interface Check {
+  completedAt: DateTime
+  createdAt: DateTime!
+  id: ID!
+  number: Int!
+  source: SourceMetadata
+  startedAt: DateTime
+  status: CheckStatus!
+}
+
 interface ClientVersionPublishError {
   message: String!
 }
@@ -6784,6 +7175,7 @@ interface Deployment {
   createdAt: DateTime!
   id: ID!
   logs: [DeploymentLog!]!
+  number: Int!
   publicationState: DeploymentPublicationState!
   source: SourceMetadata
   stage: Stage
@@ -7007,6 +7399,7 @@ interface SourceMetadata {
   commitUrl: URL
   pullRequest: SourceMetadataPullRequest
   ref: SourceMetadataRef
+  repository: SourceMetadataRepository
   shortCommitHash: String
   workflowRunName: String!
   workflowRunUrl: URL!
@@ -7053,6 +7446,27 @@ union ApproveDeploymentError = UnauthorizedOperation | DeploymentNotFoundError |
 
 union ArgumentChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
+union AssignGroupToGroupError =
+  | UnauthorizedOperation
+  | GroupNotFoundError
+  | GroupNotInOrganizationError
+  | CircularGroupNestingDetectedError
+  | CannotModifyDefaultGroupError
+
+union AssignRoleToGroupError =
+  | UnauthorizedOperation
+  | GroupNotFoundError
+  | RoleNotFoundError
+  | RoleAssignmentNotSupportedError
+  | InvalidRoleScopeError
+  | WorkspaceNotFound
+  | ApiNotFoundError
+  | CannotModifyDefaultGroupError
+  | TelemetryConditionNotAllowedForRoleError
+  | InvalidConditionError
+
+union AssignUserToGroupError = UnauthorizedOperation | GroupNotFoundError | OrganizationMemberNotFoundError
+
 union AuthorizationEventLogPrincipal = UserInfo | ApiKey | OrganizationMember | Group
 
 union AuthorizationEventLogRealm = Organization | Workspace | User
@@ -7092,6 +7506,7 @@ union CreateApiKeyError =
   | ValidationError
   | UnauthorizedOperation
   | RoleNotFoundError
+  | ConditionNotSupportedForApiKeysError
 
 union CreateApiKeyForApiError =
   | ApiNotFoundError
@@ -7100,6 +7515,8 @@ union CreateApiKeyForApiError =
   | UnauthorizedOperation
 
 union CreateClientError = ApiNotFoundError | UnauthorizedOperation | DuplicateNameError
+
+union CreateGroupError = UnauthorizedOperation | GroupNameAlreadyExistsError | GroupValidationError
 
 union CreateMcpFeatureCollectionError = ApiNotFoundError | UnauthorizedOperation | DuplicateNameError
 
@@ -7116,6 +7533,12 @@ union DeleteApiByIdError = ApiNotFoundError | UnauthorizedOperation | ApiDeletio
 union DeleteApiKeyError = ApiKeyNotFoundError | UnauthorizedOperation
 
 union DeleteClientByIdError = ClientNotFoundError | UnauthorizedOperation
+
+union DeleteGroupError =
+  | UnauthorizedOperation
+  | GroupNotFoundError
+  | CannotModifyDefaultGroupError
+  | CannotRemoveLastOwnerGroupError
 
 union DeleteMcpFeatureCollectionByIdError = McpFeatureCollectionNotFoundError | UnauthorizedOperation
 
@@ -7232,13 +7655,25 @@ union PushDocumentChangesError = UnauthorizedOperation | ChangeStructureInvalid
 
 union PushWorkspaceChangesError = UnauthorizedOperation | ChangeStructureInvalid
 
+union RemoveGroupFromGroupError = UnauthorizedOperation | GroupNotFoundError | GroupNotInOrganizationError
+
+union RemoveUserFromGroupError =
+  | UnauthorizedOperation
+  | GroupNotFoundError
+  | OrganizationMemberNotFoundError
+  | CannotModifyDefaultGroupError
+
 union RemoveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound | ValidationError
 
 union RenameWorkspaceError = UnauthorizedOperation | WorkspaceNotFound | ValidationError
 
 union RevokePersonalAccessTokenError = UnauthorizedOperation | PersonalAccessTokenNotFoundError
 
-union RoleAssignmentCondition = RoleAssignmentStageAuthorizationCondition
+union RoleAssignmentCondition =
+  | RoleAssignmentAndAuthorizationCondition
+  | RoleAssignmentOrAuthorizationCondition
+  | RoleAssignmentServiceAuthorizationCondition
+  | RoleAssignmentStageAuthorizationCondition
 
 union ScalarChange = DescriptionChanged
 
@@ -7296,6 +7731,12 @@ union StartFusionConfigurationCompositionError =
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
 
+union UnassignRoleFromGroupError =
+  | UnauthorizedOperation
+  | GroupNotFoundError
+  | RoleAssignmentNotFoundError
+  | CannotRemoveLastOwnerGroupError
+
 union UnionChange = DescriptionChanged | UnionMemberAdded | UnionMemberRemoved
 
 union UnpublishClientError =
@@ -7318,6 +7759,13 @@ union UpdateClientVersionLifecycleError =
 
 union UpdateFeatureFlagsError = UnauthorizedOperation | ValidationError
 
+union UpdateGroupError =
+  | UnauthorizedOperation
+  | GroupNotFoundError
+  | GroupNameAlreadyExistsError
+  | CannotModifyDefaultGroupError
+  | GroupValidationError
+
 union UpdateMockSchemaError =
   | MockSchemaNonUniqueNameError
   | MockSchemaNotFoundError
@@ -7328,7 +7776,7 @@ union UpdatePreferencesError = UnauthorizedOperation | ValidationError
 
 union UpdateSchemaLintRuleSettingError = SchemaLintRuleNotFoundError | ConcurrentOperationError | UnauthorizedOperation
 
-union UpdateStageCompositionSettingsError = StageNotFoundError | UnauthorizedOperation
+union UpdateStageCompositionSettingsError = StageNotFoundError | UnauthorizedOperation | ValidationError
 
 union UpdateStagesError =
   | ApiNotFoundError
@@ -7533,6 +7981,24 @@ input ApproveDeploymentInput {
   deploymentId: ID!
 }
 
+input AssignGroupToGroupInput {
+  childGroupId: ID!
+  parentGroupId: ID!
+}
+
+input AssignRoleToGroupInput {
+  condition: RoleAssigmentConditionInput
+  effect: RoleEffect!
+  groupId: ID!
+  roleId: ID!
+  scope: RoleScopeInput!
+}
+
+input AssignUserToGroupInput {
+  groupId: ID!
+  organizationMemberId: ID!
+}
+
 input AzureDevOpsActorInput {
   email: String
   name: String!
@@ -7667,6 +8133,12 @@ input CreateClientInput {
   name: String!
 }
 
+input CreateGroupInput {
+  description: String!
+  name: String!
+  organizationId: ID!
+}
+
 input CreateMcpFeatureCollectionInput {
   apiId: ID!
   name: String!
@@ -7704,6 +8176,10 @@ input DeleteApiKeyInput {
 
 input DeleteClientByIdInput {
   clientId: ID!
+}
+
+input DeleteGroupInput {
+  groupId: ID!
 }
 
 input DeleteMcpFeatureCollectionByIdInput {
@@ -7934,11 +8410,15 @@ input PartialSchemaRegistrySettingsInput {
 }
 
 input PartialStageCompositionSettingsInput {
+  allowNonResolvableInterfaceObjects: Boolean
   cacheControlMergeBehavior: CompositionDirectiveMergeBehavior
+  defaultListSize: Int
   enableGlobalObjectIdentification: Boolean
+  enumValuesMergeBehavior: CompositionEnumValuesMergeBehavior
   excludeByTag: [String!]
   nodeResolution: CompositionNodeResolution
   removeUnreferencedDefinitions: Boolean
+  shareableFieldRuntimeTypeRouting: CompositionShareableFieldRuntimeTypeRouting
   tagMergeBehavior: CompositionDirectiveMergeBehavior
 }
 
@@ -8038,6 +8518,16 @@ input PushWorkspaceDocumentChangeInput {
   update: WorkspaceDocumentUpdateChangeInput
 }
 
+input RemoveGroupFromGroupInput {
+  childGroupId: ID!
+  parentGroupId: ID!
+}
+
+input RemoveUserFromGroupInput {
+  groupId: ID!
+  organizationMemberId: ID!
+}
+
 input RemoveWorkspaceInput {
   id: ID!
 }
@@ -8061,11 +8551,25 @@ input RevokePersonalAccessTokenInput {
 }
 
 input RoleAssigmentConditionInput @oneOf {
+  and: [RoleAssigmentConditionInput!]
+  or: [RoleAssigmentConditionInput!]
+  serviceAuthorizationCondition: RoleAssignmentServiceAuthorizationConditionInput
   stageAuthorizationCondition: RoleAssignmentStageAuthorizationConditionInput
+}
+
+input RoleAssignmentServiceAuthorizationConditionInput {
+  name: String!
 }
 
 input RoleAssignmentStageAuthorizationConditionInput {
   name: String!
+}
+
+"The scope of a role assignment. Exactly one of the IDs must be set."
+input RoleScopeInput @oneOf {
+  apiId: ID
+  organizationId: ID
+  workspaceId: ID
 }
 
 input SchemaLintRuleStateInput @oneOf {
@@ -8110,6 +8614,11 @@ input SubgraphInsightsOrderByInput {
   totalCountWithError: SortEnumType
 }
 
+input UnassignRoleFromGroupInput {
+  groupId: ID!
+  roleAssignmentId: ID!
+}
+
 input UnpublishClientInput {
   clientId: ID!
   force: Boolean! = false
@@ -8130,6 +8639,12 @@ input UpdateClientVersionLifecycleInput {
 
 input UpdateFeatureFlagsInput {
   featureFlags: [String!]!
+}
+
+input UpdateGroupInput {
+  description: String
+  groupId: ID!
+  name: String
 }
 
 input UpdateMockSchemaInput {
@@ -8357,6 +8872,22 @@ enum AuthorizationEventType {
   TENANT_ACCESS_BYPASSED
 }
 
+enum CheckKind {
+  CLIENT
+  FUSION_CONFIGURATION
+  MCP_FEATURE_COLLECTION
+  OPEN_API_COLLECTION
+  SCHEMA
+}
+
+enum CheckStatus {
+  CANCELLED
+  FAILED
+  PASSED
+  QUEUED
+  RUNNING
+}
+
 enum ClientUnpublishProtectionRuleKind {
   MIN_AGE
   NEWEST_VERSIONS
@@ -8369,9 +8900,20 @@ enum CompositionDirectiveMergeBehavior {
   INCLUDE_PRIVATE
 }
 
+enum CompositionEnumValuesMergeBehavior {
+  AUTO
+  STRICT
+  UNION
+}
+
 enum CompositionNodeResolution {
   GATEWAY
   SOURCE_SCHEMA
+}
+
+enum CompositionShareableFieldRuntimeTypeRouting {
+  COMMON_RUNTIME_TYPES
+  SOURCE_LOCAL
 }
 
 enum CoordinateKind {
@@ -8477,6 +9019,12 @@ enum FusionConfigurationFormat {
   FGP
 }
 
+"The kind of a group member."
+enum GroupMemberKind {
+  GROUP
+  USER
+}
+
 """
 Which attribute population an autocomplete key comes from. Field is a direct fact-table
 column exposed through the direct-field registry; the rest name a JSON attribute scope.
@@ -8493,9 +9041,19 @@ enum OpenTelemetryAttributeKind {
   SPAN
 }
 
+"The shape of a log record's body."
 enum OpenTelemetryLogBodyKind {
+  "The body has no keys."
   EMPTY
+  """
+  The body has keys other than, or in addition to, message.
+  Json holds the whole body as JSON.
+  """
   STRUCTURED
+  """
+  The body's only key is message. Message holds
+  its text, which may be an empty string.
+  """
   TEXT
 }
 

@@ -63,4 +63,9 @@ public static class ExecutionContextData
     /// The key to get the Vary header value from the context data.
     /// </summary>
     public const string VaryHeaderValue = "HotChocolate.Caching.VaryHeaderValue";
+
+    /// <summary>
+    /// The key to get the WWW-Authenticate header value from the context data.
+    /// </summary>
+    public const string WwwAuthenticateHeaderValue = "HotChocolate.Execution.Transport.WwwAuthenticateHeaderValue";
 }

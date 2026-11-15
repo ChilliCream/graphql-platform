@@ -101,7 +101,7 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
     }
 
     [Fact]
-    public async Task ConfigureValidation_Should_RejectEmptySelectionSets_When_Disabled()
+    public async Task ModifyValidationOptions_Should_RejectEmptySelectionSets_When_Disabled()
     {
         // arrange
         var executor =
@@ -109,8 +109,7 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.EnableEmptySelectionSets = true)
-                .ConfigureValidation((_, b) =>
-                    b.ModifyOptions(o => o.EnableEmptySelectionSets = false))
+                .ModifyValidationOptions(o => o.EnableEmptySelectionSets = false)
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act

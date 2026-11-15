@@ -4,6 +4,7 @@ using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
@@ -84,7 +85,11 @@ internal static class CorpusPlanningProbe
         {
             MaxPlanningTime = TimeSpan.FromMinutes(3)
         };
-        var planner = new OperationPlanner(schema, compiler, options);
+        var planner = new OperationPlanner(
+            schema,
+            compiler,
+            options,
+            new PolicyResolver(new BuiltInPolicyProvider(), []));
 
         ProbeQuery(planner, rewriter, "Query1", query1Path);
         ProbeQuery(planner, rewriter, "Query2", query2Path);

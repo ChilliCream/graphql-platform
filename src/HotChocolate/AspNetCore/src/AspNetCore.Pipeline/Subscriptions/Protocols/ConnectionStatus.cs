@@ -6,16 +6,18 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 public sealed class ConnectionStatus
 {
     private static readonly ConnectionStatus s_defaultAccepted =
-        new(true, "Your connection was accepted.", null);
+        new(true, false, "Your connection was accepted.", null);
     private static readonly ConnectionStatus s_defaultRejected =
-        new(false, "Your connection was rejected.", null);
+        new(false, false, "Your connection was rejected.", null);
 
     private ConnectionStatus(
         bool accepted,
+        bool isUnauthorized,
         string message,
         IReadOnlyDictionary<string, object?>? extensions)
     {
         Accepted = accepted;
+        IsUnauthorized = isUnauthorized;
         Message = message;
         Extensions = extensions;
     }
@@ -24,6 +26,11 @@ public sealed class ConnectionStatus
     /// Specifies if the connection is accepted.
     /// </summary>
     public bool Accepted { get; }
+
+    /// <summary>
+    /// Specifies if the connection was refused because the caller has no acceptable identity.
+    /// </summary>
+    public bool IsUnauthorized { get; }
 
     /// <summary>
     /// The connection status message.
@@ -62,7 +69,23 @@ public sealed class ConnectionStatus
     {
         ArgumentException.ThrowIfNullOrEmpty(message);
 
-        return new ConnectionStatus(false, message, extensions);
+        return new ConnectionStatus(false, false, message, extensions);
+    }
+
+    /// <summary>
+    /// Refuses the socket connection because the caller has no acceptable identity.
+    /// </summary>
+    /// <param name="message">
+    /// The message.
+    /// </param>
+    /// <returns>
+    /// The connection reject status.
+    /// </returns>
+    public static ConnectionStatus Unauthorized(string message)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(message);
+
+        return new ConnectionStatus(false, true, message, null);
     }
 
     /// <summary>

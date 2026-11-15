@@ -2,15 +2,23 @@ import { CheckIcon } from "@/src/components/CheckIcon";
 import { CheckListItem } from "@/src/components/CheckListItem";
 
 type CheckListVariant = "plain" | "pill";
+type CheckListSize = "sm" | "base";
 
 interface CheckListProps {
   readonly items: readonly string[];
   readonly variant?: CheckListVariant;
   /** Columns at the `sm` breakpoint (plain variant only). */
   readonly columns?: 1 | 2;
+  /** Text size for the `plain` variant. Defaults to `sm`, today's size. */
+  readonly size?: CheckListSize;
   /** Extra classes for the list, e.g. a top margin supplied by the caller. */
   readonly className?: string;
 }
+
+const SIZE_CLASS: Record<CheckListSize, string> = {
+  sm: "text-sm",
+  base: "text-base",
+};
 
 /**
  * A checklist of short facts, each with an accent check. The `plain` variant is
@@ -21,6 +29,7 @@ export function CheckList({
   items,
   variant = "plain",
   columns = 1,
+  size = "sm",
   className = "",
 }: CheckListProps) {
   if (variant === "pill") {
@@ -40,7 +49,7 @@ export function CheckList({
 
   return (
     <ul
-      className={`text-cc-ink grid gap-2 text-sm ${columns === 2 ? "sm:grid-cols-2" : ""} ${className}`.trim()}
+      className={`text-cc-ink grid gap-2 ${SIZE_CLASS[size]} ${columns === 2 ? "sm:grid-cols-2" : ""} ${className}`.trim()}
     >
       {items.map((item) => (
         <li key={item} className="flex items-start gap-2">

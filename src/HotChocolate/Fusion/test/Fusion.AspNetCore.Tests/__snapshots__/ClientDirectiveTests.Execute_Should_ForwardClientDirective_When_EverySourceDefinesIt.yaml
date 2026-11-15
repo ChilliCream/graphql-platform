@@ -1,0 +1,187 @@
+title: Execute_Should_ForwardClientDirective_When_EverySourceDefinesIt
+request:
+  document: |
+    {
+      products @marker(note: "root") {
+        id
+        name
+        price @marker(note: "entity")
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": [
+          {
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk=",
+            "name": "Product: UHJvZHVjdDoxOTc0MTQ1MDk=",
+            "price": 123
+          },
+          {
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5",
+            "name": "Product: UHJvZHVjdDozOTM1NzEyMDU5",
+            "price": 123
+          },
+          {
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2",
+            "name": "Product: UHJvZHVjdDoyMjE1MjQ2OTE2",
+            "price": 123
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product]
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String
+      }
+
+      directive @marker(note: String!) on FIELD
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d37b82d0_1 {
+              products @marker(note: "root") {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "UHJvZHVjdDoxOTc0MTQ1MDk=",
+                      "name": "Product: UHJvZHVjdDoxOTc0MTQ1MDk="
+                    },
+                    {
+                      "id": "UHJvZHVjdDozOTM1NzEyMDU5",
+                      "name": "Product: UHJvZHVjdDozOTM1NzEyMDU5"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoyMjE1MjQ2OTE2",
+                      "name": "Product: UHJvZHVjdDoyMjE1MjQ2OTE2"
+                    }
+                  ]
+                }
+              }
+  - name: pricing
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        price: Int
+      }
+
+      directive @marker(note: String!) on FIELD
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_d37b82d0_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                price @marker(note: "entity")
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxOTc0MTQ1MDk="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDozOTM1NzEyMDU5"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          products @marker(note: "root") {
+            id
+            id @fusion__requirement
+            name
+            price @marker(note: "entity")
+          }
+        }
+      hash: 63569a0d838bdb811057e8f5c9e5dec2
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation: |
+        query Op_d37b82d0_1 {
+          products @marker(note: "root") {
+            id
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: pricing
+      operation: |
+        query Op_d37b82d0_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            price @marker(note: "entity")
+          }
+        }
+      source: $.productById
+      target: $.products
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

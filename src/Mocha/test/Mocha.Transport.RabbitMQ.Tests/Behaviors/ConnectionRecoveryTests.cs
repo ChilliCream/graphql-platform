@@ -3,10 +3,9 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.ConsumerRecovery)]
 public class ConnectionRecoveryTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan s_recoveryTimeout = TimeSpan.FromSeconds(15);
     private readonly RabbitMQFixture _fixture;
 
@@ -34,7 +33,7 @@ public class ConnectionRecoveryTests
 
         // act - publish message 1, verify received
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, TestContext.Current.CancellationToken);
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive message 1");
 
         // drop all connections
         await _fixture.CloseAllConnectionsAsync("recovery-test");
@@ -65,7 +64,7 @@ public class ConnectionRecoveryTests
 
         // act - publish message 1
         await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, TestContext.Current.CancellationToken);
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive message 1");
 
         // drop connections twice
         await _fixture.CloseAllConnectionsAsync("recovery-test-1");
@@ -100,7 +99,7 @@ public class ConnectionRecoveryTests
         await messageBus.SendAsync(
             new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m },
             TestContext.Current.CancellationToken);
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive message 1");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive message 1");
 
         // drop connections
         await _fixture.CloseAllConnectionsAsync("channel-pool-recovery");

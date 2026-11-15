@@ -42,6 +42,22 @@ internal sealed record CompositionSettings
 
         public int? DefaultListSize { get; set; }
 
+        public double? MaxFieldCost { get; set; }
+
+        public double? MaxTypeCost { get; set; }
+
+        public bool? EnforceCostLimits { get; set; }
+
+        public bool? SkipCostAnalyzer { get; set; }
+
+        public double? MaxResponseSize { get; set; }
+
+        public int? CostPlanCacheSize { get; set; }
+
+        public int? CaseBudget { get; set; }
+
+        public CaseBudgetExceededBehavior? CaseBudgetExceededBehavior { get; set; }
+
         public bool? EnableGlobalObjectIdentification { get; set; }
 
         public EnumValuesMergeBehavior? EnumValuesMergeBehavior { get; set; }

@@ -11,17 +11,49 @@ const PROJECT_ROOT = path.resolve(
 );
 const OUTPUT_ROOT = path.join(PROJECT_ROOT, "out");
 
+export const PRODUCT_GROUPS = JSON.parse(
+  await fs.readFile(
+    path.join(PROJECT_ROOT, "src", "data", "productGroups.json"),
+    "utf8",
+  ),
+);
 const PRODUCT_NAMES = new Map([
-  ["hotchocolate", "Hot Chocolate"],
   ["fusion", "Fusion"],
-  ["strawberryshake", "Strawberry Shake"],
   ["nitro", "Nitro"],
+  ["hotchocolate", "Hot Chocolate"],
+  ["strawberryshake", "Strawberry Shake"],
   ["mocha", "Mocha"],
   ["skills", "Skills"],
 ]);
+const PRODUCT_SUMMARIES = new Map([
+  [
+    "fusion",
+    "Fusion, an open-source, high-performance, language-agnostic GraphQL federation router (gateway) that ships as a single binary",
+  ],
+  [
+    "nitro",
+    "Nitro, a language-agnostic API operations platform with telemetry",
+  ],
+  ["hotchocolate", "Hot Chocolate, an open-source GraphQL server for .NET"],
+  [
+    "strawberryshake",
+    "Strawberry Shake, an open-source GraphQL client for .NET",
+  ],
+  ["mocha", "Mocha, an open-source messaging framework for .NET"],
+]);
 const PRODUCT_ORDER = new Map(
-  [...PRODUCT_NAMES.keys()].map((product, index) => [product, index]),
+  [
+    ...PRODUCT_GROUPS.flatMap((group) => group.products),
+    ...[...PRODUCT_NAMES.keys()].filter(
+      (product) =>
+        !PRODUCT_GROUPS.some((group) => group.products.includes(product)),
+    ),
+  ].map((product, index) => [product, index]),
 );
+const SKILLS_PRODUCT = "skills";
+const SKILLS_SECTION_TITLE = "Agent Skills";
+const UNGROUPED_SECTION_TITLE = "Other";
+const OVERVIEW_SECTION_TITLE = "Overview";
 
 const STRIP_FROM_HTML = ["script", "style", "noscript", "template"];
 const STRIP_FROM_CONTENT = [
@@ -38,7 +70,10 @@ const STRIP_FROM_CONTENT = [
   "[data-llms-ignore]",
   ".heading-anchor",
 ];
-const REDUNDANT_ARCHIVE_PATH = /^\/blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)$/;
+const REDUNDANT_ARCHIVE_PATH =
+  /^\/(?:blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)|comparison\/\d+)$/;
+/** A comparison article, as opposed to the index or its pagination pages. */
+export const COMPARISON_ARTICLE_PATH = /^\/comparison\/(?!\d+$)[^/]+$/;
 const LEGACY_CANONICAL_PATH = /^\/docs\/skillz(?:\/|$)/;
 
 const markdownConverter = new NodeHtmlMarkdown({
@@ -76,7 +111,11 @@ function stripBuildOnlyHtml(html) {
 
 function isDetailArticle(url) {
   const pathname = new URL(url).pathname;
-  return pathname.startsWith("/docs/") || datedContent(pathname) !== null;
+  return (
+    pathname.startsWith("/docs/") ||
+    datedContent(pathname) !== null ||
+    COMPARISON_ARTICLE_PATH.test(pathname)
+  );
 }
 
 function contentRootFor(document, url) {
@@ -294,6 +333,13 @@ async function readPage(url) {
       .querySelector('meta[name="description"]')
       ?.getAttribute("content") ?? "",
   );
+  const datasets = document
+    .querySelectorAll('link[rel="alternate"][type="application/json"]')
+    .map((link) => ({
+      title: cleanInlineText(link.getAttribute("title") ?? ""),
+      url: new URL(link.getAttribute("href") ?? "", url).href,
+    }))
+    .filter((dataset) => dataset.title !== "");
   const renderedMarkdown = normalizeMarkdown(
     markdownConverter.translate(root.innerHTML),
   );
@@ -304,6 +350,7 @@ async function readPage(url) {
 
   const page = {
     body,
+    datasets,
     description,
     markdownUrl: markdownUrl(url),
     title,
@@ -322,6 +369,48 @@ async function readPage(url) {
   }
 
   return page;
+}
+
+function productPageSlug(page) {
+  const segments = new URL(page.url).pathname.split("/").filter(Boolean);
+  return segments[0] === "products" && segments.length === 2
+    ? segments[1]
+    : null;
+}
+
+function groupForProduct(product) {
+  return PRODUCT_GROUPS.find((group) => group.products.includes(product));
+}
+
+function joinNames(names) {
+  if (names.length <= 2) {
+    return names.join(" and ");
+  }
+  return `${names.slice(0, -1).join(", ")}, and ${names.at(-1)}`;
+}
+
+/** Splits pages into one section per product group, then Skills and any other products. */
+function groupedSections(pages, slugOf) {
+  const claimed = new Set();
+  const take = (predicate, title) => {
+    const items = pages.filter((page) => {
+      if (claimed.has(page) || !predicate(slugOf(page))) {
+        return false;
+      }
+      claimed.add(page);
+      return true;
+    });
+    return { title, pages: items };
+  };
+
+  return [
+    take((slug) => slug === null, OVERVIEW_SECTION_TITLE),
+    ...PRODUCT_GROUPS.map((group) =>
+      take((slug) => group.products.includes(slug), group.name),
+    ),
+    take((slug) => slug === SKILLS_PRODUCT, SKILLS_SECTION_TITLE),
+    take(() => true, UNGROUPED_SECTION_TITLE),
+  ];
 }
 
 function productForPage(page) {
@@ -370,6 +459,29 @@ function pageListItem(page) {
   return `- [${escapeLinkLabel(page.title)}](${page.markdownUrl})${description}`;
 }
 
+function formatFileSize(bytes) {
+  return bytes < 1024 * 1024
+    ? `${Math.ceil(bytes / 1024)} KiB`
+    : `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
+}
+
+async function datasetListItem(dataset) {
+  const pathname = decodeURIComponent(new URL(dataset.url).pathname);
+  const { size } = await fs.stat(path.join(OUTPUT_ROOT, pathname.slice(1)));
+  return `- [${escapeLinkLabel(dataset.title)}](${dataset.url}): JSON data, ${formatFileSize(size)}.`;
+}
+
+async function benchmarkListItems(pages) {
+  const items = [];
+  for (const page of pages) {
+    items.push(pageListItem(page));
+    for (const dataset of page.datasets) {
+      items.push(await datasetListItem(dataset));
+    }
+  }
+  return items;
+}
+
 function catalog(title, summary, sections, details = []) {
   const lines = [`# ${title}`, "", `> ${summary}`];
 
@@ -391,6 +503,10 @@ function pageDocument(page) {
   const lines = [`# ${page.title}`];
   if (page.description) {
     lines.push("", `> ${page.description}`);
+  }
+  const productGroup = groupForProduct(productPageSlug(page));
+  if (productGroup) {
+    lines.push("", `Part of the ChilliCream ${productGroup.name}.`);
   }
   lines.push("", `Canonical source: ${page.url}`, "", page.body);
   return `${lines.join("\n").trim()}\n`;
@@ -430,17 +546,29 @@ function scopeLinks(origin) {
     `- [Complete site context](${origin}/llms-full.txt): All substantive public site content in one large compatibility export.`,
     `- [Documentation context](${origin}/docs/llms-full.txt): All product documentation.`,
     `- [Blog context](${origin}/blog/llms-full.txt): All public ChilliCream blog posts.`,
+    `- [Comparison context](${origin}/comparison/llms-full.txt): All public ChilliCream comparison articles.`,
     `- [Videos context](${origin}/videos/llms-full.txt): All ChilliCream TV video pages.`,
   ];
 }
 
-async function writeScopedFiles(relativeRoot, title, summary, pages) {
+async function writeScopedFiles(
+  relativeRoot,
+  title,
+  summary,
+  pages,
+  sectionsFor = (sorted) => [{ title: "Pages", pages: sorted }],
+) {
   const sorted = [...pages].sort(comparePages);
   await writeOutput(
     `${relativeRoot}/llms.txt`,
-    catalog(title, summary, [
-      { title: "Pages", items: sorted.map(pageListItem) },
-    ]),
+    catalog(
+      title,
+      summary,
+      sectionsFor(sorted).map((section) => ({
+        title: section.title,
+        items: section.pages.map(pageListItem),
+      })),
+    ),
   );
   await writeOutput(
     `${relativeRoot}/llms-full.txt`,
@@ -454,6 +582,32 @@ async function writePerPageMarkdown(pages) {
       writeOutput(markdownRelativePath(page.url), pageDocument(page)),
     ),
   );
+}
+
+function docScopeSections(docsByProduct, origin) {
+  const scopeItem = (product) =>
+    `- [${PRODUCT_NAMES.get(product) ?? product} documentation](${origin}/docs/${product}/llms.txt): Scoped documentation index.`;
+  const grouped = new Set(PRODUCT_GROUPS.flatMap((group) => group.products));
+  const known = (products) =>
+    products.filter((product) => docsByProduct.has(product));
+  const leftover = [...docsByProduct.keys()]
+    .filter((product) => !grouped.has(product) && product !== SKILLS_PRODUCT)
+    .sort();
+
+  return [
+    ...PRODUCT_GROUPS.map((group) => ({
+      title: `${group.name} documentation`,
+      items: known(group.products).map(scopeItem),
+    })),
+    {
+      title: `${SKILLS_SECTION_TITLE} documentation`,
+      items: known([SKILLS_PRODUCT]).map(scopeItem),
+    },
+    {
+      title: `${UNGROUPED_SECTION_TITLE} documentation`,
+      items: leftover.map(scopeItem),
+    },
+  ];
 }
 
 export async function generateLlmsFiles() {
@@ -473,7 +627,9 @@ export async function generateLlmsFiles() {
   const origin = new URL(pages[0].url).origin;
   const docs = pagesUnder(pages, "/docs");
   const blog = pagesUnder(pages, "/blog");
+  const comparison = pagesUnder(pages, "/comparison");
   const videos = pagesUnder(pages, "/videos");
+  const benchmarks = pagesUnder(pages, "/benchmarks");
   const products = pagesUnder(pages, "/products");
   const platform = pagesUnder(pages, "/platform");
   const services = [
@@ -488,7 +644,9 @@ export async function generateLlmsFiles() {
     [
       ...docs,
       ...blog,
+      ...comparison,
       ...videos,
+      ...benchmarks,
       ...products,
       ...platform,
       ...services,
@@ -503,14 +661,21 @@ export async function generateLlmsFiles() {
     writeScopedFiles(
       "docs",
       "ChilliCream documentation",
-      "Technical documentation for Hot Chocolate, Fusion, Strawberry Shake, Nitro, Mocha, and Skills.",
+      `Technical documentation for ${joinNames([...PRODUCT_NAMES.values()])}.`,
       docs,
+      (sorted) => groupedSections(sorted, productForPage),
     ),
     writeScopedFiles(
       "blog",
       "ChilliCream blog",
       "Announcements, technical deep dives, and guides from the ChilliCream team, newest first.",
       blog,
+    ),
+    writeScopedFiles(
+      "comparison",
+      "ChilliCream comparisons",
+      "Side-by-side comparisons of GraphQL Federation with the other ways teams get data out of more than one service, and when each is the better fit.",
+      comparison,
     ),
     writeScopedFiles(
       "videos",
@@ -521,8 +686,14 @@ export async function generateLlmsFiles() {
     writeScopedFiles(
       "products",
       "ChilliCream products",
-      "Product overviews for ChilliCream's open-source .NET runtimes and the commercial Nitro control plane.",
+      `Product overviews, grouped as ${joinNames(
+        PRODUCT_GROUPS.map(
+          (group) =>
+            `${group.name} (${joinNames(group.products.map((product) => PRODUCT_NAMES.get(product)))})`,
+        ),
+      )}.`,
       products,
+      (sorted) => groupedSections(sorted, productPageSlug),
     ),
     writeScopedFiles(
       "platform",
@@ -566,13 +737,18 @@ export async function generateLlmsFiles() {
 
   const rootCatalog = catalog(
     "ChilliCream",
-    "ChilliCream is a GraphQL platform for .NET teams, with open-source runtimes and the commercial Nitro control plane.",
+    "Unify, manage, and monitor APIs across any stack with ChilliCream’s GraphQL federation platform, open-source Fusion router (gateway), and Nitro API control plane.",
     [
       { title: "Start Here", items: startHere.map(pageListItem) },
       {
         title: "Products and Platform",
         items: [
-          `- [Product catalog](${origin}/products/llms.txt): Product pages for Hot Chocolate, Strawberry Shake, Mocha, and Nitro.`,
+          ...PRODUCT_GROUPS.map(
+            (group) =>
+              `- [${group.name}](${origin}/products/llms.txt#${group.slug}): ${group.products
+                .map((product) => PRODUCT_SUMMARIES.get(product))
+                .join("; ")}.`,
+          ),
           `- [Platform catalog](${origin}/platform/llms.txt): Federation, analytics, release safety, ecosystem, and agentic coding pages.`,
         ],
       },
@@ -582,26 +758,24 @@ export async function generateLlmsFiles() {
           `- [Services catalog](${origin}/services/llms.txt): Training, advisory, support, and help pages.`,
         ],
       },
+      { title: "Benchmarks", items: await benchmarkListItems(benchmarks) },
       {
         title: "Documentation",
         items: [
           `- [Documentation catalog](${origin}/docs/llms.txt): Every public documentation page, grouped into a generated machine-readable index.`,
-          ...[...docsByProduct.keys()]
-            .sort(
-              (left, right) =>
-                (PRODUCT_ORDER.get(left) ?? Number.MAX_SAFE_INTEGER) -
-                (PRODUCT_ORDER.get(right) ?? Number.MAX_SAFE_INTEGER),
-            )
-            .map(
-              (product) =>
-                `- [${PRODUCT_NAMES.get(product) ?? product} documentation](${origin}/docs/${product}/llms.txt): Scoped documentation index.`,
-            ),
         ],
       },
+      ...docScopeSections(docsByProduct, origin),
       {
         title: "Blog",
         items: [
           `- [Blog catalog](${origin}/blog/llms.txt): Every public blog post, newest first.`,
+        ],
+      },
+      {
+        title: "Comparisons",
+        items: [
+          `- [Comparison catalog](${origin}/comparison/llms.txt): Every public comparison article.`,
         ],
       },
       {

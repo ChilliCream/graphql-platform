@@ -11,6 +11,9 @@ public sealed partial class ResultDocument
     {
         public const int Size = 20;
 
+        // The largest selection or selection set id a row can reference (15 bits).
+        public const int MaxOperationReferenceId = 0x7FFF;
+
         // 29 bits for location (a cursor value for references) + 3 reserved bits
         private readonly int _location;
 
@@ -40,7 +43,7 @@ public sealed partial class ResultDocument
             Debug.Assert(location is >= 0 and <= 0x1FFFFFFF); // 29 bits
             Debug.Assert(sizeOrLength is >= 0 and <= 0x07FFFFFF); // 27 bits
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF); // 29 bits
-            Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
+            Debug.Assert(operationReferenceId is >= 0 and <= MaxOperationReferenceId); // 15 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x07FFFFFF); // 27 bits
             Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
@@ -113,7 +116,7 @@ public sealed partial class ResultDocument
         /// <remarks>
         /// 15 bits = 32K selections
         /// </remarks>
-        public int OperationReferenceId => _opRefIdAndFlags & 0x7FFF;
+        public int OperationReferenceId => _opRefIdAndFlags & MaxOperationReferenceId;
 
         /// <summary>
         /// Element metadata flags.

@@ -129,6 +129,20 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Server.MultiPartMapNotSpecified)
                 .Build());
 
+    public static GraphQLRequestException HttpMultipartMiddleware_MixedOperationIndexPaths() =>
+        new GraphQLRequestException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_HttpMultipartMiddleware_MixedOperationIndexPaths)
+                .SetCode(ErrorCodes.Server.MultiPartMixedOperationIndexPaths)
+                .Build());
+
+    public static GraphQLRequestException HttpMultipartMiddleware_MissingOperationIndex() =>
+        new GraphQLRequestException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_HttpMultipartMiddleware_MissingOperationIndex)
+                .SetCode(ErrorCodes.Server.MultiPartMissingOperationIndex)
+                .Build());
+
     public static InvalidOperationException MultipartFormReader_AntiforgeryValidationFailed() =>
         new(ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed);
 
@@ -175,4 +189,13 @@ internal static class ThrowHelper
             paramName,
             transportVersion,
             string.Format(ThrowHelper_Formatter_TransportVersionNotSupported, transportVersion));
+
+    public static ArgumentOutOfRangeException ResponseBodyBuffer_AdvanceNegative(int bytes)
+        => new(nameof(bytes), bytes, ThrowHelper_ResponseBodyBuffer_AdvanceNegative);
+
+    public static InvalidOperationException ResponseBodyBuffer_AdvancePastBuffer()
+        => new(ThrowHelper_ResponseBodyBuffer_AdvancePastBuffer);
+
+    public static InvalidOperationException ResponseBodyBuffer_WriterCompleted()
+        => new(ThrowHelper_ResponseBodyBuffer_WriterCompleted);
 }

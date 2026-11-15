@@ -158,6 +158,34 @@ public class AsyncTaskDispatcherTests
     }
 
     [Fact]
+    public async Task Initialize_Should_CompleteForAllCallers_When_ManyCallersInitializeConcurrently()
+    {
+        // Arrange
+        var initializeCount = 0;
+        var handlerGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Func<CancellationToken, Task> handler = _ =>
+        {
+            Interlocked.Increment(ref initializeCount);
+            return handlerGate.Task;
+        };
+        var asyncEventHandler = new AsyncTaskDispatcher(handler);
+
+        // the first caller holds the lock until the handler completes, the others queue up on it
+        var callers = new Task[4];
+        for (var i = 0; i < callers.Length; i++)
+        {
+            callers[i] = asyncEventHandler.Initialize(CancellationToken.None);
+        }
+
+        // Act
+        handlerGate.SetResult();
+        await Task.WhenAll(callers).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(1, initializeCount);
+    }
+
+    [Fact]
     public async Task Initialize_Should_Complete_When_CancellationTokenCancelled()
     {
         // Arrange

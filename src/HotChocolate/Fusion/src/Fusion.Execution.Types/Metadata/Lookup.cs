@@ -114,6 +114,6 @@ public sealed class Lookup : INeedsCompletion
     void INeedsCompletion.Complete(FusionSchemaDefinition schema, CompositeSchemaBuilderContext context)
     {
         Requirements = context.RewriteValueSelectionToSelectionSet(schema, _declaringTypeName, Fields);
-        FieldType = schema.Types[_fieldType];
+        FieldType = schema.Types.GetType(_fieldType, allowInaccessibleFields: true);
     }
 }

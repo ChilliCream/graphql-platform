@@ -200,6 +200,13 @@ internal sealed class ExecutionState
         Signal.Set();
     }
 
+    /// <summary>
+    /// Enqueues a merge without signaling the executor.
+    /// The node must report its completion afterwards, which signals the executor.
+    /// </summary>
+    public void EnqueueMergeBeforeCompletion(PendingMerge merge)
+        => _pendingMerges.Enqueue(merge);
+
     public bool TryDequeuePendingMerge(out PendingMerge merge)
         => _pendingMerges.TryDequeue(out merge);
 

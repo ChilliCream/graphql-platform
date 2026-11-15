@@ -6,15 +6,15 @@ namespace HotChocolate.Data.Data;
 
 public class CatalogContext(DbContextOptions<CatalogContext> options) : DbContext(options)
 {
-    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Product> Products { get; set; }
 
-    public DbSet<ProductType> ProductTypes => Set<ProductType>();
+    public DbSet<ProductType> ProductTypes { get; set; }
 
-    public DbSet<Brand> Brands => Set<Brand>();
+    public DbSet<Brand> Brands { get; set; }
 
-    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<Supplier> Suppliers { get; set; }
 
-    public DbSet<SingleProperty> SingleProperties => Set<SingleProperty>();
+    public DbSet<SingleProperty> SingleProperties { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

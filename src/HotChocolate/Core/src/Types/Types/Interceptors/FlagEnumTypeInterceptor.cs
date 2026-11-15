@@ -276,6 +276,10 @@ public class FlagsEnumInterceptor : TypeInterceptor
                             throw ThrowHelper.Flags_Parser_UnknownSelection(key.Key, _inputType);
                         }
                     }
+                    else if (key.Value is false && _flags.ContainsKey(key.Key))
+                    {
+                        value ??= default;
+                    }
                 }
 
                 return value ?? throw ThrowHelper.Flags_Parser_NoSelection(_inputType);

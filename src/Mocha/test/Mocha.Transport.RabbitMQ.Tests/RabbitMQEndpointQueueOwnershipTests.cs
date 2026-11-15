@@ -120,10 +120,11 @@ public class RabbitMQEndpointQueueOwnershipTests
     }
 
     [Fact]
-    public void EndpointQueue_Should_MaterializeNonDurableAutoDeleteQueue_When_EndpointMarkedTemporary()
+    public void EndpointQueue_Should_MaterializeDurableAutoDeleteQueueWithExpiry_When_EndpointMarkedTemporary()
     {
         // arrange
-        // Temporary() on an explicit receive endpoint must map to a non-durable, auto-delete queue.
+        // RabbitMQ 4.3 denies non-durable, non-exclusive queues, so Temporary() keeps the queue
+        // durable and scopes its lifetime through auto-delete plus a queue expiry.
         var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -135,12 +136,54 @@ public class RabbitMQEndpointQueueOwnershipTests
         var topology = (RabbitMQMessagingTopology)transport.Topology;
 
         // act
-        var queue = topology.Queues.SingleOrDefault(q => q.Name == "temp-orders");
+        var queue = topology.Queues.Single(q => q.Name == "temp-orders");
 
         // assert
-        Assert.NotNull(queue);
-        Assert.False(queue.Durable);
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
         Assert.True(queue.AutoDelete);
+        Assert.Equal(1800000, queue.Arguments["x-expires"]);
+    }
+
+    [Fact]
+    public void EndpointQueue_Should_UseConfiguredExpiry_When_TemporaryCalledWithExpiry()
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Endpoint("temp-orders").Temporary(TimeSpan.FromMinutes(5)).Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var queue = topology.Queues.Single(q => q.Name == "temp-orders");
+
+        // assert
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
+        Assert.True(queue.AutoDelete);
+        Assert.Equal(300000, queue.Arguments["x-expires"]);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Endpoint_Should_Throw_When_TemporaryExpiryIsNotPositive(int seconds)
+    {
+        // arrange
+        var expiry = TimeSpan.FromSeconds(seconds);
+
+        // act
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t => t.Endpoint("temp-orders").Temporary(expiry).Consumer<OrderSpyConsumer>()));
+
+        // assert
+        Assert.Equal("expiry", exception.ParamName);
     }
 
     [Theory]
@@ -178,17 +221,19 @@ public class RabbitMQEndpointQueueOwnershipTests
         var queue = topology.Queues.Single(q => q.Name == "shared");
 
         // assert
-        Assert.False(queue.Durable);
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
         Assert.True(queue.AutoDelete);
+        Assert.Equal(1800000, queue.Arguments["x-expires"]);
     }
 
     [Fact]
-    public void EndpointQueue_Should_ThrowOnBuild_When_TemporaryEndpointConflictsWithDeclaredDurableQueue()
+    public void EndpointQueue_Should_ThrowOnBuild_When_TemporaryEndpointConflictsWithDeclaredNonAutoDeleteQueue()
     {
         // arrange
-        // A queue explicitly declared as durable (the default) conflicts with a receive endpoint
-        // for the same queue name marked Temporary(): the broker-native lifecycle it requests can
-        // never be honored.
+        // A queue explicitly declared without auto-delete (the default) conflicts with a receive
+        // endpoint for the same queue name marked Temporary(): the broker-native lifecycle it
+        // requests can never be honored.
         var exception = Assert.Throws<InvalidOperationException>(() => CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
@@ -199,8 +244,38 @@ public class RabbitMQEndpointQueueOwnershipTests
             }));
 
         // assert
-        Assert.Contains("orders", exception.Message);
-        Assert.Contains("Temporary()", exception.Message);
+        Assert.Equal(
+            "Queue 'orders' is explicitly declared without auto-delete, which conflicts with receive "
+            + "endpoint 'orders' being marked Temporary(). Declare the queue with AutoDelete(), or "
+            + "remove Temporary() from the endpoint.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void EndpointQueue_Should_ReuseDeclaredQueue_When_DeclaredAutoDeleteAndEndpointMarkedTemporary()
+    {
+        // arrange
+        // A durable queue declared with auto-delete satisfies Temporary(); the declared queue is
+        // kept as declared and no expiry is added on its behalf.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.DeclareQueue("orders").AutoDelete();
+                t.Endpoint("orders").Temporary().Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var queue = topology.Queues.Single(q => q.Name == "orders");
+
+        // assert
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
+        Assert.True(queue.AutoDelete);
+        Assert.Empty(queue.Arguments);
     }
 
     private static MessagingRuntime CreateRuntime(

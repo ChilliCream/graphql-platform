@@ -83,6 +83,8 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             throw Exit("The commit has failed.");
         }
 
+        await FusionConfigurationPublishingState.ClearRequestId(fileSystem, requestId, ct);
+
         return ExitCodes.Success;
     }
 }

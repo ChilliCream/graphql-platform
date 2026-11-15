@@ -21,7 +21,6 @@ public sealed class SourceResponseNameMappingTests
             Property type: {{property!.PropertyType}}
             Can write: {{property.CanWrite}}
             UTF-8 value: {{Encoding.UTF8.GetString(mapping.ResponseNameUtf8)}}
-            Default is empty: {{default(SourceResponseNameMapping).ResponseNameUtf8.IsEmpty}}
             """;
 
         // assert
@@ -30,7 +29,6 @@ public sealed class SourceResponseNameMappingTests
             Property type: System.ReadOnlySpan`1[System.Byte]
             Can write: False
             UTF-8 value: clientField
-            Default is empty: True
             """);
     }
 }

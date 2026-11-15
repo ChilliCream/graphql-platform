@@ -1869,6 +1869,33 @@ response:
           ],
           "directives": [
             {
+              "name": "test",
+              "description": "Directive description",
+              "isRepeatable": true,
+              "args": [
+                {
+                  "name": "arg",
+                  "description": "Directive argument description",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": "\u0022default\u0022",
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "locations": [
+                "FIELD",
+                "VARIABLE_DEFINITION"
+              ]
+            },
+            {
               "name": "defer",
               "description": null,
               "isRepeatable": false,

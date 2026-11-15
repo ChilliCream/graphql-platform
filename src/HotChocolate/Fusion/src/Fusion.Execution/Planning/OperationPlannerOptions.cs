@@ -99,6 +99,21 @@ public sealed class OperationPlannerOptions
     } = OperationMergePolicy.Aggressive;
 
     /// <summary>
+    /// Gets or sets whether the planner keeps structurally identical lookups at different
+    /// dependency depths apart when entity reuse could serve the deeper lookup from the
+    /// shallower one. The deeper lookup then depends on the shallower lookup.
+    /// </summary>
+    public bool EnableEntityReuseSplitting
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
     /// Gets or sets the weight applied for each operation beyond the fan-out penalty threshold.
     /// </summary>
     public double ExcessFanoutWeight

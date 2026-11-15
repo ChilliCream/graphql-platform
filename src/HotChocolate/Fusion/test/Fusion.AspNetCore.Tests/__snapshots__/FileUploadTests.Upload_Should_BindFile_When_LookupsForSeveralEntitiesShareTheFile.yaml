@@ -1,0 +1,193 @@
+title: Upload_Should_BindFile_When_LookupsForSeveralEntitiesShareTheFile
+request:
+  document: |
+    query($file: Upload!) {
+      products {
+        id
+        fileContent(file: $file)
+      }
+    }
+  variables: |
+    {
+      "file": {
+        "FileName": "test.txt",
+        "ContentType": "text/plain"
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": [
+          {
+            "id": 1,
+            "fileContent": "1:abc"
+          },
+          {
+            "id": 2,
+            "fileContent": "2:abc"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]!
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_3f397611_1 {
+              products {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": 1
+                    },
+                    {
+                      "id": 2
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: Int!): Product @internal @lookup
+      }
+
+      type Product @key(fields: "id") {
+        fileContent(file: Upload!): String!
+        id: Int!
+      }
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The `Upload` scalar type represents a file upload."
+      scalar Upload @serializeAs(type: STRING)
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
+          body: |
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: application/json; charset=utf-8
+            Content-Disposition: form-data; name=operations
+
+            [{"query":"query Op_3f397611_2($file: Upload!, $__fusion_1_id: Int!) { productById(id: $__fusion_1_id) { fileContent(file: $file) } }","variables":{"file":null,"__fusion_1_id":1}},{"query":"query Op_3f397611_2($file: Upload!, $__fusion_1_id: Int!) { productById(id: $__fusion_1_id) { fileContent(file: $file) } }","variables":{"file":null,"__fusion_1_id":2}}]
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: application/json; charset=utf-8
+            Content-Disposition: form-data; name=map
+
+            {"0":["0.variables.file","1.variables.file"]}
+            --f56524ab-5626-4955-b296-234a097b44f6
+            Content-Type: text/plain
+            Content-Disposition: form-data; name=0; filename=test.txt; filename*=utf-8''test.txt
+
+            abc
+            --f56524ab-5626-4955-b296-234a097b44f6--
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "fileContent": "1:abc"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "fileContent": "2:abc"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query($file: Upload!) {
+          products {
+            id
+            id @fusion__requirement
+            fileContent(file: $file)
+          }
+        }
+      hash: aae66058a5794bdcb5844094ce984afb
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_3f397611_1 {
+          products {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_3f397611_2($file: Upload!, $__fusion_1_id: Int!) {
+          productById(id: $__fusion_1_id) {
+            fileContent(file: $file)
+          }
+        }
+      source: $.productById
+      target: $.products
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      forwardedVariables:
+        - file
+      requiresFileUpload: true
+      dependencies:
+        - id: 1

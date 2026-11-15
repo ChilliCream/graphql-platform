@@ -1,0 +1,96 @@
+operation:
+  - document: |
+      mutation {
+        doOther {
+          me {
+            t {
+              f
+              id @fusion__requirement
+              x @fusion__requirement
+            }
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 6
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      mutation Op_123456789101112_1 {
+        doOther {
+          me {
+            t {
+              __typename
+            }
+          }
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_x: String, $__fusion_2_id: ID!) {
+        tById(id: $__fusion_2_id) {
+          f(x: $__fusion_1_x)
+        }
+      }
+    source: $.tById
+    target: $.doOther.me.t
+    requirements:
+      - name: __fusion_1_x
+        selectionMap: >-
+          x
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        otherById(id: $__fusion_3_id) {
+          me {
+            t {
+              x
+            }
+          }
+        }
+      }
+    source: $.otherById
+    target: $.doOther
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
+        otherById(id: $__fusion_4_id) {
+          me {
+            t {
+              id
+            }
+          }
+        }
+      }
+    source: $.otherById
+    target: $.doOther
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

@@ -140,8 +140,7 @@ public sealed class EmptySelectionSetTests : FusionTestBase
 
         if (disableEmptySelectionSetsInValidation)
         {
-            builder.ConfigureValidation(
-                (_, b) => b.ModifyOptions(o => o.EnableEmptySelectionSets = false));
+            builder.ModifyValidationOptions(o => o.EnableEmptySelectionSets = false);
         }
 
         builder.AddInMemoryConfiguration(ComposeSchemaDocument(SourceSchema));

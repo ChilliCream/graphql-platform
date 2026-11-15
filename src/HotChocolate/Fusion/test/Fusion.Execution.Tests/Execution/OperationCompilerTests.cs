@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -371,6 +373,133 @@ public class OperationCompilerTests : FusionTestBase
         // assert
         Assert.Equal("BnjEJe8-", operation.ShortHash);
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSelectionById_Should_ReturnSelection_When_ElementStorageGrows(bool lazy)
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy, selectionCount: 160);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        var selections = lazy
+            ? operation.GetSelectionSet(rootSelection).Selections
+            : operation.RootSelectionSet.Selections;
+
+        // assert
+        Assert.Equal(160, selections.Length);
+        Assert.Same(rootSelection, operation.GetSelectionById(rootSelection.Id));
+        Assert.Same(selections[^1], operation.GetSelectionById(selections[^1].Id));
+    }
+
+    [Fact]
+    public void GetSelectionSet_Should_KeepPreviousElementStorage_When_StorageGrows()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 160);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+        var previousStorage = GetElementsById(operation);
+
+        // act
+        operation.GetSelectionSet(rootSelection);
+        OverwritePooledArray(previousStorage.Length);
+
+        // assert
+        Assert.NotSame(previousStorage, GetElementsById(operation));
+        Assert.Same(rootSelection, previousStorage[rootSelection.Id]);
+    }
+
+    [Fact]
+    public void GetSelectionSet_Should_Throw_When_OperationHasTooManySelections()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool) { MaxElementId = 50 };
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 60);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        void Action() => operation.GetSelectionSet(rootSelection);
+
+        // assert
+        var exception = Assert.Throws<GraphQLException>(Action);
+        Assert.Equal(
+            "The operation exceeds the maximum allowed number of selections and selection sets.",
+            exception.Errors[0].Message);
+    }
+
+    [Fact]
+    public void GetSelectionSet_Should_CompileSelections_When_OperationIsWithinSelectionLimit()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool) { MaxElementId = 50 };
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 40);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        var selections = operation.GetSelectionSet(rootSelection).Selections;
+
+        // assert
+        Assert.Equal(40, selections.Length);
+    }
+
+    [Fact]
+    public async Task Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    {
+        // arrange
+        var previousSchema = CompileLargeOperationWithDiscardedSchema();
+        await using var schema = CreateSchema();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var definition = Utf8GraphQLParser.Parse("{ __typename }")
+            .Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var operation = compiler.Compile("current", "current", "current", definition);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    private static OperationDefinitionNode CreateStorageGrowthDefinition(bool lazy, int selectionCount)
+    {
+        var fields = string.Join(
+            " ",
+            Enumerable.Range(0, selectionCount).Select(i => lazy ? $"f{i}:id" : $"f{i}:__typename"));
+        var document = lazy ? $"{{ product {{ {fields} }} }}" : $"{{ {fields} }}";
+        return Utf8GraphQLParser.Parse(document).Definitions.OfType<OperationDefinitionNode>().Single();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private WeakReference CompileLargeOperationWithDiscardedSchema()
+    {
+        var schema = CreateSchema();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy: false, selectionCount: 160);
+        compiler.Compile("previous", "previous", "previous", definition);
+        schema.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        return new WeakReference(schema);
+    }
+
+    private static void OverwritePooledArray(int length)
+    {
+        var array = ArrayPool<object>.Shared.Rent(length);
+        Array.Fill(array, new object());
+        ArrayPool<object>.Shared.Return(array, clearArray: true);
+    }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_elementsById")]
+    private static extern ref object[] GetElementsById(Operation operation);
 
     public static FusionSchemaDefinition CreateSchema()
     {

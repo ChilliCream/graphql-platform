@@ -1,0 +1,354 @@
+title: Execute_Should_FetchRequiredParentFromOtherSubgraph_When_RequiresSelectsExternalParentField
+request:
+  document: |
+    {
+      orders {
+        id
+        price
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "orders": [
+          {
+            "id": "o1",
+            "price": 90
+          },
+          {
+            "id": "o2",
+            "price": 75
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@external", "@key", "@requires", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        orders: [Order!]!
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Customer @key(fields: "id") {
+        id: ID!
+        discount: Int @external
+      }
+
+      type Order @key(fields: "id") {
+        price: Int @requires(fields: "customer { discount }")
+        id: ID!
+        customer: Customer @external
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = Customer | Order
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      "Used to annotate the required input fieldset from a base type for a resolver."
+      directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a2ae92ba_1 {
+              orders {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "orders": [
+                    {
+                      "id": "o1"
+                    },
+                    {
+                      "id": "o2"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Order {
+                  price
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "Order",
+                  "customer": {
+                    "discount": 10
+                  },
+                  "id": "o1"
+                },
+                {
+                  "__typename": "Order",
+                  "customer": {
+                    "discount": 25
+                  },
+                  "id": "o2"
+                }
+              ]
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "price": 90
+                    },
+                    {
+                      "price": 75
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@key", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Customer @key(fields: "id") {
+        id: ID!
+        discount: Int
+      }
+
+      type Order @key(fields: "id") {
+        customer: Customer
+        id: ID!
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = Order | Customer
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Order {
+                  customer {
+                    discount
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "Order",
+                  "id": "o1"
+                },
+                {
+                  "__typename": "Order",
+                  "id": "o2"
+                }
+              ]
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "customer": {
+                        "discount": 10
+                      }
+                    },
+                    {
+                      "customer": {
+                        "discount": 25
+                      }
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          orders {
+            id
+            id @fusion__requirement
+            price
+            customer @fusion__requirement {
+              discount @fusion__requirement
+            }
+          }
+        }
+      hash: 15bca4b1ca10d5c5ac47a2c78b97b24f
+      searchSpace: 2
+      expandedNodes: 6
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_a2ae92ba_1 {
+          orders {
+            id
+          }
+        }
+    - id: 2
+      type: ApolloOperation
+      schema: a
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Order {
+              price
+            }
+          }
+        }
+      source: $._entities
+      target: $.orders
+      requirements:
+        - name: __fusion_1_customer
+          selectionMap: >-
+            {
+              discount: customer.discount
+            }
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 3
+    - id: 3
+      type: ApolloOperation
+      schema: b
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Order {
+              customer {
+                discount
+              }
+            }
+          }
+        }
+      source: $._entities
+      target: $.orders
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

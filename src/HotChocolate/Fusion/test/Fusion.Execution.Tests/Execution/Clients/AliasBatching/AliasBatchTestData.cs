@@ -31,7 +31,7 @@ internal static class AliasBatchTestData
         var bytes = Encoding.UTF8.GetBytes(values);
         bytes.CopyTo(memory.GetSpan(bytes.Length));
         memory.Advance(bytes.Length);
-        return JsonSegment.Create(memory, start, memory.Position - start);
+        return JsonSegment.Create(memory.GetSequence(start, memory.Position - start));
     }
 
     public static Utf8FieldNode GetRootField(Utf8OperationDocument document)

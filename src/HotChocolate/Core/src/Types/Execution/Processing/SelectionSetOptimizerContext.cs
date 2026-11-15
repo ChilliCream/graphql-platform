@@ -84,7 +84,7 @@ public ref struct SelectionSetOptimizerContext
     /// Gets the next operation unique selection id.
     /// </summary>
     public int NewSelectionId()
-        => ++_lastSelectionId;
+        => OperationCompiler.NewElementId(ref _lastSelectionId);
 
     /// <summary>
     /// Sets the resolvers on the specified <paramref name="selection"/>.

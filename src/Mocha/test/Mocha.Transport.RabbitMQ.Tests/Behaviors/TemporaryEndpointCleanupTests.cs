@@ -4,7 +4,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public sealed class TemporaryEndpointCleanupTests(RabbitMQFixture fixture)
 {
     [Fact]

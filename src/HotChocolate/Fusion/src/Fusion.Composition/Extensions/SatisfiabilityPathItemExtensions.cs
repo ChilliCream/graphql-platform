@@ -78,6 +78,26 @@ internal static class SatisfiabilityPathItemExtensions
         }
     }
 
+    /// <summary>
+    /// Determines whether <paramref name="selectionSet"/>, selected on <paramref name="type"/>, selects
+    /// <paramref name="field"/> of <paramref name="declaringType"/>, and gets the selections it makes below
+    /// the field, or <c>null</c> if it makes none.
+    /// </summary>
+    public static bool TryGetFieldSelectionSet(
+        MutableSchemaDefinition schema,
+        SelectionSetNode selectionSet,
+        ITypeDefinition type,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition declaringType,
+        out SelectionSetNode? fieldSelectionSet)
+        => SelectionSetProvider.TryGetSelectionSet(
+            schema,
+            selectionSet,
+            type,
+            field,
+            declaringType,
+            out fieldSelectionSet);
+
     private static class SelectionSetProvider
     {
         public static bool TryGetSelectionSet(

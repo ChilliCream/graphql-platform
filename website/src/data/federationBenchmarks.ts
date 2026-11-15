@@ -1,5 +1,5 @@
-import history from "@/src/data/federationBenchmarkHistory.json";
-import exampleReport from "@/src/data/federationBenchmarkReport.json";
+import history from "@/src/data/federation-benchmark-history.json";
+import exampleReport from "@/src/data/federation-benchmark-report.json";
 import {
   parseBenchmarkHistory,
   parseBenchmarkReport,

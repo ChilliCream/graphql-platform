@@ -20,26 +20,42 @@ internal sealed class OperationPlanCacheMiddleware
         _diagnosticEvents = diagnosticEvents;
     }
 
-    public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
+    public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
         var operationId = context.GetOperationId();
 
+        if (_cache.TryGet(operationId, out var plan))
+        {
+            context.SetOperationPlan(plan);
+            _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
+            return next(context);
+        }
+
+        return InvokeUncachedAsync(context, next, operationId);
+    }
+
+    private async ValueTask InvokeUncachedAsync(RequestContext context, RequestDelegate next, string operationId)
+    {
         var retried = false;
         var resolved = false;
+        var checkCache = false;
         Lazy<TaskCompletionSource<OperationPlan>>? leaderEntry = null;
         OperationPlanInFlightRelease? inFlightRelease = null;
 
         // Retry once if the planning leader was cancelled without producing a plan.
         // Recheck the cache because another request may have completed the plan in the meantime.
+        // The first cache lookup already missed in InvokeAsync.
         while (!resolved)
         {
-            if (_cache.TryGet(operationId, out var plan))
+            if (checkCache && _cache.TryGet(operationId, out var plan))
             {
                 context.SetOperationPlan(plan);
                 _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
                 resolved = true;
                 continue;
             }
+
+            checkCache = true;
 
             var candidate = new Lazy<TaskCompletionSource<OperationPlan>>(
                 static () => new TaskCompletionSource<OperationPlan>(

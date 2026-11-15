@@ -221,6 +221,21 @@ public sealed partial class SourceResultDocument
             return (JsonTokenType)(union >> 28);
         }
 
+        /// <summary>
+        /// Gets the position directly after the last written row.
+        /// </summary>
+        internal readonly Cursor EndCursor => _cursor;
+
+        /// <summary>
+        /// Gets the read-only rows written so far. The builder must not be written to afterwards.
+        /// </summary>
+        internal readonly ReadOnlyMetaDb Freeze()
+#if DEBUG
+            => new(_chunks, _cursor);
+#else
+            => new(_chunks);
+#endif
+
         [Conditional("DEBUG")]
         private readonly void AssertValidCursor(Cursor cursor)
         {
@@ -264,6 +279,91 @@ public sealed partial class SourceResultDocument
                 _arena = null!;
                 _disposed = true;
             }
+        }
+    }
+
+    /// <summary>
+    /// The read-only rows of a parsed document.
+    /// </summary>
+    internal readonly struct ReadOnlyMetaDb
+    {
+        private readonly MemorySegment[] _chunks;
+#if DEBUG
+        private readonly Cursor _end;
+
+        public ReadOnlyMetaDb(MemorySegment[] chunks, Cursor end)
+        {
+            _chunks = chunks;
+            _end = end;
+        }
+#else
+        public ReadOnlyMetaDb(MemorySegment[] chunks)
+        {
+            _chunks = chunks;
+        }
+#endif
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal DbRow Get(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+
+            ref readonly var chunk = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(_chunks),
+                cursor.Chunk);
+
+            return Unsafe.ReadUnaligned<DbRow>(
+                ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(chunk.Buffer),
+                    chunk.Offset + cursor.ByteOffset));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal JsonTokenType GetJsonTokenType(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+
+            // _numberOfRowsAndTypeUnion is the third int in the row.
+            ref readonly var chunk = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(_chunks),
+                cursor.Chunk);
+
+            var union = Unsafe.ReadUnaligned<uint>(
+                ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(chunk.Buffer),
+                    chunk.Offset + cursor.ByteOffset + 8));
+
+            return (JsonTokenType)(union >> 28);
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertValidCursor(Cursor cursor)
+        {
+            Debug.Assert(
+                cursor.Chunk >= 0 && cursor.Chunk < _chunks.Length,
+                $"chunk {cursor.Chunk} out of bounds");
+            Debug.Assert(
+                _chunks[cursor.Chunk].Buffer is not null,
+                $"chunk {cursor.Chunk} is not allocated");
+
+#if DEBUG
+            if (cursor.Chunk < _end.Chunk)
+            {
+                Debug.Assert(
+                    cursor.Row >= 0 && cursor.Row < cursor.RowsPerChunk,
+                    $"row {cursor.Row} out of bounds for chunk {cursor.Chunk}");
+            }
+            else if (cursor.Chunk == _end.Chunk)
+            {
+                Debug.Assert(
+                    cursor.Row >= 0 && cursor.Row < _end.Row,
+                    $"row {cursor.Row} not yet written in current chunk (max valid {_end.Row - 1})");
+            }
+            else
+            {
+                Debug.Fail($"chunk {cursor.Chunk} is beyond current chunk {_end.Chunk}");
+            }
+#endif
         }
     }
 }

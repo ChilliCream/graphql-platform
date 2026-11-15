@@ -63,6 +63,37 @@ public sealed partial class CompositeResultDocument
         return ReadRawValue(row);
     }
 
+    /// <summary>
+    /// Gets a kind marker and the raw bytes of a non-null leaf value. Two leaf values with equal
+    /// kind markers and equal raw bytes serialize to the same JSON.
+    /// </summary>
+    /// <returns>
+    /// <c>false</c> if the value is null, a null marker, an object, a list or not yet set.
+    /// </returns>
+    internal bool TryGetLeafValueKey(Cursor cursor, out byte kind, out ReadOnlySpan<byte> value)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        var row = _metaDb.Get(cursor);
+        var tokenType = row.TokenType;
+
+        if (tokenType is not (ElementTokenType.String
+                or ElementTokenType.Number
+                or ElementTokenType.True
+                or ElementTokenType.False)
+            || row.IsNullMarker)
+        {
+            kind = 0;
+            value = default;
+            return false;
+        }
+
+        var isSourceResult = (row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult;
+        kind = (byte)((byte)tokenType | (isSourceResult ? 0x80 : 0x00));
+        value = ReadRawValue(row);
+        return true;
+    }
+
     internal string GetRawValueAsString(Cursor cursor)
     {
         var segment = GetRawValue(cursor, includeQuotes: true);

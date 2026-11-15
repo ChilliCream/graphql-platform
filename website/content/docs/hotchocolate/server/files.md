@@ -26,9 +26,6 @@ Hot Chocolate implements the [GraphQL multipart request specification](https://g
 
 [Watch the video on YouTube](https://www.youtube.com/watch?v=XeF3IuGDq4A)
 
-> [!WARNING]
-> Files cannot yet be uploaded through a gateway to stitched services using the `Upload` scalar.
-
 ### Usage
 
 Register the `Upload` scalar to use file upload streams in your input types or as an argument:
@@ -193,6 +190,8 @@ curl localhost:5000/graphql \
 
 > [!NOTE]
 > The `GraphQL-preflight: 1` HTTP header is required since version 13.2 for security reasons.
+
+When [request batching](./batching.md#request-batching) is enabled, a multipart request can carry a batch of operations. The `operations` field is then an array, and when it holds more than one operation, each path in `map` starts with the index of the operation it belongs to, as in `{ "0": ["0.variables.file"], "1": ["1.variables.files.0"] }`. A map that mixes paths with and without an operation index is rejected with the error code `HC0141`, and a batch of more than one operation whose paths do not start with an operation index is rejected with the error code `HC0142`.
 
 [More examples can be found here](https://github.com/jaydenseric/graphql-multipart-request-spec#examples)
 

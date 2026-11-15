@@ -8,6 +8,128 @@ namespace HotChocolate.Fusion.Logging;
 
 internal static class LogEntryHelper
 {
+    public static LogEntry AuthenticatedMismatch(
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema,
+        IEnumerable<string> markedSchemaNames,
+        IEnumerable<string> unmarkedSchemaNames)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_AuthenticatedMismatch,
+                coordinate,
+                FormatSchemaNames(markedSchemaNames),
+                FormatSchemaNames(unmarkedSchemaNames))
+            .SetCode(LogEntryCodes.AuthenticatedMismatch)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry PolicyDirectiveArgumentInvalid(
+        string directiveName,
+        string argumentName,
+        IValueNode? value,
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PolicyDirectiveArgumentInvalid,
+                directiveName,
+                argumentName,
+                coordinate,
+                schema.Name,
+                value?.ToString() ?? "undefined")
+            .SetCode(LogEntryCodes.PolicyDirectiveArgumentInvalid)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry PolicyGroupCountExceeded(
+        string requirement,
+        SchemaCoordinate coordinate,
+        MutableSchemaDefinition schema,
+        int groupCount,
+        int threshold)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PolicyGroupCountExceeded,
+                requirement,
+                coordinate,
+                groupCount,
+                threshold)
+            .SetCode(LogEntryCodes.PolicyGroupCountExceeded)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry PolicyInherited(
+        SchemaCoordinate coordinate,
+        ImmutableArray<string> paths,
+        ImmutableArray<string> schemaNames)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PolicyInherited,
+                coordinate,
+                string.Join("; ", paths),
+                FormatSchemaNames(schemaNames))
+            .SetCode(LogEntryCodes.PolicyInherited)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .Build();
+    }
+
+    public static LogEntry PolicyOnInterfaceObject(
+        MutableObjectTypeDefinition standIn,
+        string directiveName,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PolicyOnInterfaceObject,
+                standIn.Name,
+                schema.Name,
+                directiveName)
+            .SetCode(LogEntryCodes.PolicyOnInterfaceObject)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(standIn)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry PolicyTransitiveRequirementsMissing(
+        SchemaCoordinate requiringCoordinate,
+        SchemaCoordinate dependencyCoordinate,
+        SchemaCoordinate viaCoordinate,
+        MutableSchemaDefinition schema,
+        IEnumerable<string> uncoveredDirectiveNames)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_PolicyTransitiveRequirementsMissing,
+                requiringCoordinate,
+                dependencyCoordinate,
+                viaCoordinate,
+                schema.Name,
+                string.Join(", ", uncoveredDirectiveNames.Select(static n => $"@{n}")))
+            .SetCode(LogEntryCodes.PolicyTransitiveRequirementsMissing)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(requiringCoordinate)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    private static string FormatSchemaNames(IEnumerable<string> schemaNames)
+        => string.Join(", ", schemaNames.Select(static n => $"'{n}'"));
+
     public static LogEntry DisallowedInaccessibleBuiltInScalar(
         MutableScalarTypeDefinition scalar,
         MutableSchemaDefinition schema)
@@ -466,6 +588,27 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry FieldArgumentNotShared(
+        string argumentName,
+        MutableOutputFieldDefinition field,
+        string typeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name, argumentName);
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_FieldArgumentNotShared,
+                coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.FieldArgumentNotShared)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry FieldWithMissingRequiredArgument(
         string requiredArgumentName,
         MutableOutputFieldDefinition field,
@@ -524,6 +667,26 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)
             .SetSchema(schemaA)
+            .Build();
+    }
+
+    public static LogEntry InputFieldNotShared(
+        string fieldName,
+        MutableInputObjectTypeDefinition inputType,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(inputType.Name, fieldName);
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InputFieldNotShared,
+                coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.InputFieldNotShared)
+            .SetSeverity(LogSeverity.Warning)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(inputType)
+            .SetSchema(schema)
             .Build();
     }
 
@@ -733,6 +896,54 @@ internal static class LogEntryHelper
         return LogEntryBuilder.New()
             .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingType, rawValue)
             .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for a non-positive cost-plan cache size, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidCostPlanCacheSizeSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidCostPlanCacheSizeSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidCostPlanCacheSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum field cost, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxFieldCostSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxFieldCostSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxFieldCostSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum response size, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxResponseSizeSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxResponseSizeSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxResponseSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a composition error for an invalid maximum type cost, with no associated schema member.
+    /// </summary>
+    public static LogEntry InvalidMaxTypeCostSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidMaxTypeCostSetting, rawValue)
+            .SetCode(LogEntryCodes.InvalidMaxTypeCostSetting)
             .SetSeverity(LogSeverity.Error)
             .Build();
     }
@@ -1638,6 +1849,24 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(type)
             .SetSchema(schemaA)
+            .Build();
+    }
+
+    public static LogEntry UnreachableSourceField(
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UnreachableSourceField,
+                field.Coordinate.ToString(),
+                schema.Name,
+                type.Name)
+            .SetCode(LogEntryCodes.UnreachableSourceField)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
             .Build();
     }
 

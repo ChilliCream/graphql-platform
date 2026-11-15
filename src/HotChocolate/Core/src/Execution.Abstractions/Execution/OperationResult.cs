@@ -11,6 +11,7 @@ public sealed class OperationResult : ExecutionResult
 {
     private ImmutableList<IError> _errors;
     private ImmutableOrderedDictionary<string, object?> _extensions;
+    private int? _requestIndex;
 
     /// <summary>
     /// Initializes a new instance of <see cref="OperationResult"/> with structured data and an optional formatter.
@@ -114,7 +115,11 @@ public sealed class OperationResult : ExecutionResult
     /// Gets or initializes the index of the request that corresponds to this result.
     /// Used in batched operations to correlate results with requests.
     /// </summary>
-    public int? RequestIndex { get; init; }
+    public int? RequestIndex
+    {
+        get => _requestIndex;
+        init => _requestIndex = value;
+    }
 
     /// <summary>
     /// Gets or initializes the index of the variable set that corresponds to this result.
@@ -272,4 +277,11 @@ public sealed class OperationResult : ExecutionResult
     /// <returns>An operation result containing the specified errors.</returns>
     public static OperationResult FromError(params ImmutableList<IError> errors)
         => new(errors);
+
+    /// <summary>
+    /// Sets the index of the request in a request batch that corresponds to this result.
+    /// </summary>
+    /// <param name="requestIndex">The 0-based index of the request in the request batch.</param>
+    internal void SetRequestIndex(int requestIndex)
+        => _requestIndex = requestIndex;
 }

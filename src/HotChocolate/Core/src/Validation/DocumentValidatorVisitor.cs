@@ -70,6 +70,11 @@ public class DocumentValidatorVisitor : SyntaxWalker<DocumentValidatorContext>
                 return Break;
             }
         }
+        else if (context.Fragments.IsRefusedByVisitLimit(node))
+        {
+            context.ReportMaxFragmentVisitsOverflow(node);
+            return Break;
+        }
 
         return DefaultAction;
     }

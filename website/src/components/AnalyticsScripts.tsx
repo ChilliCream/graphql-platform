@@ -16,8 +16,8 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
  * the denied-by-default consent state exists before any tag can fire. Cookiebot
  * runs in `manual` blocking mode and loads `afterInteractive`: every
  * cookie-setting script on this site is consent-gated at the load level (GTM
- * below, YouTube via facades on youtube-nocookie.com that load the player on
- * click, or on video pages once marketing consent is given), so
+ * below, YouTube via facades on youtube-nocookie.com that load the player only
+ * with marketing consent, asked for on click if missing), so
  * Cookiebot's `auto` mode script-rewriting is redundant and its
  * `beforeInteractive` placement (a high-priority preload of ~141 KB uc.js +
  * cc.js) only contends with CSS, fonts, and the LCP image on slow connections.

@@ -112,6 +112,34 @@ nodes:
           name
         }
       }
+  - id: 10
+    type: Operation
+    schema: b
+    operation: |
+      query TestQuery_123456789101112_10(
+        $__fusion_10_upc: ID!
+        $__fusion_11_price: Long!
+        $__fusion_11_weight: Long!
+      ) {
+        productByUpc(upc: $__fusion_10_upc) {
+          inStock
+          shippingEstimate(weight: $__fusion_11_weight, price: $__fusion_11_price)
+        }
+      }
+    source: $.productByUpc
+    target: $.topProducts
+    requirements:
+      - name: __fusion_10_upc
+        selectionMap: >-
+          upc
+      - name: __fusion_11_price
+        selectionMap: >-
+          price
+      - name: __fusion_11_weight
+        selectionMap: >-
+          weight
+    dependencies:
+      - id: 1
   - id: 3
     type: Operation
     schema: d
@@ -223,7 +251,6 @@ nodes:
     targets:
       - $.users.reviews.product
       - $.users.reviews.product.reviews.author.reviews.product
-      - $.topProducts
       - $.topProducts.reviews.author.reviews.product
     batchingGroupId: 16
     requirements:
@@ -237,10 +264,10 @@ nodes:
         selectionMap: >-
           weight
     dependencies:
-      - id: 1
       - id: 3
       - id: 4
       - id: 9
+      - id: 10
   - id: 6
     type: OperationBatch
     schema: a

@@ -1,7 +1,5 @@
-using ChilliCream.Nitro;
 using Mocha;
 using Mocha.Transport.AzureServiceBus;
-using AzureServiceBusTransport.Contracts.Commands;
 using AzureServiceBusTransport.Contracts.Events;
 using AzureServiceBusTransport.ShippingService.Handlers;
 

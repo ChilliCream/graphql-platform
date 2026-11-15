@@ -10,6 +10,7 @@ internal static class SemanticConventions
 {
     // Messaging attributes
     public const string MessagingSystem = "messaging.system";
+    public const string MessagingOperationName = "messaging.operation.name";
     public const string MessagingOperationType = "messaging.operation.type";
     public const string MessagingMessageType = "messaging.message.type";
 

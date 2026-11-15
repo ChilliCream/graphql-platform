@@ -165,11 +165,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     protected virtual ValueTask InitializeAsync(TestServerSession serverSession) => ValueTask.CompletedTask;
 
-    public ValueTask DisposeAsync()
-    {
-        _testServerSession.Dispose();
-        return ValueTask.CompletedTask;
-    }
+    public ValueTask DisposeAsync() => _testServerSession.DisposeAsync();
 
     protected abstract void ConfigureStorage(
         IServiceCollection services,
@@ -343,11 +339,30 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             }
         }
 
-        public ValueTask<IEnumerable<IOpenApiDefinition>> GetDefinitionsAsync(CancellationToken cancellationToken = default)
+        public Func<Task>? OnGetDefinitions { get; set; }
+
+        public int SubscriberCount
         {
+            get
+            {
+                lock (_lock)
+                {
+                    return _sessions.Count;
+                }
+            }
+        }
+
+        public async ValueTask<IEnumerable<IOpenApiDefinition>> GetDefinitionsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            if (OnGetDefinitions is { } onGetDefinitions)
+            {
+                await onGetDefinitions();
+            }
+
             lock (_lock)
             {
-                return ValueTask.FromResult<IEnumerable<IOpenApiDefinition>>(_definitionsById.Values.ToList());
+                return _definitionsById.Values.ToList();
             }
         }
 

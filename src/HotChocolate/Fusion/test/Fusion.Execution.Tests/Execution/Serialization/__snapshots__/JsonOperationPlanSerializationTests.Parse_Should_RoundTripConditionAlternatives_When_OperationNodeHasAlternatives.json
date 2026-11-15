@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "type": "Operation",
+    "schema": "PRODUCTS",
+    "operation": {
+      "name": "Op_123456789101112_1",
+      "kind": "Query",
+      "document": "query Op_123456789101112_1 { productBySlug(slug: \u00221\u0022) { id name dimension { height width } } }",
+      "hash": "7b616ef6cf8c44566a5ef2c711f5e47ce009cb6e09aca19aadd9d15002fd6c39",
+      "shortHash": "7b616ef6",
+      "xxHash": 6888841500733697725
+    },
+    "resultSelectionSet": "{ productBySlug }",
+    "conditionAlternatives": [
+      [
+        {
+          "variable": "$a",
+          "passingValue": true
+        }
+      ],
+      [
+        {
+          "variable": "$b",
+          "passingValue": false
+        },
+        {
+          "variable": "$c",
+          "passingValue": true
+        }
+      ]
+    ]
+  },
+  {
+    "id": 2,
+    "type": "Operation",
+    "schema": "SHIPPING",
+    "operation": {
+      "name": "Op_123456789101112_2",
+      "kind": "Query",
+      "document": "query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_height: Int!, $__fusion_2_width: Int!) { productById(id: $__fusion_1_id) { estimatedDelivery(postCode: \u002212345\u0022, height: $__fusion_2_height, width: $__fusion_2_width) } }",
+      "hash": "3eb06d5531cc116c1ba92d644e1b74fce3c804ee994fd016c4db4e53a7ea44ab",
+      "shortHash": "3eb06d55",
+      "xxHash": 18400102910283169501
+    },
+    "lookupTypeName": "Product",
+    "resultSelectionSet": "{ estimatedDelivery }",
+    "source": "$.productById",
+    "target": "$.productBySlug",
+    "requirements": [
+      {
+        "name": "__fusion_1_id",
+        "type": "ID!",
+        "path": "$.productBySlug",
+        "selectionMap": "id"
+      },
+      {
+        "name": "__fusion_2_height",
+        "type": "Int!",
+        "path": "$.productBySlug",
+        "selectionMap": "dimension.height"
+      },
+      {
+        "name": "__fusion_2_width",
+        "type": "Int!",
+        "path": "$.productBySlug",
+        "selectionMap": "dimension.width"
+      }
+    ],
+    "dependencies": [
+      1
+    ]
+  }
+]

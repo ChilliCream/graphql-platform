@@ -40,18 +40,16 @@ internal sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdV
 
     public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
     {
-        if (compress)
+        if (buffer.Length == 16)
         {
-            switch (buffer.Length)
-            {
-                case 16:
-                    value = new Guid(buffer);
-                    return true;
+            value = new Guid(buffer);
+            return true;
+        }
 
-                case 0:
-                    value = Guid.Empty;
-                    return true;
-            }
+        if (compress && buffer.Length == 0)
+        {
+            value = Guid.Empty;
+            return true;
         }
 
         if (Utf8Parser.TryParse(buffer, out Guid parsedValue, out _, 'N'))

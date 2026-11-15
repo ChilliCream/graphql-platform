@@ -98,7 +98,7 @@ IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
 
 ## Internal directives hidden from schema endpoint
 
-Previously, the `/graphql/schema.graphql` endpoint was returning the schema containing internal directives like `@authorize`. Starting with v16 the endpoint no longer includes internal directives by default.
+Previously, the `/graphql/schema.graphql` endpoint was returning the schema containing internal directives like `@authorize`. Starting with v16 the endpoint no longer includes internal directives by default. The `_service { sdl }` field of Apollo Federation subgraphs leaves them out as well.
 
 If you need to retain the previous behavior, set `DisableInternalDirectives` to `true` through `ModifyOptions`. This treats every directive as public, even directives that explicitly call `Internal()` and regardless of `DefaultDirectiveVisibility`:
 
@@ -182,6 +182,61 @@ builder.AddGraphQL()
 ```
 
 If your application contains multiple GraphQL servers, the hash provider configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
+
+## HTTP response formatter configuration
+
+The `AddHttpResponseFormatter` overloads moved from `IServiceCollection` to `IRequestExecutorBuilder`. This covers the overloads that take `indented`, `HttpResponseFormatterOptions`, a formatter type, or a factory. Move the call to the GraphQL server builder:
+
+```diff
+-builder.Services.AddHttpResponseFormatter(indented: true);
+
+builder.AddGraphQL()
++    .AddHttpResponseFormatter(indented: true);
+```
+
+A formatter applies only to the GraphQL server whose builder registers it, so an application with multiple GraphQL servers registers it on each one.
+
+## Formatter namespaces and JsonNullIgnoreCondition
+
+The HTTP and WebSocket formatter types, the HTTP request parser, and the JSON options they take moved to new namespaces:
+
+| Type                               | v15 namespace                           | v16 namespace                        |
+| ---------------------------------- | --------------------------------------- | ------------------------------------ |
+| `DefaultHttpResponseFormatter`     | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `HttpResponseFormatterOptions`     | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `IHttpResponseFormatter`           | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `DefaultWebSocketPayloadFormatter` | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `IWebSocketPayloadFormatter`       | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `WebSocketPayloadFormatterOptions` | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `IHttpRequestParser`               | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Parsers`    |
+| `JsonResultFormatterOptions`       | `HotChocolate.Execution.Serialization`  | `HotChocolate.Transport.Formatters`  |
+| `JsonNullIgnoreCondition`          | `HotChocolate.Execution.Serialization`  | `HotChocolate.Text.Json`             |
+
+`JsonNullIgnoreCondition` is now a flags enum, and two of its members were renamed:
+
+| v15       | v16              |
+| --------- | ---------------- |
+| `Default` | `None`           |
+| `All`     | `FieldsAndLists` |
+
+`Fields` and `Lists` keep their names, and `Fields | Lists` equals `FieldsAndLists`.
+
+```diff
+-using HotChocolate.AspNetCore.Serialization;
+-using HotChocolate.Execution.Serialization;
++using HotChocolate.AspNetCore.Formatters;
++using HotChocolate.Text.Json;
++using HotChocolate.Transport.Formatters;
+
+var options = new HttpResponseFormatterOptions
+{
+    Json = new JsonResultFormatterOptions
+    {
+-        NullIgnoreCondition = JsonNullIgnoreCondition.All
++        NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
+    }
+};
+```
 
 ## NATS subscriptions now use the official NATS v2 client
 
@@ -1661,7 +1716,7 @@ builder
 
 ## Fragment visit budget
 
-Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget will have remaining fragments skipped during validation. If you have complex queries with many fragment spreads, increase the limit:
+Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget are rejected with the error code `HC0137`. If you have complex queries with many fragment spreads, increase the limit:
 
 ```csharp
 builder

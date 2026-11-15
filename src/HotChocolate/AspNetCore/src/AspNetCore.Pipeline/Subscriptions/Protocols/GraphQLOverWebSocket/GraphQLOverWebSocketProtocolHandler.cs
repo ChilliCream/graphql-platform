@@ -136,6 +136,12 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                     connectionStatus.Extensions,
                     cancellationToken);
             }
+            else if (connectionStatus.IsUnauthorized)
+            {
+                await connection.CloseUnauthorizedAsync(
+                    connectionStatus.Message,
+                    cancellationToken);
+            }
             else
             {
                 await connection.CloseConnectionRefusedAsync(
@@ -167,6 +173,15 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                 {
                     await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
                     return;
+                }
+
+                foreach (var request in requests)
+                {
+                    if (request.Variables?.RootElement.ValueKind is JsonValueKind.Array)
+                    {
+                        throw new GraphQLRequestException(
+                            ErrorHelper.VariableBatchingNotSupportedForWebSocket());
+                    }
                 }
 
                 bool success;

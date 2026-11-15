@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import { BenchmarkResultsTable } from "@/src/components/benchmarks/BenchmarkResultsTable";
 import {
   scenarioGroups,
@@ -14,7 +16,8 @@ interface BenchmarkScenarioResultsProps {
   readonly report: BenchmarkReport;
   readonly scenario: BenchmarkScenario;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
-  readonly stableOnly: boolean;
+  /** A control shown at the end of the first table's heading row. */
+  readonly action: ReactNode;
 }
 
 /** The GraphQL Federation specification and Apollo Federation tables of one scenario, with single-run notices. */
@@ -22,9 +25,15 @@ export function BenchmarkScenarioResults({
   report,
   scenario,
   variants,
-  stableOnly,
+  action,
 }: BenchmarkScenarioResultsProps) {
-  const groups = scenarioGroups(scenario, variants, stableOnly);
+  const groups = scenarioGroups(scenario, variants);
+  const { pinnedSeries } = useBenchmarkPreferences();
+  const selected = groups.some((group) =>
+    group.rows.some((row) => row.variant === pinnedSeries),
+  )
+    ? pinnedSeries
+    : undefined;
   const { config } = scenario;
 
   if (groups.length === 0) {
@@ -42,7 +51,7 @@ export function BenchmarkScenarioResults({
 
   return (
     <div className="space-y-12">
-      {groups.map((group) => (
+      {groups.map((group, index) => (
         <BenchmarkResultsTable
           key={group.id}
           id={`${scenario.id}-${group.id}`}
@@ -50,9 +59,11 @@ export function BenchmarkScenarioResults({
           caption={tableCaption(scenario, group, report)}
           group={group}
           variants={variants}
+          selected={selected}
           measuredRuns={config.measuredRuns}
           gatewayThreads={config.cpuAllocation?.gateway?.hardwareThreads}
           throughputNote={throughputNote(scenario)}
+          action={index === 0 ? action : undefined}
         />
       ))}
       {config.measuredRuns === 1 && (

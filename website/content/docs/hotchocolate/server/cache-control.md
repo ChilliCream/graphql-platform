@@ -16,7 +16,7 @@ Good cache rules help you:
 
 To make caching work safely and predictably, you need two things:
 
-1. A deterministic GET route so caches get a stable cache key.
+1. A deterministic GET route, or a QUERY request, so caches get a stable cache key.
 2. Correct Cache-Control (and Vary) headers so caches know where and how long a response may be reused.
 
 # Why GraphQL Needs Extra Care
@@ -57,13 +57,13 @@ In large first-party GraphQL APIs, a common approach used by companies such as N
 With trusted documents in place, persisted-operation routes become short and stable.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789
+GET /graphql/persisted/123456789/GetProducts
 ```
 
 Variables can then be sent as query parameters.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789?variables={"first":5}
+GET /graphql/persisted/123456789/GetProducts?variables={"first":5}
 ```
 
 In order to use persisted-operation routes you need to add the middleware `MapGraphQLPersistedOperations`.
@@ -74,9 +74,32 @@ var app = builder.Build();
 app.MapGraphQLPersistedOperations();
 ```
 
+# QUERY Requests
+
+Query operations can also be sent over HTTP QUERY, which carries the same JSON body as a POST request. QUERY requests are disabled by default. Enable them with `EnableQueryRequests`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyServerOptions(o => o.EnableQueryRequests = true);
+```
+
+```http
+QUERY /graphql
+Content-Type: application/json
+Accept: application/graphql-response+json
+
+{
+  "query": "query GetProducts($first: Int!) { products(first: $first) { nodes { name } } }",
+  "variables": { "first": 5 }
+}
+```
+
+[RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html#section-2.7) makes the response to a QUERY request cacheable, and a cache that stores it includes the request body in the cache key. A QUERY response carries the same `Cache-Control` and `Vary` headers as a GET response. A variable batch is answered with `Cache-Control: no-cache`, whatever the method. Support for caching QUERY responses varies between CDNs and proxies, so GET routes and persisted-operation GET routes are the portable choice. See [QUERY Requests](./http-transport.md#query-requests) for the full request rules.
+
 # `@cacheControl` in GraphQL
 
-A deterministic route alone is not enough. The gateway also needs policy metadata to decide whether a response is public or private, and how long it may be reused.
+A deterministic route alone is not enough. The server also needs policy metadata to decide whether a response is public or private, and how long it may be reused.
 
 GraphQL provides the `@cacheControl` directive for this purpose. You can place it on fields and types to describe cache intent.
 
@@ -110,6 +133,8 @@ public static class Query
 # How Hot Chocolate Assembles the Final Headers
 
 Hot Chocolate computes one effective response policy by traversing the selected query fields. It reads `@cacheControl` metadata on each field, falls back to the field return type when values are missing, and continues recursively through child selections.
+
+The return type is the named type behind any non-null and list wrappers, so a field of type `UserProfile`, `UserProfile!`, or `[UserProfile!]!` takes the settings of `UserProfile`. When the return type is an interface or a union, the settings of each object type that implements it or belongs to it apply too, whether or not the operation selects fields of that object type. A `maxAge` or `sharedMaxAge` declared on the field takes precedence over the lifetimes of these types.
 
 All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated. Every GraphQL response already lists `Accept` in `Vary`, and the merged `vary` names are added to it. Some CDNs, Akamai by default, do not cache a response whose `Vary` lists anything other than `Accept-Encoding`. Configure the CDN to cache it anyway, or remove `Accept` from `Vary` in a [custom formatter](./http-transport.md#adding-selecting-headers-to-vary).
 
@@ -169,15 +194,9 @@ builder
 | `DefaultScope`  | `CacheControlScope` | `Public` | Default cache scope when `ApplyDefaults` is enabled.                  |
 | `ApplyDefaults` | `bool`              | `true`   | Applies defaults to eligible fields without explicit `@cacheControl`. |
 
-With the default settings, eligible query fields that do not declare explicit cache metadata still contribute `max-age=0`. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false`.
+With `ApplyDefaults` enabled, Hot Chocolate writes `@cacheControl(maxAge: <DefaultMaxAge>)` onto each query type field, each field without a pure resolver, and each field with middleware, when the field has no `@cacheControl` of its own. That covers asynchronous resolvers and fields with paging, filtering, or sorting. The directive also sets `scope` when `DefaultScope` is not `Public`. A query type field whose `@cacheControl` sets no `maxAge`, `sharedMaxAge`, or `inheritMaxAge: true` takes the lifetime of its return type's `@cacheControl`, or contributes `DefaultMaxAge` when the return type sets none, together with its own `scope` if it sets one and `DefaultScope` otherwise. An interface or union return type sets a lifetime when it sets one itself, or when every object type that implements it or belongs to it does. With the default settings, these fields contribute `max-age=0`. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false`.
 
-# How HotChocolate Assembles the Final Headers
-
-Hot Chocolate computes one effective response policy by traversing the planned operation tree. It starts at the selected root fields, reads `@cacheControl` metadata on each field, falls back to the field return type when values are missing, and continues recursively through child selections, including interfaces and unions.
-
-All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated.
-
-Hot Chocolate computes these cache constraints for query operations. Mutation requests, Subscription request, introspection requests, and operations with no cache constraints do not get cache-control headers.
+Any other field adds no constraint of its own, so a response that selects it can be cached for as long as the other selected fields allow. Annotate such a field when its value is specific to the current user, for example with `@cacheControl(scope: PRIVATE)`.
 
 # Skip Cache Control for a Specific Request
 
@@ -220,9 +239,8 @@ builder
 
 In day-to-day terms, the flow is simple:
 
-- Subgraphs declare cache intent.
-- Fusion composes that metadata.
-- The gateway calculates one safe policy for each query result.
+- Fields and types declare cache intent with `@cacheControl`.
+- Hot Chocolate calculates one safe policy for each query result.
 - HTTP caches enforce the resulting headers.
 
 # Next Steps

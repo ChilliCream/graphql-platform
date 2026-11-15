@@ -5,7 +5,9 @@ import {
   benchmarkRunId,
   parseBenchmarkHistory,
   benchmarkVariants,
+  decisiveFeatures,
   formatPlatform,
+  formatPlatformTag,
   formatRuntimeTag,
   gatewayLink,
   parseBenchmarkReport,
@@ -14,12 +16,12 @@ import {
 } from "../../src/helpers/benchmarkReport.ts";
 
 const historyFixture = readFileSync(
-  new URL("./fixtures/federationBenchmarkHistory.json", import.meta.url),
+  new URL("./fixtures/federation-benchmark-history.json", import.meta.url),
   "utf8",
 );
 
 const fixture = readFileSync(
-  new URL("./fixtures/federationBenchmarkReport.json", import.meta.url),
+  new URL("./fixtures/federation-benchmark-report.json", import.meta.url),
   "utf8",
 );
 
@@ -120,6 +122,30 @@ const parse = (mutate) => {
   mutate(report);
   return parseBenchmarkReport(JSON.stringify(report));
 };
+
+test("accepts the renamed GraphQL Federation composition in reports and history", () => {
+  // arrange
+  const documents = [JSON.parse(fixture), JSON.parse(historyFixture)];
+  for (const document of documents) {
+    document.gateways[0].variants[0].composition = "graphql-federation";
+  }
+
+  // act
+  const parsed = [
+    parseBenchmarkReport(JSON.stringify(documents[0])),
+    parseBenchmarkHistory(JSON.stringify(documents[1])),
+  ];
+
+  // assert
+  assert.deepEqual(parsed, documents);
+  assert.deepEqual(
+    parsed.map(
+      (document) =>
+        benchmarkVariants(document).values().next().value.variant.composition,
+    ),
+    ["composite-schema", "composite-schema"],
+  );
+});
 
 const invalidReports = [
   [
@@ -350,6 +376,36 @@ test("formats runtime tags with the major version", () => {
   );
 });
 
+test("lists only the platform features that tell sibling variants apart", () => {
+  const dotnet11 = (id, features) => ({
+    gateway: { id: "fusion" },
+    variant: {
+      id,
+      composition: "composite-schema",
+      platform: {
+        language: { name: "C#" },
+        runtime: { name: ".NET", version: "11.0.0" },
+        features,
+      },
+    },
+  });
+  const runtimeAsync = { id: "runtime-async", name: "Runtime Async" };
+  const aot = { id: "aot", name: "AOT" };
+  const variants = new Map(
+    [
+      dotnet11("fusion-net-11", [runtimeAsync]),
+      dotnet11("fusion-aot-11", [runtimeAsync, aot]),
+    ].map((entry) => [entry.variant.id, entry]),
+  );
+  const features = decisiveFeatures(variants);
+  assert.deepEqual(
+    [...variants.values()].map(({ variant }) =>
+      formatPlatformTag(variant.platform, features.get(variant.id)),
+    ),
+    [".NET 11", ".NET 11 AOT"],
+  );
+});
+
 test("accepts a report with only the fields the schema requires", () => {
   const report = parse((report) => {
     report.run = {
@@ -420,7 +476,7 @@ test("accepts every optional field the schema allows", () => {
     Object.assign(report.gateways[0].variants[0], {
       label: "Apollo Gateway (custom)",
       notes: "Built from a fork.",
-      features: [{ id: "query-plan-cache" }],
+      features: [{ id: "query-plan-cache", name: "Query Plan Cache" }],
     });
     Object.assign(firstResult(report).latencyMs, { p99: 250 });
     report.scenarios[0].config.cpuAllocation = {
@@ -487,7 +543,7 @@ test("names and links unknown gateways from the report", () => {
       return [variantName(entry), gatewayLink(entry.gateway)];
     }),
     [
-      ["Fusion", "/docs/fusion"],
+      ["Fusion", "/products/fusion"],
       ["New Router Preview", "https://github.com/example/new-router"],
       ["Unsafe Router", undefined],
     ],
@@ -544,7 +600,48 @@ test("accepts the history and keeps versions oldest first", () => {
 const firstHistoryVersion = (history) =>
   history.scenarios[0].variants[0].results[0];
 
+test("validates mixed history repetition counts against each result", () => {
+  // arrange
+  const history = JSON.parse(historyFixture);
+  for (const scenario of history.scenarios) {
+    for (const variant of scenario.variants) {
+      for (const result of variant.results) {
+        result.measuredRuns = scenario.config.measuredRuns;
+      }
+    }
+    scenario.config.measuredRuns = 5;
+  }
+  const result = firstHistoryVersion(history);
+  result.measuredRuns = 5;
+  const { worstRps, medianRps, bestRps } = result.throughput;
+  result.throughput.runsRps = [
+    worstRps,
+    medianRps,
+    medianRps,
+    medianRps,
+    bestRps,
+  ];
+
+  // act
+  const parsed = parseBenchmarkHistory(JSON.stringify(history));
+
+  // assert
+  assert.deepEqual(parsed, history);
+});
+
 const invalidHistories = [
+  [
+    "nonpositive result repetition counts",
+    (history) => {
+      firstHistoryVersion(history).measuredRuns = 0;
+    },
+  ],
+  [
+    "samples that disagree with the result repetition count",
+    (history) => {
+      firstHistoryVersion(history).measuredRuns = 5;
+    },
+  ],
   [
     "results without timestamps",
     (history) => {
@@ -646,11 +743,7 @@ test("uses explicit variant labels and preview metadata", () => {
       return {
         id,
         name: variantName(entry),
-        preview: isPreview(
-          entry.variant.version,
-          entry.variant.platform,
-          entry.variant.preview,
-        ),
+        preview: isPreview(entry.variant),
       };
     }),
     [
@@ -738,10 +831,24 @@ test("accepts physical core counts without sibling mappings", () => {
   });
   assert.equal(report.hardware.physicalCores, 8);
 });
+test("accepts fewer runs than configured for a failed variant", () => {
+  const report = parse((report) => {
+    const variant = firstResult(report);
+    variant.status = "failed";
+    variant.throughput.runsRps = [
+      variant.throughput.worstRps,
+      variant.throughput.bestRps,
+    ];
+  });
+  assert.deepEqual(firstResult(report).throughput.runsRps, [
+    firstResult(report).throughput.worstRps,
+    firstResult(report).throughput.bestRps,
+  ]);
+});
 test("accepts the current generated report and history", () => {
   for (const [name, parser] of [
-    ["federationBenchmarkReport.json", parseBenchmarkReport],
-    ["federationBenchmarkHistory.json", parseBenchmarkHistory],
+    ["federation-benchmark-report.json", parseBenchmarkReport],
+    ["federation-benchmark-history.json", parseBenchmarkHistory],
   ]) {
     const json = readFileSync(
       new URL(`../../src/data/${name}`, import.meta.url),

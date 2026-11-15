@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
@@ -16,6 +15,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly string[] _forwardedVariables;
     private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
+    private readonly ExecutionNodeCondition[][] _conditionAlternatives;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
     private readonly Utf8OperationDocument _operationDocument;
@@ -35,6 +35,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
+        ExecutionNodeCondition[][] conditionAlternatives,
         bool requiresFileUpload)
     {
         Id = id;
@@ -48,6 +49,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         _forwardedVariables = forwardedVariables;
         _resultSelectionSet = resultSelectionSet;
         _conditions = conditions;
+        _conditionAlternatives = conditionAlternatives;
         _requiresFileUpload = requiresFileUpload;
     }
 
@@ -59,6 +61,9 @@ public sealed class OperationExecutionNode : ExecutionNode
 
     /// <inheritdoc />
     public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
+
+    /// <inheritdoc />
+    public override ReadOnlySpan<ExecutionNodeCondition[]> ConditionAlternatives => _conditionAlternatives;
 
     /// <summary>
     /// Gets the operation definition that this execution node represents.
@@ -136,24 +141,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
         context.TrackVariableValueSets(this, variables);
 
-        var request = new SourceSchemaClientRequest
-        {
-            Node = this,
-            SchemaName = schemaName,
-            OperationType = _operation.Type,
-            OperationSourceText = _operation,
-            Variables = variables,
-            RequiresFileUpload = _requiresFileUpload,
-            OperationDocument = _operationDocument,
-            LookupTypeName = _lookupTypeName,
-            ForwardedVariables = GetForwardedVariablesArray()
-        };
-
-        var index = 0;
-        var bufferLength = 0;
-        SourceSchemaResult[]? buffer = null;
-        SourceSchemaResult? singleResult = null;
-        var hasSomeErrors = false;
+        var results = new SourceSchemaResultCollector(initialCapacity: Math.Max(variables.Length, 2));
 
         try
         {
@@ -162,34 +150,20 @@ public sealed class OperationExecutionNode : ExecutionNode
             using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
 
             // we read the responses from the response stream.
-            var initialBufferLength = Math.Max(variables.Length, 2);
-
-            await foreach (var result in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
+            if (client is HttpSourceSchemaClient httpClient
+                && HttpSourceSchemaClient.CanExecuteBuffered(_operation.Type, _requiresFileUpload))
             {
-                // If there is only one response, we skip the buffer rental.
-                if (index == 0)
+                await httpClient
+                    .ExecuteBufferedAsync(context, CreateRequest(schemaName, variables), results, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await foreach (var result in client
+                    .ExecuteAsync(context, CreateRequest(schemaName, variables), cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    singleResult = result;
-                    index = 1;
-                }
-                else
-                {
-                    // If we have more than one response, we rent a buffer and move the first result into it.
-                    if (buffer is null)
-                    {
-                        bufferLength = initialBufferLength;
-                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
-                        buffer[0] = singleResult!;
-                    }
-
-                    buffer[index++] = result;
-                }
-
-                // Parsing errors here allows the result store to reuse the cached value
-                // and avoids a second document lookup per result.
-                if (result.Errors is not null)
-                {
-                    hasSomeErrors = true;
+                    results.OnResult(0, result);
                 }
             }
         }
@@ -198,21 +172,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
-            if (buffer is not null && bufferLength > 0)
-            {
-                foreach (var result in buffer.AsSpan(0, index))
-                {
-                    result?.Dispose();
-                }
-
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
-            else
-            {
-                singleResult?.Dispose();
-            }
-
+            results.DisposeResults();
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
@@ -221,32 +181,18 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
             // are returned to the pool.
-            if (buffer is not null && bufferLength > 0)
-            {
-                foreach (var result in buffer.AsSpan(0, index))
-                {
-                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                    result?.Dispose();
-                }
-
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
-            else
-            {
-                singleResult?.Dispose();
-            }
-
+            results.DisposeResults();
             context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
+        var hasSomeErrors = results.HasErrors;
         var pendingMerge = default(PendingMerge);
         var hasPendingMerge = false;
 
         try
         {
-            if (buffer is not null)
+            if (results.Buffer is { } buffer)
             {
                 pendingMerge = PendingMerge.Multiple(
                     this,
@@ -255,11 +201,11 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _resultSelectionSet,
                     variables,
                     buffer,
-                    index,
+                    results.Count,
                     hasSomeErrors);
                 hasPendingMerge = true;
             }
-            else if (singleResult is not null)
+            else if (results.Single is { } singleResult)
             {
                 pendingMerge = PendingMerge.Single(
                     this,
@@ -274,11 +220,10 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             if (hasPendingMerge)
             {
-                context.EnqueuePendingMerge(pendingMerge);
+                // ExecuteAsync reports the completion of this node right after we return,
+                // and that signal wakes the executor for the merge as well.
+                context.EnqueuePendingMergeBeforeCompletion(pendingMerge);
             }
-
-            buffer = null;
-            singleResult = null;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -298,19 +243,9 @@ public sealed class OperationExecutionNode : ExecutionNode
             {
                 pendingMerge.DisposeUnmerged();
             }
-            else if (buffer is not null)
-            {
-                foreach (var result in buffer.AsSpan(0, index))
-                {
-                    result?.Dispose();
-                }
-
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
             else
             {
-                singleResult?.Dispose();
+                results.DisposeResults();
             }
 
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
@@ -320,6 +255,20 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
     }
+
+    private SourceSchemaClientRequest CreateRequest(string schemaName, ImmutableArray<VariableValues> variables)
+        => new()
+        {
+            Node = this,
+            SchemaName = schemaName,
+            OperationType = _operation.Type,
+            OperationSourceText = _operation,
+            Variables = variables,
+            RequiresFileUpload = _requiresFileUpload,
+            OperationDocument = _operationDocument,
+            LookupTypeName = _lookupTypeName,
+            ForwardedVariables = GetForwardedVariablesArray()
+        };
 
     protected override IDisposable CreateScope(OperationPlanContext context)
     {

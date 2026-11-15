@@ -99,19 +99,19 @@ public class EntityReuseCandidateMatchingBenchmark
         var start = _writer.Position;
         bytes.CopyTo(_writer.GetSpan(bytes.Length));
         _writer.Advance(bytes.Length);
-        return JsonSegment.Create(_writer, start, bytes.Length);
+        return JsonSegment.Create(_writer.GetSequence(start, bytes.Length));
     }
 
     private void Add(JsonSegment segment, int index)
     {
-        var hash = _writer.GetHashCode(segment.Location, segment.Length);
+        var hash = segment.GetHashCode();
         var start = (hash & 0x7FFFFFFF & (_bucketCount - 1)) * BucketSize;
 
         for (var s = start; s < start + BucketSize; s++)
         {
             if (_table[s].Index == 0)
             {
-                _table[s] = new Entry(hash, index + 1, segment.Location, segment.Length);
+                _table[s] = new Entry(hash, index + 1, segment.Length);
                 return;
             }
         }
@@ -121,7 +121,7 @@ public class EntityReuseCandidateMatchingBenchmark
 
     private bool TryGet(JsonSegment segment, out int index)
     {
-        var hash = _writer.GetHashCode(segment.Location, segment.Length);
+        var hash = segment.GetHashCode();
         var start = (hash & 0x7FFFFFFF & (_bucketCount - 1)) * BucketSize;
 
         for (var s = start; s < start + BucketSize; s++)
@@ -135,7 +135,7 @@ public class EntityReuseCandidateMatchingBenchmark
 
             if (entry.Hash == hash
                 && entry.Length == segment.Length
-                && _writer.SequenceEqual(entry.Location, segment.Location, segment.Length))
+                && _candidates[entry.Index - 1].Equals(segment))
             {
                 index = entry.Index - 1;
                 return true;
@@ -146,7 +146,7 @@ public class EntityReuseCandidateMatchingBenchmark
         return false;
     }
 
-    private readonly record struct Entry(int Hash, int Index, int Location, int Length);
+    private readonly record struct Entry(int Hash, int Index, int Length);
 
     private sealed class MatchingConfig : ManualConfig
     {

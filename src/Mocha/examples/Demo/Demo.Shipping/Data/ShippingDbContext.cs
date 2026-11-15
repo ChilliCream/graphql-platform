@@ -8,10 +8,10 @@ namespace Demo.Shipping.Data;
 
 public class ShippingDbContext(DbContextOptions<ShippingDbContext> options) : DbContext(options)
 {
-    public DbSet<Shipment> Shipments => Set<Shipment>();
-    public DbSet<ShipmentItem> ShipmentItems => Set<ShipmentItem>();
-    public DbSet<ReturnShipment> ReturnShipments => Set<ReturnShipment>();
-    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+    public DbSet<Shipment> Shipments { get; set; }
+    public DbSet<ShipmentItem> ShipmentItems { get; set; }
+    public DbSet<ReturnShipment> ReturnShipments { get; set; }
+    public DbSet<InboxMessage> InboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

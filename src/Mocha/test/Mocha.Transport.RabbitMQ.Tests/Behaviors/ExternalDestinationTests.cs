@@ -10,11 +10,9 @@ namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 /// Covers address-based sends to queues another service owns: the sending host binds explicitly,
 /// never declares the queue, and still has to reach it on the broker.
 /// </summary>
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class ExternalDestinationTests(RabbitMQFixture fixture)
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
-
     [Fact]
     public async Task SendAsync_Should_DeliverToForeignQueue_When_QueueNotDeclaredUnderExplicitBinding()
     {
@@ -92,7 +90,7 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         string queueName,
         CancellationToken cancellationToken)
     {
-        var deadline = DateTime.UtcNow + s_timeout;
+        var deadline = DateTime.UtcNow + TestTimeouts.Signal;
 
         while (true)
         {

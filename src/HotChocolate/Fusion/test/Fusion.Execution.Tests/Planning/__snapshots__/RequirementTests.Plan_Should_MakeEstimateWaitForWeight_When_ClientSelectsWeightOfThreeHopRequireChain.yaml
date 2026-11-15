@@ -1,0 +1,95 @@
+operation:
+  - document: |
+      {
+        products {
+          id
+          id @fusion__requirement
+          weight
+          weight @fusion__requirement
+          estimate
+          volume @fusion__requirement
+          dimensions @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 4
+    expandedNodes: 30
+nodes:
+  - id: 1
+    type: Operation
+    schema: p
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+          dimensions
+        }
+      }
+  - id: 6
+    type: Operation
+    schema: s
+    operation: |
+      query Op_123456789101112_6($__fusion_7_weight: Int, $__fusion_8_id: ID!) {
+        productById(id: $__fusion_8_id) {
+          estimate(weight: $__fusion_7_weight)
+        }
+      }
+    source: $.productById
+    target: $.products
+    requirements:
+      - name: __fusion_7_weight
+        selectionMap: >-
+          weight
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 9
+  - id: 2
+    type: OperationBatch
+    schema: m
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_10_volume: Int) {
+        productById(id: $__fusion_1_id) {
+          weight(volume: $__fusion_10_volume)
+        }
+      }
+    source: $.productById
+    targets:
+      - $.products
+      - $.products
+    batchingGroupId: 9
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_10_volume
+        selectionMap: >-
+          volume
+    dependencies:
+      - id: 1
+      - id: 4
+  - id: 4
+    type: OperationBatch
+    schema: g
+    operation: |
+      query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_dimensions: [Int!]) {
+        productById(id: $__fusion_4_id) {
+          volume(dimensions: $__fusion_5_dimensions)
+        }
+      }
+    source: $.productById
+    targets:
+      - $.products
+      - $.products
+    batchingGroupId: 10
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+      - name: __fusion_5_dimensions
+        selectionMap: >-
+          dimensions
+    dependencies:
+      - id: 1

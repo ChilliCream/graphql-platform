@@ -1,0 +1,327 @@
+title: Execute_Should_Reenter_Requiring_Schema_When_Abstract_First_Level_Has_No_Type_Condition
+request:
+  document: |
+    {
+      orders {
+        id
+        price
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "orders": [
+          {
+            "id": 1,
+            "price": 98
+          },
+          {
+            "id": 2,
+            "price": 197
+          },
+          {
+            "id": 3,
+            "price": 298
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        orderById(id: Int!): Order @lookup @internal
+        customerById(id: Int!): Customer @lookup @internal
+      }
+
+      type Customer implements Person @key(fields: "id") {
+        id: Int! @shareable
+        discount: Int!
+      }
+
+      type Order @key(fields: "id") {
+        price(discount: Int! @require(field: "customer.discount")): Int!
+        id: Int! @shareable
+      }
+
+      interface Person {
+        id: Int!
+        discount: Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_a2ae92ba_2($__fusion_1_id: Int!, $__fusion_2_discount: Int!) {
+              orderById(id: $__fusion_1_id) {
+                price(discount: $__fusion_2_discount)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1,
+                "__fusion_2_discount": 2
+              },
+              {
+                "__fusion_1_id": 2,
+                "__fusion_2_discount": 3
+              },
+              {
+                "__fusion_1_id": 3,
+                "__fusion_2_discount": 2
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "price": 98
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "price": 197
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "price": 298
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_a2ae92ba_3($__fusion_3_id: Int!) {
+              customerById(id: $__fusion_3_id) {
+                discount
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": 20
+              },
+              {
+                "__fusion_3_id": 30
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "customerById": {
+                    "discount": 2
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "customerById": {
+                    "discount": 3
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        orders: [Order!]!
+      }
+
+      type Customer implements Person {
+        id: Int! @shareable
+      }
+
+      type Order {
+        id: Int! @shareable
+        customer: Person!
+      }
+
+      interface Person {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_a2ae92ba_1 {
+                  orders {
+                    id
+                    customer {
+                      __typename
+                    }
+                  }
+                }
+            - document: |
+                query Op_a2ae92ba_4 {
+                  orders {
+                    customer {
+                      __typename
+                      ... on Customer {
+                        id
+                      }
+                    }
+                  }
+                }
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "orders": [
+                    {
+                      "id": 1,
+                      "customer": {
+                        "__typename": "Customer"
+                      }
+                    },
+                    {
+                      "id": 2,
+                      "customer": {
+                        "__typename": "Customer"
+                      }
+                    },
+                    {
+                      "id": 3,
+                      "customer": {
+                        "__typename": "Customer"
+                      }
+                    }
+                  ]
+                }
+              }
+            - |
+              {
+                "data": {
+                  "orders": [
+                    {
+                      "customer": {
+                        "__typename": "Customer",
+                        "id": 20
+                      }
+                    },
+                    {
+                      "customer": {
+                        "__typename": "Customer",
+                        "id": 30
+                      }
+                    },
+                    {
+                      "customer": {
+                        "__typename": "Customer",
+                        "id": 20
+                      }
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          orders {
+            id
+            id @fusion__requirement
+            price
+            customer @fusion__requirement {
+              __typename @fusion__requirement
+              discount @fusion__requirement
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 15bca4b1ca10d5c5ac47a2c78b97b24f
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 2
+      type: Operation
+      schema: a
+      operation: |
+        query Op_a2ae92ba_2($__fusion_1_id: Int!, $__fusion_2_discount: Int!) {
+          orderById(id: $__fusion_1_id) {
+            price(discount: $__fusion_2_discount)
+          }
+        }
+      source: $.orderById
+      target: $.orders
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_discount
+          selectionMap: >-
+            customer.discount
+      dependencies:
+        - id: 3
+        - id: 5
+    - id: 3
+      type: Operation
+      schema: a
+      operation: |
+        query Op_a2ae92ba_3($__fusion_3_id: Int!) {
+          customerById(id: $__fusion_3_id) {
+            discount
+          }
+        }
+      source: $.customerById
+      target: $.orders.customer<Customer>
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 5
+    - id: 1
+      type: Operation
+      schema: b
+      operation: |
+        query Op_a2ae92ba_1 {
+          orders {
+            id
+            customer {
+              __typename
+            }
+          }
+        }
+      batchingGroupId: 5
+    - id: 4
+      type: Operation
+      schema: b
+      operation: |
+        query Op_a2ae92ba_4 {
+          orders {
+            customer {
+              __typename
+              ... on Customer {
+                id
+              }
+            }
+          }
+        }
+      batchingGroupId: 5

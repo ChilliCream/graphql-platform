@@ -40,31 +40,44 @@ sourceSchemas:
         lineTotal(price: Float! @require(field: "product.discountedPrice")): Float!
         id: Int!
         quantity: Int!
-        product: Product!
-      }
-
-      type Product {
-        id: Int! @shareable
       }
     interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d59199f1_1 {
+              item {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_d59199f1_2(
               $__fusion_1_price: Float!
               $__fusion_2_id: Int!
-              $__fusion_4_price: Float!
+              $__fusion_6_price: Float!
             ) {
               cartItemById(id: $__fusion_2_id) {
                 lineTotal(price: $__fusion_1_price)
-                unitPrice(price: $__fusion_4_price)
+                unitPrice(price: $__fusion_6_price)
               }
             }
           variables: |
             {
               "__fusion_1_price": 5,
               "__fusion_2_id": 1,
-              "__fusion_4_price": 5
+              "__fusion_6_price": 5
             }
         response:
           results:
@@ -74,45 +87,6 @@ sourceSchemas:
                   "cartItemById": {
                     "lineTotal": 15,
                     "unitPrice": 5
-                  }
-                }
-              }
-      - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_d59199f1_1 {
-                  item {
-                    product {
-                      id
-                    }
-                  }
-                }
-            - document: |
-                query Op_d59199f1_5 {
-                  item {
-                    id
-                  }
-                }
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "item": {
-                    "product": {
-                      "id": 1
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "item": {
-                    "id": 1
                   }
                 }
               }
@@ -134,9 +108,52 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_d59199f1_3($__fusion_3_id: Int!) {
-              productById(id: $__fusion_3_id) {
+            query Op_d59199f1_4($__fusion_4_id: Int!) {
+              productById(id: $__fusion_4_id) {
                 discountedPrice
+              }
+            }
+          variables: |
+            {
+              "__fusion_4_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "discountedPrice": 5
+                  }
+                }
+              }
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        cartItemById(id: Int!): CartItem @lookup @internal
+      }
+
+      type CartItem @key(fields: "id") {
+        id: Int!
+        product: Product!
+      }
+
+      type Product {
+        id: Int! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d59199f1_3($__fusion_3_id: Int!) {
+              cartItemById(id: $__fusion_3_id) {
+                product {
+                  id
+                }
               }
             }
           variables: |
@@ -148,8 +165,10 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "productById": {
-                    "discountedPrice": 5
+                  "cartItemById": {
+                    "product": {
+                      "id": 1
+                    }
                   }
                 }
               }
@@ -171,9 +190,18 @@ operationPlan:
           }
         }
       hash: 83a5eef5427dd40488362e8939321e0e
-      searchSpace: 3
-      expandedNodes: 14
+      searchSpace: 2
+      expandedNodes: 11
   nodes:
+    - id: 1
+      type: Operation
+      schema: cart
+      operation: |
+        query Op_d59199f1_1 {
+          item {
+            id
+          }
+        }
     - id: 2
       type: Operation
       schema: cart
@@ -181,11 +209,11 @@ operationPlan:
         query Op_d59199f1_2(
           $__fusion_1_price: Float!
           $__fusion_2_id: Int!
-          $__fusion_4_price: Float!
+          $__fusion_6_price: Float!
         ) {
           cartItemById(id: $__fusion_2_id) {
             lineTotal(price: $__fusion_1_price)
-            unitPrice(price: $__fusion_4_price)
+            unitPrice(price: $__fusion_6_price)
           }
         }
       source: $.cartItemById
@@ -197,51 +225,29 @@ operationPlan:
         - name: __fusion_2_id
           selectionMap: >-
             id
-        - name: __fusion_4_price
+        - name: __fusion_6_price
           selectionMap: >-
             product.discountedPrice
       dependencies:
-        - id: 8
+        - id: 1
         - id: 9
-    - id: 1
+        - id: 10
+    - id: 3
       type: OperationBatch
-      schema: cart
+      schema: catalog
       operation: |
-        query Op_d59199f1_1 {
-          item {
+        query Op_d59199f1_3($__fusion_3_id: Int!) {
+          cartItemById(id: $__fusion_3_id) {
             product {
               id
             }
           }
         }
+      source: $.cartItemById
       targets:
-        - $
-        - $
-        - $
-      batchingGroupId: 8
-    - id: 5
-      type: Operation
-      schema: cart
-      operation: |
-        query Op_d59199f1_5 {
-          item {
-            id
-          }
-        }
-      batchingGroupId: 8
-    - id: 3
-      type: OperationBatch
-      schema: promotions
-      operation: |
-        query Op_d59199f1_3($__fusion_3_id: Int!) {
-          productById(id: $__fusion_3_id) {
-            discountedPrice
-          }
-        }
-      source: $.productById
-      targets:
-        - $.item.product
-        - $.item.product
+        - $.item
+        - $.item
+        - $.item
       batchingGroupId: 9
       requirements:
         - name: __fusion_3_id
@@ -249,3 +255,23 @@ operationPlan:
             id
       dependencies:
         - id: 1
+    - id: 4
+      type: OperationBatch
+      schema: promotions
+      operation: |
+        query Op_d59199f1_4($__fusion_4_id: Int!) {
+          productById(id: $__fusion_4_id) {
+            discountedPrice
+          }
+        }
+      source: $.productById
+      targets:
+        - $.item.product
+        - $.item.product
+      batchingGroupId: 10
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3

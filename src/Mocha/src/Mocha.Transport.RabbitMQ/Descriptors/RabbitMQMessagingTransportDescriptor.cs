@@ -268,6 +268,13 @@ public sealed class RabbitMQMessagingTransportDescriptor
         var queue = DeclareQueue(configuration.Name!);
         ApplyQueueConfiguration(configuration.Queue, queue);
 
+        if (configuration.IsTemporary && configuration.Queue.Arguments?.ContainsKey("x-expires") is not true)
+        {
+            queue.Expires(
+                configuration.TemporaryExpiry
+                ?? RabbitMQReceiveEndpointConfiguration.TemporaryDefaults.Expiry);
+        }
+
         var schema = Configuration.Schema ?? RabbitMQTransportConfiguration.DefaultSchema;
         foreach (var binding in configuration.SourceBindings)
         {
@@ -318,6 +325,7 @@ public sealed class RabbitMQMessagingTransportDescriptor
         if (configuration.IsTemporary)
         {
             target.IsTemporary = true;
+            target.TemporaryExpiry ??= configuration.TemporaryExpiry;
         }
 
         target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);

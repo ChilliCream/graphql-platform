@@ -92,6 +92,6 @@ public sealed class ArrayLengthProjectionTests(PostgreSqlResource resource)
     public sealed class CardReaderContext(DbContextOptions<CardReaderContext> options)
         : DbContext(options)
     {
-        public DbSet<CardReader> CardReaders => Set<CardReader>();
+        public DbSet<CardReader> CardReaders { get; set; }
     }
 }

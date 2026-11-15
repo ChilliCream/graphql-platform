@@ -1,0 +1,6 @@
+<Project>
+  <!--HotChocolateFusionStaticPgo: enable|disable-->
+  <ItemGroup Condition="'$(PublishAot)' == 'true' AND '$(HotChocolateFusionStaticPgo)' != 'disable'">
+    <MibcFile Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.AspNetCore.mibc" />
+  </ItemGroup>
+</Project>

@@ -29,17 +29,9 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {
-        var hashBytes = new byte[16];
-        var hashSpan = hashBytes.AsSpan();
-
+        Span<byte> hashBytes = stackalloc byte[16];
         _md5.Value!.TryComputeHash(document, hashBytes, out var written);
-
-        if (written < 16)
-        {
-            hashSpan = hashSpan[..written];
-        }
-
-        return FormatHash(hashSpan, format);
+        return FormatHash(hashBytes[..written], format);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

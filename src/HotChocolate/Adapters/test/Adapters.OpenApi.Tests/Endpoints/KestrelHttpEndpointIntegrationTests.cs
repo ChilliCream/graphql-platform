@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -51,7 +50,7 @@ public sealed class KestrelHttpEndpointIntegrationTests : OpenApiTestBase
         finally
         {
             await host.StopAsync(cancellationToken);
-            host.Dispose();
+            await host.DisposeAsync();
         }
     }
 
@@ -79,47 +78,35 @@ public sealed class KestrelHttpEndpointIntegrationTests : OpenApiTestBase
         finally
         {
             await host.StopAsync(cancellationToken);
-            host.Dispose();
+            await host.DisposeAsync();
         }
     }
 
-    private async Task<IWebHost> StartKestrelHostAsync(
+    private async Task<WebApplication> StartKestrelHostAsync(
         IOpenApiDefinitionStorage storage,
         CancellationToken cancellationToken)
     {
-        var host = new WebHostBuilder()
-            .UseKestrel()
-            .UseUrls("http://127.0.0.1:0")
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseKestrel();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Services.AddRouting();
+        builder.Services
+            .AddGraphQLServer()
+            .AddOpenApi()
+            .AddOpenApiDefinitionStorage(storage)
+            .AddBasicServer();
 
-                services.AddGraphQLServer()
-                    .AddOpenApi()
-                    .AddOpenApiDefinitionStorage(storage)
-                    .AddBasicServer();
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapOpenApiEndpoints();
-                    endpoints.MapGraphQL();
-                });
-            })
-            .Build();
+        var host = builder.Build();
+        host.MapOpenApiEndpoints();
+        host.MapGraphQL();
 
         await host.StartAsync(cancellationToken);
         return host;
     }
 
-    private static Uri GetBaseAddress(IWebHost host)
+    private static Uri GetBaseAddress(WebApplication host)
     {
-        var addresses = host.ServerFeatures.Get<IServerAddressesFeature>()?.Addresses
-            ?? throw new InvalidOperationException("Kestrel did not expose any server addresses.");
-
-        var address = addresses.FirstOrDefault()
+        var address = host.Urls.FirstOrDefault()
             ?? throw new InvalidOperationException("Kestrel did not bind to any address.");
 
         return new Uri(address);

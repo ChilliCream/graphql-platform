@@ -722,4 +722,37 @@ public sealed class CompositionHelperTests
             + $"no larger than 2147483647 ({rawValue}).",
             entry.Message);
     }
+
+    [Theory]
+    [InlineData("maxFieldCost", "-1", LogEntryCodes.InvalidMaxFieldCostSetting)]
+    [InlineData("maxTypeCost", "-1", LogEntryCodes.InvalidMaxTypeCostSetting)]
+    [InlineData("maxResponseSize", "-1", LogEntryCodes.InvalidMaxResponseSizeSetting)]
+    [InlineData("costPlanCacheSize", "0", LogEntryCodes.InvalidCostPlanCacheSizeSetting)]
+    public async Task TryGetCompositionSettingsAsync_Should_ReportCompositionError_When_CostSettingIsInvalid(
+        string settingName,
+        string rawValue,
+        string expectedCode)
+    {
+        // arrange
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        using (var rawCompositionSettings =
+            JsonDocument.Parse($$"""{ "merger": { "{{settingName}}": {{rawValue}} } }"""))
+        {
+            await archive.SetCompositionSettingsAsync(
+                rawCompositionSettings,
+                TestContext.Current.CancellationToken);
+        }
+
+        // act
+        var (success, _) = await CompositionHelper.TryGetCompositionSettingsAsync(
+            archive,
+            log,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(success);
+        Assert.Equal(expectedCode, Assert.Single(log).Code);
+    }
 }

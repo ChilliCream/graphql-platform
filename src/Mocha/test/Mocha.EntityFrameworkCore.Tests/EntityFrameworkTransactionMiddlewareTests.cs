@@ -295,7 +295,7 @@ public class TestItem
 
 public class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options)
 {
-    public DbSet<TestItem> Items => Set<TestItem>();
+    public DbSet<TestItem> Items { get; set; }
 }
 
 public class CreateItemHandler(TestDbContext db) : ICommandHandler<CreateItemCommand>

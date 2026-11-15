@@ -155,7 +155,7 @@ public class InterfaceFieldFilterAndSortTests : IDisposable
 
     public class AnimalDbContext(DbContextOptions<AnimalDbContext> options) : DbContext(options)
     {
-        public DbSet<Animal> Animals { get; set; } = null!;
+        public DbSet<Animal> Animals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

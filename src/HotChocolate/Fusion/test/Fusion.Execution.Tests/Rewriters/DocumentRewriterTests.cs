@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Rewriters;
@@ -3741,5 +3742,435 @@ public class DocumentRewriterTests : FusionTestBase
         var error = Assert.Single(Assert.Throws<GraphQLException>(Action).Errors);
         Assert.Equal("A fragment with the name 'HarvestFields' does not exist.", error.Message);
         Assert.Equal(ErrorCodes.Validation.FragmentDoesNotExist, error.Code);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_KeepDocumentOrder_When_MutationRootFieldsAreConditioned()
+    {
+        // arrange
+        var schemaDefinition = CreateMutationSchema();
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            mutation($a: Boolean!, $b: Boolean!) {
+              first: count(by: 1) @include(if: $a)
+              second: count(by: 10) @include(if: $b)
+              ...Again @include(if: $b)
+              last: count(by: 100)
+            }
+
+            fragment Again on Mutation {
+              first: count(by: 1)
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            mutation($a: Boolean!, $b: Boolean!) {
+              first: count(by: 1) @include(if: $a)
+              second: count(by: 10) @include(if: $b)
+              first: count(by: 1) @skip(if: $a) @include(if: $b)
+              last: count(by: 100)
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_MergeLaterSubSelections_When_MutationRootRepeatsResponseName()
+    {
+        // arrange
+        var schemaDefinition = CreateMutationSchema();
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            mutation($x: Boolean!, $y: Boolean!) {
+              thing: create @include(if: $x) {
+                id
+              }
+              thing: create @include(if: $y) {
+                name
+              }
+              thing: create {
+                title
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            mutation($x: Boolean!, $y: Boolean!) {
+              thing: create @include(if: $x) {
+                id
+                title
+                name @include(if: $y)
+              }
+              thing: create @skip(if: $x) @include(if: $y) {
+                name
+                title
+              }
+              ... @skip(if: $x) {
+                thing: create @skip(if: $y) {
+                  title
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_SplitLaterOccurrence_When_EarlierOccurrenceHasSeveralConditions()
+    {
+        // arrange
+        var schemaDefinition = CreateMutationSchema();
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            mutation($x: Boolean!, $y: Boolean!, $z: Boolean!) {
+              ... @include(if: $x) {
+                total: count(by: 1) @include(if: $y)
+              }
+              total: count(by: 1) @include(if: $z)
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            mutation($x: Boolean!, $y: Boolean!, $z: Boolean!) {
+              ... @include(if: $x) {
+                total: count(by: 1) @include(if: $y)
+              }
+              total: count(by: 1) @skip(if: $x) @include(if: $z)
+              ... @include(if: $z) {
+                total: count(by: 1) @skip(if: $y) @include(if: $x)
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_Throw_GraphQLException_When_MutationFieldRepeatsUnderTooManyConditionCombinations()
+    {
+        // arrange
+        var schemaDefinition = CreateMutationSchema();
+        var variables = new List<string>();
+        var selections = new List<string>();
+
+        for (var i = 0; i < 8; i++)
+        {
+            variables.Add($"$v{i}: Boolean!");
+            variables.Add($"$w{i}: Boolean!");
+            selections.Add($"... @include(if: $v{i}) {{ total: count(by: 1) @include(if: $w{i}) }}");
+        }
+
+        var doc = Utf8GraphQLParser.Parse(
+            $"mutation({string.Join(", ", variables)}) {{ {string.Join(" ", selections)} }}");
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc);
+
+        // assert
+        var error = Assert.Single(Assert.Throws<GraphQLException>(Action).Errors);
+        Assert.Equal(
+            "The repeated mutation field 'total' needs more than 1024 @skip and @include conditions "
+            + "to run once in document order.",
+            error.Message);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_Throw_GraphQLException_When_MutationFieldRepeatsInLongConditionChain()
+    {
+        // arrange
+        var schemaDefinition = CreateMutationSchema();
+        var variables = new List<string>();
+        var selections = new List<string>();
+
+        for (var i = 0; i < 100; i++)
+        {
+            variables.Add($"$v{i}: Boolean!");
+            selections.Add($"total: count(by: 1) @include(if: $v{i})");
+        }
+
+        var doc = Utf8GraphQLParser.Parse(
+            $"mutation({string.Join(", ", variables)}) {{ {string.Join(" ", selections)} }}");
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        void Action() => rewriter.RewriteDocument(doc);
+
+        // assert
+        var error = Assert.Single(Assert.Throws<GraphQLException>(Action).Errors);
+        Assert.Equal(
+            "The repeated mutation field 'total' needs more than 1024 @skip and @include conditions "
+            + "to run once in document order.",
+            error.Message);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_KeepGeneralRewrite_When_DeferredSubSelectionWouldRepeatAcrossMutationRoots()
+    {
+        // arrange
+        var schemaDefinition = CreateMutationSchema();
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            mutation($x: Boolean!) {
+              thing: create @include(if: $x) {
+                id
+              }
+              thing: create {
+                ... @defer(label: "d") {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            mutation($x: Boolean!) {
+              thing: create {
+                id @include(if: $x)
+                ... @defer(label: "d") {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_KeepGeneralRewrite_When_RepeatedSubSelectionSpreadsDeferredFragment()
+    {
+        // arrange
+        var schemaDefinition = CreateMutationSchema();
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            mutation($x: Boolean!, $y: Boolean!) {
+              ... @include(if: $x) {
+                thing: create @include(if: $y) {
+                  id
+                }
+              }
+              thing: create {
+                ...Details
+              }
+            }
+
+            fragment Details on Thing {
+              title
+              ... @defer(label: "d") {
+                name
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            mutation($x: Boolean!, $y: Boolean!) {
+              thing: create {
+                title
+                ... @include(if: $x) {
+                  id @include(if: $y)
+                }
+                ... @defer(label: "d") {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteDocument_Should_KeepDocumentOrder_When_DeferredSubSelectionIsInOneMutationRoot()
+    {
+        // arrange
+        var schemaDefinition = CreateMutationSchema();
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            mutation($x: Boolean!) {
+              thing: create @include(if: $x) {
+                ... @defer(label: "d") {
+                  name
+                }
+              }
+              total: count(by: 1)
+              thing: create {
+                id
+              }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            mutation($x: Boolean!) {
+              thing: create @include(if: $x) {
+                id
+                ... @defer(label: "d") {
+                  name
+                }
+              }
+              total: count(by: 1)
+              thing: create @skip(if: $x) {
+                id
+              }
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateMutationSchema()
+        => ComposeSchema(
+            """
+            type Query {
+              thing: Thing
+            }
+
+            type Mutation {
+              count(by: Int!): Int
+              create: Thing
+            }
+
+            type Thing {
+              id: ID!
+              name: String
+              title: String
+            }
+            """);
+
+    [Fact]
+    public void Duplicate_Fragment_Spread_Is_Collected_Once()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ...F
+                    ...F
+                }
+            }
+
+            fragment F on Product {
+                id
+                name
+            }
+            """);
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Duplicate_Defer_Fragments_Are_Kept_Separate()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... @defer {
+                        description
+                    }
+                    ... @defer {
+                        description
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer {
+                  description
+                }
+                ... @defer {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Deeply_Reused_Fragment_Chain_Collapses_To_Single_Field()
+    {
+        // arrange
+        // a fragment spread into the same selection set more than once is collected once.
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var sb = new System.Text.StringBuilder("{ productById(id: 1) { ...F0 } }");
+
+        for (var i = 0; i < 40; i++)
+        {
+            sb.Append($" fragment F{i} on Product {{ ...F{i + 1} ...F{i + 1} }}");
+        }
+
+        sb.Append(" fragment F40 on Product { id }");
+        var doc = Utf8GraphQLParser.Parse(sb.ToString());
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+              }
+            }
+            """);
     }
 }

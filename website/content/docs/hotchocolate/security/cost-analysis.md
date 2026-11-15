@@ -112,7 +112,7 @@ Add pagination and the weight of every field below the list multiplies by the li
 # Field cost: 10 + 1 + 1 x 50 + 0 x 50 + 1 x 50 + 0 x 50 = 111
 ```
 
-The same selection without `first` evaluates at `DefaultPageSize`, and a list field with no inherited or explicit `@listSize` annotation evaluates at `DefaultListSize`, which defaults to `50`.
+The same selection without `first` evaluates at `DefaultPageSize`, and a list field with no inherited or explicit `@listSize` annotation evaluates at `DefaultListSize`, which defaults to `1`.
 
 ## Type Cost Example
 
@@ -183,13 +183,13 @@ The analyzer selects a list size in this order:
 2. The maximum slicing-argument value present after coercion. Negative values become `0`, and `0` remains `0`.
 3. `slicingArgumentDefaultValue`, only when no slicing argument is present.
 4. `assumedSize`.
-5. `CostOptions.DefaultListSize`, which defaults to `50` (`PagingDefaults.MaxPageSize`).
+5. `CostOptions.DefaultListSize`, which defaults to `1`.
 
 An annotation with `sizedFields` applies its selected size to the named direct child fields. The inherited size takes priority over a child's own `@listSize` annotation.
 
 Hot Chocolate paging writes `MaxPageSize` to `assumedSize` and `DefaultPageSize` to `slicingArgumentDefaultValue`. A supplied paging argument is evaluated at its coerced value, an argument-less request is evaluated at `DefaultPageSize`, and `MaxPageSize` remains the assumed bound for a variable-bound paging argument. An explicit `null` is not a slicing value and suppresses the argument's schema default. An undefined variable behaves as an absent argument, so a schema default can apply before the remaining fallbacks.
 
-An unannotated list falls through to `DefaultListSize`. With the default of `50`, a nested chain of unannotated lists can still exceed a finite type-cost limit, since the assumed size compounds at every nesting level. Annotate the field with `@listSize(assumedSize:)`, or set `DefaultListSize` for the schema with `ModifyCostOptions` to any non-negative finite number or `double.PositiveInfinity`.
+An unannotated list falls through to `DefaultListSize`. Annotate the field with `@listSize(assumedSize:)`, or set `DefaultListSize` for the schema with `ModifyCostOptions` to any non-negative finite number or `double.PositiveInfinity`.
 
 ## Requiring a Slicing Argument
 

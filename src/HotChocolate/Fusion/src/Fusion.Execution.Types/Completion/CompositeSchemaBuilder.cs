@@ -249,7 +249,10 @@ internal static class CompositeSchemaBuilder
             definition.Description?.Value,
             deprecationReason,
             isInaccessible,
-            CreateOutputFields(definition.Fields, isQuery, enableSemanticIntrospection));
+            CreateOutputFields(definition.Fields, isQuery, enableSemanticIntrospection))
+        {
+            Policy = PolicyDirectiveParser.Parse(definition.Directives)
+        };
     }
 
     private static FusionInterfaceTypeDefinition CreateInterfaceType(
@@ -261,7 +264,10 @@ internal static class CompositeSchemaBuilder
             definition.Name.Value,
             definition.Description?.Value,
             isInaccessible,
-            CreateOutputFields(definition.Fields, isQuery: false, enableSemanticIntrospection: false));
+            CreateOutputFields(definition.Fields, isQuery: false, enableSemanticIntrospection: false))
+        {
+            Policy = PolicyDirectiveParser.Parse(definition.Directives)
+        };
     }
 
     private static FusionUnionTypeDefinition CreateUnionType(
@@ -296,7 +302,10 @@ internal static class CompositeSchemaBuilder
             definition.Name.Value,
             definition.Description?.Value,
             isInaccessible,
-            CreateEnumValues(definition.Values));
+            CreateEnumValues(definition.Values))
+        {
+            Policy = PolicyDirectiveParser.Parse(definition.Directives)
+        };
     }
 
     private static FusionScalarTypeDefinition CreateScalarType(
@@ -307,7 +316,10 @@ internal static class CompositeSchemaBuilder
         return new FusionScalarTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
-            isInaccessible);
+            isInaccessible)
+        {
+            Policy = PolicyDirectiveParser.Parse(definition.Directives)
+        };
     }
 
     private static FusionDirectiveDefinition CreateDirectiveType(
@@ -458,7 +470,10 @@ internal static class CompositeSchemaBuilder
                     deprecationReason,
                     isInaccessible: isInaccessible,
                     isGatewayField: isGatewayField,
-                    CreateOutputFieldArguments(field.Arguments));
+                    CreateOutputFieldArguments(field.Arguments))
+                {
+                    Policy = PolicyDirectiveParser.Parse(field.Directives)
+                };
             }
         }
         else
@@ -476,7 +491,10 @@ internal static class CompositeSchemaBuilder
                     deprecationReason,
                     isInaccessible: isInaccessible,
                     isGatewayField: isGatewayField,
-                    CreateOutputFieldArguments(field.Arguments));
+                    CreateOutputFieldArguments(field.Arguments))
+                {
+                    Policy = PolicyDirectiveParser.Parse(field.Directives)
+                };
             }
         }
 
@@ -637,6 +655,8 @@ internal static class CompositeSchemaBuilder
         {
             features.Set(CollectOptInFeatures(context));
         }
+
+        features.Set(CollectPolicyUsage(context));
 
         context.Interceptor.OnBeforeCompleteSchema(context, ref features);
         features.Set<ValueSelectionToSelectionSetRewriter>(null);
@@ -1430,6 +1450,69 @@ internal static class CompositeSchemaBuilder
                     && argValue is StringValueNode feature)
                 {
                     features.Add(feature.Value);
+                }
+            }
+        }
+    }
+
+    private static FusionPolicyUsage CollectPolicyUsage(CompositeSchemaBuilderContext context)
+    {
+        var flags = FusionPolicyUsageFlags.None;
+        var policyNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var type in context.TypeDefinitions)
+        {
+            switch (type)
+            {
+                case FusionComplexTypeDefinition complexType:
+                    Add(complexType.Policy);
+
+                    foreach (var field in complexType.Fields)
+                    {
+                        Add(field.Policy);
+                    }
+
+                    break;
+
+                case FusionEnumTypeDefinition enumType:
+                    Add(enumType.Policy);
+                    break;
+
+                case FusionScalarTypeDefinition scalarType:
+                    Add(scalarType.Policy);
+                    break;
+            }
+        }
+
+        var sortedPolicyNames = new string[policyNames.Count];
+        policyNames.CopyTo(sortedPolicyNames);
+        Array.Sort(sortedPolicyNames, StringComparer.Ordinal);
+
+        return new FusionPolicyUsage(flags, AsImmutableArray(sortedPolicyNames));
+
+        void Add(PolicyDirective? policy)
+        {
+            if (policy is null)
+            {
+                return;
+            }
+
+            if (policy.Authenticated)
+            {
+                flags |= FusionPolicyUsageFlags.Authenticated;
+            }
+
+            if (policy.Scopes.Length > 0)
+            {
+                flags |= FusionPolicyUsageFlags.Scopes;
+            }
+
+            foreach (var group in policy.Policies)
+            {
+                foreach (var name in group)
+                {
+                    flags |= FusionPolicyUsageFlags.Policies;
+                    policyNames.Add(name);
                 }
             }
         }

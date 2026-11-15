@@ -87,7 +87,7 @@ public sealed class RiskyCommandHandler : ICommandHandler<RiskyCommand, string>
 
 public sealed class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, IReadOnlyList<ProductDto>>
 {
-    private static readonly IReadOnlyList<ProductDto> Products =
+    private static readonly IReadOnlyList<ProductDto> s_products =
     [
         new(Guid.Parse("11111111-1111-1111-1111-111111111111"), "Mechanical Keyboard", 149.99m),
         new(Guid.Parse("22222222-2222-2222-2222-222222222222"), "Ergonomic Mouse", 79.99m),
@@ -96,7 +96,7 @@ public sealed class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, IR
 
     public ValueTask<IReadOnlyList<ProductDto>> HandleAsync(
         GetProductsQuery query, CancellationToken cancellationToken)
-        => new(Products);
+        => new(s_products);
 }
 
 public sealed class GetProductByIdQueryHandler : IQueryHandler<GetProductByIdQuery, ProductDto?>

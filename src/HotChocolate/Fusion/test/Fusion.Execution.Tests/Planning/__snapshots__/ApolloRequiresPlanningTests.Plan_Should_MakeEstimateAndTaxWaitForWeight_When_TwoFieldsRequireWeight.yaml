@@ -1,0 +1,124 @@
+operation:
+  - document: |
+      {
+        products {
+          id
+          id @fusion__requirement
+          estimate
+          tax
+          weight @fusion__requirement
+          volume @fusion__requirement
+          dimensions @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 4
+    expandedNodes: 27
+nodes:
+  - id: 1
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+          dimensions
+        }
+      }
+  - id: 3
+    type: ApolloOperation
+    schema: tax
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            tax
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_2_weight
+        selectionMap: >-
+          weight
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 12
+  - id: 8
+    type: ApolloOperation
+    schema: shipping
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            estimate
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_10_weight
+        selectionMap: >-
+          weight
+      - name: __fusion_11_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 12
+  - id: 6
+    type: ApolloOperationBatch
+    schema: geometry
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            volume
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.products
+      - $.products
+    batchingGroupId: 11
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+      - name: __fusion_8_dimensions
+        selectionMap: >-
+          dimensions
+    dependencies:
+      - id: 1
+  - id: 4
+    type: ApolloOperationBatch
+    schema: metrics
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            weight
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.products
+      - $.products
+    batchingGroupId: 12
+    requirements:
+      - name: __fusion_13_volume
+        selectionMap: >-
+          volume
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 6

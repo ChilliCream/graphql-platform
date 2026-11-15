@@ -69,6 +69,13 @@ operationPlan:
           x @skip(if: $a)
           y @include(if: $b)
         }
+      conditionAlternatives:
+        -
+          - variable: $a
+            passingValue: false
+        -
+          - variable: $b
+            passingValue: true
       forwardedVariables:
         - a
         - b

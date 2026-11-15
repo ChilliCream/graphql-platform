@@ -1,6 +1,8 @@
+using System.Buffers;
 using System.Linq.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -512,6 +514,33 @@ public class ResolveWithProjectionTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Return_Cleared_Buffer_When_Selection_Is_Connection()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<PagingCtorQuery>()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var document = Utf8GraphQLParser.Parse("{ items(first: 10) { nodes { id } edges { node { name } } } }");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var selection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        selection.AsSelector<PagingCtorEntity>();
+        var buffer = ArrayPool<Selection>.Shared.Rent(16);
+
+        // assert
+        try
+        {
+            Assert.All(buffer, Assert.Null);
+        }
+        finally
+        {
+            ArrayPool<Selection>.Shared.Return(buffer);
+        }
     }
 
     [Fact]

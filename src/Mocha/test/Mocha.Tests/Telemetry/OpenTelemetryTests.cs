@@ -1,8 +1,9 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.InMemory;
+using static Mocha.Tests.ActivityTestHelper;
 
 namespace Mocha.Tests;
 
@@ -13,8 +14,7 @@ public class OpenTelemetryTests
     public async Task Publish_Should_CreateActivity_When_EventPublished()
     {
         // arrange
-        var activities = new ConcurrentBag<Activity>();
-        using var listener = CreateListener(activities);
+        using var capture = CaptureActivities(out var activities);
 
         var recorder = new MessageRecorder();
         await using var provider = await CreateBusAsync(b =>
@@ -30,19 +30,15 @@ public class OpenTelemetryTests
         await bus.PublishAsync(new TracedEvent { Data = "traced" }, CancellationToken.None);
         Assert.True(await recorder.WaitAsync(s_timeout));
 
-        // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, TestContext.Current.CancellationToken);
-
-        // assert - at least one activity was created
-        Assert.NotEmpty(activities);
+        // assert
+        activities.MatchSnapshot();
     }
 
     [Fact]
     public async Task RequestResponse_Should_CreateActivity_When_RequestMade()
     {
         // arrange
-        var activities = new ConcurrentBag<Activity>();
-        using var listener = CreateListener(activities);
+        using var capture = CaptureActivities(out var activities);
 
         var recorder = new MessageRecorder();
         await using var provider = await CreateBusAsync(b =>
@@ -57,49 +53,16 @@ public class OpenTelemetryTests
         // act
         var response = await bus.RequestAsync(new TracedRequest { Query = "test" }, CancellationToken.None);
 
-        // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, TestContext.Current.CancellationToken);
-
         // assert
-        Assert.NotEmpty(activities);
         Assert.Equal("re: test", response.Answer);
-    }
-
-    [Fact]
-    public async Task Activities_Should_HaveCorrectSourceName_When_Published()
-    {
-        // arrange
-        var activities = new ConcurrentBag<Activity>();
-        using var listener = CreateListener(activities);
-
-        var recorder = new MessageRecorder();
-        await using var provider = await CreateBusAsync(b =>
-        {
-            b.Services.AddSingleton(recorder);
-            b.AddEventHandler<TracedEventHandler>();
-        });
-
-        using var scope = provider.CreateScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        // act
-        await bus.PublishAsync(new TracedEvent { Data = "source-check" }, CancellationToken.None);
-        Assert.True(await recorder.WaitAsync(s_timeout));
-
-        // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.NotEmpty(activities);
-        Assert.All(activities, a => Assert.Equal("Mocha", a.Source.Name));
+        activities.MatchSnapshot();
     }
 
     [Fact]
     public async Task MultiplePublishes_Should_CreateMultipleActivities_When_PublishedInSequence()
     {
         // arrange
-        var activities = new ConcurrentBag<Activity>();
-        using var listener = CreateListener(activities);
+        using var capture = CaptureActivities(out var activities);
 
         var recorder = new MessageRecorder();
         await using var provider = await CreateBusAsync(b =>
@@ -118,19 +81,15 @@ public class OpenTelemetryTests
         }
         Assert.True(await recorder.WaitAsync(s_timeout, expectedCount: 3));
 
-        // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, TestContext.Current.CancellationToken);
-
-        // assert - at least 3 activities (dispatch + consume for each)
-        Assert.True(activities.Count >= 3, $"Expected at least 3 activities but got {activities.Count}");
+        // assert
+        activities.MatchSnapshot();
     }
 
     [Fact]
     public async Task BatchConsume_Should_LinkReceiveActivities_When_BatchDelivered()
     {
         // arrange
-        var activities = new ConcurrentBag<Activity>();
-        using var listener = CreateListener(activities);
+        using var capture = CaptureActivities(out var activities);
 
         var recorder = new BatchMessageRecorder();
         await using var provider = await CreateBusAsync(
@@ -151,19 +110,10 @@ public class OpenTelemetryTests
         // act
         await bus.PublishAsync(new TracedBatchEvent { Data = "batch-1" }, CancellationToken.None);
         await bus.PublishAsync(new TracedBatchEvent { Data = "batch-2" }, CancellationToken.None);
-
         Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler did not receive the events");
 
-        // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(200, TestContext.Current.CancellationToken);
-
         // assert
-        var batchActivity = activities.SingleOrDefault(
-            static a => Equals(a.GetTagItem("messaging.batch.message_count"), 2));
-
-        Assert.NotNull(batchActivity);
-        Assert.NotNull(batchActivity.GetTagItem("messaging.batch.id"));
-        Assert.Equal(2, batchActivity.Links.Count());
+        activities.MatchSnapshot();
     }
 
     [Fact]
@@ -310,6 +260,31 @@ public class OpenTelemetryTests
         // assert - TryAdd should not overwrite existing value
         var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
         Assert.Equal("00-existing-trace-id-span-01", traceparent);
+    }
+
+    [Fact]
+    public void OverrideActivity_Should_ReplaceTraceparent_When_HeaderAlreadySet()
+    {
+        // arrange
+        using var source = new ActivitySource("test-source");
+        using var listener = new ActivityListener();
+        listener.ShouldListenTo = _ => true;
+        listener.Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded;
+        ActivitySource.AddActivityListener(listener);
+
+        using var activity = source.StartActivity("test-operation");
+        Assert.NotNull(activity);
+
+        var headers = new Headers();
+        headers.Set(MessageHeaders.Traceparent.Key, "00-existing-trace-id-span-01");
+
+        // act
+        headers.OverrideActivity();
+
+        // assert
+        var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
+        var flags = (int)activity.ActivityTraceFlags;
+        Assert.Equal($"00-{activity.TraceId}-{activity.SpanId}-{flags:x2}", traceparent);
     }
 
     [Fact]
@@ -954,18 +929,5 @@ public class OpenTelemetryTests
             recorder.Record(request);
             return new(new TracedResponse { Answer = $"re: {request.Query}" });
         }
-    }
-
-    private static ActivityListener CreateListener(ConcurrentBag<Activity> activities)
-    {
-        var listener = new ActivityListener
-        {
-            ShouldListenTo = source => source.Name == "Mocha",
-            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
-            SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
-            ActivityStarted = activity => activities.Add(activity)
-        };
-        ActivitySource.AddActivityListener(listener);
-        return listener;
     }
 }

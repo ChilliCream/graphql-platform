@@ -89,9 +89,9 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
 
         // assert
         var attempt = Assert.Single(recorder.Attempts);
-        Assert.Equal<string?>(
-            [null, null, null],
-            [attempt.SourceAddress, attempt.ResponseAddress, attempt.FaultAddress]);
+        Assert.Null(attempt.SourceAddress);
+        Assert.Null(attempt.ResponseAddress);
+        Assert.Null(attempt.FaultAddress);
         Assert.Equal("legacy", delivered.Value);
         Assert.Equal((0, 0), (recorder.PreparationCount, recorder.DispatchCount));
     }

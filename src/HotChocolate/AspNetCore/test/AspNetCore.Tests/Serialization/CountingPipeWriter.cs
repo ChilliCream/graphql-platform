@@ -18,6 +18,11 @@ internal sealed class CountingPipeWriter(PipeWriter inner) : PipeWriter
     public int MaxSizeHint { get; private set; }
 
     /// <summary>
+    /// Gets the size hints passed to <see cref="GetSpan"/> and <see cref="GetMemory"/> in call order.
+    /// </summary>
+    public List<int> SizeHints { get; } = [];
+
+    /// <summary>
     /// Gets the number of <see cref="Advance"/> calls.
     /// </summary>
     public int AdvanceCount { get; private set; }
@@ -37,6 +42,7 @@ internal sealed class CountingPipeWriter(PipeWriter inner) : PipeWriter
     {
         SpanCount++;
         MaxSizeHint = Math.Max(MaxSizeHint, sizeHint);
+        SizeHints.Add(sizeHint);
         return inner.GetMemory(sizeHint);
     }
 
@@ -44,6 +50,7 @@ internal sealed class CountingPipeWriter(PipeWriter inner) : PipeWriter
     {
         SpanCount++;
         MaxSizeHint = Math.Max(MaxSizeHint, sizeHint);
+        SizeHints.Add(sizeHint);
         return inner.GetSpan(sizeHint);
     }
 

@@ -53,7 +53,7 @@ public sealed class SpecOnlyCompositionGatewayTests
         var compositeDocument = compositeSchema.ToSyntaxNode();
 
         await using var executionSchema = FusionSchemaDefinition.Create(compositeDocument);
-        using var session = new TestServerSession();
+        await using var session = new TestServerSession();
         using var gateway = CreateGateway(session, compositeDocument);
         var request = new OperationRequest("{ items { value } }");
 

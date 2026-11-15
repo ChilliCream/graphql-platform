@@ -727,6 +727,24 @@ nodes:
         passingValue: true
     dependencies:
       - id: 23
+  - id: 7
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_7($__fusion_4_id: ID!) {
+        productById(id: $__fusion_4_id) {
+          name
+        }
+      }
+    source: $.productById
+    target: $.searchContent<Article>.author.reviews.nodes.product
+    batchingGroupId: 34
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 6
   - id: 8
     type: Operation
     schema: products
@@ -907,27 +925,26 @@ nodes:
       - level4
     dependencies:
       - id: 18
-  - id: 7
+  - id: 14
     type: OperationBatch
     schema: products
     operation: |
-      query Op_123456789101112_7($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
+      query Op_123456789101112_14($__fusion_11_id: ID!) {
+        productById(id: $__fusion_11_id) {
           name
         }
       }
     source: $.productById
     targets:
-      - $.searchContent<Article>.author.reviews.nodes.product
       - $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
       - $.products.edges.node.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36
     requirements:
-      - name: __fusion_4_id
+      - name: __fusion_11_id
         selectionMap: >-
           id
     dependencies:
-      - id: 6
+      - id: 7
       - id: 13
       - id: 20
   - id: 15

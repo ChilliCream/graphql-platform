@@ -1310,6 +1310,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               field: String! @fusion__field(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -1351,7 +1356,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1456,6 +1471,16 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(
@@ -1535,6 +1560,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -1585,7 +1615,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1690,6 +1730,16 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(
@@ -1778,6 +1828,11 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -1828,7 +1883,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1933,6 +1998,16 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(

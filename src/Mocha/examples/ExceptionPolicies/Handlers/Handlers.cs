@@ -10,11 +10,11 @@ namespace ExceptionPolicies.Handlers;
 /// </summary>
 public class ProcessPaymentHandler : IEventHandler<ProcessPayment>
 {
-    private static int _attempts;
+    private static int s_attempts;
 
     public ValueTask HandleAsync(ProcessPayment message, CancellationToken cancellationToken)
     {
-        var attempt = Interlocked.Increment(ref _attempts);
+        var attempt = Interlocked.Increment(ref s_attempts);
         Console.WriteLine($"[Payment] Attempt {attempt} for order {message.OrderId}");
 
         if (attempt <= 3)
@@ -59,11 +59,11 @@ public class DeduplicateMessageHandler : IEventHandler<DeduplicateMessage>
 /// </summary>
 public class CallExternalApiHandler : IEventHandler<CallExternalApi>
 {
-    private static int _attempts;
+    private static int s_attempts;
 
     public ValueTask HandleAsync(CallExternalApi message, CancellationToken cancellationToken)
     {
-        var attempt = Interlocked.Increment(ref _attempts);
+        var attempt = Interlocked.Increment(ref s_attempts);
         Console.WriteLine($"[ExternalApi] Attempt {attempt} for {message.Url}");
         throw new ExternalServiceUnavailableException($"Service at {message.Url} is down");
     }
@@ -75,11 +75,11 @@ public class CallExternalApiHandler : IEventHandler<CallExternalApi>
 /// </summary>
 public class RefreshAuthTokenHandler : IEventHandler<RefreshAuthToken>
 {
-    private static int _attempts;
+    private static int s_attempts;
 
     public ValueTask HandleAsync(RefreshAuthToken message, CancellationToken cancellationToken)
     {
-        var attempt = Interlocked.Increment(ref _attempts);
+        var attempt = Interlocked.Increment(ref s_attempts);
         Console.WriteLine($"[Auth] Attempt {attempt} for service {message.Service}");
         throw new AuthTokenExpiredException($"Token for {message.Service} expired");
     }
@@ -91,11 +91,11 @@ public class RefreshAuthTokenHandler : IEventHandler<RefreshAuthToken>
 /// </summary>
 public class ProcessBatchHandler : IEventHandler<ProcessBatch>
 {
-    private static int _attempts;
+    private static int s_attempts;
 
     public ValueTask HandleAsync(ProcessBatch message, CancellationToken cancellationToken)
     {
-        var attempt = Interlocked.Increment(ref _attempts);
+        var attempt = Interlocked.Increment(ref s_attempts);
         Console.WriteLine($"[Batch] Attempt {attempt} for batch {message.BatchId}");
 
         if (attempt <= 4)
@@ -114,11 +114,11 @@ public class ProcessBatchHandler : IEventHandler<ProcessBatch>
 /// </summary>
 public class IngestTelemetryHandler : IEventHandler<IngestTelemetry>
 {
-    private static int _attempts;
+    private static int s_attempts;
 
     public ValueTask HandleAsync(IngestTelemetry message, CancellationToken cancellationToken)
     {
-        var attempt = Interlocked.Increment(ref _attempts);
+        var attempt = Interlocked.Increment(ref s_attempts);
         Console.WriteLine($"[Telemetry] Attempt {attempt} for device {message.DeviceId}");
 
         // Rotate through different HTTP errors to demonstrate conditional policies
@@ -137,11 +137,11 @@ public class IngestTelemetryHandler : IEventHandler<IngestTelemetry>
 /// </summary>
 public class HandlePoisonMessageHandler : IEventHandler<HandlePoisonMessage>
 {
-    private static int _attempts;
+    private static int s_attempts;
 
     public ValueTask HandleAsync(HandlePoisonMessage message, CancellationToken cancellationToken)
     {
-        var attempt = Interlocked.Increment(ref _attempts);
+        var attempt = Interlocked.Increment(ref s_attempts);
         Console.WriteLine($"[Poison] Attempt {attempt} for data: {message.Data}");
         throw new PoisonMessageException("Payload cannot be deserialized");
     }

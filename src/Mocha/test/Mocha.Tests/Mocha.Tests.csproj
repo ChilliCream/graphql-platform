@@ -9,6 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <!-- Dependency of Microsoft.EntityFrameworkCore.Sqlite. Pinned to secure version. -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
@@ -22,6 +24,7 @@
     <ProjectReference Include="..\Mocha.TestHelpers\Mocha.TestHelpers.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Abstractions\Mocha.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.OpenTelemetry\Mocha.OpenTelemetry.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Outbox\Mocha.Outbox.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Inbox\Mocha.Inbox.csproj" />
     <ProjectReference Include="..\..\src\Mocha.EntityFrameworkCore\Mocha.EntityFrameworkCore.csproj" />

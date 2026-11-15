@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -26,9 +27,23 @@ public readonly partial struct CompositeResultElement
             _cursor = _start;
         }
 
+        internal ArrayEnumerator(
+            CompositeResultDocument document,
+            CompositeResultDocument.Cursor start,
+            int length)
+        {
+            Debug.Assert(document._metaDb.GetElementTokenType(start) is ElementTokenType.StartArray);
+
+            _document = document;
+            _start = start;
+            _end = start + (length + 1);
+            _cursor = start;
+        }
+
         /// <inheritdoc />
         public CompositeResultElement Current
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 var cursor = _cursor;
@@ -63,6 +78,7 @@ public readonly partial struct CompositeResultElement
             => GetEnumerator();
 
         /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
             var start = _start;

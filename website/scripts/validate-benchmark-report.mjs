@@ -6,7 +6,7 @@ import {
 
 const report = parseBenchmarkReport(
   readFileSync(
-    new URL("../src/data/federationBenchmarkReport.json", import.meta.url),
+    new URL("../src/data/federation-benchmark-report.json", import.meta.url),
     "utf8",
   ),
 );
@@ -17,7 +17,7 @@ console.log(
 
 const history = parseBenchmarkHistory(
   readFileSync(
-    new URL("../src/data/federationBenchmarkHistory.json", import.meta.url),
+    new URL("../src/data/federation-benchmark-history.json", import.meta.url),
     "utf8",
   ),
 );

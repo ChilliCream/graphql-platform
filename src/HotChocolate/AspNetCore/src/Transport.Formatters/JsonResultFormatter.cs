@@ -236,7 +236,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ref OperationResultFormatterContext? context,
         CancellationToken cancellationToken)
     {
-        var buffer = ChunkedPipeBufferWriter.Rent(writer);
+        var buffer = ChunkedPipeBufferWriter.Rent(writer, growPipeSpans: true);
 
         try
         {
@@ -269,7 +269,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         bool useIncrementalRfc1,
         CancellationToken cancellationToken = default)
     {
-        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
 
         foreach (var result in resultBatch.Results)
         {
@@ -326,7 +326,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         bool useIncrementalRfc1,
         CancellationToken cancellationToken = default)
     {
-        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
         OperationResultFormatterContext? context = null;
         try
         {

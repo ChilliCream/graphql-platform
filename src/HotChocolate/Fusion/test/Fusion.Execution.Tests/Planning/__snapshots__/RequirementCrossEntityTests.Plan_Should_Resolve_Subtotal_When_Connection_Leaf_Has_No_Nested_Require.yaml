@@ -17,83 +17,81 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 10
+    searchSpace: 1
+    expandedNodes: 2
 nodes:
   - id: 2
     type: Operation
-    schema: cart
+    schema: checkout
     operation: |
-      query Op_123456789101112_2($__fusion_1_lines: [Float!], $__fusion_2_id: ID!) {
-        cartById(id: $__fusion_2_id) {
-          subtotal(lines: $__fusion_1_lines)
+      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_lines: [Float!]) {
+        cartById(id: $__fusion_1_id) {
+          subtotal(lines: $__fusion_2_lines)
         }
       }
     source: $.cartById
     target: $.viewer.cart
     requirements:
-      - name: __fusion_1_lines
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_lines
         selectionMap: >-
           items(first: 50).nodes[product.price]
-      - name: __fusion_2_id
-        selectionMap: >-
-          id
     dependencies:
       - id: 3
-      - id: 4
-      - id: 7
+      - id: 5
   - id: 3
-    type: Operation
-    schema: cart
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        cartById(id: $__fusion_3_id) {
-          items(first: 50) {
-            nodes {
-              product {
-                id
-              }
-            }
-          }
-        }
-      }
-    source: $.cartById
-    target: $.viewer.cart
-    requirements:
-      - name: __fusion_3_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 7
-  - id: 4
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        productById(id: $__fusion_3_id) {
           price
         }
       }
     source: $.productById
     target: $.viewer.cart.items.nodes.product
     requirements:
-      - name: __fusion_4_id
+      - name: __fusion_3_id
         selectionMap: >-
           id
     dependencies:
-      - id: 3
-  - id: 5
-    type: OperationBatch
+      - id: 5
+  - id: 1
+    type: Operation
     schema: cart
     operation: |
-      query Op_123456789101112_5 {
+      query Op_123456789101112_1 {
         viewer {
           cart {
             id
+            items(first: 50) {
+              nodes {
+                product {
+                  __typename
+                }
+              }
+            }
           }
         }
       }
-    targets:
-      - $
-      - $
-    batchingGroupId: 7
+    batchingGroupId: 5
+  - id: 4
+    type: Operation
+    schema: cart
+    operation: |
+      query Op_123456789101112_4 {
+        viewer {
+          cart {
+            items(first: 50) {
+              nodes {
+                product {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    batchingGroupId: 5

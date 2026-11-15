@@ -21,6 +21,30 @@ internal static class SettingsExtensions
                     DefaultListSize =
                         compositionSettings.Merger.DefaultListSize
                         ?? settings.Merger.DefaultListSize,
+                    MaxFieldCost =
+                        compositionSettings.Merger.MaxFieldCost
+                        ?? settings.Merger.MaxFieldCost,
+                    MaxTypeCost =
+                        compositionSettings.Merger.MaxTypeCost
+                        ?? settings.Merger.MaxTypeCost,
+                    EnforceCostLimits =
+                        compositionSettings.Merger.EnforceCostLimits
+                        ?? settings.Merger.EnforceCostLimits,
+                    SkipCostAnalyzer =
+                        compositionSettings.Merger.SkipCostAnalyzer
+                        ?? settings.Merger.SkipCostAnalyzer,
+                    MaxResponseSize =
+                        compositionSettings.Merger.MaxResponseSize
+                        ?? settings.Merger.MaxResponseSize,
+                    CostPlanCacheSize =
+                        compositionSettings.Merger.CostPlanCacheSize
+                        ?? settings.Merger.CostPlanCacheSize,
+                    CaseBudget =
+                        compositionSettings.Merger.CaseBudget
+                        ?? settings.Merger.CaseBudget,
+                    CaseBudgetExceededBehavior =
+                        compositionSettings.Merger.CaseBudgetExceededBehavior
+                        ?? settings.Merger.CaseBudgetExceededBehavior,
                     EnableGlobalObjectIdentification =
                         compositionSettings.Merger.EnableGlobalObjectIdentification
                         ?? settings.Merger.EnableGlobalObjectIdentification,
@@ -117,6 +141,46 @@ internal static class SettingsExtensions
             if (mergerSettings.DefaultListSize is { } defaultListSize)
             {
                 mergerOptions.DefaultListSize = defaultListSize;
+            }
+
+            if (mergerSettings.MaxFieldCost is { } maxFieldCost)
+            {
+                mergerOptions.MaxFieldCost = maxFieldCost;
+            }
+
+            if (mergerSettings.MaxTypeCost is { } maxTypeCost)
+            {
+                mergerOptions.MaxTypeCost = maxTypeCost;
+            }
+
+            if (mergerSettings.EnforceCostLimits is { } enforceCostLimits)
+            {
+                mergerOptions.EnforceCostLimits = enforceCostLimits;
+            }
+
+            if (mergerSettings.SkipCostAnalyzer is { } skipCostAnalyzer)
+            {
+                mergerOptions.SkipCostAnalyzer = skipCostAnalyzer;
+            }
+
+            if (mergerSettings.MaxResponseSize is { } maxResponseSize)
+            {
+                mergerOptions.MaxResponseSize = maxResponseSize;
+            }
+
+            if (mergerSettings.CostPlanCacheSize is { } costPlanCacheSize)
+            {
+                mergerOptions.CostPlanCacheSize = costPlanCacheSize;
+            }
+
+            if (mergerSettings.CaseBudget is { } caseBudget)
+            {
+                mergerOptions.CaseBudget = caseBudget;
+            }
+
+            if (mergerSettings.CaseBudgetExceededBehavior is { } caseBudgetExceededBehavior)
+            {
+                mergerOptions.CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
             }
 
             if (mergerSettings.EnableGlobalObjectIdentification is { } enableGlobalObjectIdentification)

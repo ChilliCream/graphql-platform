@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
@@ -35,16 +34,18 @@ public class NodeDescriptor<TNode>
         var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Configuration;
 
         var configuration = new OnCompleteTypeSystemConfigurationTask(
-            (c, d) => OnCompleteConfiguration(c, (ObjectTypeConfiguration)d),
+            (_, _) => OnConfigureResolver(),
             ownerDef,
             ApplyConfigurationOn.AfterNaming);
 
         ownerDef.Tasks.Add(configuration);
+
+        // the resolver pipeline is compiled before completion,
+        // when the directive types of the resolver are available.
+        _typeDescriptor.Extend().OnBeforeCompletion(CompleteResolver);
     }
 
-    private void OnCompleteConfiguration(
-        ITypeCompletionContext context,
-        ObjectTypeConfiguration configuration)
+    private void OnConfigureResolver()
     {
         if (Configuration.ResolverField is null)
         {
@@ -66,8 +67,6 @@ public class NodeDescriptor<TNode>
                 ConfigureNodeField();
             }
         }
-
-        CompleteResolver(context, configuration);
     }
 
     protected override IObjectFieldDescriptor ConfigureNodeField()

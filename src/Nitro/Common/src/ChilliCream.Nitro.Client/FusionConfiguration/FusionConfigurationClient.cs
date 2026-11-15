@@ -271,10 +271,14 @@ internal sealed class FusionConfigurationClient(
 
         return new StageCompositionSettings
         {
+            AllowNonResolvableInterfaceObjects = compositionSettings.AllowNonResolvableInterfaceObjects,
             CacheControlMergeBehavior = compositionSettings.CacheControlMergeBehavior,
+            DefaultListSize = compositionSettings.DefaultListSize,
             EnableGlobalObjectIdentification = compositionSettings.EnableGlobalObjectIdentification,
+            EnumValuesMergeBehavior = compositionSettings.EnumValuesMergeBehavior,
             ExcludeByTag = compositionSettings.ExcludeByTag,
             RemoveUnreferencedDefinitions = compositionSettings.RemoveUnreferencedDefinitions,
+            ShareableFieldRuntimeTypeRouting = compositionSettings.ShareableFieldRuntimeTypeRouting,
             TagMergeBehavior = compositionSettings.TagMergeBehavior,
             NodeResolution = compositionSettings.NodeResolution
         };

@@ -8,7 +8,7 @@ interface PhoneIconProps {
 export function PhoneIcon({ className, style }: PhoneIconProps) {
   return (
     <svg
-      viewBox="473 6028 94 94"
+      viewBox="498 6043 44 64"
       fill="none"
       aria-hidden="true"
       className={className}

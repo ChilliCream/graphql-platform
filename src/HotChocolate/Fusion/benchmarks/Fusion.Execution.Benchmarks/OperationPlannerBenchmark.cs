@@ -3,6 +3,7 @@ using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
@@ -36,7 +37,10 @@ public class OperationPlannerBenchmark : FusionBenchmarkBase
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
         var operationCompiler = new OperationCompiler(schema, pool);
 
-        _planner = new OperationPlanner(schema, operationCompiler);
+        _planner = new OperationPlanner(
+            schema,
+            operationCompiler,
+            new PolicyResolver(new BuiltInPolicyProvider(), []));
     }
 
     [Benchmark]

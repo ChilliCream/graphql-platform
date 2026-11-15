@@ -6,6 +6,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,8 @@ internal static partial class OperationPlanExecutor
     public static async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        int variableIndex,
+        PolicyEvaluationResult policyResult,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
@@ -29,7 +32,17 @@ internal static partial class OperationPlanExecutor
 
         try
         {
-            context.Initialize(requestContext, variables, operationPlan, executionCts);
+            context.Initialize(
+                requestContext,
+                variables,
+                variableIndex,
+                policyResult,
+                operationPlan,
+                executionCts);
+
+            // The engine token is linked to the request token, so it shares the request deadline.
+            context.HasExecutionDeadline =
+                requestContext.Features.Get<ExecutionDeadline>()?.Covers(cancellationToken) is true;
 
             context.Begin();
 
@@ -67,6 +80,7 @@ internal static partial class OperationPlanExecutor
     public static async Task<IExecutionResult> ExecuteWithDeferAsync(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        PolicyEvaluationResult policyResult,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
@@ -77,7 +91,13 @@ internal static partial class OperationPlanExecutor
         try
         {
             rootContext = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
-            rootContext.Initialize(requestContext, variables, operationPlan, executionCts);
+            rootContext.Initialize(
+                requestContext,
+                variables,
+                variableIndex: -1,
+                policyResult,
+                operationPlan,
+                executionCts);
 
             rootContext.Begin();
 
@@ -103,15 +123,9 @@ internal static partial class OperationPlanExecutor
 
             // Compute the active delivery groups (one per @defer occurrence whose
             // @defer(if:) evaluates to true) and the incremental plans that will actually run.
-            // An incremental plan is active if at least one of its delivery groups is active.
-            var activeDeliveryGroupIds = new HashSet<int>();
-            foreach (var deliveryGroup in operationPlan.DeliveryGroups)
-            {
-                if (IsDeliveryGroupActive(deliveryGroup, variables))
-                {
-                    activeDeliveryGroupIds.Add(deliveryGroup.Id);
-                }
-            }
+            // The running plans come from the rule the policy evaluator shares.
+            rootContext.ActivateIncrementalPlans(operationPlan, variables);
+            var activeDeliveryGroups = rootContext.ActiveDeliveryGroups;
 
             // Mark top-level active delivery groups as pending on the initial
             // result. Nested delivery groups are marked pending after their
@@ -124,7 +138,7 @@ internal static partial class OperationPlanExecutor
                     continue;
                 }
 
-                if (!activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+                if (!activeDeliveryGroups.IsSet(deliveryGroup.Id))
                 {
                     continue;
                 }
@@ -156,9 +170,9 @@ internal static partial class OperationPlanExecutor
                 () => CreateIncrementalStream(
                     requestContext,
                     variables,
+                    policyResult,
                     operationPlan,
                     initialResult,
-                    activeDeliveryGroupIds,
                     rootContext,
                     cancellationToken),
                 ExecutionResultKind.DeferredResult);
@@ -183,9 +197,9 @@ internal static partial class OperationPlanExecutor
     private static async IAsyncEnumerable<OperationResult> CreateIncrementalStream(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        PolicyEvaluationResult policyResult,
         OperationPlan operationPlan,
         OperationResult initialResult,
-        HashSet<int> activeDeliveryGroupIds,
         OperationPlanContext rootContext,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -194,22 +208,24 @@ internal static partial class OperationPlanExecutor
 
         var requestArena = rootContext.Memory;
         var incrementalPlans = operationPlan.IncrementalPlans;
+        var activeDeliveryGroups = rootContext.ActiveDeliveryGroups;
+        var runningIncrementalPlans = rootContext.RunningIncrementalPlans;
 
         // Per-delivery-group completion tracking. A delivery group is considered
         // complete when every incremental plan whose DeliveryGroups contains it has
         // finished. We also track which incremental plans are "active" so an inactive
         // @defer(if: false) group does not block completion accounting.
         var pendingCountByDeliveryGroup = new Dictionary<int, int>();
-        foreach (var incrementalPlan in incrementalPlans)
+        for (var i = 0; i < incrementalPlans.Length; i++)
         {
-            if (!IsIncrementalPlanActive(incrementalPlan, activeDeliveryGroupIds))
+            if (!runningIncrementalPlans.IsSet(i))
             {
                 continue;
             }
 
-            foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
+            foreach (var deliveryGroup in incrementalPlans[i].DeliveryGroups)
             {
-                if (!activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+                if (!activeDeliveryGroups.IsSet(deliveryGroup.Id))
                 {
                     continue;
                 }
@@ -232,14 +248,11 @@ internal static partial class OperationPlanExecutor
 
         try
         {
-            foreach (var incrementalPlan in incrementalPlans)
+            for (var i = 0; i < incrementalPlans.Length; i++)
             {
-                if (!IsIncrementalPlanActive(incrementalPlan, activeDeliveryGroupIds))
-                {
-                    continue;
-                }
+                var incrementalPlan = incrementalPlans[i];
 
-                if (incrementalPlan.DeliveryGroups[0].Parent is not null)
+                if (!runningIncrementalPlans.IsSet(i) || incrementalPlan.DeliveryGroups[0].Parent is not null)
                 {
                     continue;
                 }
@@ -249,6 +262,7 @@ internal static partial class OperationPlanExecutor
                 BeginIncrementalPlan(
                     requestContext,
                     variables,
+                    policyResult,
                     incrementalPlan,
                     rootContext.GetResultStoreForChildDefer(),
                     channel.Writer,
@@ -262,7 +276,7 @@ internal static partial class OperationPlanExecutor
             var announcedDeliveryGroupIds = new HashSet<int>();
             foreach (var deliveryGroup in operationPlan.DeliveryGroups)
             {
-                if (deliveryGroup.Parent is null && activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+                if (deliveryGroup.Parent is null && activeDeliveryGroups.IsSet(deliveryGroup.Id))
                 {
                     announcedDeliveryGroupIds.Add(deliveryGroup.Id);
                 }
@@ -286,9 +300,11 @@ internal static partial class OperationPlanExecutor
                 // belongs to the just-completed incremental plan, then mark
                 // their delivery groups as pending on the outgoing result.
                 var childPending = ImmutableList.CreateBuilder<PendingResult>();
-                foreach (var candidate in incrementalPlans)
+                for (var i = 0; i < incrementalPlans.Length; i++)
                 {
-                    if (!IsIncrementalPlanActive(candidate, activeDeliveryGroupIds))
+                    var candidate = incrementalPlans[i];
+
+                    if (!runningIncrementalPlans.IsSet(i))
                     {
                         continue;
                     }
@@ -329,6 +345,7 @@ internal static partial class OperationPlanExecutor
                     BeginIncrementalPlan(
                         requestContext,
                         variables,
+                        policyResult,
                         candidate,
                         parentStore,
                         channel.Writer,
@@ -337,7 +354,7 @@ internal static partial class OperationPlanExecutor
 
                     foreach (var deliveryGroup in candidate.DeliveryGroups)
                     {
-                        if (!activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+                        if (!activeDeliveryGroups.IsSet(deliveryGroup.Id))
                         {
                             continue;
                         }
@@ -371,7 +388,7 @@ internal static partial class OperationPlanExecutor
                     payload = OperationResult.FromError(errorObj);
                     CompleteDeliveryGroupsForIncrementalPlan(
                         incrementalPlan,
-                        activeDeliveryGroupIds,
+                        activeDeliveryGroups,
                         pendingCountByDeliveryGroup,
                         completed,
                         errors: [errorObj]);
@@ -396,7 +413,7 @@ internal static partial class OperationPlanExecutor
 
                     CompleteDeliveryGroupsForIncrementalPlan(
                         incrementalPlan,
-                        activeDeliveryGroupIds,
+                        activeDeliveryGroups,
                         pendingCountByDeliveryGroup,
                         completed,
                         errors: result.Errors.Count > 0 && payload.Incremental.Count == 0
@@ -414,7 +431,7 @@ internal static partial class OperationPlanExecutor
                     payload = OperationResult.FromError(placeholder);
                     CompleteDeliveryGroupsForIncrementalPlan(
                         incrementalPlan,
-                        activeDeliveryGroupIds,
+                        activeDeliveryGroups,
                         pendingCountByDeliveryGroup,
                         completed,
                         errors: null);
@@ -468,6 +485,7 @@ internal static partial class OperationPlanExecutor
     private static void BeginIncrementalPlan(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        PolicyEvaluationResult policyResult,
         IncrementalPlan incrementalPlan,
         FetchResultStore parentResultStore,
         ChannelWriter<IncrementalPlanResult> completion,
@@ -488,7 +506,14 @@ internal static partial class OperationPlanExecutor
             // Reuse the single request arena instead of minting a per-plan arena: the request
             // executor has already detached it from the request context, so it is supplied
             // explicitly here.
-            context.Initialize(requestContext, variables, incrementalPlan, executionCts, requestArena);
+            context.Initialize(
+                requestContext,
+                variables,
+                variableIndex: -1,
+                policyResult,
+                incrementalPlan,
+                executionCts,
+                requestArena);
 
             // Copy parent-scope requirements into the child context.
             CollectIncrementalPlanRequirements(parentResultStore, incrementalPlan, context);
@@ -644,35 +669,6 @@ internal static partial class OperationPlanExecutor
         }
     }
 
-    private static bool IsDeliveryGroupActive(DeliveryGroup deliveryGroup, IVariableValueCollection variables)
-    {
-        if (deliveryGroup.IfVariable is null)
-        {
-            return true;
-        }
-
-        if (!variables.TryGetValue<BooleanValueNode>(deliveryGroup.IfVariable, out var boolValue))
-        {
-            throw new InvalidOperationException(
-                $"The variable {deliveryGroup.IfVariable} has an invalid value.");
-        }
-
-        return boolValue.Value;
-    }
-
-    private static bool IsIncrementalPlanActive(IncrementalPlan incrementalPlan, HashSet<int> activeDeliveryGroupIds)
-    {
-        foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
-        {
-            if (activeDeliveryGroupIds.Contains(deliveryGroup.Id))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /// <summary>
     /// Selects the delivery group used to anchor an incremental result.
     /// The group with the deepest path is selected.
@@ -700,14 +696,14 @@ internal static partial class OperationPlanExecutor
 
     private static void CompleteDeliveryGroupsForIncrementalPlan(
         IncrementalPlan incrementalPlan,
-        HashSet<int> activeDeliveryGroupIds,
+        ConditionFlags activeDeliveryGroups,
         Dictionary<int, int> pendingCountByDeliveryGroup,
         ImmutableList<CompletedResult>.Builder completed,
         IReadOnlyList<IError>? errors)
     {
         foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
         {
-            if (!activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+            if (!activeDeliveryGroups.IsSet(deliveryGroup.Id))
             {
                 continue;
             }
@@ -910,7 +906,13 @@ internal static partial class OperationPlanExecutor
         try
         {
             context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
-            context.Initialize(requestContext, requestContext.VariableValues[0], operationPlan, executionCts);
+            context.Initialize(
+                requestContext,
+                requestContext.VariableValues[0],
+                variableIndex: -1,
+                requestContext.GetPolicyEvaluationResult(0),
+                operationPlan,
+                executionCts);
 
             var subscriptionResult = root switch
             {

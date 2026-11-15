@@ -5,37 +5,37 @@ namespace Mocha.Mediator.Benchmarks.Messaging;
 // ─── Full Pipeline Command (Mocha + MediatR shared) ───
 
 public sealed record FullPipelineCommand(Guid Id)
-    : Mocha.Mediator.ICommand<BenchmarkResponse>,
+    : ICommand<BenchmarkResponse>,
       MediatR.IRequest<BenchmarkResponse>;
 
 public sealed class FullPipelineCommandHandler
-    : Mocha.Mediator.ICommandHandler<FullPipelineCommand, BenchmarkResponse>,
+    : ICommandHandler<FullPipelineCommand, BenchmarkResponse>,
       MediatR.IRequestHandler<FullPipelineCommand, BenchmarkResponse>
 {
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
-    private static readonly Task<BenchmarkResponse> _taskResponse = Task.FromResult(_response);
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
+    private static readonly Task<BenchmarkResponse> s_taskResponse = Task.FromResult(s_response);
 
     public ValueTask<BenchmarkResponse> HandleAsync(
         FullPipelineCommand command,
         CancellationToken cancellationToken)
-        => new(_response);
+        => new(s_response);
 
     Task<BenchmarkResponse> MediatR.IRequestHandler<FullPipelineCommand, BenchmarkResponse>.Handle(
         FullPipelineCommand request,
         CancellationToken cancellationToken)
-        => _taskResponse;
+        => s_taskResponse;
 }
 
 // Mocha pre-processing middleware
 public sealed class FullPipelineMochaPreMiddleware
 {
-    public async ValueTask InvokeAsync(Mocha.Mediator.IMediatorContext context, Mocha.Mediator.MediatorDelegate next)
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
     {
         // Pre-processing (no-op)
         await next(context);
     }
 
-    public static Mocha.Mediator.MediatorMiddlewareConfiguration Create()
+    public static MediatorMiddlewareConfiguration Create()
         => new(static (_, next) =>
         {
             var mw = new FullPipelineMochaPreMiddleware();
@@ -46,12 +46,12 @@ public sealed class FullPipelineMochaPreMiddleware
 // Mocha pipeline behavior middleware
 public sealed class FullPipelineMochaBehaviorMiddleware
 {
-    public async ValueTask InvokeAsync(Mocha.Mediator.IMediatorContext context, Mocha.Mediator.MediatorDelegate next)
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
     {
         await next(context);
     }
 
-    public static Mocha.Mediator.MediatorMiddlewareConfiguration Create()
+    public static MediatorMiddlewareConfiguration Create()
         => new(static (_, next) =>
         {
             var mw = new FullPipelineMochaBehaviorMiddleware();
@@ -62,13 +62,13 @@ public sealed class FullPipelineMochaBehaviorMiddleware
 // Mocha post-processing middleware
 public sealed class FullPipelineMochaPostMiddleware
 {
-    public async ValueTask InvokeAsync(Mocha.Mediator.IMediatorContext context, Mocha.Mediator.MediatorDelegate next)
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
     {
         await next(context);
         // Post-processing (no-op)
     }
 
-    public static Mocha.Mediator.MediatorMiddlewareConfiguration Create()
+    public static MediatorMiddlewareConfiguration Create()
         => new(static (_, next) =>
         {
             var mw = new FullPipelineMochaPostMiddleware();
@@ -111,12 +111,12 @@ public sealed record FullPipelineMediatorSgCommand(Guid Id)
 public sealed class FullPipelineMediatorSgCommandHandler
     : global::Mediator.IRequestHandler<FullPipelineMediatorSgCommand, BenchmarkResponse>
 {
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
     public ValueTask<BenchmarkResponse> Handle(
         FullPipelineMediatorSgCommand request,
         CancellationToken cancellationToken)
-        => new(_response);
+        => new(s_response);
 }
 
 // Native pre-processor (inherits MessagePreProcessor which implements IPipelineBehavior)
@@ -159,12 +159,12 @@ public sealed record FullPipelineSwitchMediatorCommand(Guid Id)
 public sealed class FullPipelineSwitchMediatorCommandHandler
     : global::Mediator.Switch.IValueRequestHandler<FullPipelineSwitchMediatorCommand, BenchmarkResponse>
 {
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
     public ValueTask<BenchmarkResponse> Handle(
         FullPipelineSwitchMediatorCommand request,
         CancellationToken cancellationToken)
-        => new(_response);
+        => new(s_response);
 }
 
 public sealed class FullPipelineSwitchMediatorPreBehavior
@@ -235,10 +235,10 @@ public static partial class ImmediateFullPipelineCommandHandler
 {
     public sealed record Command(Guid Id);
 
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
     private static ValueTask<BenchmarkResponse> HandleAsync(
-        Command command,
-        CancellationToken ct)
-        => new(_response);
+        Command _,
+        CancellationToken __)
+        => new(s_response);
 }

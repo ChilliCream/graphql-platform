@@ -82,8 +82,9 @@ internal sealed partial class SourceSchemaMerger
             new Dictionary<string, IDirectiveMerger>
             {
                 {
-                    DirectiveNames.Authorize,
-                    new AuthorizeDirectiveMerger(DirectiveMergeBehavior.Include)
+                    DirectiveNames.FusionPolicy,
+                    new PolicyDirectiveMerger(
+                        _fusionDirectiveDefinitions[DirectiveNames.FusionPolicy])
                 },
                 {
                     DirectiveNames.CacheControl,
@@ -133,6 +134,10 @@ internal sealed partial class SourceSchemaMerger
         SetOperationTypes(mergedSchema);
         AddFusionLookupDirectives(mergedSchema);
         AddNodeField(mergedSchema);
+        PolicyInheritance.Apply(
+            mergedSchema,
+            _fusionDirectiveDefinitions[DirectiveNames.FusionPolicy],
+            _schemas);
 
         // Merge directives.
         var memberDefinitions = _schemas.Select(s => new DirectivesProviderInfo(s, s)).ToImmutableArray();
@@ -145,6 +150,7 @@ internal sealed partial class SourceSchemaMerger
         {
             mergedSchema.RemoveUnreferencedDefinitions(
                 MutableSchemaDefinitionExtensions.GetPreservedTypeNames(_schemas),
+                MutableSchemaDefinitionExtensions.GetPreservedDirectiveNames(_schemas),
                 seedUnionsAsRoots: false);
         }
 
@@ -220,8 +226,13 @@ internal sealed partial class SourceSchemaMerger
 
         foreach (var grouping in directiveDefinitionGroupByName)
         {
-            if (!_directiveMergers.TryGetValue(grouping.Key, out var directiveMerger)
-                || directiveMerger.MergeBehavior is DirectiveMergeBehavior.Ignore)
+            if (!_directiveMergers.TryGetValue(grouping.Key, out var directiveMerger))
+            {
+                MergeExecutableDirectiveDefinition([.. grouping], mergedSchema);
+                continue;
+            }
+
+            if (directiveMerger.MergeBehavior is DirectiveMergeBehavior.Ignore)
             {
                 continue;
             }
@@ -317,9 +328,12 @@ internal sealed partial class SourceSchemaMerger
             && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType)
             && mergedSchema.QueryType is { } queryType)
         {
+            Directive? nodeFieldPolicy = null;
+
             if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField)
                 && IsGoiNodeField(nodeField, nodeType, idType))
             {
+                nodeFieldPolicy = nodeField.Directives.FirstOrDefault(DirectiveNames.FusionPolicy);
                 queryType.Fields.Remove(nodeField);
             }
 
@@ -335,6 +349,12 @@ internal sealed partial class SourceSchemaMerger
                 var canonicalNodeField = new MutableOutputFieldDefinition(FieldNames.Node, nodeType);
                 canonicalNodeField.Arguments.Add(
                     new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
+
+                if (nodeFieldPolicy is not null)
+                {
+                    canonicalNodeField.Directives.Add(nodeFieldPolicy);
+                }
+
                 canonicalNodeField.Directives.Add(
                     new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
 
@@ -501,6 +521,8 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.FusionPolicy]
+                    .MergeDirectives(enumType, memberDefinitions, mergedSchema);
                 DeriveCostDirectives(enumType, memberDefinitions, mergedSchema, CostCoordinateKind.LeafType, null);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(enumType, memberDefinitions, mergedSchema);
 
@@ -751,6 +773,8 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.FusionPolicy]
+                    .MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl].MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
 
@@ -844,7 +868,7 @@ internal sealed partial class SourceSchemaMerger
             () =>
             {
                 var memberDefinitions = typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
-                _directiveMergers[DirectiveNames.Authorize]
+                _directiveMergers[DirectiveNames.FusionPolicy]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
@@ -972,7 +996,7 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     fieldGroup.Select(g => new DirectivesProviderInfo(g.Field, g.Schema)).ToImmutableArray();
-                _directiveMergers[DirectiveNames.Authorize]
+                _directiveMergers[DirectiveNames.FusionPolicy]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
@@ -1039,6 +1063,8 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
+                _directiveMergers[DirectiveNames.FusionPolicy]
+                    .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
                 DeriveCostDirectives(scalarType, memberDefinitions, mergedSchema, CostCoordinateKind.LeafType, null);
                 _directiveMergers[DirectiveNames.SerializeAs]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
@@ -1780,7 +1806,10 @@ internal sealed partial class SourceSchemaMerger
             assumedSizes.Add(parsed.AssumedSize);
             slicingArgumentsPerSource.Add(parsed.SlicingArguments);
             sizedFieldsPerSource.Add(parsed.SizedFields);
-            slicingArgumentDefaultValues.Add(parsed.SlicingArgumentDefaultValue);
+            slicingArgumentDefaultValues.Add(
+                ListSizeDirectiveFold.CapSlicingArgumentDefaultValue(
+                    parsed.SlicingArgumentDefaultValue,
+                    parsed.AssumedSize));
             requireOneSlicingArgumentPerSource.Add(
                 parsed.RequireOneSlicingArgument
                     ?? GetSourceDeclaredRequireOneSlicingArgumentDefault(sourceSchema));
@@ -2172,6 +2201,10 @@ internal sealed partial class SourceSchemaMerger
             },
             // Enum type definitions.
             {
+                TypeNames.FusionCaseBudgetExceededBehavior,
+                new FusionCaseBudgetExceededBehaviorMutableEnumTypeDefinition()
+            },
+            {
                 TypeNames.FusionNodeResolution,
                 new FusionNodeResolutionMutableEnumTypeDefinition()
             },
@@ -2188,6 +2221,8 @@ internal sealed partial class SourceSchemaMerger
 
     private FrozenDictionary<string, MutableDirectiveDefinition> CreateFusionDirectiveDefinitions()
     {
+        var caseBudgetExceededBehaviorType =
+            (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionCaseBudgetExceededBehavior];
         var schemaEnumType =
             (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionSchema];
         var nodeResolutionType =
@@ -2205,17 +2240,26 @@ internal sealed partial class SourceSchemaMerger
             (MutableScalarTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionFieldSelectionSet];
         var stringType = BuiltIns.String.Create();
         var booleanType = BuiltIns.Boolean.Create();
+        var floatType = BuiltIns.Float.Create();
         var intType = BuiltIns.Int.Create();
 
         return new Dictionary<string, MutableDirectiveDefinition>
         {
+            {
+                DirectiveNames.FusionPolicy,
+                new FusionPolicyMutableDirectiveDefinition(stringType, booleanType)
+            },
             {
                 DirectiveNames.FusionCost,
                 new FusionCostMutableDirectiveDefinition(schemaEnumType, stringType)
             },
             {
                 DirectiveNames.FusionCostOptions,
-                new FusionCostOptionsMutableDirectiveDefinition(intType)
+                new FusionCostOptionsMutableDirectiveDefinition(
+                    intType,
+                    floatType,
+                    booleanType,
+                    caseBudgetExceededBehaviorType)
             },
             {
                 DirectiveNames.FusionEnumValue,
@@ -2341,14 +2385,77 @@ internal sealed partial class SourceSchemaMerger
                                 + $"'{_shareableFieldRuntimeTypeRouting}' is invalid.")
                         }))));
 
+        var costOptionsArguments = new List<ArgumentAssignment>();
+
         if (_options.DefaultListSize is { } defaultListSize)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.DefaultListSize, new IntValueNode(defaultListSize)));
+        }
+
+        if (_options.MaxFieldCost is { } maxFieldCost)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.MaxFieldCost, new HotChocolate.Language.FloatValueNode(maxFieldCost)));
+        }
+
+        if (_options.MaxTypeCost is { } maxTypeCost)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.MaxTypeCost, new HotChocolate.Language.FloatValueNode(maxTypeCost)));
+        }
+
+        if (_options.EnforceCostLimits is { } enforceCostLimits)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.EnforceCostLimits, new BooleanValueNode(enforceCostLimits)));
+        }
+
+        if (_options.SkipCostAnalyzer is { } skipCostAnalyzer)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.SkipAnalyzer, new BooleanValueNode(skipCostAnalyzer)));
+        }
+
+        if (_options.MaxResponseSize is { } maxResponseSize)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.MaxResponseSize, new HotChocolate.Language.FloatValueNode(maxResponseSize)));
+        }
+
+        if (_options.CostPlanCacheSize is { } costPlanCacheSize)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.CostPlanCacheSize, new IntValueNode(costPlanCacheSize)));
+        }
+
+        if (_options.CaseBudget is { } caseBudget)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(ArgumentNames.CaseBudget, new IntValueNode(caseBudget)));
+        }
+
+        if (_options.CaseBudgetExceededBehavior is { } caseBudgetExceededBehavior)
+        {
+            costOptionsArguments.Add(
+                new ArgumentAssignment(
+                    ArgumentNames.CaseBudgetExceededBehavior,
+                    new EnumValueNode(
+                        caseBudgetExceededBehavior switch
+                        {
+                            CaseBudgetExceededBehavior.EvaluatePerRequest => "EVALUATE_PER_REQUEST",
+                            CaseBudgetExceededBehavior.Overestimate => "OVERESTIMATE",
+                            _ => throw ThrowHelper.UnexpectedCaseBudgetExceededBehavior(
+                                caseBudgetExceededBehavior)
+                        })));
+        }
+
+        if (costOptionsArguments.Count > 0)
         {
             mergedSchema.Directives.Add(
                 new Directive(
                     _fusionDirectiveDefinitions[DirectiveNames.FusionCostOptions],
-                    new ArgumentAssignment(
-                        ArgumentNames.DefaultListSize,
-                        new IntValueNode(defaultListSize))));
+                    costOptionsArguments));
         }
     }
 

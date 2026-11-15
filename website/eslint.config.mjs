@@ -10,6 +10,7 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    "test-results/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

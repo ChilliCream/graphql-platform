@@ -125,9 +125,9 @@ public class QueryContextProjectionTests : IDisposable
 
     public class OrderDbContext(DbContextOptions<OrderDbContext> options) : DbContext(options)
     {
-        public DbSet<Order> Orders => Set<Order>();
+        public DbSet<Order> Orders { get; set; }
 
-        public DbSet<OrderRelation> OrderRelations => Set<OrderRelation>();
+        public DbSet<OrderRelation> OrderRelations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

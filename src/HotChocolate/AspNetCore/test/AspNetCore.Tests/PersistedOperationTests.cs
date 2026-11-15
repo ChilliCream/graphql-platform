@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.PersistedOperations;
 
@@ -465,6 +466,89 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task Post_Should_NotPersistRequestDocument_When_HashDoesNotMatchQuery()
+    {
+        // arrange
+        var storage = new OperationStorage();
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UseAutomaticPersistedOperationPipeline());
+
+        var request = CreateApolloStyleRequest("md5Hash", "acb8d5d513c260b3cef3e3a12b0e29af");
+        request.Id = "acb8d5d513c260b3cef3e3a12b0e29af";
+        request.Query = "{ __typename }";
+
+        // act
+        var result = await server.PostAsync(request, path: "/starwars");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "__typename": "Query"
+              },
+              "Errors": null,
+              "Extensions": {
+                "persistedQuery": {
+                  "md5Hash": "acb8d5d513c260b3cef3e3a12b0e29af",
+                  "expectedHashValue": "ef5c9e7b1e24de261642083d4e294322",
+                  "expectedHashType": "md5Hash",
+                  "expectedHashFormat": "Hex",
+                  "persisted": false
+                }
+              }
+            }
+            """);
+        Assert.Empty(storage.Keys);
+    }
+
+    [Fact]
+    public async Task Post_Should_UseStoredDocument_When_HashIsAlreadyStored()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("acb8d5d513c260b3cef3e3a12b0e29af", "{ hero { name } }");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UseAutomaticPersistedOperationPipeline());
+
+        var request = CreateApolloStyleRequest("md5Hash", "acb8d5d513c260b3cef3e3a12b0e29af");
+        request.Id = "acb8d5d513c260b3cef3e3a12b0e29af";
+        request.Query = "{ __typename }";
+
+        // act
+        var result = await server.PostAsync(request, path: "/starwars");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
+        Assert.Equal(
+            "{ hero { name } }",
+            storage.PrintOperation("acb8d5d513c260b3cef3e3a12b0e29af"));
+    }
+
     private ClientQueryRequest CreateApolloStyleRequest(string hashName, string key)
         => new()
         {
@@ -483,6 +567,8 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
         private readonly Dictionary<string, OperationDocument> _cache =
             new(StringComparer.Ordinal);
 
+        public IReadOnlyCollection<string> Keys => _cache.Keys;
+
         public ValueTask<IOperationDocument?> TryReadAsync(
             OperationDocumentId documentId,
             CancellationToken cancellationToken = default)
@@ -494,13 +580,21 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
             OperationDocumentId documentId,
             IOperationDocument document,
             CancellationToken cancellationToken = default)
-            => throw new NotImplementedException();
+        {
+            var syntaxTree = Utf8GraphQLParser.Parse(document.AsSpan());
+            _cache[documentId.Value] = new OperationDocument(syntaxTree);
+
+            return default;
+        }
 
         public void AddOperation(string key, string sourceText)
         {
             var doc = new OperationDocument(Utf8GraphQLParser.Parse(sourceText));
             _cache.Add(key, doc);
         }
+
+        public string PrintOperation(string key)
+            => _cache[key].Document.Print(indented: false);
     }
 
     private sealed class AllowNonPersistedOperationInterceptor : DefaultHttpRequestInterceptor

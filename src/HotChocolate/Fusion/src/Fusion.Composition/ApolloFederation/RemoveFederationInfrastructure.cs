@@ -22,10 +22,7 @@ internal static class RemoveFederationInfrastructure
         FederationDirectiveNames.Inaccessible,
         FederationDirectiveNames.Override,
         FederationDirectiveNames.Tag,
-        FederationDirectiveNames.ComposeDirective,
-        FederationDirectiveNames.Authenticated,
-        FederationDirectiveNames.RequiresScopes,
-        FederationDirectiveNames.Policy
+        FederationDirectiveNames.ComposeDirective
     ];
 
     private static readonly HashSet<string> s_federationScalarNames =
@@ -102,7 +99,7 @@ internal static class RemoveFederationInfrastructure
         }
     }
 
-    private static HashSet<string> CollectReferencedTypeNames(MutableSchemaDefinition schema)
+    internal static HashSet<string> CollectReferencedTypeNames(MutableSchemaDefinition schema)
     {
         var referencedTypeNames = new HashSet<string>(StringComparer.Ordinal);
 

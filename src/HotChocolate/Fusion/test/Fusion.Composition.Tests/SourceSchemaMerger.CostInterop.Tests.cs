@@ -26,7 +26,7 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
                 $$"""
                 # Schema B (full ChilliCream shape)
                 type Query {
-                    field: [Int] @listSize(assumedSize: 10, slicingArgumentDefaultValue: 20)
+                    field: [Int] @listSize(assumedSize: 10, slicingArgumentDefaultValue: 8)
                 }
 
                 {{s_listSizeDirective}}
@@ -39,14 +39,14 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
 
             type Query @fusion__type(schema: A) @fusion__type(schema: B) {
               field: [Int]
-                @listSize(assumedSize: 10, slicingArgumentDefaultValue: 20)
+                @listSize(assumedSize: 10, slicingArgumentDefaultValue: 8)
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
                 @fusion__listSize(schema: A, assumedSize: 5)
                 @fusion__listSize(
                   schema: B
                   assumedSize: 10
-                  slicingArgumentDefaultValue: 20
+                  slicingArgumentDefaultValue: 8
                 )
             }
             """,

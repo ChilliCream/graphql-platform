@@ -1,8 +1,8 @@
-using System.Buffers;
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -19,7 +19,6 @@ public sealed class OperationCompiler
     private readonly TypeNameField _typeNameField;
     private readonly int _maxAllowedIncludeConditions;
     private readonly int _maxAllowedDeferConditions;
-    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     public OperationCompiler(
         FusionSchemaDefinition schema,
@@ -54,6 +53,11 @@ public sealed class OperationCompiler
     /// </summary>
     internal int MaxAllowedDeferConditions => _maxAllowedDeferConditions;
 
+    /// <summary>
+    /// Gets the largest id a selection set or a selection of an operation can have.
+    /// </summary>
+    internal int MaxElementId { get; init; } = CompositeResultDocument.DbRow.OperationReferenceIdMask;
+
     public Operation Compile(
         string id,
         string hash,
@@ -83,7 +87,7 @@ public sealed class OperationCompiler
 
         var fields = _fieldsPool.Get();
 
-        var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
+        var compilationContext = new CompilationContext(new object[128]);
 
         try
         {
@@ -290,7 +294,7 @@ public sealed class OperationCompiler
         var wideIncludeFlags = hasWideIncludeFlags ? new List<ulong[]>() : null;
         var wideIncludeFlagsStride = hasWideIncludeFlags ? (includeConditionCount - 1) >> 6 : 0;
         var deliveryGroups = new List<DeliveryGroup>();
-        var selectionSetId = ++lastId;
+        var selectionSetId = NewElementId(ref lastId);
 
         foreach (var (responseName, nodes) in fieldMap)
         {
@@ -428,7 +432,7 @@ public sealed class OperationCompiler
             }
 
             var selection = new Selection(
-                ++lastId,
+                NewElementId(ref lastId),
                 responseName,
                 field,
                 nodes.ToArray(),
@@ -457,6 +461,22 @@ public sealed class OperationCompiler
             isConditional,
             hasIncrementalParts,
             declaringSelection);
+    }
+
+    /// <summary>
+    /// Gets the next operation unique id for a selection set or a selection.
+    /// </summary>
+    /// <exception cref="GraphQLException">
+    /// The operation needs more ids than a result document can reference.
+    /// </exception>
+    private int NewElementId(ref int lastId)
+    {
+        if (lastId >= MaxElementId)
+        {
+            throw ThrowHelper.OperationCompiler_TooManySelections();
+        }
+
+        return ++lastId;
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
@@ -803,10 +823,8 @@ public sealed class OperationCompiler
         {
             if (id >= _elementsById.Length)
             {
-                var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
-                _elementsById.AsSpan().CopyTo(newArray);
-                s_objectArrayPool.Return(_elementsById);
-                _elementsById = newArray;
+                // Existing readers may continue using the previous array.
+                Array.Resize(ref _elementsById, Math.Max(_elementsById.Length * 2, id + 1));
             }
 
             _elementsById[id] = element;

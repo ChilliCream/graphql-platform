@@ -1839,9 +1839,9 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         DbContextOptions<ConstructorInjectionDbContext> options)
         : DbContext(options)
     {
-        public DbSet<ConstructorInjectionBlog> Blogs => Set<ConstructorInjectionBlog>();
+        public DbSet<ConstructorInjectionBlog> Blogs { get; set; }
 
-        public DbSet<ConstructorInjectionPost> Posts => Set<ConstructorInjectionPost>();
+        public DbSet<ConstructorInjectionPost> Posts { get; set; }
     }
 
     public class ConstructorInjectionBlog
@@ -1884,7 +1884,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         DbContextOptions<RecordProjectionDbContext> options)
         : DbContext(options)
     {
-        public DbSet<RecordProjectionProduct> Products => Set<RecordProjectionProduct>();
+        public DbSet<RecordProjectionProduct> Products { get; set; }
     }
 
     public record RecordProjectionProduct
@@ -2087,9 +2087,9 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
     public sealed class ConditionalDbContext(DbContextOptions<ConditionalDbContext> options) : DbContext(options)
     {
-        public DbSet<ConditionalTenant> Tenants => Set<ConditionalTenant>();
+        public DbSet<ConditionalTenant> Tenants { get; set; }
 
-        public DbSet<ConditionalWorkspace> Workspaces => Set<ConditionalWorkspace>();
+        public DbSet<ConditionalWorkspace> Workspaces { get; set; }
     }
 
     public sealed class ConditionalTenant

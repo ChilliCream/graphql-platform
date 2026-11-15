@@ -3,6 +3,7 @@
 ```text
 Headers:
 Content-Type: application/graphql-response+json; charset=utf-8
+Content-Length: 226
 -------------------------->
 Status Code: BadRequest
 -------------------------->

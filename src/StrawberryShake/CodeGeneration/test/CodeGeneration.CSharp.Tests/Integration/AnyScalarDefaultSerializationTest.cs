@@ -17,7 +17,7 @@ public class AnyScalarDefaultSerializationTest : ServerTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(20_000);
-        using var host = TestServerHelper.CreateServer(
+        await using var app = TestServerHelper.StartApp(
             builder => builder.AddTypeExtension<QueryResolvers>().AddJsonTypeConverter(),
             out var port);
         var serviceCollection = new ServiceCollection();

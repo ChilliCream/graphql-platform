@@ -98,6 +98,91 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
         }
         """;
 
+    private const string HiddenImplementorCatalogSchema =
+        """
+        # name: catalog
+        extend schema
+          @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@inaccessible"])
+
+        interface Item @key(fields: "id") {
+          id: ID!
+          common: String
+        }
+
+        type Visible implements Item @key(fields: "id") {
+          id: ID!
+          common: String
+        }
+
+        type Private implements Item @key(fields: "id") @inaccessible {
+          id: ID!
+          common: String
+        }
+
+        type Query {
+          items: [Item]
+          alive: String
+        }
+        """;
+
+    private const string HiddenImplementorExtraSchema =
+        """
+        # name: extra
+        extend schema
+          @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@interfaceObject"])
+
+        type Item @key(fields: "id") @interfaceObject {
+          id: ID!
+          extra: String
+        }
+
+        type Query {
+          extraItems: [Item]
+        }
+        """;
+
+    private const string SingleHiddenImplementorAccountsSchema =
+        """
+        # name: accounts
+        extend schema
+          @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@inaccessible"])
+
+        interface Account @key(fields: "id") {
+          id: ID!
+          name: String
+        }
+
+        type Personal implements Account @key(fields: "id") {
+          id: ID!
+          name: String
+        }
+
+        type Internal implements Account @key(fields: "id") @inaccessible {
+          id: ID!
+          name: String
+        }
+        """;
+
+    private const string SingleHiddenImplementorLedgerSchema =
+        """
+        # name: ledger
+        extend schema
+          @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@interfaceObject"])
+
+        type Query {
+          rows: [Row]
+        }
+
+        type Row {
+          account: Account
+        }
+
+        type Account @key(fields: "id") @interfaceObject {
+          id: ID!
+          balance: Int
+        }
+        """;
+
     private const string OpaqueProductSchema =
         """
         # name: opaque
@@ -406,6 +491,88 @@ public sealed class InterfaceObjectPlanningTests : FusionTestBase
             query {
               a {
                 field
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchStandInFields_When_InterfaceHasInaccessibleImplementor()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            _ => { },
+            HiddenImplementorCatalogSchema,
+            HiddenImplementorExtraSchema);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              items {
+                id
+                common
+                extra
+              }
+              alive
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_RouteTypeNameToCoveringLookup_When_InterfaceHasInaccessibleImplementor()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            _ => { },
+            HiddenImplementorCatalogSchema,
+            HiddenImplementorExtraSchema);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              extraItems {
+                __typename
+                id
+                extra
+              }
+              alive
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_RouteTypeNameToCoveringLookup_When_OnlyOtherImplementorIsInaccessible()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            _ => { },
+            SingleHiddenImplementorAccountsSchema,
+            SingleHiddenImplementorLedgerSchema);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              rows {
+                account {
+                  __typename
+                  id
+                  balance
+                }
               }
             }
             """);

@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Planning;
@@ -548,6 +549,116 @@ public class RequirementReentrancyTests : FusionTestBase
                   - id: 3
             """);
     }
+
+    [Fact]
+    public void Plan_Should_TakeRequirementLookupKeyFromNodeBranch_When_OnlyRequiringSchemaOwnsKey()
+    {
+        // arrange
+        var schema = CreateNodeBranchKeySchema(NodeResolution.Gateway);
+
+        // act
+        var snapshot = PlanNodeBranchKeyOperations(schema, "Q2hhdDox");
+
+        // assert
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public void Plan_Should_TakeRequirementLookupKeyFromNodeBranch_When_SourceSchemaResolvesNode()
+    {
+        // arrange
+        var schema = CreateNodeBranchKeySchema(NodeResolution.SourceSchema);
+
+        // act
+        var snapshot = PlanNodeBranchKeyOperations(schema, "c1");
+
+        // assert
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    private static Snapshot PlanNodeBranchKeyOperations(FusionSchemaDefinition schema, string id)
+    {
+        (string Name, string Operation)[] operations =
+        [
+            ("requiring-field",
+                $$"""
+                query RequiringField {
+                  node(id: "{{id}}") {
+                    ... on Chat {
+                      summary
+                    }
+                  }
+                }
+                """),
+            ("key-and-requiring-field",
+                $$"""
+                query KeyAndRequiringField {
+                  node(id: "{{id}}") {
+                    ... on Chat {
+                      id
+                      summary
+                    }
+                  }
+                }
+                """),
+            ("field-and-requiring-field",
+                $$"""
+                query FieldAndRequiringField {
+                  node(id: "{{id}}") {
+                    ... on Chat {
+                      title
+                      summary
+                    }
+                  }
+                }
+                """)
+        ];
+
+        var formatter = new YamlOperationPlanFormatter();
+        var snapshot = Snapshot.Create();
+
+        foreach (var (name, operation) in operations)
+        {
+            snapshot.Add(formatter.Format(PlanOperation(schema, operation)), name, MarkdownLanguages.Yaml);
+        }
+
+        return snapshot;
+    }
+
+    private static FusionSchemaDefinition CreateNodeBranchKeySchema(NodeResolution nodeResolution)
+        => ComposeSchema(
+            options =>
+            {
+                options.Merger.EnableGlobalObjectIdentification = true;
+                options.Merger.NodeResolution = nodeResolution;
+            },
+            """
+            # name: a
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Chat implements Node @key(fields: "id") {
+              id: ID!
+              title: String
+              summary(text: String @require(field: "text")): String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              chatById(id: ID!): Chat @lookup @internal
+            }
+
+            type Chat @key(fields: "id") {
+              id: ID! @external
+              text: String!
+            }
+            """);
 
     private static FusionSchemaDefinition CreateRequiredFieldSchema()
         => ComposeSchema(

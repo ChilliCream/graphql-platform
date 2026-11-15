@@ -22,13 +22,13 @@ builder
     });
 ```
 
-| Option                     | Default          | Description                                                                                                  |
-| -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------ |
-| `MaxAllowedFields`         | `2048`           | Maximum number of fields allowed in a query document.                                                        |
-| `MaxAllowedDirectives`     | `4` per location | Maximum number of directives allowed on a single location (field, operation, or fragment definition).        |
-| `MaxAllowedRecursionDepth` | `200`            | Maximum nesting depth the parser allows for selection sets, list values, object values, and type references. |
-| `MaxAllowedNodes`          | Unlimited        | Maximum number of AST nodes the parser produces from a document. Defaults to unlimited.                      |
-| `MaxAllowedTokens`         | Unlimited        | Maximum number of tokens the lexer processes. Defaults to unlimited.                                         |
+| Option                     | Default          | Description                                                                                                                                                                                       |
+| -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MaxAllowedFields`         | `2048`           | Maximum number of fields allowed in a query document. When you raise it, also raise [`MaxAllowedSelections`](#selection-count).                                                                   |
+| `MaxAllowedDirectives`     | `4` per location | Maximum number of directives allowed on a single location (field, operation, or fragment definition).                                                                                             |
+| `MaxAllowedRecursionDepth` | `200`            | Maximum nesting depth the parser allows for selection sets, list values, object values, and type references. When you raise it, also raise [`MaxAllowedSelectionSetDepth`](#selection-set-depth). |
+| `MaxAllowedNodes`          | Unlimited        | Maximum number of AST nodes the parser produces from a document. Defaults to unlimited.                                                                                                           |
+| `MaxAllowedTokens`         | Unlimited        | Maximum number of tokens the lexer processes. Defaults to unlimited.                                                                                                                              |
 
 # Validation Limits
 
@@ -57,9 +57,31 @@ builder
         allowRequestOverrides: true);
 ```
 
+## Selection Set Depth
+
+Hot Chocolate limits how deeply the selection sets of an operation can be nested with its fragment spreads followed. Fields with a selection set, inline fragments, and fragment spreads each add one level. Operations that nest deeper than **200** levels are rejected with the error code `HC0138`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyValidationOptions(o => o.MaxAllowedSelectionSetDepth = 100);
+```
+
+If you raise the parser option [`MaxAllowedRecursionDepth`](#parser-limits), raise this limit as well.
+
+## Selection Count
+
+Hot Chocolate limits how many selections an operation has once its fragment spreads are followed. Fields, inline fragments, and fragment spreads each count as one selection, and the selections of a fragment count every time it is spread. This bounds a small document that expands into a very large operation through repeated fragment spreads. Operations with more than **100,000** selections are rejected with the error code `HC0139`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyValidationOptions(o => o.MaxAllowedSelections = 50_000);
+```
+
 ## Fragment Visits
 
-Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. Hot Chocolate caps the total number of fragment visits per operation at **1,000** by default:
+Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. An operation that exceeds the limit is rejected with the error code `HC0137`. Hot Chocolate caps the total number of fragment visits per operation at **1,000** by default:
 
 ```csharp
 builder
@@ -180,6 +202,16 @@ The `#!sdl nodes(ids: [ID!]!)` field allows fetching multiple entities at once. 
 builder
     .AddGraphQL()
     .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 25);
+```
+
+## Entity Representations
+
+The Apollo Federation `#!sdl _entities(representations: [_Any!]!)` field resolves one entity per representation. A request resolves at most **10,000** representations, counted across all of its `_entities` selections and variable sets. A selection that would exceed the limit is rejected with the error code `HC0140`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddApolloFederation(o => o.MaxAllowedRepresentations = 20_000);
 ```
 
 # Next Steps

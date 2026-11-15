@@ -10,7 +10,7 @@ public class DatabaseContext<T>(
 {
     private bool _disposed;
 
-    public DbSet<T> Data { get; set; } = null!;
+    public DbSet<T> Data { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

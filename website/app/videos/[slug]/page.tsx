@@ -54,14 +54,15 @@ export async function generateMetadata({
   }
 
   const images = [toAbsoluteUrl(videoPosterUrl(video.youtubeId))];
+  const searchTitle = video.metaTitle ?? video.title;
   return {
-    title: video.title,
+    title: searchTitle,
     description: video.description,
     alternates: { canonical: video.href },
     openGraph: {
       type: "video.other",
       siteName: SITE_NAME,
-      title: video.title,
+      title: searchTitle,
       description: video.description,
       url: video.href,
       images,
@@ -77,7 +78,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       site: TWITTER_HANDLE,
-      title: video.title,
+      title: searchTitle,
       description: video.description,
       images,
     },
@@ -152,7 +153,7 @@ export default async function VideoPage({ params }: PageProps) {
                   className="gap-2 border border-transparent"
                 >
                   <BranchIcon />
-                  Example source
+                  Source code
                 </SolidButton>
               ) : null}
               <OutlineButton

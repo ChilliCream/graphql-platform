@@ -2,6 +2,7 @@ import type { BenchmarkCatalogEntry } from "@/src/helpers/benchmarkReport";
 
 export interface BenchmarkFilters {
   readonly technologies: readonly string[];
+  /** Whether the results tables and history chart include preview releases. */
   readonly showPreviews: boolean;
 }
 

@@ -1,11 +1,19 @@
 using System.Collections;
+using System.Globalization;
 using HotChocolate.AspNetCore.Utilities;
 using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 
 namespace HotChocolate.AspNetCore.Parsers;
 
-internal sealed class VariablePath(KeyPathSegment key) : IEnumerable<IVariablePathSegment>
+internal sealed class VariablePath(int? operationIndex, KeyPathSegment key)
+    : IEnumerable<IVariablePathSegment>
 {
+    /// <summary>
+    /// Gets the index of the operation that the path starts with,
+    /// or <c>null</c> when the path starts with <c>variables</c>.
+    /// </summary>
+    public int? OperationIndex { get; } = operationIndex;
+
     public KeyPathSegment Key { get; } = key;
 
     public static VariablePath Parse(string s)
@@ -13,6 +21,8 @@ internal sealed class VariablePath(KeyPathSegment key) : IEnumerable<IVariablePa
         const string variables = nameof(variables);
         var length = s.Length;
         var remaining = s.AsSpan(0, length);
+        var operationPath = remaining;
+        int? operationIndex = null;
         ReadOnlySpan<char> first = default;
         var count = 0;
 
@@ -29,6 +39,18 @@ internal sealed class VariablePath(KeyPathSegment key) : IEnumerable<IVariablePa
 
             if (count == 0)
             {
+                if (operationIndex is null
+                    && int.TryParse(
+                        item,
+                        NumberStyles.None,
+                        CultureInfo.InvariantCulture,
+                        out var index))
+                {
+                    operationIndex = index;
+                    operationPath = remaining;
+                    continue;
+                }
+
                 first = item;
             }
 
@@ -46,7 +68,7 @@ internal sealed class VariablePath(KeyPathSegment key) : IEnumerable<IVariablePa
         }
 
         IVariablePathSegment? segment = null;
-        remaining = s.AsSpan();
+        remaining = operationPath;
 
         while (!remaining.IsEmpty)
         {
@@ -66,7 +88,7 @@ internal sealed class VariablePath(KeyPathSegment key) : IEnumerable<IVariablePa
 
         if (segment is KeyPathSegment key)
         {
-            return new VariablePath(key);
+            return new VariablePath(operationIndex, key);
         }
 
         throw new InvalidOperationException(VariablePath_Parse_FirstSegmentMustBeKey);

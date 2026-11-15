@@ -23,6 +23,7 @@ public sealed class CompositionApiTests
             HotChocolate.Fusion.Logging.LogEntryCodes
             HotChocolate.Fusion.Logging.LogSeverity
             HotChocolate.Fusion.Options.ApolloFederationCompatibilityOptions
+            HotChocolate.Fusion.Options.CaseBudgetExceededBehavior
             HotChocolate.Fusion.Options.DirectiveMergeBehavior
             HotChocolate.Fusion.Options.EnumValuesMergeBehavior
             HotChocolate.Fusion.Options.SatisfiabilityOptions

@@ -137,6 +137,13 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
                     "The request pipeline is expected to produce an execution result.");
             }
 
+            // a request batch item refused before execution carries its request index.
+            if (requestIndex.HasValue
+                && context.Result is OperationResult { RequestIndex: null } operationResult)
+            {
+                operationResult.SetRequestIndex(requestIndex.Value);
+            }
+
             // transfer ownership of the request memory to the result so it is disposed when the
             // result is disposed. On the error path the arena stays attached and the pool reset
             // disposes it.

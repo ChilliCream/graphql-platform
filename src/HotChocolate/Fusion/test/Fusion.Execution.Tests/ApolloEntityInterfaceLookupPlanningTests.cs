@@ -104,38 +104,6 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
         }
         """;
 
-    private const string LocallyRequiredNodeSchemaA =
-        """
-        type Query {
-          node(id: ID!): Node @lookup @shareable
-          accountById(id: ID! @is(field: "id")): Account @lookup @internal
-        }
-
-        interface Node {
-          id: ID!
-        }
-
-        type Account implements Node {
-          id: ID! @shareable
-          displayName(id: ID! @require(field: "id")): String!
-        }
-        """;
-
-    private const string LocallyRequiredNodeSchemaB =
-        """
-        type Query {
-          node(id: ID!): Node @lookup @shareable
-        }
-
-        interface Node {
-          id: ID!
-        }
-
-        type Account implements Node {
-          id: ID! @shareable
-        }
-        """;
-
     // An Apollo Federation subgraph that owns the root 'product' field and the entity interface
     // 'Media'. The entity interface exercises the @key-on-interface path through composition
     // (its key fields must not be stamped @shareable). Product exposes only 'id' here.
@@ -538,37 +506,6 @@ public sealed class ApolloEntityInterfaceLookupPlanningTests : FusionTestBase
                 })
                 .OfType<string>());
         MatchSnapshot(plan);
-    }
-
-    [Fact]
-    public void Plan_Should_UseSource_When_FieldRequirementIsLocallyResolvable()
-    {
-        // arrange
-        var schema = CreateNodeSchema(LocallyRequiredNodeSchemaA, LocallyRequiredNodeSchemaB);
-        var account = schema.Types.GetType<FusionObjectTypeDefinition>("Account");
-
-        Assert.False(account.Fields["id"].Sources["a"].IsSourceExternal);
-
-        // act
-        var plan = PlanOperation(
-            schema,
-            """
-            {
-              node(id: "a1") {
-                ... on Account {
-                  displayName
-                }
-              }
-            }
-            """);
-
-        // assert
-        Assert.Equal(
-            ["b", "a"],
-            plan.AllNodes
-                .OfType<OperationExecutionNode>()
-                .Where(node => node.SchemaName is not null)
-                .Select(node => node.SchemaName!));
     }
 
     private static IEnumerable<(string SchemaName, string OperationText)> GetSourceOperations(

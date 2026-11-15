@@ -108,6 +108,12 @@ public sealed partial class SourceResultDocument
             return From(chunkIndex, byteOffset / DbRowSize);
         }
 
+        /// <summary>
+        /// Creates a cursor from its packed <see cref="Value"/>.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Cursor FromValue(uint value) => new(value);
+
         public uint Value => _value;
 
         public int Chunk
@@ -155,11 +161,6 @@ public sealed partial class SourceResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Cursor AddRows(int delta)
         {
-            if (delta == 0)
-            {
-                return this;
-            }
-
             var chunk = Chunk;
             var row = Row + delta;
 
@@ -170,9 +171,24 @@ public sealed partial class SourceResultDocument
                 return From(chunk, row);
             }
 
-            // General path: project onto the linear row index and map it back to (chunk, row) in
-            // O(1). The ramp is a short prefix scan; the constant tail is closed-form division.
-            var linear = RowsBeforeChunk(chunk) + Row + delta;
+            return AddRowsAcrossChunks(this, delta);
+        }
+
+        /// <summary>
+        /// Moves <paramref name="cursor"/> by <paramref name="delta"/> rows when the target row lies
+        /// outside the current chunk.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Cursor AddRowsAcrossChunks(Cursor cursor, int delta)
+        {
+            if (delta == 0)
+            {
+                return cursor;
+            }
+
+            // Project onto the linear row index and map it back to (chunk, row) in O(1). The ramp
+            // is a short prefix scan; the constant tail is closed-form division.
+            var linear = RowsBeforeChunk(cursor.Chunk) + cursor.Row + delta;
 
             if (linear < 0)
             {

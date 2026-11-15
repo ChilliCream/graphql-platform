@@ -464,6 +464,37 @@ public class FlagEnumInterceptorTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Input_Should_ReturnZero_When_FlagIsFalse()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x.Name("Query")
+                    .Field("test")
+                    .Type<IntType>()
+                    .Argument("input", x => x.Type(typeof(FlagsEnum)))
+                    .Resolve(ctx => (int)ctx.ArgumentValue<FlagsEnum>("input")))
+            .ModifyOptions(x => x.EnableFlagEnums = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ test(input: { isFoo: false }) }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "test": 0
+              }
+            }
+            """);
+    }
+
     public class OutputQuery
     {
         public FlagsEnum Single() => Bar | FlagsEnum.Foo;

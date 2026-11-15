@@ -8,9 +8,9 @@ using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit.Sdk;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -90,31 +90,26 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
               }
             }
             """);
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
-                services.AddHttpClient("A")
-                    .ConfigurePrimaryHttpMessageHandler(_subgraph.CreateHandler);
-                services.AddGraphQLGatewayServer("NamedSchema")
-                    .AddInMemoryConfiguration(_compositeSchema)
-                    .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
-                    .AddOpenApi();
-                services.AddOptions<OpenApiSetup>("NamedSchema")
-                    .PostConfigure(setup => setup.StorageFactory = _ => storage);
-                services.AddOpenApi(options => options.AddGraphQLTransformer());
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapOpenApi();
-                    endpoints.MapOpenApiEndpoints();
-                });
-            });
-        using var server = new TestServer(builder);
-        var client = server.CreateClient();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services.AddRouting();
+        webAppBuilder.Services
+            .AddHttpClient("A")
+            .ConfigurePrimaryHttpMessageHandler(_subgraph.CreateHandler);
+        webAppBuilder.Services
+            .AddGraphQLGatewayServer("NamedSchema")
+            .AddInMemoryConfiguration(_compositeSchema)
+            .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
+            .AddOpenApi();
+        webAppBuilder.Services
+            .AddOptions<OpenApiSetup>("NamedSchema")
+            .PostConfigure(setup => setup.StorageFactory = _ => storage);
+        webAppBuilder.Services.AddOpenApi(options => options.AddGraphQLTransformer());
+        await using var webApp = webAppBuilder.Build();
+        webApp.MapOpenApi();
+        webApp.MapOpenApiEndpoints();
+        webApp.Start();
+        var client = webApp.GetTestClient();
 
         // act
         var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
@@ -131,28 +126,25 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
     public void MapOpenApiEndpoints_Should_NotResolveSchemaName_When_MultipleNamedSchemasRegistered()
     {
         // arrange
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services.AddRouting();
 
-                foreach (var schemaName in new[] { "alpha", "beta" })
-                {
-                    services.AddGraphQLGatewayServer(schemaName)
-                        .AddInMemoryConfiguration(_compositeSchema)
-                        .AddOpenApi();
-                    services.AddOptions<OpenApiSetup>(schemaName)
-                        .PostConfigure(setup => setup.StorageFactory = _ => new TestOpenApiDefinitionStorage());
-                }
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
-            });
+        foreach (var schemaName in new[] { "alpha", "beta" })
+        {
+            webAppBuilder.Services
+                .AddGraphQLGatewayServer(schemaName)
+                .AddInMemoryConfiguration(_compositeSchema)
+                .AddOpenApi();
+            webAppBuilder.Services
+                .AddOptions<OpenApiSetup>(schemaName)
+                .PostConfigure(setup => setup.StorageFactory = _ => new TestOpenApiDefinitionStorage());
+        }
+
+        var webApp = webAppBuilder.Build();
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(() => new TestServer(builder));
+        var exception = Assert.Throws<InvalidOperationException>(() => webApp.MapOpenApiEndpoints());
 
         // assert
         Assert.Equal(

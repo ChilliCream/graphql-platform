@@ -1,5 +1,6 @@
 ---
 title: "Sagas"
+metaTitle: "Saga State Machines in Mocha"
 description: "Learn how to orchestrate long-running business processes with saga state machines in Mocha, including state management, persistence, and parallel coordination."
 ---
 
@@ -517,7 +518,7 @@ using Mocha.Sagas.EfCore;
 
 public class CatalogDbContext : DbContext
 {
-    public DbSet<SagaState> SagaStates => Set<SagaState>();
+    public DbSet<SagaState> SagaStates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -18,8 +18,8 @@ public class LookupBenchmarks
 
     private sealed class LookupHandler
     {
-        private static readonly Guid _result = Guid.NewGuid();
-        public Guid Handle(LookupRequest request) => _result;
+        private static readonly Guid s_result = Guid.NewGuid();
+        public Guid Handle(LookupRequest _) => s_result;
     }
 
     private IServiceProvider _serviceProvider = null!;
@@ -57,7 +57,7 @@ public class LookupBenchmarks
     [Benchmark]
     public Guid DI_Scoped_GetRequiredService()
     {
-        using var scope = ((IServiceProvider)_serviceProvider).CreateScope();
+        using var scope = _serviceProvider.CreateScope();
         var handler = scope.ServiceProvider.GetRequiredService<LookupHandler>();
         return handler.Handle(_request);
     }

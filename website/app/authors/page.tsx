@@ -14,7 +14,8 @@ import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 const PAGE = {
   title: "ChilliCream authors",
-  description: "Browse the authors of the ChilliCream blog.",
+  description:
+    "Browse the authors of the ChilliCream blog and the articles they have published.",
   path: AUTHORS_PATH,
 } as const;
 

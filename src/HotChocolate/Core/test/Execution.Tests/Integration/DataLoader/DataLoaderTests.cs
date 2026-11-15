@@ -449,6 +449,62 @@ public class DataLoaderTests
         await snapshot.MatchMarkdownAsync(ct);
     }
 
+    [Fact]
+    public async Task GetDataLoader_Should_NotDeadlock_When_ScopedServiceResolvesSameDataLoaderConcurrently()
+    {
+        // arrange
+        var gates = new ConcurrentResolutionGates();
+        var services = new ServiceCollection();
+        services.AddScoped<LookupDependency>();
+        services.AddScoped(sp =>
+        {
+            // Microsoft DI holds the scope monitor while it runs a scoped factory.
+            gates.HandlerEntered.Set();
+            gates.Wait(gates.LoaderFactoryEntered);
+            return new LookupHandler(sp.GetRequiredService<LookupDataLoader>());
+        });
+        services
+            .AddGraphQLServer()
+            .AddQueryType<CounterQuery>()
+            .AddDataLoader(sp =>
+            {
+                if (Interlocked.Increment(ref gates.LoaderFactoryCalls) == 1)
+                {
+                    gates.LoaderFactoryEntered.Set();
+                    gates.Wait(gates.HandlerEntered);
+                }
+
+                return new LookupDataLoader(
+                    sp.GetRequiredService<IBatchScheduler>(),
+                    sp.GetRequiredService<LookupDependency>());
+            });
+
+        var provider = services.BuildServiceProvider();
+        var scope = provider.CreateScope();
+        var dataLoaderScope = scope.ServiceProvider.GetRequiredService<IDataLoaderScope>();
+
+        // act
+        var direct = Task.Run(
+            dataLoaderScope.GetDataLoader<LookupDataLoader>,
+            TestContext.Current.CancellationToken);
+        var viaHandler = Task.Run(
+            scope.ServiceProvider.GetRequiredService<LookupHandler>,
+            TestContext.Current.CancellationToken);
+        var completed = Task.WhenAll(direct, viaHandler);
+        var finished = await Task.WhenAny(
+            completed,
+            Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Same(completed, finished);
+        var dataLoader = await direct;
+        var handler = await viaHandler;
+        Assert.Same(dataLoader, handler.DataLoader);
+
+        scope.Dispose();
+        await provider.DisposeAsync();
+    }
+
     public class DataLoaderListener : DataLoaderDiagnosticEventListener
     {
         public bool ResolvedTaskFromCacheTouched;
@@ -611,5 +667,41 @@ public class DataLoaderTests
     public class Entity
     {
         public int Id { get; set; }
+    }
+
+    private sealed class ConcurrentResolutionGates
+    {
+        public int LoaderFactoryCalls;
+
+        public ManualResetEventSlim HandlerEntered { get; } = new(false);
+
+        public ManualResetEventSlim LoaderFactoryEntered { get; } = new(false);
+
+        public void Wait(ManualResetEventSlim gate)
+        {
+            if (!gate.Wait(TimeSpan.FromSeconds(10)))
+            {
+                throw new TimeoutException("The other resolution path did not start.");
+            }
+        }
+    }
+
+    public sealed class LookupDependency;
+
+    public sealed class LookupHandler(LookupDataLoader dataLoader)
+    {
+        public LookupDataLoader DataLoader { get; } = dataLoader;
+    }
+
+    public sealed class LookupDataLoader(IBatchScheduler batchScheduler, LookupDependency dependency)
+        : BatchDataLoader<int, int>(batchScheduler, new DataLoaderOptions())
+    {
+        protected override Task<IReadOnlyDictionary<int, int>> LoadBatchAsync(
+            IReadOnlyList<int> keys,
+            CancellationToken cancellationToken)
+        {
+            GC.KeepAlive(dependency);
+            return Task.FromResult<IReadOnlyDictionary<int, int>>(keys.ToDictionary(k => k));
+        }
     }
 }

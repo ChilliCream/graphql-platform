@@ -116,9 +116,15 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
     /// Pushes work items for fields that have requirements
     /// which may need lookup steps to satisfy.
     /// </summary>
+    /// <param name="fieldsWithRequirements">The fields that have requirements.</param>
+    /// <param name="consumer">The owner of the fields.</param>
+    /// <param name="dependents">The steps that need the data of the fields.</param>
+    /// <param name="parentDepth">The depth of the step that produced the fields.</param>
+    /// <param name="sourceSchemaNodePolicy">The source schema node planning policy, or null.</param>
     public Backlog PushRequirements(
         ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
         RequirementConsumer consumer,
+        ImmutableHashSet<int> dependents,
         int parentDepth,
         SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy = null)
     {
@@ -133,6 +139,7 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
         {
             var workItem = new FieldRequirementWorkItem(entry.FieldSelection, consumer)
             {
+                Dependents = dependents,
                 ParentDepth = parentDepth,
                 Conditions = entry.Conditions,
                 SourceSchemaNodePolicy = sourceSchemaNodePolicy

@@ -128,6 +128,50 @@ public class RequestDeduplicationHandlerTests
     }
 
     [Fact]
+    public async Task SendAsync_Should_NotDeduplicate_When_HeaderValuesAreSplitDifferently()
+    {
+        // arrange
+        var callCount = 0;
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var innerHandler = new MockHandler(async (request, ct) =>
+        {
+            Interlocked.Increment(ref callCount);
+            await gate.Task.WaitAsync(ct);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("ok")
+            };
+        });
+
+        var options = new RequestDeduplicationOptions { HashHeaders = ["X-Region"] };
+        using var handler = new RequestDeduplicationHandler(options)
+        {
+            InnerHandler = innerHandler
+        };
+        using var client = new HttpClient(handler);
+
+        var request1 = CreateQueryRequest("http://localhost/graphql", "{\"query\":\"{ hello }\"}");
+        request1.Headers.TryAddWithoutValidation("X-Region", ["north", "east"]);
+
+        var request2 = CreateQueryRequest("http://localhost/graphql", "{\"query\":\"{ hello }\"}");
+        request2.Headers.TryAddWithoutValidation("X-Region", "northeast");
+
+        // act
+        var task1 = client.SendAsync(request1, TestContext.Current.CancellationToken);
+        var task2 = client.SendAsync(request2, TestContext.Current.CancellationToken);
+
+        await Task.Delay(50, TestContext.Current.CancellationToken);
+        gate.SetResult();
+
+        await task1;
+        await task2;
+
+        // assert
+        Assert.Equal(2, callCount);
+    }
+
+    [Fact]
     public async Task SendAsync_Should_PassThrough_When_Mutation()
     {
         // arrange

@@ -131,7 +131,8 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
                 }
               }
             }
-            """);
+            """,
+            new OperationPlannerOptions { EnableEntityReuseSplitting = false });
 
         // assert
         MatchSnapshot(plan);
@@ -164,7 +165,8 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
                 }
               }
             }
-            """);
+            """,
+            new OperationPlannerOptions { EnableEntityReuseSplitting = false });
 
         // assert
         MatchSnapshot(plan);
@@ -252,7 +254,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -279,7 +281,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -311,7 +313,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -343,7 +345,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -375,7 +377,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -405,7 +407,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -438,7 +440,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -467,7 +469,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -496,7 +498,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -525,7 +527,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -554,7 +556,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -565,7 +567,8 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Balanced,
-                EnableRequestGrouping = enableRequestGrouping
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
             });
 
         // assert
@@ -586,7 +589,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -615,7 +618,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -626,7 +629,8 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Aggressive,
-                EnableRequestGrouping = enableRequestGrouping
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
             });
 
         // assert
@@ -647,7 +651,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -658,7 +662,8 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Aggressive,
-                EnableRequestGrouping = enableRequestGrouping
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
             });
 
         // assert
@@ -679,7 +684,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -693,7 +698,8 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Balanced,
-                EnableRequestGrouping = enableRequestGrouping
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
             });
 
         // assert

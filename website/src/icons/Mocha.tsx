@@ -6,6 +6,14 @@ interface MochaProps {
 }
 
 /**
+ * Intrinsic size of the artwork in sheet units, mirroring the `viewBox` below.
+ * All product drinks are cut from one artwork sheet, so their sizes share a
+ * coordinate scale and a single scale factor sizes the whole set relative to
+ * each other (see {@link "@/src/icons/productArtwork"}).
+ */
+export const MOCHA_ARTWORK = { width: 59, height: 84 };
+
+/**
  * Mocha product drink, inlined as SVG so it ships in the HTML and can be
  * sized and positioned with CSS. Decorative by default.
  */

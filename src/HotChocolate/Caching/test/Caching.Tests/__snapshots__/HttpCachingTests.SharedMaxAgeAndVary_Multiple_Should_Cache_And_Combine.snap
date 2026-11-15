@@ -22,6 +22,12 @@
       "Value": [
         "application/graphql-response+json; charset=utf-8"
       ]
+    },
+    {
+      "Key": "Content-Length",
+      "Value": [
+        "34"
+      ]
     }
   ],
   "Body": "{\"data\":{\"field1\":\"\",\"field2\":\"\"}}"

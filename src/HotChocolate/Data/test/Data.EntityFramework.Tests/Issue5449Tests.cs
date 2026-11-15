@@ -76,7 +76,7 @@ public class Issue5449Tests
 
     public sealed class Issue5449Context(DbContextOptions options) : DbContext(options)
     {
-        public DbSet<Issue5449Blog> Blogs => Set<Issue5449Blog>();
+        public DbSet<Issue5449Blog> Blogs { get; set; }
     }
 
     public sealed class Issue5449Blog

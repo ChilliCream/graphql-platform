@@ -91,6 +91,117 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact]
+    public void BadListValueForInputObjectArg()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: []) {
+                    name
+                }
+            }
+            """,
+            t =>
+            {
+                Assert.Equal(
+                    "The specified argument value does not"
+                    + " match the argument type.",
+                    t.Message);
+                Assert.Equal("ComplexInput", t.Extensions!["locationType"]);
+                Assert.Equal("complex", t.Extensions["argument"]);
+            });
+    }
+
+    [Fact]
+    public void BadListValueForInputObjectField()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: { child: [] }) {
+                    name
+                }
+            }
+            """,
+            t =>
+            {
+                Assert.Equal(
+                    "The specified value type of field `child` "
+                    + "does not match the field type.",
+                    t.Message);
+                Assert.Equal("ComplexInput", t.Extensions!["locationType"]);
+            });
+    }
+
+    [Fact]
+    public void BadListValueForInputObjectVariableDefault()
+    {
+        ExpectErrors(
+            """
+            query ($complex: ComplexInput = []) {
+                findDog(complex: $complex) {
+                    name
+                }
+            }
+            """,
+            t =>
+            {
+                Assert.Equal(
+                    "The specified value type of variable `complex` "
+                    + "does not match the variable type.",
+                    t.Message);
+                Assert.Equal("ComplexInput", t.Extensions!["locationType"]);
+            });
+    }
+
+    [Fact]
+    public void BadListValueDoesNotHideLaterDirectiveError()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: []) {
+                    name @include(if: "x")
+                }
+            }
+            """,
+            t =>
+            {
+                Assert.Equal(
+                    "The specified argument value does not"
+                    + " match the argument type.",
+                    t.Message);
+                Assert.Equal("complex", t.Extensions!["argument"]);
+            },
+            t =>
+            {
+                Assert.Equal(
+                    "The specified argument value does not"
+                    + " match the argument type.",
+                    t.Message);
+                Assert.Equal("if", t.Extensions!["argument"]);
+            });
+    }
+
+    [Fact]
+    public void BadListValueForInputObjectArgAndField()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: []) {
+                    name
+                }
+                findDog(complex: { child: [] }) {
+                    name
+                }
+            }
+            """,
+            t => Assert.Equal("complex", t.Extensions!["argument"]),
+            t => Assert.Equal("child", t.Extensions!["fieldName"]));
+    }
+
+    [Fact]
     public void CoercedIntIntoFloatArg()
     {
         ExpectValid(

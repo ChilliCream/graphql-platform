@@ -125,6 +125,28 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     public string? DeprecationReason { get; }
 
     /// <summary>
+    /// Gets the merged policy requirement, or <c>null</c> if the field has none.
+    /// </summary>
+    internal PolicyDirective? Policy
+    {
+        get;
+        init
+        {
+            field = value;
+
+            if (value is not null)
+            {
+                _flags |= FieldDefinitionFlags.HasPolicy;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether this field carries a policy requirement.
+    /// </summary>
+    public bool HasPolicy => (_flags & FieldDefinitionFlags.HasPolicy) == FieldDefinitionFlags.HasPolicy;
+
+    /// <summary>
     /// Gets a value indicating whether this field is marked as inaccessible.
     /// </summary>
     public bool IsInaccessible => (_flags & FieldDefinitionFlags.Inaccessible) == FieldDefinitionFlags.Inaccessible;
@@ -272,6 +294,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
         None = 0,
         Introspection = 1,
         Inaccessible = 2,
-        GatewayField = 4
+        GatewayField = 4,
+        HasPolicy = 8
     }
 }

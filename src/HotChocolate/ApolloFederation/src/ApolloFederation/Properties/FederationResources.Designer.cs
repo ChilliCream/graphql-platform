@@ -206,6 +206,14 @@ namespace HotChocolate.ApolloFederation.Properties
             }
         }
 
+        internal static string ThrowHelper_EntityResolver_TooManyRepresentations
+        {
+            get
+            {
+                return ResourceManager.GetString("ThrowHelper_EntityResolver_TooManyRepresentations", resourceCulture);
+            }
+        }
+
         internal static string EntityResolver_MustBeMethod
         {
             get
@@ -251,6 +259,14 @@ namespace HotChocolate.ApolloFederation.Properties
             get
             {
                 return ResourceManager.GetString("PolicyCollectionType_ParseValue_ExpectedStringArray", resourceCulture);
+            }
+        }
+
+        internal static string ThrowHelper_Service_SdlResolvedMoreThanOnce
+        {
+            get
+            {
+                return ResourceManager.GetString("ThrowHelper_Service_SdlResolvedMoreThanOnce", resourceCulture);
             }
         }
     }

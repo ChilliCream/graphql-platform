@@ -130,7 +130,20 @@ internal sealed class RabbitMQQueueDescriptor
     public IRabbitMQQueueDescriptor Temporary()
     {
         Configuration.IsTemporary = true;
-        Configuration.Queue.Durable = false;
+        Configuration.Queue.AutoDelete = true;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQQueueDescriptor Temporary(TimeSpan expiry)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(expiry, TimeSpan.Zero);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(
+            expiry,
+            RabbitMQReceiveEndpointConfiguration.TemporaryDefaults.MaximumExpiry);
+
+        Configuration.IsTemporary = true;
+        Configuration.TemporaryExpiry = expiry;
         Configuration.Queue.AutoDelete = true;
         return this;
     }

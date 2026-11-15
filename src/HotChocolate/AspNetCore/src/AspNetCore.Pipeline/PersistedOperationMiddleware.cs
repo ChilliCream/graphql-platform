@@ -1,6 +1,4 @@
-#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Net;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Utilities;
@@ -18,6 +16,13 @@ namespace HotChocolate.AspNetCore;
 #endif
 internal static class PersistedOperationMiddleware
 {
+    // See https://github.com/dotnet/aspnetcore/issues/69972
+    [SuppressMessage(
+        "Usage",
+        "ASP0022:Route conflict detected between route handlers",
+        Justification =
+            "Routing prefers an endpoint with HTTP method metadata over a method-agnostic "
+            + "endpoint on the same route pattern.")]
     internal static void MapPersistedOperationMiddleware(
         this RouteGroupBuilder groupBuilder,
         IServiceProvider services,
@@ -31,8 +36,9 @@ internal static class PersistedOperationMiddleware
         ((IEndpointConventionBuilder)groupBuilder).Add(
             endpoint => endpoint.RequestDelegate = negotiation(endpoint.RequestDelegate!));
 
-        groupBuilder.MapGet(
+        groupBuilder.MapMethods(
             "/{operationId}",
+            [HttpMethods.Get, HttpMethods.Head],
             async context =>
             {
                 var operationId = context.Request.RouteValues["operationId"] as string;
@@ -54,8 +60,9 @@ internal static class PersistedOperationMiddleware
             });
 
         groupBuilder
-            .MapGet(
+            .MapMethods(
                 "/{operationId}/{operationName}",
+                [HttpMethods.Get, HttpMethods.Head],
                 async context =>
                 {
                     var operationId = context.Request.RouteValues["operationId"] as string;
@@ -204,6 +211,19 @@ internal static class PersistedOperationMiddleware
                         requireOperationName);
                 });
         }
+
+        var allow = serverOptions.EnableQueryRequests
+            ? "GET, HEAD, OPTIONS, POST, QUERY"
+            : "GET, HEAD, OPTIONS, POST";
+
+        // every other method on these patterns is answered as on the GraphQL endpoint.
+        groupBuilder.Map(
+            "/{operationId}",
+            context => HandleUnmappedMethodAsync(context, executorProxy, allow, serverOptions));
+
+        groupBuilder.Map(
+            "/{operationId}/{operationName}",
+            context => HandleUnmappedMethodAsync(context, executorProxy, allow, serverOptions));
     }
 
     private static async Task ExecuteGetRequestAsync(
@@ -267,10 +287,16 @@ internal static class PersistedOperationMiddleware
                 await MiddlewareHelper.ExecuteRequestAsync(
                     request,
                     requestFlags,
+                    options,
                     context,
                     executorSession);
             statusCode = executionResult.StatusCode;
             result = executionResult.Result;
+
+            if (!options.EnableQueriesOverPost)
+            {
+                MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: true);
+            }
 
 HANDLE_RESULT:
             await MiddlewareHelper.WriteResultAsync(
@@ -354,20 +380,12 @@ HANDLE_RESULT:
 
             if (kind is HttpRequestKind.HttpQuery)
             {
-                // a QUERY request carries exactly one variable set, so a variable batch is
-                // refused.
-                if (MiddlewareHelper.IsVariableBatch(request))
-                {
-                    var refused = MiddlewareHelper.CreateBatchingRefusedResult(
-                        ErrorHelper.VariableBatchingNotSupportedForQuery(),
-                        context,
-                        executorSession);
-                    statusCode = refused.StatusCode;
-                    result = refused.Error;
-                    goto HANDLE_RESULT;
-                }
-
                 requestFlags = MiddlewareHelper.DetermineHttpQueryRequestFlags(requestFlags);
+            }
+            else
+            {
+                requestFlags =
+                    MiddlewareHelper.DetermineHttpPostRequestFlags(requestFlags, options);
             }
 
             // after successfully parsing the request, we now will attempt to execute the request.
@@ -375,12 +393,18 @@ HANDLE_RESULT:
                 await MiddlewareHelper.ExecuteRequestAsync(
                     request,
                     requestFlags,
+                    options,
                     context,
                     executorSession);
             statusCode = kind is HttpRequestKind.HttpQuery
                 ? MiddlewareHelper.DetermineHttpQueryStatusCode(executionResult)
                 : executionResult.StatusCode;
             result = executionResult.Result;
+
+            if (kind is HttpRequestKind.HttpPost && !options.EnableQueriesOverPost)
+            {
+                MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: true);
+            }
 
 HANDLE_RESULT:
             await MiddlewareHelper.WriteResultAsync(
@@ -390,5 +414,28 @@ HANDLE_RESULT:
                 context,
                 executorSession);
         }
+    }
+
+    private static async Task HandleUnmappedMethodAsync(
+        HttpContext context,
+        HttpRequestExecutorProxy executorProxy,
+        string allow,
+        GraphQLServerOptions options)
+    {
+        var executorSession = await executorProxy.GetOrCreateSessionAsync(context.RequestAborted);
+
+        if (!executorSession.ReportsUnsupportedMethodOrMediaType)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        // RFC 9110, section 9.3.7: OPTIONS asks for the methods the target resource supports,
+        // and section 15.5.6 requires a 405 to list them.
+        context.Response.StatusCode = HttpMethods.IsOptions(context.Request.Method)
+            ? StatusCodes.Status204NoContent
+            : StatusCodes.Status405MethodNotAllowed;
+        context.Response.Headers.Allow = allow;
+        context.Response.Headers.SetAcceptQuery(options);
     }
 }

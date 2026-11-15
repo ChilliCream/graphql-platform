@@ -72,6 +72,12 @@
   <data name="ThrowHelper_HttpMultipartMiddleware_MapNotSpecified" xml:space="preserve">
     <value>No `map` specified.</value>
   </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_MixedOperationIndexPaths" xml:space="preserve">
+    <value>The variable paths must either all start with an operation index or all start with `variables`.</value>
+  </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_MissingOperationIndex" xml:space="preserve">
+    <value>The variable path must start with an operation index in a batched request.</value>
+  </data>
   <data name="ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed" xml:space="preserve">
     <value>This form is being accessed with a failed antiforgery validation. Validate the `IAntiforgeryValidationFeature` on the request before reading from the form.</value>
   </data>
@@ -150,6 +156,15 @@
   <data name="ThrowHelper_Formatter_TransportVersionNotSupported" xml:space="preserve">
     <value>The specified HTTP transport version `{0}` is not supported.</value>
   </data>
+  <data name="ThrowHelper_ResponseBodyBuffer_AdvanceNegative" xml:space="preserve">
+    <value>The number of bytes to advance must not be negative.</value>
+  </data>
+  <data name="ThrowHelper_ResponseBodyBuffer_AdvancePastBuffer" xml:space="preserve">
+    <value>Cannot advance past the end of the buffer.</value>
+  </data>
+  <data name="ThrowHelper_ResponseBodyBuffer_WriterCompleted" xml:space="preserve">
+    <value>Writing is not allowed after the writer was completed.</value>
+  </data>
   <data name="ErrorHelper_InvalidAcceptMediaType" xml:space="preserve">
     <value>Unable to parse the accept header value `{0}`.</value>
   </data>
@@ -174,14 +189,14 @@
   <data name="ErrorHelper_VariableBatchingDisabled" xml:space="preserve">
     <value>Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
   </data>
+  <data name="ErrorHelper_VariableBatchingNotSupportedForWebSocket" xml:space="preserve">
+    <value>Variable batching is not supported for WebSocket requests.</value>
+  </data>
   <data name="ErrorHelper_RequestBatchingDisabled" xml:space="preserve">
     <value>Request batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
   </data>
   <data name="ErrorHelper_RequestBatchingNotSupportedForQuery" xml:space="preserve">
     <value>Request batching is not supported for HTTP QUERY requests.</value>
-  </data>
-  <data name="ErrorHelper_VariableBatchingNotSupportedForQuery" xml:space="preserve">
-    <value>Variable batching is not supported for HTTP QUERY requests.</value>
   </data>
   <data name="ErrorHelper_RequestBodyHasNoRequestForQuery" xml:space="preserve">
     <value>The HTTP QUERY request body contains no GraphQL request.</value>

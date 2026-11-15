@@ -9,11 +9,11 @@ namespace Demo.Billing.Data;
 
 public class BillingDbContext(DbContextOptions<BillingDbContext> options) : DbContext(options)
 {
-    public DbSet<Invoice> Invoices => Set<Invoice>();
-    public DbSet<Payment> Payments => Set<Payment>();
-    public DbSet<Refund> Refunds => Set<Refund>();
-    public DbSet<RevenueSummary> RevenueSummaries => Set<RevenueSummary>();
-    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<Refund> Refunds { get; set; }
+    public DbSet<RevenueSummary> RevenueSummaries { get; set; }
+    public DbSet<InboxMessage> InboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

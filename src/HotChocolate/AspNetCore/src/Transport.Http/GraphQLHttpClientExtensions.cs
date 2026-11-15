@@ -1076,6 +1076,36 @@ public static class GraphQLHttpClientExtensions
     /// <param name="client">
     /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        var request = new GraphQLHttpRequest(batch)
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
     /// <param name="operation">
     /// The <see cref="OperationRequest"/> to send.
     /// </param>
@@ -1111,6 +1141,41 @@ public static class GraphQLHttpClientExtensions
     /// <param name="client">
     /// The <see cref="GraphQLHttpClient"/> to send the request with.
     /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        string uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(batch, new Uri(uri))
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
     /// <param name="operation">
     /// The <see cref="OperationRequest"/> to send.
     /// </param>
@@ -1133,6 +1198,41 @@ public static class GraphQLHttpClientExtensions
         ArgumentNullException.ThrowIfNull(uri);
 
         var request = new GraphQLHttpRequest(operation, uri)
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        return client.SendAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a GraphQL request with the HTTP QUERY method to the specified GraphQL endpoint.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> to send the request with.
+    /// </param>
+    /// <param name="batch">
+    /// The GraphQL variable batch request.
+    /// </param>
+    /// <param name="uri">
+    /// The GraphQL request URI.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
+    /// </returns>
+    public static Task<GraphQLHttpResponse> QueryAsync(
+        this GraphQLHttpClient client,
+        VariableBatchRequest batch,
+        Uri uri,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(uri);
+
+        var request = new GraphQLHttpRequest(batch, uri)
         {
             Method = GraphQLHttpMethod.Query
         };

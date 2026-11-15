@@ -1,13 +1,16 @@
 import {
   BENCHMARK_REPOSITORY,
-  BENCHMARK_FUSION_DOCS_URL,
+  BENCHMARK_FUSION_URL,
   benchmarkRunId,
+  benchmarkVariants,
   formatPlatform,
-  formatRuntimeTag,
+  decisiveFeatures,
+  formatPlatformTag,
   isPreview,
   variantName,
   type BenchmarkCatalogEntry,
   type BenchmarkHistoryScenario,
+  type BenchmarkHistoryVersion,
   type BenchmarkReport,
   type BenchmarkScenario,
   type BenchmarkVariantResult,
@@ -43,11 +46,29 @@ export const throughputNote = (scenario: BenchmarkScenario) =>
     ? `In this scenario it is the average over the whole run, not the rate at ${scenario.config.virtualUsers ?? "peak"} virtual users.`
     : undefined;
 
-/** The composition families, in table order. */
+/** The composition families, in table order, with a one-sentence description each. */
 export const COMPOSITION_GROUPS = [
-  { id: "composite-schema", name: "GraphQL Federation specification" },
-  { id: "apollo-federation", name: "Apollo Federation v2" },
-] as const satisfies readonly { id: Composition; name: string }[];
+  {
+    id: "composite-schema",
+    name: "GraphQL Federation specification",
+    shortName: "GraphQL Federation",
+    description:
+      "An open standard for GraphQL federation, developed in the open under the GraphQL Foundation, with engineers from Apollo, ChilliCream, Netflix, The Guild, WunderGraph and others.",
+  },
+  {
+    id: "apollo-federation",
+    name: "Apollo Federation",
+    shortName: "Apollo Federation",
+    description:
+      "A GraphQL federation approach popularized by Apollo and since adopted by other vendors.",
+  },
+] as const satisfies readonly {
+  id: Composition;
+  name: string;
+  /** The name used inside sentences, such as "the fastest GraphQL Federation router". */
+  shortName: string;
+  description: string;
+}[];
 
 /** Returns the report scenarios in page order. */
 export function orderedScenarios(
@@ -70,26 +91,36 @@ export function defaultScenarioId(
 
 /** The default line colors of the history chart, in catalog order. */
 export const SERIES_COLORS = [
-  "#60a5fa",
-  "#fb923c",
-  "#2dd4bf",
-  "#c084fc",
-  "#facc15",
-  "#fb7185",
-  "#a3e635",
-  "#38bdf8",
-  "#e879f9",
-  "#34d399",
-  "#fda4af",
-  "#818cf8",
-  "#fdba74",
-  "#67e8f9",
-  "#d8b4fe",
-  "#86efac",
-  "#f472b6",
-  "#fde68a",
-  "#93c5fd",
-  "#cbd5e1",
+  "#5ba8fc",
+  "#82fa2a",
+  "#ce8703",
+  "#26f4fd",
+  "#b274a3",
+  "#fcae93",
+  "#b64efd",
+  "#5a9e6e",
+  "#c1b531",
+  "#86cdff",
+  "#8f79dc",
+  "#ebd88a",
+  "#3bfbb8",
+  "#c796d2",
+  "#27d271",
+  "#6ad6b0",
+  "#abd72e",
+  "#fca2df",
+  "#fc6efb",
+  "#e83ccb",
+  "#05b047",
+  "#44b2aa",
+  "#83b478",
+  "#68ec6c",
+  "#5dcbd1",
+  "#81e7d3",
+  "#d080e2",
+  "#b570fd",
+  "#ecb166",
+  "#db56e8",
 ] as const;
 
 /** One benchmark run in the history chart. */
@@ -99,6 +130,11 @@ export interface HistoryPoint {
   readonly runtime: string;
   readonly version: string;
   readonly rps: number;
+  /** Whether the run's execution failed. */
+  readonly failed: boolean;
+  /** The number of measured runs that completed. */
+  readonly completedRuns: number;
+  readonly measuredRuns: number | undefined;
 }
 
 /** One variant's line in the history chart. */
@@ -107,52 +143,62 @@ export interface HistorySeries {
   readonly name: string;
   readonly runtime: string;
   readonly composition: Composition;
+  /** Whether the newest version is a preview. */
+  readonly preview: boolean;
   readonly color: string;
   /** Whether the line is dashed because the palette ran out of colors. */
   readonly dashed: boolean;
-  /** Sampled runs, oldest first, including the first and latest result. */
+  /** Runs on up to 40 shared sample dates, plus each series' endpoints and every failed run, oldest first. */
   readonly points: readonly HistoryPoint[];
 }
 
-/** Returns one series per variant with its dated runs, skipping previews when `stableOnly` is set. Series that share a name and runtime are told apart by their newest major version. */
+/** Returns one series per variant with its dated runs. Series that share a name and runtime are told apart by their newest major version, except that a released series keeps its name next to a preview. */
 export function historySeries(
   scenario: BenchmarkHistoryScenario,
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
-  stableOnly: boolean,
   colors: readonly string[] = SERIES_COLORS,
 ): readonly HistorySeries[] {
   const catalogOrder = [...variants.keys()];
-  const series = scenario.variants.flatMap((history) => {
+  const decisive = decisiveFeatures(variants);
+  const runDate = (version: BenchmarkHistoryVersion) =>
+    Date.parse(version.run.completedAt ?? version.run.startedAt!);
+  const histories = scenario.variants.map((history) => ({
+    history,
+    versions: history.results.toSorted((a, b) => runDate(a) - runDate(b)),
+  }));
+  const dates = [
+    ...new Set(histories.flatMap(({ versions }) => versions.map(runDate))),
+  ].toSorted((a, b) => a - b);
+  const count = Math.min(dates.length, 40);
+  const sampledDates = new Set([
+    ...Array.from(
+      { length: count },
+      (_, sample) =>
+        dates[Math.round((sample * (dates.length - 1)) / (count - 1 || 1))],
+    ),
+    ...histories.flatMap(({ versions }) =>
+      versions.length > 0
+        ? [runDate(versions[0]), runDate(versions.at(-1)!)]
+        : [],
+    ),
+  ]);
+  const series = histories.flatMap(({ history, versions }) => {
     const entry = variants.get(history.variant)!;
-    const versions = history.results
-      .filter(
-        (version) =>
-          !stableOnly ||
-          !isPreview(version.version, version.platform, entry.variant.preview),
-      )
-      .toSorted(
-        (a, b) =>
-          Date.parse(a.run.completedAt ?? a.run.startedAt!) -
-          Date.parse(b.run.completedAt ?? b.run.startedAt!),
-      );
+    const features = decisive.get(history.variant)!;
     if (versions.length === 0) {
       return [];
     }
-    const stride = Math.max(1, Math.ceil((versions.length - 1) / 20));
-    const count = Math.ceil((versions.length - 1) / stride) + 1;
-    const sampled = Array.from(
-      { length: count },
-      (_, index) =>
-        versions[
-          Math.round((index * (versions.length - 1)) / (count - 1 || 1))
-        ],
+    const sampled = versions.filter(
+      (version) =>
+        version.status === "failed" || sampledDates.has(runDate(version)),
     );
     const colorIndex = catalogOrder.indexOf(history.variant);
     return {
       id: history.variant,
       name: variantName(entry),
-      runtime: formatRuntimeTag(versions.at(-1)!.platform),
+      runtime: formatPlatformTag(versions.at(-1)!.platform, features),
       composition: entry.variant.composition,
+      preview: isPreview(entry.variant),
       color: colors[colorIndex % colors.length],
       dashed: colorIndex >= colors.length,
       points: sampled.map((version) => ({
@@ -160,9 +206,17 @@ export function historySeries(
           version.run.completedAt ?? version.run.startedAt!,
         ),
         runNumber: version.run.number,
-        runtime: formatRuntimeTag(version.platform),
+        runtime: formatPlatformTag(
+          version.platform,
+          features.filter((feature) =>
+            version.platform.features?.some((own) => own.id === feature.id),
+          ),
+        ),
         version: version.version,
         rps: version.throughput.medianRps,
+        failed: version.status === "failed",
+        completedRuns: version.throughput.runsRps!.length,
+        measuredRuns: version.measuredRuns,
       })),
     };
   });
@@ -170,6 +224,7 @@ export function historySeries(
     series.some(
       (other) =>
         other !== item &&
+        (item.preview || !other.preview) &&
         other.composition === item.composition &&
         other.name === item.name &&
         other.runtime === item.runtime,
@@ -203,24 +258,29 @@ export const formatHistoryDate = (timestamp: number, includeYear = false) =>
     timeZone: "UTC",
   }).format(timestamp);
 
-/** Returns run dates at a consistent run interval whose labels fit the available width. */
-export function historyDateTicks(values: readonly number[], width: number) {
+/** The narrowest history chart plot in pixels, on the narrowest supported screen. */
+const MIN_PLOT_WIDTH = 200;
+
+/** Returns the sorted run dates and, for each interval in runs between date labels, the whole plot widths in pixels at which it is the smallest interval whose labels fit, from `minWidth` up to but excluding `maxWidth`. Plots narrower than the narrowest supported plot use the interval that fits it. */
+export function historyDateIntervals(values: readonly number[]) {
   const dates = [...new Set(values)].toSorted((a, b) => a - b);
   if (dates.length < 2) {
-    return dates;
+    return { dates, intervals: [] };
   }
-  const first = dates[0];
-  const last = dates.at(-1)!;
   const includeYear =
-    new Date(first).getUTCFullYear() !== new Date(last).getUTCFullYear();
+    new Date(dates[0]).getUTCFullYear() !==
+    new Date(dates.at(-1)!).getUTCFullYear();
   const labelWidth = includeYear ? 90 : 52;
-  const stride = Math.max(
-    1,
-    Math.ceil(
-      ((labelWidth * 1.5 + 16) * (dates.length - 1)) / Math.max(width, 1),
-    ),
-  );
-  return dates.filter((_, index) => index % stride === 0);
+  const space = (labelWidth * 1.5 + 16) * (dates.length - 1);
+  const count = Math.min(dates.length - 1, Math.ceil(space / MIN_PLOT_WIDTH));
+  return {
+    dates,
+    intervals: Array.from({ length: count }, (_, index) => ({
+      runs: index + 1,
+      minWidth: index === count - 1 ? 0 : Math.round(space / (index + 1)),
+      maxWidth: index === 0 ? Infinity : Math.round(space / index),
+    })),
+  };
 }
 
 const niceStep = (range: number) => {
@@ -247,18 +307,34 @@ export const historyScale = (values: readonly number[]) => {
   };
 };
 
-/** Returns the relative throughput change from a series' oldest to newest version, or undefined for a single version. */
+/** Returns the newest point of a series without a failed execution, or undefined when every run failed. */
+export const latestCompletedPoint = (series: HistorySeries) =>
+  series.points.findLast((point) => !point.failed);
+
+/** Returns the relative throughput change from a series' oldest to newest version without a failed execution, or undefined for fewer than two such versions. */
 export const seriesChange = (series: HistorySeries) => {
-  const first = series.points[0];
-  const last = series.points.at(-1)!;
-  return series.points.length > 1 && first.rps > 0
-    ? (last.rps - first.rps) / first.rps
-    : undefined;
+  const completed = series.points.filter((point) => !point.failed);
+  if (completed.length < 2) {
+    return undefined;
+  }
+  const first = completed[0];
+  const last = completed.at(-1)!;
+  return first.rps > 0 ? (last.rps - first.rps) / first.rps : undefined;
 };
 
 /** Formats a relative change as an unsigned percentage with one decimal. */
 export const formatChange = (value: number) =>
   `${Math.abs(value * 100).toFixed(1)}%`;
+
+/** A result with throughput and request measurements: a completed result, or a failed one that recorded runs. */
+export type BenchmarkMeasuredVariantResult = BenchmarkVariantResult &
+  Pick<BenchmarkCompletedVariantResult, "throughput" | "requests">;
+
+/** Returns whether a result has throughput and request measurements. */
+export const isMeasured = (
+  row: BenchmarkVariantResult,
+): row is BenchmarkMeasuredVariantResult =>
+  row.throughput !== undefined && row.requests !== undefined;
 
 /** Returns whether every request of a result succeeded. */
 export const isReliable = (
@@ -272,6 +348,8 @@ export const isReliable = (
 export interface ResultsGroup {
   readonly id: Composition;
   readonly name: string;
+  readonly shortName: string;
+  readonly description: string;
   readonly rows: readonly BenchmarkVariantResult[];
   /** The highest median throughput in the table, used to scale its bars. */
   readonly maxRps: number;
@@ -283,27 +361,70 @@ export interface ResultsGroup {
 export const isWinner = (row: BenchmarkVariantResult, group: ResultsGroup) =>
   isReliable(row) && row.throughput.medianRps === group.winnerRps;
 
+const scenarioRows = (scenario: Pick<BenchmarkScenario, "results">) =>
+  scenario.results.flatMap((result) => result.variants);
+
+/** Includes all previews and other gateways; stable Fusion variants must use Native AOT on .NET 11. */
+export function isShownVariant({ gateway, variant }: BenchmarkCatalogEntry) {
+  return (
+    gateway.id !== "fusion" ||
+    isPreview(variant) ||
+    (variant.platform.runtime?.version?.split(".")[0] === "11" &&
+      (variant.platform.features ?? []).some((feature) => feature.id === "aot"))
+  );
+}
+
+/** Returns the ids of the gateways with at least one variant that is not a preview. */
+export function releasedGateways(
+  variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
+): ReadonlySet<string> {
+  return new Set(
+    [...variants.values()]
+      .filter(({ variant }) => !isPreview(variant))
+      .map(({ gateway }) => gateway.id),
+  );
+}
+
+/** Returns the names of the gateways that have had a stable release without a trailing Router or Gateway, Fusion first, and whether the report contains other gateways. */
+export function releasedGatewayNames(report: BenchmarkReport): {
+  readonly names: readonly string[];
+  readonly others: boolean;
+} {
+  const released = releasedGateways(benchmarkVariants(report));
+  const named = report.gateways
+    .filter((gateway) => released.has(gateway.id))
+    .toSorted((a, b) => Number(b.id === "fusion") - Number(a.id === "fusion"));
+  return {
+    names: [
+      ...new Set(
+        named.map((gateway) =>
+          gateway.name.replace(/\s+(Router|Gateway)$/, ""),
+        ),
+      ),
+    ],
+    others: named.length < report.gateways.length,
+  };
+}
+
+/** Returns the page description, naming each gateway that has had a stable release. */
+export function benchmarkPageDescription(report: BenchmarkReport): string {
+  const list = new Intl.ListFormat("en", { type: "conjunction" }).format(
+    releasedGatewayNames(report).names,
+  );
+  return `Daily GraphQL federation router (gateway) performance benchmarks: throughput, latency, memory and CPU for ${list}.`;
+}
+
 /** Returns the non-empty composition tables of a scenario, rows sorted by median throughput. */
 export function scenarioGroups(
   scenario: BenchmarkScenario,
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
-  stableOnly: boolean,
 ): readonly ResultsGroup[] {
-  const rows = scenario.results
-    .flatMap((result) => result.variants)
-    .filter((row) => {
-      const { variant } = variants.get(row.variant)!;
-      return (
-        !stableOnly ||
-        !isPreview(variant.version, variant.platform, variant.preview)
-      );
-    })
-    .toSorted(
-      (a, b) =>
-        (b.status === "complete" ? b.throughput.medianRps : -1) -
-          (a.status === "complete" ? a.throughput.medianRps : -1) ||
-        a.variant.localeCompare(b.variant),
-    );
+  const rows = scenarioRows(scenario).toSorted(
+    (a, b) =>
+      (b.status === "complete" ? b.throughput.medianRps : -1) -
+        (a.status === "complete" ? a.throughput.medianRps : -1) ||
+      a.variant.localeCompare(b.variant),
+  );
   return COMPOSITION_GROUPS.flatMap((group) => {
     const groupRows = rows.filter(
       (row) => variants.get(row.variant)!.variant.composition === group.id,
@@ -317,7 +438,7 @@ export function scenarioGroups(
       maxRps: Math.max(
         0,
         ...groupRows.map((row) =>
-          row.status === "complete" ? row.throughput.medianRps : 0,
+          isMeasured(row) ? row.throughput.medianRps : 0,
         ),
       ),
       winnerRps: Math.max(
@@ -336,7 +457,13 @@ export const tableCaption = (
   group: ResultsGroup,
   report: BenchmarkReport,
 ) =>
-  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
+  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, peak router memory per request in KiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
+
+/** Returns the peak memory in KiB divided by the median requests per second, or undefined without a memory measurement or throughput. */
+export const memoryPerRequest = (row: BenchmarkMeasuredVariantResult) =>
+  row.memory && row.throughput.medianRps > 0
+    ? row.memory.peakRssKiB / row.throughput.medianRps
+    : undefined;
 
 /** Formats a request rate as a whole number. */
 export const formatNumber = (value: number) =>
@@ -347,6 +474,13 @@ export const formatMemory = (kibibytes: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(
     kibibytes / 1024,
   );
+
+/** Formats KiB with one decimal below 100 KiB, without the unit. */
+export const formatKibibytes = (kibibytes: number) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: kibibytes < 100 ? 1 : 0,
+    maximumFractionDigits: kibibytes < 100 ? 1 : 0,
+  }).format(kibibytes);
 
 /** Formats milliseconds with one decimal below 100 ms, without the unit. */
 export const formatLatency = (milliseconds: number) =>
@@ -402,7 +536,7 @@ export interface BenchmarkFacts {
     readonly readme: string;
     readonly issues: string;
     readonly guild: string;
-    readonly fusionDocs: string;
+    readonly fusion: string;
   };
 }
 
@@ -447,7 +581,7 @@ export function benchmarkFacts(report: BenchmarkReport): BenchmarkFacts {
       readme: `${source}/README.md`,
       issues: `${BENCHMARK_REPOSITORY}/issues`,
       guild: "https://github.com/graphql-hive/graphql-gateways-benchmark",
-      fusionDocs: BENCHMARK_FUSION_DOCS_URL,
+      fusion: BENCHMARK_FUSION_URL,
     },
   };
 }
@@ -501,13 +635,12 @@ export interface ScenarioVerdict {
   readonly tied: boolean;
 }
 
-/** Returns the verdict of a scenario, skipping previews when `stableOnly` is set, or undefined when no result is free of failed requests. */
+/** Returns the verdict of a scenario, or undefined when no result is free of failed requests. */
 export function scenarioVerdict(
   scenario: BenchmarkScenario,
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
-  stableOnly: boolean,
 ): ScenarioVerdict | undefined {
-  const ranked = scenarioGroups(scenario, variants, stableOnly)
+  const ranked = scenarioGroups(scenario, variants)
     .flatMap((group) => group.rows)
     .filter(isReliable)
     .toSorted((a, b) => b.throughput.medianRps - a.throughput.medianRps);
@@ -532,5 +665,26 @@ export function scenarioVerdict(
     runnerUp,
     lead,
     tied: runnerUp !== undefined && lead * 100 < variance,
+  };
+}
+
+/** Returns a report that keeps only the results of one composition. */
+export function compositionReport(
+  report: BenchmarkReport,
+  variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
+  composition: Composition,
+): BenchmarkReport {
+  return {
+    ...report,
+    scenarios: report.scenarios.map((scenario) => ({
+      ...scenario,
+      results: scenario.results.map((result) => ({
+        ...result,
+        variants: result.variants.filter(
+          (row) =>
+            variants.get(row.variant)!.variant.composition === composition,
+        ),
+      })),
+    })),
   };
 }

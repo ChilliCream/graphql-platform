@@ -59,17 +59,12 @@ public sealed class FeatureCollection : IFeatureCollection
     {
         get
         {
-            if (_features is not null)
+            if (_features is { Count: > 0 })
             {
-                return _features.Count == 0;
+                return false;
             }
 
-            if (_defaults is not null)
-            {
-                return _defaults.IsEmpty;
-            }
-
-            return true;
+            return _defaults?.IsEmpty ?? true;
         }
     }
 

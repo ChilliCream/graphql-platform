@@ -304,6 +304,12 @@ internal ref struct JsonVariableCoercion
                     return false;
                 }
 
+                // we keep the first occurrence of a repeated property.
+                if (processed[fieldDefinition.Index])
+                {
+                    continue;
+                }
+
                 if (oneOf && property.Value.ValueKind is JsonValueKind.Null)
                 {
                     value = null;

@@ -22,6 +22,7 @@ public sealed class CostSchemaIndex
     private readonly FrozenDictionary<FieldKey, ImmutableArray<InputValueMetadata>> _fieldArguments;
     private readonly FrozenDictionary<IOutputFieldDefinition, int> _fieldSemanticIds;
     private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _inputObjectFields;
+    private readonly FrozenDictionary<string, double> _inputObjectStaticShapes;
     private readonly FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> _directiveArguments;
     private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _directiveArgumentMetadata;
     private readonly double _defaultListSize;
@@ -46,6 +47,7 @@ public sealed class CostSchemaIndex
         FrozenDictionary<FieldKey, ImmutableArray<InputValueMetadata>> fieldArguments,
         FrozenDictionary<IOutputFieldDefinition, int> fieldSemanticIds,
         FrozenDictionary<string, ImmutableArray<InputValueMetadata>> inputObjectFields,
+        FrozenDictionary<string, double> inputObjectStaticShapes,
         FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> directiveArguments,
         FrozenDictionary<string, ImmutableArray<InputValueMetadata>> directiveArgumentMetadata)
     {
@@ -66,6 +68,7 @@ public sealed class CostSchemaIndex
         _fieldArguments = fieldArguments;
         _fieldSemanticIds = fieldSemanticIds;
         _inputObjectFields = inputObjectFields;
+        _inputObjectStaticShapes = inputObjectStaticShapes;
         _directiveArguments = directiveArguments;
         _directiveArgumentMetadata = directiveArgumentMetadata;
     }
@@ -212,6 +215,13 @@ public sealed class CostSchemaIndex
     /// </summary>
     internal bool TryGetInputObjectFields(string typeName, out ImmutableArray<InputValueMetadata> fields)
         => _inputObjectFields.TryGetValue(typeName, out fields);
+
+    /// <summary>
+    /// Gets the cost of the nested fields of an input object value supplied by a variable without a value,
+    /// or 0 when <paramref name="typeName"/> is not an input object.
+    /// </summary>
+    internal double GetInputObjectStaticShape(string typeName)
+        => _inputObjectStaticShapes.GetValueOrDefault(typeName);
 
     /// <summary>
     /// Gets a directive definition's own arguments, in declaration order, or

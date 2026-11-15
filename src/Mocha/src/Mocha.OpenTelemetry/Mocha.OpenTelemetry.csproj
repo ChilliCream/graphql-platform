@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.OpenTelemetry</AssemblyName>
+    <RootNamespace>Mocha.OpenTelemetry</RootNamespace>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+  </ItemGroup>
+</Project>

@@ -35,4 +35,14 @@ public readonly struct ConditionFlags
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get;
     }
+
+    /// <summary>
+    /// Gets whether the flag at the specified condition index is set.
+    /// </summary>
+    /// <param name="index">The condition index.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsSet(int index)
+        => index < 64
+            ? (Word0 & (1ul << index)) != 0
+            : (Overflow![(index >> 6) - 1] & (1ul << (index & 63))) != 0;
 }

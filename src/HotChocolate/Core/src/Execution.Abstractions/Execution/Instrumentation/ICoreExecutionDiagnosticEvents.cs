@@ -20,8 +20,8 @@ public interface ICoreExecutionDiagnosticEvents
     IDisposable ExecuteRequest(RequestContext context);
 
     /// <summary>
-    /// Called at the end of the execution if an exception occurred at some point,
-    /// including unhandled exceptions when resolving fields.
+    /// Called when an exception aborts the request, and within the
+    /// <see cref="ParseDocument"/> scope when the request document cannot be parsed.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an
@@ -33,7 +33,7 @@ public interface ICoreExecutionDiagnosticEvents
     void RequestError(RequestContext context, Exception error);
 
     /// <summary>
-    /// Called when a request termination error occurs within the request pipeline.
+    /// Called when a request pipeline step reports a GraphQL error that terminates the request.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an

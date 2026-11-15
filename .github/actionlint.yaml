@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=https://www.schemastore.org/actionlint.json
+
+paths:
+  .github/workflows/**/*.{yml,yaml}:
+    ignore:
+      # actionlint 1.7.12 does not know the ubuntu-26.04 runner label (rhysd/actionlint#682).
+      - 'label "ubuntu-26\.04" is unknown'

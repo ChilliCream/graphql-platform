@@ -1415,6 +1415,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "defaultListSize": null,
+                "maxFieldCost": null,
+                "maxTypeCost": null,
+                "enforceCostLimits": null,
+                "skipCostAnalyzer": null,
+                "maxResponseSize": null,
+                "costPlanCacheSize": null,
+                "caseBudget": null,
+                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -1507,6 +1515,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "defaultListSize": null,
+                "maxFieldCost": null,
+                "maxTypeCost": null,
+                "enforceCostLimits": null,
+                "skipCostAnalyzer": null,
+                "maxResponseSize": null,
+                "costPlanCacheSize": null,
+                "caseBudget": null,
+                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -1519,6 +1535,94 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "apolloFederationCompatibility": {
                 "allowNonResolvableInterfaceObjects": null,
                 "shareableFieldRuntimeTypeRouting": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_StageCompositionSettings_OverridesArchiveSettings()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupStageCompositionSettings(
+            new StageCompositionSettings
+            {
+                AllowNonResolvableInterfaceObjects = true,
+                DefaultListSize = 25,
+                EnumValuesMergeBehavior = CompositionEnumValuesMergeBehavior.Union,
+                ShareableFieldRuntimeTypeRouting = CompositionShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
+            });
+        SetupFusionConfigurationDownloadWithCompositionSettings(
+            """
+            {
+              "merger": {
+                "defaultListSize": 10,
+                "enumValuesMergeBehavior": "Strict"
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": false,
+                "shareableFieldRuntimeTypeRouting": "SourceLocal"
+              }
+            }
+            """);
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        var capturedStream = SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        using var archive = FusionArchive.Open(capturedStream);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(settings);
+        settings.RootElement.ToString().MatchInlineSnapshot(
+            """
+            {
+              "preprocessor": {
+                "excludeByTag": null
+              },
+              "merger": {
+                "addFusionDefinitions": null,
+                "cacheControlMergeBehavior": null,
+                "defaultListSize": 25,
+                "maxFieldCost": null,
+                "maxTypeCost": null,
+                "enforceCostLimits": null,
+                "skipCostAnalyzer": null,
+                "maxResponseSize": null,
+                "costPlanCacheSize": null,
+                "caseBudget": null,
+                "caseBudgetExceededBehavior": null,
+                "enableGlobalObjectIdentification": null,
+                "enumValuesMergeBehavior": "Union",
+                "nodeResolution": null,
+                "removeUnreferencedDefinitions": null,
+                "tagMergeBehavior": null
+              },
+              "satisfiability": {
+                "includeSatisfiabilityPaths": null
+              },
+              "apolloFederationCompatibility": {
+                "allowNonResolvableInterfaceObjects": true,
+                "shareableFieldRuntimeTypeRouting": "CommonRuntimeTypes"
               }
             }
             """);
@@ -1951,81 +2055,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
-    public async Task WithSourceSchemaFile_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
+    public async Task WithSourceSchemaFile_ExistingRequestId_ReusesSlotAndSkipsClaim()
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaFile();
         SetupStageCompositionSettings();
-        SetupLegacyArchiveFile();
-        SetupMissingFusionConfigurationDownload();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription();
-        var capturedStream = SetupFusionConfigurationUploadMutation();
-        SetupFusionConfigurationUploadSubscription();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--tag",
-            Tag,
-            "--source-schema-file",
-            SourceSchemaFile,
-            "--legacy-v1-archive",
-            LegacyArchiveFile);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
-            ├── Reusing existing publication request. (ID: request-id)
-            ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validating configuration against 'dev'
-            │   ├── Validating...
-            │   └── ✓ Fusion configuration passed validation.
-            ├── Uploading configuration to 'dev'
-            │   └── ✓ Uploaded configuration.
-            └── ✓ Published configuration 'v1' to 'dev'.
-            """);
-        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
-        AssertMigratedFusionSchema(schema);
-        FusionConfigurationClientMock.Verify(
-            x => x.RequestDeploymentSlotAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<SourceSchemaVersion[]?>(),
-                It.IsAny<bool>(),
-                It.IsAny<SourceMetadata?>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
-        FusionConfigurationClientMock.Verify(
-            x => x.ClaimDeploymentSlotAsync(
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public async Task WithSourceSchemaFile_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
-    {
-        // arrange
-        SetupFusionPublishingStateCache(RequestId);
-        SetupSourceSchemaFile();
-        SetupStageCompositionSettings();
-        SetupRequestDeploymentSlotMutation();
-        SetupRequestDeploymentSlotSubscription();
-        SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
@@ -2049,11 +2084,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         result.AssertSuccess(
             """
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
-            ├── Requesting deployment slot
-            │   ├── Publication request created. (ID: request-id)
-            │   └── ✓ Deployment slot ready.
-            ├── Claiming deployment slot
-            │   └── ✓ Claimed deployment slot.
+            ├── Reusing existing publication request. (ID: request-id)
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
@@ -2067,6 +2098,24 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
         AssertComposedFusionSchema(schema);
+        FusionConfigurationClientMock.Verify(
+            x => x.RequestDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<SourceSchemaVersion[]?>(),
+                It.IsAny<bool>(),
+                It.IsAny<SourceMetadata?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        FusionConfigurationClientMock.Verify(
+            x => x.ClaimDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        VerifyFusionPublishingStateCacheDeleted();
     }
 
     [Fact]
@@ -3560,83 +3609,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
-    public async Task WithSourceSchema_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
+    public async Task WithSourceSchema_ExistingRequestId_ReusesSlotAndSkipsClaim()
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaDownload();
         SetupStageCompositionSettings();
-        SetupLegacyArchiveFile();
-        SetupMissingFusionConfigurationDownload();
-        SetupFusionConfigurationValidationMutation();
-        SetupFusionConfigurationValidationSubscription();
-        var capturedStream = SetupFusionConfigurationUploadMutation();
-        SetupFusionConfigurationUploadSubscription();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--tag",
-            Tag,
-            "--source-schema",
-            SourceSchema,
-            "--legacy-v1-archive",
-            LegacyArchiveFile);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
-            ├── Downloading 1 source schema(s)
-            │   └── ✓ Downloaded 1 source schema(s).
-            ├── Reusing existing publication request. (ID: request-id)
-            ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev', using --legacy-v1-archive instead.
-            ├── Composing new configuration
-            │   └── ✓ Composed new configuration.
-            ├── Validating configuration against 'dev'
-            │   ├── Validating...
-            │   └── ✓ Fusion configuration passed validation.
-            ├── Uploading configuration to 'dev'
-            │   └── ✓ Uploaded configuration.
-            └── ✓ Published configuration 'v1' to 'dev'.
-            """);
-        var schema = await GetMigratedLegacyArchiveSchemaAsync(capturedStream);
-        AssertMigratedFusionSchema(schema);
-        FusionConfigurationClientMock.Verify(
-            x => x.RequestDeploymentSlotAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string?>(),
-                It.IsAny<string?>(),
-                It.IsAny<SourceSchemaVersion[]?>(),
-                It.IsAny<bool>(),
-                It.IsAny<SourceMetadata?>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
-        FusionConfigurationClientMock.Verify(
-            x => x.ClaimDeploymentSlotAsync(
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public async Task WithSourceSchema_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
-    {
-        // arrange
-        SetupFusionPublishingStateCache(RequestId);
-        SetupSourceSchemaDownload();
-        SetupStageCompositionSettings();
-        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
-        SetupRequestDeploymentSlotSubscription();
-        SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
@@ -3662,11 +3640,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
-            ├── Requesting deployment slot
-            │   ├── Publication request created. (ID: request-id)
-            │   └── ✓ Deployment slot ready.
-            ├── Claiming deployment slot
-            │   └── ✓ Claimed deployment slot.
+            ├── Reusing existing publication request. (ID: request-id)
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
@@ -3680,6 +3654,24 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
         AssertComposedFusionSchema(schema);
+        FusionConfigurationClientMock.Verify(
+            x => x.RequestDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<SourceSchemaVersion[]?>(),
+                It.IsAny<bool>(),
+                It.IsAny<SourceMetadata?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        FusionConfigurationClientMock.Verify(
+            x => x.ClaimDeploymentSlotAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        VerifyFusionPublishingStateCacheDeleted();
     }
 
     [Fact]
@@ -4119,6 +4111,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "defaultListSize": null,
+                "maxFieldCost": null,
+                "maxTypeCost": null,
+                "enforceCostLimits": null,
+                "skipCostAnalyzer": null,
+                "maxResponseSize": null,
+                "costPlanCacheSize": null,
+                "caseBudget": null,
+                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -4211,6 +4211,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "defaultListSize": null,
+                "maxFieldCost": null,
+                "maxTypeCost": null,
+                "enforceCostLimits": null,
+                "skipCostAnalyzer": null,
+                "maxResponseSize": null,
+                "costPlanCacheSize": null,
+                "caseBudget": null,
+                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -5201,6 +5209,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -5251,7 +5264,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -5356,6 +5379,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(
@@ -5410,6 +5443,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               field: String! @fusion__field(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -5451,7 +5489,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -5556,6 +5604,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(
@@ -5707,6 +5765,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
+            enum fusion__CaseBudgetExceededBehavior {
+              EVALUATE_PER_REQUEST
+              OVERESTIMATE
+            }
+
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -5757,7 +5820,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+            directive @fusion__cost_options(
+              caseBudget: Int
+              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
+              costPlanCacheSize: Int
+              defaultListSize: Int
+              enforceCostLimits: Boolean
+              maxFieldCost: Float
+              maxResponseSize: Float
+              maxTypeCost: Float
+              skipAnalyzer: Boolean
+            ) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -5862,6 +5935,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "The name of the source schema where the annotated entity type can be looked up from."
               schema: fusion__Schema!
             ) repeatable on OBJECT | INTERFACE | UNION
+
+            "The @fusion__policy directive carries the merged policy requirement of a type system member. The authenticated, scopes and policies parts are independent and all must be satisfied."
+            directive @fusion__policy(
+              "Whether the member requires an authenticated user."
+              authenticated: Boolean! = false
+              "The alternative policy groups, of which one must be fully satisfied. Each group is a set of policy names that must all pass."
+              policies: [[String!]!]
+              "The alternative scope groups, of which one must be fully granted. Each group is a set of scopes that must all be present."
+              scopes: [[String!]!]
+            ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
             "The @fusion__requires directive specifies if a field has requirements on a source schema."
             directive @fusion__requires(

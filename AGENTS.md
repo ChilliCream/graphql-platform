@@ -6,6 +6,10 @@ This file provides guidance to coding agents when working with this repository.
 
 - Do not add `Co-authored-by` trailers or other co-author attribution for agents.
 
+## Commit Messages
+
+- Wrap every `@`-prefixed token in backticks, so GitHub does not turn it into a mention. This covers directive names, package scopes, and user handles: ``Fix pruning of list-wrapped `@require` input types``.
+
 ## Pull Requests
 
 - Start a bug fix PR title with `Fix`: `Fix the gateway ignoring subgraph timeouts`. The title becomes the squash commit subject and the release note entry.
@@ -60,12 +64,14 @@ When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK
 
 ### Testing
 
-- Prefer snapshot tests over manual `Assert` calls, use **CookieCrumble** for snapshots.
+- Use regular `Assert` APIs for simple checks, with at most 5 `Assert.*` calls per test method.
+- Use **CookieCrumble** snapshots for structured or formatted output, such as JSON responses, GraphQL results, generated code, and Markdown documents.
+- Do not create an anonymous object with scalar properties just to snapshot it. Assert those values directly.
 - CookieCrumble has native snapshot support for `IExecutionResult`, `GraphQLHttpResponse`, and other core types.
 - For smaller snapshots, prefer **inline snapshots** (`MatchInlineSnapshot`) over snapshot files.
 - For a collection of results (for example a stream of subscription events), snapshot the list with `MatchInlineSnapshots` (a parallel list of per-element inline snapshots). Do NOT concatenate with `string.Join("---", values).MatchInlineSnapshot(...)`: a manual separator hides element boundaries and reinvents what the collection overload does natively.
-- For tests with multiple assertions, use **Markdown snapshots** (`MatchMarkdownSnapshot`).
-- Hard limit: a single test method must contain at most 5 `Assert.*` calls. Anything beyond that is too hard to reason about in review, switch to a snapshot (Markdown for multi-shape state, inline or file for a single output).
+- Use **Markdown snapshots** (`MatchMarkdownSnapshot`) when a snapshot combines multiple structured or formatted outputs.
+- If a test needs more than 5 `Assert.*` calls, split it into focused tests or use a snapshot when the output meets the criteria above.
 - Use the AAA section marker style. Each section starts with a single-line comment, the test name documents intent, no paragraph-style block comments above sections:
 
   ```csharp
@@ -81,6 +87,7 @@ When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK
   ```
 
 - Avoid `Assert.DoesNotContain` as it is a weak assertion that easily goes out of date, it only proves something is absent without verifying what *is* present. Prefer `Assert.Equal` to check the entire string value, or `Assert.Collection` to verify the complete contents of a collection.
+- Do not assert on a substring of a message with `Assert.Contains`. Assert the whole message with `Assert.Equal`, so a wording change is caught and the expected text is documented in the test.
 - Snapshot tests: update from `__mismatch__/` directory, understand ordering issues before updating.
 - Filter tests during iteration, never run the full suite unnecessarily.
 - Use real databases in integration tests, not mocks (unless explicitly instructed otherwise).

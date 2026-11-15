@@ -16,12 +16,12 @@ public sealed record SwitchMediatorNotification(Guid Id)
 public sealed class SwitchMediatorCommandHandler
     : global::Mediator.Switch.IValueRequestHandler<SwitchMediatorCommand, BenchmarkResponse>
 {
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
     public ValueTask<BenchmarkResponse> Handle(
         SwitchMediatorCommand request,
         CancellationToken cancellationToken)
-        => new(_response);
+        => new(s_response);
 }
 
 // Notification handler (ValueTask variant)

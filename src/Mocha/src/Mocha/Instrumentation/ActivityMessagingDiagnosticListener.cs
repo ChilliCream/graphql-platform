@@ -59,7 +59,7 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
                 if (ActivityContext.TryParse(traceparent, traceState, out var parentContext))
                 {
                     activity = OpenTelemetry.Source.CreateActivity(
-                        $"{context.Endpoint.Address} receive",
+                        $"receive {context.Endpoint.Name}",
                         ActivityKind.Client,
                         parentContext);
 
@@ -67,7 +67,7 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
                 }
             }
 
-            activity ??= OpenTelemetry.Source.StartActivity($"{context.Endpoint.Address} receive", ActivityKind.Client);
+            activity ??= OpenTelemetry.Source.StartActivity($"receive {context.Endpoint.Name}", ActivityKind.Client);
             _activity = activity;
 
             if (activity is not null)
@@ -82,7 +82,8 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
             _activity?
                 .EnrichMessageDefault()
                 .SetMessageId(_context.MessageId ?? string.Empty)
-                .SetConversationId(_context.CorrelationId ?? string.Empty);
+                .SetConversationId(_context.CorrelationId ?? string.Empty)
+                .SetOkStatusUnlessError();
 
             _activity?.Dispose();
         }
@@ -94,22 +95,23 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
     {
         private readonly Activity? _activity;
         private readonly IConsumeContext _context;
+        private readonly string _consumerName;
 
         private ConsumerActivity(IConsumeContext context)
         {
             _context = context;
 
             // TODO this can be done better!
-            var currentConsumer = context.Features.Get<ReceiveConsumerFeature>()?.CurrentConsumer?.Name ?? "unknown";
+            _consumerName = context.Features.Get<ReceiveConsumerFeature>()?.CurrentConsumer?.Name ?? "unknown";
 
             _activity = context is IBatchConsumeContext batchContext
                 ? OpenTelemetry.Source.StartActivity(
-                    $"{currentConsumer} consume",
+                    $"consume {_consumerName}",
                     ActivityKind.Consumer,
                     default(ActivityContext),
                     null,
                     CreateLinks(batchContext))
-                : OpenTelemetry.Source.StartActivity($"{currentConsumer} consume", ActivityKind.Consumer);
+                : OpenTelemetry.Source.StartActivity($"consume {_consumerName}", ActivityKind.Consumer);
         }
 
         public void Dispose()
@@ -118,15 +120,15 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
             if (_activity is not null)
             {
                 var batchConsumeContext = _context as IBatchConsumeContext;
-                var consumerName = batchConsumeContext?.ItemMessageType?.Identity
-                    ?? _context.MessageType?.Identity
-                    ?? "unknown";
+                var messageType = batchConsumeContext?.ItemMessageType?.Identity ?? _context.MessageType?.Identity;
 
                 _activity
                     .EnrichMessageDefault()
                     .SetMessageId(_context.MessageId)
                     .SetConversationId(_context.ConversationId)
-                    .SetConsumerName(consumerName);
+                    .SetMessageType(messageType)
+                    .SetConsumerName(_consumerName)
+                    .SetOkStatusUnlessError();
 
                 if (batchConsumeContext is not null)
                 {
@@ -177,21 +179,20 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
     {
         private readonly Activity? _activity;
         private readonly long _startTime;
-        private readonly string _operationType;
+        private readonly string _operationName;
         private readonly IDispatchContext _context;
 
         private DispatchActivity(IDispatchContext context)
         {
-            _operationType = "publish"; // TODO we need to get this from the route i guess
+            _operationName = "publish"; // TODO we need to get this from the route i guess
             _startTime = Stopwatch.GetTimestamp();
             _context = context;
 
             // Start activity early but don't enrich with state yet
             // State will be captured in Dispose() after all middlewares have run
-            var operationName = $"{context.DestinationAddress} {_operationType}";
             _activity = OpenTelemetry
-                .Source.StartActivity(operationName, ActivityKind.Producer)
-                ?.SetOperationName(operationName)
+                .Source.StartActivity($"{_operationName} {context.Endpoint.Name}", ActivityKind.Producer)
+                ?.SetOperationName(_operationName)
                 .SetOperationType(MessagingOperationType.Send)
                 .EnrichMessageDefault();
         }
@@ -199,7 +200,6 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
         public void Dispose()
         {
             var destination = _context.DestinationAddress;
-            var operationName = $"{destination} {_operationType}";
             var transportName = _context.Transport.Name;
 
             // Enrich activity with context state after all middlewares have run
@@ -208,7 +208,8 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
                 .SetConversationId(_context.ConversationId ?? string.Empty)
                 .SetInstanceId(_context.Host.InstanceId)
                 .SetDestinationTemporary(false)
-                .SetDestinationAddress(destination);
+                .SetDestinationAddress(destination)
+                .SetOkStatusUnlessError();
 
             _activity?.Dispose();
 
@@ -216,14 +217,14 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
 
             OpenTelemetry.Meters.RecordOperationDuration(
                 elapsed,
-                operationName,
+                _operationName,
                 destination,
                 MessagingOperationType.Send,
                 _context.Envelope?.MessageType ?? _context.MessageType?.Identity ?? string.Empty,
                 transportName);
 
             OpenTelemetry.Meters.RecordSendMessage(
-                operationName,
+                _operationName,
                 destination,
                 _context.Envelope?.MessageType ?? _context.MessageType?.Identity ?? string.Empty,
                 transportName);

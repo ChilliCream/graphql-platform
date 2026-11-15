@@ -13,6 +13,12 @@
       "Value": [
         "application/graphql-response+json; charset=utf-8"
       ]
+    },
+    {
+      "Key": "Content-Length",
+      "Value": [
+        "92"
+      ]
     }
   ],
   "Body": "{\"errors\":[{\"message\":\"Unexpected Execution Error\",\"path\":[\"field\"]}],\"data\":{\"field\":null}}"

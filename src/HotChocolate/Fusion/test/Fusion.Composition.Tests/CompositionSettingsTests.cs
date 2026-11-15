@@ -52,6 +52,92 @@ public sealed class CompositionSettingsTests
     }
 
     [Fact]
+    public void CaseBudgetExceededBehavior_Should_RoundTripAsString_When_Serialized()
+    {
+        // arrange
+        var settings = new CompositionSettings
+        {
+            Merger =
+            {
+                CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate
+            }
+        };
+
+        // act
+        using var document = JsonSerializer.SerializeToDocument(
+            settings,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+        var roundTripped = document.Deserialize(
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+
+        // assert
+        Assert.Equal(
+            "Overestimate",
+            document.RootElement
+                .GetProperty("merger")
+                .GetProperty("caseBudgetExceededBehavior")
+                .GetString());
+        Assert.Equal(
+            CaseBudgetExceededBehavior.Overestimate,
+            roundTripped!.Merger.CaseBudgetExceededBehavior);
+    }
+
+    [Fact]
+    public void MergeInto_Should_UseOverrideCostSettings_When_CostSettingsAreSet()
+    {
+        // arrange
+        var existing = new CompositionSettings
+        {
+            Merger =
+            {
+                MaxFieldCost = 1,
+                MaxTypeCost = 2,
+                EnforceCostLimits = true,
+                SkipCostAnalyzer = false,
+                MaxResponseSize = 3,
+                CostPlanCacheSize = 4,
+                CaseBudget = 5,
+                CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.EvaluatePerRequest
+            }
+        };
+        var settings = new CompositionSettings
+        {
+            Merger =
+            {
+                MaxFieldCost = 10,
+                MaxTypeCost = 20,
+                EnforceCostLimits = false,
+                SkipCostAnalyzer = true,
+                MaxResponseSize = 30,
+                CostPlanCacheSize = 40,
+                CaseBudget = 50,
+                CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate
+            }
+        };
+
+        // act
+        var merged = settings.MergeInto(existing);
+        var options = merged.Merger.ToOptions();
+
+        // assert
+        JsonSerializer.Serialize(
+            new
+            {
+                options.MaxFieldCost,
+                options.MaxTypeCost,
+                options.EnforceCostLimits,
+                options.SkipCostAnalyzer,
+                options.MaxResponseSize,
+                options.CostPlanCacheSize,
+                options.CaseBudget,
+                CaseBudgetExceededBehavior = options.CaseBudgetExceededBehavior.ToString()
+            }).MatchInlineSnapshot(
+            """
+            {"MaxFieldCost":10,"MaxTypeCost":20,"EnforceCostLimits":false,"SkipCostAnalyzer":true,"MaxResponseSize":30,"CostPlanCacheSize":40,"CaseBudget":50,"CaseBudgetExceededBehavior":"Overestimate"}
+            """);
+    }
+
+    [Fact]
     public void MergeInto_Should_PreserveExistingCompatibility_When_OverrideIsUnset()
     {
         // arrange

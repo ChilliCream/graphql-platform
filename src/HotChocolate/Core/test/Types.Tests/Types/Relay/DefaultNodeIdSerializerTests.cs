@@ -621,6 +621,89 @@ public class DefaultNodeIdSerializerTests
         Assert.Equal(new Guid("aaf5f036-948e-444d-ada5-36e6513d52cd"), id.InternalId);
     }
 
+    [Theory]
+    [InlineData(typeof(Guid))]
+    [InlineData(typeof(Guid?))]
+    public void Parse_Should_ReturnGuid_When_CompressedIdIsParsedWithLegacyOutputFormat(Type runtimeType)
+    {
+        // arrange
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(compress: false), outputNewIdFormat: false);
+
+        // act
+        // new format ID: Foo:<16 raw guid bytes>
+        var id = serializer.Parse("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", runtimeType);
+
+        // assert
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"), id.InternalId);
+    }
+
+    [Theory]
+    [InlineData(typeof(Guid))]
+    [InlineData(typeof(Guid?))]
+    public void Parse_Should_ReturnGuid_When_LegacyIdIsParsedWithNewOutputFormat(Type runtimeType)
+    {
+        // arrange
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(compress: true));
+
+        // act
+        // legacy format ID: Foo\ng<32 hex chars>
+        var id = serializer.Parse("Rm9vCmcxYWUyN2IxNDhjZjY0NDBkOWE0NjA5MDkwYTRhZjZmMw==", runtimeType);
+
+        // assert
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"), id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnGuid_When_CompressedIdIsParsedWithLegacyOutputFormatAndRuntimeTypeLookup()
+    {
+        // arrange
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType("Foo")).Returns(typeof(Guid));
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(compress: false), outputNewIdFormat: false);
+
+        // act
+        // new format ID: Foo:<16 raw guid bytes>
+        var id = serializer.Parse("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", lookup.Object);
+
+        // assert
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"), id.InternalId);
+    }
+
+    [Theory]
+    [InlineData(true, true, "1ae27b14-8cf6-440d-9a46-09090a4af6f3")]
+    [InlineData(true, false, "1ae27b14-8cf6-440d-9a46-09090a4af6f3")]
+    [InlineData(false, true, "1ae27b14-8cf6-440d-9a46-09090a4af6f3")]
+    [InlineData(false, false, "1ae27b14-8cf6-440d-9a46-09090a4af6f3")]
+    [InlineData(true, true, "00000000-0000-0000-0000-000000000000")]
+    [InlineData(true, false, "00000000-0000-0000-0000-000000000000")]
+    [InlineData(false, true, "00000000-0000-0000-0000-000000000000")]
+    [InlineData(false, false, "00000000-0000-0000-0000-000000000000")]
+    public void Parse_Should_ReturnGuid_When_IdWasFormattedWithAnyOutputFormat(
+        bool formatterOutputNewIdFormat,
+        bool parserOutputNewIdFormat,
+        string guid)
+    {
+        // arrange
+        var internalId = new Guid(guid);
+        var formatter = CreateSerializer(
+            new GuidNodeIdValueSerializer(compress: formatterOutputNewIdFormat),
+            outputNewIdFormat: formatterOutputNewIdFormat);
+        var parser = CreateSerializer(
+            new GuidNodeIdValueSerializer(compress: parserOutputNewIdFormat),
+            outputNewIdFormat: parserOutputNewIdFormat);
+        var formattedId = formatter.Format("Foo", internalId);
+
+        // act
+        var id = parser.Parse(formattedId, typeof(Guid));
+
+        // assert
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(internalId, id.InternalId);
+    }
+
     [Fact]
     public void Parse_Empty_StringId()
     {

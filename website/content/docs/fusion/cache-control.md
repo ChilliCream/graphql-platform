@@ -16,7 +16,7 @@ Good cache rules help you:
 
 To make caching work safely and predictably, you need two things:
 
-1. A deterministic GET route so caches get a stable cache key.
+1. A deterministic GET route, or a QUERY request, so caches get a stable cache key.
 2. Correct Cache-Control (and Vary) headers so caches know where and how long a response may be reused.
 
 # Why GraphQL Needs Extra Care
@@ -57,13 +57,13 @@ In large first-party GraphQL APIs, a common approach used by companies such as N
 With trusted documents in place, persisted-operation routes become short and stable.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789
+GET /graphql/persisted/123456789/GetProducts
 ```
 
 Variables can then be sent as query parameters.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789?variables={"first":5}
+GET /graphql/persisted/123456789/GetProducts?variables={"first":5}
 ```
 
 In order to use persisted-operation routes you need to add the middleware `MapGraphQLPersistedOperations`.
@@ -73,6 +73,29 @@ var app = builder.Build();
 
 app.MapGraphQLPersistedOperations();
 ```
+
+# QUERY Requests
+
+Query operations can also be sent over HTTP QUERY, which carries the same JSON body as a POST request. QUERY requests are disabled by default. Enable them on the gateway with `EnableQueryRequests`:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .ModifyServerOptions(o => o.EnableQueryRequests = true);
+```
+
+```http
+QUERY /graphql
+Content-Type: application/json
+Accept: application/graphql-response+json
+
+{
+  "query": "query GetProducts($first: Int!) { products(first: $first) { nodes { name } } }",
+  "variables": { "first": 5 }
+}
+```
+
+[RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html#section-2.7) makes the response to a QUERY request cacheable, and a cache that stores it includes the request body in the cache key. A QUERY response carries the same `Cache-Control` and `Vary` headers as a GET response. A variable batch is answered with `Cache-Control: no-cache`, whatever the method. Support for caching QUERY responses varies between CDNs and proxies, so GET routes and persisted-operation GET routes are the portable choice. See [QUERY Requests](../hotchocolate/server/http-transport.md#query-requests) for the full request rules.
 
 # `@cacheControl` in GraphQL
 
@@ -92,6 +115,8 @@ type Query {
 # How Fusion Assembles the Final Headers
 
 Fusion computes one effective response policy by traversing the planned operation tree. It starts at the selected root fields, reads `@cacheControl` metadata on each field, falls back to the field return type when values are missing, and continues recursively through child selections, including interfaces and unions.
+
+The return type is the named type behind any non-null and list wrappers, so a field of type `UserProfile`, `UserProfile!`, or `[UserProfile!]!` takes the settings of `UserProfile`. When the return type is an interface or a union, the settings of each object type that implements it or belongs to it apply too, whether or not the operation selects fields of that object type. A `maxAge` or `sharedMaxAge` declared on the field takes precedence over the lifetimes of these types.
 
 All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated. Every GraphQL response already lists `Accept` in `Vary`, and the merged `vary` names are added to it. Some CDNs, Akamai by default, do not cache a response whose `Vary` lists anything other than `Accept-Encoding`. Configure the CDN to cache it anyway, or remove `Accept` from `Vary` in a [custom formatter](../hotchocolate/server/http-transport.md#adding-selecting-headers-to-vary).
 
@@ -146,6 +171,18 @@ builder
     .AddCacheControl();
 ```
 
+## Types and Fields in Several Source Schemas
+
+When several source schemas define the same type or field and at least one of them declares `@cacheControl`, composition merges the declarations. A source schema that defines the type or field without `@cacheControl` declares nothing.
+
+| Argument        | Object type, interface, or union                                                                              | Field                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `scope`         | `PRIVATE` if any source schema declares it                                                                    | `PRIVATE` if any source schema declares it                  |
+| `vary`          | Every declared value                                                                                          | Every declared value                                        |
+| `maxAge`        | The lowest declared value, and when `sharedMaxAge` is left out, no higher than any declared `sharedMaxAge`    | The lowest value, only when every source schema declares it |
+| `sharedMaxAge`  | The lowest declared value, only when every source schema that declares `maxAge` or `sharedMaxAge` declares it | The lowest value, only when every source schema declares it |
+| `inheritMaxAge` | `true` only when every source schema declares `true`                                                          | `true` only when every source schema declares `true`        |
+
 # Enable Cache Control in the Fusion Gateway
 
 The gateway must be configured to read cache-control metadata during planning and to write the final HTTP headers on the response.
@@ -160,6 +197,35 @@ builder
 ```
 
 `AddCacheControl()` enables cache-constraint planning. `UseQueryCache()` writes the final `Cache-Control` and `Vary` headers to HTTP responses.
+
+# Cache-Control Options
+
+`ModifyCacheControlOptions` configures the gateway's defaults:
+
+```csharp
+using HotChocolate.Caching;
+
+builder
+    .AddGraphQLGateway()
+    .AddCacheControl()
+    .ModifyCacheControlOptions(o =>
+    {
+        o.Enable = true;
+        o.DefaultMaxAge = 60;
+        o.DefaultScope = CacheControlScope.Public;
+        o.ApplyDefaults = true;
+    })
+    .UseQueryCache();
+```
+
+| Option          | Type                | Default  | Description                                                                                        |
+| --------------- | ------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `Enable`        | `bool`              | `true`   | Enables or disables cache-control header generation.                                               |
+| `DefaultMaxAge` | `int`               | `0`      | Default `max-age` when `ApplyDefaults` is enabled.                                                 |
+| `DefaultScope`  | `CacheControlScope` | `Public` | Default cache scope when `ApplyDefaults` is enabled.                                               |
+| `ApplyDefaults` | `bool`              | `true`   | Applies the defaults to root fields, and to fields a lookup brings in, that set no cache lifetime. |
+
+With `ApplyDefaults` enabled, a root field without `@cacheControl`, such as one from a subgraph that does not use cache control, contributes `DefaultMaxAge` and `DefaultScope`. So does a root field whose `@cacheControl` sets no `maxAge`, no `sharedMaxAge`, and no `inheritMaxAge: true`, unless its return type's `@cacheControl` sets a lifetime. An interface or union return type sets a lifetime when it sets one itself, or when every object type that implements it or belongs to it does. When such a field's `@cacheControl` sets `scope`, the field contributes that scope with `DefaultMaxAge`. A field that the gateway selects directly on an entity it fetches from another subgraph through a lookup is treated like a root field, and the fields selected below it are not. With the default settings, a response that selects such a field gets `max-age=0`. The gateway applies its own options, so a subgraph's `ApplyDefaults = false` does not change them. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false` on the gateway.
 
 # Skip Cache Control for a Specific Request
 

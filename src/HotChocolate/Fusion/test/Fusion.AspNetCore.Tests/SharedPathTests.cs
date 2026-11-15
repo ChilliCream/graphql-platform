@@ -589,7 +589,7 @@ public class SharedPathTests : FusionTestBase
             [Shareable]
             public IInterface Interface => new Review(1);
 
-            public IInterface UnsharedInterface => new Product(2);
+            public IUnsharedInterface UnsharedInterface => new Product(2);
 
             [Shareable]
             public IUnion Union => new Review(2);
@@ -614,7 +614,7 @@ public class SharedPathTests : FusionTestBase
             public string Schema1 => "schema1";
         }
 
-        public record Product(int Id) : IInterface, IUnion
+        public record Product(int Id) : IInterface, IUnion, IUnsharedInterface
         {
             public string Schema1 => "schema1";
 
@@ -642,6 +642,11 @@ public class SharedPathTests : FusionTestBase
 
         [EntityKey("id")]
         public interface IInterface
+        {
+            int Id { get; }
+        }
+
+        public interface IUnsharedInterface
         {
             int Id { get; }
         }

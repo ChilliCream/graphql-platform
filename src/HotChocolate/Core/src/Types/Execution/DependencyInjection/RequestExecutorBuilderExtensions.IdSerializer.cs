@@ -23,6 +23,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// </param>
     /// <param name="outputNewIdFormat">
     /// Defines whether the new ID format shall be used when serializing IDs.
+    /// IDs in either format are accepted when parsing.
     /// </param>
     /// <param name="useUrlSafeBase64">
     /// Defines whether the new ID format shall use URL safe base64 encoding.

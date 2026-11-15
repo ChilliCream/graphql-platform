@@ -5,10 +5,9 @@ using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class AutoProvisionIntegrationTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public AutoProvisionIntegrationTests(RabbitMQFixture fixture)
@@ -37,7 +36,7 @@ public class AutoProvisionIntegrationTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "AP-1" }, CancellationToken.None);
 
         // assert - message is delivered because topology was auto-provisioned
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the event");
         var order = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
         Assert.Equal("AP-1", order.OrderId);
     }
@@ -63,7 +62,7 @@ public class AutoProvisionIntegrationTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "AP-2" }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the event");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the event");
         var order = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
         Assert.Equal("AP-2", order.OrderId);
     }
@@ -89,7 +88,7 @@ public class AutoProvisionIntegrationTests
         await messageBus.SendAsync(new ProcessPayment { OrderId = "AP-3", Amount = 42.00m }, CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the request");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive the request");
         var payment = Assert.IsType<ProcessPayment>(Assert.Single(recorder.Messages));
         Assert.Equal("AP-3", payment.OrderId);
     }
@@ -125,7 +124,7 @@ public class AutoProvisionIntegrationTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "AP-4" }, CancellationToken.None);
 
         // assert - resources were explicitly enabled, so message should be delivered
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message");
         var message = Assert.Single(capture.Messages);
         Assert.Equal("AP-4", message.OrderId);
     }
@@ -186,7 +185,7 @@ public class AutoProvisionIntegrationTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "AP-5" }, CancellationToken.None);
 
         // assert - pre-provisioned resources work with auto-provision disabled
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message");
         var message = Assert.Single(capture.Messages);
         Assert.Equal("AP-5", message.OrderId);
     }
@@ -236,7 +235,7 @@ public class AutoProvisionIntegrationTests
         await messageBus.PublishAsync(new OrderCreated { OrderId = "AP-6" }, CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message");
         var message = Assert.Single(capture.Messages);
         Assert.Equal("AP-6", message.OrderId);
     }

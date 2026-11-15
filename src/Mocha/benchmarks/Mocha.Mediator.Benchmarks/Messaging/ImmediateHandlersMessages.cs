@@ -8,12 +8,12 @@ public static partial class ImmediateCommandHandler
 {
     public sealed record Command(Guid Id);
 
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
     private static ValueTask<BenchmarkResponse> HandleAsync(
-        Command command,
-        CancellationToken ct)
-        => new(_response);
+        Command _,
+        CancellationToken __)
+        => new(s_response);
 }
 
 // Pipeline behavior for Immediate.Handlers
@@ -35,10 +35,10 @@ public static partial class ImmediatePipelineCommandHandler
 {
     public sealed record Command(Guid Id);
 
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
     private static ValueTask<BenchmarkResponse> HandleAsync(
-        Command command,
-        CancellationToken ct)
-        => new(_response);
+        Command _,
+        CancellationToken __)
+        => new(s_response);
 }

@@ -106,10 +106,11 @@ public class RabbitMQRoutingKeyTests
     }
 
     [Fact]
-    public async Task PrepareAsync_Should_PreserveBusMiddlewareRoutingKey_When_ExtractorIsConfigured()
+    public async Task ExecuteAsync_Should_PreserveBusMiddlewareRoutingKey_When_ExtractorIsConfigured()
     {
         // arrange
         string? extractedRoutingKey = null;
+        object? preparedRoutingKey = null;
         await using var runtime = CreateRuntime(builder =>
         {
             builder.AddMessage<OrderCreated>(message =>
@@ -117,26 +118,35 @@ public class RabbitMQRoutingKeyTests
                 message.UseRabbitMQRoutingKey<OrderCreated>(order => order.OrderId);
                 message.Publish(route => route.ToRabbitMQExchange("orders"));
             });
-            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
-                (_, next) => context =>
-                {
-                    extractedRoutingKey = context.Headers.Get(RabbitMQMessageHeaders.RoutingKey);
-                    context.Headers.Set(RabbitMQMessageHeaders.RoutingKey, "from-middleware");
-                    return next(context);
-                },
-                "OverrideRoutingKey")));
+            builder.ConfigureMessageBus(bus =>
+            {
+                bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                    (_, next) => context =>
+                    {
+                        extractedRoutingKey = context.Headers.Get(RabbitMQMessageHeaders.RoutingKey);
+                        context.Headers.Set(RabbitMQMessageHeaders.RoutingKey, "from-middleware");
+                        return next(context);
+                    },
+                    "OverrideRoutingKey"));
+                bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                    (_, _) => context =>
+                    {
+                        DispatchSerializerMiddleware.Serialize(context);
+                        preparedRoutingKey = context.Envelope!.Headers!.GetValue(RabbitMQMessageHeaders.RoutingKey.Key);
+                        return default;
+                    },
+                    "CaptureEnvelope"));
+            });
         });
         var messageType = runtime.GetMessageType(typeof(OrderCreated));
         var endpoint = runtime.GetPublishEndpoint(messageType);
         var context = new DispatchContext { Message = new OrderCreated { OrderId = "ORD-123" } };
         context.Initialize(runtime.Services, endpoint, runtime, messageType, CancellationToken.None);
-        object? preparedRoutingKey;
 
         // act
         try
         {
-            await endpoint.PrepareAsync(context);
-            preparedRoutingKey = context.Envelope!.Headers!.GetValue(RabbitMQMessageHeaders.RoutingKey.Key);
+            await endpoint.ExecuteAsync(context);
         }
         finally
         {

@@ -279,10 +279,11 @@ public static class HotChocolateExecutionSelectionExtensions
         var builder = new DefaultSelectorBuilder();
         var conditionMask = 0UL;
         var buffer = ArrayPool<Selection>.Shared.Rent(16);
+        var count = 0;
 
         try
         {
-            var count = collectSelections(selection, buffer);
+            count = collectSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
                 var child = buffer[i];
@@ -308,6 +309,7 @@ public static class HotChocolateExecutionSelectionExtensions
         }
         finally
         {
+            buffer.AsSpan(0, count).Clear();
             ArrayPool<Selection>.Shared.Return(buffer);
         }
 

@@ -23,6 +23,7 @@ public sealed partial class ResultDocument : IDisposable
     private long _dataHead;
     private int _rentedDataChunks;
     private MemorySegment[] _data;
+    private List<MemorySegment[]>? _previousData;
 
 #if NET10_0_OR_GREATER
     private readonly Lock _dataChunkLock = new();
@@ -296,9 +297,12 @@ public sealed partial class ResultDocument : IDisposable
         {
             parent = _metaDb.GetParentCursor(parent);
 
-            // in this case the parent must be a reference, otherwise we would have
-            // found an inconsistency in the database.
-            Debug.Assert(_metaDb.GetElementTokenType(parent, resolveReferences: false) == ElementTokenType.Reference);
+            // in this case the parent must be a reference to the live value or a null row when the
+            // value was nulled by null propagation, otherwise we would have found an inconsistency
+            // in the database.
+            Debug.Assert(
+                _metaDb.GetElementTokenType(parent, resolveReferences: false)
+                    is ElementTokenType.Reference or ElementTokenType.Null);
         }
 
         return new ResultElement(this, parent);
@@ -766,7 +770,7 @@ public sealed partial class ResultDocument : IDisposable
                 var newData = s_arrayPool.Rent(nextLength);
                 Array.Copy(data, newData, rented);
                 newData.AsSpan(rented).Clear();
-                s_arrayPool.Return(data);
+                (_previousData ??= []).Add(data);
                 _data = data = newData;
             }
 
@@ -1007,12 +1011,6 @@ public sealed partial class ResultDocument : IDisposable
 
     public void Dispose()
     {
-        ReleaseTrackingArrays();
-        GC.SuppressFinalize(this);
-    }
-
-    private void ReleaseTrackingArrays()
-    {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
         {
             return;
@@ -1022,10 +1020,20 @@ public sealed partial class ResultDocument : IDisposable
         // data segments are simply dropped here. The metadb only releases its pooled tracking
         // arrays, not the chunk memory.
         _metaDb.Dispose();
+
+        if (_previousData is not null)
+        {
+            foreach (var previousData in _previousData)
+            {
+                previousData.AsSpan().Clear();
+                s_arrayPool.Return(previousData);
+            }
+
+            _previousData = null;
+        }
+
         _data.AsSpan().Clear();
         s_arrayPool.Return(_data);
         _data = [];
     }
-
-    ~ResultDocument() => ReleaseTrackingArrays();
 }

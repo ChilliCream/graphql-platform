@@ -18,6 +18,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     private readonly string[] _forwardedVariables;
     private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
+    private readonly ExecutionNodeCondition[][] _conditionAlternatives;
     private readonly bool _requiresFileUpload;
     private readonly ApolloEntityLookup _lookup;
     private readonly string _schemaName;
@@ -32,6 +33,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
+        ExecutionNodeCondition[][] conditionAlternatives,
         bool requiresFileUpload,
         FusionSchemaDefinition schema)
     {
@@ -64,6 +66,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         _forwardedVariables = forwardedVariables;
         _resultSelectionSet = resultSelectionSet;
         _conditions = conditions;
+        _conditionAlternatives = conditionAlternatives;
         _requiresFileUpload = requiresFileUpload;
     }
 
@@ -76,6 +79,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
+        ExecutionNodeCondition[][] conditionAlternatives,
         bool requiresFileUpload,
         FusionSchemaDefinition schema)
     {
@@ -95,6 +99,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             forwardedVariables,
             resultSelectionSet,
             conditions,
+            conditionAlternatives,
             requiresFileUpload,
             schema);
     }
@@ -109,6 +114,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
+        ExecutionNodeCondition[][] conditionAlternatives,
         bool requiresFileUpload,
         FusionSchemaDefinition schema)
     {
@@ -127,6 +133,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             forwardedVariables,
             resultSelectionSet,
             conditions,
+            conditionAlternatives,
             requiresFileUpload,
             schema);
     }
@@ -139,6 +146,9 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
 
     /// <inheritdoc />
     public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
+
+    /// <inheritdoc />
+    public override ReadOnlySpan<ExecutionNodeCondition[]> ConditionAlternatives => _conditionAlternatives;
 
     /// <summary>
     /// Gets the operation definition that this execution node represents.
@@ -193,16 +203,27 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var representation = context.CreateRepresentationVariableValue(
-            _target,
-            _forwardedVariables,
-            _requirements,
-            _lookup.RepresentationShape,
-            _lookup.EntityTypeName);
+        var reusedCount = 0;
+        var representation = context.GetEntityReuseCandidates(Id) is { } candidates
+            ? context.CreateRepresentationVariableValue(
+                [_target],
+                _forwardedVariables,
+                _requirements,
+                _lookup.RepresentationShape,
+                _lookup.EntityTypeName,
+                candidates,
+                out reusedCount)
+            : context.CreateRepresentationVariableValue(
+                _target,
+                _forwardedVariables,
+                _requirements,
+                _lookup.RepresentationShape,
+                _lookup.EntityTypeName);
 
         if (representation.IsEmpty)
         {
-            return ExecutionStatus.Skipped;
+            // When every entity was taken from the result, the node completed its work.
+            return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
         var variables = representation.ToVariableValues();

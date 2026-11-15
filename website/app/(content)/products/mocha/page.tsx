@@ -2,6 +2,7 @@ import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 import {
+  MESSAGING_GROUP,
   ORGANIZATION_ID,
   schemaId,
   schemaRef,
@@ -38,6 +39,7 @@ const SOFTWARE = {
     name: "C#",
   },
   runtimePlatform: ".NET",
+  isPartOf: schemaRef(MESSAGING_GROUP.id),
   creator: schemaRef(ORGANIZATION_ID),
   publisher: schemaRef(ORGANIZATION_ID),
 } as const;

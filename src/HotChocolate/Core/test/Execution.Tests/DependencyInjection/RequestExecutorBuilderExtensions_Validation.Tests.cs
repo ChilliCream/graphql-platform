@@ -176,6 +176,69 @@ public class RequestExecutorBuilderExtensionsValidationTests
         Assert.Throws<ArgumentNullException>(Fail);
     }
 
+    [Fact]
+    public void ModifyValidationOptions_Should_Throw_When_BuilderIsNull()
+    {
+        // arrange
+        void Fail()
+            => RequestExecutorBuilderExtensions.ModifyValidationOptions(null!, _ => { });
+
+        // act & assert
+        Assert.Throws<ArgumentNullException>(Fail);
+    }
+
+    [Fact]
+    public void ModifyValidationOptions_Should_Throw_When_ConfigureIsNull()
+    {
+        // arrange
+        void Fail() => new ServiceCollection()
+            .AddGraphQL()
+            .ModifyValidationOptions(null!);
+
+        // act & assert
+        Assert.Throws<ArgumentNullException>(Fail);
+    }
+
+    [Fact]
+    public async Task ModifyValidationOptions_Should_ApplyOptions_When_Configured()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+            .ModifyValidationOptions(o => o.MaxAllowedErrors = 1)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ a b c }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The field `a` does not exist on the type `Query`.",
+                  "locations": [
+                    {
+                      "line": 1,
+                      "column": 3
+                    }
+                  ],
+                  "extensions": {
+                    "type": "Query",
+                    "field": "a",
+                    "responseName": "a",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
     public class MockVisitor : DocumentValidatorVisitor;
 
     public class MockRule : IDocumentValidatorRule

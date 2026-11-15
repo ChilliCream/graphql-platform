@@ -13,7 +13,7 @@ internal sealed class ActivityMediatorDiagnosticListener : MediatorDiagnosticEve
             ? OperationTypePublish
             : OperationTypeSend;
 
-        var activity = Source.StartActivity($"{messageTypeName} {operationType}");
+        var activity = Source.StartActivity($"{operationType} {messageTypeName}");
 
         if (activity is null)
         {
@@ -21,11 +21,11 @@ internal sealed class ActivityMediatorDiagnosticListener : MediatorDiagnosticEve
         }
 
         activity.SetTag(MessagingSystem, MessagingSystemValue);
+        activity.SetTag(MessagingOperationName, operationType);
         activity.SetTag(MessagingOperationType, operationType);
         activity.SetTag(MessagingMessageType, messageTypeName);
-        activity.SetStatus(ActivityStatusCode.Ok);
 
-        return activity;
+        return new ExecuteScope(activity);
     }
 
     public override void ExecutionError(Type messageType, Type responseType, object message, Exception exception)
@@ -43,5 +43,18 @@ internal sealed class ActivityMediatorDiagnosticListener : MediatorDiagnosticEve
 
         activity.AddEvent(new ActivityEvent(ExceptionEventName, default, tags));
         activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+    }
+
+    private sealed class ExecuteScope(Activity activity) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (activity.Status != ActivityStatusCode.Error)
+            {
+                activity.SetStatus(ActivityStatusCode.Ok);
+            }
+
+            activity.Dispose();
+        }
     }
 }

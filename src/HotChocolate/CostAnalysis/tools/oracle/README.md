@@ -22,7 +22,7 @@ The scripts install nothing. `clone-oracle.sh` and `run-nightly.sh` print the
 install line when `cargo` is missing, and `run-nightly.sh` also rejects Rust
 versions below 1.90 and missing C++ compilers. Pull-request CI does not run
 Rust. The scheduled workflow provisions stable Rust and uses the compiler on
-`ubuntu-latest`.
+`ubuntu-26.04`.
 
 ## Files
 

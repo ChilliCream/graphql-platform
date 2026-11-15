@@ -13,8 +13,6 @@ anthropics
 Antiforgery
 apphost
 appsettings
-ASPDEPR004
-ASPDEPR008
 aspnet
 aspnetcore
 Astromech
@@ -252,6 +250,7 @@ Retval
 Rewriters
 Rgba
 Rhai
+rhysd
 Roslynator
 roundtrips
 rovo
@@ -313,6 +312,7 @@ trae
 transactionality
 Trimmable
 Tzdb
+Unindexed
 unittests
 unlisten
 unparseable

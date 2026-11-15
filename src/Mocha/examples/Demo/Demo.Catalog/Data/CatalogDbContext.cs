@@ -9,10 +9,10 @@ namespace Demo.Catalog.Data;
 
 public class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options)
 {
-    public DbSet<Product> Products => Set<Product>();
-    public DbSet<Category> Categories => Set<Category>();
-    public DbSet<OrderRecord> Orders => Set<OrderRecord>();
-    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<OrderRecord> Orders { get; set; }
+    public DbSet<InboxMessage> InboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

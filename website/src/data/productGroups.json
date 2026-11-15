@@ -1,0 +1,17 @@
+[
+  {
+    "slug": "graphql-federation-platform",
+    "name": "GraphQL Federation Platform",
+    "products": ["fusion", "nitro"]
+  },
+  {
+    "slug": "graphql-frameworks",
+    "name": "GraphQL Frameworks",
+    "products": ["hotchocolate", "strawberryshake"]
+  },
+  {
+    "slug": "messaging-framework",
+    "name": "Messaging Framework",
+    "products": ["mocha"]
+  }
+]

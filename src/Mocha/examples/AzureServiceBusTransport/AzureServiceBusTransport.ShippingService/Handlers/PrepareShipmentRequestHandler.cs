@@ -11,7 +11,7 @@ public sealed class PrepareShipmentRequestHandler(
     ILogger<PrepareShipmentRequestHandler> logger)
     : IEventRequestHandler<PrepareShipmentCommand, ShipmentPreparedResponse>
 {
-    private static readonly string[] Carriers = ["FedEx", "UPS", "DHL", "USPS"];
+    private static readonly string[] s_carriers = ["FedEx", "UPS", "DHL", "USPS"];
 
     public async ValueTask<ShipmentPreparedResponse> HandleAsync(
         PrepareShipmentCommand request,
@@ -25,7 +25,7 @@ public sealed class PrepareShipmentRequestHandler(
         await Task.Delay(300, cancellationToken);
 
         var trackingNumber = $"TRK-{Guid.NewGuid().ToString()[..8].ToUpperInvariant()}";
-        var carrier = Carriers[Random.Shared.Next(Carriers.Length)];
+        var carrier = s_carriers[Random.Shared.Next(s_carriers.Length)];
 
         logger.LogInformation(
             "Shipment prepared for order {OrderId}: {Carrier} / {TrackingNumber}",

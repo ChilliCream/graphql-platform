@@ -230,6 +230,131 @@ public class InputCostTests
         Assert.Equal(7.0, cost);
     }
 
+    [Fact]
+    public void Compute_Should_CountNestedTypePerField_When_StaticShapeReachesItThroughSeveralFields()
+    {
+        // arrange
+        var schemaIndex = BuildSchemaIndex(
+            """
+            type Query { search(filter: Filter): String }
+            input Filter {
+                first: Nested @cost(weight: "1")
+                second: Nested @cost(weight: "1")
+            }
+            input Nested { term: String @cost(weight: "3") }
+            """);
+        var argument = schemaIndex.GetFieldArguments("Query", "search")[0];
+
+        // act
+        var cost = InputCost.Compute(schemaIndex, argument, new VariableNode("filter"), variableValues: null);
+
+        // assert
+        Assert.Equal(9.0, cost);
+    }
+
+    [Theory]
+    [InlineData("1", "1e16", "-1e16", 2.0)]
+    [InlineData("1e308", "1e308", "-1e308", 1e308)]
+    [InlineData("-1e308", "-1e308", "1e308", -1e308)]
+    public void Compute_Should_PreservePerFieldAdditionOrder_When_StaticShapeHasCancellingWeights(
+        string firstWeight,
+        string nestedWeight,
+        string termWeight,
+        double expected)
+    {
+        // arrange
+        var schemaIndex = BuildSchemaIndex(
+            $$"""
+            type Query { search(filter: Filter): String }
+            input Filter {
+                first: String @cost(weight: "{{firstWeight}}")
+                nested: Nested @cost(weight: "{{nestedWeight}}")
+            }
+            input Nested { term: String @cost(weight: "{{termWeight}}") }
+            """);
+        var argument = schemaIndex.GetFieldArguments("Query", "search")[0];
+
+        // act
+        var cost = InputCost.Compute(schemaIndex, argument, new VariableNode("filter"), variableValues: null);
+
+        // assert
+        Assert.Equal(expected, cost);
+    }
+
+    [Fact]
+    public void Compute_Should_ReturnFiniteCost_When_StaticShapeHasCancellingNestedBranches()
+    {
+        // arrange
+        var schemaIndex = BuildSchemaIndex(
+            """
+            type Query { search(filter: Filter): String }
+            input Filter {
+                positive: Positive @cost(weight: "0")
+                negative: Negative @cost(weight: "0")
+                term: String @cost(weight: "5")
+            }
+            input Positive {
+                first: String @cost(weight: "1e308")
+                nested: NegativeLeaf @cost(weight: "1e308")
+            }
+            input NegativeLeaf { term: String @cost(weight: "-1e308") }
+            input Negative {
+                first: String @cost(weight: "-1e308")
+                nested: PositiveLeaf @cost(weight: "-1e308")
+            }
+            input PositiveLeaf { term: String @cost(weight: "1e308") }
+            """);
+        var argument = schemaIndex.GetFieldArguments("Query", "search")[0];
+
+        // act
+        var cost = InputCost.Compute(schemaIndex, argument, new VariableNode("filter"), variableValues: null);
+
+        // assert
+        Assert.Equal(6.0, cost);
+    }
+
+    [Fact]
+    public void Compute_Should_CountFiltersReferencingEachOtherOnce_When_VariableUsesStaticShape()
+    {
+        // arrange
+        var schemaIndex = BuildSchemaIndex(
+            """
+            type Query { users(where: UserFilter): String }
+            input UserFilter {
+                and: [UserFilter!]
+                or: [UserFilter!]
+                name: StringFilter
+                posts: PostFilter
+                comments: CommentFilter
+            }
+            input PostFilter {
+                and: [PostFilter!]
+                or: [PostFilter!]
+                title: StringFilter
+                author: UserFilter
+                comments: CommentFilter
+            }
+            input CommentFilter {
+                and: [CommentFilter!]
+                or: [CommentFilter!]
+                text: StringFilter
+                author: UserFilter
+                post: PostFilter
+            }
+            input StringFilter {
+                eq: String @cost(weight: "2")
+                contains: String @cost(weight: "2")
+            }
+            """);
+        var argument = schemaIndex.GetFieldArguments("Query", "users")[0];
+
+        // act
+        var cost = InputCost.Compute(schemaIndex, argument, new VariableNode("where"), variableValues: null);
+
+        // assert
+        Assert.Equal(28.0, cost);
+    }
+
     private static (CostSchemaIndex SchemaIndex, InputValueMetadata Argument) BuildListFilterArgument()
     {
         var schemaIndex = BuildSchemaIndex(

@@ -69,7 +69,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// </summary>
     /// <remarks>
     /// With an active database transaction, the signal is deferred to the transaction commit interceptor.
-    /// With an ambient <see cref="System.Transactions.Transaction"/>, it is raised when that transaction completes.
+    /// With an ambient <see cref="Transaction"/>, it is raised when that transaction completes.
     /// Otherwise, it is raised immediately.
     /// </remarks>
     /// <param name="envelope">The message envelope to persist in the outbox.</param>
@@ -102,7 +102,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
                 // Execute the INSERT command
                 await using var command = connection.CreateCommand();
                 command.CommandText = _insertSql;
-                command.Parameters.AddWithValue("@id", NewVersion());
+                command.Parameters.AddWithValue("@id", OutboxMessageIdGenerator.Next());
                 command.Parameters.Add(
                     new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
                 await command.PrepareAsync(cancellationToken);
@@ -132,15 +132,6 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     // Replies and faults can be dispatched after the handler transaction rolls back.
     private static bool RequiresTransaction(MessageEnvelope envelope)
         => envelope.Headers?.Get(MessageHeaders.MessageKind) is MessageKind.Publish or MessageKind.Send;
-
-    private static Guid NewVersion()
-    {
-#if NET9_0_OR_GREATER
-        return Guid.CreateVersion7();
-#else
-        return Guid.NewGuid();
-#endif
-    }
 
     /// <summary>
     /// Releases the semaphore and pooled array writer used for outbox message serialization.

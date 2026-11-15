@@ -30,7 +30,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     private CostOptions _options = null!;
 
-    internal override uint Position => int.MaxValue;
+    internal override uint Position => uint.MaxValue;
 
     public override bool IsEnabled(IDescriptorContext context)
         => context.Services.GetRequiredService<CostOptions>().ApplyCostDefaults;
@@ -88,10 +88,12 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                         slicingArgs.Length > 0
                             && (options.RequirePagingBoundaries ?? false);
 
+                    // The paging handlers cap the default page size at the max page size.
                     int? slicingArgumentDefaultValue = null;
                     if (_options.ApplySlicingArgumentDefaultValue)
                     {
-                        slicingArgumentDefaultValue = options.DefaultPageSize ?? DefaultPageSize;
+                        slicingArgumentDefaultValue =
+                            Math.Min(options.DefaultPageSize ?? DefaultPageSize, assumedSize);
                     }
 
                     fieldDef.AddDirective(

@@ -698,9 +698,9 @@ using Mocha.Outbox;
 
 public class AppDbContext : DbContext
 {
-    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
-    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Order> Orders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder.AddPostgresOutbox();
@@ -1004,10 +1004,10 @@ using Mocha.Inbox;
 
 public class AppDbContext : DbContext
 {
-    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+    public DbSet<InboxMessage> InboxMessages { get; set; }
 
     // Your existing DbSets
-    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Order> Orders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

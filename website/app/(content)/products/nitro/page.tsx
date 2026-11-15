@@ -36,7 +36,11 @@ export default function NitroPage() {
         description={PAGE.description}
         path={PAGE.path}
         pageType="ItemPage"
-        breadcrumbs={[{ name: "Home", path: "/" }, { name: "Nitro" }]}
+        breadcrumbs={[
+          { name: "Home", path: "/" },
+          { name: "GraphQL Federation", path: "/platform/graphql-federation" },
+          { name: "Nitro" },
+        ]}
         mainEntity={schemaRef(NITRO_PRODUCT_ID)}
         about={schemaRef(NITRO_PRODUCT_ID)}
         additionalNodes={[PRODUCT, ...OFFERS]}

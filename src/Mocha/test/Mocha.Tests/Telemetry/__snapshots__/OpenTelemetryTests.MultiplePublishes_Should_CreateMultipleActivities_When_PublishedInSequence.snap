@@ -1,0 +1,265 @@
+{
+  "sources": [
+    "Mocha"
+  ],
+  "activities": [
+    {
+      "OperationName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "DisplayName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "Kind": "Producer",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "messaging.operation.name",
+          "Value": "publish"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.message.conversation_id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.instance.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.destination.temporary",
+          "Value": false
+        },
+        {
+          "Key": "messaging.destination.address",
+          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced"
+        }
+      ],
+      "events": [],
+      "links": [],
+      "activities": [
+        {
+          "OperationName": "receive mocha.tests.traced-event",
+          "DisplayName": "receive mocha.tests.traced-event",
+          "Kind": "Client",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "messaging.message.id",
+              "Value": "<id>"
+            },
+            {
+              "Key": "messaging.message.conversation_id",
+              "Value": "<id>"
+            }
+          ],
+          "events": [],
+          "links": [],
+          "activities": [
+            {
+              "OperationName": "consume TracedEventHandler",
+              "DisplayName": "consume TracedEventHandler",
+              "Kind": "Consumer",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "messaging.message.id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.message.conversation_id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.message.type",
+                  "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-event"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "TracedEventHandler"
+                }
+              ],
+              "events": [],
+              "links": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "OperationName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "DisplayName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "Kind": "Producer",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "messaging.operation.name",
+          "Value": "publish"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.message.conversation_id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.instance.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.destination.temporary",
+          "Value": false
+        },
+        {
+          "Key": "messaging.destination.address",
+          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced"
+        }
+      ],
+      "events": [],
+      "links": [],
+      "activities": [
+        {
+          "OperationName": "receive mocha.tests.traced-event",
+          "DisplayName": "receive mocha.tests.traced-event",
+          "Kind": "Client",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "messaging.message.id",
+              "Value": "<id>"
+            },
+            {
+              "Key": "messaging.message.conversation_id",
+              "Value": "<id>"
+            }
+          ],
+          "events": [],
+          "links": [],
+          "activities": [
+            {
+              "OperationName": "consume TracedEventHandler",
+              "DisplayName": "consume TracedEventHandler",
+              "Kind": "Consumer",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "messaging.message.id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.message.conversation_id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.message.type",
+                  "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-event"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "TracedEventHandler"
+                }
+              ],
+              "events": [],
+              "links": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "OperationName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "DisplayName": "publish t/mocha.tests.open-telemetry-tests.traced",
+      "Kind": "Producer",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "messaging.operation.name",
+          "Value": "publish"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.message.conversation_id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.instance.id",
+          "Value": "<id>"
+        },
+        {
+          "Key": "messaging.destination.temporary",
+          "Value": false
+        },
+        {
+          "Key": "messaging.destination.address",
+          "Value": "memory://localhost/t/mocha.tests.open-telemetry-tests.traced"
+        }
+      ],
+      "events": [],
+      "links": [],
+      "activities": [
+        {
+          "OperationName": "receive mocha.tests.traced-event",
+          "DisplayName": "receive mocha.tests.traced-event",
+          "Kind": "Client",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "messaging.message.id",
+              "Value": "<id>"
+            },
+            {
+              "Key": "messaging.message.conversation_id",
+              "Value": "<id>"
+            }
+          ],
+          "events": [],
+          "links": [],
+          "activities": [
+            {
+              "OperationName": "consume TracedEventHandler",
+              "DisplayName": "consume TracedEventHandler",
+              "Kind": "Consumer",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "messaging.message.id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.message.conversation_id",
+                  "Value": "<id>"
+                },
+                {
+                  "Key": "messaging.message.type",
+                  "Value": "urn:message:mocha.tests:open-telemetry-tests.traced-event"
+                },
+                {
+                  "Key": "messaging.handler.name",
+                  "Value": "TracedEventHandler"
+                }
+              ],
+              "events": [],
+              "links": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

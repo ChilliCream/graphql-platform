@@ -318,12 +318,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             return false;
         }
 
+        var candidateSchemas = schema.GetPossibleSchemas(workItem.SelectionSet).ToArray();
+
         // Phase 1: we try to find a single schema that can resolve all concrete types as
         // this would allow us to batch all requests to these into a single GraphQL batch request.
-        foreach (var (toSchema, resolutionCost) in schema.GetPossibleSchemas(workItem.SelectionSet))
+        foreach (var (toSchema, resolutionCost) in candidateSchemas)
         {
-            if (!workItem.AllowSourceSchemaReentry
-                && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+            if (IsExcludedSelf(workItem, toSchema, candidateSchemas))
             {
                 continue;
             }
@@ -348,14 +349,7 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             // find a lookup in the target schema.
             foreach (var possibleType in possibleTypes)
             {
-                if (!schema.TryGetBestDirectLookup(possibleType, fromSchemas, toSchema, out var concreteLookup))
-                {
-                    concreteLookup = schema
-                        .GetPossibleLookupsOrdered(possibleType, toSchema)
-                        .FirstOrDefault(
-                            t => !t.IsInternal
-                                && t.FieldType.Name.Equals(possibleType.Name, StringComparison.Ordinal));
-                }
+                var concreteLookup = GetConcreteTypeLookup(possibleType, allCandidateSchemas, toSchema);
 
                 // If any concrete type lacks a lookup we skip this schema.
                 if (concreteLookup is null)
@@ -420,36 +414,19 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             string? lookupSchema = null;
             double lookupCost = 0;
 
+            var concreteCandidateSchemas = schema.GetPossibleSchemas(selectionSet).ToArray();
+
             // scan candidate schemas for the best lookup for this concrete type.
-            foreach (var (candidateSchema, candidateCost) in schema.GetPossibleSchemas(selectionSet))
+            foreach (var (candidateSchema, candidateCost) in concreteCandidateSchemas)
             {
-                if (!workItem.AllowSourceSchemaReentry
-                    && candidateSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+                if (IsExcludedSelf(workItem, candidateSchema, concreteCandidateSchemas))
                 {
                     continue;
                 }
 
-                if (schema.TryGetBestDirectLookup(
-                        possibleType,
-                        allCandidateSchemas.Remove(candidateSchema),
-                        candidateSchema,
-                        out var directLookup))
+                if (GetConcreteTypeLookup(possibleType, allCandidateSchemas, candidateSchema) is { } candidateLookup)
                 {
-                    concreteLookup = directLookup;
-                    lookupSchema = candidateSchema;
-                    lookupCost = candidateCost;
-                    break;
-                }
-
-                var fallbackLookup = schema
-                    .GetPossibleLookupsOrdered(possibleType, candidateSchema)
-                    .FirstOrDefault(
-                        t => !t.IsInternal
-                            && t.FieldType.Name.Equals(possibleType.Name, StringComparison.Ordinal));
-
-                if (fallbackLookup is not null)
-                {
-                    concreteLookup = fallbackLookup;
+                    concreteLookup = candidateLookup;
                     lookupSchema = candidateSchema;
                     lookupCost = candidateCost;
                     break;
@@ -489,6 +466,45 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         });
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether the self-reentry rule excludes <paramref name="toSchema"/> for
+    /// <paramref name="workItem"/>. The schema the selection set came from is only re-entered
+    /// when it is the only one of <paramref name="candidateSchemas"/>.
+    /// </summary>
+    private static bool IsExcludedSelf(
+        OperationWorkItem workItem,
+        string toSchema,
+        (string SchemaName, double Cost)[] candidateSchemas)
+        => !workItem.AllowSourceSchemaReentry
+            && toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal)
+            && candidateSchemas.Length > 1;
+
+    /// <summary>
+    /// Gets the lookup that resolves <paramref name="possibleType"/> in <paramref name="toSchema"/>,
+    /// or <c>null</c> if there is none. Internal lookups are only used when no plan step holds the
+    /// selection set yet, as for the leftovers of a requirement.
+    /// </summary>
+    private Lookup? GetConcreteTypeLookup(
+        FusionComplexTypeDefinition possibleType,
+        ImmutableHashSet<string> allCandidateSchemas,
+        string toSchema)
+    {
+        if (schema.TryGetBestDirectLookup(
+            possibleType,
+            allCandidateSchemas.Remove(toSchema),
+            toSchema,
+            out var directLookup))
+        {
+            return directLookup;
+        }
+
+        return schema
+            .GetPossibleLookupsOrdered(possibleType, toSchema)
+            .FirstOrDefault(
+                t => (!t.IsInternal || allCandidateSchemas.IsEmpty)
+                    && t.FieldType.Name.Equals(possibleType.Name, StringComparison.Ordinal));
     }
 
     private static double EstimateRemainingCost(PlanNode planNodeTemplate, Backlog branchBacklog)

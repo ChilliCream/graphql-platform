@@ -236,24 +236,6 @@ sourceSchemas:
               },
               {
                 "__fusion_2_id": "VXNlcjoyOTA5Mjc0ODg0"
-              },
-              {
-                "__fusion_2_id": "VXNlcjoxMzgzODE4MTA0"
-              },
-              {
-                "__fusion_2_id": "VXNlcjoyMzI3MzA4OTA5"
-              },
-              {
-                "__fusion_2_id": "VXNlcjoyMDI0Nzg5NjYy"
-              },
-              {
-                "__fusion_2_id": "VXNlcjoyMzQwNjUyNzMy"
-              },
-              {
-                "__fusion_2_id": "VXNlcjo0MTIxNzk2NDY0"
-              },
-              {
-                "__fusion_2_id": "VXNlcjozMzk4MDI5ODg5"
               }
             ]
         response:
@@ -340,6 +322,41 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetUser_c03cccb0_5($__fusion_3_id: ID!) {
+              node(id: $__fusion_3_id) {
+                __typename
+                ... on User {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "VXNlcjoxMzgzODE4MTA0"
+              },
+              {
+                "__fusion_3_id": "VXNlcjoyMzI3MzA4OTA5"
+              },
+              {
+                "__fusion_3_id": "VXNlcjoyMDI0Nzg5NjYy"
+              },
+              {
+                "__fusion_3_id": "VXNlcjoyMzQwNjUyNzMy"
+              },
+              {
+                "__fusion_3_id": "VXNlcjo0MTIxNzk2NDY0"
+              },
+              {
+                "__fusion_3_id": "VXNlcjozMzk4MDI5ODg5"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
             - |
               {
                 "data": {
@@ -697,7 +714,7 @@ operationPlan:
       dependencies:
         - id: 2
     - id: 4
-      type: OperationBatch
+      type: Operation
       schema: A
       operation: |
         query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
@@ -709,15 +726,34 @@ operationPlan:
           }
         }
       source: $.node<User>
-      targets:
-        - $.users.reviews.author
-        - $.b.author
-        - $.a.author
-      batchingGroupId: 7
+      target: $.users.reviews.author
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
-        - id: 1
         - id: 3
+        - id: 7
+    - id: 5
+      type: OperationBatch
+      schema: A
+      operation: |
+        query GetUser_c03cccb0_5($__fusion_3_id: ID!) {
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on User {
+              name
+            }
+          }
+        }
+      source: $.node<User>
+      targets:
+        - $.b.author
+        - $.a.author
+      batchingGroupId: 7
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

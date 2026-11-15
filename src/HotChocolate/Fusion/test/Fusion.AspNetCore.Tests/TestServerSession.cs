@@ -1,14 +1,14 @@
 using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class TestServerSession : IDisposable
+internal sealed class TestServerSession : IAsyncDisposable
 {
-    private readonly Channel<TestServer> _cleanupPipeline = Channel.CreateUnbounded<TestServer>();
+    private readonly Channel<WebApplication> _cleanupPipeline = Channel.CreateUnbounded<WebApplication>();
     private bool _disposed;
 
     public TestServer CreateServer(
@@ -16,28 +16,27 @@ internal sealed class TestServerSession : IDisposable
         Action<IApplicationBuilder> configureApplication,
         string? environmentName = null)
     {
-        var builder = new WebHostBuilder()
-            .Configure(configureApplication)
-            .ConfigureServices(configureServices);
+        var builder = WebApplication.CreateEmptyBuilder(
+            new WebApplicationOptions { EnvironmentName = environmentName });
+        builder.WebHost.UseTestServer();
+        configureServices(builder.Services);
 
-        if (environmentName is not null)
+        var app = builder.Build();
+        configureApplication(app);
+
+        app.Start();
+
+        if (!_cleanupPipeline.Writer.TryWrite(app))
         {
-            builder.UseEnvironment(environmentName);
-        }
-
-        var server = new TestServer(builder);
-
-        if (!_cleanupPipeline.Writer.TryWrite(server))
-        {
-            server.Dispose();
+            ((IHost)app).Dispose();
             throw new InvalidOperationException(
                 "Failed to add test server to cleanup pipeline.");
         }
 
-        return server;
+        return app.GetTestServer();
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
@@ -48,9 +47,10 @@ internal sealed class TestServerSession : IDisposable
 
         _cleanupPipeline.Writer.TryComplete();
 
-        while (_cleanupPipeline.Reader.TryRead(out var server))
+        while (_cleanupPipeline.Reader.TryRead(out var app))
         {
-            server.Dispose();
+            await app.StopAsync();
+            await app.DisposeAsync();
         }
     }
 }

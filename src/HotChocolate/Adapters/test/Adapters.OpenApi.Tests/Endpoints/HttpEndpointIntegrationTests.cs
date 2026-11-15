@@ -2,10 +2,11 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Adapters.OpenApi.Configuration;
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Adapters.OpenApi;
 
@@ -40,23 +41,19 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
               }
             }
             """);
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
-                services.AddGraphQLServer("NamedSchema")
-                    .ModifyCostOptions(o => o.DefaultListSize = 1)
-                    .AddOpenApi()
-                    .AddOpenApiDefinitionStorage(storage)
-                    .AddBasicServer();
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
-            });
-        var server = new TestServer(builder);
-        var client = server.CreateClient();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services.AddRouting();
+        webAppBuilder.Services
+            .AddGraphQLServer("NamedSchema")
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
+            .AddOpenApi()
+            .AddOpenApiDefinitionStorage(storage)
+            .AddBasicServer();
+        await using var webApp = webAppBuilder.Build();
+        webApp.MapOpenApiEndpoints();
+        webApp.Start();
+        var client = webApp.GetTestClient();
 
         // act
         var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
@@ -77,29 +74,23 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
               }
             }
             """);
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
-                services.AddGraphQLServer("NamedSchema")
-                    .ModifyCostOptions(o => o.DefaultListSize = 1)
-                    .AddOpenApi()
-                    .AddBasicServer();
-                services.AddOptions<OpenApiSetup>("NamedSchema")
-                    .PostConfigure(setup => setup.StorageFactory = _ => storage);
-                services.AddOpenApi(options => options.AddGraphQLTransformer());
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapOpenApi();
-                    endpoints.MapOpenApiEndpoints();
-                });
-            });
-        using var server = new TestServer(builder);
-        var client = server.CreateClient();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services.AddRouting();
+        webAppBuilder.Services
+            .AddGraphQLServer("NamedSchema")
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
+            .AddOpenApi()
+            .AddBasicServer();
+        webAppBuilder.Services
+            .AddOptions<OpenApiSetup>("NamedSchema")
+            .PostConfigure(setup => setup.StorageFactory = _ => storage);
+        webAppBuilder.Services.AddOpenApi(options => options.AddGraphQLTransformer());
+        await using var webApp = webAppBuilder.Build();
+        webApp.MapOpenApi();
+        webApp.MapOpenApiEndpoints();
+        webApp.Start();
+        var client = webApp.GetTestClient();
 
         // act
         var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
@@ -116,28 +107,25 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
     public void MapOpenApiEndpoints_Should_NotResolveSchemaName_When_MultipleNamedSchemasRegistered()
     {
         // arrange
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services.AddRouting();
 
-                foreach (var schemaName in new[] { "alpha", "beta" })
-                {
-                    services.AddGraphQLServer(schemaName)
-                        .AddOpenApi()
-                        .AddBasicServer();
-                    services.AddOptions<OpenApiSetup>(schemaName)
-                        .PostConfigure(setup => setup.StorageFactory = _ => new TestOpenApiDefinitionStorage());
-                }
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
-            });
+        foreach (var schemaName in new[] { "alpha", "beta" })
+        {
+            webAppBuilder.Services
+                .AddGraphQLServer(schemaName)
+                .AddOpenApi()
+                .AddBasicServer();
+            webAppBuilder.Services
+                .AddOptions<OpenApiSetup>(schemaName)
+                .PostConfigure(setup => setup.StorageFactory = _ => new TestOpenApiDefinitionStorage());
+        }
+
+        var webApp = webAppBuilder.Build();
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(() => new TestServer(builder));
+        var exception = Assert.Throws<InvalidOperationException>(() => webApp.MapOpenApiEndpoints());
 
         // assert
         Assert.Equal(
@@ -150,20 +138,14 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
     public void MapOpenApiEndpoints_Should_Throw_When_AddOpenApiNotCalled()
     {
         // arrange
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
-                services.AddGraphQLServer();
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
-            });
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services.AddRouting();
+        webAppBuilder.Services.AddGraphQLServer();
+        var webApp = webAppBuilder.Build();
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(() => new TestServer(builder));
+        var exception = Assert.Throws<InvalidOperationException>(() => webApp.MapOpenApiEndpoints());
 
         // assert
         Assert.Equal(
@@ -195,5 +177,40 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
 
         // assert
         response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_SkipDefinitionUpdate_When_ExecutorIsRebuiltAfterHostStopped()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var storage = CreateBasicTestDefinitionStorage();
+        var server = CreateTestServer(storage);
+        var host = server.Services.GetRequiredService<IHost>();
+        var executorCreated = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        using var subscription = server.Services
+            .GetRequiredService<IRequestExecutorEvents>()
+            .Subscribe(new RequestExecutorEventObserver(@event =>
+            {
+                if (@event.Type == RequestExecutorEventType.Created)
+                {
+                    executorCreated.TrySetResult();
+                }
+            }));
+        var definitionsRequested = false;
+        storage.OnGetDefinitions = () =>
+        {
+            definitionsRequested = true;
+            return Task.CompletedTask;
+        };
+        await host.StopAsync(cancellationToken);
+
+        // act
+        server.Services.GetRequiredService<IRequestExecutorManager>().EvictExecutor();
+        await executorCreated.Task.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+
+        // assert
+        Assert.False(definitionsRequested);
     }
 }

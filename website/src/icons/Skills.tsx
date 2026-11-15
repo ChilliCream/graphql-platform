@@ -6,6 +6,15 @@ interface SkillsProps {
 }
 
 /**
+ * Size of the logo expressed in the drink sheet's units. Skills is a separate
+ * square logo, not cut from the drink sheet, so it has no shared coordinates of
+ * its own: 70x70 is the equal-area square of a 59x84 cup, which makes it read
+ * with the same visual weight as the cups when the set is sized with one scale
+ * factor (see {@link "@/src/icons/productArtwork"}).
+ */
+export const SKILLS_ARTWORK = { width: 70, height: 70 };
+
+/**
  * Skills product logo, inlined as SVG so it ships in the HTML and can be sized
  * and positioned with CSS. Decorative by default. Gradient ids are prefixed so
  * several inlined icons on a page don't collide.

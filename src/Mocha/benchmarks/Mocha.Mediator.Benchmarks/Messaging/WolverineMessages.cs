@@ -10,14 +10,14 @@ public sealed record WolverineNotification(Guid Id);
 #pragma warning disable RCS1102 // Wolverine convention requires instance handlers for DI registration
 public class WolverineCommandHandler
 {
-    private static readonly BenchmarkResponse _response = new(Guid.NewGuid());
+    private static readonly BenchmarkResponse s_response = new(Guid.NewGuid());
 
-    public BenchmarkResponse Handle(WolverineCommand command) => _response;
+    public BenchmarkResponse Handle(WolverineCommand _) => s_response;
 }
 
 // Notification handler for Wolverine (convention-based)
 public class WolverineNotificationHandler
 {
-    public void Handle(WolverineNotification notification) { }
+    public void Handle(WolverineNotification _) { }
 }
 #pragma warning restore RCS1102

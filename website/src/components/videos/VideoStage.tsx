@@ -44,17 +44,7 @@ export function VideoStage({
           </span>
         ),
       }}
-      headerRight={
-        <a
-          href={channelUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-cc-heading text-cc-surface hover:bg-cc-white rounded-full px-3 py-1 text-xs font-medium no-underline transition-colors"
-        >
-          Subscribe
-        </a>
-      }
-      headerClassName="flex items-center justify-between px-4 py-2.5"
+      headerClassName="flex items-center px-4 py-2.5"
       shadow="soft"
     >
       <div className="grid sm:grid-cols-[minmax(0,1fr)_16rem]">
@@ -105,16 +95,14 @@ export function VideoStage({
                 </span>
               </Link>
             ) : null}
-            {current.example ? (
-              <a
-                href={current.example}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-cc-white/10 hover:bg-cc-white/15 text-cc-heading inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium no-underline transition-colors"
-              >
-                Example source
-              </a>
-            ) : null}
+            <a
+              href={channelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-cc-heading text-cc-surface hover:bg-cc-white inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium no-underline transition-colors"
+            >
+              Subscribe
+            </a>
           </div>
 
           <div className="bg-cc-white/5 mt-3 rounded-xl px-3 py-2.5 text-xs leading-relaxed">

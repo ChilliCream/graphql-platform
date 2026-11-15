@@ -85,7 +85,7 @@ public static class OutboxServiceCollectionExtensions
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
             });
 
-        builder.Services.AddKeyedSingleton<PostgresOutboxProcessor>(contextType, (sp, _) =>
+        builder.Services.AddKeyedSingleton(contextType, (sp, _) =>
         {
             var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
             var options = optionsMonitor.Get(builder.Name);

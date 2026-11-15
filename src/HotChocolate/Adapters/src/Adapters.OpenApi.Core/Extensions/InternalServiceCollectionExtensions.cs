@@ -17,6 +17,7 @@ internal static class InternalServiceCollectionExtensions
     {
         applicationServices.AddOptions();
         applicationServices.TryAddSingleton<OpenApiManager>();
+        applicationServices.AddHostedService<OpenApiShutdownService>();
         return applicationServices;
     }
 

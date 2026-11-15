@@ -1,7 +1,11 @@
+using System.Text;
 using System.Text.Json;
-using HotChocolate.Transport;
+using HotChocolate.Execution;
+using HotChocolate.Features;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
@@ -111,6 +115,64 @@ public class OperationPlanTelemetryTests : FusionTestBase
         Assert.All(
             authorNodePaths,
             path => Assert.Matches(@"^products\[\d+\]\.reviews\[\d+\]\.author$", path));
+    }
+
+    [Fact]
+    public async Task Trace_VariableSets_Should_KeepValues_When_ResultIsReadAfterExecution()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                productById(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", server1),
+                ("B", server2)
+            ],
+            configureGatewayBuilder: b =>
+                b.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true));
+
+        var executor = await gateway.Services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = (await executor.ExecuteAsync(
+            OperationRequestBuilder.New().SetDocument("{ products { id name } }").Build(),
+            TestContext.Current.CancellationToken)).ExpectOperationResult();
+
+        // assert
+        result.Features.GetRequired<OperationPlanTrace>().Nodes.Values
+            .SelectMany(node => node.VariableSets)
+            .Select(variableSet => Encoding.UTF8.GetString(variableSet.Values.AsSequence()))
+            .Order(StringComparer.Ordinal)
+            .MatchInlineSnapshots(
+            [
+                """{"__fusion_1_id":"UHJvZHVjdDoxOTc0MTQ1MDk="}""",
+                """{"__fusion_1_id":"UHJvZHVjdDoyMjE1MjQ2OTE2"}""",
+                """{"__fusion_1_id":"UHJvZHVjdDozOTM1NzEyMDU5"}"""
+            ]);
     }
 
     private static List<string> GetVariableSetPaths(JsonElement operationPlan, string schemaName)

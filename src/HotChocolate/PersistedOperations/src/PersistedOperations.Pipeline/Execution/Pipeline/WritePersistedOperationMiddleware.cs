@@ -38,6 +38,7 @@ internal sealed class WritePersistedOperationMiddleware
         var documentInfo = context.OperationDocumentInfo;
 
         if (!documentInfo.IsCached
+            && !documentInfo.IsPersisted
             && documentInfo.IsValidated
             && documentInfo.Document is not null
             && !documentInfo.Id.IsEmpty

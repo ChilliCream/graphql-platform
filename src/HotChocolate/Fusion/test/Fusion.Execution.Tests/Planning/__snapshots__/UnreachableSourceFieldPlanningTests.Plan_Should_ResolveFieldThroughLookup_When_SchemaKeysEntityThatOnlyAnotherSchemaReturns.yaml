@@ -1,0 +1,68 @@
+operation:
+  - document: |
+      {
+        books {
+          id
+          id @fusion__requirement
+          price
+          author {
+            id
+            id @fusion__requirement
+            name
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 5
+nodes:
+  - id: 1
+    type: Operation
+    schema: authors
+    operation: |
+      query Op_123456789101112_1 {
+        books {
+          id
+          author {
+            id
+          }
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: pricing
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Book {
+            price
+          }
+        }
+      }
+    source: $._entities
+    target: $.books
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: ApolloOperation
+    schema: catalog
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Author {
+            name
+          }
+        }
+      }
+    source: $._entities
+    target: $.books.author
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

@@ -21,7 +21,7 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
-        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken);
+        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(5), cancellationToken);
 
     protected async Task<JsonDocument?> WaitForMessage(
         WebSocket webSocket,
@@ -159,39 +159,28 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
         return client;
     }
 
-    protected static async Task TryTest(Func<CancellationToken, Task> action)
+    protected static async Task RunTest(Func<CancellationToken, Task> action)
     {
-        // we will try four times ...
-        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
-        var ct = cts.Token;
-        var count = 0;
-        var wait = 50;
+        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 30_000);
+        await action(cts.Token);
+    }
 
-        while (true)
+    protected static async Task WaitForServerClose(
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
+    {
+        var buffer = new byte[256];
+
+        while (webSocket.State is WebSocketState.Open or WebSocketState.CloseSent)
         {
-            ct.ThrowIfCancellationRequested();
+            var result = await webSocket.ReceiveAsync(
+                new ArraySegment<byte>(buffer),
+                cancellationToken);
 
-            if (count < 3)
+            if (result.MessageType == WebSocketMessageType.Close)
             {
-                try
-                {
-                    await action(ct).ConfigureAwait(false);
-                    break;
-                }
-                catch
-                {
-                    // try again
-                }
+                return;
             }
-            else
-            {
-                await action(ct).ConfigureAwait(false);
-                break;
-            }
-
-            await Task.Delay(wait, ct).ConfigureAwait(false);
-            wait *= 2;
-            count++;
         }
     }
 }

@@ -92,6 +92,7 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
             forwardedVariables: [.. operation.ForwardedVariables],
             operation.ResultSelectionSet,
             conditions: [.. operation.Conditions],
+            conditionAlternatives: [.. operation.ConditionAlternatives],
             operation.RequiresFileUpload,
             schema);
 
@@ -263,6 +264,7 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
                     [.. lookupNode.ForwardedVariables],
                     lookupNode.ResultSelectionSet,
                     [.. lookupNode.Conditions],
+                    [.. lookupNode.ConditionAlternatives],
                     lookupNode.RequiresFileUpload);
             }
         }
@@ -283,5 +285,6 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
             forwardedVariables: [.. operation.ForwardedVariables],
             operation.ResultSelectionSet,
             conditions: [.. operation.Conditions],
+            conditionAlternatives: [.. operation.ConditionAlternatives],
             operation.RequiresFileUpload);
 }

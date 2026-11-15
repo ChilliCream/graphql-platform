@@ -217,6 +217,12 @@ public sealed class GraphQLHttpRequest
     /// When set, this is used instead of the typed <see cref="Accept"/> array.
     /// </summary>
     public string? AcceptHeaderValue { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the cancellation token sent with this request is canceled within the default
+    /// <see cref="HttpClient.Timeout"/> of its start.
+    /// </summary>
+    internal bool HasDeadline { get; set; }
 #endif
 
     /// <summary>

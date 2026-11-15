@@ -3,8 +3,6 @@
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run CustomMiddleware.cs
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
@@ -88,7 +86,7 @@ internal sealed class TenantDispatchMiddleware
 
     public static DispatchMiddlewareConfiguration Create(string tenantId)
         => new(
-            (context, next) =>
+            (_, next) =>
             {
                 var middleware = new TenantDispatchMiddleware(tenantId);
                 return ctx => middleware.InvokeAsync(ctx, next);

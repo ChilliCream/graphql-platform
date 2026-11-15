@@ -71,74 +71,89 @@ internal static class NodeFieldResolvers
             var results = new object?[list.Items.Count];
             var ct = context.RequestAborted;
             var typeConverter = context.Service<ITypeConverter>();
+            var started = 0;
 
-            for (var i = 0; i < list.Items.Count; i++)
+            try
             {
-                ct.ThrowIfCancellationRequested();
-
-                var nodeId = (StringValueNode)list.Items[i];
-                var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
-                var typeName = deserializedId.TypeName;
-
-                // if the type has a registered node resolver, we will execute it.
-                if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
-                    && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
+                for (var i = 0; i < list.Items.Count; i++)
                 {
-                    var nodeContext = context.Clone();
-                    SetLocalContext(nodeContext, nodeId, deserializedId, type);
-                    TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
-                    tasks[i] = ExecutePipelineAsync(nodeContext, type, feature.NodeResolver, typeConverter);
-                }
-                else
-                {
-                    tasks[i] = s_nullTask;
+                    ct.ThrowIfCancellationRequested();
 
-                    context.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, context.Path));
-                }
-            }
+                    var nodeId = (StringValueNode)list.Items[i];
+                    var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
+                    var typeName = deserializedId.TypeName;
 
-            for (var i = 0; i < list.Items.Count; i++)
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var task = tasks[i];
-
-                if (task.IsCompleted)
-                {
-                    if (task.Exception is null)
+                    // if the type has a registered node resolver, we will execute it.
+                    if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                        && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
                     {
-                        if (task.Result is IError error)
+                        var nodeContext = context.Clone();
+                        SetLocalContext(nodeContext, nodeId, deserializedId, type);
+                        TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
+                        tasks[i] = ExecutePipelineAsync(nodeContext, type, feature.NodeResolver, typeConverter);
+                    }
+                    else
+                    {
+                        tasks[i] = s_nullTask;
+
+                        context.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, context.Path));
+                    }
+
+                    started++;
+                }
+
+                for (var i = 0; i < list.Items.Count; i++)
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    var task = tasks[i];
+
+                    if (task.IsCompleted)
+                    {
+                        if (task.Exception is null)
                         {
-                            results[i] = null;
-                            context.ReportError(error.WithPath(context.Path.Append(i)));
+                            if (task.Result is IError error)
+                            {
+                                results[i] = null;
+                                context.ReportError(error.WithPath(context.Path.Append(i)));
+                            }
+                            else
+                            {
+                                results[i] = task.Result;
+                            }
                         }
                         else
                         {
-                            results[i] = task.Result;
+                            results[i] = null;
+                            ReportError(context, i, task.Exception);
                         }
                     }
                     else
                     {
-                        results[i] = null;
-                        ReportError(context, i, task.Exception);
+                        try
+                        {
+                            results[i] = await task;
+                        }
+                        catch (Exception ex)
+                        {
+                            results[i] = null;
+                            ReportError(context, i, ex);
+                        }
                     }
                 }
-                else
-                {
-                    try
-                    {
-                        results[i] = await task;
-                    }
-                    catch (Exception ex)
-                    {
-                        results[i] = null;
-                        ReportError(context, i, ex);
-                    }
-                }
-            }
 
-            context.Result = results;
-            ArrayPool<Task<object?>>.Shared.Return(tasks, true);
+                context.Result = results;
+            }
+            finally
+            {
+                // wait for all started node resolvers before completing the field.
+                for (var i = 0; i < started; i++)
+                {
+                    await ((Task)tasks[i]).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                }
+
+                ArrayPool<Task<object?>>.Shared.Return(tasks, true);
+            }
         }
         else
         {

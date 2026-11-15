@@ -22,9 +22,9 @@
     <PackageReference Include="Aspire.Hosting" />
     <PackageReference Include="Aspire.Hosting.JavaScript" />
     <PackageReference Include="MessagePack" />
-    <!-- Aspire.Hosting 13.4.x requires Microsoft.Extensions.Logging >= 10.0.8, above the net9.0 central pin. -->
-    <PackageReference Include="Microsoft.Extensions.Logging" VersionOverride="10.0.8" Condition="'$(TargetFramework)' == 'net9.0'" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Condition="'$(TargetFramework)' != 'net9.0'" />
+    <!-- Aspire.Hosting 13.4.x requires Microsoft.Extensions.Logging >= 10.0.8, above the net9.0 and net10.0 central pins. -->
+    <PackageReference Include="Microsoft.Extensions.Logging" VersionOverride="10.0.8" Condition="'$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Condition="'$(TargetFramework)' != 'net9.0' and '$(TargetFramework)' != 'net10.0'" />
     <PackageReference Include="Polly" />
   </ItemGroup>
 

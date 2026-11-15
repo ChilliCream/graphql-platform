@@ -101,10 +101,16 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             await MiddlewareHelper.ExecuteRequestAsync(
                 request,
                 requestFlags,
+                options,
                 context,
                 session);
         statusCode = executionResult.StatusCode;
         result = executionResult.Result;
+
+        if (!options.EnableQueriesOverPost)
+        {
+            MiddlewareHelper.MarkRefusedQuery(result, options, isPersistedRoute: false);
+        }
 
 HANDLE_RESULT:
         await MiddlewareHelper.WriteResultAsync(

@@ -221,18 +221,6 @@ For list fields, the first applicable source in this order supplies the size:
 
 An explicit null slicing argument is not an integer value and suppresses that argument's schema default. An undefined slicing variable behaves as an absent argument. When no schema argument default applies, both cases fall through to `slicingArgumentDefaultValue`.
 
-## Default list size is 50
-
-On 16.6, an unannotated, non-paginated list assumed a size of 1. `CostOptions.DefaultListSize` is a `double` and on 16.7 defaults to `PagingDefaults.MaxPageSize` (`50`), so that same unannotated list now assumes 50 elements. A deeply nested unannotated selection that passed on 16.6 can now exceed `MaxTypeCost`, because the assumed size compounds across nesting levels. Annotate the field with `@listSize(assumedSize:)` or set `DefaultListSize` for the schema, to any non-negative finite number or `double.PositiveInfinity`:
-
-```diff
- builder
-     .AddGraphQLServer()
--    .AddQueryType<Query>();
-+    .AddQueryType<Query>()
-+    .ModifyCostOptions(options => options.DefaultListSize = 100);
-```
-
 ## Empty variable batches are refused
 
 A request whose `variables` field is an empty array is refused before execution with the error code `HC0009`, including for an operation that declares no variables, which 16.6 executed once. The response is HTTP 400, or 422 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200. Send `variables` as an object, or omit it, for a request without variables.
@@ -297,13 +285,22 @@ app.MapGraphQL();
 
 In Azure Functions, which serves the embedded Nitro, a request whose `Accept` header contains `text/html` without preferring it, such as `text/html;q=0`, is not served the Nitro page: it has a `404` status code, or a `405` status code when GET requests are disabled under the `Draft20260903` transport version.
 
+## Persisted operation routes answer methods they do not map
+
+A request to a `MapGraphQLPersistedOperations` route with a method the route does not map, such as `PUT` or `OPTIONS`, has a `404` status code, as on the GraphQL endpoint. Under the `Draft20260903` transport version, it has a `405` status code with an `Allow` header, or `204` for `OPTIONS`, see [Transport Versions](../server/http-transport.md#draft20260903).
+
+In 16.6, the answer depended on the application's other routes:
+
+- With the default paths, `MapGraphQL()` covers `/graphql/persisted`, and the request had a `404` status code.
+- With the persisted routes mapped without `MapGraphQL()`, or at their own path such as `/api/operations`, ASP.NET Core routing answered with a `405` status code and `Allow: GET, POST`.
+
 # Noteworthy changes
 
 ## New cost options
 
 | Option                       | Type                          | Default | Contract                                                                                                                 |
 | ---------------------------- | ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `DefaultListSize`            | `double`                      | `50`    | Size for a list without applicable `@listSize` metadata; sourced from `PagingDefaults.MaxPageSize`.                      |
+| `DefaultListSize`            | `double`                      | `1`     | Size for a list without applicable `@listSize` metadata.                                                                 |
 | `MaxResponseSize`            | `double?`                     | `null`  | Maximum response-object-field count. `null` disables this check and metric.                                              |
 | `CostPlanCacheSize`          | `int`                         | `256`   | Maximum compiled cost plans cached per schema.                                                                           |
 | `CaseBudget`                 | `int?`                        | `null`  | Exact cases evaluated per operation before falling back per `CaseBudgetExceededBehavior`. `null` uses the default (510). |

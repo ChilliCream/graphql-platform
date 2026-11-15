@@ -1,4 +1,5 @@
 import { CPU_GROUPS, cpuMap } from "@/src/components/benchmarks/benchmarkView";
+import { SUBSECTION_HEADING } from "@/src/components/benchmarks/benchmarkHeadings";
 import type { BenchmarkReport } from "@/src/helpers/benchmarkReport";
 
 interface BenchmarkCpuMapProps {
@@ -20,7 +21,7 @@ export function BenchmarkCpuMap({
 
   return (
     <div className={className}>
-      <h3 id={id} className="text-cc-heading text-sm font-semibold">
+      <h3 id={id} className={SUBSECTION_HEADING}>
         CPU pinning
       </h3>
       <ul

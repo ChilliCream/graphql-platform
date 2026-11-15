@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Sorting;
 public class DatabaseContext<T> : DbContext
     where T : class
 {
-    public DbSet<T> Data { get; set; } = null!;
+    public DbSet<T> Data { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -4,9 +4,9 @@ using HotChocolate.Adapters.OpenApi.Storage;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
@@ -21,7 +21,7 @@ public class OpenApiAdapterActivityTests
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using var server = CreateServer(
+            await using var app = StartApp(
                 """
                 query GetBook @http(method: GET, route: "/book") {
                   book {
@@ -29,7 +29,7 @@ public class OpenApiAdapterActivityTests
                   }
                 }
                 """);
-            using var client = server.CreateClient();
+            using var client = app.GetTestClient();
 
             // act
             using var response = await client.GetAsync("/book", TestContext.Current.CancellationToken);
@@ -46,13 +46,13 @@ public class OpenApiAdapterActivityTests
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using var server = CreateServer(
+            await using var app = StartApp(
                 """
                 query GetMissing @http(method: GET, route: "/invalid-graphql-query") {
                   doesNotExist
                 }
                 """);
-            using var client = server.CreateClient();
+            using var client = app.GetTestClient();
 
             // act
             using var response = await client.GetAsync("/invalid-graphql-query", TestContext.Current.CancellationToken);
@@ -69,7 +69,7 @@ public class OpenApiAdapterActivityTests
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using var server = CreateServer(
+            await using var app = StartApp(
                 """
                 query GetBook @http(method: GET, route: "/book") {
                   book {
@@ -77,7 +77,7 @@ public class OpenApiAdapterActivityTests
                   }
                 }
                 """);
-            using var client = server.CreateClient();
+            using var client = app.GetTestClient();
 
             // act
             using var response = await client.GetAsync("/does-not-exist", TestContext.Current.CancellationToken);
@@ -95,7 +95,7 @@ public class OpenApiAdapterActivityTests
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using var server = CreateServer(
+            await using var app = StartApp(
                 """
                 query GetFaultyBook @http(method: GET, route: "/faulty-book") {
                   faultyBook {
@@ -103,7 +103,7 @@ public class OpenApiAdapterActivityTests
                   }
                 }
                 """);
-            using var client = server.CreateClient();
+            using var client = app.GetTestClient();
 
             // act
             using var response = await client.GetAsync("/faulty-book", TestContext.Current.CancellationToken);
@@ -114,28 +114,25 @@ public class OpenApiAdapterActivityTests
         }
     }
 
-    private static TestServer CreateServer(params string[] documents)
+    private static WebApplication StartApp(params string[] documents)
     {
         var storage = new InMemoryOpenApiDefinitionStorage(documents);
 
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
-                services
-                    .AddGraphQLServer()
-                    .AddInstrumentation()
-                    .AddOpenApi()
-                    .AddOpenApiDefinitionStorage(storage)
-                    .AddQueryType<Query>();
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
-            });
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseTestServer();
+        builder.Services.AddRouting();
+        builder.Services
+            .AddGraphQLServer()
+            .AddInstrumentation()
+            .AddOpenApi()
+            .AddOpenApiDefinitionStorage(storage)
+            .AddQueryType<Query>();
 
-        return new TestServer(builder);
+        var app = builder.Build();
+        app.MapOpenApiEndpoints();
+        app.Start();
+
+        return app;
     }
 
     public class Query

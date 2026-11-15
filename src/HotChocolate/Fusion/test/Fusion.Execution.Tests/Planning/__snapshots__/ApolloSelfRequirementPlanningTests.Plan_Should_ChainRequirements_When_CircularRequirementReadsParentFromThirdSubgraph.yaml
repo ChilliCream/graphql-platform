@@ -1,0 +1,126 @@
+operation:
+  - document: |
+      {
+        feed {
+          id
+          id @fusion__requirement
+          byNovice
+          byNovice @fusion__requirement
+          byExpert
+          author @fusion__requirement {
+            yearsOfExperience @fusion__requirement
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 17
+    expandedNodes: 47
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: a
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Post {
+            byExpert
+          }
+        }
+      }
+    source: $._entities
+    target: $.feed
+    requirements:
+      - name: __fusion_1_byNovice
+        selectionMap: >-
+          byNovice
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 13
+  - id: 5
+    type: ApolloOperationBatch
+    schema: b
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Post {
+            author {
+              id
+            }
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.feed
+      - $.feed
+    batchingGroupId: 11
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 6
+    type: ApolloOperationBatch
+    schema: a
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Author {
+            yearsOfExperience
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.feed.author
+      - $.feed.author
+    batchingGroupId: 12
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5
+  - id: 4
+    type: ApolloOperationBatch
+    schema: c
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Post {
+            byNovice
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.feed
+      - $.feed
+    batchingGroupId: 13
+    requirements:
+      - name: __fusion_4_author
+        selectionMap: >-
+          {
+            yearsOfExperience: author.yearsOfExperience
+          }
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 5
+      - id: 6
