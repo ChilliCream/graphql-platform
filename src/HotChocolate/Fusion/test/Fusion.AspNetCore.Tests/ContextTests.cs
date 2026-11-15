@@ -655,6 +655,151 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Execute_Should_ResolveShippingSummary_When_TheContextPathIsInAListSelection()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<NestedContextBilling.Query>());
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NestedContextItems.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    shippingSummary
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ResolveShippingSummaryWithUnargumentedCurrency_When_TheClientSelectsTheCurrencyWithArguments()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<NestedContextBilling.Query>());
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NestedContextItems.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              tenant {
+                currency(region: "EU")
+                users {
+                  orders {
+                    shippingSummary
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private static class NestedContextBilling
+    {
+        public class Query
+        {
+            public Tenant GetTenant() => new Tenant(1);
+
+            [Lookup]
+            [Internal]
+            public Order? GetOrderById([ID] int id) => new Order(id);
+        }
+
+        [Context("tenant")]
+        public record Tenant([property: ID] int Id)
+        {
+            public string GetCurrency(string? region) => region is null ? "EUR" : $"EUR-{region}";
+
+            public User[] GetUsers() => [new User(1)];
+        }
+
+        public record User([property: ID] int Id)
+        {
+            public Order[] GetOrders() => [new Order(1)];
+        }
+
+        [EntityKey("id")]
+        public record Order([property: ID, Shareable] int Id)
+        {
+            public string GetShippingSummary(
+                [Require("items[{ weight: weight, currency: $tenant.currency }]")] LineInput[] lines)
+                => string.Join(",", lines.Select(l => $"{l.Weight}:{l.Currency}"));
+        }
+
+        public class LineInput
+        {
+            public required int Weight { get; set; }
+
+            public required string Currency { get; set; }
+        }
+    }
+
+    private static class NestedContextItems
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Order? GetOrderById([ID] int id) => new Order(id);
+        }
+
+        [EntityKey("id")]
+        public record Order([property: ID, Shareable] int Id)
+        {
+            public OrderItem[] GetItems() => [new OrderItem(2), new OrderItem(5)];
+        }
+
+        public record OrderItem(int Weight);
+    }
+
     private static class TenantReviews
     {
         public class Query
