@@ -705,7 +705,9 @@ public class AppDbContext : DbContext
 }
 ```
 
-`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (JsonDocument), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model automatically.
+`OutboxMessage` has five columns: `Id` (Guid), `Envelope` (JsonDocument), `TimesSent` (int), `CreatedAt` (DateTime), and `TransactionId` (nullable Guid), the id of the transaction that wrote the message. EF Core discovers the table name, schema, and column mappings from your model automatically.
+
+A model that maps `OutboxMessage` only through a `DbSet` gets no index on `TransactionId`. Call `modelBuilder.AddPostgresOutbox()` or add an index over `TransactionId` and `Id`.
 
 **3. Register the outbox and transaction middleware.**
 
@@ -821,9 +823,19 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
+The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
-The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processor retries on the next signal. Messages are deleted from the outbox table after successful dispatch.
+The processor delivers one transaction at a time. Messages published in one database transaction or one `TransactionScope` are sent in publish order. A message published without a transaction is its own transaction. Order is guaranteed inside a transaction, not between transactions.
+
+Each batch runs in one database transaction of the processor. It sends up to 100 messages of a transaction, deletes the sent messages, and commits. A larger transaction continues in the next batch, in order.
+
+When a send fails, the processor stops that transaction. It keeps the failed message and all later messages of the transaction, and retries after a delay. Other transactions continue.
+
+Each failed attempt increments `TimesSent`. After 10 failed attempts the message is not retried, a Critical log entry is written, and the later messages of that transaction stay in the table.
+
+Several application instances can run the processor on one table. One transaction is delivered by one instance at a time.
+
+Delivery is at-least-once. After a crash, up to one batch can be sent again.
 
 ## Skip the outbox for specific dispatches
 
