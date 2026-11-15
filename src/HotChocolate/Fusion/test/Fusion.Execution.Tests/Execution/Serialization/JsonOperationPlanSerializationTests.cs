@@ -128,7 +128,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         parsedJson.MatchInlineSnapshot(
             """
             {
-              "version": "1.3.0",
+              "version": "1.4.0",
               "id": "3d4ae8bf9805fddd74ade860c3c6ed54b3421658fcd4e005ee243af2842ae9a9",
               "operation": {
                 "kind": "Query",
@@ -557,7 +557,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         parsedJson.MatchInlineSnapshot(
             """
             {
-              "version": "1.3.0",
+              "version": "1.4.0",
               "id": "ddeb9a07a1ce2925db3f619131745ad7f71a87d88becc06033d7958550dee877",
               "operation": {
                 "kind": "Query",
@@ -2008,6 +2008,121 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             parsedPlan.AllNodes.Select(
                 node => Assert.IsType<OperationExecutionNode>(node).Id));
     }
+
+    [Fact]
+    public void Parse_Should_RoundTripConditionAlternatives_When_OperationNodeHasAlternatives()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                    name
+                    estimatedDelivery(postCode: "12345")
+                }
+            }
+            """);
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var json = JsonNode.Parse(formatter.Format(originalPlan))!;
+        var operationNode = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .First(t => t["type"]?.GetValue<string>() is "Operation");
+        var operationNodeId = operationNode["id"]!.GetValue<int>();
+        operationNode["conditionAlternatives"] = CreateConditionAlternatives();
+        var planSource = Encoding.UTF8.GetBytes(json.ToJsonString());
+
+        // act
+        var parsedPlan = CreateParser(compositeSchema, TestPolicyResolver.Create()).Parse(planSource);
+
+        // assert
+        var parsedNode = parsedPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(t => t.Id == operationNodeId);
+        Assert.Empty(parsedNode.Conditions.ToArray());
+        Assert.Collection(
+            parsedNode.ConditionAlternatives.ToArray(),
+            alternative => Assert.Equal(
+                [("a", true)],
+                alternative.Select(t => (t.VariableName, t.PassingValue))),
+            alternative => Assert.Equal(
+                [("b", false), ("c", true)],
+                alternative.Select(t => (t.VariableName, t.PassingValue))));
+        GetNodes(formatter.Format(parsedPlan), "Operation").MatchSnapshot(extension: ".json");
+        MatchSnapshot(parsedPlan);
+    }
+
+    [Fact]
+    public void Parse_Should_RoundTripConditionAlternatives_When_BatchOperationHasAlternatives()
+    {
+        // arrange
+        var compositeSchema = ComposeSchema(UnionSiblingAssetSchemaA, UnionSiblingAssetSchemaB);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            query testQuery {
+              search {
+                ... on ExistingResult {
+                  asset {
+                    meterType { type }
+                    category { allowedMeterTypes { type } }
+                  }
+                }
+                ... on ConfigMatchesResult {
+                  asset {
+                    category { allowedMeterTypes { type } }
+                    meterType { type }
+                  }
+                }
+              }
+            }
+            """,
+            new OperationPlannerOptions { EnableRequestGrouping = false });
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var json = JsonNode.Parse(formatter.Format(originalPlan))!;
+        var batchNodeId = originalPlan.AllNodes.OfType<OperationBatchExecutionNode>().First().Id;
+        var batchedOperation = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .First(t => t["batchingGroupId"]?.GetValue<int>() == batchNodeId);
+        batchedOperation["conditionAlternatives"] = CreateConditionAlternatives();
+        var planSource = Encoding.UTF8.GetBytes(json.ToJsonString());
+
+        // act
+        var parsedPlan = CreateParser(compositeSchema, TestPolicyResolver.Create()).Parse(planSource);
+
+        // assert
+        var parsedBatch = parsedPlan.AllNodes
+            .OfType<OperationBatchExecutionNode>()
+            .Single(t => t.Id == batchNodeId);
+        var parsedOperation = Assert.Single(
+            parsedBatch.Operations.ToArray(),
+            t => t.ConditionAlternatives.Length > 0);
+        Assert.Equal(2, parsedOperation.ConditionAlternatives.Length);
+        GetNodes(formatter.Format(parsedPlan), "OperationBatch").MatchSnapshot(extension: ".json");
+        MatchSnapshot(parsedPlan);
+    }
+
+    private static JsonArray CreateConditionAlternatives()
+        => new(
+            new JsonArray(
+                new JsonObject { ["variable"] = "$a", ["passingValue"] = true }),
+            new JsonArray(
+                new JsonObject { ["variable"] = "$b", ["passingValue"] = false },
+                new JsonObject { ["variable"] = "$c", ["passingValue"] = true }));
 
     /// <summary>
     /// Returns the nodes of the given type from a formatted plan as an indented JSON array.

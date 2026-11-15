@@ -308,6 +308,13 @@ public class PolicyPlanningTests : FusionTestBase
                 conditions:
                   - variable: $__fusion_policy_3
                     passingValue: false
+                conditionAlternatives:
+                  -
+                    - variable: $__fusion_policy_1
+                      passingValue: false
+                  -
+                    - variable: $__fusion_policy_2
+                      passingValue: false
                 forwardedVariables:
                   - __fusion_policy_1
                   - __fusion_policy_2
@@ -419,6 +426,13 @@ public class PolicyPlanningTests : FusionTestBase
                 conditions:
                   - variable: $__fusion_policy_3
                     passingValue: false
+                conditionAlternatives:
+                  -
+                    - variable: $__fusion_policy_1
+                      passingValue: false
+                  -
+                    - variable: $__fusion_policy_2
+                      passingValue: false
                 forwardedVariables:
                   - __fusion_policy_1
                   - __fusion_policy_2

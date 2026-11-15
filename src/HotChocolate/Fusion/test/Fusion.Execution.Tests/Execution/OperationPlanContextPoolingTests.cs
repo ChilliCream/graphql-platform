@@ -157,6 +157,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [],
             ResultSelectionSet.Create(new SelectionSetNode([new FieldNode("field")])),
             [],
+            [],
             requiresFileUpload: false);
         var batch = new OperationBatchExecutionNode(126, [batchDefinition]);
 

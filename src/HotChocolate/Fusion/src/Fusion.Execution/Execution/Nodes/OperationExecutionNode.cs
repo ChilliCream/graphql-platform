@@ -15,6 +15,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly string[] _forwardedVariables;
     private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
+    private readonly ExecutionNodeCondition[][] _conditionAlternatives;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
     private readonly Utf8OperationDocument _operationDocument;
@@ -34,6 +35,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
+        ExecutionNodeCondition[][] conditionAlternatives,
         bool requiresFileUpload)
     {
         Id = id;
@@ -47,6 +49,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         _forwardedVariables = forwardedVariables;
         _resultSelectionSet = resultSelectionSet;
         _conditions = conditions;
+        _conditionAlternatives = conditionAlternatives;
         _requiresFileUpload = requiresFileUpload;
     }
 
@@ -58,6 +61,9 @@ public sealed class OperationExecutionNode : ExecutionNode
 
     /// <inheritdoc />
     public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
+
+    /// <inheritdoc />
+    public override ReadOnlySpan<ExecutionNodeCondition[]> ConditionAlternatives => _conditionAlternatives;
 
     /// <summary>
     /// Gets the operation definition that this execution node represents.

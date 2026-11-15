@@ -119,15 +119,15 @@ public sealed class OfficialAuditParityTests
             "HotChocolate.Fusion.OfficialAudit.v2-manifest.json")
             ?? throw new InvalidOperationException("The official V2 manifest resource was not found.");
         Assert.Equal(
-            "146ef9f96f2f78ec35b613b67376b2b1741d41946e5f32efd4d0dc9062e3ae29",
+            "26f83e502907158642133e503b74642f3ce8450bfad65c1062ccdcb248b4df80",
             Convert.ToHexString(SHA256.HashData(manifestStream)).ToLowerInvariant());
 
         var manifest = AuditFixture.GetOfficialV2Manifest();
         var caseIds = manifest.Suites.SelectMany(suite => suite.Cases).Select(c => c.Id).ToArray();
 
-        Assert.Equal("f59c05e3f48f4a4f8e8a731d67a1b71a9788a96f", manifest.Revision);
-        Assert.Equal(42, manifest.SuiteCount);
-        Assert.Equal(172, manifest.CaseCount);
+        Assert.Equal("9c874b9ed250d0715f04c3def41abdca596e2788", manifest.Revision);
+        Assert.Equal(44, manifest.SuiteCount);
+        Assert.Equal(183, manifest.CaseCount);
         Assert.Equal(manifest.SuiteCount, manifest.Suites.Count);
         Assert.Equal(manifest.CaseCount, caseIds.Length);
         Assert.Equal(caseIds.Length, caseIds.Distinct(StringComparer.Ordinal).Count());
