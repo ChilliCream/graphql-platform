@@ -807,6 +807,328 @@ public sealed class SatisfiabilityContextTests
     }
 
     [Fact]
+    public void Compose_Should_Succeed_When_TheListSelectionOfAnEntityPathReadsOnlyAContext()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    tenant: Tenant
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Tenant @context(name: "tenant") {
+                    id: ID!
+                    currency: String!
+                    settings: TenantSettings!
+                    users: [User!]!
+                }
+
+                type TenantSettings {
+                    locale: String!
+                }
+
+                type User @context(name: "user") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    itemCurrencies(
+                        lines: [CurrencyInput!]! @require(field: "items[{ currency: $tenant.currency }]")
+                    ): String!
+                }
+
+                input CurrencyInput {
+                    currency: String!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    items: [OrderItem!]!
+                }
+
+                type OrderItem {
+                    weight: Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_ThePathOfAContextOnlySelectionCannotBeResolved()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    tenant: Tenant
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Tenant @context(name: "tenant") {
+                    id: ID!
+                    currency: String!
+                    settings: TenantSettings!
+                    users: [User!]!
+                }
+
+                type TenantSettings {
+                    locale: String!
+                }
+
+                type User @context(name: "user") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    itemCurrencies(
+                        lines: [CurrencyInput!]! @require(field: "items[{ currency: $tenant.currency }]")
+                    ): String!
+                }
+
+                input CurrencyInput {
+                    currency: String!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    latestOrder: Order
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    items: [OrderItem!]!
+                }
+
+                type OrderItem {
+                    weight: Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Order.itemCurrencies' on path 'B:Query.latestOrder<Order>'.
+              The field 'Order.itemCurrencies' in schema 'A' reads from the context 'tenant', which is not set on this path.
+            """,
+            """
+            Unable to access the field 'Order.itemCurrencies' on path 'A:Query.tenant<Tenant> -> A:Tenant.users<User> -> A:User.orders<Order>'.
+              Unable to satisfy the requirement '{ items { __typename } }' on field 'A:Order.itemCurrencies<String>'.
+                Unable to satisfy the requirement 'items { __typename }'.
+                  Unable to access the required field 'Order.items' on path 'A:User.orders<Order>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:Order.items<OrderItem>'.
+                      No lookups found for type 'Order' in schema 'B'.
+            """,
+            """
+            Unable to access the field 'Order.items' on path 'A:Query.tenant<Tenant> -> A:Tenant.users<User> -> A:User.orders<Order>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Order.items<OrderItem>'.
+                No lookups found for type 'Order' in schema 'B'.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_AContextPathIsInTheListSelectionOfAnEntityPath()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    tenant: Tenant
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Tenant @context(name: "tenant") {
+                    id: ID!
+                    currency: String!
+                    settings: TenantSettings!
+                    users: [User!]!
+                }
+
+                type TenantSettings {
+                    locale: String!
+                }
+
+                type User @context(name: "user") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    itemCurrencies(
+                        lines: [LineInput!]! @require(field: "items[{ weight: weight, currency: $tenant.currency }]")
+                    ): String!
+                }
+
+                input LineInput {
+                    weight: Int!
+                    currency: String!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    items: [OrderItem!]!
+                }
+
+                type OrderItem {
+                    weight: Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_NoSchemaResolvesTheNestedContextField()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    organization: Organization
+                    transactionById(id: ID!): Transaction @lookup @internal
+                }
+
+                type Organization @context(name: "organizationContext") {
+                    id: ID!
+                    settings: Settings!
+                    users: [User!]!
+                }
+
+                type Settings {
+                    region: String!
+                }
+
+                type User @key(fields: "id") @context(name: "userContext") {
+                    id: ID!
+                    transactions: [Transaction!]!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(
+                        conversion: ConversionInput!
+                            @require(
+                                field: "$organizationContext.settings.{ region: region, currency: $userContext.userCurrency.isoCode }"
+                            )
+                    ): Int!
+                }
+
+                input ConversionInput {
+                    region: String!
+                    currency: String!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    userByEmail(email: String!): User @lookup @internal
+                }
+
+                type User @key(fields: "email") {
+                    email: String!
+                    userCurrency: Currency!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'User.email' on path 'A:Query.organization<Organization> -> A:Organization.users<User>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:User.email<String>'.
+                Unable to satisfy the requirement '{ email }' for lookup 'userByEmail' in schema 'B'.
+                  Unable to satisfy the requirement 'email'.
+                    Unable to access the required field 'User.email' on path 'A:Organization.users<User>'.
+                      No other schemas contain the field 'User.email'.
+            """,
+            """
+            Unable to access the field 'User.userCurrency' on path 'A:Query.organization<Organization> -> A:Organization.users<User>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:User.userCurrency<Currency>'.
+                Unable to satisfy the requirement '{ email }' for lookup 'userByEmail' in schema 'B'.
+                  Unable to satisfy the requirement 'email'.
+                    Unable to access the required field 'User.email' on path 'A:Organization.users<User>'.
+                      No other schemas contain the field 'User.email'.
+            """,
+            """
+            Unable to access the field 'Transaction.amount' on path 'A:Query.organization<Organization> -> A:Organization.users<User> -> A:User.transactions<Transaction>'.
+              The field 'Transaction.amount' in schema 'A' reads 'userCurrency { isoCode }' from the context 'userContext', which cannot be resolved from type 'User'.
+                Unable to satisfy the requirement 'userCurrency { isoCode }'.
+                  Unable to access the required field 'User.userCurrency' on path 'A:Organization.users<User>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:User.userCurrency<Currency>'.
+                      No lookups found for type 'User' in schema 'B'.
+            """
+        ]);
+    }
+
+    [Fact]
     public void Compose_Should_Succeed_When_TypedAlternativesReadTheContextOfUserAndOrganization()
     {
         // arrange
