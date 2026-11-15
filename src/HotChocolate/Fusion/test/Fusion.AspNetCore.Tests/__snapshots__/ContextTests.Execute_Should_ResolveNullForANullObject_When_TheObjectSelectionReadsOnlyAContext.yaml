@@ -1,0 +1,288 @@
+title: Execute_Should_ResolveNullForANullObject_When_TheObjectSelectionReadsOnlyAContext
+request:
+  document: |
+    {
+      tenant {
+        users {
+          orders {
+            boxCurrency
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "tenant": {
+          "users": [
+            {
+              "orders": [
+                {
+                  "boxCurrency": null
+                },
+                {
+                  "boxCurrency": "EUR"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        tenant: Tenant!
+        orderById(id: ID!): Order @lookup @internal
+      }
+
+      type Order @key(fields: "id") {
+        itemCurrencies(
+          lines: [CurrencyInput!]! @require(field: "items[{\n  currency: $tenant.currency\n}]")
+        ): String!
+        boxCurrency(
+          box: CurrencyInput @require(field: "dimension.{\n  currency: $tenant.currency\n}")
+        ): String
+        id: ID! @shareable
+      }
+
+      type Tenant @context(name: "tenant") {
+        currency: String!
+        users: [User!]!
+        id: ID!
+      }
+
+      type User {
+        orders: [Order!]!
+        id: ID!
+      }
+
+      input CurrencyInput {
+        currency: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_cfc0ea93_1 {
+              tenant {
+                users {
+                  orders {
+                    id
+                  }
+                }
+                currency
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "tenant": {
+                    "users": [
+                      {
+                        "orders": [
+                          {
+                            "id": "1"
+                          },
+                          {
+                            "id": "2"
+                          }
+                        ]
+                      }
+                    ],
+                    "currency": "EUR"
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_cfc0ea93_2($__fusion_1_box: CurrencyInput, $__fusion_2_id: ID!) {
+              orderById(id: $__fusion_2_id) {
+                boxCurrency(box: $__fusion_1_box)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_box": null,
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_1_box": {
+                  "currency": "EUR"
+                },
+                "__fusion_2_id": "2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "boxCurrency": null
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "boxCurrency": "EUR"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        orderById(id: ID!): Order @lookup @internal
+      }
+
+      type Dimension {
+        width: Int!
+      }
+
+      type Order @key(fields: "id") {
+        items: [OrderItem!]!
+        dimension: Dimension
+        id: ID! @shareable
+      }
+
+      type OrderItem {
+        weight: Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_cfc0ea93_3($__fusion_3_id: ID!) {
+              orderById(id: $__fusion_3_id) {
+                dimension {
+                  __typename
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "1"
+              },
+              {
+                "__fusion_3_id": "2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "dimension": null
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "dimension": {
+                      "__typename": "Dimension"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          tenant {
+            users {
+              orders {
+                boxCurrency
+                id @fusion__requirement
+                dimension @fusion__requirement {
+                  __typename @fusion__requirement
+                }
+              }
+            }
+            currency @fusion__requirement
+          }
+        }
+      hash: 701b2a719ce91380e8e6a4ea2e0ef110
+      searchSpace: 1
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_cfc0ea93_1 {
+          tenant {
+            users {
+              orders {
+                id
+              }
+            }
+            currency
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_cfc0ea93_2($__fusion_1_box: CurrencyInput, $__fusion_2_id: ID!) {
+          orderById(id: $__fusion_2_id) {
+            boxCurrency(box: $__fusion_1_box)
+          }
+        }
+      source: $.orderById
+      target: $.tenant.users.orders
+      requirements:
+        - name: __fusion_1_box
+          selectionMap: >-
+            dimension.{
+              currency: $tenant.currency
+            }
+          contextRoots:
+            - name: tenant
+              path: $.tenant
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 3
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_cfc0ea93_3($__fusion_3_id: ID!) {
+          orderById(id: $__fusion_3_id) {
+            dimension {
+              __typename
+            }
+          }
+        }
+      source: $.orderById
+      target: $.tenant.users.orders
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
