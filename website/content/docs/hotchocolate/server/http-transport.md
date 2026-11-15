@@ -162,7 +162,9 @@ public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
 Register the formatter:
 
 ```csharp
-builder.Services.AddHttpResponseFormatter<CustomHttpResponseFormatter>();
+builder
+    .AddGraphQL()
+    .AddHttpResponseFormatter<CustomHttpResponseFormatter>();
 ```
 
 If you want to pass `HttpResponseFormatterOptions` to a custom formatter, make the following adjustments:
@@ -170,7 +172,9 @@ If you want to pass `HttpResponseFormatterOptions` to a custom formatter, make t
 ```csharp
 var options = new HttpResponseFormatterOptions();
 
-builder.Services.AddHttpResponseFormatter(_ => new CustomHttpResponseFormatter(options));
+builder
+    .AddGraphQL()
+    .AddHttpResponseFormatter(_ => new CustomHttpResponseFormatter(options));
 
 public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
 {
@@ -192,7 +196,7 @@ You can use a custom formatter to alter the HTTP status code in certain conditio
 public class CustomHttpResponseFormatter : DefaultHttpResponseFormatter
 {
     protected override HttpStatusCode OnDetermineStatusCode(
-        IOperationResult result, FormatInfo format,
+        OperationResult result, FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
         if (result.Errors?.Count > 0 &&
@@ -241,11 +245,13 @@ var options = new HttpResponseFormatterOptions
 {
     Json = new JsonResultFormatterOptions
     {
-        NullIgnoreCondition = JsonNullIgnoreCondition.All
+        NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
     }
 };
 
-builder.Services.AddHttpResponseFormatter(options);
+builder
+    .AddGraphQL()
+    .AddHttpResponseFormatter(options);
 ```
 
 ## Indenting JSON in Response
@@ -253,7 +259,9 @@ builder.Services.AddHttpResponseFormatter(options);
 By default, the JSON in your GraphQL responses is not indented. If you want to indent your JSON:
 
 ```csharp
-builder.Services.AddHttpResponseFormatter(indented: true);
+builder
+    .AddGraphQL()
+    .AddHttpResponseFormatter(indented: true);
 ```
 
 Be aware that indenting JSON results in a slightly larger response size.
@@ -269,7 +277,9 @@ var options = new HttpResponseFormatterOptions
     }
 };
 
-builder.Services.AddHttpResponseFormatter(options);
+builder
+    .AddGraphQL()
+    .AddHttpResponseFormatter(options);
 ```
 
 # Incremental Delivery (`@defer` / `@stream`)
@@ -435,9 +445,13 @@ If you have control over the client, you can either:
 If you cannot update or change the `Accept` header your clients are sending, configure that a missing `Accept` header or a wildcard like `*/*` should be treated as `application/json`:
 
 ```csharp
-builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
-    HttpTransportVersion = HttpTransportVersion.Legacy
-});
+builder
+    .AddGraphQL()
+    .AddHttpResponseFormatter(
+        new HttpResponseFormatterOptions
+        {
+            HttpTransportVersion = HttpTransportVersion.Legacy
+        });
 ```
 
 An `Accept` header with the value `application/json` makes the response `Content-Type` `application/json`. Under `Legacy` and `Draft20250508`, it also opts the client out of the status codes of the [2025-05-08 revision](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) of the GraphQL over HTTP specification: a status code of 200 is returned for every well-formed request, even if it had validation errors. Under `Draft20260903`, the specification's status codes apply to `application/json` as well, see [Transport Versions](#transport-versions).
