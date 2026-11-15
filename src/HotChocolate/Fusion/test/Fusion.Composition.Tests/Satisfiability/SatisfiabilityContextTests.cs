@@ -807,6 +807,239 @@ public sealed class SatisfiabilityContextTests
     }
 
     [Fact]
+    public void Compose_Should_Succeed_When_TheContextPathHasAnObjectSelection()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    transactionById(id: ID!): Transaction @lookup @internal
+                }
+
+                type User @key(fields: "id") @context(name: "userContext") {
+                    id: ID!
+                    userCurrency: Currency!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(
+                        currency: CurrencyInput! @require(field: "$userContext.userCurrency.{ isoCode: isoCode }")
+                    ): Int!
+                }
+
+                input CurrencyInput {
+                    isoCode: String!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    currencyById(id: ID!): Currency @lookup @internal
+                }
+
+                type Currency @key(fields: "id") {
+                    id: ID!
+                    isoCode: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_NoSchemaResolvesAFieldInTheObjectSelectionOfAContextPath()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    transactionById(id: ID!): Transaction @lookup @internal
+                }
+
+                type User @key(fields: "id") @context(name: "userContext") {
+                    id: ID!
+                    userCurrency: Currency!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(
+                        currency: CurrencyInput! @require(field: "$userContext.userCurrency.{ isoCode: isoCode }")
+                    ): Int!
+                }
+
+                input CurrencyInput {
+                    isoCode: String!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    currencyByCode(code: String!): Currency @lookup @internal
+                }
+
+                type Currency @key(fields: "code") {
+                    code: String!
+                    isoCode: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Currency.code' on path 'A:Query.me<User> -> A:User.userCurrency<Currency>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Currency.code<String>'.
+                Unable to satisfy the requirement '{ code }' for lookup 'currencyByCode' in schema 'B'.
+                  Unable to satisfy the requirement 'code'.
+                    Unable to access the required field 'Currency.code' on path 'A:User.userCurrency<Currency>'.
+                      No other schemas contain the field 'Currency.code'.
+            """,
+            """
+            Unable to access the field 'Currency.isoCode' on path 'A:Query.me<User> -> A:User.userCurrency<Currency>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Currency.isoCode<String>'.
+                Unable to satisfy the requirement '{ code }' for lookup 'currencyByCode' in schema 'B'.
+                  Unable to satisfy the requirement 'code'.
+                    Unable to access the required field 'Currency.code' on path 'A:User.userCurrency<Currency>'.
+                      No other schemas contain the field 'Currency.code'.
+            """,
+            """
+            Unable to access the field 'Transaction.amount' on path 'A:Query.me<User> -> A:User.transactions<Transaction>'.
+              The field 'Transaction.amount' in schema 'A' reads 'userCurrency { isoCode }' from the context 'userContext', which cannot be resolved from type 'User'.
+                Unable to satisfy the requirement 'userCurrency { isoCode }'.
+                  Unable to access the required field 'User.userCurrency' on path 'A:Query.me<User>'.
+                    Unable to access the required field 'Currency.isoCode' on path 'A:Query.me<User> -> A:User.userCurrency<Currency>'.
+                      Unable to transition between schemas 'A' and 'B' for access to required field 'B:Currency.isoCode<String>'.
+                        Unable to satisfy the requirement '{ code }' for lookup 'currencyByCode' in schema 'B'.
+                          Unable to satisfy the requirement 'code'.
+                            Unable to access the required field 'Currency.code' on path 'A:User.userCurrency<Currency>'.
+                              No other schemas contain the field 'Currency.code'.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_NoSchemaResolvesAFieldInTheListSelectionOfAContextPath()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    transactionById(id: ID!): Transaction @lookup @internal
+                }
+
+                type User @key(fields: "id") @context(name: "userContext") {
+                    id: ID!
+                    currencies: [Currency!]!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(
+                        currency: [CurrencyInput!]! @require(field: "$userContext.currencies[{ isoCode: isoCode }]")
+                    ): Int!
+                }
+
+                input CurrencyInput {
+                    isoCode: String!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    currencyByCode(code: String!): Currency @lookup @internal
+                }
+
+                type Currency @key(fields: "code") {
+                    code: String!
+                    isoCode: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Currency.code' on path 'A:Query.me<User> -> A:User.currencies<Currency>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Currency.code<String>'.
+                Unable to satisfy the requirement '{ code }' for lookup 'currencyByCode' in schema 'B'.
+                  Unable to satisfy the requirement 'code'.
+                    Unable to access the required field 'Currency.code' on path 'A:User.currencies<Currency>'.
+                      No other schemas contain the field 'Currency.code'.
+            """,
+            """
+            Unable to access the field 'Currency.isoCode' on path 'A:Query.me<User> -> A:User.currencies<Currency>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Currency.isoCode<String>'.
+                Unable to satisfy the requirement '{ code }' for lookup 'currencyByCode' in schema 'B'.
+                  Unable to satisfy the requirement 'code'.
+                    Unable to access the required field 'Currency.code' on path 'A:User.currencies<Currency>'.
+                      No other schemas contain the field 'Currency.code'.
+            """,
+            """
+            Unable to access the field 'Transaction.amount' on path 'A:Query.me<User> -> A:User.transactions<Transaction>'.
+              The field 'Transaction.amount' in schema 'A' reads 'currencies { isoCode }' from the context 'userContext', which cannot be resolved from type 'User'.
+                Unable to satisfy the requirement 'currencies { isoCode }'.
+                  Unable to access the required field 'User.currencies' on path 'A:Query.me<User>'.
+                    Unable to access the required field 'Currency.isoCode' on path 'A:Query.me<User> -> A:User.currencies<Currency>'.
+                      Unable to transition between schemas 'A' and 'B' for access to required field 'B:Currency.isoCode<String>'.
+                        Unable to satisfy the requirement '{ code }' for lookup 'currencyByCode' in schema 'B'.
+                          Unable to satisfy the requirement 'code'.
+                            Unable to access the required field 'Currency.code' on path 'A:User.currencies<Currency>'.
+                              No other schemas contain the field 'Currency.code'.
+            """
+        ]);
+    }
+
+    [Fact]
     public void Compose_Should_Succeed_When_TheListSelectionOfAnEntityPathReadsOnlyAContext()
     {
         // arrange
