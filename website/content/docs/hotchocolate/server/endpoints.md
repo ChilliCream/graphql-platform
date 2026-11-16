@@ -88,7 +88,7 @@ If [EnableGetRequests](#enablegetrequests) is `true`, you can control the allowe
 By default, only queries are accepted via HTTP GET. To also accept subscriptions, set `AllowedGetOperations` to `AllowedGetOperations.Query | AllowedGetOperations.Subscription`.
 
 > [!WARNING]
-> `AllowedGetOperations.Mutation`, `AllowedGetOperations.QueryAndMutation`, and `AllowedGetOperations.All` are obsolete and still execute mutations over GET. The [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md) does not allow mutations over GET. A browser sends a cross-site GET request without a CORS preflight, so with cookie authentication, a page on another site can run a mutation as the signed-in user. Send mutations over POST.
+> `AllowedGetOperations.Mutation`, `AllowedGetOperations.QueryAndMutation`, and `AllowedGetOperations.All` are obsolete and still execute mutations over GET. The [GraphQL over HTTP specification](https://http-spec.graphql.org/September2026/) does not allow mutations over GET. A browser sends a cross-site GET request without a CORS preflight, so with cookie authentication, a page on another site can run a mutation as the signed-in user. Send mutations over POST.
 
 ### EnableQueryRequests
 
@@ -108,7 +108,7 @@ endpoints.MapGraphQL().WithOptions(o => o.EnableQueriesOverPost = false);
 
 This setting controls whether the GraphQL server executes query operations sent with HTTP POST. It is `true` by default. Mutations and subscriptions run over POST either way.
 
-A refused query gets the status code that a refused operation kind gets for its `Accept` header and [transport version](./http-transport.md#transport-versions): `405 Method Not Allowed` for `application/graphql-response+json`, and for `application/json` under `Draft20260903`. A `405` response lists in its `Allow` header `GET` and `HEAD` when [GET requests](#enablegetrequests) serve queries, and `QUERY` when [QUERY requests](#enablequeryrequests) are enabled, in which case it also carries `Accept-Query: application/json`. When neither serves queries, the `Allow` header is empty. In a request batch or an operation batch, each query fails with its own error while the other operations run.
+A refused query gets the status code that a refused operation kind gets for its `Accept` header and [transport version](./http-transport.md#transport-versions): `405 Method Not Allowed` for `application/graphql-response+json`, and for `application/json` under `September2026`. A `405` response lists in its `Allow` header `GET` and `HEAD` when [GET requests](#enablegetrequests) serve queries, and `QUERY` when [QUERY requests](#enablequeryrequests) are enabled, in which case it also carries `Accept-Query: application/json`. When neither serves queries, the `Allow` header is empty. In a request batch or an operation batch, each query fails with its own error while the other operations run.
 
 While this setting is `false`, a query refused over GET or HEAD because [`AllowedGetOperations`](#allowedgetoperations) leaves out queries has a `405` response whose `Allow` header lists `QUERY` when QUERY requests are enabled and is empty otherwise, instead of listing `POST`.
 
@@ -357,7 +357,7 @@ The default path is `/graphql/persisted`. The endpoint supports two URL patterns
 | `/{operationId}`                 | `/graphql/persisted/abc123`         | Execute a persisted operation by its ID                        |
 | `/{operationId}/{operationName}` | `/graphql/persisted/abc123/GetUser` | Execute a specific named operation within a persisted document |
 
-GET, HEAD, and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. A HEAD request is answered as GET, without the response content. With POST and QUERY requests, you can pass variables and extensions in a JSON request body, sent with `Content-Type: application/json`. A QUERY request executes query operations only. A request with any other method has a `404` status code. Under the [`Draft20260903` transport version](./http-transport.md#draft20260903), it has a `405` status code, or `204` for `OPTIONS`.
+GET, HEAD, and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. A HEAD request is answered as GET, without the response content. With POST and QUERY requests, you can pass variables and extensions in a JSON request body, sent with `Content-Type: application/json`. A QUERY request executes query operations only. A request with any other method has a `404` status code. Under the [`September2026` transport version](./http-transport.md#september2026), it has a `405` status code, or `204` for `OPTIONS`.
 
 ## Custom Path
 
@@ -391,7 +391,7 @@ builder.AddGraphQL(
 
 ## maxAllowedRequestSize
 
-Controls the maximum allowed size (in bytes) of an incoming GraphQL request: a JSON request body, or the `operations` field of a multipart request. The default is `20 * 1000 * 1024` (approximately 20 MB). A request over this limit is rejected before parsing with the error code `HC0010`. Under the `Draft20260903` [transport version](./http-transport.md#transport-versions), the response has a `413` status code.
+Controls the maximum allowed size (in bytes) of an incoming GraphQL request: a JSON request body, or the `operations` field of a multipart request. The default is `20 * 1000 * 1024` (approximately 20 MB). A request over this limit is rejected before parsing with the error code `HC0010`. Under the `September2026` [transport version](./http-transport.md#transport-versions), the response has a `413` status code.
 
 Reduce this value if you expect only small queries and want to protect against excessively large payloads:
 
