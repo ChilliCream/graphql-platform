@@ -125,10 +125,10 @@ public class VariableBatchingTests : FusionTestBase
     [InlineData("query($input: String!) { field(input: $input) }", Draft20250508, BadRequest)]
     [InlineData(
         "query($input: String!) { field(input: $input) }",
-        Draft20260903,
+        September2026,
         UnprocessableContent)]
     [InlineData("{ __typename }", Draft20250508, BadRequest)]
-    [InlineData("{ __typename }", Draft20260903, UnprocessableContent)]
+    [InlineData("{ __typename }", September2026, UnprocessableContent)]
     public async Task Execute_Should_ReturnRequestError_When_VariableBatchIsEmpty(
         string query,
         HttpTransportVersion transportVersion,

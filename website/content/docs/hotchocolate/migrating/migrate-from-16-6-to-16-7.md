@@ -287,7 +287,7 @@ In Azure Functions, which serves the embedded Nitro, a request whose `Accept` he
 
 ## Persisted operation routes answer methods they do not map
 
-A request to a `MapGraphQLPersistedOperations` route with a method the route does not map, such as `PUT` or `OPTIONS`, has a `404` status code, as on the GraphQL endpoint. Under the `Draft20260903` transport version, it has a `405` status code with an `Allow` header, or `204` for `OPTIONS`, see [Transport Versions](../server/http-transport.md#draft20260903).
+A request to a `MapGraphQLPersistedOperations` route with a method the route does not map, such as `PUT` or `OPTIONS`, has a `404` status code, as on the GraphQL endpoint. Under the `Draft20260903` transport version, it has a `405` status code with an `Allow` header, or `204` for `OPTIONS`, see [Transport Versions](../server/http-transport.md#september2026).
 
 In 16.6, the answer depended on the application's other routes:
 

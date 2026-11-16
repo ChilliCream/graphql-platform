@@ -185,7 +185,7 @@ public class InProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, StatusCodes.Status404NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, StatusCodes.Status404NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         StatusCodes.Status405MethodNotAllowed,
         "GET, HEAD, OPTIONS, POST")]
     public async Task Put_Should_ReturnMethodNotAllowed_When_MethodIsUnsupported(
@@ -211,7 +211,7 @@ public class InProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, StatusCodes.Status404NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, StatusCodes.Status404NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         StatusCodes.Status204NoContent,
         "GET, HEAD, OPTIONS, POST")]
     public async Task Options_Should_ReturnAllowedMethods_When_EndpointIsRequested(
@@ -237,7 +237,7 @@ public class InProcessEndToEndTests
     [Theory]
     [InlineData(HttpTransportVersion.Legacy, StatusCodes.Status404NotFound)]
     [InlineData(HttpTransportVersion.Draft20250508, StatusCodes.Status404NotFound)]
-    [InlineData(HttpTransportVersion.Draft20260903, StatusCodes.Status415UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.September2026, StatusCodes.Status415UnsupportedMediaType)]
     public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
         HttpTransportVersion transportVersion,
         int expectedStatusCode)
@@ -259,7 +259,7 @@ public class InProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, StatusCodes.Status404NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, StatusCodes.Status404NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         StatusCodes.Status405MethodNotAllowed,
         "OPTIONS, POST")]
     public async Task Get_Should_ReturnMethodNotAllowed_When_GetRequestsAreDisabled(
@@ -287,7 +287,7 @@ public class InProcessEndToEndTests
     public async Task Put_Should_ReturnNotFound_When_PathIsBelowTheFunctionRoute()
     {
         // arrange
-        var requestExecutor = CreateRequestExecutor(HttpTransportVersion.Draft20260903);
+        var requestExecutor = CreateRequestExecutor(HttpTransportVersion.September2026);
         var httpContext = TestHttpContextHelper.NewGraphQLHttpContext("{ person }");
         httpContext.Request.Method = HttpMethods.Put;
         httpContext.Request.Path = "/api/graphql/other";
@@ -303,7 +303,7 @@ public class InProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, StatusCodes.Status404NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, StatusCodes.Status404NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         StatusCodes.Status415UnsupportedMediaType,
         "application/json")]
     public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(

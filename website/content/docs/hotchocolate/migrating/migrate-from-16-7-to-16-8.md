@@ -6,6 +6,12 @@ description: "Migration guide for Hot Chocolate v16.7 to v16.8: review operation
 
 Update every `HotChocolate.*` package in the application to version 16.8 before applying these changes.
 
+# Deprecations
+
+## Draft20260903 transport version renamed to September2026
+
+`HttpTransportVersion.Draft20260903` is obsolete. Use `HttpTransportVersion.September2026`, which names the [September 2026 edition](https://http-spec.graphql.org/September2026/) of the GraphQL over HTTP specification and selects the same behavior, see [Transport Versions](../server/http-transport.md#september2026).
+
 # Behavioral breaking changes
 
 ## Fields added by type interceptors get the default resolver cost

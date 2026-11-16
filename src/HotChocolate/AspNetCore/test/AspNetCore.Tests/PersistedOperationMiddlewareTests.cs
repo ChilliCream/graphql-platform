@@ -419,10 +419,10 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound)]
     [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "text/plain",
         HttpStatusCode.UnsupportedMediaType)]
-    [InlineData(HttpTransportVersion.Draft20260903, null, HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.September2026, null, HttpStatusCode.UnsupportedMediaType)]
     public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
         HttpTransportVersion transportVersion,
         string? contentType,
@@ -767,12 +767,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "text/plain",
         HttpStatusCode.UnsupportedMediaType,
         "application/json")]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         null,
         HttpStatusCode.UnsupportedMediaType,
         "application/json")]
@@ -853,8 +853,8 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [InlineData(HttpTransportVersion.Legacy, OperationNameUrl)]
     [InlineData(HttpTransportVersion.Draft20250508, OperationIdUrl)]
     [InlineData(HttpTransportVersion.Draft20250508, OperationNameUrl)]
-    [InlineData(HttpTransportVersion.Draft20260903, OperationIdUrl)]
-    [InlineData(HttpTransportVersion.Draft20260903, OperationNameUrl)]
+    [InlineData(HttpTransportVersion.September2026, OperationIdUrl)]
+    [InlineData(HttpTransportVersion.September2026, OperationNameUrl)]
     public async Task Head_Should_AnswerAsGet_When_PersistedOperationIsRequested(
         HttpTransportVersion transportVersion,
         string url)
@@ -936,25 +936,25 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         HttpStatusCode.NotFound,
         new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "PUT",
         OperationIdUrl,
         HttpStatusCode.MethodNotAllowed,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "PUT",
         OperationNameUrl,
         HttpStatusCode.MethodNotAllowed,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "DELETE",
         OperationNameUrl,
         HttpStatusCode.MethodNotAllowed,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "QUERY",
         OperationNameUrl,
         HttpStatusCode.MethodNotAllowed,
@@ -1009,12 +1009,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         HttpStatusCode.NotFound,
         new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         OperationIdUrl,
         HttpStatusCode.NoContent,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         OperationNameUrl,
         HttpStatusCode.NoContent,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
@@ -1059,7 +1059,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 .AddHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
-                        HttpTransportVersion = HttpTransportVersion.Draft20260903
+                        HttpTransportVersion = HttpTransportVersion.September2026
                     })
                 .ModifyServerOptions(o => o.EnableQueryRequests = true));
         var client = server.CreateClient();
@@ -1079,7 +1079,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [Theory]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.MethodNotAllowed,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Put_Should_ReturnMethodNotAllowed_When_PersistedRoutesAreMappedAlone(
@@ -1117,7 +1117,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [Theory]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.NoContent,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Options_Should_ReturnAllowedMethods_When_PersistedRoutesAreMappedAlone(
@@ -1166,7 +1166,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 .AddHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
-                        HttpTransportVersion = HttpTransportVersion.Draft20260903
+                        HttpTransportVersion = HttpTransportVersion.September2026
                     }),
             app => app
                 .UseRouting()

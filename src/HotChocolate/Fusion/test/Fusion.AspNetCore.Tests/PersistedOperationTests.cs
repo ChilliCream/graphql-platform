@@ -609,10 +609,10 @@ public class PersistedOperationTests : FusionTestBase
     [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound)]
     [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "text/plain",
         HttpStatusCode.UnsupportedMediaType)]
-    [InlineData(HttpTransportVersion.Draft20260903, null, HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.September2026, null, HttpStatusCode.UnsupportedMediaType)]
     public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
         HttpTransportVersion transportVersion,
         string? contentType,
@@ -670,7 +670,7 @@ public class PersistedOperationTests : FusionTestBase
     [Theory]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.MethodNotAllowed,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Put_Should_ReturnMethodNotAllowed_When_PersistedRoutesAreMappedAlone(
@@ -725,7 +725,7 @@ public class PersistedOperationTests : FusionTestBase
     [Theory]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.NoContent,
         new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Options_Should_ReturnAllowedMethods_When_PersistedRoutesAreMappedAlone(
