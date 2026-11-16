@@ -7,7 +7,7 @@ namespace Mocha.EntityFrameworkCore;
 /// Intercepts Entity Framework Core save changes events to signal the outbox processor
 /// that messages are ready for dispatch.
 /// </summary>
-internal sealed class OutboxSaveChangesInterceptor(IOutboxSignal signal) : SaveChangesInterceptor, ISingletonInterceptor
+internal sealed class OutboxSaveChangesInterceptor(IOutboxSignal signal) : SaveChangesInterceptor
 {
     /// <inheritdoc />
     public override ValueTask<int> SavedChangesAsync(

@@ -23,7 +23,7 @@ public static class OutboxCoreServiceCollectionExtensions
         builder.Services.AddSingleton<OutboxCoreRegistration>();
         builder.Services.TryAddSingleton<IOutboxSignal, MessageBusOutboxSignal>();
         builder.ConfigureMessageBus(b => b.UseDispatch(
-            DispatchOutboxMiddleware.Create(), before: DispatchMiddlewares.Serialization.Key));
+            OutboxDispatchMiddlewares.Outbox, after: DispatchMiddlewares.Scheduling.Key));
 
         return builder;
     }

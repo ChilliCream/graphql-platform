@@ -6,7 +6,8 @@ namespace Mocha.Outbox;
 /// <summary>
 /// Persists outgoing publications, sends, replies, and faults in the <see cref="IMessageOutbox"/> feature of the
 /// dispatch context, or in the registered <see cref="IMessageOutbox"/> when the feature is not set.
-/// All other message kinds pass through to the next middleware.
+/// Other message kinds, and dispatches marked with <see cref="OutboxMiddlewareFeature.SkipOutbox"/>, pass through
+/// to the next middleware.
 /// </summary>
 public sealed class DispatchOutboxMiddleware
 {
@@ -16,6 +17,9 @@ public sealed class DispatchOutboxMiddleware
     /// <param name="context">The current dispatch context containing the message envelope and metadata.</param>
     /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// The dispatch is marked with <see cref="OutboxMiddlewareFeature.SkipOutbox"/> and targets a DbContext outbox.
+    /// </exception>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
         var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
@@ -25,14 +29,25 @@ public sealed class DispatchOutboxMiddleware
             and not MessageKind.Fault)
         {
             await next(context);
+            return;
         }
-        else
+
+        var explicitOutbox = context.Features.Get<IMessageOutbox>();
+
+        if (context.Features.Get<OutboxMiddlewareFeature>() is { SkipOutbox: true })
         {
-            var outbox = context.Features.Get<IMessageOutbox>()
-                ?? context.Services.GetRequiredService<IMessageOutbox>();
-            DispatchSerializerMiddleware.Serialize(context);
-            await outbox.PersistAsync(context.Envelope!, context.CancellationToken);
+            if (explicitOutbox is not null)
+            {
+                throw ThrowHelper.SkipOutboxNotSupportedForDbContextOutbox();
+            }
+
+            await next(context);
+            return;
         }
+
+        var outbox = explicitOutbox ?? context.Services.GetRequiredService<IMessageOutbox>();
+        DispatchSerializerMiddleware.Serialize(context);
+        await outbox.PersistAsync(context.Envelope!, context.CancellationToken);
     }
 
     /// <summary>

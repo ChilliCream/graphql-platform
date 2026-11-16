@@ -65,6 +65,7 @@ public sealed class DbContextOutbox
     private void EnsureCanStage(object message, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(message);
+
         if (_version != _state.Version)
         {
             throw ThrowHelper.OutboxContextDisposed();

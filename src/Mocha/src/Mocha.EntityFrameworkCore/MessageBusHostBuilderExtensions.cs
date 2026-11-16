@@ -34,9 +34,7 @@ public static class MessageBusHostBuilderExtensions
 
         configure(efBuilder);
 
-        builder
-            .Services.AddOptions<MessagingDbContextOptions>(efBuilder.Name)
-            .Configure<IServiceProvider>((options, serviceProvider) => options.ServiceProvider = serviceProvider);
+        builder.Services.AddOptions<MessagingDbContextOptions>(efBuilder.Name);
 
         builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<
             IDbContextOptionsConfiguration<TContext>,

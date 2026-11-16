@@ -94,6 +94,7 @@ internal sealed class PostgresDbContextOutbox(TimeProvider timeProvider, ICurren
     private void Track(DbContext context, OutboxMessage message)
     {
         EnsureAtomicSave(context);
+
         try
         {
             _entries.Add(context.Add(message));

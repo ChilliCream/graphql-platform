@@ -68,6 +68,39 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         Assert.Equal("pending", delivered.Value);
     }
 
+    [Fact]
+    public async Task ProcessAsync_Should_DiscardExpiredMessage_When_DeadlinePassesAfterFailedDelivery()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var clock = new FakeTimeProvider(s_now);
+        var recorder = new DeliveryRecorder
+        {
+            OnFirstAttempt = () =>
+            {
+                clock.Advance(TimeSpan.FromHours(2));
+                throw new InvalidOperationException("The first delivery failed deliberately.");
+            }
+        };
+        await using var provider = await CreateProviderAsync(connectionString, clock, recorder);
+        var id = await MessageRows.InsertOutboxAsync(
+            connectionString, CreateEnvelope(provider, s_now.AddHours(1), unresolvable: false), TestToken);
+        using var stopClock = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+
+        // act
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var advancing = AdvanceClockAfterFirstAttemptAsync(clock, recorder, stopClock.Token);
+        var remainingAttempts = await MessageRows.WaitForOutboxRetryAsync(
+            connectionString, id, s_timeout, TestToken);
+        await stopClock.CancelAsync();
+        await advancing;
+
+        // assert
+        Assert.Null(remainingAttempts);
+        Assert.Equal(1, recorder.Attempts);
+        Assert.False(recorder.Delivered.Task.IsCompleted);
+    }
+
     private static MessageEnvelope CreateEnvelope(
         IServiceProvider provider,
         DateTimeOffset? deadline,
@@ -84,6 +117,30 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
             DeliverBy = deadline,
             Body = JsonSerializer.SerializeToUtf8Bytes(new PendingEvent { Value = "pending" })
         };
+    }
+
+    private static async Task AdvanceClockAfterFirstAttemptAsync(
+        FakeTimeProvider clock,
+        DeliveryRecorder recorder,
+        CancellationToken cancellationToken)
+    {
+        // The relay waits on the fake clock for its retry, so time has to move after the failed attempt.
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (recorder.Attempts > 0)
+            {
+                clock.Advance(TimeSpan.FromMinutes(1));
+            }
+
+            try
+            {
+                await Task.Delay(20, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+        }
     }
 
     private static async Task<ServiceProvider> CreateProviderAsync(
@@ -133,10 +190,18 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
 
         public int Attempts => Volatile.Read(ref _attempts);
 
+        public Action? OnFirstAttempt { get; init; }
+
         public TaskCompletionSource<PendingEvent> Delivered { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void RecordAttempt() => Interlocked.Increment(ref _attempts);
+        public void RecordAttempt()
+        {
+            if (Interlocked.Increment(ref _attempts) == 1)
+            {
+                OnFirstAttempt?.Invoke();
+            }
+        }
     }
 
     private sealed class RecordingDispatchEndpoint(DispatchEndpoint endpoint, DeliveryRecorder recorder)

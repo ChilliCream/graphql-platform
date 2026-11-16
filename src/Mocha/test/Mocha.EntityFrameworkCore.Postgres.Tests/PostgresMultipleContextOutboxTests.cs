@@ -81,6 +81,7 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         }
     }
 
+#if NET9_0_OR_GREATER
     [Fact]
     public async Task OutboxPublishAsync_Should_SaveAndDeliverIndependently_When_ContextsUseDifferentDatabases()
     {
@@ -135,6 +136,7 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
             }
         }
     }
+#endif
 
     [Fact]
     public async Task PublishAsync_Should_PersistToFirstRegisteredContext_When_MultipleContextsAreRegistered()
@@ -171,7 +173,8 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
             }
 
             // assert
-            Assert.Equal(((0, 0), (1, 0)), (beforeCommit, afterCommit));
+            Assert.Equal((0, 0), beforeCommit);
+            Assert.Equal((1, 0), afterCommit);
             Assert.Equal(["default"], recorder.Messages.ToArray());
         }
         finally

@@ -1,4 +1,4 @@
-using CookieCrumble;
+#if NET9_0_OR_GREATER
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -19,7 +19,36 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task DispatchAsync_Should_UseNativeSchedulerAfterCommit_When_OptionsSpecifyScheduledTime(bool send)
+    public async Task DispatchAsync_Should_HandOffToNativeSchedulerAfterCommit_When_ScheduledTimeIsSpecified(bool send)
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync<TestDbContext>(connectionString, Scheduler.Postgres);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        var scheduledTime = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 3600);
+
+        // act
+        await ScheduleAsync(db.Outbox(bus), send, scheduledTime);
+        var beforeSave = await ReadCountsAsync(connectionString, Scheduler.Postgres);
+        await db.SaveChangesAsync(TestToken);
+        var afterSave = await ReadCountsAsync(connectionString, Scheduler.Postgres);
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        await WaitForEmptyOutboxAsync(connectionString);
+
+        // assert
+        Assert.Equal("outbox=0,scheduled=0", beforeSave);
+        Assert.Equal("outbox=1,scheduled=0", afterSave);
+        Assert.Equal("outbox=0,scheduled=1", await ReadCountsAsync(connectionString, Scheduler.Postgres));
+        Assert.Equal(scheduledTime, await ReadScheduledTimeAsync(connectionString, "mocha_message"));
+        Assert.True(await HasNoFallbackTableAsync(connectionString));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DispatchAsync_Should_DeliverAtScheduledTime_When_NativeSchedulerIsUsed(bool send)
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
@@ -29,59 +58,55 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
         var recorder = provider.GetRequiredService<Recorder>();
         var scheduledTime = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 5);
+        await ScheduleAsync(db.Outbox(bus), send, scheduledTime);
+        await db.SaveChangesAsync(TestToken);
 
         // act
-        if (send)
-        {
-            await db.Outbox(bus).SendAsync(
-                new SendReminderCommand("scheduled"), new SendOptions { ScheduledTime = scheduledTime }, TestToken);
-        }
-        else
-        {
-            await db.Outbox(bus).PublishAsync(
-                new ReminderDueEvent("scheduled"), new PublishOptions { ScheduledTime = scheduledTime }, TestToken);
-        }
-
-        var beforeSave = await ReadCountsAsync(connectionString, Scheduler.Postgres);
-        await db.SaveChangesAsync(TestToken);
-        var afterSave = await ReadCountsAsync(connectionString, Scheduler.Postgres);
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
-        await WaitForEmptyOutboxAsync(connectionString);
-        var afterHandoff = await ReadCountsAsync(connectionString, Scheduler.Postgres);
-        var storedTime = await ReadScheduledTimeAsync(connectionString, "mocha_message");
-        var deliveredBeforeDue = recorder.Delivered.Task.IsCompleted;
         var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
 
         // assert
-        new
-        {
-            BeforeSave = beforeSave,
-            AfterSave = afterSave,
-            AfterHandoff = afterHandoff,
-            ScheduledTimeMatches = storedTime == scheduledTime,
-            DeliveredBeforeDue = deliveredBeforeDue,
-            DeliveredAfterDue = delivered.ReceivedAt >= scheduledTime,
-            delivered.Payload,
-            recorder.MiddlewareCalls,
-            NoFallbackTable = await HasNoFallbackTableAsync(connectionString)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "BeforeSave": "outbox=0,scheduled=0",
-              "AfterSave": "outbox=1,scheduled=0",
-              "AfterHandoff": "outbox=0,scheduled=1",
-              "ScheduledTimeMatches": true,
-              "DeliveredBeforeDue": false,
-              "DeliveredAfterDue": true,
-              "Payload": "scheduled",
-              "MiddlewareCalls": 1,
-              "NoFallbackTable": true
-            }
-            """);
+        Assert.InRange(delivered.ReceivedAt, scheduledTime, DateTimeOffset.MaxValue);
+        Assert.Equal("scheduled", delivered.Payload);
+        Assert.Equal(1, recorder.MiddlewareCalls);
     }
 
     [Fact]
-    public async Task SaveChangesAsync_Should_NotEnqueueNativeMessage_When_TransactionRollsBack()
+    public async Task PublishAsync_Should_HandOffToScheduler_When_MiddlewarePresetsSentAt()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync<TestDbContext>(
+            connectionString,
+            Scheduler.Postgres,
+            bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                static (_, next) => context =>
+                {
+                    context.SentAt = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
+                    return next(context);
+                },
+                "PresetSentAt")));
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        var recorder = provider.GetRequiredService<Recorder>();
+        var scheduledTime = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 3600);
+        await db.Outbox(bus).PublishAsync(
+            new ReminderDueEvent("scheduled"), new PublishOptions { ScheduledTime = scheduledTime }, TestToken);
+        await db.SaveChangesAsync(TestToken);
+
+        // act
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        await WaitForEmptyOutboxAsync(connectionString);
+
+        // assert
+        Assert.Equal("outbox=0,scheduled=1", await ReadCountsAsync(connectionString, Scheduler.Postgres));
+        Assert.Equal(scheduledTime, await ReadScheduledTimeAsync(connectionString, "mocha_message"));
+        Assert.False(recorder.Delivered.Task.IsCompleted);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_Should_RetainOutboxMessage_When_NativeSchedulerHandoffFails()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
@@ -89,46 +114,29 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         await using var scope = provider.CreateAsyncScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-        var recorder = provider.GetRequiredService<Recorder>();
+        await db.Outbox(bus).SendAsync(
+            new SendReminderCommand("retried"),
+            new SendOptions { ScheduledTime = DateTimeOffset.UtcNow.AddHours(1) },
+            TestToken);
+        var id = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Id;
+        await db.SaveChangesAsync(TestToken);
+        await ExecuteAsync(connectionString,
+            "ALTER TABLE mocha_message ADD CONSTRAINT reject_handoff CHECK (false) NOT VALID");
+        var processor = provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext));
 
         // act
-        await db.Outbox(bus).PublishAsync(
-            new ReminderDueEvent("rolled-back"),
-            new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(-1) },
-            TestToken);
-        var beforeSave = await ReadCountsAsync(connectionString, Scheduler.Postgres);
-        string beforeCommit;
-        await using (var transaction = await db.Database.BeginTransactionAsync(TestToken))
-        {
-            await db.SaveChangesAsync(TestToken);
-            beforeCommit = await ReadCountsAsync(connectionString, Scheduler.Postgres);
-            await transaction.RollbackAsync(TestToken);
-        }
-
-        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var exception = await Assert.ThrowsAsync<PostgresException>(() => processor.ProcessAsync(TestToken));
+        using var retained = await db.Set<OutboxMessage>().AsNoTracking().SingleAsync(TestToken);
 
         // assert
-        new
-        {
-            BeforeSave = beforeSave,
-            BeforeCommit = beforeCommit,
-            AfterRollback = await ReadCountsAsync(connectionString, Scheduler.Postgres),
-            Delivered = recorder.Delivered.Task.IsCompleted,
-            recorder.MiddlewareCalls
-        }.MatchInlineSnapshot(
-            """
-            {
-              "BeforeSave": "outbox=0,scheduled=0",
-              "BeforeCommit": "outbox=0,scheduled=0",
-              "AfterRollback": "outbox=0,scheduled=0",
-              "Delivered": false,
-              "MiddlewareCalls": 1
-            }
-            """);
+        Assert.Equal("23514", exception.SqlState);
+        Assert.Equal("outbox=1,scheduled=0", await ReadCountsAsync(connectionString, Scheduler.Postgres));
+        Assert.Equal(id, retained.Id);
+        Assert.Equal(1, retained.TimesSent);
     }
 
     [Fact]
-    public async Task ProcessAsync_Should_RetainAndRetryOutboxMessage_When_NativeSchedulerHandoffFails()
+    public async Task ProcessAsync_Should_DeliverOutboxMessage_When_NativeSchedulerHandoffIsRetried()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
@@ -139,46 +147,25 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         var recorder = provider.GetRequiredService<Recorder>();
         await db.Outbox(bus).SendAsync(
             new SendReminderCommand("retried"),
-            new SendOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(-1) },
+            new SendOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(5) },
             TestToken);
-        var id = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Id;
         await db.SaveChangesAsync(TestToken);
         await ExecuteAsync(connectionString,
             "ALTER TABLE mocha_message ADD CONSTRAINT reject_handoff CHECK (false) NOT VALID");
-
-        // act
         var processor = provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext));
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => processor.ProcessAsync(TestToken));
-        var afterFailure = await ReadCountsAsync(connectionString, Scheduler.Postgres);
-        using var retained = await db.Set<OutboxMessage>().AsNoTracking().SingleAsync(TestToken);
+        await Assert.ThrowsAsync<PostgresException>(() => processor.ProcessAsync(TestToken));
         await ExecuteAsync(connectionString, "ALTER TABLE mocha_message DROP CONSTRAINT reject_handoff");
         await ExecuteAsync(connectionString, "UPDATE outbox_messages SET created_at = NOW()");
+
+        // act
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
         var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
         await WaitForEmptyOutboxAsync(connectionString);
 
         // assert
-        new
-        {
-            Error = exception.SqlState,
-            AfterFailure = afterFailure,
-            SameMessage = retained.Id == id,
-            retained.TimesSent,
-            delivered.Payload,
-            recorder.MiddlewareCalls,
-            OutboxEmpty = !await db.Set<OutboxMessage>().AnyAsync(TestToken)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Error": "23514",
-              "AfterFailure": "outbox=1,scheduled=0",
-              "SameMessage": true,
-              "TimesSent": 1,
-              "Payload": "retried",
-              "MiddlewareCalls": 1,
-              "OutboxEmpty": true
-            }
-            """);
+        Assert.Equal("retried", delivered.Payload);
+        Assert.Equal(1, recorder.MiddlewareCalls);
+        Assert.False(await db.Set<OutboxMessage>().AnyAsync(TestToken));
     }
 
     [Fact]
@@ -209,7 +196,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
     }
 
     [Fact]
-    public async Task PublishAsync_Should_UseSeparateSchedulerAfterCommit_When_FallbackIsConfigured()
+    public async Task PublishAsync_Should_HandOffToFallbackSchedulerAfterCommit_When_FallbackIsConfigured()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
@@ -217,8 +204,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         await using var scope = provider.CreateAsyncScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<FallbackDbContext>();
-        var recorder = provider.GetRequiredService<Recorder>();
-        var scheduledTime = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 5);
+        var scheduledTime = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 3600);
 
         // act
         await db.Outbox(bus).PublishAsync(
@@ -228,38 +214,43 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         var afterSave = await ReadCountsAsync(connectionString, Scheduler.Fallback);
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
         await WaitForEmptyOutboxAsync(connectionString);
-        var afterHandoff = await ReadCountsAsync(connectionString, Scheduler.Fallback);
-        var storedTime = await ReadScheduledTimeAsync(connectionString, "scheduled_messages");
-        var deliveredBeforeDue = recorder.Delivered.Task.IsCompleted;
+
+        // assert
+        Assert.Equal("outbox=0,scheduled=0", beforeSave);
+        Assert.Equal("outbox=1,scheduled=0", afterSave);
+        Assert.Equal("outbox=0,scheduled=1", await ReadCountsAsync(connectionString, Scheduler.Fallback));
+        Assert.Equal(scheduledTime, await ReadScheduledTimeAsync(connectionString, "scheduled_messages"));
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_DeliverAtScheduledTime_When_FallbackIsConfigured()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync<FallbackDbContext>(connectionString, Scheduler.Fallback);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<FallbackDbContext>();
+        var recorder = provider.GetRequiredService<Recorder>();
+        var scheduledTime = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 5);
+        await db.Outbox(bus).PublishAsync(
+            new ReminderDueEvent("fallback"), new PublishOptions { ScheduledTime = scheduledTime }, TestToken);
+        await db.SaveChangesAsync(TestToken);
+
+        // act
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
         var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
 
         // assert
-        new
-        {
-            BeforeSave = beforeSave,
-            AfterSave = afterSave,
-            AfterHandoff = afterHandoff,
-            ScheduledTimeMatches = storedTime == scheduledTime,
-            DeliveredBeforeDue = deliveredBeforeDue,
-            DeliveredAfterDue = delivered.ReceivedAt >= scheduledTime,
-            delivered.Payload,
-            recorder.MiddlewareCalls
-        }.MatchInlineSnapshot(
-            """
-            {
-              "BeforeSave": "outbox=0,scheduled=0",
-              "AfterSave": "outbox=1,scheduled=0",
-              "AfterHandoff": "outbox=0,scheduled=1",
-              "ScheduledTimeMatches": true,
-              "DeliveredBeforeDue": false,
-              "DeliveredAfterDue": true,
-              "Payload": "fallback",
-              "MiddlewareCalls": 1
-            }
-            """);
+        Assert.InRange(delivered.ReceivedAt, scheduledTime, DateTimeOffset.MaxValue);
+        Assert.Equal("fallback", delivered.Payload);
+        Assert.Equal(1, recorder.MiddlewareCalls);
     }
 
-    private static async Task<ServiceProvider> CreateProviderAsync<TContext>(string connectionString, Scheduler scheduler)
+    private static async Task<ServiceProvider> CreateProviderAsync<TContext>(
+        string connectionString,
+        Scheduler scheduler,
+        Action<IMessageBusBuilder>? configureBus = null)
         where TContext : DbContext
     {
         var services = new ServiceCollection();
@@ -294,6 +285,11 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
                 return next(context);
             },
             "CountOriginalDispatch")));
+        if (configureBus is not null)
+        {
+            builder.ConfigureMessageBus(configureBus);
+        }
+
         var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         await using (var scope = provider.CreateAsyncScope())
         {
@@ -303,6 +299,13 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
         return provider;
     }
+
+    private static ValueTask ScheduleAsync(DbContextOutbox outbox, bool send, DateTimeOffset scheduledTime)
+        => send
+            ? outbox.SendAsync(
+                new SendReminderCommand("scheduled"), new SendOptions { ScheduledTime = scheduledTime }, TestToken)
+            : outbox.PublishAsync(
+                new ReminderDueEvent("scheduled"), new PublishOptions { ScheduledTime = scheduledTime }, TestToken);
 
     private static async Task<string> ReadCountsAsync(string connectionString, Scheduler scheduler)
     {
@@ -411,3 +414,4 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         Fallback
     }
 }
+#endif

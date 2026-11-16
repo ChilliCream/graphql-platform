@@ -15,8 +15,8 @@ public static class AzureServiceBusTransportDescriptorExtensions
         descriptor
             .UseReceive(AzureServiceBusReceiveMiddlewares.Parsing, after: AzureServiceBusReceiveMiddlewares.Acknowledgement.Key);
 
-        ((IMessagingTransportDescriptor)descriptor).Extend().Configuration.DispatchPipelineModifiers
-            .Prepend(AzureServiceBusDispatchMiddlewares.MessageProperties, before: null);
+        descriptor
+            .UseDispatch(AzureServiceBusDispatchMiddlewares.MessageProperties, after: DispatchMiddlewares.Instrumentation.Key);
 
         return descriptor;
     }

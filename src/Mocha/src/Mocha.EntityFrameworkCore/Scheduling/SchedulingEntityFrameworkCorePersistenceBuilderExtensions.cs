@@ -20,16 +20,22 @@ public static class SchedulingEntityFrameworkCorePersistenceBuilderExtensions
     {
         builder.HostBuilder.UseSchedulerCore();
 
-        builder.ConfigureEntityFrameworkServices((sp, services) =>
+        builder.ConfigureEntityFrameworkServices(static services =>
         {
-            var signal = sp.GetService<ISchedulerSignal>();
-
-            if (signal is not null)
+            services.AddScoped<IInterceptor>(static sp =>
             {
-                var timeProvider = sp.GetService<TimeProvider>() ?? TimeProvider.System;
-                services.AddSingleton<IInterceptor>(new SchedulingDbTransactionInterceptor(signal, timeProvider));
-                services.AddSingleton<IInterceptor>(new SchedulingSaveChangesInterceptor(signal, timeProvider));
-            }
+                var applicationServices = sp.GetRequiredService<MessagingApplicationServices>().Services;
+                return new SchedulingDbTransactionInterceptor(
+                    applicationServices.GetRequiredService<ISchedulerSignal>(),
+                    applicationServices.GetTimeProvider());
+            });
+            services.AddScoped<IInterceptor>(static sp =>
+            {
+                var applicationServices = sp.GetRequiredService<MessagingApplicationServices>().Services;
+                return new SchedulingSaveChangesInterceptor(
+                    applicationServices.GetRequiredService<ISchedulerSignal>(),
+                    applicationServices.GetTimeProvider());
+            });
         });
         return builder;
     }

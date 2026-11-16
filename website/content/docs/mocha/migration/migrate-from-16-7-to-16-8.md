@@ -1,34 +1,29 @@
 ---
 title: Migrate Mocha from 16.7 to 16.8
-description: "Migration guide for Mocha v16.7 to v16.8: dispatch middleware ordering, keyed outbox processors, and publishing or scheduling with SaveChanges."
+description: "Migration guide for Mocha v16.7 to v16.8: dispatch middleware ordering, delivery of stored messages, keyed outbox processors, and Entity Framework Core registration changes."
 ---
 
 Update every `Mocha.*` package in the application to version 16.8 before applying these changes.
 
 # API breaking changes
 
-## Outbox and scheduler bypass features are removed
+## `SkipScheduler()` is removed
 
-`SkipOutbox()`, `SkipScheduler()`, `OutboxMiddlewareFeature`, and `SchedulingMiddlewareFeature` are removed. Remove calls and registrations that set these flags.
+`SkipScheduler()` and `SchedulingMiddlewareFeature` are removed. Stored scheduled messages are now delivered without running dispatch middleware again, so the scheduler no longer needs the flag. Remove calls that set it.
+
+`SkipOutbox()` remains available for `IMessageBus` publishes and sends. A message published through `dbContext.Outbox(bus)` cannot skip the outbox, because it would be sent before the transaction commits, and `SkipOutbox()` throws an `InvalidOperationException` for it.
 
 ## `DispatchSchedulingMiddleware` is internal
 
-`DispatchSchedulingMiddleware` is no longer public. To position your middleware relative to scheduling, anchor it to the `DispatchMiddlewares.Scheduling` key, for example `UseDispatch(config, before: "Scheduling")`.
+`DispatchSchedulingMiddleware` is no longer public. To position your middleware relative to scheduling, anchor it to the `DispatchMiddlewares.Scheduling` key, for example `UseDispatch(config, before: DispatchMiddlewares.Scheduling.Key)`.
 
-# Behavioral breaking changes
+## `ConfigureEntityFrameworkServices` and `MessagingDbContextOptions` are internal
 
-## Stored messages bypass middleware during delivery
+`ConfigureEntityFrameworkServices` and `MessagingDbContextOptions` are no longer public. To add your own services to a DbContext, use Entity Framework Core's `AddInterceptors` or `ReplaceService` when configuring the context.
 
-Dispatch middleware runs when a message is published or sent, including scheduled messages. After commit, the outbox processor sends immediate messages directly through the transport and hands scheduled messages to the native scheduling store or configured fallback. Scheduler delivery also uses the stored envelope. Dispatch middleware does not run again during handoff, delivery, or retries.
+## `OutboxMessage` takes a creation time
 
-Dispatch spans and metrics are therefore emitted when a stored (outboxed or scheduled) message is staged or stored, not when it is delivered. The delivery itself is traced by the `outbox send` and `scheduler send` spans, which record failures.
-
-## Dispatch middleware ordering
-
-The built-in ordering keys are `"Instrumentation"`, `"Scheduling"`, `"Serialization"`, and `"Outbox"` when enabled. The scheduling and outbox middleware serialize and persist their messages without invoking downstream middleware.
-
-- Dispatch middleware registered without an anchor runs before serialization, so `context.Envelope` is not set yet unless middleware supplies one. Update the message and metadata before calling `next(context)`. Changes made after `await next(context)` do not affect the stored message, including when publishing through `db.Outbox(bus)`.
-- Middleware anchored with `before: "Serialization"` runs after `"Scheduling"`, and after `"Outbox"` when the outbox registers first, so it is skipped for scheduled messages and can be skipped for outboxed messages. Anchor it with `before: "Scheduling"` instead.
+The `OutboxMessage` constructor now takes the creation time as a third argument, `OutboxMessage(Guid id, JsonDocument envelope, DateTime createdAt)`, and the entity implements `IDisposable` to release its envelope. Code that inserts outbox rows by hand passes the current UTC time.
 
 ## Resolve PostgreSQL outbox processors by DbContext type
 
@@ -42,92 +37,32 @@ var processor = serviceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>
     typeof(AppDbContext));
 ```
 
-The host continues to start an outbox worker for each registered context automatically. Each outbox context has its own relay, and the first context registered with `UsePostgresOutbox()` serves `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers. Publication through `db.Outbox(bus)` uses the context it is called on.
+The host starts an outbox worker for each registered context automatically. Each outbox context has its own relay. `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers, use the outbox of the first context registered with `UsePostgresOutbox()`.
 
-# Publish with SaveChanges
+# Behavioral breaking changes
 
-Version 16.8 adds `db.Outbox(bus)`, which returns a `DbContextOutbox` for staging messages until that exact context saves:
+## Stored messages bypass middleware during delivery
 
-```csharp
-using Mocha.EntityFrameworkCore;
+Dispatch middleware runs when a message is published or sent, including scheduled messages. After commit, the outbox processor sends immediate messages directly through the transport and hands scheduled messages to the native scheduling store or configured fallback. Scheduler delivery also uses the stored envelope. Dispatch middleware does not run again during handoff, delivery, or retries.
 
-DbContextOutbox outbox = db.Outbox(bus);
-await outbox.PublishAsync(message, cancellationToken);
-await db.SaveChangesAsync(cancellationToken);
-```
+Dispatch spans and metrics are therefore emitted when a stored (outboxed or scheduled) message is staged or stored, not when it is delivered. The delivery itself is traced by the `outbox send` and `scheduler send` spans, which record failures.
 
-The save persists staged messages and entity changes in the same transaction. With EF automatic transactions enabled, no explicit transaction is needed. Existing `IMessageBus.PublishAsync` calls retain their direct outbox persistence behavior and the [transaction requirement introduced in 16.7](./migrate-from-16-6-to-16-7.md#the-postgres-outbox-requires-a-transaction).
+## Dispatch middleware ordering
 
-## Use contexts created directly through a factory
+The dispatch pipeline runs `DispatchMiddlewares.Instrumentation`, transport and application middleware, `DispatchMiddlewares.Serialization`, `DispatchMiddlewares.Scheduling`, and `OutboxDispatchMiddlewares.Outbox` when the outbox is enabled. The scheduling and outbox middleware persist the serialized message and do not call the next middleware.
 
-The new API supports contexts registered with `AddDbContext`, `AddDbContextFactory`, `AddDbContextPool`, or `AddPooledDbContextFactory`. A context constructed by hand is not supported, and `db.Outbox(bus)` throws for it. For example, with a pooled factory:
+- Middleware registered without an anchor now runs before serialization, so `context.Envelope` is not set yet. Change the message and headers before calling `next(context)`. Changes made after `await next(context)` do not affect the sent or stored message.
+- Middleware anchored before or after `DispatchMiddlewares.Serialization.Key` runs for every message, including scheduled and outboxed messages. Use `after: DispatchMiddlewares.Serialization.Key` for middleware that works on the serialized envelope.
+- The RabbitMQ routing key and Azure Service Bus message property middleware run directly after `DispatchMiddlewares.Instrumentation`, so application middleware can read and override the values they set.
 
-```csharp
-builder.Services
-    .AddMessageBus()
-    .AddEntityFramework<AppDbContext>(p => p.UsePostgresOutbox());
+## `UseTransaction()` uses its own DbContext
 
-builder.Services.AddPooledDbContextFactory<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
-```
+`UseTransaction()` opens the consumer transaction on the DbContext of the `AddEntityFramework<TContext>` call it is configured on. Previously it used the context of the last `AddEntityFramework<TContext>` call.
 
-```csharp
-await using var db = await factory.CreateDbContextAsync(cancellationToken);
-DbContextOutbox outbox = db.Outbox(bus);
+## The outbox relay checks for messages when idle
 
-var order = new Order { Id = Guid.NewGuid() };
-db.Orders.Add(order);
+Each outbox relay now checks the database for new messages when it has not been notified for `PollingInterval`, ten seconds by default. This delivers messages committed outside Entity Framework Core, for example by another process. Configure the interval with `UsePostgresOutbox(options => options.PollingInterval = ...)`.
 
-await outbox.PublishAsync(message, cancellationToken);
-await db.SaveChangesAsync(cancellationToken);
-```
+# Publish and schedule with SaveChanges
 
-Use the same `db.Outbox(bus)` call for scoped contexts and contexts created through regular or pooled factories. Use the returned outbox only during that context's lifetime or pooled lease.
-
-`db.Outbox(bus)` requires Entity Framework Core 9 or later and throws a `NotSupportedException` on .NET 8. A context registered only with `AddPooledDbContextFactory` requires EF Core 10 or later. See [Supported contexts](../reliability.md#supported-contexts).
-
-Context instances must use the database and outbox table mapping configured for their relay. Configure a relay for every additional database or outbox table used by the application.
-
-## Use the caller's messaging scope
-
-`db.Outbox(bus)` runs middleware with the supplied bus's messaging services.
-
-The active consumer's conversation and causation identifiers flow into published message metadata. Middleware can resolve caller-scoped services. You can also supply message metadata explicitly:
-
-```csharp
-await db.Outbox(bus).PublishAsync(
-    message,
-    new PublishOptions
-    {
-        Headers = new() { ["x-tenant"] = tenantId }
-    },
-    cancellationToken);
-```
-
-## Keep transaction ownership explicit inside handlers
-
-Each context owns its staged messages and follows its own transaction. `UseTransaction()` manages the configured context in the handler scope; additional factory-created contexts do not automatically join that transaction. A factory-created context can commit even if the handler later fails, and a handler retry can repeat that work. Make the work idempotent or explicitly enlist the contexts in a shared transaction.
-
-See [Publish with SaveChanges](../reliability.md#publish-with-savechanges) for retry, acceptance, and change-tracking behavior.
-
-## Schedule with SaveChanges
-
-Set `ScheduledTime` on the options passed to `db.Outbox(bus).PublishAsync` or `SendAsync`:
-
-```csharp
-await db.Outbox(bus).PublishAsync(
-    message,
-    new PublishOptions
-    {
-        ScheduledTime = DateTimeOffset.UtcNow.AddHours(1)
-    },
-    cancellationToken);
-
-await db.SaveChangesAsync(cancellationToken);
-```
-
-The save persists scheduled messages and entity changes in the same transaction. After commit, the outbox processor hands messages to the native scheduling store or configured fallback for delivery at the scheduled time.
-
-`AddPostgres()` registers native scheduling; it does not require `UsePostgresScheduling()` or a scheduled-message entity mapping. Transports without native scheduling, such as RabbitMQ, require the `UsePostgresScheduling()` fallback.
-
-The outbox methods do not return a scheduling token and cannot be used with `CancelScheduledMessageAsync`. The existing `IMessageBus.SchedulePublishAsync` and `ScheduleSendAsync` APIs remain available. See [Schedule with SaveChanges](../scheduling.md#schedule-with-savechanges) for configuration and examples.
+Version 16.8 adds `dbContext.Outbox(bus)`, which writes published and sent messages in the same transaction as the entity changes of the context. Existing `IMessageBus.PublishAsync` calls keep their behavior. See [Publish with SaveChanges](../reliability.md#publish-with-savechanges) and [Schedule with SaveChanges](../scheduling.md#schedule-with-savechanges).

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 
 namespace Mocha.Tests.Middlewares.Dispatch;
@@ -151,10 +152,33 @@ public sealed class DispatchInstrumentationMiddlewareTests
     }
 
     [Fact]
-    public async Task Create_Should_ReportDispatch_When_Invoked()
+    public void Create_Should_ReturnConfiguration_WithCorrectKey()
+    {
+        // act
+        var configuration = DispatchInstrumentationMiddleware.Create();
+
+        // assert
+        Assert.NotNull(configuration);
+        Assert.Equal("Instrumentation", configuration.Key);
+        Assert.NotNull(configuration.Middleware);
+    }
+
+    [Fact]
+    public async Task Create_Should_ProduceWorkingMiddleware_When_UsedWithServiceProvider()
     {
         // arrange
         var events = new MockMessagingDiagnosticEvents();
+        var services = new ServiceCollection();
+        services.AddSingleton<IMessagingDiagnosticEvents>(events);
+        var provider = services.BuildServiceProvider();
+
+        var configuration = DispatchInstrumentationMiddleware.Create();
+        var factoryContext = new DispatchMiddlewareFactoryContext
+        {
+            Services = provider,
+            Endpoint = null!,
+            Transport = null!
+        };
         var nextCalled = false;
 
         DispatchDelegate terminalNext = _ =>
@@ -164,7 +188,7 @@ public sealed class DispatchInstrumentationMiddlewareTests
         };
 
         // act
-        var middlewareDelegate = DispatchInstrumentationMiddleware.Create(events, terminalNext);
+        var middlewareDelegate = configuration.Middleware(factoryContext, terminalNext);
         var dispatchContext = new DispatchContext();
         await middlewareDelegate(dispatchContext);
 

@@ -132,9 +132,28 @@ public sealed class DispatchSerializerMiddlewareTests
     }
 
     [Fact]
-    public async Task Create_Should_CallNext_When_EnvelopeIsPrebuilt()
+    public void Create_Should_ReturnConfiguration_WithCorrectKey()
+    {
+        // act
+        var configuration = DispatchSerializerMiddleware.Create();
+
+        // assert
+        Assert.NotNull(configuration);
+        Assert.Equal("Serialization", configuration.Key);
+        Assert.NotNull(configuration.Middleware);
+    }
+
+    [Fact]
+    public async Task Create_Should_ProduceWorkingMiddleware_When_EnvelopePreSet()
     {
         // arrange
+        var configuration = DispatchSerializerMiddleware.Create();
+        var factoryContext = new DispatchMiddlewareFactoryContext
+        {
+            Services = null!,
+            Endpoint = null!,
+            Transport = null!
+        };
         var nextCalled = false;
 
         DispatchDelegate terminalNext = _ =>
@@ -143,8 +162,8 @@ public sealed class DispatchSerializerMiddlewareTests
             return ValueTask.CompletedTask;
         };
 
-        // act
-        var middlewareDelegate = DispatchSerializerMiddleware.Create(terminalNext);
+        // act - create the middleware from the factory and invoke with pre-set envelope
+        var middlewareDelegate = configuration.Middleware(factoryContext, terminalNext);
         var context = new DispatchContext { Envelope = new MessageEnvelope() };
         await middlewareDelegate(context);
 

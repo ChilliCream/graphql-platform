@@ -353,7 +353,7 @@ public sealed class PostgresOutboxProcessor
             context.InitializeFromEnvelope(
                 scope.ServiceProvider, endpoint, _runtime, messageType, envelope, cancellationToken);
 
-            if (envelope is { ScheduledTime: not null, SentAt: null })
+            if (envelope.ScheduledTime > _timeProvider.GetUtcNow())
             {
                 var store = DispatchSchedulingMiddleware.ResolveStore(context);
                 await store.PersistAsync(context, cancellationToken);

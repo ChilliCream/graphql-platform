@@ -94,14 +94,15 @@ builder.Services
     .AddRabbitMQ(transport =>
     {
         // Add dispatch middleware scoped to this transport
-        transport.UseDispatch(TenantDispatchMiddleware.Create("acme"));
+        var tenantMiddleware = TenantDispatchMiddleware.Create("acme");
+        transport.UseDispatch(tenantMiddleware);
 
         // Add receive middleware scoped to this transport
         transport.UseReceive(myReceiveMiddleware);
 
         // Insert middleware relative to existing ones
-        transport.UseReceive(myMiddleware, after: "ConcurrencyLimiter");
-        transport.UseDispatch(myDispatchMiddleware, after: "TenantDispatch");
+        transport.UseReceive(myMiddleware, after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
+        transport.UseDispatch(myDispatchMiddleware, after: tenantMiddleware.Key);
     });
 ```
 

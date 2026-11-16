@@ -11,6 +11,8 @@ namespace Mocha.Tests.Infrastructure;
 
 public class MessagePreparationTests
 {
+    private static readonly JsonSerializerOptions s_webOptions = new(JsonSerializerDefaults.Web);
+
     [Fact]
     public async Task PublishAsync_Should_PersistMiddlewareChanges_When_ApplicationMiddlewareRuns()
     {
@@ -35,21 +37,10 @@ public class MessagePreparationTests
 
         // assert
         var envelope = Assert.Single(provider.GetRequiredService<CapturingOutbox>().Envelopes);
-        new
-        {
-            MiddlewareCalls = middlewareCalls,
-            DurableHeader = envelope.Headers!.GetValue("durable-header"),
-            Message = Deserialize(envelope).Value,
-            TransportCalls = provider.GetRequiredService<TransportCounter>().Calls
-        }.MatchInlineSnapshot(
-            """
-            {
-              "MiddlewareCalls": 1,
-              "DurableHeader": "prepared-once",
-              "Message": "from-middleware",
-              "TransportCalls": 0
-            }
-            """);
+        Assert.Equal(1, middlewareCalls);
+        Assert.Equal("prepared-once", envelope.Headers!.GetValue("durable-header"));
+        Assert.Equal("from-middleware", Deserialize(envelope).Value);
+        Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
     }
 
     [Theory]
@@ -81,19 +72,8 @@ public class MessagePreparationTests
         var envelopes = outbox
             ? provider.GetRequiredService<CapturingOutbox>().Envelopes
             : provider.GetRequiredService<TransportCounter>().Envelopes;
-        new
-        {
-            ObservedAfterNext = observed,
-            Finalized = envelopes.Select(envelope => Deserialize(envelope).Value)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "ObservedAfterNext": "before-next",
-              "Finalized": [
-                "before-next"
-              ]
-            }
-            """);
+        Assert.Equal("before-next", observed);
+        Assert.Equal(["before-next"], envelopes.Select(envelope => Deserialize(envelope).Value));
     }
 
     [Theory]
@@ -130,7 +110,7 @@ public class MessagePreparationTests
         // act
         if (explicitOutbox)
         {
-            await PrepareAsync(bus, new TargetMessage("failed"), send: false,
+            await DispatchToOutboxAsync(bus, new TargetMessage("failed"), send: false,
                 static (_, _) => throw new InvalidOperationException("Persistence failed."));
         }
         else
@@ -139,19 +119,9 @@ public class MessagePreparationTests
         }
 
         // assert
-        new
-        {
-            Caught = caught?.GetType().Name,
-            Persisted = outbox.Envelopes.Count,
-            TransportCalls = provider.GetRequiredService<TransportCounter>().Calls
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Caught": "InvalidOperationException",
-              "Persisted": 0,
-              "TransportCalls": 0
-            }
-            """);
+        Assert.IsType<InvalidOperationException>(caught);
+        Assert.Empty(outbox.Envelopes);
+        Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
     }
 
     [Theory]
@@ -175,7 +145,7 @@ public class MessagePreparationTests
         // act
         if (prepare)
         {
-            await PrepareAsync(bus, new TargetMessage("prepared"), send: false, (_, _) => events.Add("stage"));
+            await DispatchToOutboxAsync(bus, new TargetMessage("prepared"), send: false, (_, _) => events.Add("stage"));
         }
         else
         {
@@ -231,7 +201,13 @@ public class MessagePreparationTests
     public async Task Configure_Should_AcceptAnchor_When_MiddlewareReferencesBuiltInStage(string key)
     {
         // arrange
-        var middleware = new DispatchMiddlewareConfiguration(static (_, next) => next, "ApplicationMiddleware");
+        var middleware = new DispatchMiddlewareConfiguration(
+            static (_, next) => context =>
+            {
+                context.Headers.Set("x-anchor", "set");
+                return next(context);
+            },
+            "ApplicationMiddleware");
 
         // act
         await using var provider = await CreateProviderAsync(outbox: true, builder =>
@@ -243,6 +219,69 @@ public class MessagePreparationTests
         // assert
         var envelope = Assert.Single(provider.GetRequiredService<CapturingOutbox>().Envelopes);
         Assert.Equal("anchored", Deserialize(envelope).Value);
+        Assert.Equal("set", envelope.Headers!.GetValue("x-anchor"));
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task PublishAsync_Should_RunSerializationAnchoredMiddleware_When_MessageIsStored(
+        bool after,
+        bool scheduled)
+    {
+        // arrange
+        var calls = 0;
+        var store = new CapturingScheduledMessageStore();
+        var middleware = new DispatchMiddlewareConfiguration(
+            (_, next) => context =>
+            {
+                calls++;
+                context.Headers.Set("x-anchor", "set");
+                return next(context);
+            },
+            "SerializationAnchored");
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+        {
+            builder.Services.RemoveAll<ScheduledMessageStoreRegistration>();
+            builder.Services.AddSingleton(store);
+            builder.Services.AddSingleton(new ScheduledMessageStoreRegistration(
+                typeof(InMemoryMessagingTransport), "test:", typeof(CapturingScheduledMessageStore)));
+            builder.ConfigureMessageBus(bus =>
+            {
+                if (after)
+                {
+                    bus.UseDispatch(middleware, after: "Serialization");
+                }
+                else
+                {
+                    bus.UseDispatch(middleware, before: "Serialization");
+                }
+            });
+        });
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        if (scheduled)
+        {
+            await bus.SchedulePublishAsync(
+                new TargetMessage("anchored"),
+                new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                CancellationToken.None);
+        }
+        else
+        {
+            await bus.PublishAsync(new TargetMessage("anchored"), CancellationToken.None);
+        }
+
+        // assert
+        var envelope = scheduled
+            ? Assert.Single(store.Envelopes)
+            : Assert.Single(provider.GetRequiredService<CapturingOutbox>().Envelopes);
+        Assert.Equal(1, calls);
+        Assert.Equal("set", envelope.Headers!.GetValue("x-anchor"));
     }
 
     [Theory]
@@ -294,7 +333,8 @@ public class MessagePreparationTests
         {
             if (prepare)
             {
-                await PrepareAsync(bus, new TargetMessage("prepared"), send: false, (_, _) => callbackCalled = true);
+                await DispatchToOutboxAsync(
+                    bus, new TargetMessage("prepared"), send: false, (_, _) => callbackCalled = true);
             }
             else
             {
@@ -306,7 +346,7 @@ public class MessagePreparationTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PrepareAsync_Should_UseCallerScopeAndCorrelation_When_MessageIsPrepared(bool send)
+    public async Task DispatchAsync_Should_UseCallerScopeAndCorrelation_When_OutboxIsExplicit(bool send)
     {
         // arrange
         await using var provider = await CreateProviderAsync(outbox: true, builder =>
@@ -335,31 +375,17 @@ public class MessagePreparationTests
         var envelope = await CaptureAsync(bus, new TargetMessage("prepared"), send);
 
         // assert
-        envelope.Headers!.TryGetValue("scope", out var scopeValue);
-        new
-        {
-            Scope = scopeValue,
-            envelope.ConversationId,
-            envelope.CausationId,
-            Message = Deserialize(envelope).Value,
-            DefaultOutboxMessages = provider.GetRequiredService<CapturingOutbox>().Envelopes.Count
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Scope": "caller",
-              "ConversationId": "incoming-conversation",
-              "CausationId": "incoming-message",
-              "Message": "prepared",
-              "DefaultOutboxMessages": 0
-            }
-            """);
+        Assert.Equal("caller", envelope.Headers!.GetValue("scope"));
+        Assert.Equal("incoming-conversation", envelope.ConversationId);
+        Assert.Equal("incoming-message", envelope.CausationId);
         Assert.Equal(send ? MessageKind.Send : MessageKind.Publish, envelope.Headers!.Get(MessageHeaders.MessageKind));
+        Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PrepareAsync_Should_SerializeAtOutbox_When_MiddlewareChangesMessageAfterNext(bool send)
+    public async Task DispatchAsync_Should_SerializeAtOutbox_When_MiddlewareChangesMessageAfterNext(bool send)
     {
         // arrange
         var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -384,27 +410,11 @@ public class MessagePreparationTests
         var envelope = await CaptureAsync(bus, new TargetMessage("before-next"), send);
 
         // assert
-        new
-        {
-            Message = Deserialize(envelope).Value,
-            envelope.CorrelationId,
-            envelope.SentAt,
-            envelope.DeliverBy,
-            Header = envelope.Headers!.GetValue("final-header"),
-            DefaultOutboxMessages = provider.GetRequiredService<CapturingOutbox>().Envelopes.Count,
-            TransportCalls = provider.GetRequiredService<TransportCounter>().Calls
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Message": "before-next",
-              "CorrelationId": "initial-correlation",
-              "SentAt": null,
-              "DeliverBy": null,
-              "Header": null,
-              "DefaultOutboxMessages": 0,
-              "TransportCalls": 0
-            }
-            """);
+        Assert.Equal("before-next", Deserialize(envelope).Value);
+        Assert.Equal("initial-correlation", envelope.CorrelationId);
+        Assert.Null(envelope.SentAt);
+        Assert.Null(envelope.DeliverBy);
+        Assert.Null(envelope.Headers!.GetValue("final-header"));
     }
 
     [Fact]
@@ -431,26 +441,17 @@ public class MessagePreparationTests
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await PrepareAsync(bus, new TargetMessage("failed"), send: false, (_, _) => callbackCalled = true));
+            await DispatchToOutboxAsync(
+                bus, new TargetMessage("failed"), send: false, (_, _) => callbackCalled = true));
         fail = false;
         await bus.PublishAsync(new TargetMessage("ordinary"), CancellationToken.None);
 
         // assert
-        new
-        {
-            Error = exception.Message,
-            CallbackCalled = callbackCalled,
-            Persisted = provider.GetRequiredService<CapturingOutbox>().Envelopes.Select(envelope => Deserialize(envelope).Value)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Error": "preparation failed",
-              "CallbackCalled": true,
-              "Persisted": [
-                "ordinary"
-              ]
-            }
-            """);
+        Assert.Equal("preparation failed", exception.Message);
+        Assert.True(callbackCalled);
+        Assert.Equal(
+            ["ordinary"],
+            provider.GetRequiredService<CapturingOutbox>().Envelopes.Select(envelope => Deserialize(envelope).Value));
     }
 
     [Fact]
@@ -465,7 +466,7 @@ public class MessagePreparationTests
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await PrepareAsync(bus, new TargetMessage("failed"), send: false,
+            await DispatchToOutboxAsync(bus, new TargetMessage("failed"), send: false,
                 static (_, _) => throw new InvalidOperationException("Persistence failed.")));
 
         // assert
@@ -481,7 +482,7 @@ public class MessagePreparationTests
     }
 
     [Fact]
-    public async Task PrepareAsync_Should_SkipOutbox_When_MiddlewareShortCircuits()
+    public async Task PublishAsync_Should_SkipOutbox_When_MiddlewareShortCircuits()
     {
         // arrange
         var persisted = false;
@@ -492,7 +493,7 @@ public class MessagePreparationTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await PrepareAsync(bus, new TargetMessage("incomplete"), send: false, (_, _) => persisted = true);
+        await DispatchToOutboxAsync(bus, new TargetMessage("incomplete"), send: false, (_, _) => persisted = true);
 
         // assert
         Assert.False(persisted);
@@ -530,7 +531,7 @@ public class MessagePreparationTests
     }
 
     [Fact]
-    public async Task PrepareAsync_Should_StageMessage_When_CancelledAfterDispatch()
+    public async Task PublishAsync_Should_StageMessage_When_CancelledAfterDispatch()
     {
         // arrange
         using var cancellation = new CancellationTokenSource();
@@ -561,7 +562,7 @@ public class MessagePreparationTests
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public async Task PrepareAsync_Should_UseExplicitOutbox_When_TimeIsSpecified(bool send, bool scheduledByMiddleware)
+    public async Task DispatchAsync_Should_UseExplicitOutbox_When_TimeIsSpecified(bool send, bool scheduledByMiddleware)
     {
         // arrange
         var store = new CapturingScheduledMessageStore();
@@ -608,7 +609,7 @@ public class MessagePreparationTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PrepareAsync_Should_PreserveScheduledTime_When_MiddlewareChangesTimeAfterNext(bool send)
+    public async Task DispatchAsync_Should_PreserveScheduledTime_When_MiddlewareChangesTimeAfterNext(bool send)
     {
         // arrange
         var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -633,29 +634,17 @@ public class MessagePreparationTests
                 new PublishOptions { ScheduledTime = time }, outbox, CancellationToken.None));
 
         // assert
-        new
-        {
-            Message = Deserialize(captured!).Value,
-            captured!.ScheduledTime,
-            captured.SentAt,
-            OutboxMessages = provider.GetRequiredService<CapturingOutbox>().Envelopes.Count,
-            TransportCalls = provider.GetRequiredService<TransportCounter>().Calls
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Message": "scheduled",
-              "ScheduledTime": "2030-01-01T00:00:00+00:00",
-              "SentAt": null,
-              "OutboxMessages": 0,
-              "TransportCalls": 0
-            }
-            """);
+        Assert.Equal("scheduled", Deserialize(captured!).Value);
+        Assert.Equal(time, captured!.ScheduledTime);
+        Assert.Null(captured.SentAt);
+        Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
+        Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PrepareAsync_Should_RejectBeforeStaging_When_NoSchedulerMatchesTransport(bool send)
+    public async Task DispatchAsync_Should_RejectBeforeStaging_When_NoSchedulerMatchesTransport(bool send)
     {
         // arrange
         var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -733,7 +722,7 @@ public class MessagePreparationTests
     }
 
     [Fact]
-    public async Task PrepareAsync_Should_KeepMessagesIsolated_When_PreparationsOverlap()
+    public async Task DispatchAsync_Should_KeepMessagesIsolated_When_DispatchesOverlap()
     {
         // arrange
         var bothEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -769,11 +758,12 @@ public class MessagePreparationTests
     private static async ValueTask<MessageEnvelope> CaptureAsync(IMessageBus bus, TargetMessage message, bool send)
     {
         MessageEnvelope envelope = null!;
-        await PrepareAsync(bus, message, send, (prepared, _) => envelope = MessageEnvelope.CopyWithOwnedBody(prepared));
+        await DispatchToOutboxAsync(
+            bus, message, send, (prepared, _) => envelope = MessageEnvelope.CopyWithOwnedBody(prepared));
         return envelope;
     }
 
-    private static ValueTask PrepareAsync(
+    private static ValueTask DispatchToOutboxAsync(
         IMessageBus bus,
         TargetMessage message,
         bool send,
@@ -783,7 +773,7 @@ public class MessagePreparationTests
             : ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, new CallbackOutbox(onPrepared), CancellationToken.None);
 
     private static TargetMessage Deserialize(MessageEnvelope envelope)
-        => JsonSerializer.Deserialize<TargetMessage>(envelope.Body.Span, JsonSerializerOptions.Web)!;
+        => JsonSerializer.Deserialize<TargetMessage>(envelope.Body.Span, s_webOptions)!;
 
     private static async Task<ServiceProvider> CreateProviderAsync(
         bool outbox,

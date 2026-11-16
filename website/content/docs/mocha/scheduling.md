@@ -16,7 +16,7 @@ var result = await bus.SchedulePublishAsync(
 
 The call returns immediately with a `SchedulingResult`. The message is persisted and delivered when the scheduled time arrives. If you need to revoke the message before delivery, pass the token to `CancelScheduledMessageAsync`.
 
-Dispatch middleware runs when you call `SchedulePublishAsync`, `ScheduleSendAsync`, or publish or send with a `ScheduledTime`. Place message enrichment before `"Scheduling"` and set message data and headers before calling `next(context)`. The scheduling middleware serializes and persists the message without invoking downstream middleware. Background workers deliver the stored envelope directly through the transport without running dispatch middleware again.
+Dispatch middleware runs when you call `SchedulePublishAsync`, `ScheduleSendAsync`, or publish or send with a `ScheduledTime`. Middleware registered without an anchor runs before serialization and before `DispatchMiddlewares.Scheduling`, so set message data and headers before calling `next(context)`. The scheduling middleware persists the serialized message without invoking downstream middleware. Background workers deliver the stored envelope directly through the transport without running dispatch middleware again.
 
 # Schedule a message
 
@@ -228,7 +228,7 @@ dotnet ef database update
 
 # Schedule with SaveChanges
 
-Set `ScheduledTime` on the options passed to `db.Outbox(bus).PublishAsync` or `SendAsync`. The DbContext's next `SaveChanges` writes the message in the same transaction as your entity changes.
+Set `ScheduledTime` on the options passed to `dbContext.Outbox(bus).PublishAsync` or `SendAsync`. The DbContext's next `SaveChanges` writes the message in the same transaction as your entity changes.
 
 With the PostgreSQL transport, the standard outbox and transport registrations support scheduling:
 
@@ -253,8 +253,8 @@ Create an outbox with the caller's bus and publish with a scheduled time before 
 ```csharp
 using Mocha.EntityFrameworkCore;
 
-db.Orders.Add(order);
-DbContextOutbox outbox = db.Outbox(bus);
+dbContext.Orders.Add(order);
+DbContextOutbox outbox = dbContext.Outbox(bus);
 
 await outbox.PublishAsync(
     new PaymentReminderEvent { OrderId = order.Id },
@@ -264,16 +264,16 @@ await outbox.PublishAsync(
     },
     cancellationToken);
 
-await db.SaveChangesAsync(cancellationToken);
+await dbContext.SaveChangesAsync(cancellationToken);
 ```
 
-Use `db.Outbox(bus).SendAsync` with `SendOptions.ScheduledTime` for a directed message. These methods do not return a scheduling token and cannot be used with `CancelScheduledMessageAsync`.
+Use `dbContext.Outbox(bus).SendAsync` with `SendOptions.ScheduledTime` for a directed message. These methods do not return a scheduling token and cannot be used with `CancelScheduledMessageAsync`.
 
-After the transaction commits, the outbox processor submits the stored envelope to the transport's scheduling store, or to the configured fallback if the transport has no native store. The outbox entry is deleted after a successful handoff; the scheduler handles delivery at the scheduled time. Application dispatch middleware does not run again during handoff or delivery.
+After the transaction commits, the outbox processor submits the stored envelope to the transport's scheduling store, or to the configured fallback if the transport has no native store. A message that is already due by then is sent directly. The outbox entry is deleted after a successful handoff; the scheduler handles delivery at the scheduled time. Application dispatch middleware does not run again during handoff or delivery.
 
 `AddPostgres()` registers native scheduling. For RabbitMQ, configure the [Postgres fallback](#set-up-store-based-scheduling-for-rabbitmq). If no scheduling store is available for the destination transport, publication throws before staging the message.
 
-The same `db.Outbox(bus)` call supports scoped contexts and contexts created through regular or pooled factories. See [Publish with SaveChanges](./reliability.md#publish-with-savechanges) for retry and transaction behavior.
+The same `dbContext.Outbox(bus)` call supports scoped contexts and contexts created through regular or pooled factories. See [Publish with SaveChanges](./reliability.md#publish-with-savechanges) for retry and transaction behavior.
 
 # Transport scheduling behavior
 
@@ -308,7 +308,7 @@ The Postgres fallback uses row-level locks to prevent multiple workers from proc
 
 Messages published or sent through `IMessageBus` with a `ScheduledTime` are intercepted by the scheduler before reaching the outbox. The `UsePostgresScheduling()` store participates in the configured DbContext's current database transaction. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport.
 
-Messages published or sent through `db.Outbox(bus)` with a `ScheduledTime` are staged as outbox entries on that context and persisted by its next save. After commit, the outbox processor hands each stored envelope to the transport's native scheduling store or the configured fallback. See [Schedule with SaveChanges](#schedule-with-savechanges) for configuration.
+Messages published or sent through `dbContext.Outbox(bus)` with a `ScheduledTime` are staged as outbox entries on that context and persisted by its next save. After commit, the outbox processor hands each stored envelope that is not due yet to the transport's native scheduling store or the configured fallback, and sends one that is already due directly. See [Schedule with SaveChanges](#schedule-with-savechanges) for configuration.
 
 # Schedule messages in sagas
 

@@ -11,7 +11,6 @@ internal sealed class SchedulingSaveChangesInterceptor(
     ISchedulerSignal signal,
     TimeProvider timeProvider)
     : SaveChangesInterceptor
-    , ISingletonInterceptor
 {
     /// <inheritdoc />
     public override ValueTask<int> SavedChangesAsync(

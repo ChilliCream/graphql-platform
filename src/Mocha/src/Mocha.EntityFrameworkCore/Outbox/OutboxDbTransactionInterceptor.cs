@@ -10,7 +10,6 @@ namespace Mocha.EntityFrameworkCore;
 /// </summary>
 internal sealed class OutboxDbTransactionInterceptor(IOutboxSignal signal)
     : DbTransactionInterceptor
-    , ISingletonInterceptor
 {
     /// <inheritdoc />
     public override Task TransactionCommittedAsync(

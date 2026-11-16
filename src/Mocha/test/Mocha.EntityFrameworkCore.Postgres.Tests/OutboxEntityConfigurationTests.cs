@@ -67,7 +67,8 @@ public sealed class OutboxEntityConfigurationTests
         var envelopeProp = entityType.FindProperty(nameof(OutboxMessage.Envelope))!;
 
         // assert
-        Assert.Equal((typeof(JsonDocument), "json"), (envelopeProp.ClrType, envelopeProp.GetColumnType()));
+        Assert.Equal(typeof(JsonDocument), envelopeProp.ClrType);
+        Assert.Equal("json", envelopeProp.GetColumnType());
     }
 
     [Fact]

@@ -13,11 +13,27 @@ using Npgsql;
 
 namespace Mocha.Outbox;
 
+/// <summary>
+/// Registers the Postgres outbox for an Entity Framework Core <see cref="DbContext"/>.
+/// </summary>
 public static class OutboxServiceCollectionExtensions
 {
+    private static readonly TimeSpan s_maxPollingInterval = TimeSpan.FromMilliseconds(uint.MaxValue - 1);
+
+    /// <summary>
+    /// Stores outgoing messages in the outbox table of the context and relays them to the transport after commit.
+    /// </summary>
+    /// <param name="builder">The Entity Framework Core builder to configure.</param>
+    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(this IEntityFrameworkCoreBuilder builder)
         => builder.UsePostgresOutbox(static _ => { });
 
+    /// <summary>
+    /// Stores outgoing messages in the outbox table of the context and relays them to the transport after commit.
+    /// </summary>
+    /// <param name="builder">The Entity Framework Core builder to configure.</param>
+    /// <param name="configure">Configures the <see cref="PostgresOutboxOptions"/>.</param>
+    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(
         this IEntityFrameworkCoreBuilder builder,
         Action<PostgresOutboxOptions> configure)
@@ -28,8 +44,9 @@ public static class OutboxServiceCollectionExtensions
         builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
             .Configure(configure)
             .Validate(
-                options => options.PollingInterval > TimeSpan.Zero,
-                "PostgresOutboxOptions.PollingInterval must be greater than zero.");
+                options => options.PollingInterval > TimeSpan.Zero && options.PollingInterval <= s_maxPollingInterval,
+                "PostgresOutboxOptions.PollingInterval must be greater than zero and at most "
+                + $"{s_maxPollingInterval}.");
 
         var contextType = builder.ContextType;
 
@@ -45,7 +62,7 @@ public static class OutboxServiceCollectionExtensions
             .Configure<IServiceProvider>((options, sp) =>
             {
                 using var scope = sp.CreateScope();
-                var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
+                var dbContext = PostgresMessageOutbox.ResolveDbContext(scope.ServiceProvider, contextType);
                 var model = dbContext.Model;
 
                 ConfigureOutboxTableInfo(options.Outbox, model);
@@ -57,7 +74,7 @@ public static class OutboxServiceCollectionExtensions
             {
                 options.CreateConnection = services =>
                 {
-                    var dbContext = (DbContext)services.GetRequiredService(contextType);
+                    var dbContext = PostgresMessageOutbox.ResolveDbContext(services, contextType);
                     return (NpgsqlConnection)((ICloneable)dbContext.Database.GetDbConnection()).Clone();
                 };
 
@@ -86,11 +103,15 @@ public static class OutboxServiceCollectionExtensions
         builder.Services.TryAddScoped<IMessageOutbox>(sp =>
             PostgresMessageOutbox.Create(contextType, builder.Name, sp));
 
-        builder.ConfigureEntityFrameworkServices((applicationServices, services) =>
+        builder.ConfigureEntityFrameworkServices(static services =>
         {
-            services.AddScoped(sp => new PostgresDbContextOutbox(
-                applicationServices.GetTimeProvider(),
-                sp.GetRequiredService<ICurrentDbContext>()));
+            services.AddScoped(static sp =>
+            {
+                var applicationServices = sp.GetRequiredService<MessagingApplicationServices>().Services;
+                return new PostgresDbContextOutbox(
+                    applicationServices.GetTimeProvider(),
+                    sp.GetRequiredService<ICurrentDbContext>());
+            });
             services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
             services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
             services.AddScoped<IMessageOutbox>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());

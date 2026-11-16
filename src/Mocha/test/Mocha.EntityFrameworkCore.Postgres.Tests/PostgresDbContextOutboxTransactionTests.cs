@@ -1,3 +1,4 @@
+#if NET9_0_OR_GREATER
 using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
@@ -27,7 +28,7 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         var connectionString = await fixture.CreateDatabaseAsync();
         var provider = await CreateProviderAsync(
             connectionString,
-            TimeSpan.FromMinutes(1),
+            TimeSpan.FromMilliseconds(100),
             TimeProvider.System,
             static _ => { });
         var polls = ObserveOutboxPolls(provider);
@@ -50,8 +51,7 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         await db.SaveChangesAsync(TestToken);
         var afterSecondSave = await CountRowsAsync(provider);
 
-        provider.GetRequiredService<IOutboxSignal>().Set();
-        await polls.ReadAsync(TestToken).AsTask().WaitAsync(s_timeout, TestToken);
+        await WaitForPollStartedAfterNowAsync(polls);
         var deliveredBeforeCommit = recorder.Messages.ToArray();
         await transaction.CommitAsync(TestToken);
         await recorder.WaitAsync(2, TestToken);
@@ -59,7 +59,8 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         var orderIds = await db.Orders.OrderBy(o => o.Id).Select(o => o.Id).ToArrayAsync(TestToken);
 
         // assert
-        Assert.Equal(((0, 0), (0, 0)), (afterFirstSave, afterSecondSave));
+        Assert.Equal((0, 0), afterFirstSave);
+        Assert.Equal((0, 0), afterSecondSave);
         Assert.Empty(deliveredBeforeCommit);
         Assert.Equal([1, 2], orderIds);
         Assert.Equal([new OrderPlaced(1, 1), new OrderPlaced(2, 1)], recorder.Messages.OrderBy(m => m.OrderId));
@@ -90,7 +91,8 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         // assert
         Assert.Equal(2, recorder.Attempts);
         Assert.Equal((0, 0), recorder.RowsBeforeRetry);
-        Assert.Equal((1, 2), (order.Id, order.Attempt));
+        Assert.Equal(1, order.Id);
+        Assert.Equal(2, order.Attempt);
         Assert.Equal([new OrderPlaced(1, 2)], recorder.Messages);
     }
 
@@ -212,6 +214,39 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
     }
 
     [Fact]
+    public async Task OutboxPublishAsync_Should_DeliverAfterCompletion_When_TransactionScopeIsCompleted()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMinutes(1),
+            TimeProvider.System,
+            static _ => { });
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+
+        // act
+        using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            await using var scope = provider.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            db.Orders.Add(new Order { Id = 1, Attempt = 1 });
+            await db.Outbox(bus).PublishAsync(new OrderPlaced(1, 1), TestToken);
+            await db.SaveChangesAsync(TestToken);
+            transaction.Complete();
+        }
+
+        await recorder.WaitAsync(1, TestToken);
+        await WaitForEmptyOutboxAsync(provider);
+
+        // assert
+        Assert.Equal([new OrderPlaced(1, 1)], recorder.Messages);
+        Assert.Equal((1, 0), await CountRowsAsync(provider));
+    }
+
+    [Fact]
     public async Task OutboxPublishAsync_Should_DeliverOnce_When_ExecutionStrategyRetriesTransaction()
     {
         // arrange
@@ -249,7 +284,9 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         var orderAttempts = await db.Orders.Select(o => o.Attempt).ToArrayAsync(TestToken);
 
         // assert
-        Assert.Equal((2, 1, 1), (attempts, failFirstInsert.Failures, messagesBeforeCommit));
+        Assert.Equal(2, attempts);
+        Assert.Equal(1, failFirstInsert.Failures);
+        Assert.Equal(1, messagesBeforeCommit);
         Assert.Equal([2], orderAttempts);
         Assert.Equal([new OrderPlaced(1, 2)], recorder.Messages);
     }
@@ -283,7 +320,8 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void UsePostgresOutbox_Should_RejectPollingInterval_When_NotPositive(int seconds)
+    [InlineData(50 * 24 * 60 * 60)]
+    public void UsePostgresOutbox_Should_RejectPollingInterval_When_OutOfRange(int seconds)
     {
         // arrange
         var services = new ServiceCollection();
@@ -297,7 +335,9 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
             () => options.Get(typeof(TransactionDbContext).FullName));
 
         // assert
-        Assert.Equal("PostgresOutboxOptions.PollingInterval must be greater than zero.", exception.Message);
+        Assert.Equal(
+            "PostgresOutboxOptions.PollingInterval must be greater than zero and at most 49.17:02:47.2940000.",
+            exception.Message);
     }
 
     private static async Task<ServiceProvider> CreateProviderAsync(
@@ -495,3 +535,4 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         }
     }
 }
+#endif

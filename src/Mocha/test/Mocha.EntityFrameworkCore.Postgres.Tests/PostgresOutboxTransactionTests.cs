@@ -29,10 +29,13 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
 
         // assert
         Assert.Equal(
-            "The outbox for DbContext 'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext' "
-            + "requires a transaction to publish or send a message. "
-            + "Begin a transaction on that DbContext, use UseTransaction() for consumers, "
-            + "or set RequireTransaction to false in UsePostgresOutbox().",
+            "IMessageBus publishes and sends are stored in the outbox of the first DbContext registered with "
+            + "UsePostgresOutbox(), "
+            + "'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext', "
+            + "and require a transaction on that DbContext. "
+            + "Begin a transaction on it, use UseTransaction() on it for consumers, "
+            + "or set RequireTransaction to false in UsePostgresOutbox(). "
+            + "To publish in the transaction of another DbContext, use dbContext.Outbox(bus).",
             exception.Message);
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
     }
@@ -128,10 +131,13 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
 
         // assert
         Assert.Equal(
-            "The outbox for DbContext 'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext' "
-            + "requires a transaction to publish or send a message. "
-            + "Begin a transaction on that DbContext, use UseTransaction() for consumers, "
-            + "or set RequireTransaction to false in UsePostgresOutbox().",
+            "IMessageBus publishes and sends are stored in the outbox of the first DbContext registered with "
+            + "UsePostgresOutbox(), "
+            + "'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext', "
+            + "and require a transaction on that DbContext. "
+            + "Begin a transaction on it, use UseTransaction() on it for consumers, "
+            + "or set RequireTransaction to false in UsePostgresOutbox(). "
+            + "To publish in the transaction of another DbContext, use dbContext.Outbox(bus).",
             exception.Message);
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
     }

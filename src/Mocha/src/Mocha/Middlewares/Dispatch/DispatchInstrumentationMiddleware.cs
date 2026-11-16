@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -37,9 +38,13 @@ internal sealed class DispatchInstrumentationMiddleware(IMessagingDiagnosticEven
         }
     }
 
-    public static DispatchDelegate Create(IMessagingDiagnosticEvents events, DispatchDelegate next)
-    {
-        var middleware = new DispatchInstrumentationMiddleware(events);
-        return context => middleware.InvokeAsync(context, next);
-    }
+    public static DispatchMiddlewareConfiguration Create()
+        => new(
+            static (context, next) =>
+            {
+                var events = context.Services.GetRequiredService<IMessagingDiagnosticEvents>();
+                var middleware = new DispatchInstrumentationMiddleware(events);
+                return ctx => middleware.InvokeAsync(ctx, next);
+            },
+            "Instrumentation");
 }

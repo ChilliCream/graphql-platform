@@ -53,11 +53,14 @@ internal sealed class DispatchSerializerMiddleware()
         }
     }
 
-    public static DispatchDelegate Create(DispatchDelegate next)
-    {
-        var middleware = new DispatchSerializerMiddleware();
-        return context => middleware.InvokeAsync(context, next);
-    }
+    public static DispatchMiddlewareConfiguration Create()
+        => new(
+            static (_, next) =>
+            {
+                var middleware = new DispatchSerializerMiddleware();
+                return ctx => middleware.InvokeAsync(ctx, next);
+            },
+            "Serialization");
 }
 
 /// <summary>

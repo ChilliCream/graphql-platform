@@ -20,8 +20,15 @@ public class DispatchSchedulingMiddlewareTests
             return ValueTask.CompletedTask;
         };
 
+        var factoryContext = new DispatchMiddlewareFactoryContext
+        {
+            Services = new ServiceCollection().BuildServiceProvider(),
+            Endpoint = null!,
+            Transport = new StubTransport()
+        };
+
         // act
-        var pipeline = DispatchSchedulingMiddleware.Create(next);
+        var pipeline = DispatchSchedulingMiddleware.Create().Middleware(factoryContext, next);
         await pipeline(new DispatchContext());
 
         // assert

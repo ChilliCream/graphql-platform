@@ -158,6 +158,40 @@ public class RabbitMQRoutingKeyTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_ReportDispatchError_When_RoutingKeyExtractorThrows()
+    {
+        // arrange
+        var diagnostics = new RecordingDiagnostics();
+        await using var runtime = CreateRuntime(builder =>
+        {
+            builder.Services.AddSingleton<IMessagingDiagnosticEventListener>(diagnostics);
+            builder.AddMessage<OrderCreated>(message =>
+            {
+                message.UseRabbitMQRoutingKey<OrderCreated>(
+                    _ => throw new InvalidOperationException("The routing key could not be extracted."));
+                message.Publish(route => route.ToRabbitMQExchange("orders"));
+            });
+        });
+        var messageType = runtime.GetMessageType(typeof(OrderCreated));
+        var endpoint = runtime.GetPublishEndpoint(messageType);
+        var context = new DispatchContext { Message = new OrderCreated { OrderId = "ORD-123" } };
+        context.Initialize(runtime.Services, endpoint, runtime, messageType, CancellationToken.None);
+
+        // act
+        try
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await endpoint.ExecuteAsync(context));
+        }
+        finally
+        {
+            context.Reset();
+        }
+
+        // assert
+        Assert.Equal("The routing key could not be extracted.", Assert.Single(diagnostics.Errors).Message);
+    }
+
+    [Fact]
     public async Task Middleware_Should_NotSetRoutingKeyHeader_When_ExtractorNotConfigured()
     {
         // arrange
@@ -219,6 +253,13 @@ public class RabbitMQRoutingKeyTests
         // assert
         Assert.True(nextCalled);
         Assert.False(context.Headers.TryGetValue("x-routing-key", out _));
+    }
+
+    private sealed class RecordingDiagnostics : MessagingDiagnosticEventListener
+    {
+        public List<Exception> Errors { get; } = [];
+
+        public override void DispatchError(IDispatchContext context, Exception exception) => Errors.Add(exception);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)

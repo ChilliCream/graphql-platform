@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
@@ -85,6 +86,51 @@ public class OutboxIntegrationTests
               "Stored": 1
             }
             """);
+    }
+
+    [Fact]
+    public async Task Outbox_Should_SendDirectly_When_MiddlewareSkipsOutbox()
+    {
+        // arrange
+        var outbox = new InMemoryMessageOutbox();
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusWithOutboxAsync(
+            outbox,
+            b =>
+            {
+                b.Services.AddSingleton(recorder);
+                b.AddEventHandler<OutboxTestEventHandler>();
+                b.ConfigureMessageBus(h => h.UseDispatch(
+                    new DispatchMiddlewareConfiguration(
+                        static (_, next) => context =>
+                        {
+                            if (context.Headers.TryGetValue("x-skip-outbox", out var value) && value is "true")
+                            {
+                                context.SkipOutbox();
+                            }
+
+                            return next(context);
+                        },
+                        "SkipOutboxCheck"),
+                    before: "Outbox"));
+            });
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(
+            new OutboxTestEvent { Payload = "skip-me" },
+            new PublishOptions { Headers = new Dictionary<string, object?> { ["x-skip-outbox"] = "true" } },
+            CancellationToken.None);
+        await bus.PublishAsync(new OutboxTestEvent { Payload = "capture-me" }, CancellationToken.None);
+        var delivered = await recorder.WaitAsync(s_timeout);
+
+        // assert
+        Assert.True(delivered);
+        Assert.Equal("skip-me", Assert.IsType<OutboxTestEvent>(Assert.Single(recorder.Messages)).Payload);
+        Assert.Equal(
+            "capture-me",
+            JsonSerializer.Deserialize<OutboxTestEvent>(Assert.Single(outbox.Envelopes).Body.Span)!.Payload);
     }
 
     [Fact]

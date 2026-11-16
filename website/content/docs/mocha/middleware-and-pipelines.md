@@ -42,9 +42,9 @@ PublishAsync / SendAsync / RequestAsync
 │   Dispatch Pipeline      │
 │  Instrumentation         │
 │  Application middleware  │
+│  Serialization           │
 │  Scheduling              │
 │  Outbox (optional)       │
-│  Serialization           │
 │  → Transport             │
 └─────────────────────────┘
         │
@@ -113,9 +113,9 @@ internal sealed class UnitOfWorkConsumerMiddleware
         ConsumerDelegate next)
     {
         // Resolve DbContext from the per-message DI scope
-        var db = context.Services.GetRequiredService<AppDbContext>();
+        var dbContext = context.Services.GetRequiredService<AppDbContext>();
 
-        await using var tx = await db.Database.BeginTransactionAsync();
+        await using var tx = await dbContext.Database.BeginTransactionAsync();
         try
         {
             await next(context);       // Run the handler
@@ -200,24 +200,24 @@ Register after instrumentation so telemetry spans are already open when your mid
 builder.Services
     .AddMessageBus(bus =>
     {
-        // Insert after ReceiveInstrumentation, before DeadLetter
+        // Insert after the receive instrumentation, before DeadLetter
         bus.UseReceive(
             LoggingReceiveMiddleware.Create(),
-            after: "ReceiveInstrumentation");
+            after: ReceiveMiddlewares.Instrumentation.Key);
     })
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 ```
 
-`#!csharp UseReceive(..., after: "ReceiveInstrumentation")` places your middleware immediately after the named middleware. The receive pipeline then executes: TransportCircuitBreaker, ConcurrencyLimiter, ReceiveInstrumentation, **Logging**, DeadLetter, Fault, and so on.
+`#!csharp UseReceive(..., after: ReceiveMiddlewares.Instrumentation.Key)` places your middleware immediately after the receive instrumentation. The receive pipeline then executes: TransportCircuitBreaker, ConcurrencyLimiter, ReceiveInstrumentation, **Logging**, DeadLetter, Fault, and so on.
 
 # Dispatch middleware
 
 Dispatch middleware wraps the outbound path. Use it for concerns on every outgoing message: adding headers, enforcing message schemas, or enriching with correlation context.
 
-The default dispatch order is instrumentation, application middleware, scheduling, outbox persistence when enabled, serialization, and transport dispatch. Scheduling and outbox middleware serialize the messages they persist and return without calling the next middleware. Other messages continue to serialization and transport dispatch.
+The default dispatch order is instrumentation, application middleware, serialization, scheduling, outbox persistence when enabled, and transport dispatch. Scheduling and outbox middleware persist the serialized message and return without calling the next middleware. Other messages continue to the transport.
 
-`db.Outbox(bus)` uses this pipeline to stage messages for its next save, including scheduled messages. Place enrichment middleware before `"Scheduling"` and change message data and headers before calling `next(context)`. Later changes do not affect the serialized message.
+Middleware registered without an anchor runs before serialization. Change message data and headers before calling `next(context)`; later changes do not affect the serialized message. Middleware that works on the serialized envelope, such as signing or encryption, is registered with `after: DispatchMiddlewares.Serialization.Key` and runs for every message, including scheduled and outboxed ones. `dbContext.Outbox(bus)` uses the same pipeline to stage messages for its next save.
 
 Outbox and scheduler workers deliver stored envelopes without running dispatch middleware again.
 
@@ -273,17 +273,17 @@ The factory lambda in `ReceiveMiddlewareConfiguration`, `ConsumerMiddlewareConfi
 >
 > ```csharp
 > // Wrong: DbContext captured as a singleton
-> var db = serviceProvider.GetRequiredService<AppDbContext>();
+> var dbContext = serviceProvider.GetRequiredService<AppDbContext>();
 > return new ConsumerMiddlewareConfiguration(
 >     (context, next) =>
->         ctx => middleware.InvokeAsync(ctx, next, db), // db is shared!
+>         ctx => middleware.InvokeAsync(ctx, next, dbContext), // dbContext is shared!
 >     "UnitOfWork");
 >
 > // Correct: resolve inside the per-message factory
 > return new ConsumerMiddlewareConfiguration(
 >     static (context, next) =>
 >     {
->         var db = context.Services.GetRequiredService<AppDbContext>();
+>         var dbContext = context.Services.GetRequiredService<AppDbContext>();
 >         var middleware = new UnitOfWorkConsumerMiddleware();
 >         return ctx => middleware.InvokeAsync(ctx, next);
 >     },
@@ -297,18 +297,18 @@ Each pipeline type has a single registration method with optional `before` and `
 | Method                               | Pipeline | Behavior                                        |
 | ------------------------------------ | -------- | ----------------------------------------------- |
 | `UseReceive(config)`                 | Receive  | Append to the pipeline                          |
-| `UseReceive(config, before: "key")`  | Receive  | Insert before the middleware with the given key |
-| `UseReceive(config, after: "key")`   | Receive  | Insert after the middleware with the given key  |
+| `UseReceive(config, before: key)`    | Receive  | Insert before the middleware with the given key |
+| `UseReceive(config, after: key)`     | Receive  | Insert after the middleware with the given key  |
 | `UseDispatch(config)`                | Dispatch | Append to the pipeline                          |
-| `UseDispatch(config, before: "key")` | Dispatch | Insert before the middleware with the given key |
-| `UseDispatch(config, after: "key")`  | Dispatch | Insert after the middleware with the given key  |
+| `UseDispatch(config, before: key)`   | Dispatch | Insert before the middleware with the given key |
+| `UseDispatch(config, after: key)`    | Dispatch | Insert after the middleware with the given key  |
 | `UseConsume(config)`                 | Consumer | Append to the pipeline                          |
-| `UseConsume(config, before: "key")`  | Consumer | Insert before the middleware with the given key |
-| `UseConsume(config, after: "key")`   | Consumer | Insert after the middleware with the given key  |
+| `UseConsume(config, before: key)`    | Consumer | Insert before the middleware with the given key |
+| `UseConsume(config, after: key)`     | Consumer | Insert after the middleware with the given key  |
 
 Only one of `before` or `after` can be specified at the same time. If neither is specified, the middleware is appended to the configured middleware list.
 
-Dispatch ordering keys include `"Instrumentation"`, `"Scheduling"`, `"Serialization"`, and `"Outbox"` when the outbox is enabled. For example, `UseDispatch(config, before: "Scheduling")` places middleware before either scheduling or outbox persistence. Middleware after a step that short-circuits does not run for that message. Referencing a key that has not been registered throws during bus initialization.
+The built-in middleware are exposed as configurations whose `Key` is the anchor: `ReceiveMiddlewares`, `DispatchMiddlewares`, and `ConsumerMiddlewares` in Mocha, `OutboxDispatchMiddlewares` and `InboxConsumerMiddlewares` in the outbox and inbox packages, and classes such as `RabbitMQDispatchMiddlewares` in the transports. The dispatch pipeline contains `DispatchMiddlewares.Instrumentation`, `DispatchMiddlewares.Serialization`, `DispatchMiddlewares.Scheduling`, and `OutboxDispatchMiddlewares.Outbox` when the outbox is enabled. For example, `UseDispatch(config, after: DispatchMiddlewares.Serialization.Key)` places middleware after serialization and before scheduling and outbox persistence. Middleware after a step that short-circuits does not run for that message. Referencing a key that has not been registered throws during bus initialization.
 
 Middleware is compiled once at startup into a single delegate chain. Register all middleware during bus configuration, before the service provider is built. Middleware added after the bus starts has no effect.
 
@@ -318,9 +318,9 @@ Middleware can also be registered at transport or endpoint scope. Bus-level midd
 
 The built-in middleware in the receive pipeline implements the reliability and observability features described on their own pages:
 
-- The `Inbox` middleware deduplicates incoming messages based on `MessageId`, described in [Reliability](./reliability.md#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `#!csharp UseConsume(config, before: "Inbox")` or `#!csharp UseConsume(config, after: "Inbox")` to position your middleware relative to it.
-- The `CircuitBreaker` and `DeadLetter` middleware implement the circuit breaker and dead-letter behaviors described in [Reliability](./reliability.md). Use `UseReceive(config, before: "key")` or `UseReceive(config, after: "key")` with their keys to position your middleware relative to them.
-- The `ReceiveInstrumentation` middleware generates the OpenTelemetry spans and metrics described in [Observability](./observability.md). Place logging or correlation middleware after `ReceiveInstrumentation` using `#!csharp UseReceive(config, after: "ReceiveInstrumentation")`.
+- `InboxConsumerMiddlewares.Inbox` deduplicates incoming messages based on `MessageId`, described in [Reliability](./reliability.md#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `#!csharp UseConsume(config, before: InboxConsumerMiddlewares.Inbox.Key)` or `after:` to position your middleware relative to it.
+- `ReceiveMiddlewares.CircuitBreaker` and `ReceiveMiddlewares.DeadLetter` implement the circuit breaker and dead-letter behaviors described in [Reliability](./reliability.md). Use their `Key` with `UseReceive(config, before: ...)` or `after:` to position your middleware relative to them.
+- `ReceiveMiddlewares.Instrumentation` generates the OpenTelemetry spans and metrics described in [Observability](./observability.md). Place logging or correlation middleware after it using `#!csharp UseReceive(config, after: ReceiveMiddlewares.Instrumentation.Key)`.
 
 # Next steps
 

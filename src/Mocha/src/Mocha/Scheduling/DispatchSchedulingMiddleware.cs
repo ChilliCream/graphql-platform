@@ -58,11 +58,14 @@ internal sealed class DispatchSchedulingMiddleware
         return scheduledStore;
     }
 
-    internal static DispatchDelegate Create(DispatchDelegate next)
-    {
-        var middleware = new DispatchSchedulingMiddleware();
-        return context => middleware.InvokeAsync(context, next);
-    }
+    public static DispatchMiddlewareConfiguration Create()
+        => new(
+            static (_, next) =>
+            {
+                var middleware = new DispatchSchedulingMiddleware();
+                return ctx => middleware.InvokeAsync(ctx, next);
+            },
+            "Scheduling");
 }
 
 file static class Extensions

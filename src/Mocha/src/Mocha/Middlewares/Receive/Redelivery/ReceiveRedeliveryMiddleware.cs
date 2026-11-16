@@ -102,6 +102,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             {
                 dispatchContext.ScheduledTime = scheduledTime;
             }
+
             await dispatchEndpoint.ExecuteAsync(dispatchContext);
         }
         finally

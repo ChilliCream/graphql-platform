@@ -10,7 +10,6 @@ namespace Mocha.EntityFrameworkCore;
 /// </summary>
 internal sealed class SchedulingDbTransactionInterceptor(ISchedulerSignal signal, TimeProvider timeProvider)
     : DbTransactionInterceptor
-    , ISingletonInterceptor
 {
     /// <inheritdoc />
     public override Task TransactionCommittedAsync(

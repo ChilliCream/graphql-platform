@@ -39,57 +39,14 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
     }
 
     [Fact]
-    public async Task Scheduler_Should_DeliverPreparedEnvelope_When_DispatchMiddlewareAlreadyRan()
+    public async Task SchedulePublishAsync_Should_StorePreparedEnvelope_When_DispatchMiddlewareRuns()
     {
         // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var recorder = new MessageRecorder();
+        var probe = new PreparationProbe();
         var time = new FakeTimeProvider(new DateTimeOffset(2050, 1, 1, 12, 0, 0, TimeSpan.Zero));
-        var preparationCalls = 0;
-        var observationCalls = 0;
-        var received = new TaskCompletionSource<MessageEnvelope>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var services = new ServiceCollection();
-        services.AddSingleton(recorder);
-        services.AddSingleton<TimeProvider>(time);
-        services.AddSingleton<ISchedulerSignal>(new ResilientSchedulerSignal());
-        services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
-        var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(options => options.UsePostgresScheduling());
-        builder.AddEventHandler<TestEventHandler>();
-        builder.ConfigureMessageBus(bus =>
-        {
-            bus.AddTransport(new InMemoryMessagingTransport(static _ => { }));
-            bus.UseDispatch(new DispatchMiddlewareConfiguration(
-                (_, next) => context =>
-                {
-                    preparationCalls++;
-                    context.Message = new TestEvent { Payload = "prepared" };
-                    context.Headers.Set("prepared-header", "stored");
-                    return next(context);
-                },
-                "PrepareScheduledMessage"));
-            bus.UseDispatch(new DispatchMiddlewareConfiguration(
-                (_, next) => context =>
-                {
-                    observationCalls++;
-                    return next(context);
-                },
-                "ObserveScheduledMessage"), after: "PrepareScheduledMessage");
-            bus.UseReceive(new ReceiveMiddlewareConfiguration(
-                (_, next) => async context =>
-                {
-                    var envelope = MessageEnvelope.CopyWithOwnedBody(context.Envelope!);
-                    await next(context);
-                    received.TrySetResult(envelope);
-                },
-                "CaptureScheduledMessage"));
-        });
-        await using var provider = services.BuildServiceProvider();
-        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>())
-            .StartAsync(TestContext.Current.CancellationToken);
+        await using var provider = await CreatePreparingProviderAsync(probe, time);
         using var scope = provider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-        await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
@@ -97,25 +54,43 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             new TestEvent { Payload = "original" },
             DateTimeOffset.UtcNow.AddSeconds(-1),
             TestContext.Current.CancellationToken);
-        var invocationCounts = (preparationCalls, observationCalls);
         var json = await db.Set<ScheduledMessage>()
             .Select(message => message.Envelope)
             .SingleAsync(TestContext.Current.CancellationToken);
         var stored = MessageEnvelopeReader.Parse(Encoding.UTF8.GetBytes(json.RootElement.GetRawText()));
-        time.Advance(TimeSpan.FromMinutes(11));
-        await using var host = await MessagingTestHost.StartAsync(provider, TestContext.Current.CancellationToken);
-        var delivered = await received.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal((1, 1), invocationCounts);
-        Assert.Equal((1, 1), (preparationCalls, observationCalls));
+        Assert.Equal(1, probe.PreparationCalls);
+        Assert.Equal(1, probe.ObservationCalls);
         Assert.Null(stored.SentAt);
-        Assert.Equal(
-            ("prepared", "stored", "prepared", "stored"),
-            (JsonSerializer.Deserialize<TestEvent>(stored.Body.Span)!.Payload,
-                (string?)stored.Headers?.GetValue("prepared-header"),
-                JsonSerializer.Deserialize<TestEvent>(delivered.Body.Span)!.Payload,
-                (string?)delivered.Headers?.GetValue("prepared-header")));
+        Assert.Equal("prepared", JsonSerializer.Deserialize<TestEvent>(stored.Body.Span)!.Payload);
+        Assert.Equal("stored", (string?)stored.Headers?.GetValue("prepared-header"));
+    }
+
+    [Fact]
+    public async Task Scheduler_Should_DeliverPreparedEnvelope_When_DispatchMiddlewareAlreadyRan()
+    {
+        // arrange
+        var probe = new PreparationProbe();
+        var time = new FakeTimeProvider(new DateTimeOffset(2050, 1, 1, 12, 0, 0, TimeSpan.Zero));
+        await using var provider = await CreatePreparingProviderAsync(probe, time);
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await bus.SchedulePublishAsync(
+            new TestEvent { Payload = "original" },
+            DateTimeOffset.UtcNow.AddSeconds(-1),
+            TestContext.Current.CancellationToken);
+
+        // act
+        time.Advance(TimeSpan.FromMinutes(11));
+        await using var host = await MessagingTestHost.StartAsync(provider, TestContext.Current.CancellationToken);
+        var delivered = await probe.Received.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, probe.PreparationCalls);
+        Assert.Equal(1, probe.ObservationCalls);
+        Assert.Equal("prepared", JsonSerializer.Deserialize<TestEvent>(delivered.Body.Span)!.Payload);
+        Assert.Equal("stored", (string?)delivered.Headers?.GetValue("prepared-header"));
         Assert.Equal(time.GetUtcNow(), delivered.SentAt);
     }
 
@@ -653,6 +628,64 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         }
 
         return new TestEnvironment(provider, hostedServices, connectionString);
+    }
+
+    private async Task<ServiceProvider> CreatePreparingProviderAsync(PreparationProbe probe, FakeTimeProvider time)
+    {
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var services = new ServiceCollection();
+        services.AddSingleton(new MessageRecorder());
+        services.AddSingleton<TimeProvider>(time);
+        services.AddSingleton<ISchedulerSignal>(new ResilientSchedulerSignal());
+        services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
+        var builder = services.AddMessageBus();
+        builder.AddEntityFramework<TestDbContext>(options => options.UsePostgresScheduling());
+        builder.AddEventHandler<TestEventHandler>();
+        builder.ConfigureMessageBus(bus =>
+        {
+            bus.AddTransport(new InMemoryMessagingTransport(static _ => { }));
+            bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    probe.PreparationCalls++;
+                    context.Message = new TestEvent { Payload = "prepared" };
+                    context.Headers.Set("prepared-header", "stored");
+                    return next(context);
+                },
+                "PrepareScheduledMessage"));
+            bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    probe.ObservationCalls++;
+                    return next(context);
+                },
+                "ObserveScheduledMessage"), after: "PrepareScheduledMessage");
+            bus.UseReceive(new ReceiveMiddlewareConfiguration(
+                (_, next) => async context =>
+                {
+                    var envelope = MessageEnvelope.CopyWithOwnedBody(context.Envelope!);
+                    await next(context);
+                    probe.Received.TrySetResult(envelope);
+                },
+                "CaptureScheduledMessage"));
+        });
+        var provider = services.BuildServiceProvider();
+        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>())
+            .StartAsync(TestContext.Current.CancellationToken);
+        using var scope = provider.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<TestDbContext>()
+            .Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+        return provider;
+    }
+
+    private sealed class PreparationProbe
+    {
+        public int PreparationCalls { get; set; }
+
+        public int ObservationCalls { get; set; }
+
+        public TaskCompletionSource<MessageEnvelope> Received { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     public sealed class TestEvent

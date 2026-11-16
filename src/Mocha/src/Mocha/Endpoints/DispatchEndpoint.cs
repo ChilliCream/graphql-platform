@@ -209,7 +209,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
                 [DispatchMiddlewares.Instrumentation],
                 Transport.GetDispatchMiddlewares(),
                 Configuration.DispatchMiddlewares,
-                [DispatchMiddlewares.Scheduling, DispatchMiddlewares.Serialization]
+                [DispatchMiddlewares.Serialization, DispatchMiddlewares.Scheduling]
             ],
             [Transport.GetDispatchPipelineModifiers(), Configuration.DispatchPipelineModifiers]);
 
@@ -260,8 +260,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
 
     internal ValueTask DispatchInternalAsync(IDispatchContext context)
     {
-        DispatchSerializerMiddleware.Serialize(context);
-
         var sentAt = context.SentAt ?? context.Envelope?.SentAt ?? _timeProvider.GetUtcNow();
         context.SentAt = sentAt;
         context.Envelope?.SetSentAt(sentAt);
