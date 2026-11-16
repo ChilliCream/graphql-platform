@@ -111,7 +111,7 @@ These responses are HTTP 400, or 413 under the `Draft20260903` transport version
 
 ## Persisted operation routes answer methods they do not map
 
-A request to a `MapGraphQLPersistedOperations` route with a method the route does not map, such as `PUT` or `OPTIONS`, has a `404` status code. Under the `Draft20260903` [transport version](../../hotchocolate/server/http-transport.md#draft20260903), it has a `405` status code with an `Allow` header, or `204` for `OPTIONS`.
+A request to a `MapGraphQLPersistedOperations` route with a method the route does not map, such as `PUT` or `OPTIONS`, has a `404` status code. Under the `Draft20260903` [transport version](../../hotchocolate/server/http-transport.md#september2026), it has a `405` status code with an `Allow` header, or `204` for `OPTIONS`.
 
 In 16.6, the answer depended on the gateway's other routes:
 

@@ -29,7 +29,14 @@ public enum HttpTransportVersion
     Draft20250508 = 3,
 
     /// <summary>
-    /// Represents the GraphQL over HTTP spec version with the commit on 2026-09-03.
+    /// Represents the September 2026 edition of the GraphQL over HTTP specification.
     /// </summary>
+    September2026 = 4,
+
+    /// <summary>
+    /// Represents the GraphQL over HTTP spec version with the commit on 2026-09-03, which is the
+    /// same as <see cref="September2026"/>.
+    /// </summary>
+    [Obsolete("Use September2026 instead.")]
     Draft20260903 = 4
 }
