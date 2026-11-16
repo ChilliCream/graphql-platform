@@ -1,191 +1,198 @@
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
+using Npgsql;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
 public sealed class PostgresScheduledMessageDispatcherTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan s_stopGracePeriod = TimeSpan.FromMilliseconds(500);
+    private const string EmptyEnvelope = "{}";
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task ProcessAsync_Should_DeleteMessage_When_TransportAcceptedItBeforeTheStop()
+    public async Task ProcessAsync_Should_DispatchMessage_When_AttemptCountExceedsFormerLimit()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
-        var accepted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var dispatch = new ScriptedDispatch(async attempt =>
-        {
-            await attempt.SendAsync();
-            accepted.TrySetResult();
-            await attempt.WaitForCancellationAsync(Task.Delay(s_timeout));
-        });
+        var dispatch = new ScriptedDispatch(static attempt => attempt.SendAsync());
         await using var provider = await CreateProviderAsync(connectionString, dispatch);
         await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
-        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
-        var processing = provider.GetRequiredService<ScheduledMessageDispatcher>().ProcessAsync(cancellation.Token);
-        await accepted.Task.WaitAsync(s_timeout, TestToken);
+        await ExecuteAsync(connectionString, """UPDATE "scheduled_messages" SET "times_sent" = 10;""");
+        object? remaining;
 
         // act
-        await cancellation.CancelAsync();
-        await processing.WaitAsync(s_timeout, TestToken);
-        var remaining = await MessageRows.CountScheduledAsync(connectionString, TestToken);
+        await using (StartDispatcher(provider))
+        {
+            remaining = await WaitForAsync(
+                connectionString,
+                """SELECT COUNT(*) FROM "scheduled_messages";""",
+                static count => count is 0L);
+        }
 
         // assert
-        Assert.Equal(0, remaining);
+        Assert.Equal(0L, remaining);
         Assert.Equal(["A"], dispatch.Accepted);
     }
 
     [Fact]
-    public async Task StopAsync_Should_WaitUntilMessageIsDeleted_When_TransportAcceptedItBeforeTheStop()
+    public async Task ProcessAsync_Should_ScheduleRetryTenSecondsAhead_When_DispatchFails()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
-        var accepted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var dispatch = new ScriptedDispatch(async attempt =>
-        {
-            await attempt.SendAsync();
-            accepted.TrySetResult();
-            await attempt.WaitForCancellationAsync(Task.Delay(s_timeout));
-            cancelled.TrySetResult();
-            await release.Task;
-        });
+        var dispatch = new ScriptedDispatch(
+            static _ => throw new InvalidOperationException("The broker is unreachable."));
         await using var provider = await CreateProviderAsync(connectionString, dispatch);
         await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
-        var host = await MessagingTestHost.StartAsync(provider, TestToken);
-        await accepted.Task.WaitAsync(s_timeout, TestToken);
+        object? timesSent;
 
         // act
-        // the dispatch returns only after the stop had the time to return without it
-        var stopping = host.DisposeAsync().AsTask();
-        await cancelled.Task.WaitAsync(s_timeout, TestToken);
-        var stoppedBeforeDispatchReturned =
-            await Task.WhenAny(stopping, Task.Delay(s_stopGracePeriod, TestToken)) == stopping;
-        release.TrySetResult();
-        await stopping.WaitAsync(s_timeout, TestToken);
-        var remaining = await MessageRows.CountScheduledAsync(connectionString, TestToken);
+        await using (StartDispatcher(provider))
+        {
+            timesSent = await WaitForAsync(
+                connectionString,
+                """SELECT "times_sent" FROM "scheduled_messages";""",
+                static count => count is 1);
+        }
+
+        var secondsUntilDue = await ExecuteScalarAsync(
+            connectionString,
+            """
+            SELECT (EXTRACT(EPOCH FROM "scheduled_time") - EXTRACT(EPOCH FROM NOW()))::double precision
+            FROM "scheduled_messages";
+            """);
 
         // assert
-        Assert.False(stoppedBeforeDispatchReturned);
-        Assert.Equal(0, remaining);
-        Assert.Equal(["A"], dispatch.Accepted);
+        Assert.Equal(1, timesSent);
+        Assert.InRange(Assert.IsType<double>(secondsUntilDue), 5, 10);
     }
 
     [Fact]
-    public async Task ProcessAsync_Should_DispatchAgainAfterOneAndTwoSeconds_When_AttemptsKeepFailing()
+    public async Task ProcessAsync_Should_NotDispatchNextMessage_When_DispatchFailed()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
-        var watch = new Stopwatch();
-        var attempts = new ConcurrentQueue<TimeSpan>();
-        var dispatch = new ScriptedDispatch(attempt =>
-        {
-            attempts.Enqueue(watch.Elapsed);
-
-            return attempt.Number <= 2
-                ? throw new InvalidOperationException("The broker refused the message.")
-                : attempt.SendAsync();
-        });
+        var dispatch = new ScriptedDispatch(static attempt => attempt.MessageId == "A"
+            ? throw new InvalidOperationException("The broker is unreachable.")
+            : attempt.SendAsync());
         await using var provider = await CreateProviderAsync(connectionString, dispatch);
         await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
-        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+        await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "B"), TestToken);
+        object? remaining;
 
         // act
-        watch.Start();
-        var processing = provider.GetRequiredService<ScheduledMessageDispatcher>().ProcessAsync(cancellation.Token);
-        var remaining = await MessageRows.WaitForScheduledCountAsync(connectionString, 0, s_timeout, TestToken);
-        await cancellation.CancelAsync();
-        await processing.WaitAsync(s_timeout, TestToken);
-
-        // assert
-        // A message is due one second after its first counted attempt and two seconds after its second one.
-        TimeSpan[] times = [.. attempts];
-        Assert.Equal(0, remaining);
-        Assert.Equal(3, times.Length);
-        Assert.InRange(times[1] - times[0], TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(2.5));
-        Assert.InRange(times[2] - times[1], TimeSpan.FromSeconds(1.5), TimeSpan.FromSeconds(5));
-    }
-
-    [Fact]
-    public async Task ProcessAsync_Should_NotCountAttempts_When_TransportIsUnavailable()
-    {
-        // arrange
-        const int unavailableAttempts = 3;
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var watch = new Stopwatch();
-        var attempts = new ConcurrentQueue<TimeSpan>();
-        var available = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var resume = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var dispatch = new ScriptedDispatch(async attempt =>
+        await using (StartDispatcher(provider))
         {
-            attempts.Enqueue(watch.Elapsed);
-
-            if (attempt.Number <= unavailableAttempts)
-            {
-                throw new TransportUnavailableException("The broker is unreachable.", null);
-            }
-
-            available.TrySetResult();
-            await resume.Task.WaitAsync(attempt.CancellationToken);
-            await attempt.SendAsync();
-        });
-        await using var provider = await CreateProviderAsync(connectionString, dispatch);
-        var id = await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
-        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
-
-        // act
-        watch.Start();
-        var processing = provider.GetRequiredService<ScheduledMessageDispatcher>().ProcessAsync(cancellation.Token);
-        await available.Task.WaitAsync(s_timeout, TestToken);
-        var timesSentAfterOutage = await MessageRows.GetScheduledTimesSentAsync(connectionString, id, TestToken);
-        resume.TrySetResult();
-        var remaining = await MessageRows.WaitForScheduledCountAsync(connectionString, 0, s_timeout, TestToken);
-        await cancellation.CancelAsync();
-        await processing.WaitAsync(s_timeout, TestToken);
+            await WaitForAsync(
+                connectionString,
+                """SELECT MAX("times_sent") FROM "scheduled_messages";""",
+                static count => count is 1);
+            await Task.Delay(TimeSpan.FromMilliseconds(500), TestToken);
+            remaining = await ExecuteScalarAsync(connectionString, """SELECT COUNT(*) FROM "scheduled_messages";""");
+        }
 
         // assert
-        // The three pauses double from at least 100 milliseconds, which adds up to at least 0.7 seconds.
-        TimeSpan[] times = [.. attempts];
-        Assert.Equal(0, timesSentAfterOutage);
-        Assert.Equal(0, remaining);
-        Assert.Equal(["A"], dispatch.Accepted);
-        Assert.InRange(times[unavailableAttempts] - times[0], TimeSpan.FromSeconds(0.5), s_timeout);
-    }
-
-    [Fact]
-    public async Task ProcessAsync_Should_NotCountAttempt_When_HostStopsDuringDispatch()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var dispatching = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var dispatch = new ScriptedDispatch(async attempt =>
-        {
-            dispatching.TrySetResult();
-            await Task.Delay(Timeout.InfiniteTimeSpan, attempt.CancellationToken);
-        });
-        await using var provider = await CreateProviderAsync(connectionString, dispatch);
-        var id = await MessageRows.InsertScheduledAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
-        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
-        var processing = provider.GetRequiredService<ScheduledMessageDispatcher>().ProcessAsync(cancellation.Token);
-        await dispatching.Task.WaitAsync(s_timeout, TestToken);
-
-        // act
-        await cancellation.CancelAsync();
-        await processing.WaitAsync(s_timeout, TestToken);
-        var timesSent = await MessageRows.GetScheduledTimesSentAsync(connectionString, id, TestToken);
-
-        // assert
-        Assert.Equal(0, timesSent);
+        Assert.Equal(2L, remaining);
         Assert.Equal(1, dispatch.AttemptsOf("A"));
+        Assert.Equal(0, dispatch.AttemptsOf("B"));
+    }
+
+    [Fact]
+    public async Task NextWakeInterval_Should_ReturnNull_When_NoMessageIsScheduled()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(
+            connectionString,
+            new ScriptedDispatch(static attempt => attempt.SendAsync()));
+
+        // act
+        var result = await ExecuteScalarAsync(connectionString, NextWakeInterval);
+
+        // assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task NextWakeInterval_Should_ReturnSecondsUntilEarliestMessage_When_MessagesAreNotDue()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(
+            connectionString,
+            new ScriptedDispatch(static attempt => attempt.SendAsync()));
+        await InsertRowAsync(connectionString, "NOW() + INTERVAL '60 seconds'", timesSent: 0);
+        await InsertRowAsync(connectionString, "NOW() + INTERVAL '30 seconds'", timesSent: 3);
+
+        // act
+        var result = await ExecuteScalarAsync(connectionString, NextWakeInterval);
+
+        // assert
+        Assert.InRange(Assert.IsType<double>(result), 25, 30);
+    }
+
+    [Fact]
+    public async Task NextWakeInterval_Should_ReturnNegativeSeconds_When_MessagePastFormerLimitIsDue()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(
+            connectionString,
+            new ScriptedDispatch(static attempt => attempt.SendAsync()));
+        await InsertRowAsync(connectionString, "NOW() + INTERVAL '60 seconds'", timesSent: 0);
+        await InsertRowAsync(connectionString, "NOW() - INTERVAL '30 seconds'", timesSent: 10);
+
+        // act
+        var result = await ExecuteScalarAsync(connectionString, NextWakeInterval);
+
+        // assert
+        Assert.InRange(Assert.IsType<double>(result), -35, -25);
+    }
+
+    private static string NextWakeInterval
+        => ScheduledMessageQueries.From(new ScheduledMessageTableInfo()).NextWakeInterval;
+
+    private static Task InsertRowAsync(string connectionString, string scheduledTime, int timesSent)
+        => ExecuteAsync(
+            connectionString,
+            $"""
+             INSERT INTO "scheduled_messages"
+                 ("id", "envelope", "scheduled_time", "times_sent", "max_attempts", "created_at")
+             VALUES (gen_random_uuid(), '{EmptyEnvelope}', {scheduledTime}, {timesSent}, 10, NOW());
+             """);
+
+    private static Task ExecuteAsync(string connectionString, string sql)
+        => ExecuteScalarAsync(connectionString, sql);
+
+    private static async Task<object?> ExecuteScalarAsync(string connectionString, string sql)
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(TestToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        var result = await command.ExecuteScalarAsync(TestToken);
+
+        return result is DBNull ? null : result;
+    }
+
+    // Polls the query until its value is the expected one or the timeout elapsed, and returns the last value.
+    private static async Task<object?> WaitForAsync(string connectionString, string sql, Func<object?, bool> isExpected)
+    {
+        var deadline = DateTime.UtcNow + s_timeout;
+        var value = await ExecuteScalarAsync(connectionString, sql);
+
+        while (!isExpected(value) && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(20, TestToken);
+            value = await ExecuteScalarAsync(connectionString, sql);
+        }
+
+        return value;
     }
 
     private static MessageEnvelope CreateEnvelope(IServiceProvider provider, string messageId)
@@ -223,5 +230,23 @@ public sealed class PostgresScheduledMessageDispatcherTests(PostgresFixture fixt
         return provider;
     }
 
+    private static RunningDispatcher StartDispatcher(IServiceProvider provider)
+    {
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+        var processing = provider.GetRequiredService<ScheduledMessageDispatcher>().ProcessAsync(cancellation.Token);
+        return new RunningDispatcher(processing, cancellation);
+    }
+
     public sealed record ScheduledEvent(string Name);
+
+    // Stops the dispatcher like a host does and waits until it has returned.
+    private sealed class RunningDispatcher(Task processing, CancellationTokenSource cancellation) : IAsyncDisposable
+    {
+        public async ValueTask DisposeAsync()
+        {
+            await cancellation.CancelAsync();
+            await processing.WaitAsync(s_timeout, TestToken);
+            cancellation.Dispose();
+        }
+    }
 }

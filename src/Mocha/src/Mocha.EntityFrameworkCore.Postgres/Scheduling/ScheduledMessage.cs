@@ -30,7 +30,7 @@ public sealed class ScheduledMessage(Guid id, JsonDocument envelope)
     public int TimesSent { get; private set; }
 
     /// <summary>
-    /// Gets the maximum number of times dispatch will be attempted before the message is considered dead.
+    /// Gets the value of the attempt limit column. The dispatcher does not apply it.
     /// </summary>
     public int MaxAttempts { get; private set; } = 10;
 
