@@ -341,7 +341,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: de9906ba4248716a80d037a7fa87899a915b57298219e009543290db8cdef478
+  id: a8b894b0b7e9451507d095a046a5d45c02a2ea3a6391fc7e48e7f6a6abac8a88
   operation:
     - document: |
         query TopProducts {
@@ -409,7 +409,7 @@ operationPlan:
         xxHash: 12528713562901367247
       lookupTypeName: Product
       resultSelectionSet: >-
-        { reviews }
+        { reviews { __typename author { __typename } } }
       source: $.node<Product>
       target: $.topProducts
       requirements:

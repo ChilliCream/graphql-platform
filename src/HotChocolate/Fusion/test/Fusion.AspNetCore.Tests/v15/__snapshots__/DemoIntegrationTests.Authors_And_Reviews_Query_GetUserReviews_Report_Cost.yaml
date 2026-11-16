@@ -438,7 +438,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: aa1e7f87a8e35d6fb997b1cae96215dd3368e563ef6a4398e0857fb8dd15d07e
+  id: ec8ef24c254b79627ad12f958ff1cb461896e70957d8d585d54fa5c022aa29c8
   operation:
     - document: |
         query GetUser {
@@ -505,7 +505,7 @@ operationPlan:
         xxHash: 2210872165402831104
       lookupTypeName: User
       resultSelectionSet: >-
-        { reviews }
+        { reviews { body author { id } } }
       source: $.node<User>
       target: $.users
       requirements:

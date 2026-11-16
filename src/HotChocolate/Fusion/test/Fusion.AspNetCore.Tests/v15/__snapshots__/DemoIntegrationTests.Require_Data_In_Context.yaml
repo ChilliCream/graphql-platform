@@ -417,7 +417,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 463bf34ac47ca829004fbdc50d562ef961b34be00538102e4e73c994c6d8bb71
+  id: cd8023fdfb12c9e0fd0489da8b17df171d4151f6dfcb3e9f1321858a5af0ee4c
   operation:
     - document: |
         query Requires {
@@ -468,7 +468,7 @@ operationPlan:
         shortHash: 714e8d42
         xxHash: 15525273958196042721
       resultSelectionSet: >-
-        { reviews }
+        { reviews { body author { id } product } }
     - id: 2
       type: Operation
       schema: D

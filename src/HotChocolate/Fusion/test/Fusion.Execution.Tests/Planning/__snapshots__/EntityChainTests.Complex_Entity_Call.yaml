@@ -1,4 +1,4 @@
-id: c4e6e22d7d3cfb9c3b9fbf009e14e7a21e3dcc7a97eacb6d0d46a209be8cdf29
+id: 12f6f19f0ab7117d5623d3af5ebc215cb39c5971c8da425493623ec801091eb2
 operation:
   - document: |
       {
@@ -46,7 +46,7 @@ nodes:
       shortHash: 50ee499a
       xxHash: 10122488351664823367
     resultSelectionSet: >-
-      { topProducts }
+      { topProducts { products { id category { id tag } } } }
   - id: 2
     type: Operation
     schema: price

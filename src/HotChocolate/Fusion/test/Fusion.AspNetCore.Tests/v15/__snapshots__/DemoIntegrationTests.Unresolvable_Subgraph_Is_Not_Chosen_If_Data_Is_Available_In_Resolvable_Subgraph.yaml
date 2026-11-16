@@ -130,7 +130,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 74cabb739073fd16efdfac43f0b44de3d5b25423222d9a8a4464e13c04e059ea
+  id: ef2362bba07ce2fb31fb64d3ac4c06e036d9cb5b4f0f6fce749cd6f33ad96d15
   operation:
     - document: |
         {
@@ -167,7 +167,7 @@ operationPlan:
         shortHash: 485903a8
         xxHash: 13938309490224902434
       resultSelectionSet: >-
-        { viewer }
+        { viewer { product { id } } }
     - id: 2
       type: Operation
       schema: C

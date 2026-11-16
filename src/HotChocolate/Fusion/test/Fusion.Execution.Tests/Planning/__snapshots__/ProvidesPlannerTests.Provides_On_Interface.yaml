@@ -1,4 +1,4 @@
-id: d9b178c09f9b75b5447a916920f443d886f85aa68e1fd905d61ed07603cc2d4c
+id: cca0a5087fc31c40bab89adeef7a27fc9885fc980cbde082a7d0314c4d875cf7
 operation:
   - document: |
       {
@@ -45,4 +45,4 @@ nodes:
       shortHash: 494adae6
       xxHash: 2446306219634372817
     resultSelectionSet: >-
-      { book }
+      { book { featured { __typename ... on Cat { age } ... on Dog { tricks } } } }

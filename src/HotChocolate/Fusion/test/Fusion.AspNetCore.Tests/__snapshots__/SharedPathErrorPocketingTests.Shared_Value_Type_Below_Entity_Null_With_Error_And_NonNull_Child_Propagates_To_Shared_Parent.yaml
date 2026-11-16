@@ -1,0 +1,197 @@
+title: Shared_Value_Type_Below_Entity_Null_With_Error_And_NonNull_Child_Propagates_To_Shared_Parent
+request:
+  document: |
+    {
+      product {
+        shared {
+          a
+          b
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "product": {
+          "shared": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "product",
+            "shared",
+            "a"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+        productA(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        shared: SharedData @shareable @error
+      }
+
+      type SharedData @shareable {
+        a: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_88539581_1 {
+              product {
+                shared {
+                  a
+                }
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "path": [
+                      "product",
+                      "shared"
+                    ]
+                  }
+                ],
+                "data": {
+                  "product": {
+                    "shared": null,
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productB(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        shared: SharedData @shareable
+      }
+
+      type SharedData @shareable {
+        b: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_88539581_2($__fusion_1_id: Int!) {
+              productB(id: $__fusion_1_id) {
+                shared {
+                  b
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productB": {
+                    "shared": {
+                      "b": "SharedData: U2hhcmVkRGF0YTozNDk2OTYwNTA1"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  id: be2d130d8c808627df62d96e8e26dc2a5b8feb4d252045afb23a6fe8f1785a94
+  operation:
+    - document: |
+        {
+          product {
+            shared {
+              a
+              b
+            }
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 28a8e75b565f67068aab148eb4356936
+      hash: 88539581d9b1420db2462456cfd14401
+      shortHash: "88539581"
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_88539581_1
+        kind: Query
+        document: |
+          query Op_88539581_1 {
+            product {
+              shared {
+                a
+              }
+              id
+            }
+          }
+        hash: 06db38c56dd944efaf2eb85b309e2e40729023a59fdb04d11a662d542e5ab92e
+        shortHash: 06db38c5
+        xxHash: 3308987444842917395
+      resultSelectionSet: >-
+        { product { shared { a } id } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_88539581_2
+        kind: Query
+        document: |
+          query Op_88539581_2($__fusion_1_id: Int!) {
+            productB(id: $__fusion_1_id) {
+              shared {
+                b
+              }
+            }
+          }
+        hash: d9b1a58af72e336c111c30b3f2bae7919ecf937eb2cb2fd511b185a390e20553
+        shortHash: d9b1a58a
+        xxHash: 11257255903879648510
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { shared { b } }
+      source: $.productB
+      target: $.product
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.product
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -192,7 +192,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: e7e6a0f82c4dd657db5d6dcaab7faad5160211425c39b18bf6f9bc3076f57cb8
+  id: 749f926e8a1e1a056215d33e55b45b222ab61fc678ed7bb5419fa8624417ce6a
   operation:
     - document: |
         mutation createReview($input: CreateReviewInput!) {
@@ -242,7 +242,7 @@ operationPlan:
         shortHash: d3c6fca2
         xxHash: 7735658392071352531
       resultSelectionSet: >-
-        { createReview }
+        { createReview { id body author { id } product { id } } }
       forwardedVariables:
         - input
     - id: 2

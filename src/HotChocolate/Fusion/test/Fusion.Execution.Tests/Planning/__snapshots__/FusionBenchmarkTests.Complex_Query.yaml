@@ -1,4 +1,4 @@
-id: acb7c186fded29e84ca61b0214b01b1079f015ae0d5920ff2182d85ad5695902
+id: d9791df4db4c91956b0d72870997fb32fd44d6bc6ca439ab41f37448bfd71628
 operation:
   - document: |
       query(
@@ -274,7 +274,7 @@ nodes:
       shortHash: 70aadd24
       xxHash: 18208276380645330079
     resultSelectionSet: >-
-      { viewer { reviews } }
+      { viewer { reviews { pageInfo { hasNextPage hasPreviousPage startCursor endCursor } edges } } }
     forwardedVariables:
       - includeReviews
   - id: 2
@@ -615,7 +615,7 @@ nodes:
       xxHash: 3574020953864281737
     lookupTypeName: Product
     resultSelectionSet: >-
-      { reviews }
+      { reviews { pageInfo { hasNextPage ... { hasPreviousPage startCursor endCursor } } edges } }
     source: $.productById
     target: $.productById
     batchingGroupId: 31

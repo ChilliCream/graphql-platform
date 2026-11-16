@@ -626,7 +626,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: ebd2cc7d18fa2d58f26d8ba62b2b782bf327aa93d1d7506bd422538e7024fb46
+  id: da8cb7fc5e217156387c1e5c813ae98f03bea63750cf62d10d4cf562a19b6e25
   operation:
     - document: |
         query GetUser {
@@ -689,7 +689,7 @@ operationPlan:
         shortHash: d1b519be
         xxHash: 4373669865139510497
       resultSelectionSet: >-
-        { a b }
+        { a { body author { id } } b { body author { id } } }
     - id: 2
       type: Operation
       schema: A
@@ -733,7 +733,7 @@ operationPlan:
         xxHash: 748009871427004425
       lookupTypeName: User
       resultSelectionSet: >-
-        { reviews }
+        { reviews { body author { id } } }
       source: $.node<User>
       target: $.users
       requirements:

@@ -340,7 +340,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: e68412bd9de5c81fb9c3c5c7727920d47f5e0392121b1c212f5c9793b7f99fa8
+  id: 3d2f7a35fd13d44b3e4085718d78a2d6fb8f438da256bcea5b93cfe6e3a22d42
   operation:
     - document: |
         query($arg1: String, $arg2: String) {
@@ -415,7 +415,7 @@ operationPlan:
         xxHash: 1733325756935233487
       lookupTypeName: User
       resultSelectionSet: >-
-        { feedbacks }
+        { feedbacks { edges { node { feedback { buyer { id } } } } } }
       source: $.node<User>
       target: $.userBySlug
       requirements:

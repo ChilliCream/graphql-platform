@@ -245,7 +245,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: fc79b598cf7dc90c01167d10d6f9cb537f4e0939a7c3a19640113deb602eb263
+  id: db361888a76a1ee8c7e593b3410bd52fb41d897a57ec5f41c378f7bb89839857
   operation:
     - document: |
         {
@@ -293,7 +293,7 @@ operationPlan:
         shortHash: b17dbc2f
         xxHash: 1547003635357508194
       resultSelectionSet: >-
-        { productById }
+        { productById { schema1 shared { schema1 shared2 { schema1 } } id } }
     - id: 2
       type: Operation
       schema: B

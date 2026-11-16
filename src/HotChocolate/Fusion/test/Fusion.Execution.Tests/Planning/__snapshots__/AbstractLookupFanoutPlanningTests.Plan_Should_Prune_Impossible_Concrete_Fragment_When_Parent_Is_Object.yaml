@@ -1,4 +1,4 @@
-id: b8f3adad9db1a1de44ca1df6bd03dec242888311366aeaafa5ce971d67574316
+id: ac633c84788419a16241749c4803c385e8818e15ef37d05a3bdcac071cc2a622
 operation:
   - document: |
       {
@@ -70,7 +70,7 @@ nodes:
       xxHash: 11232871436440941999
     lookupTypeName: Magazine
     resultSelectionSet: >-
-      { reviews }
+      { reviews { product { __typename reviewsCount id } } }
     source: $.magazineById
     target: $.products<Magazine>
     batchingGroupId: 10
@@ -105,7 +105,7 @@ nodes:
       xxHash: 10083997751294899173
     lookupTypeName: Book
     resultSelectionSet: >-
-      { reviews }
+      { reviews { product { __typename reviewsCount id } } }
     source: $.bookById
     target: $.products<Book>
     batchingGroupId: 10

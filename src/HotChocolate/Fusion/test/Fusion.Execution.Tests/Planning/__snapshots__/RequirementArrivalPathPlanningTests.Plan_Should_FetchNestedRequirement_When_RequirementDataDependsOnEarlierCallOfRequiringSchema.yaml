@@ -1,4 +1,4 @@
-id: 1d5a185d1b650a4c4b4247cab0503ce6a3249cf6bee9911d670ffbe6b425adb8
+id: 911fdf10b1aaa0e844975ca365d36b3866c08461bf3e1ec490b03899cb197730
 operation:
   - document: |
       {
@@ -132,7 +132,7 @@ nodes:
       xxHash: 15767508457989934295
     lookupTypeName: H1
     resultSelectionSet: >-
-      { b }
+      { b { l { __typename m } id } }
     source: $.h1ById
     target: $.root.a
     batchingGroupId: 6
@@ -167,7 +167,7 @@ nodes:
       xxHash: 599250030796056423
     lookupTypeName: H1
     resultSelectionSet: >-
-      { b }
+      { b { l { m } } }
     source: $.h1ById
     target: $.root.a
     batchingGroupId: 6

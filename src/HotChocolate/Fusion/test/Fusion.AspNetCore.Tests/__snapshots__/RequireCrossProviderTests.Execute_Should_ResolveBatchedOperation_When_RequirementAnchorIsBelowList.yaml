@@ -193,7 +193,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 9f7e3056d47c5d2cd3b557c5f1086b0f50d0da25652ad0e3c65b4e4c7858386f
+  id: 2d43fab8e8e47ed636cd1f64e7c56dad2cbf671e9f1d813c44ba619c91db38bb
   operation:
     - document: |
         {
@@ -240,7 +240,7 @@ operationPlan:
         shortHash: e57cde1f
         xxHash: 3360290498109568757
       resultSelectionSet: >-
-        { products reviews }
+        { products { id variants { weight } } reviews }
     - id: 2
       type: Operation
       schema: b
