@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -39,6 +40,99 @@ public class HttpConnectionTests : ServerTestBase
         Assert.Collection(
             results,
             t => t.RootElement.ToString().MatchSnapshot());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_RequestTheLegacyIncrementalFormat_When_Executing()
+    {
+        // arrange
+        var handler = new StubHandler("application/graphql-response+json", """{"data":{"__typename":"Query"}}""");
+        var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/graphql") };
+        var request = new OperationRequest("Test", new MockDocument("query Test { __typename }"));
+        var connection = new HttpConnection(() => client);
+
+        // act
+        await foreach (var _ in connection.ExecuteAsync(request))
+        {
+        }
+
+        // assert
+        handler.Accept.MatchInlineSnapshot(
+            "application/graphql-response+json, application/json; q=0.9, "
+            + "text/event-stream; incrementalSpec=v0.1, "
+            + "application/graphql-response+jsonl; incrementalSpec=v0.1");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_MarkIncrementalPayloadsAsPatches_When_ResponseIsDeferred()
+    {
+        // arrange
+        var handler = new StubHandler(
+            "application/graphql-response+jsonl",
+            """
+            {"data":{"hero":{"name":"R2-D2"}},"hasNext":true}
+            {"incremental":[{"data":{"id":"1"},"path":["hero"]}],"hasNext":false}
+
+            """);
+        var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/graphql") };
+        var request = new OperationRequest("Test", new MockDocument("query Test { hero { name } }"));
+        var connection = new HttpConnection(() => client);
+
+        // act
+        var results = new List<string>();
+        await foreach (var response in connection.ExecuteAsync(request))
+        {
+            results.Add($"{response.IsPatch} {response.HasNext} {response.Body!.RootElement}");
+        }
+
+        // assert
+        results.MatchInlineSnapshots(
+        [
+            """
+            False True {"data":{"hero":{"name":"R2-D2"}}}
+            """,
+            """
+            True False {"incremental":[{"data":{"id":"1"},"path":["hero"]}]}
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_MarkTrailingHasNextPayloadAsPatch_When_ResponseIsDeferred()
+    {
+        // arrange
+        var handler = new StubHandler(
+            "application/graphql-response+jsonl",
+            """
+            {"data":{"hero":{"name":"R2-D2"}},"hasNext":true}
+            {"incremental":[{"data":{"id":"1"},"path":["hero"]}],"hasNext":true}
+            {"hasNext":false}
+
+            """);
+        var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/graphql") };
+        var request = new OperationRequest("Test", new MockDocument("query Test { hero { name } }"));
+        var connection = new HttpConnection(() => client);
+
+        // act
+        var results = new List<string>();
+        await foreach (var response in connection.ExecuteAsync(request))
+        {
+            results.Add($"{response.IsPatch} {response.HasNext} {response.Body!.RootElement}");
+        }
+
+        // assert
+        results.MatchInlineSnapshots(
+        [
+            """
+            False True {"data":{"hero":{"name":"R2-D2"}}}
+            """,
+            """
+            True True {"incremental":[{"data":{"id":"1"},"path":["hero"]}]}
+            """,
+            """
+            True False {}
+            """
+        ]);
     }
 
     [Fact(Skip = "We are postponing defer integration until spec is more stable.")]
@@ -156,6 +250,23 @@ public class HttpConnectionTests : ServerTestBase
         }
 
         await snapshot.MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    private sealed class StubHandler(string contentType, string body) : HttpMessageHandler
+    {
+        public string? Accept { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            Accept = request.Headers.Accept.ToString();
+
+            var content = new StringContent(body);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+
+            return Task.FromResult(new HttpResponseMessage { Content = content });
+        }
     }
 
     private sealed class MockDocument : IDocument

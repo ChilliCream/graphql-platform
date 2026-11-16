@@ -427,4 +427,215 @@ public class QueryContextConnectionAnalyzerTests
             """],
             enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
+
+    [Fact]
+    public async Task StreamPageConnection_CorrectGenericTypeMatch_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+            using GreenDonut.Data;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductResolvers
+            {
+                public static Task<StreamPageConnection<Product>> GetProductsAsync(
+                    PagingArguments pagingArgs,
+                    QueryContext<Product> query,
+                    CancellationToken cancellationToken)
+                    => throw new System.InvalidOperationException();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task StreamPageConnection_ValueTask_TypeMismatch_RaisesError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+            using GreenDonut.Data;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductResolvers
+            {
+                public static ValueTask<StreamPageConnection<Product>> GetProductsAsync(
+                    PagingArguments pagingArgs,
+                    QueryContext<Brand> query,
+                    CancellationToken cancellationToken)
+                    => throw new System.InvalidOperationException();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task StreamPageConnection_Direct_TypeMismatch_RaisesError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+            using GreenDonut.Data;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductResolvers
+            {
+                public static StreamPageConnection<Product> GetProducts(
+                    PagingArguments pagingArgs,
+                    QueryContext<Brand> query,
+                    CancellationToken cancellationToken)
+                    => throw new System.InvalidOperationException();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task DerivedStreamPageConnection_CorrectGenericTypeMatch_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+            using GreenDonut.Data;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductResolvers
+            {
+                public static Task<ProductConnection> GetProductsAsync(
+                    PagingArguments pagingArgs,
+                    QueryContext<Product> query,
+                    CancellationToken cancellationToken)
+                    => throw new System.InvalidOperationException();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class ProductConnection : StreamPageConnection<Product>
+            {
+                public ProductConnection(StreamPage<Product> page)
+                    : base(page)
+                {
+                }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task DerivedStreamPageConnection_TypeMismatch_RaisesError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+            using GreenDonut.Data;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductResolvers
+            {
+                public static Task<ProductConnection> GetProductsAsync(
+                    PagingArguments pagingArgs,
+                    QueryContext<Brand> query,
+                    CancellationToken cancellationToken)
+                    => throw new System.InvalidOperationException();
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class ProductConnection : StreamPageConnection<Product>
+            {
+                public ProductConnection(StreamPage<Product> page)
+                    : base(page)
+                {
+                }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
 }

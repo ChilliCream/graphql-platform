@@ -135,9 +135,33 @@ internal sealed class FixedSizeArrayPool : IDisposable
             _index = 0;
             _inUse = 0;
 
+            _trimTimer = CreateTrimTimer(this, trimInterval);
+        }
+
+        // Creates the trim timer without capturing the ambient execution context.
+        private static Timer CreateTrimTimer(Bucket bucket, TimeSpan trimInterval)
+        {
+            var suppressFlow = !ExecutionContext.IsFlowSuppressed();
+            var flowControl = default(AsyncFlowControl);
+
+            if (suppressFlow)
+            {
+                flowControl = ExecutionContext.SuppressFlow();
+            }
+
+            try
+            {
 #pragma warning disable IDE0370 // Remove unnecessary suppression -- Required for netstandard2.0.
-            _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimInterval, trimInterval);
+                return new Timer(static b => ((Bucket)b!).Trim(), bucket, trimInterval, trimInterval);
 #pragma warning restore IDE0370 // Remove unnecessary suppression
+            }
+            finally
+            {
+                if (suppressFlow)
+                {
+                    flowControl.Undo();
+                }
+            }
         }
 
         internal int InUse => _inUse;

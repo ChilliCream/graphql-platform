@@ -20,8 +20,9 @@ internal sealed partial class SubscriptionExecutor
         private readonly IErrorHandler _errorHandler;
         private readonly ExecutionConcurrencyGate? _concurrencyGate;
         private readonly TimeSpan _eventTimeout;
-        private readonly CancellationTokenSource _eventCts;
-        private readonly CancellationTokenRegistration _eventCtsRegistration;
+        private readonly TimeProvider _timeProvider;
+        private CancellationTokenSource _eventCts;
+        private CancellationTokenRegistration _eventCtsRegistration;
         private IDisposable? _subscriptionScope;
         private readonly RequestContext _requestContext;
         private readonly ObjectType _subscriptionType;
@@ -42,7 +43,8 @@ internal sealed partial class SubscriptionExecutor
             Func<object?> resolveQueryRootValue,
             IExecutionDiagnosticEvents diagnosticEvents,
             ExecutionConcurrencyGate? concurrencyGate,
-            TimeSpan eventTimeout)
+            TimeSpan eventTimeout,
+            TimeProvider timeProvider)
         {
             unchecked
             {
@@ -60,10 +62,19 @@ internal sealed partial class SubscriptionExecutor
             _eventTimeout = eventTimeout;
             _errorHandler = _requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
 
-            _eventCts = new CancellationTokenSource();
-            _eventCtsRegistration = _requestContext.RequestAborted.UnsafeRegister(
+            _timeProvider = timeProvider;
+            (_eventCts, _eventCtsRegistration) = CreateEventCts(requestContext.RequestAborted, timeProvider);
+        }
+
+        private static (CancellationTokenSource, CancellationTokenRegistration) CreateEventCts(
+            CancellationToken requestAborted,
+            TimeProvider timeProvider)
+        {
+            var eventCts = new CancellationTokenSource(Timeout.InfiniteTimeSpan, timeProvider);
+            var registration = requestAborted.UnsafeRegister(
                 static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
-                _eventCts);
+                eventCts);
+            return (eventCts, registration);
         }
 
         /// <summary>
@@ -99,6 +110,9 @@ internal sealed partial class SubscriptionExecutor
         /// <param name="executionTimeout">
         /// The maximum execution time applied to each subscription event.
         /// </param>
+        /// <param name="timeProvider">
+        /// The time provider that measures the execution time of each subscription event.
+        /// </param>
         /// <returns>
         /// Returns a new subscription instance.
         /// </returns>
@@ -111,7 +125,8 @@ internal sealed partial class SubscriptionExecutor
             Func<object?> resolveQueryRootValue,
             IExecutionDiagnosticEvents diagnosticsEvents,
             ExecutionConcurrencyGate? concurrencyGate,
-            TimeSpan executionTimeout)
+            TimeSpan executionTimeout,
+            TimeProvider timeProvider)
         {
             var subscription = new Subscription(
                 operationContextPool,
@@ -122,7 +137,8 @@ internal sealed partial class SubscriptionExecutor
                 resolveQueryRootValue,
                 diagnosticsEvents,
                 concurrencyGate,
-                executionTimeout);
+                executionTimeout,
+                timeProvider);
 
             subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(requestContext, subscription.Id);
             subscription._sourceStream = await subscription.SubscribeAsync().ConfigureAwait(false);
@@ -278,10 +294,17 @@ internal sealed partial class SubscriptionExecutor
                 }
 
                 // Reset the shared CTS so the next event can start with a fresh budget.
-                // If TryReset() returns false the source was cancelled (timeout or
-                // client-abort); the thrown OperationCanceledException has already
-                // propagated and SubscriptionEnumerator will surface the teardown.
-                _eventCts.TryReset();
+                // If the source was cancelled (timeout or client-abort) the thrown
+                // OperationCanceledException has already propagated and SubscriptionEnumerator
+                // will surface the teardown. A timer of a custom time provider cannot be reset,
+                // so the CTS is replaced instead.
+                if (!_eventCts.TryReset() && !_eventCts.IsCancellationRequested)
+                {
+                    _eventCtsRegistration.Dispose();
+                    _eventCts.Dispose();
+                    (_eventCts, _eventCtsRegistration) =
+                        CreateEventCts(_requestContext.RequestAborted, _timeProvider);
+                }
             }
         }
 

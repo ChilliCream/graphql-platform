@@ -8,7 +8,7 @@ namespace HotChocolate.Types;
 /// list in the initial response, and additional list items in subsequent responses.
 /// `@include` and `@skip` take precedence over `@stream`.
 ///
-/// directive @stream(label: String, initialCount: Int!, if: Boolean) on FIELD
+/// directive @stream(if: Boolean! = true, label: String, initialCount: Int! = 0) on FIELD
 /// </summary>
 public sealed class StreamDirectiveType : DirectiveType<StreamDirective>
 {
@@ -18,6 +18,13 @@ public sealed class StreamDirectiveType : DirectiveType<StreamDirective>
             .Name(Names.Stream)
             .Description(TypeResources.StreamDirectiveType_Description)
             .Location(DirectiveLocation.Field);
+
+        descriptor
+            .Argument(t => t.If)
+            .Name(Names.If)
+            .Description(TypeResources.StreamDirectiveType_If_Description)
+            .Type<NonNullType<BooleanType>>()
+            .DefaultValue(true);
 
         descriptor
             .Argument(t => t.Label)
@@ -31,12 +38,6 @@ public sealed class StreamDirectiveType : DirectiveType<StreamDirective>
             .Description(TypeResources.StreamDirectiveType_InitialCount_Description)
             .Type<NonNullType<IntType>>()
             .DefaultValue(0);
-
-        descriptor
-            .Argument(t => t.If)
-            .Name(Names.If)
-            .Description(TypeResources.StreamDirectiveType_If_Description)
-            .Type<BooleanType>();
     }
 
     public static class Names

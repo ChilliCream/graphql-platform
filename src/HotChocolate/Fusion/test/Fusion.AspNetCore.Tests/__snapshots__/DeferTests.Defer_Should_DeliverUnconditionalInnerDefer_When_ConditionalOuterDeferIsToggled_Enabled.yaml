@@ -1,0 +1,314 @@
+title: Defer_Should_DeliverUnconditionalInnerDefer_When_ConditionalOuterDeferIsToggled
+request:
+  document: |
+    query($d: Boolean!) {
+      product {
+        id
+        ... @defer(if: $d) {
+          price
+          ... @defer {
+            cost
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "d": true
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 3,
+    "initial": {
+      "data": {
+        "product": {
+          "id": "UHJvZHVjdDoxMDQzMzExNzcz"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "product"
+        ]
+      },
+      {
+        "id": "1",
+        "path": [
+          "product"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "product"
+        ],
+        "data": {
+          "price": 123
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "product"
+        ],
+        "data": {
+          "cost": 123
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "product": {
+          "cost": 123,
+          "id": "UHJvZHVjdDoxMDQzMzExNzcz",
+          "price": 123
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_6b267b72_1($d: Boolean!) {
+              product {
+                id
+                ... @skip(if: $d) {
+                  __typename
+                }
+              }
+            }
+          variables: |
+            {
+              "d": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "id": "UHJvZHVjdDoxMDQzMzExNzcz"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_2 {
+              product {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "id": "UHJvZHVjdDoxMDQzMzExNzcz"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        price: Int!
+        cost: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                price
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdDoxMDQzMzExNzcz"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 123
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                cost
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdDoxMDQzMzExNzcz"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "cost": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query($d: Boolean!) {
+          product {
+            id
+            id @fusion__requirement
+            price @skip(if: $d)
+          }
+        }
+      hash: 874a644e6a461f0b620b923283d6c190
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_6b267b72_1($d: Boolean!) {
+          product {
+            id
+            ... @skip(if: $d) {
+              __typename
+            }
+          }
+        }
+      forwardedVariables:
+        - d
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_6b267b72_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            price
+          }
+        }
+      source: $.productById
+      target: $.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $d
+          passingValue: false
+      dependencies:
+        - id: 1
+  deliveryGroups:
+    - id: 0
+      path: $.product
+      ifVariable: $d
+    - id: 1
+      path: $.product
+      parentId: 0
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                price
+              }
+            }
+          source: $.productById
+          target: $.product
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+        - id: 2
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_2 {
+              product {
+                id
+              }
+            }
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                cost
+              }
+            }
+          source: $.productById
+          target: $.product
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 2

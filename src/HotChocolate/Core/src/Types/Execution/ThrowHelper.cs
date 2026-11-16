@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Properties.Resources;
@@ -14,6 +15,12 @@ internal static class ThrowHelper
 
     public static InvalidOperationException Selection_NotFullyInitialized()
         => new InvalidOperationException("The selection is not fully initialized.");
+
+    public static InvalidOperationException ExecutionGroup_BatchSelectionNotSupported(Selection selection)
+        => new(string.Format(ThrowHelper_ExecutionGroup_BatchSelectionNotSupported, selection.Field.Coordinate));
+
+    public static InvalidOperationException ExecutionGroup_SerialSelectionNotSupported(Selection selection)
+        => new(string.Format(ThrowHelper_ExecutionGroup_SerialSelectionNotSupported, selection.Field.Coordinate));
 
     public static GraphQLException VariableIsNotAnInputType(
         VariableDefinitionNode variableDefinition)
@@ -98,6 +105,61 @@ internal static class ThrowHelper
                 ThrowHelper_VariableNotOfType_Message,
                 variableName,
                 type.FullName ?? string.Empty)
+            .Build());
+
+    public static GraphQLException DirectiveIfVariableIsNull(
+        string directiveName,
+        string variableName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfVariableIsNull_Message,
+                variableName,
+                directiveName)
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetExtension("variable", variableName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
+    public static GraphQLException DirectiveIfVariableNotProvided(
+        string directiveName,
+        string variableName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfVariableNotProvided_Message,
+                variableName,
+                directiveName)
+            .SetExtension("variable", variableName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
+    public static GraphQLException DirectiveIfVariableInvalidValue(
+        string directiveName,
+        string variableName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfVariableInvalidValue_Message,
+                variableName,
+                directiveName)
+            .SetExtension("variable", variableName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
+    public static GraphQLException DirectiveIfValueMissing(
+        string directiveName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfValueMissing_Message,
+                directiveName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
+    public static GraphQLException DirectiveIfValueInvalid(
+        string directiveName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfValueInvalid_Message,
+                directiveName)
+            .SetExtension("directive", directiveName)
             .Build());
 
     public static GraphQLException RootTypeNotSupported(

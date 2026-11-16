@@ -394,19 +394,19 @@ public sealed class StaticQueryAnalysisTests
             .AddResolver(
                 "PageInfo",
                 "hasNextPage",
-                context => context.Parent<ConnectionPageInfo>().HasNextPage)
+                context => context.Parent<ConnectionPageInfo>().HasNextPageAsync(context.RequestAborted))
             .AddResolver(
                 "PageInfo",
                 "hasPreviousPage",
-                context => context.Parent<ConnectionPageInfo>().HasPreviousPage)
+                context => context.Parent<ConnectionPageInfo>().HasPreviousPageAsync(context.RequestAborted))
             .AddResolver(
                 "PageInfo",
                 "startCursor",
-                context => context.Parent<ConnectionPageInfo>().StartCursor)
+                context => context.Parent<ConnectionPageInfo>().GetStartCursorAsync(context.RequestAborted))
             .AddResolver(
                 "PageInfo",
                 "endCursor",
-                context => context.Parent<ConnectionPageInfo>().EndCursor);
+                context => context.Parent<ConnectionPageInfo>().GetEndCursorAsync(context.RequestAborted));
     }
 
     private sealed record Example(bool Field1, int Field2);

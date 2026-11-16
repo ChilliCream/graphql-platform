@@ -123,6 +123,30 @@ public class ResponseStreamTests
     }
 
     [Fact]
+    public async Task DisposeAsync_Should_RunRemainingCleanup_AndNotRetry_When_ACleanupActionThrows()
+    {
+        // arrange
+        var result = new ResponseStream(() => null!);
+        var cleanupException = new InvalidOperationException("cleanup failed");
+        var completed = 0;
+        result.RegisterForCleanup(() => ValueTask.FromException(cleanupException));
+        result.RegisterForCleanup(
+            () =>
+            {
+                completed++;
+                return default;
+            });
+
+        // act
+        var thrown = await Assert.ThrowsAsync<InvalidOperationException>(() => result.DisposeAsync().AsTask());
+        await result.DisposeAsync();
+
+        // assert
+        Assert.Same(cleanupException, thrown);
+        Assert.Equal(1, completed);
+    }
+
+    [Fact]
     public void Register_One_Async_Disposable_Disposable_Is_Null()
     {
         // arrange

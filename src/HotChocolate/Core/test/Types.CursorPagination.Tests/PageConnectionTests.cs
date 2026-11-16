@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Pagination;
 public class PageConnectionTests
 {
     [Fact]
-    public void ImplicitConversion_Should_WrapPage_When_ConvertingPageToConnection()
+    public async Task ImplicitConversion_Should_WrapPage_When_ConvertingPageToConnection()
     {
         // arrange
         var page = Page<string>.Create(
@@ -24,7 +24,7 @@ public class PageConnectionTests
         Assert.Same(page, connection.Nodes);
         Assert.Equal(10, connection.TotalCount);
         Assert.Equal(3, connection.Edges!.Count);
-        Assert.True(connection.PageInfo.HasNextPage);
+        Assert.True(await connection.PageInfo.HasNextPageAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]

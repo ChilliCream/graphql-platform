@@ -194,18 +194,14 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
     private static INamedTypeSymbol? GetListInnerType(INamedTypeSymbol typeSymbol)
     {
-        if (typeSymbol.IsGenericType
-            && (typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>"
-            || typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
+        if (typeSymbol.IsGenericType && IsEdgeListDefinition(typeSymbol.OriginalDefinition))
         {
             return typeSymbol.TypeArguments[0] as INamedTypeSymbol;
         }
 
         foreach (var interfaceType in typeSymbol.AllInterfaces)
         {
-            if (interfaceType.IsGenericType
-                && (interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>"
-                || interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
+            if (interfaceType.IsGenericType && IsEdgeListDefinition(interfaceType.OriginalDefinition))
             {
                 return interfaceType.TypeArguments[0] as INamedTypeSymbol;
             }
@@ -213,4 +209,10 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
         return null;
     }
+
+    private static bool IsEdgeListDefinition(INamedTypeSymbol typeDefinition)
+        => typeDefinition.ToDisplayString()
+            is "System.Collections.Generic.IReadOnlyList<T>"
+            or "System.Collections.Generic.IList<T>"
+            or "System.Collections.Generic.IAsyncEnumerable<T>";
 }

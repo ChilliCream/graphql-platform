@@ -1,0 +1,26 @@
+---------------
+{
+  "TotalCount": 0,
+  "HasNext": false,
+  "HasPrevious": false,
+  "Items": []
+}
+---------------
+
+SQL 0
+---------------
+-- @p='3'
+SELECT b."Id", b."Name", (
+    SELECT count(*)::int
+    FROM "Brands" AS b0) AS "TotalCount"
+FROM "Brands" AS b
+ORDER BY b."Name", b."Id"
+LIMIT @p
+---------------
+
+SQL 1
+---------------
+SELECT b."Id", b."Name"
+FROM "Brands" AS b
+ORDER BY b."Name", b."Id"
+---------------

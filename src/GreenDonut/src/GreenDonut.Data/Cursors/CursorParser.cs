@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Collections.Immutable;
 using System.Text;
+using GreenDonut.Data.Internal;
 
 namespace GreenDonut.Data.Cursors;
 
@@ -41,49 +42,68 @@ public static class CursorParser
         }
 
         var buffer = ArrayPool<byte>.Shared.Rent(cursor.Length * 4);
-        var bufferSpan = buffer.AsSpan();
-        var length = Encoding.UTF8.GetBytes(cursor, bufferSpan);
-        Base64.DecodeFromUtf8InPlace(bufferSpan[..length], out var written);
 
-        if (bufferSpan.Length > written)
+        try
         {
-            bufferSpan = bufferSpan[..written];
-        }
+            var bufferSpan = buffer.AsSpan();
+            var length = Encoding.UTF8.GetBytes(cursor, bufferSpan);
+            Base64.DecodeFromUtf8InPlace(bufferSpan[..length], out var written);
 
-        var key = 0;
-        var start = 0;
-        var end = 0;
-        var parsedCursor = new object?[keys.Length];
-        var (offset, page, totalCount) = ParsePageInfo(ref bufferSpan);
-
-        for (var current = 0; current < bufferSpan.Length; current++)
-        {
-            var code = bufferSpan[current];
-            end++;
-
-            if (CanParse(code, current, bufferSpan))
+            if (bufferSpan.Length > written)
             {
-                if (key >= keys.Length)
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                    throw new ArgumentException("The number of keys must match the number of values.", nameof(cursor));
-                }
-
-                if (code == Separator)
-                {
-                    end--;
-                }
-
-                var span = bufferSpan.Slice(start, end);
-                parsedCursor[key] = keys[key].Parse(span);
-                start = current + 1;
-                end = 0;
-                key++;
+                bufferSpan = bufferSpan[..written];
             }
-        }
 
-        ArrayPool<byte>.Shared.Return(buffer);
-        return new Cursor(parsedCursor.ToImmutableArray(), offset, page, totalCount);
+            var (offset, page, totalCount, isEndCursor) = ParsePageInfo(ref bufferSpan);
+
+            if (isEndCursor)
+            {
+                if (bufferSpan.Length != 0)
+                {
+                    throw ThrowHelper.CursorParser_PageInfoCouldNotBeParsed();
+                }
+
+                return new Cursor([], offset, null, totalCount, IsEndCursor: true);
+            }
+
+            var key = 0;
+            var start = 0;
+            var end = 0;
+            var parsedCursor = new object?[keys.Length];
+
+            for (var current = 0; current < bufferSpan.Length; current++)
+            {
+                var code = bufferSpan[current];
+                end++;
+
+                if (CanParse(code, current, bufferSpan))
+                {
+                    if (key >= keys.Length)
+                    {
+                        throw new ArgumentException(
+                            "The number of keys must match the number of values.",
+                            nameof(cursor));
+                    }
+
+                    if (code == Separator)
+                    {
+                        end--;
+                    }
+
+                    var span = bufferSpan.Slice(start, end);
+                    parsedCursor[key] = keys[key].Parse(span);
+                    start = current + 1;
+                    end = 0;
+                    key++;
+                }
+            }
+
+            return new Cursor(parsedCursor.ToImmutableArray(), offset, page, totalCount);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
 
         static bool CanParse(byte code, int pos, ReadOnlySpan<byte> buffer)
         {
@@ -109,31 +129,68 @@ public static class CursorParser
         }
     }
 
-    private static CursorPageInfo ParsePageInfo(ref Span<byte> span)
+    private static (int? Offset, int? PageIndex, int? TotalCount, bool IsEndCursor) ParsePageInfo(
+        ref Span<byte> span)
     {
         const byte open = (byte)'{';
         const byte close = (byte)'}';
         const byte separator = (byte)'|';
+        var endPrefix = "end|"u8;
 
         // Validate input: must start with `{` and end with `}`
         if (span.Length < 2 || span[0] != open)
         {
-            return default;
+            return (null, null, null, false);
         }
 
         // the page info is empty
         if (span[0] == open && span[1] == close)
         {
             span = span[2..];
-            return default;
+            return (null, null, null, false);
         }
 
         // Advance span beyond opening `{`
         span = span[1..];
 
+        if (span.StartsWith(endPrefix))
+        {
+            span = span[endPrefix.Length..];
+
+            var endSeparatorIndex = ExpectSeparator(span, separator);
+            var offsetPart = span[..endSeparatorIndex];
+            ParseNumber(offsetPart, out var endOffset, out var endOffsetConsumed);
+            var endStart = endSeparatorIndex + 1;
+
+            endSeparatorIndex = ExpectSeparator(span[endStart..], close);
+            var totalCountPart = span.Slice(endStart, endSeparatorIndex);
+            ParseNumber(totalCountPart, out var endTotalCount, out var endTotalCountConsumed);
+            endStart += endSeparatorIndex + 1;
+
+            if (endOffset > 0
+                || endOffset == int.MinValue
+                || endTotalCount < 0
+                || endOffsetConsumed != offsetPart.Length
+                || endTotalCountConsumed != totalCountPart.Length)
+            {
+                throw ThrowHelper.CursorParser_PageInfoCouldNotBeParsed();
+            }
+
+            // Advance span beyond closing `}`
+            span = span[endStart..];
+
+            return (endOffset, null, endTotalCount, true);
+        }
+
         var separatorIndex = ExpectSeparator(span, separator);
         var part = span[..separatorIndex];
         ParseNumber(part, out var offset, out _);
+
+        if (offset == int.MinValue)
+        {
+            throw ThrowHelper.CursorParser_PageInfoCouldNotBeParsed();
+        }
+
         var start = separatorIndex + 1;
 
         separatorIndex = ExpectSeparator(span[start..], separator);
@@ -149,7 +206,8 @@ public static class CursorParser
         // Advance span beyond closing `}`
         span = span[start..];
 
-        return new CursorPageInfo(offset, page, totalCount);
+        var (resultOffset, resultPage, resultTotalCount) = new CursorPageInfo(offset, page, totalCount);
+        return (resultOffset, resultPage, resultTotalCount, false);
 
         static void ParseNumber(ReadOnlySpan<byte> span, out int value, out int consumed)
         {

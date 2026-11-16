@@ -19,6 +19,7 @@ public class PageConnectionCompositeSchemaTests
             .AddSourceSchemaDefaults()
             .AddImplementationFirstTypes()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.EnableRelativeCursors = true)
             .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert

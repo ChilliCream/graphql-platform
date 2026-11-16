@@ -1,0 +1,314 @@
+title: Defer_Should_DeliverFieldWithInnerGroup_When_OuterGroupWithOwnFieldsIsDisabledAndInnerIsEnabled
+request:
+  document: |
+    query($a: Boolean!, $b: Boolean!) {
+      message {
+        id
+        ... @defer(if: $a) {
+          title
+          ... @defer(if: $b) {
+            body
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "a": false,
+      "b": true
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "message": {
+          "id": "TWVzc2FnZTo0MTY4NzUxNzE4",
+          "title": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "1",
+        "path": [
+          "message"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "1",
+        "path": [
+          "message"
+        ],
+        "data": {
+          "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "message": {
+          "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4",
+          "id": "TWVzc2FnZTo0MTY4NzUxNzE4",
+          "title": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        message: Message
+      }
+
+      type Message @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_792d5816_1($a: Boolean!, $b: Boolean!) {
+              message {
+                id
+                ... @skip(if: $a) {
+                  ... @skip(if: $b) {
+                    __typename
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "a": false,
+              "b": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "message": {
+                    "id": "TWVzc2FnZTo0MTY4NzUxNzE4"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        messageById(id: ID!): Message @lookup
+      }
+
+      type Message @key(fields: "id") {
+        id: ID!
+        title: String!
+        body: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_792d5816_2($__fusion_1_id: ID!) {
+              messageById(id: $__fusion_1_id) {
+                title
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "TWVzc2FnZTo0MTY4NzUxNzE4"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "messageById": {
+                    "title": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              messageById(id: $__fusion_1_id) {
+                body
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "TWVzc2FnZTo0MTY4NzUxNzE4"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "messageById": {
+                    "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query($a: Boolean!, $b: Boolean!) {
+          message {
+            id
+            id @fusion__requirement
+            ... @skip(if: $a) {
+              title
+              body @skip(if: $b)
+            }
+          }
+        }
+      hash: ba16b10bfde20270ebdfdd97bad6522c
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_792d5816_1($a: Boolean!, $b: Boolean!) {
+          message {
+            id
+            ... @skip(if: $a) {
+              ... @skip(if: $b) {
+                __typename
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - a
+        - b
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_792d5816_2($__fusion_1_id: ID!) {
+          messageById(id: $__fusion_1_id) {
+            title
+          }
+        }
+      source: $.messageById
+      target: $.message
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $a
+          passingValue: false
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_792d5816_3($__fusion_2_id: ID!) {
+          messageById(id: $__fusion_2_id) {
+            body
+          }
+        }
+      source: $.messageById
+      target: $.message
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $a
+          passingValue: false
+        - variable: $b
+          passingValue: false
+      dependencies:
+        - id: 1
+  deliveryGroups:
+    - id: 0
+      path: $.message
+      ifVariable: $a
+    - id: 1
+      path: $.message
+      ifVariable: $b
+      parentId: 0
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              messageById(id: $__fusion_1_id) {
+                title
+              }
+            }
+          source: $.messageById
+          target: $.message
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+        - id: 2
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_2 {
+              message {
+                id
+              }
+            }
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              messageById(id: $__fusion_1_id) {
+                body
+              }
+            }
+          source: $.messageById
+          target: $.message
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 2

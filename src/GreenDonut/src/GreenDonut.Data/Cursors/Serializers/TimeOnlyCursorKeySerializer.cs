@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Globalization;
 using System.Reflection;
 using System.Text.Unicode;
 
@@ -27,7 +28,7 @@ internal sealed class TimeOnlyCursorKeySerializer : ICursorKeySerializer
         }
 
         // Parse date.
-        return TimeOnly.ParseExact(timeOnlyChars, TimeFormat);
+        return TimeOnly.ParseExact(timeOnlyChars, TimeFormat, CultureInfo.InvariantCulture);
     }
 
     public bool TryFormat(object key, Span<byte> buffer, out int written)
@@ -36,7 +37,7 @@ internal sealed class TimeOnlyCursorKeySerializer : ICursorKeySerializer
         Span<char> characters = stackalloc char[TimeFormat.Length];
 
         // Format time.
-        if (!timeOnly.TryFormat(characters, out _, TimeFormat))
+        if (!timeOnly.TryFormat(characters, out _, TimeFormat, CultureInfo.InvariantCulture))
         {
             written = 0;
             return false;

@@ -63,6 +63,25 @@ public class DataLoaderTests(ITestOutputHelper output)
         await Assert.ThrowsAsync<ArgumentNullException>("key", Verify);
     }
 
+    [Fact]
+    public void LoadAsync_Should_ThrowAndLeaveCacheEmpty_When_TokenIsCancelled()
+    {
+        // arrange
+        var fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new PromiseCache(10);
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions { Cache = cache });
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // act
+        void Verify() => _ = loader.LoadAsync("Foo", cts.Token);
+
+        // assert
+        Assert.Throws<OperationCanceledException>(Verify);
+        Assert.Equal(0, cache.Usage);
+    }
+
     [Fact(DisplayName = "LoadAsync: Should match snapshot")]
     public async Task LoadSingleResult()
     {

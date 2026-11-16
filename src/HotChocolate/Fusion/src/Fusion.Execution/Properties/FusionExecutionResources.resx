@@ -96,6 +96,9 @@
   <data name="OperationPlan_IncrementalPlanParentNotFound" xml:space="preserve">
     <value>Could not resolve parent execution node for incremental plan at path '{0}'.</value>
   </data>
+  <data name="OperationPlan_DeferredGroupPlannedToNothing" xml:space="preserve">
+    <value>The deferred group at path '{0}' selects fields but its incremental plan has no execution nodes.</value>
+  </data>
   <data name="OperationBatchExecutionNode_MissingBatchResult" xml:space="preserve">
     <value>The batch response does not contain any result for operation '{0}'.</value>
   </data>

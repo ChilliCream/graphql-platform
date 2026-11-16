@@ -1,0 +1,259 @@
+title: Defer_Should_AnchorSharedData_At_CompletingGroup_When_SecondSiblingCompletesFirst
+request:
+  document: |
+    {
+      user(id: "1") {
+        name
+        ... @defer(label: "first") {
+          email
+          address
+        }
+        ... @defer(label: "second") {
+          email
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 3,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "first"
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "label": "second"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "address": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "email": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "address": "User: VXNlcjoyMDkyMTcyNjc2",
+          "email": "User: VXNlcjoyMDkyMTcyNjc2",
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_85c91253_1 {
+              user(id: "1") {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        email: String!
+        address: String!
+        phone: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                address
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "address": "User: VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          user(id: "1") {
+            name
+            id @fusion__requirement
+          }
+        }
+      hash: 7b83676372df584307bc9df16f1d278a
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_85c91253_1 {
+          user(id: "1") {
+            name
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.user
+      label: first
+    - id: 1
+      path: $.user
+      label: second
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                address
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+    - deliveryGroupIds:
+        - 0
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

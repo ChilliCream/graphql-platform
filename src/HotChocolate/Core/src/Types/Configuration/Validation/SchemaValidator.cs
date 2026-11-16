@@ -12,6 +12,7 @@ internal static class SchemaValidator
         new DirectiveValidationRule(),
         new InterfaceHasAtLeastOneImplementationRule(),
         new IsSelectedPatternValidation(),
+        new ExecutionGroupValidationRule(),
         new EnsureFieldResultsDeclareErrorsRule(),
         new RequiresOptInValidationRule()
     ];

@@ -4,6 +4,7 @@ operation:
         products {
           related {
             __typename @fusion__empty
+            id @fusion__requirement
           }
           id @fusion__requirement
         }
@@ -29,7 +30,7 @@ nodes:
         _entities(representations: $representations) {
           ... on Product {
             related {
-              __typename
+              id
             }
           }
         }
@@ -54,7 +55,7 @@ incrementalPlans:
       - 0
     parentNodeId: 2
     requirements:
-      - name: __fusion_2_id
+      - name: __fusion_1_id
         selectionMap: >-
           id
     nodes:
@@ -76,28 +77,7 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - id: 2
-      - id: 2
-        type: ApolloOperation
-        schema: b
-        operation: |
-          query($representations: [_Any!]!) {
-            _entities(representations: $representations) {
-              ... on Product {
-                related {
-                  id
-                }
-              }
-            }
-          }
-        source: $._entities
-        target: $.products
-        requirements:
-          - name: __fusion_2_id
-            selectionMap: >-
-              id
-        dependencies:
-          - parentNodeId: 1
+          - parentNodeId: 2
   - deliveryGroupIds:
       - 1
     parentNodeId: 2

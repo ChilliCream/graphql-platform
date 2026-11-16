@@ -1,0 +1,414 @@
+title: Defer_Should_DeliverNestedDeferFields_When_RootFieldsPrecedeTheDeferredList
+request:
+  document: |
+    {
+      a: __typename
+      b: __typename
+      products {
+        id
+        ... @defer {
+          reviews {
+            id
+            ... @defer {
+              text
+            }
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "a": "Query",
+        "b": "Query",
+        "products": [
+          {
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
+          },
+          {
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5"
+          },
+          {
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "UmV2aWV3OjMwMDAwNTM1MTA=",
+              "text": "Review: UmV2aWV3OjMwMDAwNTM1MTA="
+            },
+            {
+              "id": "UmV2aWV3OjIzNjI5NTY5NjQ=",
+              "text": "Review: UmV2aWV3OjIzNjI5NTY5NjQ="
+            },
+            {
+              "id": "UmV2aWV3OjM5MzkxOTk2NzQ=",
+              "text": "Review: UmV2aWV3OjM5MzkxOTk2NzQ="
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "UmV2aWV3OjEzMzg2NjMwNDA=",
+              "text": "Review: UmV2aWV3OjEzMzg2NjMwNDA="
+            },
+            {
+              "id": "UmV2aWV3OjMzODU5NDM3MzA=",
+              "text": "Review: UmV2aWV3OjMzODU5NDM3MzA="
+            },
+            {
+              "id": "UmV2aWV3OjMyNzg4MDUxMDk=",
+              "text": "Review: UmV2aWV3OjMyNzg4MDUxMDk="
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "UmV2aWV3OjEzOTQwMTI3MjY=",
+              "text": "Review: UmV2aWV3OjEzOTQwMTI3MjY="
+            },
+            {
+              "id": "UmV2aWV3OjM3NDIyOTczMjQ=",
+              "text": "Review: UmV2aWV3OjM3NDIyOTczMjQ="
+            },
+            {
+              "id": "UmV2aWV3OjE4MTc3OTE5ODE=",
+              "text": "Review: UmV2aWV3OjE4MTc3OTE5ODE="
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "a": "Query",
+        "b": "Query",
+        "products": [
+          {
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk=",
+            "reviews": [
+              {
+                "id": "UmV2aWV3OjMwMDAwNTM1MTA=",
+                "text": "Review: UmV2aWV3OjMwMDAwNTM1MTA="
+              },
+              {
+                "id": "UmV2aWV3OjIzNjI5NTY5NjQ=",
+                "text": "Review: UmV2aWV3OjIzNjI5NTY5NjQ="
+              },
+              {
+                "id": "UmV2aWV3OjM5MzkxOTk2NzQ=",
+                "text": "Review: UmV2aWV3OjM5MzkxOTk2NzQ="
+              }
+            ]
+          },
+          {
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5",
+            "reviews": [
+              {
+                "id": "UmV2aWV3OjEzMzg2NjMwNDA=",
+                "text": "Review: UmV2aWV3OjEzMzg2NjMwNDA="
+              },
+              {
+                "id": "UmV2aWV3OjMzODU5NDM3MzA=",
+                "text": "Review: UmV2aWV3OjMzODU5NDM3MzA="
+              },
+              {
+                "id": "UmV2aWV3OjMyNzg4MDUxMDk=",
+                "text": "Review: UmV2aWV3OjMyNzg4MDUxMDk="
+              }
+            ]
+          },
+          {
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2",
+            "reviews": [
+              {
+                "id": "UmV2aWV3OjEzOTQwMTI3MjY=",
+                "text": "Review: UmV2aWV3OjEzOTQwMTI3MjY="
+              },
+              {
+                "id": "UmV2aWV3OjM3NDIyOTczMjQ=",
+                "text": "Review: UmV2aWV3OjM3NDIyOTczMjQ="
+              },
+              {
+                "id": "UmV2aWV3OjE4MTc3OTE5ODE=",
+                "text": "Review: UmV2aWV3OjE4MTc3OTE5ODE="
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        version: String!
+        products: [Product!]!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_45898a93_1 {
+              a: __typename
+              b: __typename
+              products {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "a": "Query",
+                  "b": "Query",
+                  "products": [
+                    {
+                      "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
+                    },
+                    {
+                      "id": "UHJvZHVjdDozOTM1NzEyMDU5"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+
+      type Review {
+        id: ID!
+        text: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                reviews {
+                  id
+                  text
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxOTc0MTQ1MDk="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDozOTM1NzEyMDU5"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "UmV2aWV3OjMwMDAwNTM1MTA=",
+                        "text": "Review: UmV2aWV3OjMwMDAwNTM1MTA="
+                      },
+                      {
+                        "id": "UmV2aWV3OjIzNjI5NTY5NjQ=",
+                        "text": "Review: UmV2aWV3OjIzNjI5NTY5NjQ="
+                      },
+                      {
+                        "id": "UmV2aWV3OjM5MzkxOTk2NzQ=",
+                        "text": "Review: UmV2aWV3OjM5MzkxOTk2NzQ="
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "UmV2aWV3OjEzMzg2NjMwNDA=",
+                        "text": "Review: UmV2aWV3OjEzMzg2NjMwNDA="
+                      },
+                      {
+                        "id": "UmV2aWV3OjMzODU5NDM3MzA=",
+                        "text": "Review: UmV2aWV3OjMzODU5NDM3MzA="
+                      },
+                      {
+                        "id": "UmV2aWV3OjMyNzg4MDUxMDk=",
+                        "text": "Review: UmV2aWV3OjMyNzg4MDUxMDk="
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "UmV2aWV3OjEzOTQwMTI3MjY=",
+                        "text": "Review: UmV2aWV3OjEzOTQwMTI3MjY="
+                      },
+                      {
+                        "id": "UmV2aWV3OjM3NDIyOTczMjQ=",
+                        "text": "Review: UmV2aWV3OjM3NDIyOTczMjQ="
+                      },
+                      {
+                        "id": "UmV2aWV3OjE4MTc3OTE5ODE=",
+                        "text": "Review: UmV2aWV3OjE4MTc3OTE5ODE="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          a: __typename
+          b: __typename
+          products {
+            id
+            id @fusion__requirement
+          }
+        }
+      hash: 437e56857f573db2334c665320b7939b
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_45898a93_1 {
+          a: __typename
+          b: __typename
+          products {
+            id
+          }
+        }
+    - id: 2
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: a
+          fieldName: __typename
+        - id: 3
+          responseName: b
+          fieldName: __typename
+  deliveryGroups:
+    - id: 0
+      path: $.products
+    - id: 1
+      path: $.products.reviews
+      parentId: 0
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                reviews {
+                  id
+                  text
+                }
+              }
+            }
+          source: $.productById
+          target: $.products
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

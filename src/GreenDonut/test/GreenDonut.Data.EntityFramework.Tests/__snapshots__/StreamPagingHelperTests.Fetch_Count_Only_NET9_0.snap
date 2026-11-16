@@ -1,0 +1,13 @@
+---------------
+{
+  "TotalCount": 10,
+  "Items": []
+}
+---------------
+
+SQL 0
+---------------
+SELECT b."Id", b."Name"
+FROM "Brands" AS b
+ORDER BY b."Name", b."Id"
+---------------

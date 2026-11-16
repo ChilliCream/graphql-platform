@@ -19,11 +19,16 @@ namespace GreenDonut.Data.Cursors;
 /// <param name="TotalCount">
 /// The total number of items in the dataset, if known. Can be <c>null</c> if not available.
 /// </param>
+/// <param name="IsEndCursor">
+/// Whether this cursor is an end cursor for relative paging, carrying only an offset and a
+/// total count instead of key values.
+/// </param>
 public record Cursor(
     ImmutableArray<object?> Values,
     int? Offset = null,
     int? PageIndex = null,
-    int? TotalCount = null)
+    int? TotalCount = null,
+    bool IsEndCursor = false)
 {
     [MemberNotNullWhen(true, nameof(Offset), nameof(PageIndex), nameof(TotalCount))]
     public bool IsRelative => Offset.HasValue && PageIndex.HasValue && TotalCount.HasValue;

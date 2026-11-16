@@ -156,21 +156,21 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_defer_2($__fusion_2_id: ID!) {
-              userById(id: $__fusion_2_id) {
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
                 birthdate
               }
             }
           variables: |
             [
               {
-                "__fusion_2_id": "VXNlcjoyNjE2NDgyNzU="
+                "__fusion_1_id": "VXNlcjoyNjE2NDgyNzU="
               },
               {
-                "__fusion_2_id": "VXNlcjoxNTU5MzY4MDMx"
+                "__fusion_1_id": "VXNlcjoxNTU5MzY4MDMx"
               },
               {
-                "__fusion_2_id": "VXNlcjozNDQ5MTc0MTI0"
+                "__fusion_1_id": "VXNlcjozNDQ5MTc0MTI0"
               }
             ]
         response:
@@ -218,21 +218,21 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+            query Op_defer_2($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
                 reviewCount
               }
             }
           variables: |
             [
               {
-                "__fusion_1_id": "VXNlcjoyNjE2NDgyNzU="
+                "__fusion_2_id": "VXNlcjoyNjE2NDgyNzU="
               },
               {
-                "__fusion_1_id": "VXNlcjoxNTU5MzY4MDMx"
+                "__fusion_2_id": "VXNlcjoxNTU5MzY4MDMx"
               },
               {
-                "__fusion_1_id": "VXNlcjozNDQ5MTc0MTI0"
+                "__fusion_2_id": "VXNlcjozNDQ5MTc0MTI0"
               }
             ]
         response:
@@ -302,11 +302,11 @@ operationPlan:
       nodes:
         - id: 1
           type: Operation
-          schema: reviews
+          schema: accounts
           operation: |
             query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
-                reviewCount
+                birthdate
               }
             }
           source: $.userById
@@ -319,11 +319,11 @@ operationPlan:
             - parentNodeId: 1
         - id: 2
           type: Operation
-          schema: accounts
+          schema: reviews
           operation: |
             query Op_defer_2($__fusion_2_id: ID!) {
               userById(id: $__fusion_2_id) {
-                birthdate
+                reviewCount
               }
             }
           source: $.userById

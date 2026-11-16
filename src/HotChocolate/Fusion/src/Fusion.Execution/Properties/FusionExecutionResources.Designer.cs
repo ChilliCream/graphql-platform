@@ -201,6 +201,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string OperationPlan_DeferredGroupPlannedToNothing {
+            get {
+                return ResourceManager.GetString("OperationPlan_DeferredGroupPlannedToNothing", resourceCulture);
+            }
+        }
+
         internal static string OperationBatchExecutionNode_MissingBatchResult {
             get {
                 return ResourceManager.GetString("OperationBatchExecutionNode_MissingBatchResult", resourceCulture);

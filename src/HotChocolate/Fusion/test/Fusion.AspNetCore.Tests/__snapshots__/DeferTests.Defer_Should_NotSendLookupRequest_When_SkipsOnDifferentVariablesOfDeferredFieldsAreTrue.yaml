@@ -1,0 +1,164 @@
+title: Defer_Should_NotSendLookupRequest_When_SkipsOnDifferentVariablesOfDeferredFieldsAreTrue
+request:
+  document: |
+    query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+      thing {
+        id
+        ... @defer {
+          delta @skip(if: $skipDelta)
+          epsilon @skip(if: $skipEpsilon)
+        }
+      }
+    }
+  variables: |
+    {
+      "skipDelta": true,
+      "skipEpsilon": true
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "thing": {
+          "id": 123
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "thing"
+        ]
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "thing": {
+          "id": 123
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thing: Thing
+      }
+
+      type Thing @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_58ef9c8a_1 {
+              thing {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thing": {
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thingById(id: Int!): Thing @lookup
+      }
+
+      type Thing {
+        id: Int!
+        delta: Int!
+        epsilon: Int!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+          thing {
+            id
+            id @fusion__requirement
+          }
+        }
+      name: testQuery
+      hash: c3afe1e9dadb882374e1b6644490432f
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_58ef9c8a_1 {
+          thing {
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.thing
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query testQuery_defer_1(
+              $skipDelta: Boolean!
+              $skipEpsilon: Boolean!
+              $__fusion_1_id: Int!
+            ) {
+              thingById(id: $__fusion_1_id) {
+                delta @skip(if: $skipDelta)
+                epsilon @skip(if: $skipEpsilon)
+              }
+            }
+          source: $.thingById
+          target: $.thing
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          conditionAlternatives:
+            -
+              - variable: $skipDelta
+                passingValue: false
+            -
+              - variable: $skipEpsilon
+                passingValue: false
+          forwardedVariables:
+            - skipDelta
+            - skipEpsilon
+          dependencies:
+            - parentNodeId: 1
