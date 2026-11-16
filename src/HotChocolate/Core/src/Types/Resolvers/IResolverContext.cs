@@ -171,8 +171,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     string ResponseName { get; }
 
     /// <summary>
-    /// Indicates that the context has errors. To report new errors use
-    /// <see cref="ReportError(IError)"/>
+    /// Indicates that errors have been reported for the current field.
     /// </summary>
     bool HasErrors { get; }
 
@@ -214,6 +213,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// <param name="errorMessage">
     /// The error message.
     /// </param>
+    [Obsolete("Throw a GraphQLException instead. A field that reports an error must not return a value other than null, which this method does not enforce. This method will be removed in Hot Chocolate 17.")]
     void ReportError(string errorMessage);
 
     /// <summary>
@@ -225,6 +225,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// <param name="error">
     /// The error.
     /// </param>
+    [Obsolete("Throw a GraphQLException instead. A field that reports an error must not return a value other than null, which this method does not enforce. This method will be removed in Hot Chocolate 17.")]
     void ReportError(IError error);
 
     /// <summary>
@@ -239,6 +240,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// <param name="configure">
     /// A delegate to further configure the error object.
     /// </param>
+    [Obsolete("Throw a GraphQLException instead. A field that reports an error must not return a value other than null, which this method does not enforce. This method will be removed in Hot Chocolate 17.")]
     void ReportError(Exception exception, Action<ErrorBuilder>? configure = null);
 
     /// <summary>

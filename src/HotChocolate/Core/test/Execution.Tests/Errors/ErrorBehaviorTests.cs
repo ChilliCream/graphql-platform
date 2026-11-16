@@ -1,3 +1,4 @@
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.SnapshotHelpers;
@@ -153,6 +154,237 @@ public class ErrorBehaviorTests
     }
 
     [Fact]
+    public async Task GraphQLException_Should_ReportFieldPath_When_CreatedFromMessage()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<PathQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        // message is a pure resolver and delayedMessage runs as a resolver task.
+        var pureResult = await executor.ExecuteAsync(
+            "{ parent { children { message } } }",
+            TestContext.Current.CancellationToken);
+        var asyncResult = await executor.ExecuteAsync(
+            "{ parent { children { delayedMessage } } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        new[] { pureResult, asyncResult }.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "message error",
+                      "path": [
+                        "parent",
+                        "children",
+                        1,
+                        "message"
+                      ]
+                    }
+                  ],
+                  "data": {
+                    "parent": {
+                      "children": [
+                        {
+                          "message": "ok"
+                        },
+                        {
+                          "message": null
+                        }
+                      ]
+                    }
+                  }
+                }
+                """,
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "message error",
+                      "path": [
+                        "parent",
+                        "children",
+                        1,
+                        "delayedMessage"
+                      ]
+                    }
+                  ],
+                  "data": {
+                    "parent": {
+                      "children": [
+                        {
+                          "delayedMessage": "ok"
+                        },
+                        {
+                          "delayedMessage": null
+                        }
+                      ]
+                    }
+                  }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task GraphQLException_Should_ReportFieldPath_When_CreatedFromErrorWithoutPath()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<PathQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        // error is a pure resolver and delayedError runs as a resolver task.
+        var pureResult = await executor.ExecuteAsync(
+            "{ parent { children { error } } }",
+            TestContext.Current.CancellationToken);
+        var asyncResult = await executor.ExecuteAsync(
+            "{ parent { children { delayedError } } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        new[] { pureResult, asyncResult }.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "error builder error",
+                      "path": [
+                        "parent",
+                        "children",
+                        1,
+                        "error"
+                      ]
+                    }
+                  ],
+                  "data": {
+                    "parent": {
+                      "children": [
+                        {
+                          "error": "ok"
+                        },
+                        {
+                          "error": null
+                        }
+                      ]
+                    }
+                  }
+                }
+                """,
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "error builder error",
+                      "path": [
+                        "parent",
+                        "children",
+                        1,
+                        "delayedError"
+                      ]
+                    }
+                  ],
+                  "data": {
+                    "parent": {
+                      "children": [
+                        {
+                          "delayedError": "ok"
+                        },
+                        {
+                          "delayedError": null
+                        }
+                      ]
+                    }
+                  }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task Resolver_Should_ReturnSameResultAsReportError_When_ExceptionIsRethrown()
+    {
+        // arrange
+        var executor = await CreateReportOrThrowExecutorAsync();
+
+        // act
+        var reported = await executor.ExecuteAsync(
+            "{ value: reported }",
+            TestContext.Current.CancellationToken);
+        var rethrown = await executor.ExecuteAsync(
+            "{ value: rethrown }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(reported.ToJson(), rethrown.ToJson());
+        rethrown.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "path": [
+                    "value"
+                  ],
+                  "extensions": {
+                    "exception": "resolver failed"
+                  }
+                }
+              ],
+              "data": {
+                "value": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Resolver_Should_ReturnSameResultAsReportError_When_GraphQLExceptionWrapsExceptionError()
+    {
+        // arrange
+        var executor = await CreateReportOrThrowExecutorAsync();
+
+        // act
+        var reported = await executor.ExecuteAsync(
+            "{ value: reportedWithCode }",
+            TestContext.Current.CancellationToken);
+        var thrown = await executor.ExecuteAsync(
+            "{ value: thrownWithCode }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(reported.ToJson(), thrown.ToJson());
+        thrown.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error",
+                  "path": [
+                    "value"
+                  ],
+                  "extensions": {
+                    "code": "RESOLVER_FAILED",
+                    "exception": "resolver failed"
+                  }
+                }
+              ],
+              "data": {
+                "value": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SetMaxAllowedValidationErrors_To_1()
     {
         // arrange
@@ -186,6 +418,18 @@ public class ErrorBehaviorTests
         var result = await executor.ExecuteAsync(query);
 
         snapshot.Add(result);
+    }
+
+    private static async Task<IRequestExecutor> CreateReportOrThrowExecutorAsync()
+    {
+        return await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<ReportOrThrowQuery>()
+            .AddErrorFilter(
+                error => error.Exception is null
+                    ? error
+                    : error.SetExtension("exception", error.Exception.Message))
+            .BuildRequestExecutorAsync();
     }
 
     private static async Task<IRequestExecutor> CreateExecutorAsync()
@@ -289,5 +533,99 @@ public class ErrorBehaviorTests
     public class Baz
     {
         public string? Bar => throw new Exception("baz");
+    }
+
+    public class PathQuery
+    {
+        public PathParent Parent => new();
+    }
+
+    public class PathParent
+    {
+        public PathChild[] Children => [new PathChild(fail: false), new PathChild(fail: true)];
+    }
+
+    public class PathChild(bool fail)
+    {
+        public string? Message => fail ? throw new GraphQLException("message error") : "ok";
+
+        public string? Error => fail ? throw CreateErrorBuilderException() : "ok";
+
+        public async Task<string?> DelayedMessageAsync()
+        {
+            await Task.Delay(1);
+            return fail ? throw new GraphQLException("message error") : "ok";
+        }
+
+        public async Task<string?> DelayedErrorAsync()
+        {
+            await Task.Delay(1);
+            return fail ? throw CreateErrorBuilderException() : "ok";
+        }
+
+        private static GraphQLException CreateErrorBuilderException()
+            => new(ErrorBuilder.New().SetMessage("error builder error").Build());
+    }
+
+    public class ReportOrThrowQuery
+    {
+        public string? Reported(IResolverContext context)
+        {
+            try
+            {
+                return Fail();
+            }
+            catch (InvalidOperationException ex)
+            {
+#pragma warning disable CS0618 // ReportError is obsolete
+                context.ReportError(ex);
+#pragma warning restore CS0618 // ReportError is obsolete
+                return null;
+            }
+        }
+
+        public string? Rethrown()
+        {
+            try
+            {
+                return Fail();
+            }
+            catch (InvalidOperationException)
+            {
+                throw;
+            }
+        }
+
+        public string? ReportedWithCode(IResolverContext context)
+        {
+            try
+            {
+                return Fail();
+            }
+            catch (InvalidOperationException ex)
+            {
+#pragma warning disable CS0618 // ReportError is obsolete
+                context.ReportError(ex, error => error.SetCode("RESOLVER_FAILED"));
+#pragma warning restore CS0618 // ReportError is obsolete
+                return null;
+            }
+        }
+
+        public string? ThrownWithCode()
+        {
+            try
+            {
+                return Fail();
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.FromException(ex)
+                        .SetCode("RESOLVER_FAILED")
+                        .Build());
+            }
+        }
+
+        private static string Fail() => throw new InvalidOperationException("resolver failed");
     }
 }

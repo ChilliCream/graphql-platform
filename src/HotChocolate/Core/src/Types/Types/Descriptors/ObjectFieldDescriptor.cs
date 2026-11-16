@@ -479,7 +479,9 @@ public class ObjectFieldDescriptor
 
                     if (result.IsError)
                     {
+#pragma warning disable CS0618 // ReportError is obsolete
                         contexts[i].ReportError(result.Error!);
+#pragma warning restore CS0618 // ReportError is obsolete
                         contexts[i].Result = null;
                     }
                     else

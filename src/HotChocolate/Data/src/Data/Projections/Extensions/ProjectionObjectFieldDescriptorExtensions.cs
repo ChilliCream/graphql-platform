@@ -323,12 +323,14 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public object Service(Type service) => _context.Service(service);
 
+#pragma warning disable CS0618 // ReportError is obsolete
         public void ReportError(string errorMessage) => _context.ReportError(errorMessage);
 
         public void ReportError(IError error) => _context.ReportError(error);
 
         public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
             => _context.ReportError(exception, configure);
+#pragma warning restore CS0618 // ReportError is obsolete
 
         public SelectionEnumerator GetSelections(
             ObjectType typeContext,

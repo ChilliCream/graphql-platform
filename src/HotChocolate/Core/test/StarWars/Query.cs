@@ -79,9 +79,11 @@ public class Query
 
             if (character is null)
             {
+#pragma warning disable CS0618 // ReportError is obsolete
                 context.ReportError(
                     "Could not resolve a character for the "
                     + $"character-id {characterId}.");
+#pragma warning restore CS0618 // ReportError is obsolete
             }
             else
             {

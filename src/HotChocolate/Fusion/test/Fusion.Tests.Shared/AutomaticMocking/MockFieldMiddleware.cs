@@ -39,7 +39,9 @@ internal sealed class MockFieldMiddleware
 
                 if (fieldType.IsListType())
                 {
+#pragma warning disable CS0618 // ReportError is obsolete
                     context.ReportError(CreateError(context, nullIndex));
+#pragma warning restore CS0618 // ReportError is obsolete
                 }
                 else if (namedFieldType.IsScalarType() || namedFieldType.IsEnumType())
                 {

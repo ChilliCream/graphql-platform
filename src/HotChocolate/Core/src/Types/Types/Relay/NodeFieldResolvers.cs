@@ -8,6 +8,7 @@ using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types.Relay;
 
+#pragma warning disable CS0618 // ReportError is obsolete
 /// <summary>
 /// This helper class contains the resolvers for the node and nodes fields.
 /// </summary>
@@ -268,3 +269,4 @@ internal static class NodeFieldResolvers
     private static void ReportError(IResolverContext context, int item, Exception ex)
         => context.ReportError(ex, error => error.SetPath(context.Path.Append(item)));
 }
+#pragma warning restore CS0618 // ReportError is obsolete

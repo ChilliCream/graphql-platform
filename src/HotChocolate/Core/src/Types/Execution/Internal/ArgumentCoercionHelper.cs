@@ -45,7 +45,9 @@ public static class ArgumentCoercionHelper
             {
                 if (argument.HasError)
                 {
+#pragma warning disable CS0618 // ReportError is obsolete
                     resolverContext.ReportError(argument.Error!);
+#pragma warning restore CS0618 // ReportError is obsolete
                 }
             }
 

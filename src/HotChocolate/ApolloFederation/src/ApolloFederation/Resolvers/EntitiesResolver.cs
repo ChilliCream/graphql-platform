@@ -179,7 +179,9 @@ internal static class EntitiesResolver
     private static void ReportError(IResolverContext context, int item, Exception ex)
     {
         var itemPath = context.Path.Append(item);
+#pragma warning disable CS0618 // ReportError is obsolete
         context.ReportError(ex, error => error.SetPath(itemPath));
+#pragma warning restore CS0618 // ReportError is obsolete
     }
 
     private sealed class RepresentationCounter

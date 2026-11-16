@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.SnapshotHelpers;
 
@@ -232,14 +233,10 @@ public class ErrorHandlerTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx =>
-                {
-                    ctx.ReportError(
-                        new AggregateError(
-                            new Error { Message = "abc" },
-                            new Error { Message = "def" }));
-                    return "Hello";
-                })
+                object? (IResolverContext _) => throw new GraphQLException(
+                    new AggregateError(
+                        new Error { Message = "abc" },
+                        new Error { Message = "def" })))
 
             // build graphql executor
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);

@@ -779,7 +779,9 @@ public sealed partial class ApolloEntityReuseTests : FusionTestBase
         {
             if (data.ReportNameError)
             {
+#pragma warning disable CS0618 // ReportError is obsolete
                 context.ReportError("NAME_WARNING");
+#pragma warning restore CS0618 // ReportError is obsolete
             }
 
             return Name;

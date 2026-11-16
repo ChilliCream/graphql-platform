@@ -14,6 +14,6 @@
     }
   ],
   "data": {
-    "foo": "Hello"
+    "foo": null
   }
 }

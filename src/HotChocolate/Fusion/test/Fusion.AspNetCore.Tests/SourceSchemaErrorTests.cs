@@ -1364,12 +1364,14 @@ public class SourceSchemaErrorTests : FusionTestBase
         {
             public List<Item?> GetItems(IResolverContext context)
             {
+#pragma warning disable CS0618 // ReportError is obsolete
                 context.ReportError(
                     ErrorBuilder.New()
                         .SetMessage("Could not resolve Job.items")
                         .SetCode("NOT_FOUND")
                         .SetPath(context.Path)
                         .Build());
+#pragma warning restore CS0618 // ReportError is obsolete
                 return [null];
             }
         }

@@ -70,7 +70,7 @@ public class ArgumentTests
 
                 if (argument.RuntimeType != actualType)
                 {
-                    context.ReportError(
+                    throw new GraphQLException(
                         $"RuntimeType ({argument.RuntimeType}) not equal "
                         + $"to actual type ({actualType})");
                 }
@@ -79,14 +79,14 @@ public class ArgumentTests
                 {
                     if (!argument.RuntimeType.IsArray)
                     {
-                        context.ReportError(
+                        throw new GraphQLException(
                             "Field defined with array but ArgDeg saying "
                             + $"it's a {argument.RuntimeType}");
                     }
 
                     if (!actualType.IsArray)
                     {
-                        context.ReportError(
+                        throw new GraphQLException(
                             "Field defined with array but actual type "
                             + $"is a {actualType}");
                     }

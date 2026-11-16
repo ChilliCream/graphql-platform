@@ -54,7 +54,9 @@ internal sealed class ErrorMiddleware(FieldDelegate next, IReadOnlyList<CreateEr
             {
                 foreach (var unhandledError in unhandledErrors)
                 {
+#pragma warning disable CS0618 // ReportError is obsolete
                     context.ReportError(unhandledError);
+#pragma warning restore CS0618 // ReportError is obsolete
                 }
             }
 
