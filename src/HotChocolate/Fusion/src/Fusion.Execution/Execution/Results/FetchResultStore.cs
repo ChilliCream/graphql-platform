@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -75,7 +76,6 @@ internal sealed partial class FetchResultStore : IDisposable
     private int[] _collectCursorsB = ArrayPool<int>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectProducerCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
-    private ReuseObject[] _reuseProducers = [];
     private CompositeResultDocument? _collectMemoDocument;
     private int _collectMemoShapeVersion;
     private CollectMemoNode[] _collectMemoNodes = [];
@@ -85,6 +85,8 @@ internal sealed partial class FetchResultStore : IDisposable
     private ReuseObject[] _reuseTargetObjects = [];
     private int[] _reuseMatches = [];
     private bool[] _reuseProducerHits = [];
+    private CompositeResultDocument.DbRow[] _reuseProducerRows = [];
+    private byte[] _reuseKeys = [];
     private int[] _leafRowOffsets = [];
     private LeafRowOffsetEntry[] _leafRowOffsetEntries = [];
     private int _leafRowOffsetEntryCount;
@@ -1310,152 +1312,163 @@ AddErrors_Next:
 
         nonNullKeys = nonNullKeys[..requiredData.Length];
 
-        var startPosition = GetVariableWriter().Position;
+        _variableDedupTable.Initialize(producers.Length);
+        var producerCount = 0;
 
-        try
+        // The reused field rows of the producers, fieldCount rows per producer. Every layout has
+        // one row offset per reused field.
+        var fieldCount = layouts[0].FieldRowOffsets.Length;
+        EnsureLength(ref _reuseProducerRows, producers.Length * fieldCount);
+
+        // The keys of the producers are kept back to back at the start of the key buffer; the
+        // key of a target is written after them and compared in place.
+        var producerKeysLength = 0;
+
+        // Only entities that hold a leaf value for every reused field and a key that is not
+        // all null can produce. The first producer of a key wins.
+        foreach (var producer in producers)
         {
-            _variableDedupTable.Initialize(producers.Length);
-            EnsureLength(ref _reuseProducers, producers.Length);
-            var producerCount = 0;
-
-            // Only entities that hold a leaf value for every reused field and a key that is not
-            // all null can produce. The first producer of a key wins.
-            foreach (var producer in producers)
+            if (producer.IsNullOrInvalidated)
             {
-                if (producer.IsNullOrInvalidated)
-                {
-                    continue;
-                }
-
-                if (!TryGetReuseObjectUnsafe(producer, layouts, out var producerObject))
-                {
-                    return false;
-                }
-
-                switch (GetLeafValuesStateUnsafe(producerObject))
-                {
-                    case LeafValueState.NotALeaf:
-                        continue;
-
-                    case LeafValueState.Unsupported:
-                        return false;
-                }
-
-                var keyStart = _variableWriter.Position;
-
-                if (!TryWriteRawKeyUnsafe(producerObject, nonNullKeys, out var hasKey, out var hasNonNullKeyValue))
-                {
-                    return false;
-                }
-
-                if (!hasKey || !hasNonNullKeyValue)
-                {
-                    _variableWriter.ResetTo(keyStart);
-                    continue;
-                }
-
-                var keyLength = _variableWriter.Position - keyStart;
-                var hash = _variableWriter.GetHashCode(keyStart, keyLength);
-
-                if (_variableDedupTable.TryGet(_variableWriter, hash, keyStart, keyLength, out _))
-                {
-                    _variableWriter.ResetTo(keyStart);
-                    continue;
-                }
-
-                _variableDedupTable.Add(hash, producerCount, keyStart, keyLength);
-                _reuseProducers[producerCount++] = producerObject;
+                continue;
             }
 
-            if (producerCount == 0)
+            if (!TryGetReuseObjectUnsafe(producer, layouts, out var producerObject))
             {
                 return false;
             }
 
-            EnsureLength(ref _reuseTargetObjects, targets.Length);
-            EnsureLength(ref _reuseMatches, targets.Length);
+            var producerRows = _reuseProducerRows.AsSpan(producerCount * fieldCount, fieldCount);
 
-            // Every target with a key must have a producer before anything is written.
-            for (var i = 0; i < targets.Length; i++)
+            switch (GetLeafValuesStateUnsafe(
+                producerObject.StartCursor,
+                layouts[producerObject.LayoutIndex].FieldRowOffsets,
+                producerRows))
             {
-                if (!TryGetReuseObjectUnsafe(targets[i], layouts, out var targetObject))
-                {
-                    return false;
-                }
-
-                var keyStart = _variableWriter.Position;
-
-                if (!TryWriteRawKeyUnsafe(targetObject, nonNullKeys, out var hasKey, out _))
-                {
-                    return false;
-                }
-
-                if (!hasKey)
-                {
-                    _variableWriter.ResetTo(keyStart);
-                    _reuseMatches[i] = -1;
+                case LeafValueState.NotALeaf:
                     continue;
-                }
 
-                var keyLength = _variableWriter.Position - keyStart;
-                var hash = _variableWriter.GetHashCode(keyStart, keyLength);
-
-                if (!_variableDedupTable.TryGet(_variableWriter, hash, keyStart, keyLength, out var producerIndex))
-                {
+                case LeafValueState.Unsupported:
                     return false;
-                }
-
-                _variableWriter.ResetTo(keyStart);
-                _reuseMatches[i] = producerIndex;
-                _reuseTargetObjects[i] = targetObject;
             }
 
-            EnsureLength(ref _reuseProducerHits, producerCount);
-            _reuseProducerHits.AsSpan(0, producerCount).Clear();
-
-            for (var i = 0; i < targets.Length; i++)
+            if (!TryWriteRawKeyUnsafe(
+                producerObject.StartCursor,
+                layouts[producerObject.LayoutIndex].KeyRowOffsets,
+                nonNullKeys,
+                producerKeysLength,
+                out var keyLength,
+                out var hasKey,
+                out var hasNonNullKeyValue))
             {
-                var producerIndex = _reuseMatches[i];
-
-                if (producerIndex < 0)
-                {
-                    continue;
-                }
-
-                if (!_reuseProducerHits[producerIndex])
-                {
-                    _reuseProducerHits[producerIndex] = true;
-                    reusedCount++;
-                }
-
-                if (targets[i].IsNullOrInvalidated)
-                {
-                    continue;
-                }
-
-                var producerObject = _reuseProducers[producerIndex];
-                var targetObject = _reuseTargetObjects[i];
-                var producerOffsets = producerObject.Layout.FieldRowOffsets;
-                var targetOffsets = targetObject.Layout.FieldRowOffsets;
-
-                for (var j = 0; j < targetOffsets.Length; j++)
-                {
-                    var assigned = _result.TryAssignLeafValue(
-                        targetObject.StartCursor + targetOffsets[j],
-                        producerObject.StartCursor + producerOffsets[j]);
-                    Debug.Assert(assigned, "The producer rows were verified to hold leaf values.");
-                }
+                return false;
             }
 
-            return true;
+            if (!hasKey || !hasNonNullKeyValue)
+            {
+                continue;
+            }
+
+            var hash = GetRawKeyHashCode(_reuseKeys.AsSpan(producerKeysLength, keyLength));
+
+            if (_variableDedupTable.TryGet(_reuseKeys, hash, producerKeysLength, keyLength, out _))
+            {
+                continue;
+            }
+
+            _variableDedupTable.Add(hash, producerCount++, producerKeysLength, keyLength);
+            producerKeysLength += keyLength;
         }
-        finally
+
+        if (producerCount == 0)
         {
-            _variableWriter.ResetTo(startPosition);
+            return false;
         }
+
+        EnsureLength(ref _reuseTargetObjects, targets.Length);
+        EnsureLength(ref _reuseMatches, targets.Length);
+
+        // Every target with a key must have a producer before anything is written.
+        for (var i = 0; i < targets.Length; i++)
+        {
+            if (!TryGetReuseObjectUnsafe(targets[i], layouts, out var targetObject))
+            {
+                return false;
+            }
+
+            if (!TryWriteRawKeyUnsafe(
+                targetObject.StartCursor,
+                layouts[targetObject.LayoutIndex].KeyRowOffsets,
+                nonNullKeys,
+                producerKeysLength,
+                out var keyLength,
+                out var hasKey,
+                out _))
+            {
+                return false;
+            }
+
+            if (!hasKey)
+            {
+                _reuseMatches[i] = -1;
+                continue;
+            }
+
+            var hash = GetRawKeyHashCode(_reuseKeys.AsSpan(producerKeysLength, keyLength));
+
+            if (!_variableDedupTable.TryGet(_reuseKeys, hash, producerKeysLength, keyLength, out var producerIndex))
+            {
+                return false;
+            }
+
+            _reuseMatches[i] = producerIndex;
+            _reuseTargetObjects[i] = targetObject;
+        }
+
+        EnsureLength(ref _reuseProducerHits, producerCount);
+        _reuseProducerHits.AsSpan(0, producerCount).Clear();
+
+        for (var i = 0; i < targets.Length; i++)
+        {
+            var producerIndex = _reuseMatches[i];
+
+            if (producerIndex < 0)
+            {
+                continue;
+            }
+
+            if (!_reuseProducerHits[producerIndex])
+            {
+                _reuseProducerHits[producerIndex] = true;
+                reusedCount++;
+            }
+
+            var targetObject = _reuseTargetObjects[i];
+
+            if (targetObject.IsInvalidated)
+            {
+                continue;
+            }
+
+            var targetOffsets = layouts[targetObject.LayoutIndex].FieldRowOffsets;
+            var producerRows = _reuseProducerRows.AsSpan(producerIndex * fieldCount, fieldCount);
+
+            for (var j = 0; j < targetOffsets.Length; j++)
+            {
+                _result.AssignLeafValue(targetObject.StartCursor + targetOffsets[j], producerRows[j]);
+            }
+        }
+
+        return true;
     }
 
-    // Resolves an entity to the first row of its object and the layout of its selection set.
+    // Hashes a raw key of the key buffer. Equal keys have equal hash codes.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetRawKeyHashCode(ReadOnlySpan<byte> key)
+        => (int)(XxHash3.HashToUInt64(key) & 0x7FFFFFFF);
+
+    // Resolves an entity to the first row of its object and the index of the layout of its
+    // selection set.
     private bool TryGetReuseObjectUnsafe(
         CompositeResultElement element,
         ReadOnlySpan<EntityReuseLayout> layouts,
@@ -1465,14 +1478,15 @@ AddErrors_Next:
             element.Cursor,
             out var startCursor,
             out var selectionSetId,
-            out var numberOfRows))
+            out var numberOfRows,
+            out var isInvalidated))
         {
-            foreach (var layout in layouts)
+            for (var i = 0; i < layouts.Length; i++)
             {
-                if (layout.SelectionSetId == selectionSetId)
+                if (layouts[i].SelectionSetId == selectionSetId)
                 {
-                    Debug.Assert(numberOfRows > layout.MaxRowOffset);
-                    reuseObject = new ReuseObject(startCursor, layout);
+                    Debug.Assert(numberOfRows > layouts[i].MaxRowOffset);
+                    reuseObject = new ReuseObject(startCursor, i, isInvalidated);
                     return true;
                 }
             }
@@ -1483,12 +1497,15 @@ AddErrors_Next:
     }
 
     // Classifies the reused fields of an entity: the state of the first field that cannot be
-    // assigned, or Assignable when every field can.
-    private LeafValueState GetLeafValuesStateUnsafe(in ReuseObject reuseObject)
+    // assigned, or Assignable when every field can, in which case rows holds the field rows.
+    private LeafValueState GetLeafValuesStateUnsafe(
+        CompositeResultDocument.Cursor startCursor,
+        ReadOnlySpan<int> fieldRowOffsets,
+        Span<CompositeResultDocument.DbRow> rows)
     {
-        foreach (var offset in reuseObject.Layout.FieldRowOffsets)
+        for (var i = 0; i < fieldRowOffsets.Length; i++)
         {
-            var state = _result.GetLeafValueState(reuseObject.StartCursor + offset);
+            var state = _result.GetLeafValueState(startCursor + fieldRowOffsets[i], out rows[i]);
 
             if (state is not LeafValueState.Assignable)
             {
@@ -1500,28 +1517,32 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// Writes the token type and raw bytes of every key value of <paramref name="reuseObject"/>.
-    /// <paramref name="hasKey"/> is <c>false</c> when a key value is unset, or null for a non-null
-    /// requirement; <paramref name="hasNonNullKeyValue"/> is <c>true</c> when at least one key
-    /// value is neither unset nor null.
+    /// Writes the entity's raw identity key and reports its byte length.
+    /// <paramref name="hasKey"/> is <c>false</c> when a key is unset or null for a non-null
+    /// requirement, and <paramref name="hasNonNullKeyValue"/> is <c>true</c> when at least one
+    /// key is neither unset nor null.
     /// </summary>
     /// <returns>
     /// <c>true</c> if every key value can be compared by its raw bytes; otherwise, <c>false</c>.
     /// </returns>
     private bool TryWriteRawKeyUnsafe(
-        in ReuseObject reuseObject,
+        CompositeResultDocument.Cursor startCursor,
+        ReadOnlySpan<int> keyRowOffsets,
         ReadOnlySpan<bool> nonNullKeys,
+        int start,
+        out int length,
         out bool hasKey,
         out bool hasNonNullKeyValue)
     {
         const int prefixLength = sizeof(byte) + sizeof(int);
-        var offsets = reuseObject.Layout.KeyRowOffsets;
+        var position = start;
+        length = 0;
         hasKey = true;
         hasNonNullKeyValue = false;
 
-        for (var i = 0; i < offsets.Length; i++)
+        for (var i = 0; i < keyRowOffsets.Length; i++)
         {
-            if (!_result.TryGetRawLeafValue(reuseObject.StartCursor + offsets[i], out var tokenType, out var value))
+            if (!_result.TryGetRawLeafValue(startCursor + keyRowOffsets[i], out var tokenType, out var value))
             {
                 return false;
             }
@@ -1534,13 +1555,21 @@ AddErrors_Next:
 
             hasNonNullKeyValue |= tokenType is not ElementTokenType.Null;
 
-            var span = _variableWriter.GetSpan(prefixLength + value.Length);
+            var end = position + prefixLength + value.Length;
+
+            if (end > _reuseKeys.Length)
+            {
+                EnsureLength(ref _reuseKeys, Math.Max(end * 2, 256), position);
+            }
+
+            var span = _reuseKeys.AsSpan(position, prefixLength + value.Length);
             span[0] = (byte)tokenType;
             BinaryPrimitives.WriteInt32LittleEndian(span[sizeof(byte)..], value.Length);
             value.CopyTo(span[prefixLength..]);
-            _variableWriter.Advance(prefixLength + value.Length);
+            position = end;
         }
 
+        length = position - start;
         return true;
     }
 
@@ -1573,7 +1602,12 @@ AddErrors_Next:
         }
     }
 
-    private readonly record struct ReuseObject(CompositeResultDocument.Cursor StartCursor, EntityReuseLayout Layout);
+    // The first row of an entity object, the index of the layout of its selection set and
+    // whether the object is invalidated.
+    private readonly record struct ReuseObject(
+        CompositeResultDocument.Cursor StartCursor,
+        int LayoutIndex,
+        bool IsInvalidated);
 
     private ImmutableArray<VariableValues> ReuseEntitiesUnsafe(
         ImmutableArray<VariableValues> variableValueSets,
@@ -3905,10 +3939,11 @@ AddErrors_Next:
         ReturnPooled(ref _collectMemoCursors);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectProducerCombined, clearArray: true);
-        ReturnPooled(ref _reuseProducers);
         ReturnPooled(ref _reuseTargetObjects);
         ReturnPooled(ref _reuseMatches);
         ReturnPooled(ref _reuseProducerHits);
+        ReturnPooled(ref _reuseProducerRows);
+        ReturnPooled(ref _reuseKeys);
         ReturnPooled(ref _leafRowOffsets);
         ReturnPooled(ref _leafRowOffsetEntries);
 
@@ -4089,6 +4124,45 @@ AddErrors_Next:
             }
 
             _bucketCount = bucketCount;
+        }
+
+        /// <summary>
+        /// Gets the index of an entry whose bytes in <paramref name="buffer"/> equal the
+        /// <paramref name="length"/> bytes at <paramref name="location"/>.
+        /// </summary>
+        public bool TryGet(
+            ReadOnlySpan<byte> buffer,
+            int hash,
+            int location,
+            int length,
+            out int existingIndex)
+        {
+            var bucket = hash & 0x7FFFFFFF & (_bucketCount - 1);
+            var start = bucket * _bucketSize;
+            var end = start + _bucketSize;
+            var key = buffer.Slice(location, length);
+
+            for (var s = start; s < end; s++)
+            {
+                ref var entry = ref _table[s];
+
+                if (entry.Index == 0)
+                {
+                    existingIndex = -1;
+                    return false;
+                }
+
+                if (entry.Hash == hash
+                    && entry.Length == length
+                    && buffer.Slice(entry.Location, length).SequenceEqual(key))
+                {
+                    existingIndex = entry.Index - 1;
+                    return true;
+                }
+            }
+
+            existingIndex = -1;
+            return false;
         }
 
         /// <summary>

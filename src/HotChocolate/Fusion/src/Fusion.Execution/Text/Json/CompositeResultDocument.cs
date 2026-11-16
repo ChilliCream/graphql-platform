@@ -737,15 +737,28 @@ public sealed partial class CompositeResultDocument : IDisposable
             return false;
         }
 
+        AssignLeafValue(target, row);
+        return true;
+    }
+
+    /// <summary>
+    /// Assigns the leaf value row <paramref name="source"/> to the slot at <paramref name="target"/>
+    /// without copying the value data. The row must be one that
+    /// <see cref="GetLeafValueState(Cursor, out DbRow)"/> classified as assignable.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignLeafValue(Cursor target, in DbRow source)
+    {
+        Debug.Assert(IsAssignableLeafValue(source), "The source row must hold an assignable leaf value.");
+
         TrackValueReplacement(target);
         _metaDb.ReplacePreserveParent(
             cursor: target,
-            tokenType: row.TokenType,
-            location: row.Location,
-            sizeOrLength: row.SizeOrLength,
-            sourceDocumentId: row.SourceDocumentId,
-            flags: row.Flags);
-        return true;
+            tokenType: source.TokenType,
+            location: source.Location,
+            sizeOrLength: source.SizeOrLength,
+            sourceDocumentId: source.SourceDocumentId,
+            flags: source.Flags);
     }
 
     /// <summary>
@@ -753,8 +766,15 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// <see cref="TryAssignLeafValue(Cursor, Cursor)"/>.
     /// </summary>
     internal LeafValueState GetLeafValueState(Cursor cursor)
+        => GetLeafValueState(cursor, out _);
+
+    /// <summary>
+    /// Classifies the slot at <paramref name="cursor"/> for
+    /// <see cref="TryAssignLeafValue(Cursor, Cursor)"/> and gets its row.
+    /// </summary>
+    internal LeafValueState GetLeafValueState(Cursor cursor, out DbRow row)
     {
-        var row = _metaDb.Get(cursor);
+        row = _metaDb.Get(cursor);
 
         if (IsAssignableLeafValue(row))
         {
@@ -824,6 +844,22 @@ public sealed partial class CompositeResultDocument : IDisposable
         out Cursor startCursor,
         out int selectionSetId,
         out int numberOfRows)
+        => TryGetSelectionSetObject(cursor, out startCursor, out selectionSetId, out numberOfRows, out _);
+
+    /// <summary>
+    /// Resolves the object at <paramref name="cursor"/> to the first row of an object that a
+    /// selection set describes. <paramref name="isInvalidated"/> is <c>true</c> when the object
+    /// was invalidated.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the cursor refers to an object with a selection set; otherwise, <c>false</c>.
+    /// </returns>
+    internal bool TryGetSelectionSetObject(
+        Cursor cursor,
+        out Cursor startCursor,
+        out int selectionSetId,
+        out int numberOfRows,
+        out bool isInvalidated)
     {
         startCursor = cursor;
         var row = _metaDb.GetValue(ref startCursor);
@@ -833,11 +869,13 @@ public sealed partial class CompositeResultDocument : IDisposable
         {
             selectionSetId = 0;
             numberOfRows = 0;
+            isInvalidated = false;
             return false;
         }
 
         selectionSetId = row.OperationReferenceId;
         numberOfRows = row.NumberOfRows;
+        isInvalidated = (row.Flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
         return true;
     }
 
