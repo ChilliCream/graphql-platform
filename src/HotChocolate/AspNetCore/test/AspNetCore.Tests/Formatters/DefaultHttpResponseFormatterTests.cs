@@ -18,7 +18,9 @@ public sealed class DefaultHttpResponseFormatterTests
     [Theory]
     [InlineData(HttpTransportVersion.Latest, HttpTransportVersion.Draft20250508)]
     [InlineData(HttpTransportVersion.Legacy, HttpTransportVersion.Legacy)]
+#pragma warning disable CS0618 // The obsolete value is under test.
     [InlineData(HttpTransportVersion.Draft20230127, HttpTransportVersion.Draft20250508)]
+#pragma warning restore CS0618
     [InlineData(HttpTransportVersion.Draft20250508, HttpTransportVersion.Draft20250508)]
     [InlineData(HttpTransportVersion.September2026, HttpTransportVersion.September2026)]
     public void Constructor_Should_ResolveTransportVersion_When_VersionIsRecognized(
