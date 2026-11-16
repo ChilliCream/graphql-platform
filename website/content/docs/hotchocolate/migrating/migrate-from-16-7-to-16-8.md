@@ -8,6 +8,10 @@ Update every `HotChocolate.*` package in the application to version 16.8 before 
 
 # Deprecations
 
+## Draft20230127 transport version deprecated
+
+`HttpTransportVersion.Draft20230127` is obsolete. It selects the same behavior as `Draft20250508`. Use `Latest`, which resolves to the server's default version, or `Draft20250508` to keep the current behavior, see [Transport Versions](../server/http-transport.md#transport-versions).
+
 ## Draft20260903 transport version renamed to September2026
 
 `HttpTransportVersion.Draft20260903` is obsolete. Use `HttpTransportVersion.September2026`, which names the [September 2026 edition](https://http-spec.graphql.org/September2026/) of the GraphQL over HTTP specification and selects the same behavior, see [Transport Versions](../server/http-transport.md#september2026).

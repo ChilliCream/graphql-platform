@@ -21,6 +21,7 @@ public enum HttpTransportVersion
     /// The server implements no behavior specific to this revision and resolves it at runtime
     /// to <see cref="Draft20250508"/>.
     /// </summary>
+    [Obsolete("Use Latest, the default, or Draft20250508, which selects the same behavior.")]
     Draft20230127 = 2,
 
     /// <summary>

@@ -1268,7 +1268,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             HttpTransportVersion.Latest => LatestTransportVersion,
             HttpTransportVersion.Legacy => HttpTransportVersion.Legacy,
+#pragma warning disable CS0618 // The obsolete value stays supported.
             HttpTransportVersion.Draft20230127 => HttpTransportVersion.Draft20250508,
+#pragma warning restore CS0618
             HttpTransportVersion.Draft20250508 => HttpTransportVersion.Draft20250508,
             HttpTransportVersion.September2026 => HttpTransportVersion.September2026,
             _ => throw ThrowHelper.Formatter_TransportVersionNotSupported(paramName, version)

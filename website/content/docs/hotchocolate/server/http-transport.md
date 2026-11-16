@@ -410,7 +410,7 @@ builder
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Latest`        | The default. Resolves to `Draft20250508`.                                                                                                                        |
 | `Legacy`        | Predates the specification. A missing `Accept` header or `*/*` is answered as `application/json`, and every `application/json` response has a `200` status code. |
-| `Draft20230127` | Resolves to `Draft20250508`.                                                                                                                                     |
+| `Draft20230127` | Obsolete. Resolves to `Draft20250508`.                                                                                                                           |
 | `Draft20250508` | The specification revision of 2025-05-08.                                                                                                                        |
 | `September2026` | The [September 2026 edition](https://http-spec.graphql.org/September2026/) of the specification, see below.                                                      |
 | `Draft20260903` | Obsolete. The same as `September2026`.                                                                                                                           |
