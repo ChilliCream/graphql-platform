@@ -1274,7 +1274,11 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
     private sealed class PooledBufferTracker : EventListener
     {
         private static readonly AsyncLocal<bool> s_isTrackedFlow = new();
+#if NET9_0_OR_GREATER
         private readonly Lock _sync = new();
+#else
+        private readonly object _sync = new();
+#endif
         private readonly Dictionary<int, int> _rentedBuffers = [];
         private int _rentCount;
 
