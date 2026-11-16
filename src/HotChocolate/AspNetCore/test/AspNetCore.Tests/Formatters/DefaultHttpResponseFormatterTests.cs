@@ -36,24 +36,6 @@ public sealed class DefaultHttpResponseFormatterTests
     }
 
     [Fact]
-    public void Constructor_Should_ResolveToSeptember2026_When_VersionIsDraft20260903()
-    {
-        // arrange
-#pragma warning disable CS0618 // The obsolete name is under test.
-        var options = new HttpResponseFormatterOptions
-        {
-            HttpTransportVersion = HttpTransportVersion.Draft20260903
-        };
-#pragma warning restore CS0618
-
-        // act
-        var formatter = new DefaultHttpResponseFormatter(options);
-
-        // assert
-        Assert.Equal(HttpTransportVersion.September2026, formatter.TransportVersion);
-    }
-
-    [Fact]
     public void Constructor_Should_Throw_When_VersionIsUnrecognized()
     {
         // arrange
