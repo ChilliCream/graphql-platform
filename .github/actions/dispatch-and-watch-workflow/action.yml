@@ -1,4 +1,5 @@
 name: Dispatch and watch workflow
+
 description: Dispatches a workflow_dispatch in another repository and waits for it to complete.
 
 inputs:
@@ -15,6 +16,10 @@ inputs:
   version:
     description: Version passed as the `version` input to the dispatched workflow.
     required: true
+  inputs-json:
+    description: Additional inputs for the downstream workflow.
+    required: false
+    default: "{}"
   is_stable:
     description: Whether the release is a stable (X.Y.Z) version. Forwarded only when set; the target workflow must define that input.
     required: false
@@ -51,6 +56,7 @@ runs:
         WORKFLOW: ${{ inputs.workflow }}
         REF: ${{ inputs.ref }}
         VERSION: ${{ inputs.version }}
+        INPUTS_JSON: ${{ inputs.inputs-json }}
         IS_STABLE: ${{ inputs.is_stable }}
         IS_ACTIVE_MAJOR: ${{ inputs.is_active_major }}
         TRIGGERED_BY: ${{ inputs.triggered_by }}
@@ -58,6 +64,9 @@ runs:
         set -euo pipefail
 
         ARGS=(-f version="$VERSION")
+        while IFS= read -r input; do
+          ARGS+=(-f "$input")
+        done < <(jq -r 'to_entries[] | "\(.key)=\(.value)"' <<< "$INPUTS_JSON")
         # Only forward when set; target workflows that don't define these inputs would reject them.
         if [ -n "$IS_STABLE" ]; then
           ARGS+=(-f is_stable="$IS_STABLE")

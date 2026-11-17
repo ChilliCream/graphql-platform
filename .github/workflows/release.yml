@@ -18,14 +18,17 @@ jobs:
   compute-release-context:
     name: 🧮 Compute release context
     runs-on: ubuntu-26.04
+
     permissions:
       contents: read
+
     outputs:
       git_tag: ${{ steps.ctx.outputs.git_tag }}
       major: ${{ steps.ctx.outputs.major }}
       is_stable: ${{ steps.ctx.outputs.is_stable }}
       is_active_major: ${{ steps.ctx.outputs.is_active_major }}
       is_highest_stable_major: ${{ steps.ctx.outputs.is_highest_stable_major }}
+
     steps:
       - name: 🧮 Compute
         id: ctx
@@ -74,11 +77,14 @@ jobs:
     name: 📝 Create Draft Release
     runs-on: ubuntu-26.04
     needs: [compute-release-context]
+
     permissions:
       contents: write
+
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
       IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
+
     steps:
       - name: 📝 Create draft release
         env:
@@ -117,6 +123,7 @@ jobs:
     name: 📈 Record Fusion PGO profile
     runs-on: ubuntu-26.04
     needs: [compute-release-context]
+
     permissions:
       contents: read
 
@@ -161,8 +168,10 @@ jobs:
     name: 📦 Build NuGet Packages
     runs-on: ubuntu-26.04
     needs: [compute-release-context, record-fusion-pgo-profile]
+
     permissions:
       contents: read
+
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -201,7 +210,7 @@ jobs:
           dotnet pack src/Build.Pack.slnx \
             -c Release \
             -o output/packages \
-            -p:Version=${GIT_TAG} \
+            -p:Version="${GIT_TAG}" \
             -p:NitroApiClientId="${NitroApiClientId}" \
             -p:NitroIdentityClientId="${NitroIdentityClientId}" \
             -p:NitroIdentityScopes="${NitroIdentityScopes}"
@@ -209,7 +218,7 @@ jobs:
           dotnet pack templates/HotChocolate.Templates.csproj \
             -c Release \
             -o output/packages \
-            -p:Version=${GIT_TAG}
+            -p:Version="${GIT_TAG}"
         env:
           NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
@@ -228,10 +237,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
     needs: [compute-release-context]
+
     permissions:
       contents: read
+
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+
     strategy:
       matrix:
         include:
@@ -292,7 +304,7 @@ jobs:
             -p:PublishAot=true \
             -p:TargetFrameworks=net11.0 \
             -p:RuntimeIdentifiers=${{ matrix.rid }} \
-            -p:Version=${GIT_TAG} \
+            -p:Version="${GIT_TAG}" \
             -p:NitroApiClientId="${NitroApiClientId}" \
             -p:NitroIdentityClientId="${NitroIdentityClientId}" \
             -p:NitroIdentityScopes="${NitroIdentityScopes}"
@@ -342,17 +354,17 @@ jobs:
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # import certificate from secrets
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
 
           # create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
           # import certificate to keychain
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+          security import "$CERTIFICATE_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
 
       - name: 🖋️ Sign binary (macOS)
         if: runner.os == 'macOS'
@@ -407,7 +419,7 @@ jobs:
       - name: 🖋️ Clean up signing resources (macOS)
         if: always() && runner.os == 'macOS'
         run: |
-          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db"
 
       - name: 📤 Upload packaged binary as artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -419,8 +431,10 @@ jobs:
     name: 🧱 Pack Nitro CLI npm tarballs
     runs-on: ubuntu-26.04
     needs: [compute-release-context, build-nitro-cli]
+
     permissions:
       contents: read
+
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -493,10 +507,100 @@ jobs:
           name: npm-tarballs
           path: tarballs/*.tgz
 
+  build-router:
+    name: Build Nitro Router artifacts
+    runs-on: ubuntu-26.04
+    needs: [compute-release-context]
+    timeout-minutes: 60
+
+    outputs:
+      run-id: ${{ steps.build.outputs.run-id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Create Nitro Router token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: token
+        with:
+          client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
+          owner: ChilliCream
+          repositories: nitro-router
+          permission-actions: write
+          permission-contents: read
+
+      - name: Select Nitro Router commit
+        id: router
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: echo "sha=$(gh api repos/ChilliCream/nitro-router/commits/main --jq .sha)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and pack Nitro Router
+        uses: ./.github/actions/dispatch-and-watch-workflow
+        id: build
+        with:
+          repo: ChilliCream/nitro-router
+          workflow: release-build.yml
+          ref: main
+          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          inputs-json: >-
+            {"graphql_platform_ref":"${{ github.sha }}","router_sha":"${{ steps.router.outputs.sha }}"}
+          token: ${{ steps.token.outputs.token }}
+
+  artifacts-ready:
+    name: Wait for all release artifacts
+    runs-on: ubuntu-26.04
+    needs: [pack-nuget, pack-npm, build-router]
+
+    steps:
+      - name: Artifacts ready
+        run: echo "Platform and Nitro Router artifacts are ready."
+
+  publish-router:
+    name: Publish Nitro Router
+    runs-on: ubuntu-26.04
+    needs: [compute-release-context, build-router, publish-nuget, publish-npm]
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Create Nitro Router token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: token
+        with:
+          client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
+          owner: ChilliCream
+          repositories: nitro-router
+          permission-actions: write
+          permission-contents: read
+
+      - name: Publish prepared Nitro Router artifacts
+        uses: ./.github/actions/dispatch-and-watch-workflow
+        with:
+          repo: ChilliCream/nitro-router
+          workflow: release-publish.yml
+          ref: main
+          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          inputs-json: '{"build_run_id":"${{ needs.build-router.outputs.run-id }}"}'
+          token: ${{ steps.token.outputs.token }}
+
   publish-nuget:
     name: 🚀 Publish NuGet packages
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops, publish-aspire-nitro-ops]
+    needs:
+      - compute-release-context
+      - create-draft
+      - pack-nuget
+      - pack-npm
+      - publish-nitro-ops
+      - publish-aspire-nitro-ops
+      - artifacts-ready
+
     permissions:
       contents: read
       id-token: write
@@ -534,10 +638,12 @@ jobs:
   publish-npm:
     name: 🚀 Publish Nitro CLI to npm
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops, artifacts-ready]
+
     permissions:
       contents: read
       id-token: write
+
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
       MAJOR: ${{ needs.compute-release-context.outputs.major }}
@@ -618,9 +724,11 @@ jobs:
   publish-nitro-ops:
     name: 🚀 Publish Nitro CLI operations
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, create-draft, pack-nuget, pack-npm]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, artifacts-ready]
+
     permissions:
       contents: read
+
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -657,9 +765,11 @@ jobs:
   publish-aspire-nitro-ops:
     name: 🚀 Publish Fusion Aspire Nitro operations
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, create-draft, pack-nuget]
+    needs: [compute-release-context, create-draft, pack-nuget, artifacts-ready]
+
     permissions:
       contents: read
+
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -709,14 +819,18 @@ jobs:
     name: 🚀 Publish Release
     runs-on: ubuntu-26.04
     needs:
+      - build-router
+      - publish-router
       - compute-release-context
       - create-draft
       - publish-nuget
       - publish-npm
       - publish-nitro-ops
       - publish-aspire-nitro-ops
+
     permissions:
       contents: write
+
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
       IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
@@ -726,6 +840,27 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: assets
+
+      - name: Create Nitro Router token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: router-token
+        with:
+          client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
+          owner: ChilliCream
+          repositories: nitro-router
+          permission-actions: read
+          permission-contents: read
+
+      - name: Download Nitro Router binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          repository: ChilliCream/nitro-router
+          run-id: ${{ needs.build-router.outputs.run-id }}
+          github-token: ${{ steps.router-token.outputs.token }}
+          pattern: router-native-*
+          path: assets/router
+          merge-multiple: true
 
       - name: 📤 Attach assets to draft release
         shell: bash
@@ -801,6 +936,7 @@ jobs:
     concurrency:
       group: update-github-actions-${{ matrix.repo }}
       cancel-in-progress: false
+
     strategy:
       fail-fast: false
       matrix:
