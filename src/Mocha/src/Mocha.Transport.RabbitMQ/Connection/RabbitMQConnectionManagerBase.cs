@@ -9,7 +9,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// Base class for RabbitMQ connection management with automatic reconnection,
 /// exponential backoff, and connection event handling.
 /// </summary>
-internal abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
+public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 {
     private const int InitialConnectionRetryDelaySeconds = 1;
     private const int MaxConnectionAttempts = 5;

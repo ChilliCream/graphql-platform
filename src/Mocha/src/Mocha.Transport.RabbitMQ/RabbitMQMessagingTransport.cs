@@ -28,14 +28,14 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     public override RabbitMQMessagingTopology Topology => _topology;
 
     /// <summary>
-    /// Gets the owner of the connection that consumes messages, and of the consumers on it.
+    /// Gets the consumer manager responsible for registering and maintaining queue consumers with automatic reconnection.
     /// </summary>
-    internal RabbitMQConsumerManager ConsumerManager { get; private set; } = null!;
+    public RabbitMQConsumerManager ConsumerManager { get; private set; } = null!;
 
     /// <summary>
-    /// Gets the owner of the connection that publishes messages, and of its channels.
+    /// Gets the dispatcher that provides pooled channels for publishing messages to RabbitMQ.
     /// </summary>
-    internal RabbitMQDispatcher Dispatcher { get; private set; } = null!;
+    public RabbitMQDispatcher Dispatcher { get; private set; } = null!;
 
     /// <summary>
     /// Gets the connection provider used to create RabbitMQ connections.

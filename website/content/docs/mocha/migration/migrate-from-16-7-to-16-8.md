@@ -9,12 +9,6 @@ Entries that name RabbitMQ, the Postgres outbox, or Azure Service Bus apply to a
 
 # API breaking changes
 
-## RabbitMQ connection types are internal
-
-`RabbitMQDispatcher`, `RabbitMQConsumerManager`, and `RabbitMQConnectionManagerBase` are no longer public. The `Dispatcher` and `ConsumerManager` properties of `RabbitMQMessagingTransport` are no longer public either. Code that rented a channel from the dispatcher or registered a consumer through the consumer manager does not compile.
-
-`IRabbitMQConnectionProvider` and the `Connection` property of `RabbitMQMessagingTransport` stay public. Code that needs a channel of its own creates a connection with `IRabbitMQConnectionProvider.CreateAsync` or with the application's `IConnectionFactory`, and keeps that connection for the lifetime of the application.
-
 ## RabbitMQ topology resources are provisioned with their connection
 
 `IRabbitMQResource.ProvisionAsync` and the `ProvisionAsync` methods of `RabbitMQQueue`, `RabbitMQExchange`, `RabbitMQBinding`, `RabbitMQQueueBinding`, and `RabbitMQExchangeBinding` take the connection that owns the channel as a new second parameter:
