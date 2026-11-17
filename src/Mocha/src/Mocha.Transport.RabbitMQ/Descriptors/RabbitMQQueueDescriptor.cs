@@ -156,7 +156,7 @@ internal sealed class RabbitMQQueueDescriptor
     {
         if (before is not null && after is not null)
         {
-            throw Mocha.ThrowHelper.BeforeAndAfterConflict();
+            throw ThrowHelper.BeforeAndAfterConflict();
         }
 
         if (before is null && after is null)
