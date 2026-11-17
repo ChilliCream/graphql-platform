@@ -6,6 +6,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration;
 public class TestGeneration
 {
     [Fact]
+    public void StarWarsEmptySelectionSets() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            """
+            query GetHero {
+                hero(episode: NEW_HOPE) {}
+            }
+
+            query GetHeroWithEmptyFragments {
+                hero(episode: NEW_HOPE) {
+                    name
+                    ... on Droid {}
+                    ... EmptyCharacter
+                }
+            }
+
+            query Ping {}
+
+            fragment EmptyCharacter on Character {}
+            """);
+
+    [Fact]
     public void StarWarsGetHero() =>
         AssertStarWarsResult(
             CreateIntegrationTest(),
