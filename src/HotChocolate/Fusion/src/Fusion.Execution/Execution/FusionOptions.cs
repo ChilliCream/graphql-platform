@@ -218,9 +218,9 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     }
 
     /// <summary>
-    /// Specifies whether empty selection sets (<c>{ }</c>) are valid on composite fields and in
-    /// query and mutation operations, as the GraphQL September 2026 specification allows.
-    /// <c>true</c> by default.
+    /// Specifies whether empty selection sets (<c>{ }</c>) are valid on composite fields, on
+    /// fragments, and in query and mutation operations, as the GraphQL September 2026
+    /// specification allows. <c>true</c> by default.
     /// </summary>
     [Obsolete(
         "Empty selection sets are valid as of the GraphQL September 2026 specification "

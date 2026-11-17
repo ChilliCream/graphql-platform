@@ -179,9 +179,9 @@ public interface IReadOnlySchemaOptions
     bool EnableCovariantFieldMerging { get; }
 
     /// <summary>
-    /// Enables empty selection sets (<c>{ }</c>) on composite fields and in query and mutation
-    /// operations, as the GraphQL September 2026 specification allows; defaults to <c>true</c>.
-    /// When disabled, an empty selection set is a validation error.
+    /// Enables empty selection sets (<c>{ }</c>) on composite fields, on fragments, and in query
+    /// and mutation operations, as the GraphQL September 2026 specification allows; defaults to
+    /// <c>true</c>. When disabled, an empty selection set is a validation error.
     /// </summary>
     [Obsolete(
         "Empty selection sets are valid as of the GraphQL September 2026 specification "

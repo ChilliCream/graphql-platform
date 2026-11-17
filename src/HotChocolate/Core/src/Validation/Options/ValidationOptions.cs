@@ -15,9 +15,9 @@ public sealed class ValidationOptions
     public bool EnableCovariantFieldMerging { get; set; }
 
     /// <summary>
-    /// Specifies whether empty selection sets (<c>{ }</c>) are valid on composite fields and in
-    /// query and mutation operations, as the GraphQL September 2026 specification allows.
-    /// Defaults to <c>true</c>.
+    /// Specifies whether empty selection sets (<c>{ }</c>) are valid on composite fields, on
+    /// fragments, and in query and mutation operations, as the GraphQL September 2026
+    /// specification allows. Defaults to <c>true</c>.
     /// </summary>
     [Obsolete(
         "Empty selection sets are valid as of the GraphQL September 2026 specification "
