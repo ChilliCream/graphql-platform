@@ -4,7 +4,9 @@ using HotChocolate.Validation.Rules;
 namespace HotChocolate.Validation;
 
 public class LeafFieldSelectionsRuleTests()
-    : DocumentValidatorVisitorTestBase(builder => builder.AddRule<LeafFieldSelectionsRule>())
+    : DocumentValidatorVisitorTestBase(
+        builder => builder.AddRule(
+            (_, _) => new LeafFieldSelectionsRule(enableEmptySelectionSets: false)))
 {
     [Fact]
     public void Validate_Should_AcceptEmptySelectionSets_WhenEnabled()
@@ -33,7 +35,7 @@ public class LeafFieldSelectionsRuleTests()
         string expectedMessage)
     {
         // arrange
-        var rule = CreateRuleWithEmptySelectionSets();
+        var rule = new LeafFieldSelectionsRule(enableEmptySelectionSets: true);
         var document = Utf8GraphQLParser.Parse(sourceText);
         var context = ValidationUtils.CreateContext(document, maxAllowedErrors: int.MaxValue);
 
@@ -52,7 +54,7 @@ public class LeafFieldSelectionsRuleTests()
     public void Validate_Should_RejectSelectionsOnTypeName_When_ParentIsAnyCompositeType(string sourceText)
     {
         // arrange
-        var rule = new LeafFieldSelectionsRule();
+        var rule = new LeafFieldSelectionsRule(enableEmptySelectionSets: true);
         var document = Utf8GraphQLParser.Parse(sourceText);
         var context = ValidationUtils.CreateContext(document);
 
@@ -509,7 +511,7 @@ public class LeafFieldSelectionsRuleTests()
     private void ExpectValidWithEmptySelectionSets(string sourceText)
     {
         // arrange
-        var rule = CreateRuleWithEmptySelectionSets();
+        var rule = new LeafFieldSelectionsRule(enableEmptySelectionSets: true);
         var document = Utf8GraphQLParser.Parse(sourceText);
         var context = ValidationUtils.CreateContext(document);
 
@@ -519,14 +521,5 @@ public class LeafFieldSelectionsRuleTests()
         // assert
         Assert.False(context.UnexpectedErrorsDetected);
         Assert.Empty(context.Errors);
-    }
-
-    private static IDocumentValidatorRule CreateRuleWithEmptySelectionSets()
-    {
-        return DocumentValidatorBuilder.New()
-            .AddRule((_, o) => new LeafFieldSelectionsRule(o.EnableEmptySelectionSets))
-            .ModifyOptions(o => o.EnableEmptySelectionSets = true)
-            .Build()
-            .Rules[0];
     }
 }

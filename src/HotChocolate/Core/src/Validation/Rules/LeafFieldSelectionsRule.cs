@@ -7,7 +7,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
 {
     private readonly bool _enableEmptySelectionSets;
 
-    public LeafFieldSelectionsRule(bool enableEmptySelectionSets = false)
+    public LeafFieldSelectionsRule(bool enableEmptySelectionSets)
     {
         _enableEmptySelectionSets = enableEmptySelectionSets;
     }

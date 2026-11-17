@@ -116,7 +116,10 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnableCovariantFieldMerging { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableEmptySelectionSets"/>
-    public bool EnableEmptySelectionSets { get; set; }
+    [Obsolete(
+        "Empty selection sets are valid as of the GraphQL September 2026 specification "
+        + "and are enabled by default. This option will be removed in version 17.")]
+    public bool EnableEmptySelectionSets { get; set; } = true;
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.StripLeadingIFromInterface"/>
     public bool StripLeadingIFromInterface { get; set; }
@@ -248,7 +251,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
             EnableCovariantFieldMerging = options.EnableCovariantFieldMerging,
+#pragma warning disable CS0618 // The obsolete option stays supported.
             EnableEmptySelectionSets = options.EnableEmptySelectionSets,
+#pragma warning restore CS0618
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
