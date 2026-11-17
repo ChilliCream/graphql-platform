@@ -38,7 +38,8 @@ public sealed class RabbitMQDefaultQueueOptions
         configuration.Durable ??= Durable;
         configuration.AutoDelete ??= AutoDelete;
 
-        var queueType = GetQueueType();
+        var queueType = QueueType
+            ?? (Arguments.TryGetValue("x-queue-type", out var argument) ? argument as string : null);
 
         var isIncompatibleWithQueueType =
             configuration.AutoDelete is true
@@ -66,7 +67,4 @@ public sealed class RabbitMQDefaultQueueOptions
             }
         }
     }
-
-    private string? GetQueueType()
-        => QueueType ?? (Arguments.TryGetValue("x-queue-type", out var value) ? value as string : null);
 }

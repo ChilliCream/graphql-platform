@@ -103,15 +103,9 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
     public async Task ProvisionAsync(IChannel channel, IConnection connection, CancellationToken cancellationToken)
     {
         var arguments = Arguments;
-        var isLegacyBroker = connection.ServerProperties is { } properties
-            && properties.TryGetValue("version", out var version)
-            && version switch
-            {
-                byte[] bytes => bytes.AsSpan().StartsWith("3."u8),
-                string text => text.StartsWith("3.", StringComparison.Ordinal),
-                _ => false
-            };
-        if (isLegacyBroker && arguments.TryGetValue("x-delivery-limit", out var limit) && limit is -1)
+
+        // RabbitMQ 3.x rejects a delivery limit of -1. It applies no limit when the argument is absent.
+        if (connection.IsRabbitMQ3() && arguments.TryGetValue("x-delivery-limit", out var limit) && limit is -1)
         {
             arguments = arguments.Remove("x-delivery-limit");
         }
