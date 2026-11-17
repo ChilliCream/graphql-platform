@@ -154,8 +154,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"human\" of type \"Human\" must have a selection of subfields. Did you "
-                + "mean \"human { ... }\"?",
+                "Field \"human\" of type \"Human\" has an empty selection set. Composite fields "
+                + "without selections are disallowed.",
                 t.Message));
     }
 
@@ -184,8 +184,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean "
-                + "\"pet { ... }\"?",
+                "Field \"pet\" of type \"Human\" has an empty selection set. Composite fields "
+                + "without selections are disallowed.",
                 t.Message));
     }
 
@@ -214,8 +214,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did "
-                + "you mean \"catOrDog { ... }\"?",
+                "Field \"catOrDog\" of type \"CatOrDog\" has an empty selection set. Composite "
+                + "fields without selections are disallowed.",
                 t.Message));
     }
 
@@ -244,8 +244,8 @@ public class LeafFieldSelectionsRuleTests()
             }
             """,
             t => Assert.Equal(
-                "Field \"pets\" of type \"[Pet]\" must have a selection of subfields. Did you "
-                + "mean \"pets { ... }\"?",
+                "Field \"pets\" of type \"[Pet]\" has an empty selection set. Composite fields "
+                + "without selections are disallowed.",
                 t.Message));
     }
 

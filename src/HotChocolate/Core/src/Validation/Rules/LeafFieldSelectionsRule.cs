@@ -147,7 +147,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
                 if (!_enableEmptySelectionSets)
                 {
                     context.ReportError(
-                        context.NoSelectionOnCompositeField(field, complex, fieldDef.Type));
+                        context.EmptySelectionSetOnCompositeField(field, complex, fieldDef.Type));
                 }
             }
             else
