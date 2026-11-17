@@ -14,6 +14,7 @@ public class LeafFieldSelectionsRuleTests()
         ExpectValidWithEmptySelectionSets("{ }");
         ExpectValidWithEmptySelectionSets("query Q { }");
         ExpectValidWithEmptySelectionSets("mutation { }");
+        ExpectValidWithEmptySelectionSets("subscription { }");
         ExpectValidWithEmptySelectionSets("{ human(id: \"1\") { } }");
         ExpectValidWithEmptySelectionSets("{ human(id: \"1\") { ... on Human { } } }");
         ExpectValidWithEmptySelectionSets(
@@ -21,9 +22,6 @@ public class LeafFieldSelectionsRuleTests()
     }
 
     [Theory]
-    [InlineData(
-        "subscription { }",
-        "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.")]
     [InlineData(
         "{ human }",
         "Field \"human\" of type \"Human\" must have a selection of subfields. Did you mean \"human { ... }\"?")]

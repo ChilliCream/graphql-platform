@@ -203,16 +203,12 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void EmptySubscription_Should_ReportRootSelectionAndSingleRootFieldErrors()
+    public void EmptySubscription_Should_ReportSingleRootFieldError_WhenOptionsAreDefault()
     {
         ExpectErrors(
             """
             subscription { }
             """,
-            t => Assert.Equal(
-                "Operation `Unnamed` has an empty selection set. Root types without "
-                + "selections are disallowed.",
-                t.Message),
             t => Assert.Equal(
                 "Subscription operations must have exactly one root field.",
                 t.Message));

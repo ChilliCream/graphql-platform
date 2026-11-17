@@ -29,7 +29,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
             {
                 if (operationDef.SelectionSet.Selections.Count == 0)
                 {
-                    if (!_enableEmptySelectionSets || operationDef.Operation == OperationType.Subscription)
+                    if (!_enableEmptySelectionSets)
                     {
                         context.ReportError(
                             context.NoSelectionOnRootType(
