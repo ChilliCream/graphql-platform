@@ -185,6 +185,12 @@ public sealed partial class SyntaxSerializer
 
     private void VisitSelectionSet(SelectionSetNode node, ISyntaxWriter writer)
     {
+        if (node.Selections.Count == 0)
+        {
+            writer.Write("{}");
+            return;
+        }
+
         writer.Write('{');
 
         string separator;

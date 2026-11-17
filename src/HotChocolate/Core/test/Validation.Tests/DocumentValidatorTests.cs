@@ -203,26 +203,22 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void EmptySubscription_Should_ReportRootSelectionAndSingleRootFieldErrors()
+    public void EmptySubscription_Should_ReportSingleRootFieldError_WhenOptionsAreDefault()
     {
         ExpectErrors(
             """
             subscription { }
             """,
             t => Assert.Equal(
-                "Operation `Unnamed` has an empty selection set. Root types without "
-                + "selections are disallowed.",
-                t.Message),
-            t => Assert.Equal(
                 "Subscription operations must have exactly one root field.",
                 t.Message));
     }
 
     [Fact]
-    public void EmptyQuery_Should_BeValid_WhenEnabled()
+    public void EmptyQuery_Should_BeValid_WhenOptionsAreDefault()
     {
         // arrange
-        var validator = CreateValidator(b => b.ModifyOptions(o => o.EnableEmptySelectionSets = true));
+        var validator = CreateValidator();
 
         // act
         var result = validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("{ }"));
@@ -235,7 +231,10 @@ public class DocumentValidatorTests
     public void EmptyQuery_Should_BeInvalid_WhenDisabled()
     {
         // arrange
-        var validator = CreateValidator();
+#pragma warning disable CS0618 // The obsolete option is under test.
+        var validator = CreateValidator(
+            b => b.ModifyOptions(o => o.EnableEmptySelectionSets = false));
+#pragma warning restore CS0618
 
         // act
         var result = validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("{ }"));
@@ -244,25 +243,6 @@ public class DocumentValidatorTests
         Assert.Equal(
             "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
             Assert.Single(result.Errors).Message);
-    }
-
-    [Fact]
-    public void EmptySubscription_Should_ReportRootSelectionAndSingleRootFieldErrors_WhenEnabled()
-    {
-        // arrange
-        var validator = CreateValidator(b => b.ModifyOptions(o => o.EnableEmptySelectionSets = true));
-
-        // act
-        var result =
-            validator.Validate(ValidationUtils.CreateSchema(), Utf8GraphQLParser.Parse("subscription { }"));
-
-        // assert
-        Assert.Collection(
-            result.Errors,
-            t => Assert.Equal(
-                "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
-                t.Message),
-            t => Assert.Equal("Subscription operations must have exactly one root field.", t.Message));
     }
 
     [Fact]
@@ -403,22 +383,6 @@ public class DocumentValidatorTests
                     # ...
                 }
                 """,
-            t => Assert.Equal(
-                "Operation `takesCat` has an empty selection set. Root types without "
-                + "selections are disallowed.",
-                t.Message),
-            t => Assert.Equal(
-                "Operation `takesDogBang` has an empty selection set. Root types without "
-                + "selections are disallowed.",
-                t.Message),
-            t => Assert.Equal(
-                "Operation `takesListOfPet` has an empty selection set. Root types without "
-                + "selections are disallowed.",
-                t.Message),
-            t => Assert.Equal(
-                "Operation `takesCatOrDog` has an empty selection set. Root types without "
-                + "selections are disallowed.",
-                t.Message),
             t => Assert.Equal(
                 "The type of variable `cat` is not an input type.",
                 t.Message),

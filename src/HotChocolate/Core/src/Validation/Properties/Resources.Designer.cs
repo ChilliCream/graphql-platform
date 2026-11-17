@@ -134,7 +134,13 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_NoSelectionOnCompositeField", resourceCulture);
             }
         }
-
+        
+        internal static string ErrorHelper_EmptySelectionSetOnCompositeField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_EmptySelectionSetOnCompositeField", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_NoSelectionOnFragment {
             get {
                 return ResourceManager.GetString("ErrorHelper_NoSelectionOnFragment", resourceCulture);

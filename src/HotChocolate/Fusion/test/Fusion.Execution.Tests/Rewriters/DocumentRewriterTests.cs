@@ -376,6 +376,158 @@ public class DocumentRewriterTests : FusionTestBase
     }
 
     [Fact]
+    public void Field_With_Empty_SelectionSet_Selects_TypeName()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = ComposeSchema(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) { }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                __typename @fusion__empty
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void InlineFragment_With_Empty_SelectionSet_Selects_TypeName()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(
+            """
+            type Query {
+              media: Media
+            }
+
+            interface Media {
+              id: ID!
+            }
+
+            type Book implements Media {
+              id: ID!
+              title: String!
+            }
+
+            type Movie implements Media {
+              id: ID!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                media {
+                    ... on Book { }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              media {
+                ... on Book {
+                  __typename @fusion__empty
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Field_With_Selections_Excluded_By_Its_Own_Condition_Selects_TypeName()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = ComposeSchema(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+                productById(id: 1) @skip(if: $skip) {
+                    id @include(if: $skip)
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productById(id: 1) @skip(if: $skip) {
+                __typename @fusion__empty
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Mutation_Field_With_Empty_SelectionSet_Selects_TypeName()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Mutation {
+              createProduct(name: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            mutation {
+                createProduct(name: "Table") { }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            mutation {
+              createProduct(name: "Table") {
+                __typename @fusion__empty
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void Remove_Statically_Included_Skip_Included()
     {
         // arrange

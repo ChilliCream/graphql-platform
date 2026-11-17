@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Field \"me\" of type \"User\" must have a selection of subfields. Did you mean \"me { ... }\"?",
+      "message": "Field \"me\" of type \"User\" has an empty selection set. Composite fields without selections are disallowed.",
       "locations": [
         {
           "line": 1,

@@ -3,6 +3,58 @@ namespace HotChocolate.Fusion.Planning;
 public class OperationPlannerTests : FusionTestBase
 {
     [Fact]
+    public void Plan_Empty_SelectionSet_On_Composite_Field()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              productBySlug(slug: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              productBySlug(slug: "1") { }
+            }
+            """);
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  {
+                    productBySlug(slug: "1") {
+                      __typename @fusion__empty
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 1
+                expandedNodes: 1
+            nodes:
+              - id: 1
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_1 {
+                    productBySlug(slug: "1") {
+                      __typename
+                    }
+                  }
+            """);
+    }
+
+    [Fact]
     public void Plan_Simple_Operation_1_Source_Schema()
     {
         // arrange

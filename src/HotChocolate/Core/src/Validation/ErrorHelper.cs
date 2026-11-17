@@ -258,6 +258,26 @@ internal static class ErrorHelper
                 .Build();
         }
 
+        public IError EmptySelectionSetOnCompositeField(
+            FieldNode node,
+            IComplexTypeDefinition declaringType,
+            IType fieldType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_EmptySelectionSetOnCompositeField,
+                    node.Name.Value,
+                    fieldType.ToTypeNode().ToString())
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("declaringType", declaringType.Name)
+                .SetExtension("field", node.Name.Value)
+                .SetExtension("type", fieldType.FullTypeName())
+                .SetExtension("responseName", (node.Alias ?? node.Name).Value)
+                .SpecifiedBy("sec-Field-Selections")
+                .Build();
+        }
+
         public IError NoSelectionOnRootType(OperationDefinitionNode node, IType fieldType)
         {
             return ErrorBuilder.New()
