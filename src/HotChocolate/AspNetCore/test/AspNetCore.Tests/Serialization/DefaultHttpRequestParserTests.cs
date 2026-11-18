@@ -266,6 +266,44 @@ public sealed class DefaultHttpRequestParserTests
     }
 
     [Fact]
+    public async Task ParseRequestAsync_Should_NotComputeHash_When_DocumentIsRepeated()
+    {
+        // arrange
+        var body = Encoding.UTF8.GetBytes("""{ "query": "query GetA {\n  a\n}" }""");
+        var documentCache = new DefaultDocumentCache();
+        var hashProvider = new CountingHashProvider();
+        var parser = new DefaultHttpRequestParser(documentCache, hashProvider, 256, ParserOptions.Default);
+
+        // the request pipeline caches the document of the first request.
+        var first = await ParseAsync(parser, body);
+        documentCache.TryAddDocument(
+            first.DocumentId!.Value.Value,
+            new CachedDocument(first.Document!, first.DocumentHash!.Value, false));
+        await ParseAsync(parser, body);
+        await ParseAsync(parser, body);
+        var computed = hashProvider.Computed;
+
+        // act
+        var result = await ParseAsync(parser, body);
+
+        // assert
+        Assert.Equal(computed, hashProvider.Computed);
+        Assert.Same(first.Document, result.Document);
+        Assert.Equal(first.DocumentId, result.DocumentId);
+        Assert.Equal(first.DocumentHash, result.DocumentHash);
+
+        static async Task<GraphQLRequest> ParseAsync(DefaultHttpRequestParser parser, byte[] body)
+        {
+            await using var stream = new MemoryStream(body);
+            var requests = await parser.ParseRequestAsync(
+                PipeReader.Create(stream),
+                skipDocumentBody: false,
+                CancellationToken.None);
+            return requests[0];
+        }
+    }
+
+    [Fact]
     public async Task ParseRequestAsync_Should_AdvancePipe_When_SyntaxError()
     {
         // arrange
@@ -472,6 +510,31 @@ public sealed class DefaultHttpRequestParserTests
                     _rentedBuffers.Remove((int)payload[0]!);
                     break;
             }
+        }
+    }
+
+    private sealed class CountingHashProvider : IDocumentHashProvider
+    {
+        private readonly Sha256DocumentHashProvider _inner = new();
+
+        public int Computed { get; private set; }
+
+        public string Name => _inner.Name;
+
+        public string AlgorithmName => _inner.AlgorithmName;
+
+        public HashFormat Format => _inner.Format;
+
+        public OperationDocumentHash ComputeHash(ReadOnlySpan<byte> document)
+        {
+            Computed++;
+            return _inner.ComputeHash(document);
+        }
+
+        public OperationDocumentHash ComputeHash(System.Buffers.ReadOnlySequence<byte> document)
+        {
+            Computed++;
+            return _inner.ComputeHash(document);
         }
     }
 }

@@ -20,6 +20,7 @@ public ref struct Utf8GraphQLRequestParser
     private readonly bool _useCache;
     private readonly ParserOptions _options;
     private readonly bool _skipDocumentBody;
+    private readonly DocumentHashCache? _hashCache;
 
     public Utf8GraphQLRequestParser(
         ParserOptions? options = null,
@@ -32,6 +33,27 @@ public ref struct Utf8GraphQLRequestParser
         _hashProvider = hashProvider;
         _useCache = cache is not null;
         _skipDocumentBody = skipDocumentBody;
+    }
+
+    /// <summary>
+    /// Initializes a new parser that looks up the hash of a repeated document in
+    /// <paramref name="hashCache"/>. The hash cache is ignored when it holds the hashes of
+    /// another hash provider or when <paramref name="cache"/> is <c>null</c>.
+    /// </summary>
+    internal Utf8GraphQLRequestParser(
+        ParserOptions? options,
+        IDocumentCache? cache,
+        IDocumentHashProvider? hashProvider,
+        bool skipDocumentBody,
+        DocumentHashCache? hashCache)
+        : this(options, cache, hashProvider, skipDocumentBody)
+    {
+        if (cache is not null
+            && hashCache is not null
+            && ReferenceEquals(hashCache.HashProvider, hashProvider))
+        {
+            _hashCache = hashCache;
+        }
     }
 
     public readonly GraphQLRequest[] Parse(ReadOnlySpan<byte> requestData)
@@ -428,6 +450,45 @@ public ref struct Utf8GraphQLRequestParser
         ref OperationDocumentId documentId)
     {
         byte[]? rentedBuffer = null;
+        var rawDocumentBody = documentBody;
+        var rawDocumentKey = 0;
+        var rememberHash = false;
+
+        // The hash of a repeated document is known from its JSON-encoded bytes,
+        // so a cached document is found without unescaping and hashing the document again.
+        if (_hashCache is { } hashCache
+            && rawDocumentBody.Length > 0
+            && rawDocumentBody.Length <= hashCache.MaxDocumentLength)
+        {
+            rawDocumentKey = DocumentHashCache.ComputeKey(rawDocumentBody);
+
+            if (hashCache.TryGetHash(rawDocumentBody, rawDocumentKey, out var knownHash))
+            {
+                if (documentId.HasValue && _cache!.TryGetDocument(documentId.Value, out var cachedDocument))
+                {
+                    document = cachedDocument.Body;
+                    documentHash = cachedDocument.Hash;
+                    return;
+                }
+
+                if (_cache!.TryGetDocument(knownHash.Value, out cachedDocument))
+                {
+                    document = cachedDocument.Body;
+                    documentHash = knownHash;
+
+                    if (documentId.IsEmpty)
+                    {
+                        documentId = new OperationDocumentId(knownHash.Value);
+                    }
+
+                    return;
+                }
+            }
+            else
+            {
+                rememberHash = true;
+            }
+        }
 
         try
         {
@@ -453,9 +514,19 @@ public ref struct Utf8GraphQLRequestParser
                     var hash = _hashProvider!.ComputeHash(documentBody);
                     documentHash = hash;
 
-                    document = _cache!.TryGetDocument(hash.Value, out cachedDocument)
-                        ? cachedDocument.Body
-                        : Utf8GraphQLParser.Parse(documentBody, _options);
+                    if (_cache!.TryGetDocument(hash.Value, out cachedDocument))
+                    {
+                        document = cachedDocument.Body;
+
+                        if (rememberHash)
+                        {
+                            _hashCache!.Add(rawDocumentBody, rawDocumentKey, hash);
+                        }
+                    }
+                    else
+                    {
+                        document = Utf8GraphQLParser.Parse(documentBody, _options);
+                    }
 
                     if (documentId.IsEmpty)
                     {

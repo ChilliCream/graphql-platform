@@ -26,6 +26,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     private static readonly Encoding s_utf8 = Encoding.UTF8;
     private readonly IDocumentCache _documentCache;
     private readonly IDocumentHashProvider _documentHashProvider;
+    private readonly DocumentHashCache _documentHashCache;
     private readonly ParserOptions _parserOptions;
     private readonly int _maxRequestSize;
 
@@ -41,6 +42,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
         _documentCache = documentCache;
         _documentHashProvider = documentHashProvider;
+        _documentHashCache = new DocumentHashCache(documentHashProvider);
         _maxRequestSize = maxRequestSize < MinRequestSize ? MinRequestSize : maxRequestSize;
         _parserOptions = parserOptions;
     }
@@ -69,7 +71,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                     _parserOptions,
                     _documentCache,
                     _documentHashProvider,
-                    skipDocumentBody);
+                    skipDocumentBody,
+                    _documentHashCache);
 
                 return requestParser.Parse(result.Buffer);
             }
