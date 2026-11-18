@@ -41,8 +41,9 @@ if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     repos+=(nitro-azure-pipelines-tasks)
 fi
 
-for name in "${repos[@]}"; do
-    repo="ChilliCream/$name"
+prepare_repo() {
+    local repo="ChilliCream/$1"
+    local lanes exists newest_key base_key base_sha lane_version sha lane_major lane_minor key default_branch
     lanes=$(gh api --paginate "repos/$repo/git/matching-refs/heads/release/v" \
         --jq '.[] | select(.ref | test("/v[0-9]+\\.[0-9]+$")) | "\(.ref | ltrimstr("refs/heads/release/v")) \(.object.sha)"')
 
@@ -80,4 +81,23 @@ for name in "${repos[@]}"; do
             gh api --method PATCH "repos/$repo" --silent -f default_branch="$lane"
         fi
     fi
+}
+
+# Each repository is independent, so prepare them all at once and report every failure at the end.
+pids=()
+for name in "${repos[@]}"; do
+    prepare_repo "$name" &
+    pids+=("$!")
 done
+
+failed=()
+for i in "${!pids[@]}"; do
+    if ! wait "${pids[$i]}"; then
+        failed+=("${repos[$i]}")
+    fi
+done
+
+if (( ${#failed[@]} > 0 )); then
+    echo "Failed to prepare: ${failed[*]}" >&2
+    exit 1
+fi
