@@ -945,41 +945,6 @@ jobs:
           inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}"}'
           token: ${{ steps.app-token.outputs.token }}
 
-  update-cloud-platform:
-    name: 🔄 Update Cloud Platform Version
-    runs-on: ubuntu-26.04
-    needs: [compute-release-context, publish-release]
-
-    steps:
-      - name: 📦 Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          sparse-checkout: .github/actions
-          show-progress: false
-
-      - name: 🔐 Create GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        with:
-          client-id: ${{ secrets.CLOUD_ACTIONS_APP_CLIENT_ID }}
-          private-key: ${{ secrets.CLOUD_ACTIONS_APP_PRIVATE_KEY }}
-          owner: ChilliCream
-          repositories: cloud
-
-      - name: 🔄 Run cloud platform update workflow
-        uses: ./.github/actions/dispatch-and-watch-workflow
-        with:
-          repo: ChilliCream/cloud
-          workflow: update-platform-version.yml
-          inputs-json: |
-            {
-              "version": "${{ needs.compute-release-context.outputs.git_tag }}",
-              "is_stable": "${{ needs.compute-release-context.outputs.is_stable }}",
-              "is_active_major": "${{ needs.compute-release-context.outputs.is_active_major }}",
-              "triggered_by": "${{ github.actor }}"
-            }
-          token: ${{ steps.app-token.outputs.token }}
-
   update-azure-pipelines-extension:
     name: 🔄 Update Azure Pipelines Extension
     runs-on: ubuntu-26.04
