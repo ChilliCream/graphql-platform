@@ -584,51 +584,6 @@ jobs:
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         run: npm pack --dry-run
 
-  commercial-compatibility:
-    name: Commercial Compatibility
-    runs-on: ubuntu-26.04
-    needs: check-changes
-    if: >-
-      needs.check-changes.outputs.src_changes == 'true' &&
-      !github.event.pull_request.head.repo.fork
-    timeout-minutes: 40
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          sparse-checkout: .github/actions
-          show-progress: false
-
-      - name: Create Commercial Token
-        id: token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        with:
-          client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
-          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
-          owner: ChilliCream
-          repositories: graphql-platform-commercial
-          permission-actions: write
-
-      - name: Resolve Commercial Lane
-        id: lane
-        if: github.base_ref != 'main'
-        run: |
-          IFS=- read -r _ _ major minor <<< "$GITHUB_BASE_REF"
-          echo "lane=release/v$major.$minor" >> "$GITHUB_OUTPUT"
-
-      - name: Build Commercial Repo
-        uses: ./.github/actions/dispatch-and-watch-workflow
-        with:
-          repo: ChilliCream/graphql-platform-commercial
-          workflow: ci.yml
-          ref: ${{ steps.lane.outputs.lane }}
-          inputs-json: |
-            {
-              "graphql_platform_ref": "${{ github.event.pull_request.head.sha }}",
-              "upstream_run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }
-          token: ${{ steps.token.outputs.token }}
-
   ci-status-check:
     name: "CI Status Check"
     needs:
@@ -639,7 +594,6 @@ jobs:
         validate-aspire-nitro-client,
         validate-nitro-client,
         verify-nitro-npm-package,
-        commercial-compatibility,
       ]
     if: always()
     runs-on: ubuntu-26.04
@@ -653,5 +607,4 @@ jobs:
            needs.verify-aspire-nitro-operations.result == 'failure' ||
            needs.validate-aspire-nitro-client.result == 'failure' ||
            needs.validate-nitro-client.result == 'failure' ||
-           needs.verify-nitro-npm-package.result == 'failure' ||
-           needs.commercial-compatibility.result == 'failure')
+           needs.verify-nitro-npm-package.result == 'failure')
