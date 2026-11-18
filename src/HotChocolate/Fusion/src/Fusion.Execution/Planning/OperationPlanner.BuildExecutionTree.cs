@@ -3190,11 +3190,11 @@ public sealed partial class OperationPlanner
                     {
                         var fieldNamedType = fieldDef.Type.NamedType();
 
-                        if (fieldNamedType is FusionComplexTypeDefinition { IsValueType: true } valueType)
+                        if (fieldNamedType.IsSharedValueType())
                         {
                             var pruned = PruneNonValueTypeChildren(
                                 field.SelectionSet,
-                                valueType,
+                                fieldNamedType,
                                 schema,
                                 sourceSchemaName,
                                 sourceAliases,
@@ -3440,7 +3440,7 @@ public sealed partial class OperationPlanner
                 {
                     var fieldNamedType = fieldDef.Type.NamedType();
 
-                    if (fieldNamedType is FusionComplexTypeDefinition { IsValueType: true }
+                    if (fieldNamedType.IsSharedValueType()
                         || SubtreeContainsValueType(field.SelectionSet, fieldNamedType, schema))
                     {
                         return true;

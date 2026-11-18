@@ -1,0 +1,142 @@
+title: ValueCompletion_Should_ReportError_When_NestedSharedUnionIsNull
+request:
+  document: |
+    {
+      page {
+        item {
+          __typename
+          ... on Book {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "page": {
+          "item": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "page",
+            "item"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        page: Page
+      }
+
+      type Book {
+        name: String
+      }
+
+      type Page {
+        item: Item @error
+      }
+
+      union Item = Book
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_2040db40_1 {
+              page {
+                item {
+                  __typename
+                  ... on Book {
+                    name
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "path": [
+                      "page",
+                      "item"
+                    ]
+                  }
+                ],
+                "data": {
+                  "page": {
+                    "item": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        other: Item
+      }
+
+      type Photo {
+        id: ID
+      }
+
+      union Item = Photo
+operationPlan:
+  id: f5d8b11cc58e7db43828ba6ba9b914359f83ea1c584aa660723c1998d9fd5427
+  operation:
+    - document: |
+        {
+          page {
+            item {
+              __typename
+              ... on Book {
+                name
+              }
+            }
+          }
+        }
+      kind: Query
+      id: af2be4025cec14c8a70279f0bc7c9baf
+      hash: 2040db400afa2a43768e68910e5fc538
+      shortHash: 2040db40
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_2040db40_1
+        kind: Query
+        document: |
+          query Op_2040db40_1 {
+            page {
+              item {
+                __typename
+                ... on Book {
+                  name
+                }
+              }
+            }
+          }
+        hash: d7ae95779d95c1d3e7d1ab412591cd929b7b9deb6fdd025c286b0ef7f19cfcd8
+        shortHash: d7ae9577
+        xxHash: 3173724587274459686
+      resultSelectionSet: >-
+        { page { item { __typename ... on Book { name } } } }

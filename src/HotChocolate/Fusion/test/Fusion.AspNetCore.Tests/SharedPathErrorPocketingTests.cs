@@ -813,4 +813,45 @@ public class SharedPathErrorPocketingTests : FusionTestBase
 
         await MatchSnapshotAsync(gateway, request, result);
     }
+
+    [Fact]
+    public async Task ValueCompletion_Should_ReportError_When_NestedSharedUnionIsNull()
+    {
+        // arrange
+        using var sourceA = CreateSourceSchema("A",
+            """
+            type Query { page: Page }
+            type Page { item: Item @error }
+            union Item = Book
+            type Book { name: String }
+            """);
+        using var sourceB = CreateSourceSchema("B",
+            """
+            type Query { other: Item }
+            union Item = Photo
+            type Photo { id: ID }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("A", sourceA), ("B", sourceB)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              page {
+                item {
+                  __typename
+                  ... on Book { name }
+                }
+              }
+            }
+            """);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response);
+    }
 }

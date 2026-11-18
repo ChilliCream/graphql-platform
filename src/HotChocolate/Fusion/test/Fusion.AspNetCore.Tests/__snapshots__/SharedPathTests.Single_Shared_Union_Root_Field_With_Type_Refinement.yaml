@@ -170,7 +170,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 6b9c6e53e29594c4ba5c91f26efbc7de9a61d3d0480c082e159fc6973aff0acd
+  id: bf0a8e56a4ae13047d62635e5e72f47318e3c8170af7785a4b1f172e488a41b1
   operation:
     - document: |
         {
@@ -208,7 +208,7 @@ operationPlan:
         shortHash: b42342f3
         xxHash: 16245721259211064914
       resultSelectionSet: >-
-        { union }
+        { union { __typename ... on Review { schema1 } } }
     - id: 2
       type: Operation
       schema: B
@@ -228,4 +228,4 @@ operationPlan:
         shortHash: 550d7ced
         xxHash: 14152550562616937002
       resultSelectionSet: >-
-        { union }
+        { union { __typename ... on Review { schema2 } } }

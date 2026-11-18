@@ -1,4 +1,4 @@
-id: 0d3dabf020ac086634bd208f4e76f90660e9456df3e336c034dbb2676b3ab090
+id: f089831d143b1092d89cfae479eaa00e38d9d4c5701b58b9af1eddff2b552061
 operation:
   - document: |
       {
@@ -35,4 +35,4 @@ nodes:
       shortHash: fc6d878d
       xxHash: 8338259708514109094
     resultSelectionSet: >-
-      { media }
+      { media { __typename ... on Book { title } } }

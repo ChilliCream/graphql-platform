@@ -636,7 +636,7 @@ internal sealed class ValueCompletion
     {
         var sourceValueKind = source.ValueKind;
 
-        if (sourceValueKind is JsonValueKind.Null && IsValueType(target.Type))
+        if (sourceValueKind is JsonValueKind.Null && target.Type?.NamedType().IsSharedValueType() == true)
         {
             if (error is not null)
             {
@@ -890,24 +890,6 @@ internal sealed class ValueCompletion
         {
             _store.PocketError(path.Append(responseName), error);
         }
-    }
-
-    private static bool IsValueType(IType? type)
-    {
-        if (type is null)
-        {
-            return false;
-        }
-
-        var namedType = type.NamedType();
-
-        return namedType switch
-        {
-            FusionObjectTypeDefinition { IsValueType: true } => true,
-            FusionInterfaceTypeDefinition { IsValueType: true } => true,
-            FusionUnionTypeDefinition { IsValueType: true } => true,
-            _ => false
-        };
     }
 
     // TODO: When extracting an error from a path below the current field,
