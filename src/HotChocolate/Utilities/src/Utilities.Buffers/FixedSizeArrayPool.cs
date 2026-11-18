@@ -135,10 +135,12 @@ internal sealed class FixedSizeArrayPool : IDisposable
             // only the slots of the stable level (first entry in _levels) exist up front.
             _pages = new byte[]?[]?[((levels[levels.Length - 1] - 1) >> PageShift) + 1];
 
-            for (var i = 0; i < stableLevel; i += PageSize)
+            var stablePages = stableLevel > 0 ? ((stableLevel - 1) >> PageShift) + 1 : 0;
+
+            for (var pageIndex = 0; pageIndex < stablePages; pageIndex++)
             {
-                var page = new byte[Math.Min(PageSize, stableLevel - i)][];
-                _pages[i >> PageShift] = page;
+                var page = new byte[Math.Min(PageSize, stableLevel - (pageIndex << PageShift))][];
+                _pages[pageIndex] = page;
                 _capacity += page.Length;
             }
 
