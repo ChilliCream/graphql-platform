@@ -62,6 +62,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 3a99a71766fe9b8121c946c33cd59a63aa4334ddca8568e0982d8a28225b89f6
   operation:
     - document: |
         query testQuery {
@@ -71,17 +72,28 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 2f3b41c6edfc335f79378128d8d95d14
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 2f3b41c6edfc335f79378128d8d95d14
+      hash: 79461fa435df77020b17d7e3f6c6e59f
+      shortHash: 79461fa4
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_79461fa4_1 {
-          votable {
-            __typename
-            viewerCanVote
+      operation:
+        name: testQuery_79461fa4_1
+        kind: Query
+        document: |
+          query testQuery_79461fa4_1 {
+            votable {
+              __typename
+              viewerCanVote
+            }
           }
-        }
+        hash: f45d969cc1177449df2345440647cc80ad283eb1819ca78058532c744c7b85fb
+        shortHash: f45d969c
+        xxHash: 6931690638262261062
+      resultSelectionSet: >-
+        { votable }

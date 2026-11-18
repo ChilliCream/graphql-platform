@@ -1,3 +1,4 @@
+id: 3da9d49615f5d81706bc64ccaa2a01c28664e97efb65411886b7a9f85bd9d0df
 operation:
   - document: |
       query GetTopProducts {
@@ -9,33 +10,55 @@ operation:
         }
       }
     name: GetTopProducts
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query GetTopProducts_123456789101112_1 {
-        topProducts {
-          id
-          name
+    operation:
+      name: GetTopProducts_123456789101112_1
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_1 {
+          topProducts {
+            id
+            name
+          }
         }
-      }
+      hash: 36b81922ae9ab7bd2cb40081c7d970c9167735ed67cb8a615d108e28ab0ec716
+      shortHash: 36b81922
+      xxHash: 9208147959275764580
+    resultSelectionSet: >-
+      { topProducts }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query GetTopProducts_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          price
+    operation:
+      name: GetTopProducts_123456789101112_2
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            price
+          }
         }
-      }
+      hash: d9e22ef2f68f63ffa93f9866946da01ab72a6ddd3d9783c9bc86cce893f03f2f
+      shortHash: d9e22ef2
+      xxHash: 13566120507815361913
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.productById
     target: $.topProducts
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.topProducts
         selectionMap: >-
           id
     dependencies:

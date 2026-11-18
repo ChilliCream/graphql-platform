@@ -1,3 +1,4 @@
+id: cdddfe85113833abad6497dba0bb4f5e7d015f1b5a5c28ab9c7bd6ebfe1b9030
 operation:
   - document: |
       subscription {
@@ -12,35 +13,59 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 6
+    kind: Subscription
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 6
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      subscription Op_123456789101112_1 {
-        doSomething {
-          something
+    operation:
+      name: Op_123456789101112_1
+      kind: Subscription
+      document: |
+        subscription Op_123456789101112_1 {
+          doSomething {
+            something
+          }
         }
-      }
+      hash: 0201f08176603b1e6de0fe0e02ef21c94a2e66ac050e48f1025bac9bf4fb31a9
+      shortHash: 0201f081
+      xxHash: 4775193135852065023
+    resultSelectionSet: >-
+      { doSomething }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_x: String, $__fusion_2_id: ID!) {
-        tById(id: $__fusion_2_id) {
-          f(x: $__fusion_1_x)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_x: String, $__fusion_2_id: ID!) {
+          tById(id: $__fusion_2_id) {
+            f(x: $__fusion_1_x)
+          }
         }
-      }
+      hash: 2dd253b0b310d39b08366322365f71ecb7e16ccd9fd74fb028dd800a4b81243c
+      shortHash: 2dd253b0
+      xxHash: 12479825596268033306
+    lookupTypeName: T
+    resultSelectionSet: >-
+      { f }
     source: $.tById
     target: $.doSomething.viewer.t
     requirements:
       - name: __fusion_1_x
+        type: String
+        path: $.doSomething.viewer.t
         selectionMap: >-
           x
       - name: __fusion_2_id
+        type: ID!
+        path: $.doSomething.viewer.t
         selectionMap: >-
           id
     dependencies:
@@ -48,28 +73,44 @@ nodes:
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_3 {
-        viewer {
-          t {
-            x
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3 {
+          viewer {
+            t {
+              x
+            }
           }
         }
-      }
+      hash: 6058cc26cbd418bf92b3b2986f5514ba23a536c27e0e9760079bfd313a5b3e42
+      shortHash: 6058cc26
+      xxHash: 1033133346518857201
+    resultSelectionSet: >-
+      { t { x } }
     source: $.viewer
     target: $.doSomething.viewer.t
     batchingGroupId: 5
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4 {
-        viewer {
-          t {
-            id
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4 {
+          viewer {
+            t {
+              id
+            }
           }
         }
-      }
+      hash: f085c15ad27f59caf0f4f340dde82c2265f4f6bdbda16945bac9f57851b94bf1
+      shortHash: f085c15a
+      xxHash: 4617034200026520538
+    resultSelectionSet: >-
+      { t { id } }
     source: $.viewer
     target: $.doSomething.viewer.t
     batchingGroupId: 5

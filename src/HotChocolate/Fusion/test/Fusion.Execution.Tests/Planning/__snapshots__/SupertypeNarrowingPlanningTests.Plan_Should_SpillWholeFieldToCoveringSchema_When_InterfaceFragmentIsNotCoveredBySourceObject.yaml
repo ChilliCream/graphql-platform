@@ -1,3 +1,4 @@
+id: 50385f42bbd322a9ed3c9769d6f5a03db68ddade28d7fec5a554a260dcab2a82
 operation:
   - document: |
       {
@@ -11,24 +12,35 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: A
-    operation: |
-      query Op_123456789101112_1 {
-        a {
-          __typename
-          ... on Pet {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          a {
             __typename
-            petField
-          }
-          ... on Animal {
-            __typename
-            animalField
+            ... on Pet {
+              __typename
+              petField
+            }
+            ... on Animal {
+              __typename
+              animalField
+            }
           }
         }
-      }
+      hash: dd9ee475e80e5af05e26218e58c4ac68a982657152e7ed13f5dcda0950313ce2
+      shortHash: dd9ee475
+      xxHash: 15891877957666765301
+    resultSelectionSet: >-
+      { a }

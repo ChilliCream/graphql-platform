@@ -1,3 +1,4 @@
+id: f8285f3f79c8c03f167e293431a01e3f0eb7e08bedb20dc67f99dde47187b2f9
 operation:
   - document: |
       {
@@ -11,35 +12,57 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
     schema: store
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            id
+          }
         }
-      }
+      hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+      shortHash: f991ee77
+      xxHash: 11674115490493392138
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: cost
-    operation: |
-      query Op_123456789101112_2($__fusion_1_uuid: ID!) {
-        productByUuid(uuid: $__fusion_1_uuid) {
-          price {
-            amount
-            currency
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_uuid: ID!) {
+          productByUuid(uuid: $__fusion_1_uuid) {
+            price {
+              amount
+              currency
+            }
           }
         }
-      }
+      hash: 16ad9f97d8e043a62be04b179a40bcb0e36803b64d123d13e11d1a6db796bf04
+      shortHash: 16ad9f97
+      xxHash: 14540145543986083876
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.productByUuid
     target: $.products
     requirements:
       - name: __fusion_1_uuid
+        type: ID!
+        path: $.products
         selectionMap: >-
           uuid
     dependencies:
@@ -47,17 +70,28 @@ nodes:
   - id: 3
     type: Operation
     schema: info
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          isAvailable
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          productById(id: $__fusion_2_id) {
+            isAvailable
+          }
         }
-      }
+      hash: ac0ceed64fdba6716fd1d82b2aa80d967de4222c2c2705aa6892c3578f14bafd
+      shortHash: ac0ceed6
+      xxHash: 16589813646335583009
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { isAvailable }
     source: $.productById
     target: $.products
     batchingGroupId: 5
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
     dependencies:
@@ -65,17 +99,28 @@ nodes:
   - id: 4
     type: Operation
     schema: info
-    operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          uuid
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_3_id: ID!) {
+          productById(id: $__fusion_3_id) {
+            uuid
+          }
         }
-      }
+      hash: 4a99b8f2b4a2ec8495a8fb2836f59a99479cc44546e32228090e2f807a99d567
+      shortHash: 4a99b8f2
+      xxHash: 1553821185329587977
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { uuid }
     source: $.productById
     target: $.products
     batchingGroupId: 5
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
     dependencies:

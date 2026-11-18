@@ -1,3 +1,4 @@
+id: dbb02094d1032919f92f831475224defa5581b57316c0ec53a4e55d7c27608d4
 operation:
   - document: |
       {
@@ -16,53 +17,81 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 7
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 7
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        b {
-          id
-          a {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          b {
             id
+            a {
+              id
+            }
           }
         }
-      }
+      hash: 02c874a3f7776823a58c83be7707b3332e7b85b589fc6cef54848b072a511ada
+      shortHash: 02c874a3
+      xxHash: 17405153277791690358
+    resultSelectionSet: >-
+      { b }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_name: String!
-        $__fusion_2_compositeIdThree: ID!
-        $__fusion_2_compositeIdTwo: ID!
-        $__fusion_2_id: ID!
-      ) {
-        aByIdAndCompositeId(
-          id: $__fusion_2_id
-          compositeIdTwo: $__fusion_2_compositeIdTwo
-          compositeIdThree: $__fusion_2_compositeIdThree
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_name: String!
+          $__fusion_2_compositeIdThree: ID!
+          $__fusion_2_compositeIdTwo: ID!
+          $__fusion_2_id: ID!
         ) {
-          nameInB(name: $__fusion_1_name)
+          aByIdAndCompositeId(
+            id: $__fusion_2_id
+            compositeIdTwo: $__fusion_2_compositeIdTwo
+            compositeIdThree: $__fusion_2_compositeIdThree
+          ) {
+            nameInB(name: $__fusion_1_name)
+          }
         }
-      }
+      hash: f0d9795d92c10814e7ae48c0d58996af0992e337c70d0a1f14018c4e43100356
+      shortHash: f0d9795d
+      xxHash: 13438089455390971022
+    lookupTypeName: A
+    resultSelectionSet: >-
+      { nameInB }
     source: $.aByIdAndCompositeId
     target: $.b.a
     requirements:
       - name: __fusion_1_name
+        type: String!
+        path: $.b.a
         selectionMap: >-
           name
       - name: __fusion_2_compositeIdThree
+        type: ID!
+        path: $.b.a
         selectionMap: >-
           compositeId.three
       - name: __fusion_2_compositeIdTwo
+        type: ID!
+        path: $.b.a
         selectionMap: >-
           compositeId.two
       - name: __fusion_2_id
+        type: ID!
+        path: $.b.a
         selectionMap: >-
           id
     dependencies:
@@ -70,12 +99,21 @@ nodes:
   - id: 3
     type: OperationBatch
     schema: a
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        aById(id: $__fusion_3_id) {
-          name
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          aById(id: $__fusion_3_id) {
+            name
+          }
         }
-      }
+      hash: f4cf1125d7b1a1812a92e8e0040a4f4b31bbbaab59691e4acce8e3e29dca8059
+      shortHash: f4cf1125
+      xxHash: 13027254622601243483
+    lookupTypeName: A
+    resultSelectionSet: >-
+      { name }
     source: $.aById
     targets:
       - $.b.a
@@ -83,6 +121,8 @@ nodes:
     batchingGroupId: 6
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.b.a
         selectionMap: >-
           id
     dependencies:
@@ -90,21 +130,32 @@ nodes:
   - id: 4
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        aById(id: $__fusion_4_id) {
-          id
-          compositeId {
-            two
-            three
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!) {
+          aById(id: $__fusion_4_id) {
+            id
+            compositeId {
+              two
+              three
+            }
           }
         }
-      }
+      hash: c43ebc787312d5d18b55d6f81f11a4b10f0a0f49809c438b3a353df52bd86147
+      shortHash: c43ebc78
+      xxHash: 6384384617436365981
+    lookupTypeName: A
+    resultSelectionSet: >-
+      { id compositeId { two three } }
     source: $.aById
     target: $.b.a
     batchingGroupId: 6
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.b.a
         selectionMap: >-
           id
     dependencies:

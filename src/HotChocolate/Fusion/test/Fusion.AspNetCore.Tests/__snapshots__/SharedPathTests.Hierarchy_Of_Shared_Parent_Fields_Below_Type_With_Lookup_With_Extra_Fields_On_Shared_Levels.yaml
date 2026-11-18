@@ -245,6 +245,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: fc79b598cf7dc90c01167d10d6f9cb537f4e0939a7c3a19640113deb602eb263
   operation:
     - document: |
         {
@@ -262,40 +263,62 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: a426c71d2d7850f4ab3065612e7a96b0
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: a426c71d2d7850f4ab3065612e7a96b0
+      hash: b3a5d88765decf48c20c2d5df3526f8d
+      shortHash: b3a5d887
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_b3a5d887_1 {
-          productById(id: 1) {
-            schema1
-            shared {
+      operation:
+        name: Op_b3a5d887_1
+        kind: Query
+        document: |
+          query Op_b3a5d887_1 {
+            productById(id: 1) {
               schema1
-              shared2 {
+              shared {
                 schema1
+                shared2 {
+                  schema1
+                }
               }
+              id
             }
-            id
           }
-        }
+        hash: b17dbc2fdd98c3e6c26f603f2aeace1ae6a57387639f2dc11aa12dc22cd7aed2
+        shortHash: b17dbc2f
+        xxHash: 1547003635357508194
+      resultSelectionSet: >-
+        { productById }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_b3a5d887_2($__fusion_1_id: Int!) {
-          product(id: $__fusion_1_id) {
-            schema2
+      operation:
+        name: Op_b3a5d887_2
+        kind: Query
+        document: |
+          query Op_b3a5d887_2($__fusion_1_id: Int!) {
+            product(id: $__fusion_1_id) {
+              schema2
+            }
           }
-        }
+        hash: 7e9d02ad654818c59c9371e823f0d8aaac388f1310062e13f5edafa3f2dede31
+        shortHash: 7e9d02ad
+        xxHash: 372353185958285238
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { schema2 }
       source: $.product
       target: $.productById
       batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:
@@ -303,19 +326,30 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_b3a5d887_3($__fusion_2_id: Int!) {
-          product(id: $__fusion_2_id) {
-            shared {
-              schema2
+      operation:
+        name: Op_b3a5d887_3
+        kind: Query
+        document: |
+          query Op_b3a5d887_3($__fusion_2_id: Int!) {
+            product(id: $__fusion_2_id) {
+              shared {
+                schema2
+              }
             }
           }
-        }
+        hash: a74f19226bcaed276ffe40bef6257b5aa0e8d818dfecf9a9602ed63d175b2227
+        shortHash: a74f1922
+        xxHash: 13757134204437503254
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { shared { schema2 } }
       source: $.product
       target: $.productById
       batchingGroupId: 5
       requirements:
         - name: __fusion_2_id
+          type: Int!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:
@@ -323,21 +357,32 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query Op_b3a5d887_4($__fusion_3_id: Int!) {
-          product(id: $__fusion_3_id) {
-            shared {
-              shared2 {
-                schema2
+      operation:
+        name: Op_b3a5d887_4
+        kind: Query
+        document: |
+          query Op_b3a5d887_4($__fusion_3_id: Int!) {
+            product(id: $__fusion_3_id) {
+              shared {
+                shared2 {
+                  schema2
+                }
               }
             }
           }
-        }
+        hash: e6b8ceb727cc76897d0ca9a09e5adb2f755757d9be37ce8b213b8d3c9072be40
+        shortHash: e6b8ceb7
+        xxHash: 14312414013937480907
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { shared { shared2 { schema2 } } }
       source: $.product
       target: $.productById
       batchingGroupId: 5
       requirements:
         - name: __fusion_3_id
+          type: Int!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:

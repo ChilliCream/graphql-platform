@@ -31,6 +31,7 @@ sourceSchemas:
         name: String!
       }
 operationPlan:
+  id: 5628b0c65d995fe3709527f6a8cc1d3389d2fe94c0d64a00292b59e0948922fe
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -39,19 +40,30 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 75219ca27168495457fe751719069200
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 75219ca27168495457fe751719069200
+      hash: 60827aef95828f171f928a28d1065777
+      shortHash: 60827aef
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_60827aef_1 {
-          productBySlug(slug: "product") {
-            name
+      operation:
+        name: testQuery_60827aef_1
+        kind: Query
+        document: |
+          query testQuery_60827aef_1 {
+            productBySlug(slug: "product") {
+              name
+            }
           }
-        }
+        hash: c42e2f41133a68322f4091bcbb8e1488f8a732229e64ab007a5b188b27e9ae4b
+        shortHash: c42e2f41
+        xxHash: 3747803785687116689
+      resultSelectionSet: >-
+        { productBySlug }
       conditions:
         - variable: $skip
           passingValue: false

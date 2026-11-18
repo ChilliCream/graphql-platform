@@ -1,3 +1,4 @@
+id: 78db5f81520620cf23e39baddbacfe83e452c549761e0a7d0dd20d3e1751bef5
 operation:
   - document: |
       {
@@ -5,19 +6,30 @@ operation:
           __typename
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        viewer {
-          __typename
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          viewer {
+            __typename
+          }
         }
-      }
+      hash: af824a04a19393722e31f4a8e278d1ba86a9bf6560aedac39dc76ae72b6b5343
+      shortHash: af824a04
+      xxHash: 4593622843686783888
+    resultSelectionSet: >-
+      { viewer }
 deliveryGroups:
   - id: 0
     path: $
@@ -25,14 +37,34 @@ incrementalPlans:
   - deliveryGroupIds:
       - 0
     parentNodeId: 1
-    nodes:
-      - id: 1
-        type: Operation
-        schema: b
-        operation: |
-          query Op_defer_1 {
+    operation:
+      - document: |
+          {
             users {
               id
               name
             }
           }
+        kind: Query
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation:
+          name: Op_defer_1
+          kind: Query
+          document: |
+            query Op_defer_1 {
+              users {
+                id
+                name
+              }
+            }
+          hash: 4d07ae34832e8c7737561f9a262d6dbc2b0d7af9b77aff1a5c09ee7f50895843
+          shortHash: 4d07ae34
+          xxHash: 1811098719144295985
+        resultSelectionSet: >-
+          { users }

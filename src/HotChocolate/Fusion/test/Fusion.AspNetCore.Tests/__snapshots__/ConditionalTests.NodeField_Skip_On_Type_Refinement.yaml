@@ -71,6 +71,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 5f2e5b7629b7479b302726d08a998e9b39c5aead45de87e4d016773dadc9230a
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -82,42 +83,62 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 1bb174409faf8c3ca1d5bbe5ce928df9
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 1bb174409faf8c3ca1d5bbe5ce928df9
+      hash: fbcbdaf4f07e770dcb65c20d95289c84
+      shortHash: fbcbdaf4
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: node
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_fbcbdaf4_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
+      operation:
+        name: testQuery_fbcbdaf4_2
+        kind: Query
+        document: |
+          query testQuery_fbcbdaf4_2 {
+            node(id: "RGlzY3Vzc2lvbjox") {
+              __typename
+            }
           }
-        }
+        hash: e3c89d0170a9012cc718c628da9b90f49d6a049bbf2f7aa91ac68d15101da377
+        shortHash: e3c89d01
+        xxHash: 9311537356888455604
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_fbcbdaf4_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_fbcbdaf4_3
+        kind: Query
+        document: |
+          query testQuery_fbcbdaf4_3($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
-              ... @skip(if: $skip) {
-                title
+              ... on Discussion {
+                __typename
+                ... @skip(if: $skip) {
+                  title
+                }
               }
             }
           }
-        }
+        hash: ef81c355b2246fcac58947524b6eb3ea2347e4d461c1594ae65a8b0b7f7f50d2
+        shortHash: ef81c355
+        xxHash: 10486330279785522427
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename ... { title } } } }
       forwardedVariables:
         - skip
       dependencies:

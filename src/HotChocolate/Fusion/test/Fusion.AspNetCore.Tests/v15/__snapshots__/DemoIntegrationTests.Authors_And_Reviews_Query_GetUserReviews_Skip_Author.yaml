@@ -250,6 +250,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: bfef4a0f49621b108b718ac688118b20783d36f69299b41e3851feaeb5c8c312
   operation:
     - document: |
         query GetUser($skip: Boolean!) {
@@ -267,41 +268,63 @@ operationPlan:
           }
         }
       name: GetUser
-      hash: 413a18d76db36025bf8f507025690c5e
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: 413a18d76db36025bf8f507025690c5e
+      hash: f346d273632eda35e187eb747bbc7600
+      shortHash: f346d273
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetUser_f346d273_1 {
-          users {
-            name
-            id
+      operation:
+        name: GetUser_f346d273_1
+        kind: Query
+        document: |
+          query GetUser_f346d273_1 {
+            users {
+              name
+              id
+            }
           }
-        }
+        hash: c7f05268e73bb9deff4d7583ed7c8023cf89357f68eb63fc0e718b13bbfe1608
+        shortHash: c7f05268
+        xxHash: 9628952475683617299
+      resultSelectionSet: >-
+        { users { name id } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query GetUser_f346d273_2($skip: Boolean!, $__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              reviews {
-                body
-                author @skip(if: $skip) {
-                  id
+      operation:
+        name: GetUser_f346d273_2
+        kind: Query
+        document: |
+          query GetUser_f346d273_2($skip: Boolean!, $__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on User {
+                reviews {
+                  body
+                  author @skip(if: $skip) {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: 4dab73399d7f3caded4abdf3b5a329bd7637b534977baf8483dff6e9c50fc532
+        shortHash: 4dab7339
+        xxHash: 3993679361993015825
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { reviews }
       source: $.node<User>
       target: $.users
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.users
           selectionMap: >-
             id
       forwardedVariables:
@@ -311,20 +334,31 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query GetUser_f346d273_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              name
-              birthdate
+      operation:
+        name: GetUser_f346d273_3
+        kind: Query
+        document: |
+          query GetUser_f346d273_3($__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on User {
+                name
+                birthdate
+              }
             }
           }
-        }
+        hash: 2b0be7934efca608c79dc0f7735d5ff7d6c34082453e8f93ccf2cea295fa5b2e
+        shortHash: 2b0be793
+        xxHash: 3946895577471085818
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { name birthdate }
       source: $.node<User>
       target: $.users.reviews.author
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.users.reviews.author
           selectionMap: >-
             id
       conditions:

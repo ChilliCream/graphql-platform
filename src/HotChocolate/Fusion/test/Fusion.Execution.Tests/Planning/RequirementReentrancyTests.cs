@@ -36,6 +36,7 @@ public class RequirementReentrancyTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 801e1a5952dbc3ded1d1ebffa965e7dae98a2207163f3780571706f687de7486
             operation:
               - document: |
                   query getProducts {
@@ -52,43 +53,67 @@ public class RequirementReentrancyTests : FusionTestBase
                     }
                   }
                 name: getProducts
-                hash: 123456789101112
-                searchSpace: 3
-                expandedNodes: 9
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 3
+            expandedNodes: 9
             nodes:
               - id: 1
                 type: Operation
                 schema: CATALOG
-                operation: |
-                  query getProducts_123456789101112_1 {
-                    products {
-                      category
-                      id
+                operation:
+                  name: getProducts_123456789101112_1
+                  kind: Query
+                  document: |
+                    query getProducts_123456789101112_1 {
+                      products {
+                        category
+                        id
+                      }
                     }
-                  }
+                  hash: c2403114f6f09c86c97a9e83c0e8fe59a99c21c3d7dabecb2fd78f5ccf696b49
+                  shortHash: c2403114
+                  xxHash: 268309587490145033
+                resultSelectionSet: >-
+                  { products }
               - id: 3
                 type: Operation
                 schema: RECOMMENDATION
-                operation: |
-                  query getProducts_123456789101112_3(
-                    $__fusion_2_category: ProductCategory!
-                    $__fusion_3_id: ID!
-                  ) {
-                    productById(id: $__fusion_3_id) {
-                      recommendations(category: $__fusion_2_category) {
-                        product {
-                          id
+                operation:
+                  name: getProducts_123456789101112_3
+                  kind: Query
+                  document: |
+                    query getProducts_123456789101112_3(
+                      $__fusion_2_category: ProductCategory!
+                      $__fusion_3_id: ID!
+                    ) {
+                      productById(id: $__fusion_3_id) {
+                        recommendations(category: $__fusion_2_category) {
+                          product {
+                            id
+                          }
                         }
                       }
                     }
-                  }
+                  hash: 62ab5f2bd924ee611762bc87cb4e7d5bb7a82c9282f7905bf42988a6e4df9a87
+                  shortHash: 62ab5f2b
+                  xxHash: 18051846084359952735
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { recommendations }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_2_category
+                    type: ProductCategory!
+                    path: $.products
                     selectionMap: >-
                       category
                   - name: __fusion_3_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                 dependencies:
@@ -96,16 +121,27 @@ public class RequirementReentrancyTests : FusionTestBase
               - id: 4
                 type: Operation
                 schema: CATALOG
-                operation: |
-                  query getProducts_123456789101112_4($__fusion_4_id: ID!) {
-                    productById(id: $__fusion_4_id) {
-                      category
+                operation:
+                  name: getProducts_123456789101112_4
+                  kind: Query
+                  document: |
+                    query getProducts_123456789101112_4($__fusion_4_id: ID!) {
+                      productById(id: $__fusion_4_id) {
+                        category
+                      }
                     }
-                  }
+                  hash: c3ec317c58bcd489d4ee6de43815202ed15c85b21524d97a5ae8886801738962
+                  shortHash: c3ec317c
+                  xxHash: 3278968804357444885
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { category }
                 source: $.productById
                 target: $.products.recommendations.product
                 requirements:
                   - name: __fusion_4_id
+                    type: ID!
+                    path: $.products.recommendations.product
                     selectionMap: >-
                       id
                 dependencies:
@@ -450,6 +486,7 @@ public class RequirementReentrancyTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 121a97d180604bdae65b2f707caabda1f1080b8cb8f83abf41027cb9d320763e
             operation:
               - document: |
                   query GetSupplier {
@@ -476,54 +513,78 @@ public class RequirementReentrancyTests : FusionTestBase
                     }
                   }
                 name: GetSupplier
-                hash: 123456789101112
-                searchSpace: 3
-                expandedNodes: 9
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 3
+            expandedNodes: 9
             nodes:
               - id: 1
                 type: Operation
                 schema: SUPPLIERS
-                operation: |
-                  query GetSupplier_123456789101112_1 {
-                    supplierBySlug(slug: "some-slug") {
-                      __typename
-                      ... on Supplier {
-                        dbId
-                        _isEligibleForHighlyRecommended
+                operation:
+                  name: GetSupplier_123456789101112_1
+                  kind: Query
+                  document: |
+                    query GetSupplier_123456789101112_1 {
+                      supplierBySlug(slug: "some-slug") {
+                        __typename
+                        ... on Supplier {
+                          dbId
+                          _isEligibleForHighlyRecommended
+                        }
                       }
                     }
-                  }
+                  hash: 3d7ab9b2b684c0d872a12dc4b733607576b499c701863a10b993ae40769ba30d
+                  shortHash: 3d7ab9b2
+                  xxHash: 2968827130586625208
+                resultSelectionSet: >-
+                  { supplierBySlug }
               - id: 3
                 type: Operation
                 schema: RATINGS
-                operation: |
-                  query GetSupplier_123456789101112_3(
-                    $__fusion_2_isEligibleForHighlyRecommended: Boolean!
-                    $__fusion_3_dbId: Int!
-                  ) {
-                    supplierByDbId(dbId: $__fusion_3_dbId) {
-                      rating(
-                        isEligibleForHighlyRecommended: $__fusion_2_isEligibleForHighlyRecommended
-                      ) {
-                        reviews(first: 20) {
-                          edges {
-                            node {
-                              booking {
-                                dbId
+                operation:
+                  name: GetSupplier_123456789101112_3
+                  kind: Query
+                  document: |
+                    query GetSupplier_123456789101112_3(
+                      $__fusion_2_isEligibleForHighlyRecommended: Boolean!
+                      $__fusion_3_dbId: Int!
+                    ) {
+                      supplierByDbId(dbId: $__fusion_3_dbId) {
+                        rating(
+                          isEligibleForHighlyRecommended: $__fusion_2_isEligibleForHighlyRecommended
+                        ) {
+                          reviews(first: 20) {
+                            edges {
+                              node {
+                                booking {
+                                  dbId
+                                }
                               }
                             }
                           }
                         }
                       }
                     }
-                  }
+                  hash: 84cc4f4a377f7cc53e96b87eae6852c20acce611e74f96a390fca767593ebca6
+                  shortHash: 84cc4f4a
+                  xxHash: 9528180627630970477
+                lookupTypeName: Supplier
+                resultSelectionSet: >-
+                  { rating }
                 source: $.supplierByDbId
                 target: $.supplierBySlug<Supplier>
                 requirements:
                   - name: __fusion_2_isEligibleForHighlyRecommended
+                    type: Boolean!
+                    path: $.supplierBySlug<Supplier>
                     selectionMap: >-
                       _isEligibleForHighlyRecommended
                   - name: __fusion_3_dbId
+                    type: Int!
+                    path: $.supplierBySlug<Supplier>
                     selectionMap: >-
                       dbId
                 dependencies:
@@ -531,18 +592,29 @@ public class RequirementReentrancyTests : FusionTestBase
               - id: 4
                 type: Operation
                 schema: BOOKINGS
-                operation: |
-                  query GetSupplier_123456789101112_4($__fusion_4_dbId: Int!) {
-                    bookingByDbId(dbId: $__fusion_4_dbId) {
-                      customer {
-                        firstName
+                operation:
+                  name: GetSupplier_123456789101112_4
+                  kind: Query
+                  document: |
+                    query GetSupplier_123456789101112_4($__fusion_4_dbId: Int!) {
+                      bookingByDbId(dbId: $__fusion_4_dbId) {
+                        customer {
+                          firstName
+                        }
                       }
                     }
-                  }
+                  hash: ffd8c2a9c35df97f4e4324cc6ea4ac55475467f85173000a9459925356a6bf18
+                  shortHash: ffd8c2a9
+                  xxHash: 17488616570353774644
+                lookupTypeName: Booking
+                resultSelectionSet: >-
+                  { customer }
                 source: $.bookingByDbId
                 target: $.supplierBySlug<Supplier>.rating.reviews.edges.node.booking
                 requirements:
                   - name: __fusion_4_dbId
+                    type: Int!
+                    path: $.supplierBySlug<Supplier>.rating.reviews.edges.node.booking
                     selectionMap: >-
                       dbId
                 dependencies:

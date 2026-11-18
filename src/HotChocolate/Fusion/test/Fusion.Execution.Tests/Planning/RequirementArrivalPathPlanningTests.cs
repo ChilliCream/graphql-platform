@@ -708,6 +708,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 90fa2c7ab93900f2c273351dd833ab75754aef34c827e279e259d1c63ce8e37b
             operation:
               - document: |
                   {
@@ -720,38 +721,59 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 6
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 6
             nodes:
               - id: 1
                 type: Operation
                 schema: E
-                operation: |
-                  query Op_123456789101112_1 {
-                    viewer {
-                      vt {
-                        f2 {
-                          id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      viewer {
+                        vt {
+                          f2 {
+                            id
+                          }
                         }
                       }
                     }
-                  }
+                  hash: 5817e56f424ee30dbbfc9e854fb317df581f26a3ab9a1940fc90e56fc8577bcc
+                  shortHash: 5817e56f
+                  xxHash: 10959179145886273944
+                resultSelectionSet: >-
+                  { viewer { vt { f2 { id } } } }
               - id: 2
                 type: Operation
                 schema: D
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_v: ID) {
-                    viewer {
-                      vt {
-                        f2 {
-                          rqD(v: $__fusion_1_v)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_v: ID) {
+                      viewer {
+                        vt {
+                          f2 {
+                            rqD(v: $__fusion_1_v)
+                          }
                         }
                       }
                     }
-                  }
+                  hash: fb16c50bfe9bb1990b04def0c3afb639c1583873a4eb2e71d68564d4a9ae108f
+                  shortHash: fb16c50b
+                  xxHash: 14272841142108001005
+                resultSelectionSet: >-
+                  { viewer { vt { f2 { rqD } } } }
                 requirements:
                   - name: __fusion_1_v
+                    type: ID
+                    path: $.viewer.vt.f2
                     selectionMap: >-
                       id
                 dependencies:
@@ -803,6 +825,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 980c8a177d620c7c84c3667ec01899270eb6e4345ecd45e7bda2351360632ca9
             operation:
               - document: |
                   mutation {
@@ -817,42 +840,63 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 1
+                kind: Mutation
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 1
             nodes:
               - id: 1
                 type: Operation
                 schema: B
-                operation: |
-                  mutation Op_123456789101112_1 {
-                    doB {
-                      viewer {
-                        vt {
-                          f2 {
-                            id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Mutation
+                  document: |
+                    mutation Op_123456789101112_1 {
+                      doB {
+                        viewer {
+                          vt {
+                            f2 {
+                              id
+                            }
                           }
                         }
                       }
                     }
-                  }
+                  hash: cac8c6535a98374d18c5c82f9ad1c587c3639ca371d6b30e6816cdc61577ce74
+                  shortHash: cac8c653
+                  xxHash: 6209407811876964816
+                resultSelectionSet: >-
+                  { doB }
               - id: 2
                 type: Operation
                 schema: D
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_v: ID) {
-                    viewer {
-                      vt {
-                        f2 {
-                          rqD(v: $__fusion_1_v)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_v: ID) {
+                      viewer {
+                        vt {
+                          f2 {
+                            rqD(v: $__fusion_1_v)
+                          }
                         }
                       }
                     }
-                  }
+                  hash: fb16c50bfe9bb1990b04def0c3afb639c1583873a4eb2e71d68564d4a9ae108f
+                  shortHash: fb16c50b
+                  xxHash: 14272841142108001005
+                resultSelectionSet: >-
+                  { vt { f2 { rqD } } }
                 source: $.viewer
                 target: $.doB.viewer.vt.f2
                 requirements:
                   - name: __fusion_1_v
+                    type: ID
+                    path: $.doB.viewer.vt.f2.viewer.vt.f2
                     selectionMap: >-
                       id
                 dependencies:
@@ -971,6 +1015,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: ccf6583e9b24d4c9c61169edf1e54bdc45042ba7c8d72d8b159c2ffb5b093633
             operation:
               - document: |
                   {
@@ -985,28 +1030,44 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       id @fusion__requirement
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 3
-                expandedNodes: 10
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 3
+            expandedNodes: 10
             nodes:
               - id: 2
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_z: String) {
-                    xById(id: $__fusion_1_id) {
-                      t {
-                        f(z: $__fusion_2_z)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_z: String) {
+                      xById(id: $__fusion_1_id) {
+                        t {
+                          f(z: $__fusion_2_z)
+                        }
                       }
                     }
-                  }
+                  hash: 426d3ecc2a033cd45f9f86f75457f03497cdc55d47d124d39ee86cc7f5694693
+                  shortHash: 426d3ecc
+                  xxHash: 12699420914944605585
+                lookupTypeName: X
+                resultSelectionSet: >-
+                  { t { f } }
                 source: $.xById
                 target: $.x
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.x
                     selectionMap: >-
                       id
                   - name: __fusion_2_z
+                    type: String
+                    path: $.x.t
                     selectionMap: >-
                       n.z
                 dependencies:
@@ -1015,16 +1076,27 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
               - id: 3
                 type: Operation
                 schema: g
-                operation: |
-                  query Op_123456789101112_3($__fusion_3_id: ID!) {
-                    nById(id: $__fusion_3_id) {
-                      z
+                operation:
+                  name: Op_123456789101112_3
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_3($__fusion_3_id: ID!) {
+                      nById(id: $__fusion_3_id) {
+                        z
+                      }
                     }
-                  }
+                  hash: c10630f6b4929fd93c4229a29aa7add7c7a6356f75db462a7e4f336407ca8505
+                  shortHash: c10630f6
+                  xxHash: 5808778060433549538
+                lookupTypeName: "N"
+                resultSelectionSet: >-
+                  { z }
                 source: $.nById
                 target: $.x.t.n
                 requirements:
                   - name: __fusion_3_id
+                    type: ID!
+                    path: $.x.t.n
                     selectionMap: >-
                       id
                 dependencies:
@@ -1032,31 +1104,47 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_1 {
-                    x {
-                      t {
-                        n {
-                          __typename
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      x {
+                        t {
+                          n {
+                            __typename
+                          }
                         }
+                        id
                       }
-                      id
                     }
-                  }
+                  hash: 160741bb4add382f84fa7f071cd9da32b1239bada19ad894d75b180fec2c7732
+                  shortHash: 160741bb
+                  xxHash: 5870523207090737025
+                resultSelectionSet: >-
+                  { x }
                 batchingGroupId: 5
               - id: 4
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_4 {
-                    x {
-                      t {
-                        n {
-                          id
+                operation:
+                  name: Op_123456789101112_4
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_4 {
+                      x {
+                        t {
+                          n {
+                            id
+                          }
                         }
                       }
                     }
-                  }
+                  hash: 15d76e1689817dfe29fecf4c85662995e4c8505bb545a47d45de3c007318caf7
+                  shortHash: 15d76e16
+                  xxHash: 7336655642061676120
+                resultSelectionSet: >-
+                  { x }
                 batchingGroupId: 5
             """);
     }
@@ -1100,6 +1188,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 4734c0f0b12a20d6bb6d8afab6a90b8772cad4ed9fb85e3453efbef5cfc626a9
             operation:
               - document: |
                   subscription {
@@ -1110,9 +1199,12 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       id @fusion__requirement
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                kind: Subscription
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: EventStream
@@ -1122,22 +1214,33 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                 eventStream:
                   schema: a
                   topics: [e]
-                  message: { id f2 { __typename } }
+                  message: "{ id f2 { __typename } }"
               - id: 2
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    t2ById(id: $__fusion_1_id) {
-                      f2 {
-                        s0
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!) {
+                      t2ById(id: $__fusion_1_id) {
+                        f2 {
+                          s0
+                        }
                       }
                     }
-                  }
+                  hash: 95e409487c173a2bd33f93c11923fa4710143c1c883d6b87ff3fabf45992531d
+                  shortHash: "95e40948"
+                  xxHash: 3062728853824666812
+                lookupTypeName: T2
+                resultSelectionSet: >-
+                  { f2 }
                 source: $.t2ById
                 target: $.ev
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.ev
                     selectionMap: >-
                       id
                 dependencies:
@@ -1188,6 +1291,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 86e1fb8d39aac563814a5094dd1281d4ce5c0ac187af2415a567189cd54daccc
             operation:
               - document: |
                   subscription {
@@ -1200,9 +1304,12 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       id @fusion__requirement
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                kind: Subscription
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: EventStream
@@ -1212,24 +1319,35 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                 eventStream:
                   schema: a
                   topics: [e]
-                  message: { id f1 { f2 { __typename } } }
+                  message: "{ id f1 { f2 { __typename } } }"
               - id: 2
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    t1ById(id: $__fusion_1_id) {
-                      f1 {
-                        f2 {
-                          s0
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!) {
+                      t1ById(id: $__fusion_1_id) {
+                        f1 {
+                          f2 {
+                            s0
+                          }
                         }
                       }
                     }
-                  }
+                  hash: bb988b5aa433de19549f7b90c639029cd8f1a988a737bc142776e821d066d94a
+                  shortHash: bb988b5a
+                  xxHash: 2377879541916926767
+                lookupTypeName: T1
+                resultSelectionSet: >-
+                  { f1 }
                 source: $.t1ById
                 target: $.ev
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.ev
                     selectionMap: >-
                       id
                 dependencies:
@@ -1424,6 +1542,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 5b46537240cfb3b530ad95f7f46316129c0cb6f5120bc70fd880b5ef9c16bf68
             operation:
               - document: |
                   subscription {
@@ -1434,9 +1553,12 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                kind: Subscription
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: EventStream
@@ -1446,20 +1568,31 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                 eventStream:
                   schema: a
                   topics: [e]
-                  message: { id f2 { __typename } }
+                  message: "{ id f2 { __typename } }"
               - id: 2
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    t3ById(id: $__fusion_1_id) {
-                      s0
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!) {
+                      t3ById(id: $__fusion_1_id) {
+                        s0
+                      }
                     }
-                  }
+                  hash: e4d0d3816be57040506104261aa889384d93c64c9b929ba83b8664c58d75a31b
+                  shortHash: e4d0d381
+                  xxHash: 17782911767510701253
+                lookupTypeName: T3
+                resultSelectionSet: >-
+                  { s0 }
                 source: $.t3ById
                 target: $.ev.f2
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.ev.f2
                     selectionMap: >-
                       id
                 dependencies:
@@ -1523,6 +1656,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 920563a3c469617c4b773946573abd1c8839929c90cef48fc9af496b321c212c
             operation:
               - document: |
                   subscription {
@@ -1535,9 +1669,12 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       k @fusion__requirement
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                kind: Subscription
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: EventStream
@@ -1547,24 +1684,35 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                 eventStream:
                   schema: a
                   topics: [e]
-                  message: { id f1 { f2 { __typename } } }
+                  message: "{ id f1 { f2 { __typename } } }"
               - id: 2
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_k: String!) {
-                    t1ByK(k: $__fusion_1_k) {
-                      f1 {
-                        f2 {
-                          s0
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_k: String!) {
+                      t1ByK(k: $__fusion_1_k) {
+                        f1 {
+                          f2 {
+                            s0
+                          }
                         }
                       }
                     }
-                  }
+                  hash: 4ab47174825dc3a4f35ce1e28ea9f92a585d5b7684a54fcf115eff666314bd7c
+                  shortHash: 4ab47174
+                  xxHash: 14165290453685172221
+                lookupTypeName: T1
+                resultSelectionSet: >-
+                  { f1 }
                 source: $.t1ByK
                 target: $.ev
                 requirements:
                   - name: __fusion_1_k
+                    type: String!
+                    path: $.ev
                     selectionMap: >-
                       k
                 dependencies:
@@ -1625,6 +1773,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 06d44efcc93f164646ba171d5b71a71f933058ca002ae820213d07d1319d77b0
             operation:
               - document: |
                   subscription {
@@ -1635,9 +1784,12 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 3
+                kind: Subscription
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 3
             nodes:
               - id: 1
                 type: EventStream
@@ -1647,20 +1799,31 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                 eventStream:
                   schema: a
                   topics: [e]
-                  message: { id f1 { __typename } }
+                  message: "{ id f1 { __typename } }"
               - id: 2
                 type: Operation
                 schema: x
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    t1ById(id: $__fusion_1_id) {
-                      z
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!) {
+                      t1ById(id: $__fusion_1_id) {
+                        z
+                      }
                     }
-                  }
+                  hash: 740b45c1d8477b951e2a0f89e5591fc2a64c9f2f1c19ddfc2de86259fdb18f78
+                  shortHash: 740b45c1
+                  xxHash: 10118938547022857092
+                lookupTypeName: T1
+                resultSelectionSet: >-
+                  { z }
                 source: $.t1ById
                 target: $.ev.f1
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.ev.f1
                     selectionMap: >-
                       id
                 dependencies:
@@ -1716,6 +1879,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 5f051ee05883910b482ad075067e0cad43bf5f1a45849c6bf21e4c15e1a171e7
             operation:
               - document: |
                   subscription {
@@ -1724,9 +1888,12 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       s @fusion__requirement
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 3
+                kind: Subscription
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 3
             nodes:
               - id: 1
                 type: EventStream
@@ -1736,20 +1903,31 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                 eventStream:
                   schema: b
                   topics: [e]
-                  message: { id }
+                  message: "{ id }"
               - id: 2
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_s: String!) {
-                    tByS(s: $__fusion_1_s) {
-                      f
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_s: String!) {
+                      tByS(s: $__fusion_1_s) {
+                        f
+                      }
                     }
-                  }
+                  hash: 24fa99f934d8d4021ba2130012c455d5b87ba3b3f57f1afc590234d95a08d29b
+                  shortHash: 24fa99f9
+                  xxHash: 14124351663218411975
+                lookupTypeName: T
+                resultSelectionSet: >-
+                  { f }
                 source: $.tByS
                 target: $.ev
                 requirements:
                   - name: __fusion_1_s
+                    type: String!
+                    path: $.ev
                     selectionMap: >-
                       s
                 dependencies:
@@ -1816,6 +1994,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: dda347747085e96fee277c486315f7f22430dcde323063df09a395f864bac69d
             operation:
               - document: |
                   subscription {
@@ -1824,9 +2003,12 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                       s @fusion__requirement
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 3
+                kind: Subscription
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 3
             nodes:
               - id: 1
                 type: EventStream
@@ -1836,20 +2018,31 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                 eventStream:
                   schema: a
                   topics: [e]
-                  message: { id }
+                  message: "{ id }"
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_s: String!) {
-                    tByS(s: $__fusion_1_s) {
-                      f
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_s: String!) {
+                      tByS(s: $__fusion_1_s) {
+                        f
+                      }
                     }
-                  }
+                  hash: 24fa99f934d8d4021ba2130012c455d5b87ba3b3f57f1afc590234d95a08d29b
+                  shortHash: 24fa99f9
+                  xxHash: 14124351663218411975
+                lookupTypeName: T
+                resultSelectionSet: >-
+                  { f }
                 source: $.tByS
                 target: $.ev
                 requirements:
                   - name: __fusion_1_s
+                    type: String!
+                    path: $.ev
                     selectionMap: >-
                       s
                 dependencies:

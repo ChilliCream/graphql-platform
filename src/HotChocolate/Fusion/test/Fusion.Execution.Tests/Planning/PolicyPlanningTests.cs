@@ -106,20 +106,47 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1(
-                    $__fusion_policy_1: Boolean!
-                    $__fusion_policy_2: Boolean!
-                  ) {
-                    product {
-                      id
-                      name @skip(if: $__fusion_policy_1)
-                      price @skip(if: $__fusion_policy_2)
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1(
+                      $__fusion_policy_1: Boolean!
+                      $__fusion_policy_2: Boolean!
+                    ) {
+                      product {
+                        id
+                        name @skip(if: $__fusion_policy_1)
+                        price @skip(if: $__fusion_policy_2)
+                      }
                     }
-                  }
+                  hash: 3b93905e93238450620f4f958670af67b19bd3a1389d018e202969e3d03a81f8
+                  shortHash: 3b93905e
+                  xxHash: 14642125102203654305
+                resultSelectionSet: >-
+                  { product }
                 forwardedVariables:
                   - __fusion_policy_1
                   - __fusion_policy_2
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.product.name
+                - directiveName: requiresScopes
+                  scopes:
+                    - [read]
+                  selection:
+                    path: $.product.price
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.product.name
+                - name: __fusion_policy_2
+                  selections:
+                    -
+                      path: $.product.price
             """);
     }
 
@@ -140,19 +167,44 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1(
-                    $__fusion_policy_1: Boolean!
-                    $__fusion_policy_2: Boolean!
-                  ) {
-                    product {
-                      first: name @skip(if: $__fusion_policy_1)
-                      second: name @skip(if: $__fusion_policy_2)
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1(
+                      $__fusion_policy_1: Boolean!
+                      $__fusion_policy_2: Boolean!
+                    ) {
+                      product {
+                        first: name @skip(if: $__fusion_policy_1)
+                        second: name @skip(if: $__fusion_policy_2)
+                      }
                     }
-                  }
+                  hash: 5e26ccc562353879b9e6c0092f80c067a328a9d549faa554dd2f5ea921978e09
+                  shortHash: 5e26ccc5
+                  xxHash: 13814883196681120138
+                resultSelectionSet: >-
+                  { product }
                 forwardedVariables:
                   - __fusion_policy_1
                   - __fusion_policy_2
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.product.first
+                - directiveName: authenticated
+                  selection:
+                    path: $.product.second
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.product.first
+                - name: __fusion_policy_2
+                  selections:
+                    -
+                      path: $.product.second
             """);
     }
 
@@ -173,17 +225,35 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1($skip: Boolean!, $__fusion_policy_1: Boolean!) {
-                    product {
-                      ... @skip(if: $__fusion_policy_1) {
-                        name @skip(if: $skip)
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1($skip: Boolean!, $__fusion_policy_1: Boolean!) {
+                      product {
+                        ... @skip(if: $__fusion_policy_1) {
+                          name @skip(if: $skip)
+                        }
                       }
                     }
-                  }
+                  hash: 27c4c839dfbb7afc922cc8f541b572b656499425a1405951a4ebf65715998ee3
+                  shortHash: 27c4c839
+                  xxHash: 9965206127971575456
+                resultSelectionSet: >-
+                  { product }
                 forwardedVariables:
                   - skip
                   - __fusion_policy_1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.product.name
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.product.name
             """);
     }
 
@@ -204,25 +274,44 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        id
+                      }
                     }
-                  }
+                  hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+                  shortHash: f991ee77
+                  xxHash: 11674115490493392138
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    productById(id: $__fusion_1_id) {
-                      price
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!) {
+                      productById(id: $__fusion_1_id) {
+                        price
+                      }
                     }
-                  }
+                  hash: 8e5ace38bb989a160e79c92b2efd199fc9a1ee10a71c0720311ed262232c2674
+                  shortHash: 8e5ace38
+                  xxHash: 4079249144343109309
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { price }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                 conditions:
@@ -230,6 +319,16 @@ public class PolicyPlanningTests : FusionTestBase
                     passingValue: false
                 dependencies:
                   - id: 1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.products.price
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.products.price
             """);
     }
 
@@ -279,30 +378,49 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        id
+                      }
                     }
-                  }
+                  hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+                  shortHash: f991ee77
+                  xxHash: 11674115490493392138
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2(
-                    $__fusion_policy_1: Boolean!
-                    $__fusion_policy_2: Boolean!
-                    $__fusion_1_id: ID!
-                  ) {
-                    productById(id: $__fusion_1_id) {
-                      price @skip(if: $__fusion_policy_1)
-                      note @skip(if: $__fusion_policy_2)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2(
+                      $__fusion_policy_1: Boolean!
+                      $__fusion_policy_2: Boolean!
+                      $__fusion_1_id: ID!
+                    ) {
+                      productById(id: $__fusion_1_id) {
+                        price @skip(if: $__fusion_policy_1)
+                        note @skip(if: $__fusion_policy_2)
+                      }
                     }
-                  }
+                  hash: 31ca4b899784ede4d75b38b0090f176786ce5c9d52333e1cf599c9ac5018c2ae
+                  shortHash: 31ca4b89
+                  xxHash: 12604915753937650340
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { price note }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                 conditions:
@@ -320,6 +438,29 @@ public class PolicyPlanningTests : FusionTestBase
                   - __fusion_policy_2
                 dependencies:
                   - id: 1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.products.price
+                - directiveName: requiresScopes
+                  scopes:
+                    - [read]
+                  selection:
+                    path: $.products.note
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.products.price
+                - name: __fusion_policy_2
+                  selections:
+                    -
+                      path: $.products.note
+                - name: __fusion_policy_3
+                  operands:
+                    - __fusion_policy_1
+                    - __fusion_policy_2
             """);
     }
 
@@ -340,31 +481,52 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1($__fusion_policy_1: Boolean!) {
-                    products {
-                      id
-                      weight @skip(if: $__fusion_policy_1)
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1($__fusion_policy_1: Boolean!) {
+                      products {
+                        id
+                        weight @skip(if: $__fusion_policy_1)
+                      }
                     }
-                  }
+                  hash: 9f167a7d4a6c8448d4cf2c4a858a158d360006bd22bf37f9d15b915fb6519ef3
+                  shortHash: 9f167a7d
+                  xxHash: 590867055256475166
+                resultSelectionSet: >-
+                  { products }
                 forwardedVariables:
                   - __fusion_policy_1
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_weight: Int) {
-                    productById(id: $__fusion_1_id) {
-                      shippingEstimate(weight: $__fusion_2_weight)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_weight: Int) {
+                      productById(id: $__fusion_1_id) {
+                        shippingEstimate(weight: $__fusion_2_weight)
+                      }
                     }
-                  }
+                  hash: 691bccebdbce19b1d2854a678752f31dff864c034b1e197b93139c9245c70af9
+                  shortHash: 691bcceb
+                  xxHash: 8213001851433487594
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { shippingEstimate }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                   - name: __fusion_2_weight
+                    type: Int
+                    path: $.products
                     selectionMap: >-
                       weight
                 conditions:
@@ -372,6 +534,16 @@ public class PolicyPlanningTests : FusionTestBase
                     passingValue: false
                 dependencies:
                   - id: 1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.products.shippingEstimate
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.products.shippingEstimate
             """);
     }
 
@@ -392,35 +564,56 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      id
-                      weight
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        id
+                        weight
+                      }
                     }
-                  }
+                  hash: a11b97ae8805f25e588aff83cb0f324abc852acd5163e923da662957687c09e2
+                  shortHash: a11b97ae
+                  xxHash: 1031150499231380377
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2(
-                    $__fusion_policy_1: Boolean!
-                    $__fusion_policy_2: Boolean!
-                    $__fusion_1_id: ID!
-                    $__fusion_2_weight: Int
-                  ) {
-                    productById(id: $__fusion_1_id) {
-                      note @skip(if: $__fusion_policy_1)
-                      shippingEstimate(weight: $__fusion_2_weight) @skip(if: $__fusion_policy_2)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2(
+                      $__fusion_policy_1: Boolean!
+                      $__fusion_policy_2: Boolean!
+                      $__fusion_1_id: ID!
+                      $__fusion_2_weight: Int
+                    ) {
+                      productById(id: $__fusion_1_id) {
+                        note @skip(if: $__fusion_policy_1)
+                        shippingEstimate(weight: $__fusion_2_weight) @skip(if: $__fusion_policy_2)
+                      }
                     }
-                  }
+                  hash: 7133cd433c1c2a54e020f3f1e60f2bc65f5dcce551a0a36da38c4576daba00bc
+                  shortHash: 7133cd43
+                  xxHash: 6047108285050503958
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { note shippingEstimate }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                   - name: __fusion_2_weight
+                    type: Int
+                    path: $.products
                     selectionMap: >-
                       weight
                 conditions:
@@ -438,6 +631,29 @@ public class PolicyPlanningTests : FusionTestBase
                   - __fusion_policy_2
                 dependencies:
                   - id: 1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.products.shippingEstimate
+                - directiveName: requiresScopes
+                  scopes:
+                    - [read]
+                  selection:
+                    path: $.products.note
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.products.note
+                - name: __fusion_policy_2
+                  selections:
+                    -
+                      path: $.products.shippingEstimate
+                - name: __fusion_policy_3
+                  operands:
+                    - __fusion_policy_1
+                    - __fusion_policy_2
             """);
     }
 
@@ -458,40 +674,71 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      id
-                      weight
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        id
+                        weight
+                      }
                     }
-                  }
+                  hash: a11b97ae8805f25e588aff83cb0f324abc852acd5163e923da662957687c09e2
+                  shortHash: a11b97ae
+                  xxHash: 1031150499231380377
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2(
-                    $__fusion_policy_1: Boolean!
-                    $__fusion_1_id: ID!
-                    $__fusion_2_weight: Int
-                  ) {
-                    productById(id: $__fusion_1_id) {
-                      open
-                      shippingEstimate(weight: $__fusion_2_weight) @skip(if: $__fusion_policy_1)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2(
+                      $__fusion_policy_1: Boolean!
+                      $__fusion_1_id: ID!
+                      $__fusion_2_weight: Int
+                    ) {
+                      productById(id: $__fusion_1_id) {
+                        open
+                        shippingEstimate(weight: $__fusion_2_weight) @skip(if: $__fusion_policy_1)
+                      }
                     }
-                  }
+                  hash: 56678473ed4e11530ac9bcab667600e4f9a0e373ac5bdadfb36cbc3aa2997af5
+                  shortHash: "56678473"
+                  xxHash: 4421542183129440636
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { open shippingEstimate }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                   - name: __fusion_2_weight
+                    type: Int
+                    path: $.products
                     selectionMap: >-
                       weight
                 forwardedVariables:
                   - __fusion_policy_1
                 dependencies:
                   - id: 1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.products.shippingEstimate
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.products.shippingEstimate
             """);
     }
 
@@ -512,29 +759,50 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      weight
-                      id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        weight
+                        id
+                      }
                     }
-                  }
+                  hash: d1af8dd83b00915c56b8eea24ae2d15693391b0429820ff6def6ffa802a238b1
+                  shortHash: d1af8dd8
+                  xxHash: 13604952808818186597
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_weight: Int) {
-                    productById(id: $__fusion_1_id) {
-                      shippingEstimate(weight: $__fusion_2_weight)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_weight: Int) {
+                      productById(id: $__fusion_1_id) {
+                        shippingEstimate(weight: $__fusion_2_weight)
+                      }
                     }
-                  }
+                  hash: 691bccebdbce19b1d2854a678752f31dff864c034b1e197b93139c9245c70af9
+                  shortHash: 691bcceb
+                  xxHash: 8213001851433487594
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { shippingEstimate }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                   - name: __fusion_2_weight
+                    type: Int
+                    path: $.products
                     selectionMap: >-
                       weight
                 conditions:
@@ -542,6 +810,16 @@ public class PolicyPlanningTests : FusionTestBase
                     passingValue: false
                 dependencies:
                   - id: 1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.products.shippingEstimate
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.products.shippingEstimate
             """);
     }
 
@@ -581,20 +859,38 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1($__fusion_policy_1: Boolean!) {
-                    search {
-                      __typename
-                      ... on Book {
-                        title @skip(if: $__fusion_policy_1)
-                      }
-                      ... on Movie {
-                        title
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1($__fusion_policy_1: Boolean!) {
+                      search {
+                        __typename
+                        ... on Book {
+                          title @skip(if: $__fusion_policy_1)
+                        }
+                        ... on Movie {
+                          title
+                        }
                       }
                     }
-                  }
+                  hash: d51f6c9ddbac3c532047448145a7f36220528d617cf3ca313bbf4483496d6bbc
+                  shortHash: d51f6c9d
+                  xxHash: 14031667724514837924
+                resultSelectionSet: >-
+                  { search }
                 forwardedVariables:
                   - __fusion_policy_1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.search<Book>.title
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.search<Book>.title
             """);
     }
 
@@ -628,30 +924,73 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  mutation Op_123456789101112_1 {
-                    delete
-                  }
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Mutation
+                  document: |
+                    mutation Op_123456789101112_1 {
+                      delete
+                    }
+                  hash: 841f582d590553e94cd67cdee6b3ca1cb8412273ea870e6b4841fd67bafbb43b
+                  shortHash: 841f582d
+                  xxHash: 12489117972473022892
+                resultSelectionSet: >-
+                  { delete }
                 conditions:
                   - variable: $__fusion_policy_1
                     passingValue: false
               - id: 2
                 type: Operation
                 schema: a
-                operation: |
-                  mutation Op_123456789101112_2 {
-                    update
-                  }
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Mutation
+                  document: |
+                    mutation Op_123456789101112_2 {
+                      update
+                    }
+                  hash: e7a9a8e298711ceeed28edfafe18666b16af244e9f0be6fd3be99494eeb093f9
+                  shortHash: e7a9a8e2
+                  xxHash: 10167359045783126545
+                resultSelectionSet: >-
+                  { update }
                 conditions:
                   - variable: $__fusion_policy_2
                     passingValue: false
               - id: 3
                 type: Operation
                 schema: a
-                operation: |
-                  mutation Op_123456789101112_3 {
-                    create
-                  }
+                operation:
+                  name: Op_123456789101112_3
+                  kind: Mutation
+                  document: |
+                    mutation Op_123456789101112_3 {
+                      create
+                    }
+                  hash: ec5a4d00fdf25c86c385da192e0e97141b93e6a7e3461a355badb5b1c84341d4
+                  shortHash: ec5a4d00
+                  xxHash: 10075464965401307264
+                resultSelectionSet: >-
+                  { create }
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.delete
+                - directiveName: requiresScopes
+                  scopes:
+                    - [write]
+                  selection:
+                    path: $.update
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.delete
+                - name: __fusion_policy_2
+                  selections:
+                    -
+                      path: $.update
             """);
     }
 
@@ -683,13 +1022,31 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  subscription Op_123456789101112_1 {
-                    changed
-                  }
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Subscription
+                  document: |
+                    subscription Op_123456789101112_1 {
+                      changed
+                    }
+                  hash: 0803ded6ed32e719fd381505d35724152f31da8867c4ca6f42528b192273b062
+                  shortHash: 0803ded6
+                  xxHash: 15025893984214730618
+                resultSelectionSet: >-
+                  { changed }
                 conditions:
                   - variable: $__fusion_policy_1
                     passingValue: false
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    path: $.changed
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      path: $.changed
             """);
     }
 
@@ -740,13 +1097,21 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    user(id: 1) {
-                      name
-                      id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      user(id: 1) {
+                        name
+                        id
+                      }
                     }
-                  }
+                  hash: 6e24d3b8bbc1dd31c763f040a0b26b30e78a222e1436ca56218ca868e2b3a362
+                  shortHash: 6e24d3b8
+                  xxHash: 15526821928012272930
+                resultSelectionSet: >-
+                  { user }
             deliveryGroups:
               - id: 0
                 path: $.user
@@ -756,26 +1121,55 @@ public class PolicyPlanningTests : FusionTestBase
                 parentNodeId: 1
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.user
                     selectionMap: >-
                       id
                   - name: __fusion_2_id
+                    type: ID!
+                    path: $.user
                     selectionMap: >-
                       id
+                operation:
+                  - document: |
+                      {
+                        user(id: 1) {
+                          email
+                          secret
+                          nickname
+                          id @fusion__requirement
+                        }
+                      }
+                    kind: Query
+                    id: "123456789101112#defer_0"
+                    hash: "123456789101112#defer_0"
+                    shortHash: "123456789101112"
                 nodes:
                   - id: 1
                     type: Operation
                     schema: b
-                    operation: |
-                      query Op_defer_1($__fusion_policy_1: Boolean!, $__fusion_1_id: ID!) {
-                        userById(id: $__fusion_1_id) {
-                          email @skip(if: $__fusion_policy_1)
-                          nickname
+                    operation:
+                      name: Op_defer_1
+                      kind: Query
+                      document: |
+                        query Op_defer_1($__fusion_policy_1: Boolean!, $__fusion_1_id: ID!) {
+                          userById(id: $__fusion_1_id) {
+                            email @skip(if: $__fusion_policy_1)
+                            nickname
+                          }
                         }
-                      }
+                      hash: ebaba192ca259ce2e8f1c0c3205059fd4d765b41abc4fbcbb5b7bbd6949ef852
+                      shortHash: ebaba192
+                      xxHash: 16479378667722747125
+                    lookupTypeName: User
+                    resultSelectionSet: >-
+                      { email nickname }
                     source: $.userById
                     target: $.user
                     requirements:
                       - name: __fusion_1_id
+                        type: ID!
+                        path: $.user
                         selectionMap: >-
                           id
                     forwardedVariables:
@@ -785,16 +1179,27 @@ public class PolicyPlanningTests : FusionTestBase
                   - id: 2
                     type: Operation
                     schema: a
-                    operation: |
-                      query Op_defer_2($__fusion_2_id: ID!) {
-                        user(id: $__fusion_2_id) {
-                          secret
+                    operation:
+                      name: Op_defer_2
+                      kind: Query
+                      document: |
+                        query Op_defer_2($__fusion_2_id: ID!) {
+                          user(id: $__fusion_2_id) {
+                            secret
+                          }
                         }
-                      }
+                      hash: a7ae03e8a3367ecbdc658e22d9bb4f68f6be5da8d61cd269886103aadda75913
+                      shortHash: a7ae03e8
+                      xxHash: 12373734428100261129
+                    lookupTypeName: User
+                    resultSelectionSet: >-
+                      { secret }
                     source: $.user
                     target: $.user
                     requirements:
                       - name: __fusion_2_id
+                        type: ID!
+                        path: $.user
                         selectionMap: >-
                           id
                     conditions:
@@ -802,6 +1207,27 @@ public class PolicyPlanningTests : FusionTestBase
                         passingValue: false
                     dependencies:
                       - parentNodeId: 1
+            policies:
+              descriptors:
+                - directiveName: authenticated
+                  selection:
+                    incrementalPlan: 0
+                    path: $.user.email
+                - directiveName: authenticated
+                  selection:
+                    incrementalPlan: 0
+                    path: $.user.secret
+              variables:
+                - name: __fusion_policy_1
+                  selections:
+                    -
+                      incrementalPlan: 0
+                      path: $.user.email
+                - name: __fusion_policy_2
+                  selections:
+                    -
+                      incrementalPlan: 0
+                      path: $.user.secret
             """);
     }
 
@@ -831,21 +1257,48 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1(
-                    $__fusion_policy_1: Boolean = false
-                    $__fusion_policy_2: Boolean!
-                    $__fusion_policy_3: Boolean!
-                  ) {
-                    product {
-                      price @skip(if: $__fusion_policy_2)
-                      name @include(if: $__fusion_policy_1) @skip(if: $__fusion_policy_3)
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1(
+                      $__fusion_policy_1: Boolean = false
+                      $__fusion_policy_2: Boolean!
+                      $__fusion_policy_3: Boolean!
+                    ) {
+                      product {
+                        price @skip(if: $__fusion_policy_2)
+                        name @include(if: $__fusion_policy_1) @skip(if: $__fusion_policy_3)
+                      }
                     }
-                  }
+                  hash: 2509deeefbc3bed483d40695eaddcfbdd2bc49481de1436d1098275b632dffdc
+                  shortHash: 2509deee
+                  xxHash: 4009338969241049987
+                resultSelectionSet: >-
+                  { product }
                 forwardedVariables:
                   - __fusion_policy_1
                   - __fusion_policy_2
                   - __fusion_policy_3
+            policies:
+              descriptors:
+                - directiveName: requiresScopes
+                  scopes:
+                    - [read]
+                  selection:
+                    path: $.product.price
+                - directiveName: authenticated
+                  selection:
+                    path: $.product.name
+              variables:
+                - name: __fusion_policy_2
+                  selections:
+                    -
+                      path: $.product.price
+                - name: __fusion_policy_3
+                  selections:
+                    -
+                      path: $.product.name
             """);
     }
 
@@ -1021,12 +1474,20 @@ public class PolicyPlanningTests : FusionTestBase
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    product {
-                      id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      product {
+                        id
+                      }
                     }
-                  }
+                  hash: 2faef13dd54dcce950f793b35ea4b9e24891095e4405bbf2920509a6f1791dc4
+                  shortHash: 2faef13d
+                  xxHash: 14157010451816306771
+                resultSelectionSet: >-
+                  { product }
             """);
     }
 

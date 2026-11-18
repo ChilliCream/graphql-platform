@@ -250,6 +250,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 11f7165028d9913bb62c7a2a798cf5c0a3f0651cc2baac8f95f54f907f299bc9
   operation:
     - document: |
         {
@@ -265,38 +266,60 @@ operationPlan:
             }
           }
         }
-      hash: 680de8b17a00d7d3ef7b883394a5ccd5
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 680de8b17a00d7d3ef7b883394a5ccd5
+      hash: cfa23c89d55317e81d6d54f364d8f147
+      shortHash: cfa23c89
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: listings-api
-      operation: |
-        query Op_cfa23c89_1 {
-          listings {
-            id
-            product {
-              upc
+      operation:
+        name: Op_cfa23c89_1
+        kind: Query
+        document: |
+          query Op_cfa23c89_1 {
+            listings {
+              id
+              product {
+                upc
+              }
             }
           }
-        }
+        hash: b5c829ba4cfef23889591a283e8d83c59b44993c5f36df6df476aa0332b2bcac
+        shortHash: b5c829ba
+        xxHash: 14011738310941464429
+      resultSelectionSet: >-
+        { listings }
     - id: 2
       type: Operation
       schema: catalog-api
-      operation: |
-        query Op_cfa23c89_2($__fusion_1_upc: ID!) {
-          productByUpc(upc: $__fusion_1_upc) {
-            dimensions {
-              width
-              height
+      operation:
+        name: Op_cfa23c89_2
+        kind: Query
+        document: |
+          query Op_cfa23c89_2($__fusion_1_upc: ID!) {
+            productByUpc(upc: $__fusion_1_upc) {
+              dimensions {
+                width
+                height
+              }
             }
           }
-        }
+        hash: 56f27bd1f85ad498cb0e5049ec204221dc2528486bfaa67e64d9435833795ae0
+        shortHash: 56f27bd1
+        xxHash: 14098184045505007505
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { dimensions }
       source: $.productByUpc
       target: $.listings.product
       requirements:
         - name: __fusion_1_upc
+          type: ID!
+          path: $.listings.product
           selectionMap: >-
             upc
       dependencies:

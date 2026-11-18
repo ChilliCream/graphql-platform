@@ -196,6 +196,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 88a75a30f6eb4577f7e17dec969d8adb836140eef16f701e312d6a10b86d2a76
   operation:
     - document: |
         query testQuery {
@@ -209,35 +210,57 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: d9ae2d30ca9de85989aeeeefe5df2674
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: d9ae2d30ca9de85989aeeeefe5df2674
+      hash: 6bd529b052766ba06fb7a06400d3c8a5
+      shortHash: 6bd529b0
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_6bd529b0_1 {
-          trendingMedia {
-            id
-          }
-        }
-    - id: 2
-      type: Operation
-      schema: A
-      operation: |
-        query testQuery_6bd529b0_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-            ... on Book {
+      operation:
+        name: testQuery_6bd529b0_1
+        kind: Query
+        document: |
+          query testQuery_6bd529b0_1 {
+            trendingMedia {
               id
             }
           }
-        }
+        hash: 87f096789285a6287bc788a84c2a068229915a47165be79ec1326df8d312ed8d
+        shortHash: 87f09678
+        xxHash: 11502309229195255530
+      resultSelectionSet: >-
+        { trendingMedia { id } }
+    - id: 2
+      type: Operation
+      schema: A
+      operation:
+        name: testQuery_6bd529b0_2
+        kind: Query
+        document: |
+          query testQuery_6bd529b0_2($__fusion_1_id: ID!) {
+            mediaById(id: $__fusion_1_id) {
+              __typename
+              ... on Book {
+                id
+              }
+            }
+          }
+        hash: 25e4ec19c6a7effd5dbd7ea1d8748265dbcafa75c71413b4db53f3bc130f5980
+        shortHash: 25e4ec19
+        xxHash: 9313972187472581822
+      lookupTypeName: Media
+      resultSelectionSet: >-
+        { __typename ... on Book { id } }
       source: $.mediaById
       target: $.trendingMedia
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.trendingMedia
           selectionMap: >-
             id
       dependencies:
@@ -245,16 +268,27 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query testQuery_6bd529b0_3($__fusion_2_id: ID!) {
-          mediaByKey(id: $__fusion_2_id) {
-            views
+      operation:
+        name: testQuery_6bd529b0_3
+        kind: Query
+        document: |
+          query testQuery_6bd529b0_3($__fusion_2_id: ID!) {
+            mediaByKey(id: $__fusion_2_id) {
+              views
+            }
           }
-        }
+        hash: 7cfe3e7a23bc5a3435675ad04e19dd62737a55c50e79fba78efe3d6d976ae93c
+        shortHash: 7cfe3e7a
+        xxHash: 15358403942068762010
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { views }
       source: $.mediaByKey
       target: $.trendingMedia<Book>
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.trendingMedia<Book>
           selectionMap: >-
             id
       dependencies:

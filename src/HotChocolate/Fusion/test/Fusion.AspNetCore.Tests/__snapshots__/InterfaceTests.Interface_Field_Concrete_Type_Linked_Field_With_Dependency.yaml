@@ -119,6 +119,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: e535307fac5a718f98acb70d8bf66ed49543ac268060e3aeb97eaa500b240908
   operation:
     - document: |
         query testQuery {
@@ -134,38 +135,60 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 34549664054823844e97342c73248ed1
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 34549664054823844e97342c73248ed1
+      hash: b4cd91a7bd7792cc9829f051b0968852
+      shortHash: b4cd91a7
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_b4cd91a7_1 {
-          votable {
-            __typename
-            viewerCanVote
-            ... on Discussion {
-              author {
-                id
+      operation:
+        name: testQuery_b4cd91a7_1
+        kind: Query
+        document: |
+          query testQuery_b4cd91a7_1 {
+            votable {
+              __typename
+              viewerCanVote
+              ... on Discussion {
+                author {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 520f91d84ed383816cbd94ed69ac40729055603704a6e333c92e59149509d719
+        shortHash: 520f91d8
+        xxHash: 15727326148516377075
+      resultSelectionSet: >-
+        { votable }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_b4cd91a7_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
+      operation:
+        name: testQuery_b4cd91a7_2
+        kind: Query
+        document: |
+          query testQuery_b4cd91a7_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              displayName
+            }
           }
-        }
+        hash: 6f050542d331f3fb34c1947c1f86a210faaa9e6beef7c744303710e3e7f3b08c
+        shortHash: 6f050542
+        xxHash: 3352296852268767493
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { displayName }
       source: $.authorById
       target: $.votable<Discussion>.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.votable<Discussion>.author
           selectionMap: >-
             id
       dependencies:

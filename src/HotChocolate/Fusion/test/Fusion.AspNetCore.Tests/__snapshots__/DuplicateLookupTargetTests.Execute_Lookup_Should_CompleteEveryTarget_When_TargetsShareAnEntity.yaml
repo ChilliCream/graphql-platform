@@ -228,6 +228,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ab1fac55f0d57474cd691f8d5dc1fc73e7551a4c495010a7620f02620a5b87df
   operation:
     - document: |
         {
@@ -241,36 +242,58 @@ operationPlan:
             }
           }
         }
-      hash: a125eaf62b0d5713e516fe17f1c2ad7d
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: a125eaf62b0d5713e516fe17f1c2ad7d
+      hash: 4210f888d541f9f836f27006cda43c04
+      shortHash: 4210f888
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: listings-api
-      operation: |
-        query Op_4210f888_1 {
-          listings {
-            id
-            product {
-              upc
+      operation:
+        name: Op_4210f888_1
+        kind: Query
+        document: |
+          query Op_4210f888_1 {
+            listings {
+              id
+              product {
+                upc
+              }
             }
           }
-        }
+        hash: 935e2d51e35717bfd8964363569434f628f787811d6de32eb601d1598ad57d22
+        shortHash: 935e2d51
+        xxHash: 5476711330046523329
+      resultSelectionSet: >-
+        { listings }
     - id: 2
       type: Operation
       schema: catalog-api
-      operation: |
-        query Op_4210f888_2($__fusion_1_upc: ID!) {
-          productByUpc(upc: $__fusion_1_upc) {
-            name
-            price
+      operation:
+        name: Op_4210f888_2
+        kind: Query
+        document: |
+          query Op_4210f888_2($__fusion_1_upc: ID!) {
+            productByUpc(upc: $__fusion_1_upc) {
+              name
+              price
+            }
           }
-        }
+        hash: 9dfae71ec411684f8dae2f0bf933517570dcae66de6ae69bd7f169fe23f71b9c
+        shortHash: 9dfae71e
+        xxHash: 17230734273274121732
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name price }
       source: $.productByUpc
       target: $.listings.product
       requirements:
         - name: __fusion_1_upc
+          type: ID!
+          path: $.listings.product
           selectionMap: >-
             upc
       dependencies:

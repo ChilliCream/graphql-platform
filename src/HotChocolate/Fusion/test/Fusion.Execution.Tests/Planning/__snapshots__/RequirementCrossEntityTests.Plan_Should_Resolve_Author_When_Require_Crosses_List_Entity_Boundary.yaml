@@ -1,3 +1,4 @@
+id: 84908633f84e4a4dc1d4c5cb114bfd008b8bb8ca01756cab1766dd32c2232f85
 operation:
   - document: |
       {
@@ -12,40 +13,64 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 7
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 7
 nodes:
   - id: 1
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-        }
-      }
-  - id: 3
-    type: Operation
-    schema: e
-    operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_commentAuthorIds: [ID]
-        $__fusion_3_id: ID!
-      ) {
-        postById(id: $__fusion_3_id) {
-          author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
             id
           }
         }
-      }
+      hash: 02ded7007eddf9297a68005f976a649f5f97d46626d95d2ade2e0937217bc862
+      shortHash: 02ded700
+      xxHash: 8477123692868294708
+    resultSelectionSet: >-
+      { feed }
+  - id: 3
+    type: Operation
+    schema: e
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3(
+          $__fusion_2_commentAuthorIds: [ID]
+          $__fusion_3_id: ID!
+        ) {
+          postById(id: $__fusion_3_id) {
+            author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
+              id
+            }
+          }
+        }
+      hash: 941dbc8f1742973f32889767a59c22ec639046b47f9d30e74198bd7b01697d11
+      shortHash: 941dbc8f
+      xxHash: 5205810601117725005
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { author }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_2_commentAuthorIds
+        type: "[ID]"
+        path: $.feed
         selectionMap: >-
           comments[authorId]
       - name: __fusion_3_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -55,18 +80,29 @@ nodes:
   - id: 4
     type: Operation
     schema: d
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        postById(id: $__fusion_4_id) {
-          comments {
-            id
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!) {
+          postById(id: $__fusion_4_id) {
+            comments {
+              id
+            }
           }
         }
-      }
+      hash: d8ce721fcb59645fa69baf3634a3888fdd388fcc4d519c7333d13d7de55f40de
+      shortHash: d8ce721f
+      xxHash: 2954680452744914257
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { comments }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -74,16 +110,27 @@ nodes:
   - id: 5
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_5($__fusion_5_id: ID!) {
-        commentById(id: $__fusion_5_id) {
-          authorId
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query Op_123456789101112_5($__fusion_5_id: ID!) {
+          commentById(id: $__fusion_5_id) {
+            authorId
+          }
         }
-      }
+      hash: 1fde2cb0f8a086473fcbd60b46806c59d53df9f2949472b7e668605de7551b00
+      shortHash: 1fde2cb0
+      xxHash: 13997878030654140895
+    lookupTypeName: Comment
+    resultSelectionSet: >-
+      { authorId }
     source: $.commentById
     target: $.feed.comments
     requirements:
       - name: __fusion_5_id
+        type: ID!
+        path: $.feed.comments
         selectionMap: >-
           id
     dependencies:

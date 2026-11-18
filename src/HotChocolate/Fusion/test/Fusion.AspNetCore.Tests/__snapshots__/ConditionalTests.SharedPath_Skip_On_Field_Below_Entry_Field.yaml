@@ -88,6 +88,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 9946873ff9b24fff5cd1a97f706e1bae75961e8076c88ad2aa0409fa4a5939f8
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -97,27 +98,46 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 90e588627483240b13a09832238b8ce1
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 90e588627483240b13a09832238b8ce1
+      hash: c549857e1ec016692dfa7635c250233a
+      shortHash: c549857e
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_c549857e_1 {
-          viewer {
-            fieldA
+      operation:
+        name: testQuery_c549857e_1
+        kind: Query
+        document: |
+          query testQuery_c549857e_1 {
+            viewer {
+              fieldA
+            }
           }
-        }
+        hash: 740c34eb4d2c811f7a9970fce0baf3e673c9e10ce84507f927f9e425e41d8f38
+        shortHash: 740c34eb
+        xxHash: 8154468486367905172
+      resultSelectionSet: >-
+        { viewer { fieldA } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_c549857e_2($skip: Boolean!) {
-          viewer {
-            fieldB @skip(if: $skip)
+      operation:
+        name: testQuery_c549857e_2
+        kind: Query
+        document: |
+          query testQuery_c549857e_2($skip: Boolean!) {
+            viewer {
+              fieldB @skip(if: $skip)
+            }
           }
-        }
+        hash: aad388a9809376e105cd72e4e032b5307e9b25d1e688f7d2b188de1e0b0f0cad
+        shortHash: aad388a9
+        xxHash: 8180940482468311184
+      resultSelectionSet: >-
+        { viewer { fieldB } }
       forwardedVariables:
         - skip

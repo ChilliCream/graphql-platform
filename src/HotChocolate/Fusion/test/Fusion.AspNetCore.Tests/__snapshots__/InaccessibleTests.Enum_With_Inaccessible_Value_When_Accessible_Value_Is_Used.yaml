@@ -75,19 +75,31 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6b97c59c04073469dcc6b16a42a20b679a6a6d735eeec827f3f70c331b640960
   operation:
     - document: |
         {
           enumField(value: ITEM2)
         }
-      hash: 5613b1f2759b067685c576009e9103e3
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 5613b1f2759b067685c576009e9103e3
+      hash: 4d7bd59eb4043620a9ba134c8b646067
+      shortHash: 4d7bd59e
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: b
-      operation: |
-        query Op_4d7bd59e_1 {
-          enumField(value: ITEM2)
-        }
+      operation:
+        name: Op_4d7bd59e_1
+        kind: Query
+        document: |
+          query Op_4d7bd59e_1 {
+            enumField(value: ITEM2)
+          }
+        hash: a79468f42e3d5cbf239ad64462c7baea42787d03ca1eda86edbcfa5d6980f0df
+        shortHash: a79468f4
+        xxHash: 18285154915236560149
+      resultSelectionSet: >-
+        { enumField }

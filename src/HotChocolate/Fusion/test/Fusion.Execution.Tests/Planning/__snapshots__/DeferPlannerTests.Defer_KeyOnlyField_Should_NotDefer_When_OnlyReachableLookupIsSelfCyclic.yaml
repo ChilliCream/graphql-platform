@@ -1,3 +1,4 @@
+id: 4d2904e31c0616ea3493cac981edf4eede5c5ed18014fdf76e3f7b43647e13ad
 operation:
   - document: |
       {
@@ -6,16 +7,27 @@ operation:
           id
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        users {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          users {
+            id
+          }
         }
-      }
+      hash: 1b7d515f6cca5a626a1f7be8ab2cd6a6fbfe735a58dc77ea7c548195c2933039
+      shortHash: 1b7d515f
+      xxHash: 12073123458780405880
+    resultSelectionSet: >-
+      { users }

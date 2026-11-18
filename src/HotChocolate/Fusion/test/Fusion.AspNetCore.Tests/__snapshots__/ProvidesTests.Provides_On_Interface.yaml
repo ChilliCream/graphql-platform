@@ -108,6 +108,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: 9aedff646ff839fc9d0ec53ad45463a2f4c0da9f12f62890963bc1cf6f8b1c6d
   operation:
     - document: |
         {
@@ -123,24 +124,35 @@ operationPlan:
             }
           }
         }
-      hash: db3d37cbe667f0e801af2976d2ecb8eb
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: db3d37cbe667f0e801af2976d2ecb8eb
+      hash: 8b7ea24bc6ecb9e6ae749a4304e01e70
+      shortHash: 8b7ea24b
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_8b7ea24b_1 {
-          book {
-            featured {
-              __typename
-              ... on Cat {
-                age
-              }
-              ... on Dog {
-                tricks
+      operation:
+        name: Op_8b7ea24b_1
+        kind: Query
+        document: |
+          query Op_8b7ea24b_1 {
+            book {
+              featured {
+                __typename
+                ... on Cat {
+                  age
+                }
+                ... on Dog {
+                  tricks
+                }
               }
             }
           }
-        }
+        hash: b744b7ddaed25a198f130ad1f849de6163084f44b531e382eeab26dad9fe0632
+        shortHash: b744b7dd
+        xxHash: 17948994167229189567
+      resultSelectionSet: >-
+        { book }

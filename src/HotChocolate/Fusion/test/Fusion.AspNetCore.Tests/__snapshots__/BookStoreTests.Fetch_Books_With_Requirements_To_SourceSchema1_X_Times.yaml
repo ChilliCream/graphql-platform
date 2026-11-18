@@ -256,6 +256,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 8af06c1285fa8d3aaef7640090e064f2e2844d17f161ed44f0c5ab54af065cce
   operation:
     - document: |
         {
@@ -267,38 +268,62 @@ operationPlan:
             }
           }
         }
-      hash: 794b9423405ca0b14806e70f5e70eeec
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 794b9423405ca0b14806e70f5e70eeec
+      hash: 6721fc4fdf70192bf4714b55074672fb
+      shortHash: 6721fc4f
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_6721fc4f_1 {
-          books {
-            nodes {
-              id
-              title
+      operation:
+        name: Op_6721fc4f_1
+        kind: Query
+        document: |
+          query Op_6721fc4f_1 {
+            books {
+              nodes {
+                id
+                title
+              }
             }
           }
-        }
+        hash: f5f65cb05e1bcd6d196faff4c10e550802a6691f91d2f2be4cc166f9e1e88a95
+        shortHash: f5f65cb0
+        xxHash: 1705265753508835792
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_6721fc4f_2($__fusion_1_id: Int!, $__fusion_2_title: String!) {
-          bookById(id: $__fusion_1_id) {
-            idAndTitle(title: $__fusion_2_title)
+      operation:
+        name: Op_6721fc4f_2
+        kind: Query
+        document: |
+          query Op_6721fc4f_2($__fusion_1_id: Int!, $__fusion_2_title: String!) {
+            bookById(id: $__fusion_1_id) {
+              idAndTitle(title: $__fusion_2_title)
+            }
           }
-        }
+        hash: e07824321ff3c2b8acf79e6573342fe10c71f0d8487a276aff26e7eecca15f62
+        shortHash: e0782432
+        xxHash: 17133634531540172026
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { idAndTitle }
       source: $.bookById
       target: $.books.nodes
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.books.nodes
           selectionMap: >-
             id
         - name: __fusion_2_title
+          type: String!
+          path: $.books.nodes
           selectionMap: >-
             title
       dependencies:

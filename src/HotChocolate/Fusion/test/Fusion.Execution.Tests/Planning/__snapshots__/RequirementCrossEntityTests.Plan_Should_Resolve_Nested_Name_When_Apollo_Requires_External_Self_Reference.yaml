@@ -1,3 +1,4 @@
+id: e1fb1ecf04de802c07ac0b19002b7430f26207a1f6e87f3b97538c885daa14fb
 operation:
   - document: |
       {
@@ -11,42 +12,66 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2 {
-        entity {
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
           entity {
-            id
             entity {
-              age
+              id
+              entity {
+                age
+              }
             }
           }
         }
-      }
+      hash: 0455b60d9985f9bad042c211edc5de7945100da827c37baa9a5b4f61517072bd
+      shortHash: 0455b60d
+      xxHash: 16197573608828826769
+    resultSelectionSet: >-
+      { entity }
   - id: 3
     type: ApolloOperation
     schema: a
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Entity {
-            name
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Entity {
+              name
+            }
           }
         }
-      }
+      hash: 393540bdcbfe928fc426aa9bd2f1a905f41c37291ff4b640d718f233c8622bf7
+      shortHash: 393540bd
+      xxHash: 13866569087877326752
+    entityType: Entity
+    resultSelectionSet: >-
+      { name }
     source: $._entities
     target: $.entity.entity
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.entity.entity
         selectionMap: >-
           id
       - name: __fusion_2_entity
+        type: EntityInput_2432858926
+        path: $.entity.entity
         selectionMap: >-
           {
             age: entity.age

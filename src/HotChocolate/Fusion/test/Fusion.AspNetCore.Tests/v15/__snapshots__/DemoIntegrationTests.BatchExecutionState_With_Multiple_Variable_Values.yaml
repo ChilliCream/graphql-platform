@@ -329,6 +329,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 53e72e066a6d490aa7194993f7f07a148c332ce3cd50ff69abda093ad2932389
   operation:
     - document: |
         {
@@ -349,33 +350,48 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 3fae8d42ee423375a1700245e76ecc68
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: 3fae8d42ee423375a1700245e76ecc68
+      hash: 595ce2b9cc1d2b098614fb4f4733426b
+      shortHash: 595ce2b9
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query Op_595ce2b9_1 {
-          userBySlug(slug: "me") {
-            id
+      operation:
+        name: Op_595ce2b9_1
+        kind: Query
+        document: |
+          query Op_595ce2b9_1 {
+            userBySlug(slug: "me") {
+              id
+            }
           }
-        }
+        hash: 08d5ff93ff07cf1119e1a5fcfe3f29413dc87ae1975896bebad2ea2cd73b6848
+        shortHash: 08d5ff93
+        xxHash: 15425280644736337239
+      resultSelectionSet: >-
+        { userBySlug { id } }
     - id: 2
       type: Operation
       schema: C
-      operation: |
-        query Op_595ce2b9_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              feedbacks {
-                edges {
-                  node {
-                    feedback {
-                      buyer {
-                        id
+      operation:
+        name: Op_595ce2b9_2
+        kind: Query
+        document: |
+          query Op_595ce2b9_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on User {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          id
+                        }
                       }
                     }
                   }
@@ -383,11 +399,18 @@ operationPlan:
               }
             }
           }
-        }
+        hash: 2c51c5ac5943493c973321b761cc2e89b992268c9dde62dd76112c604e9f3177
+        shortHash: 2c51c5ac
+        xxHash: 5208033323473872181
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { feedbacks }
       source: $.node<User>
       target: $.userBySlug
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.userBySlug
           selectionMap: >-
             id
       dependencies:
@@ -395,19 +418,30 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query Op_595ce2b9_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              displayName
+      operation:
+        name: Op_595ce2b9_3
+        kind: Query
+        document: |
+          query Op_595ce2b9_3($__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on User {
+                displayName
+              }
             }
           }
-        }
+        hash: eded1c1e3d87c1873b88e9b93b6cbd823cd0e3f52b5260c7b334677bbab66447
+        shortHash: eded1c1e
+        xxHash: 12010644849925937229
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { displayName }
       source: $.node<User>
       target: $.userBySlug.feedbacks.edges.node.feedback.buyer
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.userBySlug.feedbacks.edges.node.feedback.buyer
           selectionMap: >-
             id
       dependencies:
@@ -415,19 +449,30 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query Op_595ce2b9_4($__fusion_3_id: ID!) {
-          node(id: $__fusion_3_id) {
-            __typename
-            ... on User {
-              relativeUrl
+      operation:
+        name: Op_595ce2b9_4
+        kind: Query
+        document: |
+          query Op_595ce2b9_4($__fusion_3_id: ID!) {
+            node(id: $__fusion_3_id) {
+              __typename
+              ... on User {
+                relativeUrl
+              }
             }
           }
-        }
+        hash: 3ed71c42c43d96b45003d19d778b29e15a14dd4311d4dcdd57562e01154e844c
+        shortHash: 3ed71c42
+        xxHash: 10400360765692582173
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { relativeUrl }
       source: $.node<User>
       target: $.userBySlug.feedbacks.edges.node.feedback.buyer
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.userBySlug.feedbacks.edges.node.feedback.buyer
           selectionMap: >-
             id
       dependencies:

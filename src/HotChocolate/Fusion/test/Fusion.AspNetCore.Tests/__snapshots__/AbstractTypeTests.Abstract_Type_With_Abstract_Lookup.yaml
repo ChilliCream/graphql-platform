@@ -170,6 +170,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 56005ea9a17355a8950acfbb9397219f43060febddb5fd89a0d5f1d3d2566103
   operation:
     - document: |
         {
@@ -183,40 +184,62 @@ operationPlan:
             }
           }
         }
-      hash: 1488d11ddea68b9fff300250607f455c
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 1488d11ddea68b9fff300250607f455c
+      hash: ddf05407ab47b77c0b9110265d513627
+      shortHash: ddf05407
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_ddf05407_1 {
-          otherAbstractType {
-            __typename
-            id
-            ... on Author {
-              name
+      operation:
+        name: Op_ddf05407_1
+        kind: Query
+        document: |
+          query Op_ddf05407_1 {
+            otherAbstractType {
+              __typename
               id
+              ... on Author {
+                name
+                id
+              }
             }
           }
-        }
+        hash: 7073016d3ea18396af73e27919afe96243085c29fa13627bdd4b664f25a57f86
+        shortHash: 7073016d
+        xxHash: 7252204924074867327
+      resultSelectionSet: >-
+        { otherAbstractType }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_ddf05407_2($__fusion_1_id: Int!) {
-          otherInterface(id: $__fusion_1_id) {
-            __typename
-            ... on Author {
-              age
+      operation:
+        name: Op_ddf05407_2
+        kind: Query
+        document: |
+          query Op_ddf05407_2($__fusion_1_id: Int!) {
+            otherInterface(id: $__fusion_1_id) {
+              __typename
+              ... on Author {
+                age
+              }
             }
           }
-        }
+        hash: ed06b0f8835491deb182993742b71112bf9e7e93952d0919fc1984dfee69bed4
+        shortHash: ed06b0f8
+        xxHash: 4828331368995018604
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { age }
       source: $.otherInterface<Author>
       target: $.otherAbstractType<Author>
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.otherAbstractType<Author>
           selectionMap: >-
             id
       dependencies:

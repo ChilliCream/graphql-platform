@@ -83,6 +83,7 @@ sourceSchemas:
         title: String!
       }
 operationPlan:
+  id: 1b5c4cbfddbd9706445a683ae66d093d73c8d0adc212bd587b8cf94300925743
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -95,37 +96,59 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: ac9eade519ec3fe9441f97560da5cfe5
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: ac9eade519ec3fe9441f97560da5cfe5
+      hash: dcf2affdd717b34522665fb9ecd548f8
+      shortHash: dcf2affd
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_dcf2affd_1($skip: Boolean!) {
-          productBySlug(slug: "product") {
-            name
-            review @skip(if: $skip) {
-              id
+      operation:
+        name: testQuery_dcf2affd_1
+        kind: Query
+        document: |
+          query testQuery_dcf2affd_1($skip: Boolean!) {
+            productBySlug(slug: "product") {
+              name
+              review @skip(if: $skip) {
+                id
+              }
             }
           }
-        }
+        hash: 1f13ab0900d1c6e2f0e14e5405693d50d91598de67889ca6f15ee87d6c7a3b8e
+        shortHash: 1f13ab09
+        xxHash: 4598450440866382250
+      resultSelectionSet: >-
+        { productBySlug }
       forwardedVariables:
         - skip
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_dcf2affd_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            title
+      operation:
+        name: testQuery_dcf2affd_2
+        kind: Query
+        document: |
+          query testQuery_dcf2affd_2($__fusion_1_id: ID!) {
+            reviewById(id: $__fusion_1_id) {
+              title
+            }
           }
-        }
+        hash: d5dcab49a711d25e0ab307c17a0fb325d7ef17d157b71d1e29c394dbc10c0c84
+        shortHash: d5dcab49
+        xxHash: 5220293645745765143
+      lookupTypeName: Review
+      resultSelectionSet: >-
+        { title }
       source: $.reviewById
       target: $.productBySlug.review
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productBySlug.review
           selectionMap: >-
             id
       conditions:

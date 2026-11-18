@@ -155,6 +155,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 48564aea58bed7073e5af06944506f6895dc5e72cb562572986ea6c7bd66f815
   operation:
     - document: |
         query testQuery($id: ID!) {
@@ -176,26 +177,37 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: f1045008489a17312cb56aa2d74ea2a9
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: f1045008489a17312cb56aa2d74ea2a9
+      hash: c0cdf5d72861e2b024c2d1ea2305cc18
+      shortHash: c0cdf5d7
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - Discussion: 5
-        - Review: 3
+        Discussion: 5
+        Review: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_c0cdf5d7_2($id: ID!) {
-          node(id: $id) {
-            __typename
+      operation:
+        name: testQuery_c0cdf5d7_2
+        kind: Query
+        document: |
+          query testQuery_c0cdf5d7_2($id: ID!) {
+            node(id: $id) {
+              __typename
+            }
           }
-        }
+        hash: 49877c67661d2d169a950a53a53ee5a59b11de1cb9025d6412852e29769c7ef9
+        shortHash: 49877c67
+        xxHash: 17451398386384260272
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -203,18 +215,27 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query testQuery_c0cdf5d7_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Review {
+      operation:
+        name: testQuery_c0cdf5d7_3
+        kind: Query
+        document: |
+          query testQuery_c0cdf5d7_3($id: ID!) {
+            node(id: $id) {
               __typename
-              product {
-                id
+              ... on Review {
+                __typename
+                product {
+                  id
+                }
               }
             }
           }
-        }
+        hash: d3b66463ed1a7bde139a6500788ff312eabab4d79c4b94363bc0b2e3039f2020
+        shortHash: d3b66463
+        xxHash: 17118986774253157768
+      lookupTypeName: Review
+      resultSelectionSet: >-
+        { node { __typename ... on Review { __typename product { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -222,19 +243,30 @@ operationPlan:
     - id: 4
       type: Operation
       schema: C
-      operation: |
-        query testQuery_c0cdf5d7_4($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
+      operation:
+        name: testQuery_c0cdf5d7_4
+        kind: Query
+        document: |
+          query testQuery_c0cdf5d7_4($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                name
+              }
             }
           }
-        }
+        hash: 4d79d79e3be9edc6991a623e71e0c11c5ed758bb1b36fc4a715cebcf0d7e4ad6
+        shortHash: 4d79d79e
+        xxHash: 16427274490287939386
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.node<Product>
       target: $.node<Review>.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<Review>.product
           selectionMap: >-
             id
       dependencies:
@@ -242,18 +274,27 @@ operationPlan:
     - id: 5
       type: Operation
       schema: A
-      operation: |
-        query testQuery_c0cdf5d7_5($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_c0cdf5d7_5
+        kind: Query
+        document: |
+          query testQuery_c0cdf5d7_5($id: ID!) {
+            node(id: $id) {
               __typename
-              product {
-                id
+              ... on Discussion {
+                __typename
+                product {
+                  id
+                }
               }
             }
           }
-        }
+        hash: b328bd787e4f57ef6f7c67a9fc0f273e7351323dfac59a9d4a66db8aa5e1b9c1
+        shortHash: b328bd78
+        xxHash: 4316701219283039829
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename product { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -261,19 +302,30 @@ operationPlan:
     - id: 6
       type: Operation
       schema: C
-      operation: |
-        query testQuery_c0cdf5d7_6($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              name
+      operation:
+        name: testQuery_c0cdf5d7_6
+        kind: Query
+        document: |
+          query testQuery_c0cdf5d7_6($__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on Product {
+                name
+              }
             }
           }
-        }
+        hash: 0dc74391d3c8cfcfccfbdf4a056a312d2d3b1b4a93de399343b720284deb0b81
+        shortHash: 0dc74391
+        xxHash: 8051294607817361656
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.node<Product>
       target: $.node<Discussion>.product
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.node<Discussion>.product
           selectionMap: >-
             id
       dependencies:

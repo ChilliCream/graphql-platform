@@ -185,6 +185,7 @@ sourceSchemas:
         endCursor: String
       }
 operationPlan:
+  id: efb879f9a829216cf41701669c672c06174f0d5d245dc1c1ad1ff6d20498a583
   operation:
     - document: |
         {
@@ -194,18 +195,29 @@ operationPlan:
             }
           }
         }
-      hash: a028c32265c3694addafbf578fa47d39
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: a028c32265c3694addafbf578fa47d39
+      hash: 01be2e0ffad76cbb91821c8ed1419f71
+      shortHash: 01be2e0f
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_01be2e0f_1 {
-          books {
-            nodes {
-              a: __typename
+      operation:
+        name: Op_01be2e0f_1
+        kind: Query
+        document: |
+          query Op_01be2e0f_1 {
+            books {
+              nodes {
+                a: __typename
+              }
             }
           }
-        }
+        hash: d7a6804a01718d4a99c1aad1e15926540b725c863d9039f3e9388d1f27d93aa6
+        shortHash: d7a6804a
+        xxHash: 9441113345077698758
+      resultSelectionSet: >-
+        { books }

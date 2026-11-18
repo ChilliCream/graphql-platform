@@ -117,6 +117,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 61de13469a6c030d166aaa4c7a4d7066a258e0e9e6710435e303969ca89a8d6b
   operation:
     - document: |
         query($input: FileInput!) {
@@ -126,21 +127,32 @@ operationPlan:
             content
           }
         }
-      hash: 622001e689daabb9c3bb25f3e51fbafe
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 622001e689daabb9c3bb25f3e51fbafe
+      hash: 6888e670bcc6d6c1216b1773bd8868b0
+      shortHash: "6888e670"
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_6888e670_1($input: FileInput!) {
-          singleUploadWithInput(input: $input) {
-            fileName
-            contentType
-            content
+      operation:
+        name: Op_6888e670_1
+        kind: Query
+        document: |
+          query Op_6888e670_1($input: FileInput!) {
+            singleUploadWithInput(input: $input) {
+              fileName
+              contentType
+              content
+            }
           }
-        }
+        hash: f51e06ae5cb58982140079a6e3895cbbc707ced8033e142401a2e4bfe756bd53
+        shortHash: f51e06ae
+        xxHash: 15249407371384795512
+      resultSelectionSet: >-
+        { singleUploadWithInput }
       forwardedVariables:
         - input
       requiresFileUpload: true

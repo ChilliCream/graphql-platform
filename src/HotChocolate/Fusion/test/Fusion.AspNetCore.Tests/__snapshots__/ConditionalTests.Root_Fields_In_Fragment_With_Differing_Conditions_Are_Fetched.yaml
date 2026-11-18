@@ -53,6 +53,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 9203f5b78458d44fe3220cf93400f200c1d8dc39d0c96062ab7df308d0199cec
   operation:
     - document: |
         query testQuery($s: Boolean!, $x: Boolean!, $y: Boolean!) {
@@ -62,18 +63,29 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: feb9e3f04a990b0cba69850b9c58f001
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: feb9e3f04a990b0cba69850b9c58f001
+      hash: 4047cfa825578d3fddf286f54a7705e7
+      shortHash: 4047cfa8
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_4047cfa8_1($x: Boolean!, $y: Boolean!) {
-          a @include(if: $x)
-          b @include(if: $y)
-        }
+      operation:
+        name: testQuery_4047cfa8_1
+        kind: Query
+        document: |
+          query testQuery_4047cfa8_1($x: Boolean!, $y: Boolean!) {
+            a @include(if: $x)
+            b @include(if: $y)
+          }
+        hash: 3646e8ad7e18d0d0952d2ea91d475167e0d297ebc40b086cb1bd11c6d30cc4a8
+        shortHash: 3646e8ad
+        xxHash: 7007551159793269260
+      resultSelectionSet: >-
+        { a b }
       conditions:
         - variable: $s
           passingValue: false

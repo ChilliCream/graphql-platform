@@ -68,6 +68,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 592efa9a3fe65f5b14d12cff8cf70424d910bbf9ddd6a8e9ba1c826ef152f369
   operation:
     - document: |
         {
@@ -75,16 +76,27 @@ operationPlan:
             name
           }
         }
-      hash: 017a9f2b2f4118d0ee104f49a33abbd9
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 017a9f2b2f4118d0ee104f49a33abbd9
+      hash: 97fd38fcea394bc6badd7ea22c6de660
+      shortHash: 97fd38fc
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_97fd38fc_1 {
-          productById(id: 1) {
-            name
+      operation:
+        name: Op_97fd38fc_1
+        kind: Query
+        document: |
+          query Op_97fd38fc_1 {
+            productById(id: 1) {
+              name
+            }
           }
-        }
+        hash: 7aafb5d0ab1c5426dd6dbc4ed68944fe595dcfe6cbf71b4d8af2e4cb7b1faf3a
+        shortHash: 7aafb5d0
+        xxHash: 4252900980848400146
+      resultSelectionSet: >-
+        { productById }

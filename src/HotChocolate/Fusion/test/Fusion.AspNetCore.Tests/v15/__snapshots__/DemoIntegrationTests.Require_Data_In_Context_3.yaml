@@ -880,6 +880,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: abee1c25fad0dae7d629e3ebf755b3f316e8d2b4ff3a95af549f6c65a7fa9919
   operation:
     - document: |
         query Large {
@@ -907,45 +908,67 @@ operationPlan:
           }
         }
       name: Large
-      hash: 4f94623210f21dd6188bb9f3ed313525
-      searchSpace: 2
-      expandedNodes: 4
+      kind: Query
+      id: 4f94623210f21dd6188bb9f3ed313525
+      hash: 62d57bc09d841d72c3b2971bc4f29f40
+      shortHash: 62d57bc0
+  searchSpace: 2
+  expandedNodes: 4
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Large_62d57bc0_1 {
-          users {
-            id
-            name
-            birthdate
+      operation:
+        name: Large_62d57bc0_1
+        kind: Query
+        document: |
+          query Large_62d57bc0_1 {
+            users {
+              id
+              name
+              birthdate
+            }
           }
-        }
+        hash: cba6f4d694fc2746d80acb2740aea930347752b18d5ad011ea2a6ef912e2e7f9
+        shortHash: cba6f4d6
+        xxHash: 1700255306271028638
+      resultSelectionSet: >-
+        { users { id name birthdate } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Large_62d57bc0_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              reviews {
-                body
-                author {
-                  id
-                }
-                product {
-                  id
+      operation:
+        name: Large_62d57bc0_2
+        kind: Query
+        document: |
+          query Large_62d57bc0_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on User {
+                reviews {
+                  body
+                  author {
+                    id
+                  }
+                  product {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: 2e884b76efc5b5a6cc99b457ee50e6e8e7dca58a8cccd1c0922e1d6c6fc00909
+        shortHash: 2e884b76
+        xxHash: 230339351698870140
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { reviews }
       source: $.node<User>
       target: $.users
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.users
           selectionMap: >-
             id
       dependencies:
@@ -953,21 +976,32 @@ operationPlan:
     - id: 3
       type: Operation
       schema: D
-      operation: |
-        query Large_62d57bc0_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              deliveryEstimate(zip: "abc") {
-                max
+      operation:
+        name: Large_62d57bc0_3
+        kind: Query
+        document: |
+          query Large_62d57bc0_3($__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on Product {
+                deliveryEstimate(zip: "abc") {
+                  max
+                }
               }
             }
           }
-        }
+        hash: 6eac55383f37277b96042e4e1396073ff7868fbaeedbad6fde73145803198b32
+        shortHash: 6eac5538
+        xxHash: 17418134386132789573
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { deliveryEstimate }
       source: $.node<Product>
       target: $.users.reviews.product
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.users.reviews.product
           selectionMap: >-
             id
       dependencies:
@@ -975,16 +1009,27 @@ operationPlan:
     - id: 4
       type: Operation
       schema: C
-      operation: |
-        query Large_62d57bc0_4($__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            name
+      operation:
+        name: Large_62d57bc0_4
+        kind: Query
+        document: |
+          query Large_62d57bc0_4($__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              name
+            }
           }
-        }
+        hash: 9166aeef69fe20622e529e9f7c478511a3dc785c674c3227de0f31a132bd927c
+        shortHash: 9166aeef
+        xxHash: 6949494137167457854
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.productById
       target: $.users.reviews.product
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.users.reviews.product
           selectionMap: >-
             id
       dependencies:
@@ -992,20 +1037,31 @@ operationPlan:
     - id: 5
       type: Operation
       schema: A
-      operation: |
-        query Large_62d57bc0_5($__fusion_4_id: ID!) {
-          node(id: $__fusion_4_id) {
-            __typename
-            ... on User {
-              name
-              birthdate
+      operation:
+        name: Large_62d57bc0_5
+        kind: Query
+        document: |
+          query Large_62d57bc0_5($__fusion_4_id: ID!) {
+            node(id: $__fusion_4_id) {
+              __typename
+              ... on User {
+                name
+                birthdate
+              }
             }
           }
-        }
+        hash: eb56cb550d2a22d42b5ce25949e7174c5f68dcb43bbf8efb4c5176136407ac2b
+        shortHash: eb56cb55
+        xxHash: 17937903966855406246
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { name birthdate }
       source: $.node<User>
       target: $.users.reviews.author
       requirements:
         - name: __fusion_4_id
+          type: ID!
+          path: $.users.reviews.author
           selectionMap: >-
             id
       dependencies:

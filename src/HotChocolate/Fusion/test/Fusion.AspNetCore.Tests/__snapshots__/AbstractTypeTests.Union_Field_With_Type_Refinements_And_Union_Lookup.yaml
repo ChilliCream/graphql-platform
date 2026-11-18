@@ -115,6 +115,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ab9b65f740b091907402d72ca3281a0f84961759e983c4149f867643e3b165de
   operation:
     - document: |
         {
@@ -130,42 +131,64 @@ operationPlan:
             }
           }
         }
-      hash: 3620755ae1ccdf0a0f99f82d4fb38e52
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 3620755ae1ccdf0a0f99f82d4fb38e52
+      hash: 465e7f4e2fce633f9dddf88285e5c3b1
+      shortHash: 465e7f4e
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_465e7f4e_1 {
-          search {
-            __typename
-            ... on User {
-              id
-            }
-            ... on Product {
-              id
+      operation:
+        name: Op_465e7f4e_1
+        kind: Query
+        document: |
+          query Op_465e7f4e_1 {
+            search {
+              __typename
+              ... on User {
+                id
+              }
+              ... on Product {
+                id
+              }
             }
           }
-        }
+        hash: 99c8b6d2969a8b65510158907672d61032d29b20c0d344d4bfcf1f60afca2e13
+        shortHash: 99c8b6d2
+        xxHash: 7519778716666634867
+      resultSelectionSet: >-
+        { search }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_465e7f4e_2($__fusion_1_id: ID!) {
-          searchResultById(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              price
+      operation:
+        name: Op_465e7f4e_2
+        kind: Query
+        document: |
+          query Op_465e7f4e_2($__fusion_1_id: ID!) {
+            searchResultById(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                price
+              }
             }
           }
-        }
+        hash: 29c05f97e355acab40fdfe40d90749775163c9c92c2d0a502d721b7e8bc64f6d
+        shortHash: 29c05f97
+        xxHash: 17561938676324149326
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price }
       source: $.searchResultById<Product>
       target: $.search<Product>
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.search<Product>
           selectionMap: >-
             id
       dependencies:
@@ -173,20 +196,31 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_465e7f4e_3($__fusion_2_id: ID!) {
-          searchResultById(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              reputation
+      operation:
+        name: Op_465e7f4e_3
+        kind: Query
+        document: |
+          query Op_465e7f4e_3($__fusion_2_id: ID!) {
+            searchResultById(id: $__fusion_2_id) {
+              __typename
+              ... on User {
+                reputation
+              }
             }
           }
-        }
+        hash: f315476f4eee3d6d050bfbf75c4046ccce6507ef420a275b9e90e277dbc3ac53
+        shortHash: f315476f
+        xxHash: 2549992975777294445
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { reputation }
       source: $.searchResultById<User>
       target: $.search<User>
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.search<User>
           selectionMap: >-
             id
       dependencies:

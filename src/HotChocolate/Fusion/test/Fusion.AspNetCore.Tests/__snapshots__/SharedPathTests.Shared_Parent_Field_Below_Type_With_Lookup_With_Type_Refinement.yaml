@@ -184,6 +184,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: edc7f39669895eb9e0668c4764a82f104c08becaf5c4df4c3019e50c6c0f9e71
   operation:
     - document: |
         {
@@ -198,40 +199,62 @@ operationPlan:
             }
           }
         }
-      hash: 3fca71e0342032b86b5e11471882fb0e
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 3fca71e0342032b86b5e11471882fb0e
+      hash: c8e1a8bf80f58ee07e449b1d627a32e5
+      shortHash: c8e1a8bf
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_c8e1a8bf_1 {
-          unsharedInterface {
-            __typename
-            ... on Product {
-              shared {
-                schema1
+      operation:
+        name: Op_c8e1a8bf_1
+        kind: Query
+        document: |
+          query Op_c8e1a8bf_1 {
+            unsharedInterface {
+              __typename
+              ... on Product {
+                shared {
+                  schema1
+                }
+                id
               }
-              id
             }
           }
-        }
+        hash: 1cc546bb64acad99f0d5dba69125d8bd7de16467d2ce7e692fcc97e9ea354d56
+        shortHash: 1cc546bb
+        xxHash: 9616390446883977992
+      resultSelectionSet: >-
+        { unsharedInterface }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_c8e1a8bf_2($__fusion_1_id: Int!) {
-          product(id: $__fusion_1_id) {
-            shared {
-              schema2
+      operation:
+        name: Op_c8e1a8bf_2
+        kind: Query
+        document: |
+          query Op_c8e1a8bf_2($__fusion_1_id: Int!) {
+            product(id: $__fusion_1_id) {
+              shared {
+                schema2
+              }
             }
           }
-        }
+        hash: 770120d2a7cc122e06839214b63fca48e532a7e0d7bda3eddfc149385add5b0f
+        shortHash: 770120d2
+        xxHash: 7751784748971881279
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { shared { schema2 } }
       source: $.product
       target: $.unsharedInterface<Product>
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.unsharedInterface<Product>
           selectionMap: >-
             id
       dependencies:

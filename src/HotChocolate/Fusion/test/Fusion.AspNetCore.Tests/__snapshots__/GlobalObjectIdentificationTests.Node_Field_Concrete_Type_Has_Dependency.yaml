@@ -114,6 +114,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f27b53b9870125fdf63fa35e0f6f251609163c0edb8d7c97a1b5a2e6978c1893
   operation:
     - document: |
         query testQuery($id: ID!) {
@@ -127,25 +128,36 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: a659172d1a027db978e66503817c81b2
-      searchSpace: 2
-      expandedNodes: 5
+      kind: Query
+      id: a659172d1a027db978e66503817c81b2
+      hash: 6945dbcec93ca0669a6b3c1ca731d5e7
+      shortHash: 6945dbce
+  searchSpace: 2
+  expandedNodes: 5
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_6945dbce_2($id: ID!) {
-          node(id: $id) {
-            __typename
+      operation:
+        name: testQuery_6945dbce_2
+        kind: Query
+        document: |
+          query testQuery_6945dbce_2($id: ID!) {
+            node(id: $id) {
+              __typename
+            }
           }
-        }
+        hash: 8a34170a856a1b5daaa25e742758fe875816ca343e51ddcaeecdfdec7d30c773
+        shortHash: 8a34170a
+        xxHash: 15206246973665635480
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -153,17 +165,26 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_6945dbce_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_6945dbce_3
+        kind: Query
+        document: |
+          query testQuery_6945dbce_3($id: ID!) {
+            node(id: $id) {
               __typename
-              name
-              id
+              ... on Discussion {
+                __typename
+                name
+                id
+              }
             }
           }
-        }
+        hash: 436fcf46a62e7b88dafbc104ca1e3fd6f5b10b4f5eded3e37dfd78f6946a053a
+        shortHash: 436fcf46
+        xxHash: 16806936815590324253
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename name id } } }
       forwardedVariables:
         - id
       dependencies:
@@ -171,16 +192,27 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query testQuery_6945dbce_4($__fusion_1_discussionId: ID!) {
-          discussionById(discussionId: $__fusion_1_discussionId) {
-            commentCount
+      operation:
+        name: testQuery_6945dbce_4
+        kind: Query
+        document: |
+          query testQuery_6945dbce_4($__fusion_1_discussionId: ID!) {
+            discussionById(discussionId: $__fusion_1_discussionId) {
+              commentCount
+            }
           }
-        }
+        hash: 76f5c9108bee75786e86387fd327a75c664d6b7780853af18ab880e8be802b65
+        shortHash: 76f5c910
+        xxHash: 12575493124029815916
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { commentCount }
       source: $.discussionById
       target: $.node<Discussion>
       requirements:
         - name: __fusion_1_discussionId
+          type: ID!
+          path: $.node<Discussion>
           selectionMap: >-
             id
       dependencies:

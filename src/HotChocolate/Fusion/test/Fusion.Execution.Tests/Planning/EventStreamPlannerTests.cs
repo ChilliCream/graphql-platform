@@ -56,6 +56,7 @@ public sealed class EventStreamPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 0d6b4d241cd46ab58831171ab460f7a8679cd0009495311318d6d562aec61c81
             operation:
               - document: |
                   subscription {
@@ -67,9 +68,12 @@ public sealed class EventStreamPlannerTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 3
+                kind: Subscription
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 3
             nodes:
               - id: 1
                 type: EventStream
@@ -79,25 +83,36 @@ public sealed class EventStreamPlannerTests : FusionTestBase
                 eventStream:
                   schema: a
                   topics: [onCreateReview]
-                  message: { review { id } }
+                  message: "{ review { id } }"
                   cursorField: cursor
                   cursorArgument: after
               - id: 2
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    node(id: $__fusion_1_id) {
-                      __typename
-                      ... on Review {
-                        body
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!) {
+                      node(id: $__fusion_1_id) {
+                        __typename
+                        ... on Review {
+                          body
+                        }
                       }
                     }
-                  }
+                  hash: ab53cf0c2a30e60ab6863f347c7cebe2eb8ced866d43fe724882ab46d84e6a68
+                  shortHash: ab53cf0c
+                  xxHash: 1708855893131090068
+                lookupTypeName: Review
+                resultSelectionSet: >-
+                  { body }
                 source: $.node<Review>
                 target: $.onCreateReview.review
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.onCreateReview.review
                     selectionMap: >-
                       id
                 dependencies:

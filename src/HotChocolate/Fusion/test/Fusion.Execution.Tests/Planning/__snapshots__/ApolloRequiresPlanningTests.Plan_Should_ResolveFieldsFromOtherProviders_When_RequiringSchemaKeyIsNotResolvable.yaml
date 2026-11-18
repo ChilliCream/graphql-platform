@@ -1,3 +1,4 @@
+id: b411ecf010f00af16c10045b6d4d2f54cf5f1b99a6c23c0cd6a208bc26ddde47
 operation:
   - document: |
       {
@@ -8,34 +9,56 @@ operation:
           quote
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
     schema: req
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            id
+          }
         }
-      }
+      hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+      shortHash: f991ee77
+      xxHash: 11674115490493392138
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: ApolloOperation
     schema: far
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Product {
-            quote
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Product {
+              quote
+            }
           }
         }
-      }
+      hash: e5fef70474bff8e604286bd60ae27dec48ad258b2bc03ef3abea9f89f8dd1b92
+      shortHash: e5fef704
+      xxHash: 15956431288362499853
+    entityType: Product
+    resultSelectionSet: >-
+      { quote }
     source: $._entities
     target: $.products
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
     dependencies:
@@ -44,18 +67,29 @@ nodes:
   - id: 3
     type: ApolloOperation
     schema: alt
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Product {
-            estimate
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Product {
+              estimate
+            }
           }
         }
-      }
+      hash: 07c096c77edf179ea746d5bf5d8c6ee14831364de1535931b823533f57abb5c0
+      shortHash: 07c096c7
+      xxHash: 4484875409075470930
+    entityType: Product
+    resultSelectionSet: >-
+      { estimate }
     source: $._entities
     target: $.products
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
     dependencies:

@@ -31,6 +31,7 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 527e90f72468431a8e796babc659e580a5bcedb51a9c063d73fe5685b5ad13e0
             operation:
               - document: |
                   {
@@ -38,19 +39,30 @@ public class OperationPlannerTests : FusionTestBase
                       __typename @fusion__empty
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 1
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 1
             nodes:
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    productBySlug(slug: "1") {
-                      __typename
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      productBySlug(slug: "1") {
+                        __typename
+                      }
                     }
-                  }
+                  hash: 2a311c3bc1a59c1eb33f2d5ed6f4b916a1c4dca6906a04f2ed081b2275ccfe62
+                  shortHash: 2a311c3b
+                  xxHash: 7753463362280747515
+                resultSelectionSet: >-
+                  { productBySlug }
             """);
     }
 

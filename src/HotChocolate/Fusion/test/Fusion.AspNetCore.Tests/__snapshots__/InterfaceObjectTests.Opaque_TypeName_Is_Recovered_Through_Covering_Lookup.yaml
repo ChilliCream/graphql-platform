@@ -153,6 +153,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 216ca46335b3a1d495f0d41cfca691172780c977af2e263f5c4f7154c090e3fb
   operation:
     - document: |
         query testQuery {
@@ -164,33 +165,55 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 00cb81fc064440fba262229bbb083182
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 00cb81fc064440fba262229bbb083182
+      hash: c56715340e963d08d0911cbe2073e28b
+      shortHash: c5671534
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_c5671534_1 {
-          trendingMedia {
-            id
-            views
+      operation:
+        name: testQuery_c5671534_1
+        kind: Query
+        document: |
+          query testQuery_c5671534_1 {
+            trendingMedia {
+              id
+              views
+            }
           }
-        }
+        hash: 466b23c5d25f5b53698965dedbaac9a56bf20295540e81d8e0599b6822a09462
+        shortHash: 466b23c5
+        xxHash: 1260158852555006273
+      resultSelectionSet: >-
+        { trendingMedia { id views } }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query testQuery_c5671534_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
+      operation:
+        name: testQuery_c5671534_2
+        kind: Query
+        document: |
+          query testQuery_c5671534_2($__fusion_1_id: ID!) {
+            mediaById(id: $__fusion_1_id) {
+              __typename
+            }
           }
-        }
+        hash: d6320293665807dec4ced353d92e3d36e387c5ec088025a7e51ffb6c8ba1178e
+        shortHash: d6320293
+        xxHash: 5788367318883017795
+      lookupTypeName: Media
+      resultSelectionSet: >-
+        { __typename }
       source: $.mediaById
       target: $.trendingMedia
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.trendingMedia
           selectionMap: >-
             id
       dependencies:

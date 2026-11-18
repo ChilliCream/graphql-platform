@@ -144,6 +144,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a3097cedceebcbd1f7d864ecf9e171b4cd6be64a696b0c1b8a9d1a5f319c6d3a
   operation:
     - document: |
         {
@@ -154,33 +155,55 @@ operationPlan:
             price @marker(note: "entity")
           }
         }
-      hash: 63569a0d838bdb811057e8f5c9e5dec2
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 63569a0d838bdb811057e8f5c9e5dec2
+      hash: d37b82d061466d5cd66c96d5e51f69ce
+      shortHash: d37b82d0
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: catalog
-      operation: |
-        query Op_d37b82d0_1 {
-          products @marker(note: "root") {
-            id
-            name
+      operation:
+        name: Op_d37b82d0_1
+        kind: Query
+        document: |
+          query Op_d37b82d0_1 {
+            products @marker(note: "root") {
+              id
+              name
+            }
           }
-        }
+        hash: c8fe8c9f340d8f985134d47781534394cf9565e426a115bcd6da43d47a05db73
+        shortHash: c8fe8c9f
+        xxHash: 17466467929790634239
+      resultSelectionSet: >-
+        { products }
     - id: 2
       type: Operation
       schema: pricing
-      operation: |
-        query Op_d37b82d0_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            price @marker(note: "entity")
+      operation:
+        name: Op_d37b82d0_2
+        kind: Query
+        document: |
+          query Op_d37b82d0_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              price @marker(note: "entity")
+            }
           }
-        }
+        hash: dd75e6d6a864bb4575219e084d9c76a26565ee1186ed5e1ef914810c8eb164ea
+        shortHash: dd75e6d6
+        xxHash: 134837770457258438
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price }
       source: $.productById
       target: $.products
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
       dependencies:

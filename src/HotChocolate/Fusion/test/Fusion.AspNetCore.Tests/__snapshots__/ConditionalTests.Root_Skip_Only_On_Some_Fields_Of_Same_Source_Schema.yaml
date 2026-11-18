@@ -69,6 +69,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 658c4d90326fdcf6b53c525856ab200f6d331ffdfd92ce1b5df0a167109104ac
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -80,21 +81,32 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 8855915dc2956423b3ec9bfb3625760a
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 8855915dc2956423b3ec9bfb3625760a
+      hash: d58c3d50fb2e1f9bfa7afd1029c8933b
+      shortHash: d58c3d50
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_d58c3d50_1($skip: Boolean!) {
-          viewer {
-            name
+      operation:
+        name: testQuery_d58c3d50_1
+        kind: Query
+        document: |
+          query testQuery_d58c3d50_1($skip: Boolean!) {
+            viewer {
+              name
+            }
+            productBySlug(slug: "product") @skip(if: $skip) {
+              name
+            }
           }
-          productBySlug(slug: "product") @skip(if: $skip) {
-            name
-          }
-        }
+        hash: 718cb8882653a155d68b1c69650c12333f1d15e9e598d9e8b1055077cf4697bc
+        shortHash: 718cb888
+        xxHash: 5961033076985882366
+      resultSelectionSet: >-
+        { viewer productBySlug }
       forwardedVariables:
         - skip

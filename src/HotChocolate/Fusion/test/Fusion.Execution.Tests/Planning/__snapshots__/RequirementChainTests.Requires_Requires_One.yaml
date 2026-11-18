@@ -1,3 +1,4 @@
+id: c4f5b6caab0c7a0279df69b5f26b758218ad15a091ec7abffae582e61f514a5c
 operation:
   - document: |
       {
@@ -8,41 +9,65 @@ operation:
           hasDiscount @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 8
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 8
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        product {
-          id
-          hasDiscount
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          product {
+            id
+            hasDiscount
+          }
         }
-      }
+      hash: 613ec5fea5cfe0aa78739faad46882d98440aebc37e9c5488be734b9211aea14
+      shortHash: 613ec5fe
+      xxHash: 7795138101197185049
+    resultSelectionSet: >-
+      { product }
   - id: 3
     type: Operation
     schema: d
-    operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_isExpensiveWithDiscount: Boolean!
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3(
+          $__fusion_2_isExpensiveWithDiscount: Boolean!
           $__fusion_3_id: ID!
-      ) {
-        productById(id: $__fusion_3_id) {
-          canAffordWithDiscount(
-            isExpensiveWithDiscount: $__fusion_2_isExpensiveWithDiscount
-          )
+        ) {
+          productById(id: $__fusion_3_id) {
+            canAffordWithDiscount(
+              isExpensiveWithDiscount: $__fusion_2_isExpensiveWithDiscount
+            )
+          }
         }
-      }
+      hash: 3e88f8e829c63246a217654e38923b17d4fa45646e66fc51c4381bf2db472353
+      shortHash: 3e88f8e8
+      xxHash: 14240972298085263531
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { canAffordWithDiscount }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_2_isExpensiveWithDiscount
+        type: Boolean!
+        path: $.product
         selectionMap: >-
           isExpensiveWithDiscount
       - name: __fusion_3_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
     dependencies:
@@ -51,22 +76,35 @@ nodes:
   - id: 4
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_id: ID!
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4(
+          $__fusion_4_id: ID!
           $__fusion_5_hasDiscount: Boolean!
-      ) {
-        productById(id: $__fusion_4_id) {
-          isExpensiveWithDiscount(hasDiscount: $__fusion_5_hasDiscount)
+        ) {
+          productById(id: $__fusion_4_id) {
+            isExpensiveWithDiscount(hasDiscount: $__fusion_5_hasDiscount)
+          }
         }
-      }
+      hash: b3bb714d30d3cd2b8325fe0f00556ab27c3650e844acd4d8e13e165da1626cdb
+      shortHash: b3bb714d
+      xxHash: 9481135964000416822
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { isExpensiveWithDiscount }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
       - name: __fusion_5_hasDiscount
+        type: Boolean!
+        path: $.product
         selectionMap: >-
           hasDiscount
     dependencies:

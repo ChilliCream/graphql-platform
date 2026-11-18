@@ -1,3 +1,4 @@
+id: 46a167b16360dd457e9e6a98a822099ae57aeeee83f4abb6dc5bc86bd7e32dfd
 operation:
   - document: |
       {
@@ -13,37 +14,61 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 17
-    expandedNodes: 47
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 17
+expandedNodes: 47
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            id
+          }
         }
-      }
+      hash: 02ded7007eddf9297a68005f976a649f5f97d46626d95d2ade2e0937217bc862
+      shortHash: 02ded700
+      xxHash: 8477123692868294708
+    resultSelectionSet: >-
+      { feed }
   - id: 2
     type: ApolloOperation
     schema: a
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Post {
-            byExpert
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Post {
+              byExpert
+            }
           }
         }
-      }
+      hash: b5cd321ab1c2e7cb44ff2963eb07e9d404ef1f20d5fcd2d268fd13a7d8337f94
+      shortHash: b5cd321a
+      xxHash: 7170868984893053634
+    entityType: Post
+    resultSelectionSet: >-
+      { byExpert }
     source: $._entities
     target: $.feed
     requirements:
       - name: __fusion_1_byNovice
+        type: Boolean
+        path: $.feed
         selectionMap: >-
           byNovice
       - name: __fusion_2_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -52,16 +77,25 @@ nodes:
   - id: 5
     type: ApolloOperationBatch
     schema: b
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Post {
-            author {
-              id
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Post {
+              author {
+                id
+              }
             }
           }
         }
-      }
+      hash: 7d24c9068fc539476c29f54c7fbf187ae7050a9349629b6b4a86e3ed466858ec
+      shortHash: 7d24c906
+      xxHash: 3782450120683322671
+    entityType: Post
+    resultSelectionSet: >-
+      { author }
     source: $._entities
     targets:
       - $.feed
@@ -69,6 +103,8 @@ nodes:
     batchingGroupId: 11
     requirements:
       - name: __fusion_6_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -76,14 +112,23 @@ nodes:
   - id: 6
     type: ApolloOperationBatch
     schema: a
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Author {
-            yearsOfExperience
+    operation:
+      name: Op_123456789101112_6
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Author {
+              yearsOfExperience
+            }
           }
         }
-      }
+      hash: 8de9a751e7ee590afa4b709c33b25e39da017bdeef2a0e34e09590d47c4588ff
+      shortHash: 8de9a751
+      xxHash: 1420266493954627800
+    entityType: Author
+    resultSelectionSet: >-
+      { yearsOfExperience }
     source: $._entities
     targets:
       - $.feed.author
@@ -91,6 +136,8 @@ nodes:
     batchingGroupId: 12
     requirements:
       - name: __fusion_7_id
+        type: ID!
+        path: $.feed.author
         selectionMap: >-
           id
     dependencies:
@@ -98,14 +145,23 @@ nodes:
   - id: 4
     type: ApolloOperationBatch
     schema: c
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Post {
-            byNovice
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Post {
+              byNovice
+            }
           }
         }
-      }
+      hash: 09beb6d913eee9bf3f9811523840da0b889d0916b1d8bea8735d4ebb55de9265
+      shortHash: 09beb6d9
+      xxHash: 4828578983831746798
+    entityType: Post
+    resultSelectionSet: >-
+      { byNovice }
     source: $._entities
     targets:
       - $.feed
@@ -113,11 +169,15 @@ nodes:
     batchingGroupId: 13
     requirements:
       - name: __fusion_4_author
+        type: AuthorInput_2497249615
+        path: $.feed
         selectionMap: >-
           {
             yearsOfExperience: author.yearsOfExperience
           }
       - name: __fusion_5_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:

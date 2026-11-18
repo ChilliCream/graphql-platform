@@ -173,6 +173,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 592bc8fe70d9da36897b67a63f1b830edb752db804eddbee7f97b26ccfd7dd4f
   operation:
     - document: |
         query testQuery {
@@ -193,38 +194,58 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: dc9184aba1a2d400767e58a62c927115
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: dc9184aba1a2d400767e58a62c927115
+      hash: 9b3b2942c1fefa10ff166b89f628b2b4
+      shortHash: 9b3b2942
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_9b3b2942_1 {
-          posts {
-            __typename
-            ... on Photo {
-              product {
-                id
+      operation:
+        name: testQuery_9b3b2942_1
+        kind: Query
+        document: |
+          query testQuery_9b3b2942_1 {
+            posts {
+              __typename
+              ... on Photo {
+                product {
+                  id
+                }
               }
-            }
-            ... on Discussion {
-              product {
-                id
+              ... on Discussion {
+                product {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 8acbb242aedc2780f3912d9754490e18a5c1630da32edec729ea1d9e4e8b91d2
+        shortHash: 8acbb242
+        xxHash: 14672443749954041152
+      resultSelectionSet: >-
+        { posts }
     - id: 2
       type: OperationBatch
       schema: B
-      operation: |
-        query testQuery_9b3b2942_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            subgraph2
+      operation:
+        name: testQuery_9b3b2942_2
+        kind: Query
+        document: |
+          query testQuery_9b3b2942_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              subgraph2
+            }
           }
-        }
+        hash: 605a2775a0f4b4f0aa49cb851a162387d6a7a437dc34f103d7723236d298f694
+        shortHash: 605a2775
+        xxHash: 9820970771562771233
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { subgraph2 }
       source: $.productById
       targets:
         - $.posts<Discussion>.product
@@ -232,6 +253,8 @@ operationPlan:
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.posts<Discussion>.product
           selectionMap: >-
             id
       dependencies:

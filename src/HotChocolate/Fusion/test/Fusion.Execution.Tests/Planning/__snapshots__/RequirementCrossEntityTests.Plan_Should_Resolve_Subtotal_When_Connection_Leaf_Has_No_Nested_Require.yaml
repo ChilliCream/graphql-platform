@@ -1,3 +1,4 @@
+id: 6a846aef37bfe857320cef992f4ccdaa4a5fe611ad287644750c63b17ebc03b1
 operation:
   - document: |
       {
@@ -16,26 +17,42 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 2
     type: Operation
     schema: checkout
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_lines: [Float!]) {
-        cartById(id: $__fusion_1_id) {
-          subtotal(lines: $__fusion_2_lines)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_lines: [Float!]) {
+          cartById(id: $__fusion_1_id) {
+            subtotal(lines: $__fusion_2_lines)
+          }
         }
-      }
+      hash: ba65f736decbb49822401a50d24a945990e0b6214e3ab43ece2e3ac33ea1419d
+      shortHash: ba65f736
+      xxHash: 3127028526969945192
+    lookupTypeName: Cart
+    resultSelectionSet: >-
+      { subtotal }
     source: $.cartById
     target: $.viewer.cart
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.viewer.cart
         selectionMap: >-
           id
       - name: __fusion_2_lines
+        type: "[Float!]"
+        path: $.viewer.cart
         selectionMap: >-
           items(first: 50).nodes[product.price]
     dependencies:
@@ -44,16 +61,27 @@ nodes:
   - id: 3
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          price
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          productById(id: $__fusion_3_id) {
+            price
+          }
         }
-      }
+      hash: 7ac3a8508a3c95bc2281cf0e8ef253a330fbc619d00d2daa0a390b0aa7c74698
+      shortHash: 7ac3a850
+      xxHash: 132790610177109361
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.productById
     target: $.viewer.cart.items.nodes.product
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.viewer.cart.items.nodes.product
         selectionMap: >-
           id
     dependencies:
@@ -61,37 +89,53 @@ nodes:
   - id: 1
     type: Operation
     schema: cart
-    operation: |
-      query Op_123456789101112_1 {
-        viewer {
-          cart {
-            id
-            items(first: 50) {
-              nodes {
-                product {
-                  __typename
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          viewer {
+            cart {
+              id
+              items(first: 50) {
+                nodes {
+                  product {
+                    __typename
+                  }
                 }
               }
             }
           }
         }
-      }
+      hash: 3964f7832be870673863c1cc93db84459a62d5eac9693841b1e3b9d7ca77ada6
+      shortHash: 3964f783
+      xxHash: 16556022435432429720
+    resultSelectionSet: >-
+      { viewer }
     batchingGroupId: 5
   - id: 4
     type: Operation
     schema: cart
-    operation: |
-      query Op_123456789101112_4 {
-        viewer {
-          cart {
-            items(first: 50) {
-              nodes {
-                product {
-                  id
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4 {
+          viewer {
+            cart {
+              items(first: 50) {
+                nodes {
+                  product {
+                    id
+                  }
                 }
               }
             }
           }
         }
-      }
+      hash: ac6370fa8826ee1b15653ce7f57c4c006af1e822ed9eb809346a8d773147abf4
+      shortHash: ac6370fa
+      xxHash: 16003857724986168897
+    resultSelectionSet: >-
+      { viewer }
     batchingGroupId: 5

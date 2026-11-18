@@ -118,6 +118,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ea0bd442a1128103f6cc07e4cc32728be543567c7804efc01e54e8ed295e3eb6
   operation:
     - document: |
         {
@@ -129,35 +130,59 @@ operationPlan:
             }
           }
         }
-      hash: ef5871ef4c5445fe7bcf159492376ab0
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: ef5871ef4c5445fe7bcf159492376ab0
+      hash: b05a9c488c79e334decd9cae59fb7892
+      shortHash: b05a9c48
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query Op_b05a9c48_1 {
-          productById(id: "1") {
-            id
+      operation:
+        name: Op_b05a9c48_1
+        kind: Query
+        document: |
+          query Op_b05a9c48_1 {
+            productById(id: "1") {
+              id
+            }
           }
-        }
+        hash: 15fe43726877ce9db15e52fa16cb8d946c4e11e985520364384127667d179ed6
+        shortHash: 15fe4372
+        xxHash: 7571266815894898036
+      resultSelectionSet: >-
+        { productById }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_b05a9c48_2($__fusion_1_nullableArgument: String, $__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
+      operation:
+        name: Op_b05a9c48_2
+        kind: Query
+        document: |
+          query Op_b05a9c48_2($__fusion_1_nullableArgument: String, $__fusion_2_id: ID!) {
+            productById(id: $__fusion_2_id) {
+              fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
+            }
           }
-        }
+        hash: 284a72243c1955b611e7f1ac4afe61d64be60f1b10339e51dff365aea87dbbd0
+        shortHash: 284a7224
+        xxHash: 6299729017503971483
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { fieldWithNullableRequirement }
       source: $.productById
       target: $.productById
       requirements:
         - name: __fusion_1_nullableArgument
+          type: String
+          path: $.productById
           selectionMap: >-
             nullableObject.field
         - name: __fusion_2_id
+          type: ID!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:
@@ -166,18 +191,29 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query Op_b05a9c48_3($__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            nullableObject {
-              field
+      operation:
+        name: Op_b05a9c48_3
+        kind: Query
+        document: |
+          query Op_b05a9c48_3($__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              nullableObject {
+                field
+              }
             }
           }
-        }
+        hash: f61a754313df7c295512c0cfd8bf4eabab216a0e36443a4a1db621fb2a61c1a6
+        shortHash: f61a7543
+        xxHash: 10015815522511453768
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { nullableObject }
       source: $.productById
       target: $.productById
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:

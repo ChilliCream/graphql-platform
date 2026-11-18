@@ -130,6 +130,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 74cabb739073fd16efdfac43f0b44de3d5b25423222d9a8a4464e13c04e059ea
   operation:
     - document: |
         {
@@ -141,37 +142,59 @@ operationPlan:
             }
           }
         }
-      hash: fb2efb0faf18d3c7385b2df7bf89a0da
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: fb2efb0faf18d3c7385b2df7bf89a0da
+      hash: ab5a05497f5464d885f19433725b3475
+      shortHash: ab5a0549
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_ab5a0549_1 {
-          viewer {
-            product {
-              id
+      operation:
+        name: Op_ab5a0549_1
+        kind: Query
+        document: |
+          query Op_ab5a0549_1 {
+            viewer {
+              product {
+                id
+              }
             }
           }
-        }
+        hash: 485903a862d17390ca0a7124d4cd313e6818693fa585a4f12327763888c3226c
+        shortHash: 485903a8
+        xxHash: 13938309490224902434
+      resultSelectionSet: >-
+        { viewer }
     - id: 2
       type: Operation
       schema: C
-      operation: |
-        query Op_ab5a0549_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
+      operation:
+        name: Op_ab5a0549_2
+        kind: Query
+        document: |
+          query Op_ab5a0549_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                name
+              }
             }
           }
-        }
+        hash: 6b01d0a07c5b291f76b3f9cb6f09799c5a2bb4c9ec1a75e8dc9cbff8a0675ad0
+        shortHash: 6b01d0a0
+        xxHash: 17898379997350787791
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.node<Product>
       target: $.viewer.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.viewer.product
           selectionMap: >-
             id
       dependencies:

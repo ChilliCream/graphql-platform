@@ -193,6 +193,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 9f7e3056d47c5d2cd3b557c5f1086b0f50d0da25652ad0e3c65b4e4c7858386f
   operation:
     - document: |
         {
@@ -210,39 +211,61 @@ operationPlan:
             text
           }
         }
-      hash: 2c4dfb05f06b343db9a9c8811b9a789f
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 2c4dfb05f06b343db9a9c8811b9a789f
+      hash: b3de1d94353bbf667075fbef330f3a68
+      shortHash: b3de1d94
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_b3de1d94_1 {
-          products {
-            id
-            variants {
-              weight
+      operation:
+        name: Op_b3de1d94_1
+        kind: Query
+        document: |
+          query Op_b3de1d94_1 {
+            products {
+              id
+              variants {
+                weight
+              }
+            }
+            reviews {
+              id
             }
           }
-          reviews {
-            id
-          }
-        }
+        hash: e57cde1f3fba4ba29e0ef887b4158c9e464a752ab789a937b9d57feddd8082fe
+        shortHash: e57cde1f
+        xxHash: 3360290498109568757
+      resultSelectionSet: >-
+        { products reviews }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_b3de1d94_2($__fusion_1_id: Int!) {
-          reviewById(id: $__fusion_1_id) {
-            text
+      operation:
+        name: Op_b3de1d94_2
+        kind: Query
+        document: |
+          query Op_b3de1d94_2($__fusion_1_id: Int!) {
+            reviewById(id: $__fusion_1_id) {
+              text
+            }
           }
-        }
+        hash: 1c7674c5c933ffa06239df9a26bec5e4ff67f54b8830f738644f6e314b3db970
+        shortHash: 1c7674c5
+        xxHash: 7455431546438534676
+      lookupTypeName: Review
+      resultSelectionSet: >-
+        { text }
       source: $.reviewById
       target: $.reviews
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.reviews
           selectionMap: >-
             id
       dependencies:
@@ -250,22 +273,35 @@ operationPlan:
     - id: 3
       type: Operation
       schema: b
-      operation: |
-        query Op_b3de1d94_3($__fusion_2_id: Int!, $__fusion_3_weight: Int!) {
-          productById(id: $__fusion_2_id) {
-            variants {
-              shippingEstimate(weight: $__fusion_3_weight)
+      operation:
+        name: Op_b3de1d94_3
+        kind: Query
+        document: |
+          query Op_b3de1d94_3($__fusion_2_id: Int!, $__fusion_3_weight: Int!) {
+            productById(id: $__fusion_2_id) {
+              variants {
+                shippingEstimate(weight: $__fusion_3_weight)
+              }
             }
           }
-        }
+        hash: 11939f02b42715405bd09b336381c7ae3ebb07607a1a5c1db6ecfa0c992e9046
+        shortHash: 11939f02
+        xxHash: 13468043629679487483
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { variants { shippingEstimate } }
       source: $.productById
       target: $.products
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: Int!
+          path: $.products
           selectionMap: >-
             id
         - name: __fusion_3_weight
+          type: Int!
+          path: $.products.variants
           selectionMap: >-
             weight
       dependencies:

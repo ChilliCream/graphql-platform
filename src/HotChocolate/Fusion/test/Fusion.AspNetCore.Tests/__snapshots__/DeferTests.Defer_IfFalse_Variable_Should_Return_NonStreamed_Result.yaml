@@ -141,6 +141,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: aea5a0f664b1602d92fe6ca30ba005f30fbaafc4eab9e38859ee772fced015ca
   operation:
     - document: |
         query GetUser($shouldDefer: Boolean!) {
@@ -154,41 +155,63 @@ operationPlan:
           }
         }
       name: GetUser
-      hash: 6e39c6ae9d8057659a564f40b857725b
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 6e39c6ae9d8057659a564f40b857725b
+      hash: 033679a6deb9150ce9d5cd47bd725497
+      shortHash: 033679a6
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetUser_033679a6_1($shouldDefer: Boolean!) {
-          user(id: "1") {
-            name
-            ... @skip(if: $shouldDefer) {
+      operation:
+        name: GetUser_033679a6_1
+        kind: Query
+        document: |
+          query GetUser_033679a6_1($shouldDefer: Boolean!) {
+            user(id: "1") {
+              name
+              ... @skip(if: $shouldDefer) {
+                id
+              }
               id
             }
-            id
           }
-        }
+        hash: e7a0a329ec2b96ade877081da12492ea6c71b6fd73f838184965ee6d7952caf4
+        shortHash: e7a0a329
+        xxHash: 6022512532956502308
+      resultSelectionSet: >-
+        { user }
       forwardedVariables:
         - shouldDefer
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query GetUser_033679a6_2($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            reviews {
-              title
-              body
+      operation:
+        name: GetUser_033679a6_2
+        kind: Query
+        document: |
+          query GetUser_033679a6_2($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              reviews {
+                title
+                body
+              }
             }
           }
-        }
+        hash: 72da7548f6dfd1421fcb00370e912cc3233cb566feea7666b0ae92a256d34545
+        shortHash: 72da7548
+        xxHash: 7983562311860232985
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { reviews }
       source: $.userById
       target: $.user
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
       conditions:
@@ -207,25 +230,54 @@ operationPlan:
       parentNodeId: 2
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
-      nodes:
-        - id: 1
-          type: Operation
-          schema: B
-          operation: |
-            query GetUser_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+      operation:
+        - document: |
+            query GetUser {
+              user(id: "1") {
                 reviews {
                   title
                   body
                 }
+                id @fusion__requirement
               }
             }
+          name: GetUser
+          kind: Query
+          id: "6e39c6ae9d8057659a564f40b857725b#defer_0"
+          hash: "033679a6deb9150ce9d5cd47bd725497#defer_0"
+          shortHash: 033679a6
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: GetUser_defer_1
+            kind: Query
+            document: |
+              query GetUser_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  reviews {
+                    title
+                    body
+                  }
+                }
+              }
+            hash: 97f8ef6473fb3ab5b17657071144d26d9cafeb01a9e65dd92bd715f310018240
+            shortHash: 97f8ef64
+            xxHash: 15097089727683979034
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { reviews }
           source: $.userById
           target: $.user
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.user
               selectionMap: >-
                 id
           dependencies:

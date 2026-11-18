@@ -115,15 +115,19 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: c3124fe4ab4e54d19f6937e3d4c111565693a27a6de63c88c112cec5091cc147
   operation:
     - document: |
         {
           __typename @fusion__empty
         }
-      hash: dd1bd23fc345ecaee364e3c2d04c95ae
-      searchSpace: 1
-      expandedNodes: 1
-  nodes:
+      kind: Query
+      id: dd1bd23fc345ecaee364e3c2d04c95ae
+      hash: 4f64f7a80692879978ed336071d227e6
+      shortHash: 4f64f7a8
+  searchSpace: 1
+  expandedNodes: 1
+  nodes: []
   deliveryGroups:
     - id: 0
       path: $
@@ -131,14 +135,34 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 0
-      nodes:
-        - id: 1
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_1 {
+      operation:
+        - document: |
+            {
               users {
                 id
                 name
               }
             }
+          kind: Query
+          id: "dd1bd23fc345ecaee364e3c2d04c95ae#defer_0"
+          hash: "4f64f7a80692879978ed336071d227e6#defer_0"
+          shortHash: 4f64f7a8
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1 {
+                users {
+                  id
+                  name
+                }
+              }
+            hash: 4d07ae34832e8c7737561f9a262d6dbc2b0d7af9b77aff1a5c09ee7f50895843
+            shortHash: 4d07ae34
+            xxHash: 1811098719144295985
+          resultSelectionSet: >-
+            { users }

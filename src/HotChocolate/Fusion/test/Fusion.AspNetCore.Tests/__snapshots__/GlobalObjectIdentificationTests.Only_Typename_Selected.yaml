@@ -81,6 +81,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: a8fa886fecfaee12d988f7c0a9e8a9cdf6c23eb5887f9763dfc70a5df1af9edd
   operation:
     - document: |
         query testQuery($id: ID!) {
@@ -89,23 +90,35 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 2a2240d10f54b0b66d84f38f31263fc0
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 2a2240d10f54b0b66d84f38f31263fc0
+      hash: 539ebaa030bba518e0df8205ab40b139
+      shortHash: 539ebaa0
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
+      branches: {}
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_539ebaa0_2($id: ID!) {
-          node(id: $id) {
-            __typename
+      operation:
+        name: testQuery_539ebaa0_2
+        kind: Query
+        document: |
+          query testQuery_539ebaa0_2($id: ID!) {
+            node(id: $id) {
+              __typename
+            }
           }
-        }
+        hash: ddcdb99235c63e31c62614e205f93ffd5f8e4f9cab94b14501da28e6906bdd4a
+        shortHash: ddcdb992
+        xxHash: 11979907964064178899
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:

@@ -159,6 +159,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ab6abc5059b948f634d8c03b67365444e3d724a00433da2f062b3035df1c1706
   operation:
     - document: |
         query TopProducts($first: Int!) {
@@ -167,18 +168,29 @@ operationPlan:
           }
         }
       name: TopProducts
-      hash: 023b26ef9ed76882d1dfea7306edbf1d
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 023b26ef9ed76882d1dfea7306edbf1d
+      hash: 42998eb322dcb3ed03924bcd6d525e0a
+      shortHash: 42998eb3
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: C
-      operation: |
-        query TopProducts_42998eb3_1($first: Int!) {
-          topProducts(first: $first) {
-            id
+      operation:
+        name: TopProducts_42998eb3_1
+        kind: Query
+        document: |
+          query TopProducts_42998eb3_1($first: Int!) {
+            topProducts(first: $first) {
+              id
+            }
           }
-        }
+        hash: e14fe1fdc9278a74dc613bddfec0e5aed54ec2f625a805d9c1f9082ec9946616
+        shortHash: e14fe1fd
+        xxHash: 14308184573294962866
+      resultSelectionSet: >-
+        { topProducts }
       forwardedVariables:
         - first

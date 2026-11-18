@@ -71,6 +71,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 30e37c55e3d59ca57834bdd48aa4ebe195e10caf05c5fc2700956c3ddbb01cc1
   operation:
     - document: |
         {
@@ -81,55 +82,84 @@ operationPlan:
             }
           }
         }
-      hash: fc1e9ab5ad822f1cdb46ecf62d6c64ca
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: fc1e9ab5ad822f1cdb46ecf62d6c64ca
+      hash: a088b140315a0c889324bbc829bbc277
+      shortHash: a088b140
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "T3JkZXIxOjE="
+      idValue: "\"T3JkZXIxOjE=\""
       responseName: node
       branches:
-        - Order1: 4
-        - Order2: 3
+        Order1: 4
+        Order2: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_a088b140_2 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
+      operation:
+        name: Op_a088b140_2
+        kind: Query
+        document: |
+          query Op_a088b140_2 {
+            node(id: "T3JkZXIxOjE=") {
+              __typename
+            }
           }
-        }
+        hash: 2d0d2e666bf4e4fa56cc4a461d5e9a832b8a6e8a5758dc4836b52ee3d484063f
+        shortHash: 2d0d2e66
+        xxHash: 15582029473150143581
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query Op_a088b140_3 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-            ... on Order2 {
+      operation:
+        name: Op_a088b140_3
+        kind: Query
+        document: |
+          query Op_a088b140_3 {
+            node(id: "T3JkZXIxOjE=") {
               __typename
-              name
+              ... on Order2 {
+                __typename
+                name
+              }
             }
           }
-        }
+        hash: aa0513cf1a191fe78321baabe1708129492751718e464e75d1b97592fde5028d
+        shortHash: aa0513cf
+        xxHash: 12706463032824830620
+      lookupTypeName: Order2
+      resultSelectionSet: >-
+        { node { __typename ... on Order2 { __typename name } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: A
-      operation: |
-        query Op_a088b140_4 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-            ... on Order1 {
+      operation:
+        name: Op_a088b140_4
+        kind: Query
+        document: |
+          query Op_a088b140_4 {
+            node(id: "T3JkZXIxOjE=") {
               __typename
-              name
+              ... on Order1 {
+                __typename
+                name
+              }
             }
           }
-        }
+        hash: ee082abf4bb3d541221d49e03c7266ee524897e5c94bae4a66649991c425c458
+        shortHash: ee082abf
+        xxHash: 11242627002050799002
+      lookupTypeName: Order1
+      resultSelectionSet: >-
+        { node { __typename ... on Order1 { __typename name } } }
       dependencies:
         - id: 1

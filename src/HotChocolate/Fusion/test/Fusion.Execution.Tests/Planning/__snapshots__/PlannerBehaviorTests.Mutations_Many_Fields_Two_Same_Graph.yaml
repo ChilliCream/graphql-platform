@@ -1,3 +1,4 @@
+id: 272a9952208140984d9cad0c109fa3122f1716d9d94577b6f20d4290b2178e71
 operation:
   - document: |
       mutation {
@@ -6,35 +7,70 @@ operation:
         twelve: add(num: 2)
         final: delete
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Mutation
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: c
-    operation: |
-      mutation Op_123456789101112_1 {
-        five: add(num: 5)
-      }
+    operation:
+      name: Op_123456789101112_1
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_1 {
+          five: add(num: 5)
+        }
+      hash: e66742bad2c65e0c524ad06a22d3272279e615480f8bdadb111077f918841759
+      shortHash: e66742ba
+      xxHash: 9494326629070980240
+    resultSelectionSet: >-
+      { five }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      mutation Op_123456789101112_2 {
-        ten: multiply(by: 2)
-      }
+    operation:
+      name: Op_123456789101112_2
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_2 {
+          ten: multiply(by: 2)
+        }
+      hash: 11accd804f1f32f73e3ae61a5eda357b87059b77ae42b1ca9c291a1418b5d646
+      shortHash: 11accd80
+      xxHash: 2199439983961089205
+    resultSelectionSet: >-
+      { ten }
   - id: 3
     type: Operation
     schema: c
-    operation: |
-      mutation Op_123456789101112_3 {
-        twelve: add(num: 2)
-      }
+    operation:
+      name: Op_123456789101112_3
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_3 {
+          twelve: add(num: 2)
+        }
+      hash: f004d5fbe61b330e833f80f25fcb531530f79c9fec20efab58a4fc89af3ffaf9
+      shortHash: f004d5fb
+      xxHash: 10432415507790837709
+    resultSelectionSet: >-
+      { twelve }
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      mutation Op_123456789101112_4 {
-        final: delete
-      }
+    operation:
+      name: Op_123456789101112_4
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_4 {
+          final: delete
+        }
+      hash: 06db8e93c06b1acc6fcca608e555cb20a888dda3ac3f95cfb1bb1fdc95470f28
+      shortHash: 06db8e93
+      xxHash: 13797864312732620206
+    resultSelectionSet: >-
+      { final }
