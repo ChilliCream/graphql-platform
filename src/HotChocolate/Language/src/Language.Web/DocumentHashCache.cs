@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace HotChocolate.Language;
 
 /// <summary>
@@ -11,7 +13,7 @@ internal sealed class DocumentHashCache
     /// </summary>
     public const int DefaultMaxDocumentLength = 16 * 1024;
 
-    private const int DefaultBucketCount = 64;
+    private const int DefaultBucketCount = 32;
     private const int BucketSize = 4;
 
     private readonly Entry?[] _entries;
@@ -34,6 +36,8 @@ internal sealed class DocumentHashCache
     /// </summary>
     public DocumentHashCache(IDocumentHashProvider hashProvider, int bucketCount, int maxDocumentLength)
     {
+        Debug.Assert(bucketCount is > 0 and <= 1 << 16, "The bucket count must be between 1 and 65536.");
+
         var size = 1;
 
         while (size < bucketCount)
@@ -60,16 +64,27 @@ internal sealed class DocumentHashCache
     public int MaxDocumentLength { get; }
 
     /// <summary>
-    /// Computes the lookup key of a JSON-encoded document string.
+    /// Creates a cache for the hashes of <paramref name="hashProvider"/>. Returns <c>null</c> when the
+    /// provider is not one of the built-in providers, which always compute the same hash for a document.
     /// </summary>
-    public static int ComputeKey(ReadOnlySpan<byte> rawDocument)
+    public static DocumentHashCache? TryCreate(IDocumentHashProvider hashProvider)
+        => hashProvider is MD5DocumentHashProvider or Sha1DocumentHashProvider or Sha256DocumentHashProvider
+            ? new DocumentHashCache(hashProvider)
+            : null;
+
+    /// <summary>
+    /// Computes the lookup key of a JSON-encoded document string that is unescaped before it is hashed
+    /// when <paramref name="isEscaped"/> is <c>true</c>.
+    /// </summary>
+    public static int ComputeKey(ReadOnlySpan<byte> rawDocument, bool isEscaped)
     {
 #if NET8_0_OR_GREATER
         var hashCode = new HashCode();
         hashCode.AddBytes(rawDocument);
+        hashCode.Add(isEscaped);
         return hashCode.ToHashCode();
 #else
-        var hash = 2166136261u;
+        var hash = isEscaped ? 2166136261u : 2166136260u;
 
         foreach (var value in rawDocument)
         {
@@ -82,9 +97,9 @@ internal sealed class DocumentHashCache
 
     /// <summary>
     /// Tries to get the hash of the document string that is byte for byte equal to
-    /// <paramref name="rawDocument"/>.
+    /// <paramref name="rawDocument"/> and was hashed with the same <paramref name="isEscaped"/> mode.
     /// </summary>
-    public bool TryGetHash(ReadOnlySpan<byte> rawDocument, int key, out OperationDocumentHash hash)
+    public bool TryGetHash(ReadOnlySpan<byte> rawDocument, bool isEscaped, int key, out OperationDocumentHash hash)
     {
         var start = (key & _bucketMask) * BucketSize;
 
@@ -92,9 +107,7 @@ internal sealed class DocumentHashCache
         {
             var entry = Volatile.Read(ref _entries[i]);
 
-            if (entry is not null
-                && entry.Key == key
-                && rawDocument.SequenceEqual(entry.RawDocument))
+            if (entry?.Matches(rawDocument, isEscaped, key) == true)
             {
                 hash = entry.Hash;
                 return true;
@@ -106,10 +119,10 @@ internal sealed class DocumentHashCache
     }
 
     /// <summary>
-    /// Records a miss for <paramref name="rawDocument"/> and stores its hash when the previous miss
-    /// in its bucket was for the same key. A full bucket replaces its entries in turn.
+    /// Records a miss for <paramref name="rawDocument"/> and stores its hash when the miss recorded
+    /// before it in the same bucket had the same key. A full bucket replaces its entries in turn.
     /// </summary>
-    public void Add(ReadOnlySpan<byte> rawDocument, int key, OperationDocumentHash hash)
+    public void Add(ReadOnlySpan<byte> rawDocument, bool isEscaped, int key, OperationDocumentHash hash)
     {
         if (rawDocument.Length > MaxDocumentLength)
         {
@@ -118,7 +131,8 @@ internal sealed class DocumentHashCache
 
         var bucket = key & _bucketMask;
 
-        // a document that takes turns with other documents of a full bucket is not stored on every miss.
+        // Best effort: a document that takes turns with other documents of a full bucket
+        // is not stored on every miss. Concurrent misses can store a document earlier or later.
         if (Volatile.Read(ref _lastMissed[bucket]) != key)
         {
             Volatile.Write(ref _lastMissed[bucket], key);
@@ -139,7 +153,7 @@ internal sealed class DocumentHashCache
                     free = i;
                 }
             }
-            else if (current.Key == key && rawDocument.SequenceEqual(current.RawDocument))
+            else if (current.Matches(rawDocument, isEscaped, key))
             {
                 // another thread stored the document in the meantime.
                 return;
@@ -151,15 +165,16 @@ internal sealed class DocumentHashCache
             free = start + (int)((uint)Interlocked.Increment(ref _next[bucket]) % BucketSize);
         }
 
-        Volatile.Write(ref _entries[free], new Entry(key, rawDocument.ToArray(), hash));
+        Volatile.Write(ref _entries[free], new Entry(key, isEscaped, rawDocument.ToArray(), hash));
     }
 
-    private sealed class Entry(int key, byte[] rawDocument, OperationDocumentHash hash)
+    private sealed class Entry(int key, bool isEscaped, byte[] rawDocument, OperationDocumentHash hash)
     {
-        public int Key { get; } = key;
-
-        public byte[] RawDocument { get; } = rawDocument;
-
         public OperationDocumentHash Hash { get; } = hash;
+
+        public bool Matches(ReadOnlySpan<byte> otherRawDocument, bool otherIsEscaped, int otherKey)
+            => key == otherKey
+                && isEscaped == otherIsEscaped
+                && otherRawDocument.SequenceEqual(rawDocument);
     }
 }
