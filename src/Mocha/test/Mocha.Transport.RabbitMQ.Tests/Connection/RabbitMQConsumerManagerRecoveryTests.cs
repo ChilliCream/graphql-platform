@@ -129,7 +129,7 @@ public class RabbitMQConsumerManagerRecoveryTests
         Assert.Equal("B", await received.NextAsync());
 
         await abandonedHandlerCancelled.Task.WaitAsync(s_promptly, TestContext.Current.CancellationToken);
-        Assert.Null(manager.HealthFailureReason);
+        Assert.True(manager.AreConsumersAttached());
     }
 
     [Fact]

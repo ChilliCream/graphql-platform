@@ -80,14 +80,18 @@ public sealed class ConsumerRecoveryTests(RabbitMQFixture fixture)
             await SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
             var paymentReceived = await payments.WaitAsync(TestTimeouts.Signal);
             await gate.Cancelled.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-            var whileBlocked = (gate.Invocations, orders.Messages.Count, GetEndpoint(bus, "orders").IsHealthy);
+            var blockedReported = await Condition.WaitAsync(
+                async () => (await GetTransport(bus).CheckConsumerHealthAsync())
+                    is ["Queue 'orders': The consumer waits for a handler of a lost channel to return."],
+                TestTimeouts.Signal);
+            var whileBlocked = (gate.Invocations, orders.Messages.Count, blockedReported);
             gate.Release.TrySetResult();
             var orderRedelivered = await orders.WaitAsync(TestTimeouts.Signal);
 
             // assert
             Assert.True(paymentReceived);
             Assert.Equal(["ORD-1"], payments.Messages.Cast<ProcessPayment>().Select(p => p.OrderId));
-            Assert.Equal((1, 0, false), whileBlocked);
+            Assert.Equal((1, 0, true), whileBlocked);
             Assert.True(orderRedelivered);
             Assert.Equal(["ORD-1"], orders.Messages.Cast<OrderCreated>().Select(o => o.OrderId));
         }
@@ -159,7 +163,7 @@ public sealed class ConsumerRecoveryTests(RabbitMQFixture fixture)
             var whileBlocked = (
                 Invocations: gate.Invocations,
                 Handled: orders.Messages.Count,
-                IsHealthy: GetEndpoint(bus, "orders").IsHealthy);
+                IsHealthy: GetTransport(bus).ConsumerManager.IsConsumerAttached("orders"));
             gate.Release.TrySetResult();
             var redelivered = await orders.WaitAsync(TestTimeouts.Signal);
             var settled = await Condition.WaitAsync(
@@ -172,7 +176,7 @@ public sealed class ConsumerRecoveryTests(RabbitMQFixture fixture)
             Assert.True(redelivered);
             Assert.True(settled);
             Assert.Equal(1, queue?.Consumers);
-            Assert.Equal((1, true), (orders.Messages.Count, GetEndpoint(bus, "orders").IsHealthy));
+            Assert.Equal((1, true), (orders.Messages.Count, GetTransport(bus).ConsumerManager.IsConsumerAttached("orders")));
         }
         finally
         {
@@ -456,10 +460,9 @@ public sealed class ConsumerRecoveryTests(RabbitMQFixture fixture)
             cancellationToken: TestContext.Current.CancellationToken);
     }
 
-    private static RabbitMQReceiveEndpoint GetEndpoint(TestBus bus, string queueName)
+    private static RabbitMQMessagingTransport GetTransport(TestBus bus)
         => ((MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>())
-            .Transports.OfType<RabbitMQMessagingTransport>().Single()
-            .ReceiveEndpoints.OfType<RabbitMQReceiveEndpoint>().Single(endpoint => endpoint.Queue.Name == queueName);
+            .Transports.OfType<RabbitMQMessagingTransport>().Single();
 
     private static async Task PublishAsync(TestBus bus, OrderCreated message)
     {

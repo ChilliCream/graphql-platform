@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
 using RabbitMQ.Client;
@@ -12,7 +10,7 @@ namespace Mocha.Transport.RabbitMQ.Middlewares;
 /// Receive middleware that sends a BasicAck on successful processing and a BasicNack (with requeue) on failure,
 /// ensuring messages are properly acknowledged or returned to the broker.
 /// </summary>
-internal sealed class RabbitMQAcknowledgementMiddleware(ILogger logger)
+internal sealed class RabbitMQAcknowledgementMiddleware
 {
     /// <summary>
     /// Invokes the next middleware in the pipeline and acknowledges or negatively acknowledges the message based on the outcome.
@@ -65,28 +63,11 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger logger)
             }
         }
 
-        LogSkippedSettlement(context, eventArgs, ack ? "ack" : "nack");
-    }
-
-    private void LogSkippedSettlement(IReceiveContext context, BasicDeliverEventArgs delivery, string settlement)
-    {
-        if (!logger.IsEnabled(LogLevel.Information))
-        {
-            return;
-        }
-
-        // The logger of the consumer manager adds the values of the consumer connection.
-        var settlementLogger = (context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.Logger ?? logger;
-        using (settlementLogger.BeginMessageScope(LogLevel.Information, context))
-        {
-            settlementLogger.SettlementSkipped(
-                (context.Endpoint as RabbitMQReceiveEndpoint)?.Queue.Name,
-                settlement,
-                delivery.BasicProperties.MessageId ?? context.MessageId,
-                delivery.ConsumerTag,
-                delivery.DeliveryTag,
-                delivery.Redelivered);
-        }
+        (context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.Logger.SettlementSkipped(
+            context,
+            (context.Endpoint as RabbitMQReceiveEndpoint)?.Queue.Name,
+            ack ? "ack" : "nack",
+            eventArgs);
     }
 
     /// <summary>
@@ -94,10 +75,9 @@ internal sealed class RabbitMQAcknowledgementMiddleware(ILogger logger)
     /// </summary>
     public static ReceiveMiddlewareConfiguration Create()
         => new(
-            static (context, next) =>
+            static (_, next) =>
             {
-                var middleware = new RabbitMQAcknowledgementMiddleware(
-                    context.Services.GetRequiredService<ILoggerFactory>().CreateLogger(RabbitMQLogCategory.Consumer));
+                var middleware = new RabbitMQAcknowledgementMiddleware();
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "RabbitMQAcknowledgement");

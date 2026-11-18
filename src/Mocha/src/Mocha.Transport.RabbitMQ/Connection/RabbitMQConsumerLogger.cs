@@ -1,0 +1,212 @@
+using Microsoft.Extensions.Logging;
+using Mocha.Middlewares;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+
+namespace Mocha.Transport.RabbitMQ;
+
+/// <summary>
+/// Writes the log entries about the consumers of one RabbitMQ connection.
+/// </summary>
+/// <param name="logger">The logger that receives the entries.</param>
+internal sealed partial class RabbitMQConsumerLogger(ILogger logger)
+{
+    public void ConsumerAttachFailed(Exception exception, string queue, int attempt, TimeSpan elapsed, TimeSpan delay)
+        => ConsumerAttachFailed(
+            exception,
+            exception.IsPermanentFailure() ? LogLevel.Error : LogLevel.Warning,
+            queue,
+            attempt,
+            elapsed,
+            delay);
+
+    /// <summary>
+    /// Writes that a consumer lost its channel, or that the broker cancelled it when
+    /// <paramref name="reason"/> is <c>null</c>.
+    /// </summary>
+    public void ConsumerLost(
+        string queue,
+        ShutdownEventArgs? reason,
+        int cancelledHandlers,
+        bool isConnectionLost,
+        TimeSpan delay)
+    {
+        if (reason is null)
+        {
+            ConsumerCancelled(queue, cancelledHandlers, delay);
+            return;
+        }
+
+        // The loss of the connection has its own entry. This one adds what happened to running handlers.
+        ConsumerChannelLost(
+            isConnectionLost && cancelledHandlers == 0 ? LogLevel.Debug : LogLevel.Warning,
+            queue,
+            reason.ReplyCode,
+            reason.ReplyText,
+            reason.Initiator,
+            cancelledHandlers,
+            delay);
+    }
+
+    public void ConsumerChannelLostWhileStopping(string queue, ShutdownEventArgs? reason, int cancelledHandlers)
+        => ConsumerChannelLostWhileStopping(
+            queue,
+            reason?.ReplyCode ?? 0,
+            reason?.ReplyText ?? "consumer cancelled by the broker",
+            reason?.Initiator ?? ShutdownInitiator.Peer,
+            cancelledHandlers);
+
+    public void DeliveryFailed(Exception exception, string queue, BasicDeliverEventArgs delivery)
+        => DeliveryFailed(
+            exception,
+            delivery.BasicProperties.MessageId,
+            queue,
+            delivery.ConsumerTag,
+            delivery.DeliveryTag,
+            delivery.BasicProperties.CorrelationId);
+
+    /// <summary>
+    /// Writes that a message was not settled because its channel is closed. <paramref name="settlement"/> is
+    /// <c>ack</c> or <c>nack</c>.
+    /// </summary>
+    public void SettlementSkipped(
+        IReceiveContext context,
+        string? queue,
+        string settlement,
+        BasicDeliverEventArgs delivery)
+    {
+        using (logger.BeginMessageScope(LogLevel.Information, context))
+        {
+            SettlementSkipped(
+                queue,
+                settlement,
+                delivery.BasicProperties.MessageId ?? context.MessageId,
+                delivery.ConsumerTag,
+                delivery.DeliveryTag,
+                delivery.Redelivered);
+        }
+    }
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "RabbitMQ consumer of {Queue} attached after {Elapsed} (tag {ConsumerTag}, prefetch "
+            + "{MaxPrefetch}, concurrency {MaxConcurrency})")]
+    public partial void ConsumerAttached(
+        string consumerTag,
+        string queue,
+        TimeSpan elapsed,
+        ushort maxPrefetch,
+        ushort maxConcurrency);
+
+    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue} could not attach; its endpoint does not start")]
+    public partial void ConsumerRegistrationFailed(Exception exception, string queue);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "RabbitMQ consumer of {Queue} blocked: all {MaxConcurrency} handlers of the lost channel still "
+            + "run after {GracePeriod}; waiting for one to return")]
+    public partial void ConsumerBlockedByHandlers(string queue, ushort maxConcurrency, TimeSpan gracePeriod);
+
+    [LoggerMessage(LogLevel.Information, "RabbitMQ consumer of {Queue} unblocked after {Elapsed}; attaching again")]
+    public partial void ConsumerUnblocked(string queue, TimeSpan elapsed);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "RabbitMQ consumer of {Queue} stopping; waiting for {RunningHandlers} handlers")]
+    public partial void ConsumerDrainStarted(string queue, int runningHandlers);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "RabbitMQ consumer of {Queue} stopped waiting after {Elapsed}; {RunningHandlers} handlers "
+            + "cancelled, their messages return to the queue")]
+    public partial void ConsumerDrainTimedOut(string queue, int runningHandlers, TimeSpan elapsed);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "RabbitMQ consumer of {Queue} stopping without waiting; {RunningHandlers} handlers cancelled, their "
+            + "messages return to the queue")]
+    public partial void ConsumerHandlersCancelled(string queue, int runningHandlers);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "RabbitMQ consumer of {Queue} stopped after {Elapsed} ({RunningHandlers} handlers still running)")]
+    public partial void ConsumerStopped(string queue, TimeSpan elapsed, int runningHandlers);
+
+    [LoggerMessage(LogLevel.Critical, "RabbitMQ consumer of {Queue} failed unexpectedly; it no longer consumes")]
+    public partial void ConsumerFailed(Exception exception, string queue);
+
+    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue}: stopping failed")]
+    public partial void ConsumerStopFailed(Exception exception, string queue);
+
+    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue}: a cancellation callback of a handler threw")]
+    public partial void HandlerCancellationFailed(Exception exception, string queue);
+
+    [LoggerMessage(LogLevel.Warning, "RabbitMQ queue {Queue}: deleting failed")]
+    public partial void QueueDeleteFailed(Exception exception, string queue);
+
+    [LoggerMessage(
+        Message = "RabbitMQ consumer of {Queue} detached for {Elapsed}, attempt {Attempt} failed; retrying in "
+            + "{Delay}")]
+    private partial void ConsumerAttachFailed(
+        Exception exception,
+        LogLevel level,
+        string queue,
+        int attempt,
+        TimeSpan elapsed,
+        TimeSpan delay);
+
+    [LoggerMessage(
+        Message = "RabbitMQ consumer of {Queue} lost its channel: {ReplyCode} {ReplyText} (initiator {Initiator}); "
+            + "{CancelledHandlers} handlers cancelled, their messages can be delivered again, attaching again in "
+            + "{Delay}")]
+    private partial void ConsumerChannelLost(
+        LogLevel level,
+        string queue,
+        ushort replyCode,
+        string replyText,
+        ShutdownInitiator initiator,
+        int cancelledHandlers,
+        TimeSpan delay);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "RabbitMQ consumer of {Queue} lost its channel while stopping: {ReplyCode} {ReplyText} (initiator "
+            + "{Initiator}); {CancelledHandlers} handlers cancelled, their messages can be delivered again")]
+    private partial void ConsumerChannelLostWhileStopping(
+        string queue,
+        ushort replyCode,
+        string replyText,
+        ShutdownInitiator initiator,
+        int cancelledHandlers);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "RabbitMQ consumer of {Queue} cancelled by the broker; {CancelledHandlers} handlers cancelled, "
+            + "attaching again in {Delay}")]
+    private partial void ConsumerCancelled(string queue, int cancelledHandlers, TimeSpan delay);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "RabbitMQ consumer of {Queue}: handling message {MessageId} failed (tag {ConsumerTag}, delivery "
+            + "{DeliveryTag}, correlation {CorrelationId})")]
+    private partial void DeliveryFailed(
+        Exception exception,
+        string? messageId,
+        string queue,
+        string consumerTag,
+        ulong deliveryTag,
+        string? correlationId);
+
+    [LoggerMessage(
+        LogLevel.Information,
+        "RabbitMQ consumer of {Queue}: {Settlement} of message {MessageId} skipped, channel closed (tag "
+            + "{ConsumerTag}, delivery {DeliveryTag}, redelivered {Redelivered}); the message stays "
+            + "unacknowledged and can be delivered again")]
+    private partial void SettlementSkipped(
+        string? queue,
+        string settlement,
+        string? messageId,
+        string consumerTag,
+        ulong deliveryTag,
+        bool redelivered);
+}

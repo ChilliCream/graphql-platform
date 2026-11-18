@@ -9,9 +9,6 @@ namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 [Collection(RabbitMQCollections.Messaging)]
 public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
 {
-    private const string BlockedReason =
-        "Queue 'orders': The consumer waits for a handler of a lost channel to return.";
-
     [Fact]
     public async Task Consumer_Should_ResumeReceiving_When_BlockedHandlerExits()
     {
@@ -43,11 +40,11 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             // act
             await registration.Channel!.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
             var blocked = await Condition.WaitAsync(
-                () => gate.CancelledHandlers == 1 && manager.HealthFailureReason == BlockedReason,
+                () => gate.CancelledHandlers == 1 && manager.HasBlockedConsumer(),
                 TestTimeouts.Signal);
             gate.Release.TrySetResult();
             var recovered = await Condition.WaitAsync(
-                () => gate.Delivered.Count == 1 && manager.HealthFailureReason is null,
+                () => gate.Delivered.Count == 1 && manager.AreConsumersAttached(),
                 TestTimeouts.Signal);
 
             // assert
@@ -104,7 +101,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             Assert.Equal(
                 new HandlerState(ActiveHandlers: 1, PeakConcurrency: 2, Invocations: 3),
                 gate.State);
-            Assert.Null(manager.HealthFailureReason);
+            Assert.True(manager.AreConsumersAttached());
             Assert.Equal(["order-0", "order-1"], gate.Delivered.Order());
         }
         finally
@@ -145,12 +142,12 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             var cancelled = await Condition.WaitAsync(() => gate.CancelledHandlers == 2, TestTimeouts.Signal);
 
             // the consumer must not consume, and so not prefetch, while no handler can take a message
-            await Wait.UntilAsync(() => manager.HealthFailureReason == BlockedReason);
+            await Wait.UntilAsync(manager.HasBlockedConsumer);
             await vhost.Broker.WaitForNoConsumerAsync("orders");
             var whileBlocked = (registration.IsAttached, gate.Invocations, gate.ActiveHandlers);
             gate.Release.TrySetResult();
             var delivered = await Condition.WaitAsync(
-                () => gate.Delivered.Count == 4 && manager.HealthFailureReason is null,
+                () => gate.Delivered.Count == 4 && manager.AreConsumersAttached(),
                 TestTimeouts.Signal);
 
             // assert

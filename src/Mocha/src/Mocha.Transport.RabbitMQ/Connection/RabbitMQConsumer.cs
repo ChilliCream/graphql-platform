@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Threading.Channels;
-using Microsoft.Extensions.Logging;
 using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -14,8 +13,6 @@ namespace Mocha.Transport.RabbitMQ;
 internal sealed class RabbitMQConsumer : IAsyncDisposable
 {
     private static readonly CancellationToken s_noDrain = new(canceled: true);
-    private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan s_maxRetryDelay = TimeSpan.FromSeconds(30);
 
     private static readonly CreateChannelOptions s_channelOptions = new(
         publisherConfirmationsEnabled: false,
@@ -26,17 +23,25 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
     private readonly Func<IConnection, IChannel, CancellationToken, Task>? _prepareAsync;
     private readonly Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> _messageHandler;
 
-    // Ends the lifecycle task.
+    /// <summary>
+    /// Ends the lifecycle task.
+    /// </summary>
     private readonly CancellationTokenSource _stopRequested = new();
 
-    // Ends the wait for running handlers during a stop.
+    /// <summary>
+    /// Ends the wait for running handlers during a stop.
+    /// </summary>
     private readonly CancellationTokenSource _drainDeadline = new();
 
-    // One queue for the lifetime of the consumer. Every delivery names the attachment it arrived on.
+    /// <summary>
+    /// One queue for the lifetime of the consumer. Every delivery names the attachment it arrived on.
+    /// </summary>
     private readonly Channel<Delivery> _deliveries = System.Threading.Channels.Channel.CreateUnbounded<Delivery>();
 
-    // One permit per concurrent handler. A handler holds its permit until it returns, also after its
-    // channel was lost.
+    /// <summary>
+    /// One permit per concurrent handler. A handler holds its permit until it returns, also after its
+    /// channel was lost.
+    /// </summary>
     private readonly SemaphoreSlim _slots;
 
     private readonly TaskCompletionSource<Exception?> _firstAttempt = new(
@@ -45,11 +50,15 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
     private readonly Task _lifecycle;
     private readonly Task _workers;
 
-    // Written by the lifecycle task, and by the stop after the lifecycle task ended.
+    /// <summary>
+    /// Written by the lifecycle task, and by the stop after the lifecycle task ended.
+    /// </summary>
     private volatile Attachment? _attachment;
     private volatile ConsumerState _state;
 
-    // Completed and replaced on every change of the state.
+    /// <summary>
+    /// Completed and replaced on every change of the state.
+    /// </summary>
     private TaskCompletionSource _stateChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private Task? _stopTask;
     private bool _wasAttached;
@@ -108,7 +117,8 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
     /// <summary>
     /// Gets whether the consumer is attached to an open channel and the broker delivers to it.
     /// </summary>
-    public bool IsAttached => HealthFailureReason is null;
+    public bool IsAttached
+        => _state is ConsumerState.Attached && _attachment is { IsLost: false, Channel.IsOpen: true };
 
     /// <summary>
     /// Gets the number of handlers that have not returned, including cancelled handlers of a lost channel.
@@ -116,16 +126,9 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
     public int RunningHandlers => Math.Max(0, MaxConcurrency - _slots.CurrentCount);
 
     /// <summary>
-    /// Gets the reason the consumer does not consume, or <c>null</c> when it is attached.
+    /// Gets the state of the consumer.
     /// </summary>
-    public string? HealthFailureReason
-        => _state switch
-        {
-            ConsumerState.Attached when _attachment is { IsLost: false, Channel.IsOpen: true } => null,
-            ConsumerState.WaitingForHandlers => "The consumer waits for a handler of a lost channel to return.",
-            ConsumerState.Stopped => "The consumer is stopped.",
-            _ => "The consumer is not attached."
-        };
+    public ConsumerState State => _state;
 
     /// <summary>
     /// Gets a task that completes after the first attempt to attach: with <c>null</c> when the consumer
@@ -175,11 +178,10 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
         var connections = _manager.Connection;
         var timeProvider = _manager.TimeProvider;
         var logger = _manager.Logger;
+        var options = _manager.Options;
         var detachedSince = timeProvider.GetTimestamp();
         var attempt = 0;
 
-        // Every log call below has its own scope: a scope around the routine would be captured by the dispatch
-        // loop of each channel that is opened inside it.
         try
         {
             while (true)
@@ -202,14 +204,16 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                 catch (Exception ex) when (!stop.IsCancellationRequested)
                 {
                     attempt++;
-                    var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
+                    var delay = ExponentialBackoff.CalculateDelay(
+                        attempt,
+                        options.InitialRetryDelay,
+                        options.MaxRetryDelay);
 
                     // A first attempt that fails the same way every time fails the registration, which reports it.
                     if (!_firstAttempt.TrySetResult(ex) || !ex.IsPermanentFailure())
                     {
                         logger.ConsumerAttachFailed(
                             ex,
-                            ex.IsPermanentFailure() ? LogLevel.Error : LogLevel.Warning,
                             QueueName,
                             attempt,
                             timeProvider.GetElapsedTime(detachedSince),
@@ -243,14 +247,19 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                 // An attachment that did not last counts as a failed attempt, so a consumer that the broker
                 // keeps cancelling backs off.
                 attempt =
-                    timeProvider.GetElapsedTime(attachment.AttachedAt, detachedSince) < s_initialRetryDelay
+                    timeProvider.GetElapsedTime(attachment.AttachedAt, detachedSince) < options.InitialRetryDelay
                         ? attempt + 1
                         : 0;
                 var backoff =
                     attempt > 0
-                        ? ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay)
+                        ? ExponentialBackoff.CalculateDelay(attempt, options.InitialRetryDelay, options.MaxRetryDelay)
                         : TimeSpan.Zero;
-                LogLoss(reason, cancelledHandlers, isConnectionLost: !connection.IsOpen, backoff);
+                logger.ConsumerLost(
+                    QueueName,
+                    reason,
+                    cancelledHandlers,
+                    isConnectionLost: !connection.IsOpen,
+                    backoff);
                 await _manager.Connection.CloseChannelAsync(attachment.Channel);
 
                 if (attempt > 0)
@@ -283,7 +292,7 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
     {
         var connections = _manager.Connection;
         var timeProvider = _manager.TimeProvider;
-        var timeout = _manager.AttachTimeout;
+        var timeout = _manager.Options.AttachTimeout;
 
         // The broker does not answer on a connection it blocked.
         await connections.WaitWhileBlockedAsync(stop);
@@ -383,7 +392,7 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
 
         // The handlers were cancelled when their channel was lost. Only a handler that ignores the
         // cancellation is still running after the grace period.
-        var gracePeriod = _manager.BlockedGracePeriod;
+        var gracePeriod = _manager.Options.BlockedGracePeriod;
         if (!await _slots.WaitAsync(gracePeriod, stop))
         {
             var blockedSince = _manager.TimeProvider.GetTimestamp();
@@ -398,26 +407,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
 
         _slots.Release();
         SetState(ConsumerState.Attaching);
-    }
-
-    private void LogLoss(ShutdownEventArgs? reason, int cancelledHandlers, bool isConnectionLost, TimeSpan backoff)
-    {
-        if (reason is null)
-        {
-            _manager.Logger.ConsumerCancelled(QueueName, cancelledHandlers, backoff);
-            return;
-        }
-
-        // The loss of the connection has its own line. This one adds what happened to running handlers.
-        var level = isConnectionLost && cancelledHandlers == 0 ? LogLevel.Debug : LogLevel.Warning;
-        _manager.Logger.ConsumerChannelLost(
-            level,
-            QueueName,
-            reason.ReplyCode,
-            reason.ReplyText,
-            reason.Initiator,
-            cancelledHandlers,
-            backoff);
     }
 
     private async Task WorkAsync()
@@ -448,7 +437,7 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                     }
                     catch (Exception ex)
                     {
-                        LogDeliveryFailed(ex, delivery.EventArgs);
+                        _manager.Logger.DeliveryFailed(ex, QueueName, delivery.EventArgs);
                     }
                     finally
                     {
@@ -461,17 +450,6 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                 }
             }
         }
-    }
-
-    private void LogDeliveryFailed(Exception exception, BasicDeliverEventArgs delivery)
-    {
-        _manager.Logger.DeliveryFailed(
-            exception,
-            delivery.BasicProperties.MessageId,
-            QueueName,
-            delivery.ConsumerTag,
-            delivery.DeliveryTag,
-            delivery.BasicProperties.CorrelationId);
     }
 
     /// <summary>
@@ -571,13 +549,7 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
                     settling.CancelHandlers();
                     if (cancelledHandlers > 0)
                     {
-                        var reason = await settling.Lost;
-                        logger.ConsumerChannelLostWhileStopping(
-                            QueueName,
-                            reason?.ReplyCode ?? 0,
-                            reason?.ReplyText ?? "consumer cancelled by the broker",
-                            reason?.Initiator ?? ShutdownInitiator.Peer,
-                            cancelledHandlers);
+                        logger.ConsumerChannelLostWhileStopping(QueueName, await settling.Lost, cancelledHandlers);
                     }
                 }
             }
@@ -631,7 +603,10 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
     /// </summary>
     private sealed class Attachment : AsyncDefaultBasicConsumer
     {
-        // Never disposed: it has no timer and is not linked, so it holds nothing that needs disposing.
+        /// <summary>
+        /// Cancels the handlers of this attachment. It is never disposed, because it has no timer and is not
+        /// linked.
+        /// </summary>
         private readonly CancellationTokenSource _handlers = new();
         private readonly TaskCompletionSource<ShutdownEventArgs?> _lost = new(
             TaskCreationOptions.RunContinuationsAsynchronously);

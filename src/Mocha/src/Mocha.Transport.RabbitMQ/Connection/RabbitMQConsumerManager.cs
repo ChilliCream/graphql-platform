@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Runtime.ExceptionServices;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -16,7 +15,6 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
         publisherConfirmationTrackingEnabled: false);
 
     private readonly RabbitMQConnectionManager _connection;
-    private readonly TimeSpan _closeTimeout;
     private readonly object _sync = new();
     private ImmutableArray<RabbitMQConsumer> _consumers = [];
     private Task? _disposeTask;
@@ -27,24 +25,24 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     /// </summary>
     /// <param name="logger">The logger for consumer events.</param>
     /// <param name="timeProvider">The clock used for elapsed times, delays and timeouts.</param>
-    /// <param name="closeTimeout">How long the deletion of a queue waits for the broker.</param>
+    /// <param name="options">The timeouts and the retry delay of the consumers.</param>
     /// <param name="connection">The manager of the connection that consumes messages.</param>
     internal RabbitMQConsumerManager(
-        ILogger logger,
+        RabbitMQConsumerLogger logger,
         TimeProvider timeProvider,
-        TimeSpan closeTimeout,
+        RabbitMQConsumerManagerOptions options,
         RabbitMQConnectionManager connection)
     {
         Logger = logger;
         TimeProvider = timeProvider;
-        _closeTimeout = closeTimeout;
+        Options = options;
         _connection = connection;
     }
 
     /// <summary>
     /// Gets the logger for consumer events.
     /// </summary>
-    internal ILogger Logger { get; }
+    internal RabbitMQConsumerLogger Logger { get; }
 
     /// <summary>
     /// Gets the clock used for elapsed times, delays and timeouts.
@@ -52,21 +50,14 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     internal TimeProvider TimeProvider { get; }
 
     /// <summary>
+    /// Gets the timeouts and the retry delay of the consumers.
+    /// </summary>
+    internal RabbitMQConsumerManagerOptions Options { get; }
+
+    /// <summary>
     /// Gets the manager of the connection that consumes messages.
     /// </summary>
     internal RabbitMQConnectionManager Connection => _connection;
-
-    /// <summary>
-    /// Gets or sets how long one attempt to attach a consumer may take before it is abandoned and retried.
-    /// The wait for a handler of a lost channel to return does not count.
-    /// </summary>
-    public TimeSpan AttachTimeout { get; set; } = TimeSpan.FromSeconds(60);
-
-    /// <summary>
-    /// Gets or sets how long a consumer waits for a handler of a lost channel to return before it reports
-    /// that it is blocked.
-    /// </summary>
-    public TimeSpan BlockedGracePeriod { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Gets whether a ready connection exists.
@@ -74,33 +65,9 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     public bool IsConnected => _connection.IsConnected;
 
     /// <summary>
-    /// Gets whether the connection is ready and every consumer is attached.
+    /// Gets the registered consumers.
     /// </summary>
-    public bool IsHealthy => HealthFailureReason is null;
-
-    /// <summary>
-    /// Gets the reason the connection or a consumer is unhealthy, or <c>null</c> when all are healthy.
-    /// </summary>
-    public string? HealthFailureReason
-    {
-        get
-        {
-            if (!_connection.IsConnected)
-            {
-                return "The consumer connection is unavailable.";
-            }
-
-            foreach (var consumer in _consumers)
-            {
-                if (consumer.HealthFailureReason is { } reason)
-                {
-                    return $"Queue '{consumer.QueueName}': {reason}";
-                }
-            }
-
-            return null;
-        }
-    }
+    internal ImmutableArray<RabbitMQConsumer> Consumers => _consumers;
 
     /// <summary>
     /// Connects, as <see cref="RabbitMQConnectionManager.StartAsync"/> describes.
@@ -185,8 +152,8 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Deletes a queue on the ready connection, waiting no longer than the close timeout of the connection
-    /// for the broker. Does nothing when there is no
+    /// Deletes a queue on the ready connection, waiting no longer than the queue delete timeout for the
+    /// broker. Does nothing when there is no
     /// ready connection, and logs a failure instead of throwing it.
     /// </summary>
     public async Task DeleteQueueAsync(string queueName)
@@ -196,12 +163,12 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
             return;
         }
 
-        var timeout = _closeTimeout;
+        var timeout = Options.QueueDeleteTimeout;
         using var deadline = new CancellationTokenSource(timeout, TimeProvider);
         var deadlineToken = deadline.Token;
 
         // A cancelled open would cost the connection a channel number, so the open runs to its end.
-        var opening = _connection.OpenChannelAsync(connection, s_probeChannelOptions, AttachTimeout);
+        var opening = _connection.OpenChannelAsync(connection, s_probeChannelOptions, Options.AttachTimeout);
         try
         {
             var channel = await opening.WaitOrAbandonAsync(deadlineToken);

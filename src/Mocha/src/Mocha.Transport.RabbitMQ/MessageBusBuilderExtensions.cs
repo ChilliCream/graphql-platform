@@ -20,9 +20,13 @@ public static class MessageBusBuilderExtensions
     {
         var transport = new RabbitMQMessagingTransport(x => configure(x.AddDefaults()));
 
-        busBuilder.ConfigureMessageBus(b => b
-            .AddTransport(transport)
-            .ConfigureServices(s => s.AddSingleton<IMessageBusHealthCheck>(new TransportStartedHealthCheck(transport))));
+        busBuilder.ConfigureMessageBus(b =>
+            b.AddTransport(transport)
+                .ConfigureServices(s =>
+                    s.AddSingleton<IMessageBusHealthCheck>(new TransportStartedHealthCheck(transport))
+                        .AddSingleton<IMessageBusHealthCheck>(new RabbitMQConsumerHealthCheck(transport))
+                )
+        );
 
         return busBuilder;
     }

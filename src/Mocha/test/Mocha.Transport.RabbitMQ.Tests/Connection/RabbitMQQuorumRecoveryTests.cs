@@ -16,9 +16,6 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
     private const string EarlierDeliveriesHeader = "x-acquired-count";
 #endif
 
-    private const string BlockedReason =
-        "Queue 'orders': The consumer waits for a handler of a lost channel to return.";
-
     [Fact]
     public async Task Consumer_Should_RetainUnprocessedMessages_When_LostHandlerUsesAllCapacity()
     {
@@ -76,7 +73,7 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
 
             // A consumer that attached would take both messages again without a free handler, until the broker
             // took them back.
-            await Wait.UntilAsync(() => manager.HealthFailureReason == BlockedReason);
+            await Wait.UntilAsync(manager.HasBlockedConsumer);
             var queueWhileBlocked = await vhost.Broker.GetQueueAsync("orders");
             var whileBlocked = (queueWhileBlocked?.Consumers, queueWhileBlocked?.Messages, invocations);
             release.TrySetResult();
@@ -88,7 +85,7 @@ public sealed class RabbitMQQuorumRecoveryTests(RabbitMQFixture fixture)
 
             // each message was delivered once before, to the consumer that the broker took away
             Assert.Equal([("first", 1L), ("second", 1L)], delivered.Order());
-            Assert.Null(manager.HealthFailureReason);
+            Assert.True(manager.AreConsumersAttached());
         }
         finally
         {

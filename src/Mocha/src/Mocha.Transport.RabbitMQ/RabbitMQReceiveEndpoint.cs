@@ -19,11 +19,6 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
     /// </summary>
     public RabbitMQQueue Queue { get; private set; } = null!;
 
-    /// <summary>
-    /// Gets whether the endpoint's consumer is attached and the broker delivers to it.
-    /// </summary>
-    internal bool IsHealthy => _consumer is { IsAttached: true };
-
     protected override void OnInitialize(
         IMessagingConfigurationContext context,
         RabbitMQReceiveEndpointConfiguration configuration)

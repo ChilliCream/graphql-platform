@@ -35,7 +35,7 @@ public sealed class ConsumerLifecycleTests(RabbitMQFixture fixture)
         // assert
         Assert.True(received);
         Assert.Equal(["ORD-1"], orders.Messages.Cast<OrderCreated>().Select(order => order.OrderId));
-        Assert.Null(transport.ConsumerManager.HealthFailureReason);
+        Assert.Empty(await transport.CheckConsumerHealthAsync());
         Assert.False(reply.IsStarted);
     }
 
@@ -113,7 +113,8 @@ public sealed class ConsumerLifecycleTests(RabbitMQFixture fixture)
     private static async Task PublishAsync(TestBus bus, OrderCreated message)
     {
         using var scope = bus.Provider.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<IMessageBus>()
+        await scope
+            .ServiceProvider.GetRequiredService<IMessageBus>()
             .PublishAsync(message, TestContext.Current.CancellationToken);
     }
 

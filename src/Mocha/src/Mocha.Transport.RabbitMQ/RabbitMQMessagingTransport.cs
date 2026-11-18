@@ -116,22 +116,15 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                 Connection.Port,
                 Connection.VirtualHost));
 
-        Func<CancellationToken, ValueTask<IConnection>> connectionFactory = Connection
-            is ConnectionFactoryRabbitMQConnectionProvider provider
-            ? cancellationToken => provider.CreateAsync(connectionName, cancellationToken)
-            : Connection.CreateAsync;
-
-        var options = new RabbitMQConnectionManagerOptions();
-
         ConsumerManager = new RabbitMQConsumerManager(
-            logger,
+            new RabbitMQConsumerLogger(logger),
             timeProvider,
-            options.CloseTimeout,
+            new RabbitMQConsumerManagerOptions(),
             new RabbitMQConnectionManager(
                 new RabbitMQConnectionLogger(logger, role),
                 timeProvider,
-                options,
-                connectionFactory,
+                new RabbitMQConnectionManagerOptions(),
+                cancellationToken => Connection.CreateAsync(connectionName, cancellationToken),
                 RabbitMQConsumerManager.SetUpConnectionAsync));
     }
 

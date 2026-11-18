@@ -185,7 +185,8 @@ public sealed class ShutdownTests(RabbitMQFixture fixture)
         {
             await vhost.Broker.WaitForNoConsumerAsync("nested-first");
             await vhost.Broker.WaitForNoConsumerAsync("nested-second");
-            replyWasHealthy = ((RabbitMQReceiveEndpoint)transport.ReplyReceiveEndpoint!).IsHealthy;
+            replyWasHealthy = transport.ConsumerManager.IsConsumerAttached(
+                ((RabbitMQReceiveEndpoint)transport.ReplyReceiveEndpoint!).Queue.Name);
         }
         finally
         {

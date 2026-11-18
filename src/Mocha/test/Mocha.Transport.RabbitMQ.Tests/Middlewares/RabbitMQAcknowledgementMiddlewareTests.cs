@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
 using Mocha.Transport.RabbitMQ.Middlewares;
@@ -12,8 +11,10 @@ namespace Mocha.Transport.RabbitMQ.Tests.Middlewares;
 
 public sealed class RabbitMQAcknowledgementMiddlewareTests
 {
-    private static readonly ShutdownEventArgs s_connectionForced =
-        new(ShutdownInitiator.Peer, 320, "CONNECTION_FORCED - test");
+    private static readonly ShutdownEventArgs s_connectionForced = new(
+        ShutdownInitiator.Peer,
+        320,
+        "CONNECTION_FORCED - test");
 
     [Fact]
     public async Task InvokeAsync_Should_Complete_When_ChannelClosesDuringAck()
@@ -28,7 +29,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         var context = CreateContext(channel.Object, redelivered: false);
 
         // act
-        await new RabbitMQAcknowledgementMiddleware(NullLogger<RabbitMQAcknowledgementMiddleware>.Instance).InvokeAsync(context, _ => default);
+        await new RabbitMQAcknowledgementMiddleware().InvokeAsync(context, _ => default);
 
         // assert
         channel.Verify(c => c.BasicAckAsync(7, false, It.IsAny<CancellationToken>()), Times.Once());
@@ -43,7 +44,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         var handled = false;
 
         // act
-        await new RabbitMQAcknowledgementMiddleware(NullLogger<RabbitMQAcknowledgementMiddleware>.Instance).InvokeAsync(
+        await new RabbitMQAcknowledgementMiddleware().InvokeAsync(
             context,
             _ =>
             {
@@ -65,7 +66,7 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         var handled = false;
 
         // act
-        await new RabbitMQAcknowledgementMiddleware(NullLogger<RabbitMQAcknowledgementMiddleware>.Instance).InvokeAsync(
+        await new RabbitMQAcknowledgementMiddleware().InvokeAsync(
             context,
             _ =>
             {
@@ -85,18 +86,17 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         var channel = new Mock<IChannel>();
         channel.SetupGet(c => c.IsOpen).Returns(true);
         channel
-            .Setup(c => c.BasicNackAsync(
-                It.IsAny<ulong>(),
-                It.IsAny<bool>(),
-                It.IsAny<bool>(),
-                It.IsAny<CancellationToken>()))
+            .Setup(c =>
+                c.BasicNackAsync(It.IsAny<ulong>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())
+            )
             .Returns(() => ValueTask.FromException(new AlreadyClosedException(s_connectionForced)));
         var context = CreateContext(channel.Object, redelivered: false);
 
         // act
         var expected = new InvalidOperationException("handler failed");
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await new RabbitMQAcknowledgementMiddleware(NullLogger<RabbitMQAcknowledgementMiddleware>.Instance).InvokeAsync(context, _ => throw expected));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await new RabbitMQAcknowledgementMiddleware().InvokeAsync(context, _ => throw expected)
+        );
 
         // assert
         Assert.Same(expected, exception);
@@ -112,13 +112,9 @@ public sealed class RabbitMQAcknowledgementMiddlewareTests
         return channel;
     }
 
-    private static ReceiveContext CreateContext(
-        IChannel channel,
-        bool redelivered)
+    private static ReceiveContext CreateContext(IChannel channel, bool redelivered)
     {
-        var services = new ServiceCollection()
-            .AddLogging()
-            .BuildServiceProvider();
+        var services = new ServiceCollection().AddLogging().BuildServiceProvider();
         var context = new ReceiveContext { Services = services };
 
         var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();

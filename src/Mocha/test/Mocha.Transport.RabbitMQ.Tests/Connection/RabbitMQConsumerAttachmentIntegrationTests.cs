@@ -19,7 +19,8 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         vhost.ConnectionSettings.RequestedChannelMax = 1;
         vhost.ConnectionSettings.ContinuationTimeout = TimeSpan.FromSeconds(1);
         vhost.ConnectionSettings.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
-        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(
             new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
             TestContext.Current.CancellationToken);
@@ -55,8 +56,10 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         // arrange
         // the client holds a request the broker does not answer for 20 seconds, whatever the caller's token says
         await using var vhost = await fixture.CreateVhostAsync();
-        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
-        await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         await DeclareQueueAsync(channel, "orders");
         await using var manager = CreateManager(vhost);
         await manager.StartAsync(TestContext.Current.CancellationToken);
@@ -74,8 +77,9 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
                 maxConcurrency: 1,
                 cancellation.Token);
             await cancellation.CancelAsync();
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(
-                () => registration.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                registration.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken)
+            );
         }
 
         var current = await manager.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
@@ -92,8 +96,10 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         // the client holds a request the broker does not answer for this long, which bounds a part of the dispose
         await using var vhost = await fixture.CreateVhostAsync();
         vhost.ConnectionSettings.ContinuationTimeout = TimeSpan.FromSeconds(2);
-        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
-        await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
         await DeclareQueueAsync(channel, "orders");
         var manager = CreateManager(vhost);
         await manager.StartAsync(TestContext.Current.CancellationToken);
@@ -112,8 +118,9 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         }
 
         // assert
-        await Assert.ThrowsAsync<ObjectDisposedException>(
-            () => registration.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() =>
+            registration.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
@@ -122,7 +129,8 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
         vhost.ConnectionSettings.RequestedChannelMax = 1;
-        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(
             new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
             TestContext.Current.CancellationToken);
@@ -139,12 +147,14 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
             TestContext.Current.CancellationToken);
 
         // act
-        await Assert.ThrowsAsync<ChannelAllocationException>(() => manager.RegisterConsumerAsync(
-            "another-queue",
-            static (_, _, _) => default,
-            maxPrefetch: 1,
-            maxConcurrency: 1,
-            TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ChannelAllocationException>(() =>
+            manager.RegisterConsumerAsync(
+                "another-queue",
+                static (_, _, _) => default,
+                maxPrefetch: 1,
+                maxConcurrency: 1,
+                TestContext.Current.CancellationToken)
+        );
         await channel.BasicPublishAsync("", "orders", "available"u8.ToArray(), TestContext.Current.CancellationToken);
         var delivered = await received.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
         var current = await manager.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
@@ -159,7 +169,8 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
-        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(
             new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
             TestContext.Current.CancellationToken);
@@ -168,8 +179,9 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var slowDelivery = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         var healthyDelivery = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var manager = CreateManager(vhost);
-        manager.AttachTimeout = TimeSpan.FromSeconds(1);
+        await using var manager = TestManagers.CreateConsumerManager(
+            async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct),
+            new RabbitMQConsumerManagerOptions { AttachTimeout = TimeSpan.FromSeconds(1) });
         await manager.RegisterConsumerAsync(
             "slow",
             async (_, consumerChannel, ct) =>
@@ -191,21 +203,32 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         // act
         try
         {
-            await manager.StartAsync(TestContext.Current.CancellationToken)
+            await manager
+                .StartAsync(TestContext.Current.CancellationToken)
                 .WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-            await channel.BasicPublishAsync("", "healthy", "available"u8.ToArray(), TestContext.Current.CancellationToken);
+            await channel.BasicPublishAsync(
+                "",
+                "healthy",
+                "available"u8.ToArray(),
+                TestContext.Current.CancellationToken);
             await channel.BasicPublishAsync("", "slow", "retained"u8.ToArray(), TestContext.Current.CancellationToken);
 
             // assert
-            Assert.Equal("available", await healthyDelivery.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
-            Assert.Equal(1u, (await channel.QueueDeclarePassiveAsync("slow", TestContext.Current.CancellationToken)).MessageCount);
+            Assert.Equal(
+                "available",
+                await healthyDelivery.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
+            Assert.Equal(
+                1u,
+                (await channel.QueueDeclarePassiveAsync("slow", TestContext.Current.CancellationToken)).MessageCount);
         }
         finally
         {
             release.TrySetResult();
         }
 
-        Assert.Equal("retained", await slowDelivery.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
+        Assert.Equal(
+            "retained",
+            await slowDelivery.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -213,7 +236,8 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
-        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(
             new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
             TestContext.Current.CancellationToken);
@@ -270,7 +294,9 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         // assert
         Assert.Equal(0u, pending.ConsumerCount);
         Assert.Equal(1u, pending.MessageCount);
-        Assert.Equal("ORD-1", await response.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
+        Assert.Equal(
+            "ORD-1",
+            await response.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -278,7 +304,8 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
-        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(
+            TestContext.Current.CancellationToken);
         await using var channel = await connection.CreateChannelAsync(
             new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true),
             TestContext.Current.CancellationToken);
@@ -304,7 +331,8 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         try
         {
             await started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-            await consumer.StopAsync(TestContext.Current.CancellationToken)
+            await consumer
+                .StopAsync(TestContext.Current.CancellationToken)
                 .WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
         }
         finally
