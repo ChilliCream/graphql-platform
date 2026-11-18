@@ -23,30 +23,24 @@ internal sealed class RabbitMQConnectionManager(
     Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
     Func<IConnection, CancellationToken, Task> setUpConnectionAsync) : IAsyncDisposable
 {
+    private readonly RabbitMQConnectionLogger _logger = logger;
+    private readonly RabbitMQConnectionManagerOptions _options = options;
+    private readonly TimeProvider _timeProvider = timeProvider;
     private readonly CancellationTokenSource _disposeCts = new();
     private readonly object _sync = new();
 
-    // The ready connection, or null while there is none.
-    private IConnection? _connection;
-
-    // Completes with the next ready connection, and is replaced when that connection is lost.
-    private TaskCompletionSource<IConnection> _ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-    // The connect routine that runs or ran last. At most one runs at a time.
-    private Task _connecting = Task.CompletedTask;
-
-    // Completed while the ready connection is not blocked by the broker, and replaced while it is.
-    private TaskCompletionSource _unblocked = TaskCompletionSource.CreateCompleted();
+    /// <summary>
+    /// The state of the manager. Every transition replaces it with one atomic exchange.
+    /// </summary>
+    private State _state = new NotStarted(new(TaskCreationOptions.RunContinuationsAsynchronously));
 
     private Task? _disposeTask;
-    private long _unavailableSince;
-    private long _blockedSince;
-    private bool _isDisposed;
 
     /// <summary>
     /// Gets the ready connection, or <c>null</c> while there is none.
     /// </summary>
-    public IConnection? Connection => Volatile.Read(ref _connection) is { IsOpen: true } connection ? connection : null;
+    public IConnection? Connection
+        => Volatile.Read(ref _state).Connection is { IsOpen: true } connection ? connection : null;
 
     /// <summary>
     /// Gets whether a ready connection exists.
@@ -57,21 +51,18 @@ internal sealed class RabbitMQConnectionManager(
     /// Gets whether the broker blocked the ready connection. The broker does not read from a blocked
     /// connection, so publishes and requests on it stay unanswered until the broker unblocks it.
     /// </summary>
-    public bool IsBlocked => Volatile.Read(ref _blockedSince) != 0 && IsConnected;
+    public bool IsBlocked => Volatile.Read(ref _state).IsBlocked;
 
     /// <summary>
     /// Waits while the broker blocks the ready connection. The wait also ends when the connection is lost.
     /// </summary>
     public Task WaitWhileBlockedAsync(CancellationToken cancellationToken)
-    {
-        var unblocked = Volatile.Read(ref _unblocked).Task;
-        return unblocked.IsCompleted ? Task.CompletedTask : unblocked.WaitAsync(cancellationToken);
-    }
+        => Volatile.Read(ref _state).WaitWhileBlockedAsync(cancellationToken);
 
     /// <summary>
     /// Gets whether the manager was disposed.
     /// </summary>
-    public bool IsDisposed => Volatile.Read(ref _isDisposed);
+    public bool IsDisposed => Volatile.Read(ref _state) is Disposed;
 
     /// <summary>
     /// Gets the ready connection, waiting while there is none, without connecting: only
@@ -79,7 +70,7 @@ internal sealed class RabbitMQConnectionManager(
     /// ready, when <paramref name="cancellationToken"/> is cancelled, or when the manager is disposed.
     /// </summary>
     public ValueTask<IConnection> GetConnectionAsync(CancellationToken cancellationToken)
-        => Volatile.Read(ref _connection) is { IsOpen: true } connection
+        => Volatile.Read(ref _state).Connection is { IsOpen: true } connection
             ? new ValueTask<IConnection>(connection)
             : WaitForConnectionAsync(cancellationToken);
 
@@ -87,36 +78,8 @@ internal sealed class RabbitMQConnectionManager(
     {
         while (true)
         {
-            Task<IConnection>? ready = null;
-            IConnection? closed = null;
-            lock (_sync)
-            {
-                ObjectDisposedException.ThrowIf(_isDisposed, this);
-                if (_connection is { } current)
-                {
-                    if (current.IsOpen)
-                    {
-                        return current;
-                    }
-
-                    closed = current;
-                }
-                else
-                {
-                    // The wait does not connect. Before a start succeeded it lasts until one does.
-                    ready = _ready.Task;
-                }
-            }
-
-            if (closed is not null)
-            {
-                // The connection closed and its shutdown event has not arrived yet.
-                OnConnectionLost(closed, closed.GetCloseReason());
-                continue;
-            }
-
-            var connection = await ready!.WaitAsync(cancellationToken);
-            if (connection.IsOpen)
+            // A state that was left while the caller waited gives no connection, and the next state is asked.
+            if (await Volatile.Read(ref _state).GetConnectionAsync(this, cancellationToken) is { } connection)
             {
                 return connection;
             }
@@ -125,163 +88,27 @@ internal sealed class RabbitMQConnectionManager(
 
     /// <summary>
     /// Connects, retrying with exponential backoff until the start timeout elapsed. A failure that repeats on
-    /// every attempt, such as refused credentials, fails at once.
+    /// every attempt, such as refused credentials, fails at once. Concurrent callers share one start, and
+    /// <paramref name="cancellationToken"/> ends only the wait of its caller.
     /// </summary>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        while (true)
+        while (!await Volatile.Read(ref _state).StartAsync(this, cancellationToken))
         {
-            Task? connecting = null;
-            Task<IConnection>? ready = null;
-            IConnection? closed = null;
-            lock (_sync)
-            {
-                ObjectDisposedException.ThrowIf(_isDisposed, this);
-                if (_connection is { } current)
-                {
-                    if (current.IsOpen)
-                    {
-                        return;
-                    }
-
-                    closed = current;
-                }
-                else if (_connecting.IsCompleted)
-                {
-                    var timeout = options.StartTimeout;
-                    _unavailableSince = timeProvider.GetTimestamp();
-                    _connecting = connecting = Task.Run(() => ConnectWithRetryAsync(timeout, cancellationToken));
-                }
-                else
-                {
-                    ready = _ready.Task;
-                }
-            }
-
-            if (closed is not null)
-            {
-                OnConnectionLost(closed, closed.GetCloseReason());
-                continue;
-            }
-
-            if (connecting is not null)
-            {
-                try
-                {
-                    await connecting;
-                    return;
-                }
-                catch (OperationCanceledException)
-                    when (_disposeCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
-                {
-                    throw ThrowHelper.ConnectionManagerDisposed();
-                }
-            }
-
-            // A recovery already runs in the background. The start waits for it as long as it would have
-            // kept trying itself, which is without a limit for an infinite timeout.
-            var startTimeout = options.StartTimeout;
-            try
-            {
-                await ready!.WaitAsync(startTimeout, timeProvider, cancellationToken);
-                return;
-            }
-            catch (TimeoutException ex)
-            {
-                throw ThrowHelper.ConnectionTimedOut(startTimeout, ex);
-            }
+            // The state was left while the caller waited, so the next state is asked.
         }
     }
 
     /// <summary>
-    /// Connects until an attempt succeeds. With a <paramref name="startTimeout"/> the routine fails when that
-    /// time elapsed or a failure repeats on every attempt, and with <c>null</c>, for a recovery, it never
-    /// gives up.
+    /// Replaces the state <paramref name="from"/> with <paramref name="to"/>. Returns <c>false</c> when another
+    /// transition replaced <paramref name="from"/> first.
     /// </summary>
-    private async Task ConnectWithRetryAsync(TimeSpan? startTimeout, CancellationToken cancellationToken)
-    {
-        using var loopCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _disposeCts.Token);
-        var loopToken = loopCts.Token;
-        var started = timeProvider.GetTimestamp();
+    private bool TryEnter(State from, State to) => Interlocked.CompareExchange(ref _state, to, from) == from;
 
-        for (var attempt = 1; ; attempt++)
-        {
-            loopToken.ThrowIfCancellationRequested();
-
-            // The last attempt before the start timeout ends with it. A timeout of zero allows one whole
-            // attempt, and an infinite one, which is negative, sets no end.
-            var attemptTimeout = options.AttemptTimeout;
-            if (startTimeout is { } limit && limit > TimeSpan.Zero)
-            {
-                var remaining = limit - timeProvider.GetElapsedTime(started);
-                if (remaining < attemptTimeout)
-                {
-                    attemptTimeout = remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
-                }
-            }
-
-            using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(loopToken);
-            attemptCts.CancelAfter(attemptTimeout);
-
-            try
-            {
-                logger.ConnectionAttemptStarted(attempt);
-
-                var connection = await ConnectOnceAsync(attemptCts.Token);
-                if (!TryHandOut(connection, attempt))
-                {
-                    // The manager was disposed while the attempt ran. Disposal cancelled the routine's token
-                    // before it set the flag, so this ends the routine.
-                    await CloseConnectionAsync(connection);
-                    loopToken.ThrowIfCancellationRequested();
-                }
-
-                return;
-            }
-            catch (Exception ex) when (!loopToken.IsCancellationRequested)
-            {
-                // Nobody cancelled the routine, so a cancellation is a timeout: of the attempt, or of the
-                // client, which reports a request the broker did not answer in time as a cancellation.
-                var timedOut = ex is OperationCanceledException;
-                var failure =
-                    !timedOut ? ex
-                    : attemptCts.IsCancellationRequested ? ThrowHelper.ConnectionAttemptTimedOut(attemptTimeout, ex)
-                    : ThrowHelper.ConnectionRequestTimedOut(ex);
-                var delay = ExponentialBackoff.CalculateDelay(
-                    attempt,
-                    options.InitialRetryDelay,
-                    options.MaxRetryDelay);
-                var elapsed = timeProvider.GetElapsedTime(Volatile.Read(ref _unavailableSince));
-
-                // A start gives up when the failure repeats on every attempt, or when the next attempt would
-                // begin after a timeout that is not infinite.
-                if (startTimeout is { } timeout
-                    && (
-                        failure.IsPermanentFailure()
-                        || (
-                            timeout != Timeout.InfiniteTimeSpan
-                            && timeProvider.GetElapsedTime(started) + delay > timeout)))
-                {
-                    logger.ConnectionFailed(failure, attempt, elapsed);
-
-                    if (timedOut)
-                    {
-                        throw ThrowHelper.ConnectionTimedOut(timeout, ex);
-                    }
-
-                    throw;
-                }
-
-                logger.ConnectionAttemptFailed(failure, attempt, elapsed, delay);
-
-                await Task.Delay(delay, timeProvider, loopToken);
-            }
-        }
-    }
-
-    private async Task<IConnection> ConnectOnceAsync(CancellationToken cancellationToken)
+    private async Task<(IConnection Connection, Alarm Alarm)> ConnectOnceAsync(CancellationToken cancellationToken)
     {
         var connection = await connectionFactory(cancellationToken);
+        var alarm = new Alarm();
         try
         {
             connection.ConnectionShutdownAsync += (_, reason) =>
@@ -289,15 +116,22 @@ internal sealed class RabbitMQConnectionManager(
                 OnConnectionLost(connection, reason);
                 return Task.CompletedTask;
             };
-            connection.CallbackExceptionAsync += OnCallbackExceptionAsync;
+            connection.CallbackExceptionAsync += (_, e) =>
+            {
+                _logger.ConnectionCallbackFailed(e.Exception, e.Detail);
+                return Task.CompletedTask;
+            };
             connection.ConnectionBlockedAsync += (_, e) =>
             {
-                OnConnectionBlocked(connection, e.Reason);
+                alarm.Begin(_timeProvider.GetTimestamp());
+                _logger.ConnectionBlocked(e.Reason);
                 return Task.CompletedTask;
             };
             connection.ConnectionUnblockedAsync += (_, _) =>
             {
-                OnConnectionUnblocked(connection);
+                var blockedSince = alarm.End();
+                _logger.ConnectionUnblocked(
+                    blockedSince is { } since ? _timeProvider.GetElapsedTime(since) : TimeSpan.Zero);
                 return Task.CompletedTask;
             };
 
@@ -309,7 +143,7 @@ internal sealed class RabbitMQConnectionManager(
                 throw ThrowHelper.ConnectionClosedDuringSetup(connection.CloseReason);
             }
 
-            return connection;
+            return (connection, alarm);
         }
         catch
         {
@@ -318,40 +152,12 @@ internal sealed class RabbitMQConnectionManager(
         }
     }
 
-    private bool TryHandOut(IConnection connection, int attempt)
-    {
-        lock (_sync)
-        {
-            if (_isDisposed)
-            {
-                return false;
-            }
-
-            Volatile.Write(ref _blockedSince, 0);
-            _unblocked.TrySetResult();
-            Volatile.Write(ref _connection, connection);
-            _ready.TrySetResult(connection);
-        }
-
-        logger.ConnectionReady(attempt, timeProvider.GetElapsedTime(Volatile.Read(ref _unavailableSince)));
-
-        // A connection that closed before it was handed out raised its shutdown event to nobody.
-        if (!connection.IsOpen)
-        {
-            OnConnectionLost(connection, connection.GetCloseReason());
-        }
-
-        return true;
-    }
-
     private void OnConnectionLost(IConnection connection, ShutdownEventArgs? reason)
     {
-        if (!TryBeginRecovery(connection))
+        if (TryBeginRecovery(connection))
         {
-            return;
+            _logger.ConnectionLost(reason);
         }
-
-        logger.ConnectionLost(reason);
     }
 
     /// <summary>
@@ -361,77 +167,28 @@ internal sealed class RabbitMQConnectionManager(
     /// </summary>
     private bool TryBeginRecovery(IConnection connection)
     {
-        lock (_sync)
+        // Several reports can arrive for one connection, also at the same time. A report that arrives after
+        // the state was replaced ends here.
+        if (Volatile.Read(ref _state) is not Connected connected
+            || !ReferenceEquals(connected.Connection, connection))
         {
-            if (_isDisposed || !ReferenceEquals(_connection, connection))
-            {
-                return false;
-            }
-
-            // Callers that arrive from here on wait for the next connection.
-            _ready = new TaskCompletionSource<IConnection>(TaskCreationOptions.RunContinuationsAsynchronously);
-            Volatile.Write(ref _connection, null);
-            Volatile.Write(ref _unavailableSince, timeProvider.GetTimestamp());
-            Volatile.Write(ref _blockedSince, 0);
-            _unblocked.TrySetResult();
-
-            // The client raises the shutdown event on its reader loop, which must not wait for the cleanup.
-            _connecting = Task.Run(() => RecoverAsync(connection));
-            return true;
-        }
-    }
-
-    private async Task RecoverAsync(IConnection lostConnection)
-    {
-        // The lost connection is closed first, so the broker has released what belongs to it, such as an
-        // exclusive queue. Disposing it also stops the client's own automatic recovery.
-        await CloseConnectionAsync(lostConnection);
-        await ConnectWithRetryAsync(startTimeout: null, CancellationToken.None);
-    }
-
-    private Task OnCallbackExceptionAsync(object? sender, CallbackExceptionEventArgs e)
-    {
-        logger.ConnectionCallbackFailed(e.Exception, e.Detail);
-        return Task.CompletedTask;
-    }
-
-    private void OnConnectionBlocked(IConnection connection, string reason)
-    {
-        lock (_sync)
-        {
-            if (!ReferenceEquals(_connection, connection))
-            {
-                return;
-            }
-
-            if (_blockedSince == 0)
-            {
-                Volatile.Write(ref _blockedSince, timeProvider.GetTimestamp());
-                Volatile.Write(
-                    ref _unblocked,
-                    new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously));
-            }
+            return false;
         }
 
-        logger.ConnectionBlocked(reason);
-    }
-
-    private void OnConnectionUnblocked(IConnection connection)
-    {
-        long blockedSince;
-        lock (_sync)
+        // Callers that arrive from here on wait for the next connection.
+        var recovering = new Recovering(connection, _timeProvider.GetTimestamp());
+        if (!TryEnter(connected, recovering))
         {
-            if (!ReferenceEquals(_connection, connection))
-            {
-                return;
-            }
-
-            blockedSince = _blockedSince;
-            Volatile.Write(ref _blockedSince, 0);
-            _unblocked.TrySetResult();
+            // A concurrent report for the connection, or a disposal, replaced the state first.
+            return false;
         }
 
-        logger.ConnectionUnblocked(blockedSince == 0 ? TimeSpan.Zero : timeProvider.GetElapsedTime(blockedSince));
+        // The lost connection is no longer blocked, and the alarm ignores a late block event from it.
+        connected.Alarm.End(retire: true);
+
+        // The routine is not awaited, because the caller can be the reader loop of the client.
+        _ = recovering.Run(this);
+        return true;
     }
 
     /// <summary>
@@ -460,18 +217,16 @@ internal sealed class RabbitMQConnectionManager(
         catch (OperationCanceledException ex)
         {
             // The timeout elapsed, or the client's own timeout for a request did.
-            lock (_sync)
+            if (Volatile.Read(ref _state) is Connected { Alarm.IsActive: true } connected
+                && ReferenceEquals(connected.Connection, connection))
             {
-                if (_blockedSince != 0 && ReferenceEquals(_connection, connection))
-                {
-                    // The broker does not read from a blocked connection, so the silence says nothing about
-                    // the connection. Replacing it would send every pending publish again.
-                    throw ThrowHelper.ChannelOpenBlocked(ex);
-                }
+                // The broker does not read from a blocked connection, so the silence says nothing about
+                // the connection. Replacing it would send every pending publish again.
+                throw ThrowHelper.ChannelOpenBlocked(ex);
             }
 
-            // Closing the connection is the only way to give the channel number back, and it ends a request
-            // that is still in flight.
+            // The client keeps the channel number of this open reserved until the connection closes. The
+            // connection is replaced, so the numbers do not run out.
             ReportUnresponsive(connection, "the broker did not answer the request to open a channel");
             throw ThrowHelper.ChannelOpenTimedOut(ex);
         }
@@ -485,12 +240,10 @@ internal sealed class RabbitMQConnectionManager(
     /// <param name="reason">Why the connection is replaced, for the log.</param>
     public void ReportUnresponsive(IConnection connection, string reason)
     {
-        if (!TryBeginRecovery(connection))
+        if (TryBeginRecovery(connection))
         {
-            return;
+            _logger.ConnectionAborted(reason);
         }
-
-        logger.ConnectionAborted(reason);
     }
 
     /// <summary>
@@ -502,22 +255,22 @@ internal sealed class RabbitMQConnectionManager(
         {
             if (connection.IsOpen)
             {
-                await connection.AbortAsync(options.CloseTimeout);
+                await connection.AbortAsync(_options.CloseTimeout);
             }
         }
         catch (Exception ex)
         {
-            logger.ConnectionCloseFailed(ex);
+            _logger.ConnectionCloseFailed(ex);
         }
 
         try
         {
             // Disposing a connection whose broker stopped answering can take as long as the client's own timeouts.
-            await connection.DisposeAsync().AsTask().WaitAsync(options.CloseTimeout);
+            await connection.DisposeAsync().AsTask().WaitAsync(_options.CloseTimeout);
         }
         catch (Exception ex)
         {
-            logger.ConnectionCloseFailed(ex);
+            _logger.ConnectionCloseFailed(ex);
         }
     }
 
@@ -535,7 +288,7 @@ internal sealed class RabbitMQConnectionManager(
 
         try
         {
-            await closing.WaitAsync(options.CloseTimeout);
+            await closing.WaitAsync(_options.CloseTimeout);
         }
         catch (TimeoutException)
         {
@@ -561,52 +314,479 @@ internal sealed class RabbitMQConnectionManager(
         await Task.Yield();
         await _disposeCts.CancelAsync();
 
-        IConnection? connection;
-        Task connecting;
-        lock (_sync)
-        {
-            _isDisposed = true;
-            connection = _connection;
-            _connection = null;
-            connecting = _connecting;
+        var last = Interlocked.Exchange(ref _state, new Disposed());
+        await last.DisposeAsync(this);
 
-            _unblocked.TrySetResult();
-            _ready.TrySetException(ThrowHelper.ConnectionManagerDisposed());
+        _logger.ConnectionStopped();
+    }
+
+    /// <summary>
+    /// One state of the manager. The members hold what the manager does while it is in the state.
+    /// </summary>
+    private abstract class State
+    {
+        /// <summary>
+        /// Gets the connection of the state, or <c>null</c> when the state has none.
+        /// </summary>
+        public virtual IConnection? Connection => null;
+
+        /// <summary>
+        /// Gets whether the broker blocks the connection of the state.
+        /// </summary>
+        public virtual bool IsBlocked => false;
+
+        /// <summary>
+        /// Waits while the broker blocks the connection of the state.
+        /// </summary>
+        public virtual Task WaitWhileBlockedAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <summary>
+        /// Starts the manager. Returns <c>false</c> when the state was left and the next state must be asked.
+        /// </summary>
+        public abstract ValueTask<bool> StartAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Gets the ready connection. Returns <c>null</c> when the state was left and the next state must be
+        /// asked.
+        /// </summary>
+        public abstract ValueTask<IConnection?> GetConnectionAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Releases what the state holds, after the manager left it for the disposed state.
+        /// </summary>
+        public abstract Task DisposeAsync(RabbitMQConnectionManager manager);
+    }
+
+    /// <summary>
+    /// A state without a connection. Callers that ask for a connection wait for <see cref="Ready"/>.
+    /// </summary>
+    private abstract class Waiting(TaskCompletionSource<IConnection> ready) : State
+    {
+        /// <summary>
+        /// Completes with the next ready connection.
+        /// </summary>
+        public TaskCompletionSource<IConnection> Ready { get; } = ready;
+
+        public override async ValueTask<IConnection?> GetConnectionAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken)
+        {
+            await Ready.Task.WaitAsync(cancellationToken);
+
+            // The state was left when the connection became ready, and the next state owns the connection.
+            return null;
+        }
+
+        public override Task DisposeAsync(RabbitMQConnectionManager manager)
+        {
+            Ready.TrySetException(ThrowHelper.ConnectionManagerDisposed());
 
             // Reading the exception marks it as observed when nobody waits for a connection.
-            _ = _ready.Task.Exception;
+            _ = Ready.Task.Exception;
+            return Task.CompletedTask;
+        }
+    }
+
+    /// <summary>
+    /// No connection exists and nothing connects: before the first start, and after a start that failed.
+    /// </summary>
+    private sealed class NotStarted(TaskCompletionSource<IConnection> ready) : Waiting(ready)
+    {
+        public override ValueTask<bool> StartAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken)
+        {
+            // The caller that begins the start waits for that start, so it gets the failure of that start.
+            var starting = new Starting(Ready, manager._timeProvider.GetTimestamp());
+            return manager.TryEnter(this, starting)
+                ? starting.StartAsync(manager, cancellationToken)
+                : new ValueTask<bool>(false);
+        }
+    }
+
+    /// <summary>
+    /// A state without a connection in which a background routine connects.
+    /// </summary>
+    private abstract class Connecting(TaskCompletionSource<IConnection> ready, long since) : Waiting(ready)
+    {
+        private Task? _routine;
+        private object? _routineLock;
+
+        /// <summary>
+        /// Gets the timestamp since which no connection exists.
+        /// </summary>
+        public long Since { get; } = since;
+
+        /// <summary>
+        /// Gets the routine of the state, and starts it on the first call.
+        /// </summary>
+        public Task Run(RabbitMQConnectionManager manager)
+            => LazyInitializer.EnsureInitialized(
+                ref _routine,
+                ref _routineLock,
+                () =>
+                {
+                    // The routine does not run on the caller, which can be the reader loop of the client.
+                    var routine = Task.Run(() => RunAsync(manager));
+
+                    // Reading the exception marks it as observed when every caller cancelled its wait.
+                    routine.ContinueWith(
+                        static task => _ = task.Exception,
+                        CancellationToken.None,
+                        TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
+
+                    return routine;
+                });
+
+        protected abstract Task RunAsync(RabbitMQConnectionManager manager);
+
+        /// <summary>
+        /// Gets the time the next attempt can take.
+        /// </summary>
+        protected virtual TimeSpan GetAttemptTimeout(RabbitMQConnectionManager manager)
+            => manager._options.AttemptTimeout;
+
+        /// <summary>
+        /// Gets whether the state stops connecting after <paramref name="failure"/>, when the next attempt
+        /// would begin after <paramref name="retryDelay"/>.
+        /// </summary>
+        protected virtual bool GivesUpAfter(RabbitMQConnectionManager manager, Exception failure, TimeSpan retryDelay)
+            => false;
+
+        /// <summary>
+        /// Connects, retrying with exponential backoff, until an attempt succeeds or the state gives up, and
+        /// replaces the state with the connected state.
+        /// </summary>
+        protected async Task ConnectAsync(RabbitMQConnectionManager manager)
+        {
+            var loopToken = manager._disposeCts.Token;
+
+            for (var attempt = 1; ; attempt++)
+            {
+                loopToken.ThrowIfCancellationRequested();
+
+                var attemptTimeout = GetAttemptTimeout(manager);
+                using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(loopToken);
+                attemptCts.CancelAfter(attemptTimeout);
+
+                try
+                {
+                    manager._logger.ConnectionAttemptStarted(attempt);
+
+                    var (connection, alarm) = await manager.ConnectOnceAsync(attemptCts.Token);
+
+                    if (!manager.TryEnter(this, new Connected(connection, alarm)))
+                    {
+                        // The manager was disposed while the attempt ran. Disposal cancelled the routine's
+                        // token before it replaced the state, so this ends the routine.
+                        await manager.CloseConnectionAsync(connection);
+                        loopToken.ThrowIfCancellationRequested();
+                        return;
+                    }
+
+                    Ready.TrySetResult(connection);
+                    manager._logger.ConnectionReady(attempt, manager._timeProvider.GetElapsedTime(Since));
+
+                    // A connection that closed before it was handed out raised its shutdown event to nobody.
+                    if (!connection.IsOpen)
+                    {
+                        manager.OnConnectionLost(connection, connection.GetCloseReason());
+                    }
+
+                    return;
+                }
+                catch (Exception ex) when (!loopToken.IsCancellationRequested)
+                {
+                    // Nobody cancelled the routine, so a cancellation is a timeout: of the attempt, or of the
+                    // client, which reports a request the broker did not answer in time as a cancellation.
+                    var failure =
+                        ex is not OperationCanceledException ? ex
+                        : attemptCts.IsCancellationRequested ? ThrowHelper.ConnectionAttemptTimedOut(attemptTimeout, ex)
+                        : ThrowHelper.ConnectionRequestTimedOut(ex);
+                    var delay = ExponentialBackoff.CalculateDelay(
+                        attempt,
+                        manager._options.InitialRetryDelay,
+                        manager._options.MaxRetryDelay);
+                    var elapsed = manager._timeProvider.GetElapsedTime(Since);
+
+                    if (GivesUpAfter(manager, failure, delay))
+                    {
+                        manager._logger.ConnectionFailed(failure, attempt, elapsed);
+                        throw;
+                    }
+
+                    manager._logger.ConnectionAttemptFailed(failure, attempt, elapsed, delay);
+
+                    await Task.Delay(delay, manager._timeProvider, loopToken);
+                }
+            }
         }
 
-        try
+        public override async Task DisposeAsync(RabbitMQConnectionManager manager)
         {
-            await connecting;
+            await base.DisposeAsync(manager);
+
+            try
+            {
+                await Run(manager);
+            }
+            catch
+            {
+                // The routine ended with the cancellation of the disposal, or failed the start it belonged to.
+            }
         }
-        catch
+    }
+
+    /// <summary>
+    /// A start connects. It has a deadline and fails on a failure that repeats on every attempt.
+    /// </summary>
+    private sealed class Starting(TaskCompletionSource<IConnection> ready, long since) : Connecting(ready, since)
+    {
+        public override async ValueTask<bool> StartAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken)
         {
-            // The connect routine ended with the cancellation above, or failed the start it belonged to.
+            try
+            {
+                await Run(manager).WaitAsync(cancellationToken);
+                return true;
+            }
+            catch (OperationCanceledException)
+                when (manager._disposeCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                throw ThrowHelper.ConnectionManagerDisposed();
+            }
         }
 
-        if (connection is not null)
+        protected override async Task RunAsync(RabbitMQConnectionManager manager)
         {
-            await CloseConnectionAsync(connection);
+            try
+            {
+                await ConnectAsync(manager);
+            }
+            catch (Exception ex)
+            {
+                // Callers that wait for a connection keep waiting, for the connection of a later start.
+                manager.TryEnter(this, new NotStarted(Ready));
+
+                // Without a disposal, a cancellation is the timeout of the last attempt.
+                if (ex is OperationCanceledException
+                    && !manager._disposeCts.IsCancellationRequested)
+                {
+                    throw ThrowHelper.ConnectionTimedOut(manager._options.StartTimeout, ex);
+                }
+
+                throw;
+            }
         }
 
-        logger.ConnectionStopped();
+        /// <summary>
+        /// Gets the attempt timeout, cut to what remains of the start timeout. A start timeout of zero
+        /// allows one whole attempt, and an infinite one, which is negative, sets no end.
+        /// </summary>
+        protected override TimeSpan GetAttemptTimeout(RabbitMQConnectionManager manager)
+        {
+            var attemptTimeout = base.GetAttemptTimeout(manager);
+            var startTimeout = manager._options.StartTimeout;
+            if (startTimeout <= TimeSpan.Zero)
+            {
+                return attemptTimeout;
+            }
+
+            var remaining = startTimeout - manager._timeProvider.GetElapsedTime(Since);
+            if (remaining >= attemptTimeout)
+            {
+                return attemptTimeout;
+            }
+
+            return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+        }
+
+        /// <summary>
+        /// Gets whether the failure repeats on every attempt, or the next attempt would begin after a start
+        /// timeout that is not infinite.
+        /// </summary>
+        protected override bool GivesUpAfter(RabbitMQConnectionManager manager, Exception failure, TimeSpan retryDelay)
+        {
+            var startTimeout = manager._options.StartTimeout;
+            return failure.IsPermanentFailure()
+                || (
+                    startTimeout != Timeout.InfiniteTimeSpan
+                    && manager._timeProvider.GetElapsedTime(Since) + retryDelay > startTimeout);
+        }
+    }
+
+    /// <summary>
+    /// A connection is ready.
+    /// </summary>
+    private sealed class Connected(IConnection connection, Alarm alarm) : State
+    {
+        public override IConnection? Connection => connection;
+
+        /// <summary>
+        /// Gets the alarm of the connection.
+        /// </summary>
+        public Alarm Alarm => alarm;
+
+        public override bool IsBlocked => connection.IsOpen && alarm.IsActive;
+
+        public override Task WaitWhileBlockedAsync(CancellationToken cancellationToken)
+        {
+            var ended = alarm.Ended;
+            return ended.IsCompleted ? Task.CompletedTask : ended.WaitAsync(cancellationToken);
+        }
+
+        public override ValueTask<bool> StartAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken)
+            => new(IsOpenOrLost(manager));
+
+        public override ValueTask<IConnection?> GetConnectionAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken)
+            => new(IsOpenOrLost(manager) ? connection : null);
+
+        public override Task DisposeAsync(RabbitMQConnectionManager manager)
+        {
+            alarm.End(retire: true);
+            return manager.CloseConnectionAsync(connection);
+        }
+
+        /// <summary>
+        /// Gets whether the connection is open, and reports the loss of a connection that closed before its
+        /// shutdown event arrived.
+        /// </summary>
+        private bool IsOpenOrLost(RabbitMQConnectionManager manager)
+        {
+            if (connection.IsOpen)
+            {
+                return true;
+            }
+
+            manager.OnConnectionLost(connection, connection.GetCloseReason());
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// The connection was lost and a recovery connects. It has no deadline and never gives up.
+    /// </summary>
+    private sealed class Recovering(IConnection lostConnection, long since)
+        : Connecting(new(TaskCreationOptions.RunContinuationsAsynchronously), since)
+    {
+        public override async ValueTask<bool> StartAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken)
+        {
+            // The start waits for the recovery as long as it would have kept trying itself, which is without
+            // a limit for an infinite timeout.
+            var startTimeout = manager._options.StartTimeout;
+            try
+            {
+                await Ready.Task.WaitAsync(startTimeout, manager._timeProvider, cancellationToken);
+                return true;
+            }
+            catch (TimeoutException ex)
+            {
+                throw ThrowHelper.ConnectionTimedOut(startTimeout, ex);
+            }
+        }
+
+        protected override async Task RunAsync(RabbitMQConnectionManager manager)
+        {
+            // The lost connection is closed first, so the broker has released what belongs to it, such as an
+            // exclusive queue. Disposing it also stops the client's own automatic recovery.
+            await manager.CloseConnectionAsync(lostConnection);
+            await ConnectAsync(manager);
+        }
+    }
+
+    /// <summary>
+    /// The manager was disposed. This state is final.
+    /// </summary>
+    private sealed class Disposed : State
+    {
+        public override ValueTask<bool> StartAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken)
+            => throw ThrowHelper.ConnectionManagerDisposed();
+
+        public override ValueTask<IConnection?> GetConnectionAsync(
+            RabbitMQConnectionManager manager,
+            CancellationToken cancellationToken)
+            => throw ThrowHelper.ConnectionManagerDisposed();
+
+        public override Task DisposeAsync(RabbitMQConnectionManager manager) => Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Tracks whether the broker blocks one connection.
+    /// </summary>
+    private sealed class Alarm
+    {
+        private readonly object _sync = new();
+        private TaskCompletionSource? _ended;
+        private long _since;
+        private bool _isRetired;
+
+        /// <summary>
+        /// Gets whether the broker blocks the connection.
+        /// </summary>
+        public bool IsActive => Volatile.Read(ref _ended) is not null;
+
+        /// <summary>
+        /// Gets a task that completes when the broker no longer blocks the connection.
+        /// </summary>
+        public Task Ended => Volatile.Read(ref _ended)?.Task ?? Task.CompletedTask;
+
+        /// <summary>
+        /// Records that the broker blocked the connection at <paramref name="timestamp"/>.
+        /// </summary>
+        public void Begin(long timestamp)
+        {
+            lock (_sync)
+            {
+                if (_isRetired || _ended is not null)
+                {
+                    return;
+                }
+
+                _since = timestamp;
+                Volatile.Write(
+                    ref _ended,
+                    new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously));
+            }
+        }
+
+        /// <summary>
+        /// Ends the block and returns the timestamp it began at, or <c>null</c> when the connection was not
+        /// blocked. With <paramref name="retire"/> the alarm ignores every later block.
+        /// </summary>
+        public long? End(bool retire = false)
+        {
+            TaskCompletionSource? ended;
+            long since;
+            lock (_sync)
+            {
+                _isRetired |= retire;
+                ended = _ended;
+                since = _since;
+                Volatile.Write(ref _ended, null);
+            }
+
+            ended?.TrySetResult();
+            return ended is null ? null : since;
+        }
     }
 }
 
 file static class Extensions
 {
-    extension(TaskCompletionSource)
-    {
-        public static TaskCompletionSource CreateCompleted()
-        {
-            var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            source.SetResult();
-            return source;
-        }
-    }
-
     extension(IConnection connection)
     {
         /// <summary>

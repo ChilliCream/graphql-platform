@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using Moq;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
@@ -81,6 +82,141 @@ public sealed class RabbitMQConnectionManagerTests
         // assert
         connection.Verify(c => c.DisposeAsync(), Times.Once);
         Assert.False(manager.IsConnected);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_FailEveryCaller_When_SharedAttemptFailsPermanently()
+    {
+        // arrange
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<IConnection>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var attempts = 0;
+        await using var manager = CreateManager(
+            async _ =>
+            {
+                Interlocked.Increment(ref attempts);
+                entered.TrySetResult();
+                return await release.Task;
+            });
+        var first = manager.StartAsync(TestContext.Current.CancellationToken);
+        await entered.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        var second = manager.StartAsync(TestContext.Current.CancellationToken);
+
+        // act
+        release.SetException(new InvalidOperationException("The credentials were refused."));
+        var firstFailure = await Record.ExceptionAsync(
+            () => first.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
+        var secondFailure = await Record.ExceptionAsync(
+            () => second.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.IsType<InvalidOperationException>(firstFailure);
+        Assert.Same(firstFailure, secondFailure);
+        Assert.Equal(1, attempts);
+    }
+
+    [Fact]
+    public async Task StartAsync_Should_CompleteSecondCaller_When_FirstCallerCancels()
+    {
+        // arrange
+        var connection = new Mock<IConnection>();
+        connection.SetupGet(c => c.IsOpen).Returns(true);
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<IConnection>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var attempts = 0;
+        await using var manager = CreateManager(
+            async _ =>
+            {
+                Interlocked.Increment(ref attempts);
+                entered.TrySetResult();
+                return await release.Task;
+            });
+        using var firstCancellation = new CancellationTokenSource();
+        var first = manager.StartAsync(firstCancellation.Token);
+        await entered.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        var second = manager.StartAsync(TestContext.Current.CancellationToken);
+
+        // act
+        await firstCancellation.CancelAsync();
+        release.SetResult(connection.Object);
+        await second.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+
+        // assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+        Assert.True(manager.IsConnected);
+        Assert.Equal(1, attempts);
+    }
+
+    [Fact]
+    public async Task GetConnectionAsync_Should_ReturnConnectionOfLaterStart_When_FirstStartFailed()
+    {
+        // arrange
+        var connection = new Mock<IConnection>();
+        connection.SetupGet(c => c.IsOpen).Returns(true);
+        var attempts = 0;
+        await using var manager = CreateManager(
+            _ => Interlocked.Increment(ref attempts) == 1
+                ? ValueTask.FromException<IConnection>(new InvalidOperationException("The credentials were refused."))
+                : new ValueTask<IConnection>(connection.Object));
+        var requested = manager.GetConnectionAsync(TestContext.Current.CancellationToken).AsTask();
+
+        // act
+        var failure = await Record.ExceptionAsync(() => manager.StartAsync(TestContext.Current.CancellationToken));
+        var requestPendingAfterFailure = !requested.IsCompleted;
+        await manager.StartAsync(TestContext.Current.CancellationToken);
+        var result = await requested.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<InvalidOperationException>(failure);
+        Assert.True(requestPendingAfterFailure);
+        Assert.Same(connection.Object, result);
+    }
+
+    [Fact]
+    public async Task GetConnectionAsync_Should_Wait_When_OpenConnectionWasReportedUnresponsive()
+    {
+        // arrange
+        var connection = new Mock<IConnection>();
+        connection.SetupGet(c => c.IsOpen).Returns(true);
+        var attempts = 0;
+        await using var manager = CreateManager(
+            ct => Interlocked.Increment(ref attempts) == 1
+                ? new ValueTask<IConnection>(connection.Object)
+                : NeverConnectAsync(ct));
+        await manager.StartAsync(TestContext.Current.CancellationToken);
+        using var requestCancellation = new CancellationTokenSource();
+
+        // act
+        manager.ReportUnresponsive(connection.Object, "the broker does not answer");
+        var requested = manager.GetConnectionAsync(requestCancellation.Token).AsTask();
+        var requestPending = !requested.IsCompleted;
+        await requestCancellation.CancelAsync();
+
+        // assert
+        Assert.True(connection.Object.IsOpen);
+        Assert.True(requestPending);
+        Assert.False(manager.IsConnected);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => requested);
+    }
+
+    [Fact]
+    public async Task IsBlocked_Should_ReturnTrue_When_BrokerBlockedConnectionDuringSetUp()
+    {
+        // arrange
+        var connection = new Mock<IConnection>();
+        connection.SetupGet(c => c.IsOpen).Returns(true);
+        await using var manager = CreateManager(
+            _ => new ValueTask<IConnection>(connection.Object),
+            (_, _) => connection.RaiseAsync(
+                c => c.ConnectionBlockedAsync += null,
+                connection.Object,
+                new ConnectionBlockedEventArgs("The broker is low on memory.")));
+
+        // act
+        await manager.StartAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(manager.IsBlocked);
     }
 
     [Fact]
