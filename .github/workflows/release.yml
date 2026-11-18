@@ -520,19 +520,13 @@ jobs:
           repositories: graphql-platform-commercial
           permission-actions: write
 
-      # The commercial repo keeps one release/vX.Y lane per platform minor. The lane's own
-      # workflows build and publish the release.
       - name: 🛣️ Resolve commercial lane
         id: lane
         env:
           GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
         run: |
-          set -euo pipefail
-          if [[ ! "$GIT_TAG" =~ ^([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
-            echo "::error::Cannot derive a commercial lane from '$GIT_TAG'."
-            exit 1
-          fi
-          echo "lane=release/v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
+          IFS=. read -r major minor _ <<< "$GIT_TAG"
+          echo "lane=release/v$major.$minor" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Build commercial artifacts
         id: build
@@ -541,11 +535,7 @@ jobs:
           repo: ChilliCream/graphql-platform-commercial
           workflow: build.yml
           ref: ${{ steps.lane.outputs.lane }}
-          version: ${{ needs.compute-release-context.outputs.git_tag }}
-          inputs-json: '{"graphql_platform_ref":"${{ github.sha }}"}'
-          missing-ref-hint: >-
-            Run ./prepare-release.sh ${{ needs.compute-release-context.outputs.git_tag }}
-            to create the lane, then re-run this job.
+          inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}","graphql_platform_ref":"${{ github.sha }}"}'
           token: ${{ steps.token.outputs.token }}
 
   artifacts-ready:
@@ -586,8 +576,7 @@ jobs:
           repo: ChilliCream/graphql-platform-commercial
           workflow: publish.yml
           ref: ${{ needs.build-commercial.outputs.lane }}
-          version: ${{ needs.compute-release-context.outputs.git_tag }}
-          inputs-json: '{"build_run_id":"${{ needs.build-commercial.outputs.run-id }}"}'
+          inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}","build_run_id":"${{ needs.build-commercial.outputs.run-id }}"}'
           token: ${{ steps.token.outputs.token }}
 
   publish-nuget:
@@ -915,7 +904,7 @@ jobs:
         with:
           repo: ChilliCream/homebrew-tools
           workflow: release.yaml
-          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}"}'
           token: ${{ steps.app-token.outputs.token }}
 
   update-github-actions:
@@ -969,7 +958,7 @@ jobs:
         with:
           repo: ChilliCream/${{ matrix.repo }}
           workflow: release.yaml
-          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}"}'
           token: ${{ steps.app-token.outputs.token }}
 
   update-cloud-platform:
@@ -998,10 +987,13 @@ jobs:
         with:
           repo: ChilliCream/cloud
           workflow: update-platform-version.yml
-          version: ${{ needs.compute-release-context.outputs.git_tag }}
-          is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
-          is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
-          triggered_by: ${{ github.actor }}
+          inputs-json: |
+            {
+              "version": "${{ needs.compute-release-context.outputs.git_tag }}",
+              "is_stable": "${{ needs.compute-release-context.outputs.is_stable }}",
+              "is_active_major": "${{ needs.compute-release-context.outputs.is_active_major }}",
+              "triggered_by": "${{ github.actor }}"
+            }
           token: ${{ steps.app-token.outputs.token }}
 
   update-azure-pipelines-extension:
@@ -1036,5 +1028,5 @@ jobs:
         with:
           repo: ChilliCream/nitro-azure-pipelines-tasks
           workflow: release.yaml
-          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}"}'
           token: ${{ steps.app-token.outputs.token }}
