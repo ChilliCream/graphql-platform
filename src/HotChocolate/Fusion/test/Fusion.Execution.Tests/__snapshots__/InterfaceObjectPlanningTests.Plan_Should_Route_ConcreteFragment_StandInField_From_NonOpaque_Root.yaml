@@ -1,3 +1,4 @@
+id: 6218ca288cd5def1d17f3e41e4f23ba7942b597a86ea690cd793d3a54115c823
 operation:
   - document: |
       {
@@ -11,37 +12,59 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        allMedia {
-          __typename
-          id
-          ... on Book {
-            isbn
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          allMedia {
+            __typename
             id
+            ... on Book {
+              isbn
+              id
+            }
           }
         }
-      }
+      hash: aa901dbdbf724ca6099da02a00ff45aa8b27121e30b6ff841139b4b162f5d55b
+      shortHash: aa901dbd
+      xxHash: 7936178285025313882
+    resultSelectionSet: >-
+      { allMedia }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        mediaByKey(id: $__fusion_1_id) {
-          views
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          mediaByKey(id: $__fusion_1_id) {
+            views
+          }
         }
-      }
+      hash: 66cd87c67ed83d92d14cec7fea3a5800492a51eb132ee7dca4a53009dbdea597
+      shortHash: 66cd87c6
+      xxHash: 323918559968369174
+    lookupTypeName: Book
+    resultSelectionSet: >-
+      { views }
     source: $.mediaByKey
     target: $.allMedia<Book>
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.allMedia<Book>
         selectionMap: >-
           id
     dependencies:

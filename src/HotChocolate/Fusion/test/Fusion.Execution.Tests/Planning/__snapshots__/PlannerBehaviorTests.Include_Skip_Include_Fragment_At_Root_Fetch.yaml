@@ -1,3 +1,4 @@
+id: 65ee9d31005c31eaf57036018dd42e38e34ba8e4f75a5d6cbad350c58c00a574
 operation:
   - document: |
       query($include: Boolean) {
@@ -6,19 +7,30 @@ operation:
           price @include(if: $include)
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1($include: Boolean) {
-        product {
-          id
-          price @include(if: $include)
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1($include: Boolean) {
+          product {
+            id
+            price @include(if: $include)
+          }
         }
-      }
+      hash: e8722cadf86f289ebde58288dc8488db4b75be08c017726e37f55c5f4e046465
+      shortHash: e8722cad
+      xxHash: 10461858855790191555
+    resultSelectionSet: >-
+      { product }
     forwardedVariables:
       - include

@@ -160,6 +160,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 74c128d26f1694a274ae265a82c90752855f37e60ab24ea394e4f7541b779a99
   operation:
     - document: |
         {
@@ -168,25 +169,44 @@ operationPlan:
             schema2
           }
         }
-      hash: a1ec928a1f47a9cacea5bd52e685e320
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: a1ec928a1f47a9cacea5bd52e685e320
+      hash: c6e3b3570561284c71c82b7c60272002
+      shortHash: c6e3b357
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_c6e3b357_1 {
-          viewer {
-            schema1
+      operation:
+        name: Op_c6e3b357_1
+        kind: Query
+        document: |
+          query Op_c6e3b357_1 {
+            viewer {
+              schema1
+            }
           }
-        }
+        hash: 4b3f6747938c22d773a106aefcffb94055a548fee074513911ff64b93fbb80de
+        shortHash: 4b3f6747
+        xxHash: 829545053943293920
+      resultSelectionSet: >-
+        { viewer { schema1 } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_c6e3b357_2 {
-          viewer {
-            schema2
+      operation:
+        name: Op_c6e3b357_2
+        kind: Query
+        document: |
+          query Op_c6e3b357_2 {
+            viewer {
+              schema2
+            }
           }
-        }
+        hash: 75e68600db857795a150d888f542359d9f597f14fdc93a92b151f8f4f431558f
+        shortHash: "75e68600"
+        xxHash: 2223359566947683818
+      resultSelectionSet: >-
+        { viewer { schema2 } }

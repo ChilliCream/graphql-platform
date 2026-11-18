@@ -1,3 +1,4 @@
+id: d7aa03d3200f4f052542691821a27c30d42e7074ef990ab7c7f09f05124bb88a
 operation:
   - document: |
       {
@@ -14,39 +15,61 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        trendingMedia {
-          id
-          views
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          trendingMedia {
+            id
+            views
+          }
         }
-      }
+      hash: 2b68777ed05fda281af2552ef3d55e03e77a5861e391a5fe73f3dad2309f586e
+      shortHash: 2b68777e
+      xxHash: 15392346035713121235
+    resultSelectionSet: >-
+      { trendingMedia { id views } }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        mediaById(id: $__fusion_1_id) {
-          __typename
-          ... on Book {
-            isbn
-          }
-          ... on Movie {
-            runtime
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          mediaById(id: $__fusion_1_id) {
+            __typename
+            ... on Book {
+              isbn
+            }
+            ... on Movie {
+              runtime
+            }
           }
         }
-      }
+      hash: 38ca943b942facbcc11a5e0494e485665b8a004898e70816db2bd6f526932752
+      shortHash: 38ca943b
+      xxHash: 15414954646912549080
+    lookupTypeName: Media
+    resultSelectionSet: >-
+      { __typename ... on Book { isbn } ... on Movie { runtime } }
     source: $.mediaById
     target: $.trendingMedia
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.trendingMedia
         selectionMap: >-
           id
     dependencies:

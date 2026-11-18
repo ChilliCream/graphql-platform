@@ -201,6 +201,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: d593f9dd97190a2ede8a8d94ea0de546318d98cbf0edae2a9fb32bdd97fc2fb9
   operation:
     - document: |
         {
@@ -213,36 +214,58 @@ operationPlan:
             }
           }
         }
-      hash: 7028707ab1fc36d5df264f08e38deb99
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 7028707ab1fc36d5df264f08e38deb99
+      hash: 3902e3a186739fe80e8ac3851d657af5
+      shortHash: 3902e3a1
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_3902e3a1_1 {
-          abstractTypes {
-            __typename
-            id
+      operation:
+        name: Op_3902e3a1_1
+        kind: Query
+        document: |
+          query Op_3902e3a1_1 {
+            abstractTypes {
+              __typename
+              id
+            }
           }
-        }
+        hash: 08889b979054a07bb4c35b10d8a249517e5c6e0e32f265cb538e1574a987f3f4
+        shortHash: 08889b97
+        xxHash: 2295014307160928490
+      resultSelectionSet: >-
+        { abstractTypes { __typename id } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_3902e3a1_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            upvotes
-            ... on Discussion {
-              score
+      operation:
+        name: Op_3902e3a1_2
+        kind: Query
+        document: |
+          query Op_3902e3a1_2($__fusion_1_id: ID!) {
+            discussionById(id: $__fusion_1_id) {
+              upvotes
+              ... on Discussion {
+                score
+              }
             }
           }
-        }
+        hash: fe25aac957e18e447ae81eee759c57b850bef86e0b77407e90bd5481a1da607c
+        shortHash: fe25aac9
+        xxHash: 11735238238334606064
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { upvotes ... on Discussion { score } }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.abstractTypes<Discussion>
           selectionMap: >-
             id
       dependencies:
@@ -250,16 +273,27 @@ operationPlan:
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query Op_3902e3a1_3($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            upvotes
+      operation:
+        name: Op_3902e3a1_3
+        kind: Query
+        document: |
+          query Op_3902e3a1_3($__fusion_2_id: ID!) {
+            authorById(id: $__fusion_2_id) {
+              upvotes
+            }
           }
-        }
+        hash: bf8cec0ae336ea5e249eaf48e9d530ecea08535888a0d9010c341b16d41cbe71
+        shortHash: bf8cec0a
+        xxHash: 7838179660828682293
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { upvotes }
       source: $.authorById
       target: $.abstractTypes<Author>
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.abstractTypes<Author>
           selectionMap: >-
             id
       dependencies:

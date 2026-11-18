@@ -141,6 +141,7 @@ sourceSchemas:
         endCursor: String
       }
 operationPlan:
+  id: efcadcccfc75bf0235f87b189c1b3ef6248068543036d5b0f9986ccdf151aa17
   operation:
     - document: |
         {
@@ -149,17 +150,28 @@ operationPlan:
             title
           }
         }
-      hash: 09deb23641d5e22ea18cafa939409cc8
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 09deb23641d5e22ea18cafa939409cc8
+      hash: da31ef9bfb0a7c42de9b1578b454d0af
+      shortHash: da31ef9b
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_da31ef9b_1 {
-          bookById(id: 1) {
-            id
-            title
+      operation:
+        name: Op_da31ef9b_1
+        kind: Query
+        document: |
+          query Op_da31ef9b_1 {
+            bookById(id: 1) {
+              id
+              title
+            }
           }
-        }
+        hash: 80c75adba220889c8c5db0b5ed27014006e956136e7063f0f3aad825e0ca25b2
+        shortHash: 80c75adb
+        xxHash: 11026487345324328042
+      resultSelectionSet: >-
+        { bookById }

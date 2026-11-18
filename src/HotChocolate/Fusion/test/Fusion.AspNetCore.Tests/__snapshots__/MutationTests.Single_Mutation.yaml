@@ -110,6 +110,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 029b6edaf934e15eca0e35b4c4376d4f75ed631873abffb4837ba404f92f3978
   operation:
     - document: |
         mutation {
@@ -121,34 +122,56 @@ operationPlan:
             }
           }
         }
-      hash: e53efbe8e84d1c17ffe288d2cbcc16e7
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Mutation
+      id: e53efbe8e84d1c17ffe288d2cbcc16e7
+      hash: 8adeedac0c987644c3244bc6ad459a3d
+      shortHash: 8adeedac
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        mutation Op_8adeedac_1 {
-          a: createBook(input: { title: "Book1" }) {
-            book {
-              id
+      operation:
+        name: Op_8adeedac_1
+        kind: Mutation
+        document: |
+          mutation Op_8adeedac_1 {
+            a: createBook(input: { title: "Book1" }) {
+              book {
+                id
+              }
             }
           }
-        }
+        hash: b19e9a7a1a19b80f7fb7c85c49de98b3f6d6a1f61f8f39b4780f3fbd3f9415a0
+        shortHash: b19e9a7a
+        xxHash: 10601028700848420344
+      resultSelectionSet: >-
+        { a }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_8adeedac_2($__fusion_1_id: Int!) {
-          bookById(id: $__fusion_1_id) {
-            author
+      operation:
+        name: Op_8adeedac_2
+        kind: Query
+        document: |
+          query Op_8adeedac_2($__fusion_1_id: Int!) {
+            bookById(id: $__fusion_1_id) {
+              author
+            }
           }
-        }
+        hash: 09cf6d6a59858ba6173b34cba61864d41e6818d0d41ffd051678b217b951f450
+        shortHash: 09cf6d6a
+        xxHash: 4926927363360564319
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { author }
       source: $.bookById
       target: $.a.book
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.a.book
           selectionMap: >-
             id
       dependencies:

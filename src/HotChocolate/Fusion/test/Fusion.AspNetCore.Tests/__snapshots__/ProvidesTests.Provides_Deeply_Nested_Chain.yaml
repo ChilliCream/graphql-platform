@@ -114,6 +114,7 @@ sourceSchemas:
         value: String
       }
 operationPlan:
+  id: 7fff8928c7a067584620d1b19d9aa1bc2338744a2a2f5c18cda1edbe437e9b68
   operation:
     - document: |
         {
@@ -127,22 +128,33 @@ operationPlan:
             }
           }
         }
-      hash: 02d087a5db1329753ebd0f5a63ae0cb5
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 02d087a5db1329753ebd0f5a63ae0cb5
+      hash: 2f5727f414fe7f10e7369d17f2b3c158
+      shortHash: 2f5727f4
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_2f5727f4_1 {
-          root {
-            level1 {
-              level2 {
-                level3 {
-                  value
+      operation:
+        name: Op_2f5727f4_1
+        kind: Query
+        document: |
+          query Op_2f5727f4_1 {
+            root {
+              level1 {
+                level2 {
+                  level3 {
+                    value
+                  }
                 }
               }
             }
           }
-        }
+        hash: 36043f79e332dc8ad1f13d995e1abeb05a27af8c88edf0ea93608bd745db3c3c
+        shortHash: 36043f79
+        xxHash: 8296447149650537657
+      resultSelectionSet: >-
+        { root }

@@ -1,3 +1,4 @@
+id: 1aa9016b336e87e1770da19bff3afd8168400b4caf737352034c3897885ef58b
 operation:
   - document: |
       {
@@ -13,39 +14,61 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            id
+          }
+          brands {
+            id
+          }
         }
-        brands {
-          id
-        }
-      }
+      hash: 455998a74c9b144053262e38f10cfe00437ab9793f7df8b686fcca377fab2280
+      shortHash: 455998a7
+      xxHash: 14484647726183999229
+    resultSelectionSet: >-
+      { products brands }
   - id: 2
     type: ApolloOperation
     schema: b
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Brand {
-            featured {
-              id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Brand {
+              featured {
+                id
+              }
             }
           }
         }
-      }
+      hash: d33d758dadeadf82fd980c7c45bbe2b828ca84bdeae9104c1d18df55bfbcc030
+      shortHash: d33d758d
+      xxHash: 9834650892682230652
+    entityType: Brand
+    resultSelectionSet: >-
+      { featured }
     source: $._entities
     target: $.brands
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.brands
         selectionMap: >-
           id
     dependencies:
@@ -53,14 +76,23 @@ nodes:
   - id: 3
     type: ApolloOperationBatch
     schema: c
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Product {
-            name
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Product {
+              name
+            }
           }
         }
-      }
+      hash: 71e4f349b922d8e41c443e24fda207515c974e6b418eeb9c318eeaa4a6457525
+      shortHash: 71e4f349
+      xxHash: 3144442904161772428
+    entityType: Product
+    resultSelectionSet: >-
+      { name }
     source: $._entities
     targets:
       - $.brands.featured
@@ -68,6 +100,8 @@ nodes:
     batchingGroupId: 5
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.brands.featured
         selectionMap: >-
           id
     dependencies:

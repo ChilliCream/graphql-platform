@@ -192,6 +192,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: e7e6a0f82c4dd657db5d6dcaab7faad5160211425c39b18bf6f9bc3076f57cb8
   operation:
     - document: |
         mutation createReview($input: CreateReviewInput!) {
@@ -211,45 +212,67 @@ operationPlan:
           }
         }
       name: createReview
-      hash: 1d762f7cd968a8b20792799166f23f87
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Mutation
+      id: 1d762f7cd968a8b20792799166f23f87
+      hash: df7efcac5bc495273d4ff34bb964367c
+      shortHash: df7efcac
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        mutation createReview_df7efcac_1($input: CreateReviewInput!) {
-          createReview(input: $input) {
-            id
-            body
-            author {
+      operation:
+        name: createReview_df7efcac_1
+        kind: Mutation
+        document: |
+          mutation createReview_df7efcac_1($input: CreateReviewInput!) {
+            createReview(input: $input) {
               id
-            }
-            product {
-              id
+              body
+              author {
+                id
+              }
+              product {
+                id
+              }
             }
           }
-        }
+        hash: d3c6fca2963c823855342dc33e772217314f9b34cfb11cd6712de242deb542c5
+        shortHash: d3c6fca2
+        xxHash: 7735658392071352531
+      resultSelectionSet: >-
+        { createReview }
       forwardedVariables:
         - input
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query createReview_df7efcac_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
+      operation:
+        name: createReview_df7efcac_2
+        kind: Query
+        document: |
+          query createReview_df7efcac_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                name
+              }
             }
           }
-        }
+        hash: e874ccb74230a0c77bfdc3e4175f8abf1abf5e23951e04320789f618efd49a85
+        shortHash: e874ccb7
+        xxHash: 16217780868713294259
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.node<Product>
       target: $.createReview.product
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.createReview.product
           selectionMap: >-
             id
       dependencies:
@@ -257,20 +280,31 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query createReview_df7efcac_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Author {
-              name
+      operation:
+        name: createReview_df7efcac_3
+        kind: Query
+        document: |
+          query createReview_df7efcac_3($__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on Author {
+                name
+              }
             }
           }
-        }
+        hash: cf2f8fe665cb07dd1d1e1faef5b1162d40c33636194cb9b04f62b93824d9ceb6
+        shortHash: cf2f8fe6
+        xxHash: 14492219323099443392
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { name }
       source: $.node<Author>
       target: $.createReview.author
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.createReview.author
           selectionMap: >-
             id
       dependencies:

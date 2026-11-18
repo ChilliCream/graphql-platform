@@ -1,3 +1,4 @@
+id: abfc53ecf57fe543a7751dec070640573f9c4d0bc9b88c24f38b92bb0b7f9d05
 operation:
   - document: |
       {
@@ -9,53 +10,83 @@ operation:
           weight @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          upc
-          price
-          weight
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            upc
+            price
+            weight
+          }
         }
-      }
+      hash: e28fec08a91a334f99794bc0227750c0598ce444b92afb9a8c87515e071f5e22
+      shortHash: e28fec08
+      xxHash: 6570184695124861467
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: inventory
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_upc: String!
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_upc: String!
           $__fusion_2_price: Int
           $__fusion_2_weight: Int
           $__fusion_3_price: Int
           $__fusion_3_weight: Int
-      ) {
-        productByUpc(upc: $__fusion_1_upc) {
-          shippingEstimate2(price: $__fusion_2_price, weight: $__fusion_2_weight)
-          shippingEstimate(price: $__fusion_3_price, weight: $__fusion_3_weight)
+        ) {
+          productByUpc(upc: $__fusion_1_upc) {
+            shippingEstimate2(price: $__fusion_2_price, weight: $__fusion_2_weight)
+            shippingEstimate(price: $__fusion_3_price, weight: $__fusion_3_weight)
+          }
         }
-      }
+      hash: e19fe6eb8f06f1ac0a60745c80928c3ec1063ff1d82a36e1242d346e15ddf8cd
+      shortHash: e19fe6eb
+      xxHash: 1326678824179737486
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { shippingEstimate2 shippingEstimate }
     source: $.productByUpc
     target: $.products
     requirements:
       - name: __fusion_1_upc
+        type: String!
+        path: $.products
         selectionMap: >-
           upc
       - name: __fusion_2_price
+        type: Int
+        path: $.products
         selectionMap: >-
           price
       - name: __fusion_2_weight
+        type: Int
+        path: $.products
         selectionMap: >-
           weight
       - name: __fusion_3_price
+        type: Int
+        path: $.products
         selectionMap: >-
           price
       - name: __fusion_3_weight
+        type: Int
+        path: $.products
         selectionMap: >-
           weight
     dependencies:

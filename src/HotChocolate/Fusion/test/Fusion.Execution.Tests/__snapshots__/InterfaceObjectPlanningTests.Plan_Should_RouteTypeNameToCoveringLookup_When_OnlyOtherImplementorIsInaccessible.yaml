@@ -1,3 +1,4 @@
+id: 41e2f7608852099800502bf3903a9770f05172df573a253380c67f12604d640d
 operation:
   - document: |
       {
@@ -10,37 +11,59 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: ledger
-    operation: |
-      query Op_123456789101112_1 {
-        rows {
-          account {
-            id
-            balance
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          rows {
+            account {
+              id
+              balance
+            }
           }
         }
-      }
+      hash: 60c49b37ecb47fee685bf739e43a0b21497b7709dd0c2b9fad17f8283795c1f6
+      shortHash: 60c49b37
+      xxHash: 12979154349350364758
+    resultSelectionSet: >-
+      { rows { account { id balance } } }
   - id: 2
     type: ApolloOperation
     schema: accounts
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Account {
-            __typename
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Account {
+              __typename
+            }
           }
         }
-      }
+      hash: 1eb028b239a1952ed978b84410e5dc0c1494d99592cf2538f03f3a99f5c812cb
+      shortHash: 1eb028b2
+      xxHash: 2402437081162294452
+    entityType: Account
+    resultSelectionSet: >-
+      { __typename }
     source: $._entities
     target: $.rows.account
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.rows.account
         selectionMap: >-
           id
     dependencies:

@@ -1,3 +1,4 @@
+id: 50f995c77ff98065cba6490c93bc980c76b22a6e5d7f458b4a3cf67311ebbb49
 operation:
   - document: |
       query getReviews($userId: ID!) {
@@ -33,26 +34,37 @@ operation:
         }
       }
     name: getReviews
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 9
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 9
 nodes:
   - id: 1
     type: Node
     idValue: $userId
     responseName: node
     branches:
-      - User: 3
+      User: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query getReviews_123456789101112_2($userId: ID!) {
-        node(id: $userId) {
-          __typename
-          id
+    operation:
+      name: getReviews_123456789101112_2
+      kind: Query
+      document: |
+        query getReviews_123456789101112_2($userId: ID!) {
+          node(id: $userId) {
+            __typename
+            id
+          }
         }
-      }
+      hash: cf67be6dd48c72900ea4f4eda1acb3b15b632a72dbcb84b3da5b5950989d73c9
+      shortHash: cf67be6d
+      xxHash: 9057243684961491427
+    resultSelectionSet: >-
+      { node }
     forwardedVariables:
       - userId
     dependencies:
@@ -60,17 +72,26 @@ nodes:
   - id: 3
     type: Operation
     schema: a
-    operation: |
-      query getReviews_123456789101112_3($userId: ID!) {
-        node(id: $userId) {
-          __typename
-          ... on User {
+    operation:
+      name: getReviews_123456789101112_3
+      kind: Query
+      document: |
+        query getReviews_123456789101112_3($userId: ID!) {
+          node(id: $userId) {
             __typename
-            id
-            name
+            ... on User {
+              __typename
+              id
+              name
+            }
           }
         }
-      }
+      hash: bef61dec8fd252d231a852fc0d680ed882ed4491680e329b36528c23dcbc812b
+      shortHash: bef61dec
+      xxHash: 11302236329113067344
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { node { __typename ... on User { __typename id name } } }
     forwardedVariables:
       - userId
     dependencies:
@@ -78,38 +99,57 @@ nodes:
   - id: 4
     type: Operation
     schema: a
-    operation: |
-      query getReviews_123456789101112_4($userId: ID!) {
-        userById(id: $userId) {
-          name
-        }
-        users {
-          nodes {
-            id
+    operation:
+      name: getReviews_123456789101112_4
+      kind: Query
+      document: |
+        query getReviews_123456789101112_4($userId: ID!) {
+          userById(id: $userId) {
+            name
+          }
+          users {
+            nodes {
+              id
+            }
           }
         }
-      }
+      hash: 16a5152fbc1c3108b1a6c7d27f6623c623ca45f0d82b90d9915b796a4a5e4af8
+      shortHash: 16a5152f
+      xxHash: 2481709740612679604
+    resultSelectionSet: >-
+      { userById users }
     forwardedVariables:
       - userId
   - id: 5
     type: Operation
     schema: f
-    operation: |
-      query getReviews_123456789101112_5($__fusion_1_id: ID!) {
-        userById(id: $__fusion_1_id) {
-          reviews {
-            nodes {
-              product {
-                id
+    operation:
+      name: getReviews_123456789101112_5
+      kind: Query
+      document: |
+        query getReviews_123456789101112_5($__fusion_1_id: ID!) {
+          userById(id: $__fusion_1_id) {
+            reviews {
+              nodes {
+                product {
+                  id
+                }
               }
             }
           }
         }
-      }
+      hash: 7847138c97330f8719fb9e47ef4a554e60515fb1413618cd2cc8fd14a3a19871
+      shortHash: 7847138c
+      xxHash: 4805295947758262199
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { reviews }
     source: $.userById
     target: $.users.nodes
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.users.nodes
         selectionMap: >-
           id
     dependencies:
@@ -117,19 +157,30 @@ nodes:
   - id: 7
     type: Operation
     schema: g
-    operation: |
-      query getReviews_123456789101112_7(
-        $__fusion_3_dimension: ProductDimensionInput!
+    operation:
+      name: getReviews_123456789101112_7
+      kind: Query
+      document: |
+        query getReviews_123456789101112_7(
+          $__fusion_3_dimension: ProductDimensionInput!
           $__fusion_4_id: ID!
-      ) {
-        productById(id: $__fusion_4_id) {
-          deliveryEstimate(zip: "123", dimension: $__fusion_3_dimension)
+        ) {
+          productById(id: $__fusion_4_id) {
+            deliveryEstimate(zip: "123", dimension: $__fusion_3_dimension)
+          }
         }
-      }
+      hash: 5a9e3a37e9e384381791be10fc992952f389539ddc06da6cd21d8dfbd7e08fe7
+      shortHash: 5a9e3a37
+      xxHash: 3940125344558243332
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { deliveryEstimate }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_3_dimension
+        type: ProductDimensionInput!
+        path: $.users.nodes.reviews.nodes.product
         selectionMap: >-
           {
             weight
@@ -138,6 +189,8 @@ nodes:
             height: dimension.height
           }
       - name: __fusion_4_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product
         selectionMap: >-
           id
     dependencies:
@@ -146,21 +199,32 @@ nodes:
   - id: 8
     type: Operation
     schema: e
-    operation: |
-      query getReviews_123456789101112_8($__fusion_5_id: ID!) {
-        productById(id: $__fusion_5_id) {
-          weight
-          dimension {
-            length
-            width
-            height
+    operation:
+      name: getReviews_123456789101112_8
+      kind: Query
+      document: |
+        query getReviews_123456789101112_8($__fusion_5_id: ID!) {
+          productById(id: $__fusion_5_id) {
+            weight
+            dimension {
+              length
+              width
+              height
+            }
           }
         }
-      }
+      hash: 22ea5e7ce52b15d4d780a6cbac18a76abf8e4ccbb0e781f714316df923f2f8bf
+      shortHash: 22ea5e7c
+      xxHash: 7258203109244987498
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { weight dimension }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_5_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product
         selectionMap: >-
           id
     dependencies:

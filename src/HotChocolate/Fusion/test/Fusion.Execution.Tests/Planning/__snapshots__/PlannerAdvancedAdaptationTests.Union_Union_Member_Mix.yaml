@@ -1,3 +1,4 @@
+id: 0d3dabf020ac086634bd208f4e76f90660e9456df3e336c034dbb2676b3ab090
 operation:
   - document: |
       {
@@ -8,19 +9,30 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        media {
-          __typename
-          ... on Book {
-            title
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          media {
+            __typename
+            ... on Book {
+              title
+            }
           }
         }
-      }
+      hash: fc6d878da4da654c00825bbf542f99e3bd9163522ce6ae0a6792e7bf27a1861c
+      shortHash: fc6d878d
+      xxHash: 8338259708514109094
+    resultSelectionSet: >-
+      { media }

@@ -1,3 +1,4 @@
+id: 168e7f93385a09746289577ece1f37615fe2812b454524d9bdb666d1b67107a1
 operation:
   - document: |
       {
@@ -9,41 +10,65 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-          author {
-            yearsOfExperience
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            id
+            author {
+              yearsOfExperience
+            }
           }
         }
-      }
+      hash: a2836281fd78a8bc58ff9cb72f5edbc75469799e636806f8ff735aaef14754d1
+      shortHash: a2836281
+      xxHash: 16456569611427141789
+    resultSelectionSet: >-
+      { feed }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_id: ID!
           $__fusion_2_yearsOfExperience: Int!
-      ) {
-        postById(id: $__fusion_1_id) {
-          byNovice(yearsOfExperience: $__fusion_2_yearsOfExperience)
+        ) {
+          postById(id: $__fusion_1_id) {
+            byNovice(yearsOfExperience: $__fusion_2_yearsOfExperience)
+          }
         }
-      }
+      hash: 5cb2cd0eaa7b0af24cdd9fc3c620c5f399bcf90ce8dc67cdb0d269495c28c7e2
+      shortHash: 5cb2cd0e
+      xxHash: 10608747624529316712
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { byNovice }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
       - name: __fusion_2_yearsOfExperience
+        type: Int!
+        path: $.feed
         selectionMap: >-
           author.yearsOfExperience
     dependencies:

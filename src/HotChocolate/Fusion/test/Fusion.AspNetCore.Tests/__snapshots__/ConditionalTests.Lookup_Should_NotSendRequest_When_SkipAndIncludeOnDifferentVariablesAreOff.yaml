@@ -71,6 +71,7 @@ sourceSchemas:
         epsilon: Int!
       }
 operationPlan:
+  id: b5bdb999f77dd72f9e60825065e1b97a9f71b8e49f10ae2909f3065c129b8b34
   operation:
     - document: |
         query testQuery($skipDelta: Boolean!, $includeEpsilon: Boolean!) {
@@ -82,37 +83,59 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 4bbf87f277ebd826c934e115b925c829
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 4bbf87f277ebd826c934e115b925c829
+      hash: c96d81bd9d649f4c9b6e2412db35123d
+      shortHash: c96d81bd
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_c96d81bd_1 {
-          thing {
-            id
+      operation:
+        name: testQuery_c96d81bd_1
+        kind: Query
+        document: |
+          query testQuery_c96d81bd_1 {
+            thing {
+              id
+            }
           }
-        }
+        hash: f31e834259d1e703065e6e7d9717c56a908fbbe6cb645865e12473cd0799e921
+        shortHash: f31e8342
+        xxHash: 2568907670594366525
+      resultSelectionSet: >-
+        { thing }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_c96d81bd_2(
-          $skipDelta: Boolean!
-          $includeEpsilon: Boolean!
-          $__fusion_1_id: Int!
-        ) {
-          thingById(id: $__fusion_1_id) {
-            delta @skip(if: $skipDelta)
-            epsilon @include(if: $includeEpsilon)
+      operation:
+        name: testQuery_c96d81bd_2
+        kind: Query
+        document: |
+          query testQuery_c96d81bd_2(
+            $skipDelta: Boolean!
+            $includeEpsilon: Boolean!
+            $__fusion_1_id: Int!
+          ) {
+            thingById(id: $__fusion_1_id) {
+              delta @skip(if: $skipDelta)
+              epsilon @include(if: $includeEpsilon)
+            }
           }
-        }
+        hash: 0f364e8faf409cb77ff5db91637fb75d241e65a40fd28b59280b72842ca6dd70
+        shortHash: 0f364e8f
+        xxHash: 7726389600662693965
+      lookupTypeName: Thing
+      resultSelectionSet: >-
+        { delta epsilon }
       source: $.thingById
       target: $.thing
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.thing
           selectionMap: >-
             id
       conditionAlternatives:

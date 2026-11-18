@@ -259,6 +259,7 @@ sourceSchemas:
         response:
           statusCode: 500
 operationPlan:
+  id: e71a082088e144ddc81e4a27d2a8338978f1a173b488943b697152cbc542df43
   operation:
     - document: |
         query testQuery {
@@ -295,49 +296,71 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: c4833ffc25f8cfa8fd4aca5efbf6e465
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: c4833ffc25f8cfa8fd4aca5efbf6e465
+      hash: 8e0a9b3ab081c53a84223f18aef33f22
+      shortHash: 8e0a9b3a
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_8e0a9b3a_1 {
-          search {
-            __typename
-            ... on ExistingResult {
-              asset {
-                dbId
+      operation:
+        name: testQuery_8e0a9b3a_1
+        kind: Query
+        document: |
+          query testQuery_8e0a9b3a_1 {
+            search {
+              __typename
+              ... on ExistingResult {
+                asset {
+                  dbId
+                }
+              }
+              ... on ExistingResult2 {
+                asset {
+                  dbId
+                }
+              }
+              ... on OtherResult {
+                doc {
+                  id
+                }
               }
             }
-            ... on ExistingResult2 {
-              asset {
-                dbId
-              }
-            }
-            ... on OtherResult {
-              doc {
+          }
+        hash: f32bc780ddc2fe62ed7468949b0f53bf4577a2550e8456e5dcec6194170371ec
+        shortHash: f32bc780
+        xxHash: 15360582409080438732
+      resultSelectionSet: >-
+        { search }
+    - id: 2
+      type: Operation
+      schema: C
+      operation:
+        name: testQuery_8e0a9b3a_2
+        kind: Query
+        document: |
+          query testQuery_8e0a9b3a_2($__fusion_1_id: Int!) {
+            docById(id: $__fusion_1_id) {
+              meterType {
                 id
               }
             }
           }
-        }
-    - id: 2
-      type: Operation
-      schema: C
-      operation: |
-        query testQuery_8e0a9b3a_2($__fusion_1_id: Int!) {
-          docById(id: $__fusion_1_id) {
-            meterType {
-              id
-            }
-          }
-        }
+        hash: 60493a7e39c8391a14c33aa883925c5095404c2f1ba2cc5d28591b1dcffd061a
+        shortHash: 60493a7e
+        xxHash: 15014032295277060079
+      lookupTypeName: Doc
+      resultSelectionSet: >-
+        { meterType }
       source: $.docById
       target: $.search<OtherResult>.doc
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.search<OtherResult>.doc
           selectionMap: >-
             id
       dependencies:
@@ -345,20 +368,31 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query testQuery_8e0a9b3a_4($__fusion_3_dbId: Int!) {
-          assetByDbId(dbId: $__fusion_3_dbId) {
-            meterType {
-              id
+      operation:
+        name: testQuery_8e0a9b3a_4
+        kind: Query
+        document: |
+          query testQuery_8e0a9b3a_4($__fusion_3_dbId: Int!) {
+            assetByDbId(dbId: $__fusion_3_dbId) {
+              meterType {
+                id
+              }
+              statusMessage
             }
-            statusMessage
           }
-        }
+        hash: 2492e6193828f33fc38466a2b59ed6828c0b154aee1ef5c497644f0b5ae5cb6d
+        shortHash: "2492e619"
+        xxHash: 3800518028279552273
+      lookupTypeName: Asset
+      resultSelectionSet: >-
+        { meterType statusMessage }
       source: $.assetByDbId
       target: $.search<ExistingResult2>.asset
       batchingGroupId: 8
       requirements:
         - name: __fusion_3_dbId
+          type: Int!
+          path: $.search<ExistingResult2>.asset
           selectionMap: >-
             dbId
       dependencies:
@@ -366,19 +400,30 @@ operationPlan:
     - id: 6
       type: Operation
       schema: B
-      operation: |
-        query testQuery_8e0a9b3a_6($__fusion_5_dbId: Int!) {
-          assetByDbId(dbId: $__fusion_5_dbId) {
-            meterType {
-              id
+      operation:
+        name: testQuery_8e0a9b3a_6
+        kind: Query
+        document: |
+          query testQuery_8e0a9b3a_6($__fusion_5_dbId: Int!) {
+            assetByDbId(dbId: $__fusion_5_dbId) {
+              meterType {
+                id
+              }
             }
           }
-        }
+        hash: e21cbb14982c13b2c6484d61889ca570a345e29a25f525398a03d9af2940901c
+        shortHash: e21cbb14
+        xxHash: 8746775497445559374
+      lookupTypeName: Asset
+      resultSelectionSet: >-
+        { meterType }
       source: $.assetByDbId
       target: $.search<ExistingResult>.asset
       batchingGroupId: 8
       requirements:
         - name: __fusion_5_dbId
+          type: Int!
+          path: $.search<ExistingResult>.asset
           selectionMap: >-
             dbId
       dependencies:
@@ -386,12 +431,21 @@ operationPlan:
     - id: 3
       type: OperationBatch
       schema: A
-      operation: |
-        query testQuery_8e0a9b3a_3($__fusion_2_id: Int!) {
-          meterTypeById(id: $__fusion_2_id) {
-            type
+      operation:
+        name: testQuery_8e0a9b3a_3
+        kind: Query
+        document: |
+          query testQuery_8e0a9b3a_3($__fusion_2_id: Int!) {
+            meterTypeById(id: $__fusion_2_id) {
+              type
+            }
           }
-        }
+        hash: bbd31dadb421f9aae67c673670f6728c195cbdc7a27dc7ad2cac078886e32742
+        shortHash: bbd31dad
+        xxHash: 9654040745954552899
+      lookupTypeName: MeterType
+      resultSelectionSet: >-
+        { type }
       source: $.meterTypeById
       targets:
         - $.search<OtherResult>.doc.meterType
@@ -400,6 +454,8 @@ operationPlan:
       batchingGroupId: 9
       requirements:
         - name: __fusion_2_id
+          type: Int!
+          path: $.search<OtherResult>.doc.meterType
           selectionMap: >-
             id
       dependencies:

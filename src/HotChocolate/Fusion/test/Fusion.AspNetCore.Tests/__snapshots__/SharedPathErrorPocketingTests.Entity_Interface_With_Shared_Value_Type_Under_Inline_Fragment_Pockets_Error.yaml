@@ -142,6 +142,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 2dc48f2a20472477dd7365ea3a60db234d0cb4e3cd8a56d1974f52660ee53f01
   operation:
     - document: |
         {
@@ -155,35 +156,54 @@ operationPlan:
             }
           }
         }
-      hash: 84b8b775521dec48dcac91a391fdc449
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 84b8b775521dec48dcac91a391fdc449
+      hash: 854c0b2123f005940cd054f30953d09d
+      shortHash: 854c0b21
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_854c0b21_1 {
-          node {
-            __typename
-            ... on Product {
-              shared {
-                a
+      operation:
+        name: Op_854c0b21_1
+        kind: Query
+        document: |
+          query Op_854c0b21_1 {
+            node {
+              __typename
+              ... on Product {
+                shared {
+                  a
+                }
               }
             }
           }
-        }
+        hash: 7ffb7681887d7890d82a8312d4927e29ffd1fe063b62bc01204894637c340d52
+        shortHash: 7ffb7681
+        xxHash: 3561468085958249813
+      resultSelectionSet: >-
+        { node { __typename ... on Product { shared { a } } } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_854c0b21_2 {
-          node {
-            __typename
-            ... on Product {
-              shared {
-                b
+      operation:
+        name: Op_854c0b21_2
+        kind: Query
+        document: |
+          query Op_854c0b21_2 {
+            node {
+              __typename
+              ... on Product {
+                shared {
+                  b
+                }
               }
             }
           }
-        }
+        hash: a3e821203520b54b56a08855305c2d33b050e53d23b17f8bbafe59951e8d257b
+        shortHash: a3e82120
+        xxHash: 17155067566065950955
+      resultSelectionSet: >-
+        { node { __typename ... on Product { shared { b } } } }

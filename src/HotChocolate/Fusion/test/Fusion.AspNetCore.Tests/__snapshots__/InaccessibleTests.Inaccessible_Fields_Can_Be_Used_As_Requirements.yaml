@@ -114,6 +114,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ab334883055544ca2103fa15b9d9b9ef7bef7f627b27908b2e522e37eef3ee61
   operation:
     - document: |
         {
@@ -124,34 +125,56 @@ operationPlan:
             }
           }
         }
-      hash: 76b0e95680d5a604dcdc50c235d9f2b9
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 76b0e95680d5a604dcdc50c235d9f2b9
+      hash: 2f49c6c626f685fb744ca6d2c2d853a8
+      shortHash: 2f49c6c6
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_2f49c6c6_1 {
-          bookById(id: 1) {
-            author {
-              id
+      operation:
+        name: Op_2f49c6c6_1
+        kind: Query
+        document: |
+          query Op_2f49c6c6_1 {
+            bookById(id: 1) {
+              author {
+                id
+              }
             }
           }
-        }
+        hash: d662c53b4cc913f2294a0937d28a84739ad566271d4c161ddc08b7e1279ece2b
+        shortHash: d662c53b
+        xxHash: 3933538638177487596
+      resultSelectionSet: >-
+        { bookById }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_2f49c6c6_2($__fusion_1_id: Int!) {
-          authorById(id: $__fusion_1_id) {
-            name
+      operation:
+        name: Op_2f49c6c6_2
+        kind: Query
+        document: |
+          query Op_2f49c6c6_2($__fusion_1_id: Int!) {
+            authorById(id: $__fusion_1_id) {
+              name
+            }
           }
-        }
+        hash: 5c7a3c78ef5f41d547d69d92505df05a65c04b9d1bb5c31fe9878564df387ac3
+        shortHash: 5c7a3c78
+        xxHash: 3139535723460782930
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { name }
       source: $.authorById
       target: $.bookById.author
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.bookById.author
           selectionMap: >-
             id
       dependencies:

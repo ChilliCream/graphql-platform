@@ -137,6 +137,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: fcdc90c08cef2e23d3c5d8c27a0916a368a13901fd557a6e90528d08c5ef978a
   operation:
     - document: |
         query testQuery {
@@ -152,38 +153,60 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 56e098cf2ae510762d69ec27c3a9a49b
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 56e098cf2ae510762d69ec27c3a9a49b
+      hash: 7e81ce9e643ab646415b814b9eb5ddbe
+      shortHash: 7e81ce9e
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_7e81ce9e_1 {
-          posts {
-            __typename
-            ... on Photo {
-              id
-            }
-            ... on Discussion {
-              subgraph1
+      operation:
+        name: testQuery_7e81ce9e_1
+        kind: Query
+        document: |
+          query testQuery_7e81ce9e_1 {
+            posts {
+              __typename
+              ... on Photo {
+                id
+              }
+              ... on Discussion {
+                subgraph1
+              }
             }
           }
-        }
+        hash: de50a5ad99c359b4b019715bb7bcd51ca67b7ace5a9d7dc371d2098e22852823
+        shortHash: de50a5ad
+        xxHash: 17691515665721134160
+      resultSelectionSet: >-
+        { posts }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_7e81ce9e_2($__fusion_1_id: ID!) {
-          photoById(id: $__fusion_1_id) {
-            subgraph2
+      operation:
+        name: testQuery_7e81ce9e_2
+        kind: Query
+        document: |
+          query testQuery_7e81ce9e_2($__fusion_1_id: ID!) {
+            photoById(id: $__fusion_1_id) {
+              subgraph2
+            }
           }
-        }
+        hash: dc8adc317d7ddfd0c2f6d87c67dd9ef8b590518792cbde15ebdc435b6a914511
+        shortHash: dc8adc31
+        xxHash: 11983554158887692285
+      lookupTypeName: Photo
+      resultSelectionSet: >-
+        { subgraph2 }
       source: $.photoById
       target: $.posts<Photo>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.posts<Photo>
           selectionMap: >-
             id
       dependencies:

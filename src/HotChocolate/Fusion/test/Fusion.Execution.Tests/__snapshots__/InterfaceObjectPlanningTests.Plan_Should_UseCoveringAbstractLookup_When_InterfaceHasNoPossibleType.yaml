@@ -1,3 +1,4 @@
+id: e8259e618397a13123a91ee3c54655620776db5e1bd932b00b487895958046d9
 operation:
   - document: |
       {
@@ -7,35 +8,57 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        a {
-          __typename
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          a {
+            __typename
+            id
+          }
         }
-      }
+      hash: 72519b343e5d4fb90d3b4e129efd0a146e10a620a8593138b1f55887cf46473f
+      shortHash: 72519b34
+      xxHash: 7329861058382106994
+    resultSelectionSet: >-
+      { a }
   - id: 2
     type: ApolloOperation
     schema: b
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Node {
-            field
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Node {
+              field
+            }
           }
         }
-      }
+      hash: 6a5afdab856bc8dcd76a1031b475376a88bda7d6bec267286a754fb7d771a204
+      shortHash: 6a5afdab
+      xxHash: 15425159233885549998
+    entityType: Node
+    resultSelectionSet: >-
+      { field }
     source: $._entities
     target: $.a
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.a
         selectionMap: >-
           id
     dependencies:

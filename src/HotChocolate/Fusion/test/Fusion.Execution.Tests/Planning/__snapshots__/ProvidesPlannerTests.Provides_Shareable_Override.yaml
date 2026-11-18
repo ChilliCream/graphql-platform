@@ -1,3 +1,4 @@
+id: dc6d537344d34ebda20405f8ada2c21a0fe6968af556633852d4f0ec009aecc0
 operation:
   - document: |
       {
@@ -9,20 +10,31 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          reviews {
-            author {
-              displayName
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            reviews {
+              author {
+                displayName
+              }
             }
           }
         }
-      }
+      hash: baee4183772fa523a574a17a0647008eef058558ddf3573f9b857c147d2bc2e7
+      shortHash: baee4183
+      xxHash: 17837802346458528838
+    resultSelectionSet: >-
+      { products }

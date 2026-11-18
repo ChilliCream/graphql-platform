@@ -134,6 +134,7 @@ sourceSchemas:
         id: Int!
       }
 operationPlan:
+  id: 17595de4ba71868add52006c79a5206b62ef3823f116fa2ba4adb9d84fa3a978
   operation:
     - document: |
         {
@@ -151,26 +152,37 @@ operationPlan:
             }
           }
         }
-      hash: b7fb72c935741fc054f1e5a303822f01
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: b7fb72c935741fc054f1e5a303822f01
+      hash: e478e62b445cdeba5f97f95b02771a77
+      shortHash: e478e62b
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_e478e62b_1 {
-          node {
-            __typename
-            ... on Product {
-              shared {
-                a
+      operation:
+        name: Op_e478e62b_1
+        kind: Query
+        document: |
+          query Op_e478e62b_1 {
+            node {
+              __typename
+              ... on Product {
+                shared {
+                  a
+                }
               }
-            }
-            ... on Review {
-              shared {
-                b
+              ... on Review {
+                shared {
+                  b
+                }
               }
             }
           }
-        }
+        hash: 51256d920cfdd034a8d151c81146220659c27b5564f9deea09a5d1cf0a0454cc
+        shortHash: 51256d92
+        xxHash: 3958407484843887294
+      resultSelectionSet: >-
+        { node { __typename ... on Product { shared { a } } ... on Review { shared { b } } } }

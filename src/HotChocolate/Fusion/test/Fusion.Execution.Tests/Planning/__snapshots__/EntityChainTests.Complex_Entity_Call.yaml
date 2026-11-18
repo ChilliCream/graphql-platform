@@ -1,3 +1,4 @@
+id: c4e6e22d7d3cfb9c3b9fbf009e14e7a21e3dcc7a97eacb6d0d46a209be8cdf29
 operation:
   - document: |
       {
@@ -16,59 +17,87 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 3
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_1 {
-        topProducts {
-          products {
-            id
-            category {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          topProducts {
+            products {
               id
-              tag
+              category {
+                id
+                tag
+              }
             }
           }
         }
-      }
+      hash: 50ee499aea127654e290608e215a5773f9f95112755f8e97d2eb807efdbbbb31
+      shortHash: 50ee499a
+      xxHash: 10122488351664823367
+    resultSelectionSet: >-
+      { topProducts }
   - id: 2
     type: Operation
     schema: price
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_categoryId: ID!
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_categoryId: ID!
           $__fusion_1_categoryTag: String
           $__fusion_1_id: ID!
           $__fusion_1_pid: ID!
-      ) {
-        productByIdPidAndCategory(
-          id: $__fusion_1_id
-          pid: $__fusion_1_pid
-          categoryId: $__fusion_1_categoryId
-          categoryTag: $__fusion_1_categoryTag
         ) {
-          price {
-            price
+          productByIdPidAndCategory(
+            id: $__fusion_1_id
+            pid: $__fusion_1_pid
+            categoryId: $__fusion_1_categoryId
+            categoryTag: $__fusion_1_categoryTag
+          ) {
+            price {
+              price
+            }
           }
         }
-      }
+      hash: 66025c0d46446c3542bf54ff4480083e4ed5c310cc88c7cd301fc6a1fc040355
+      shortHash: 66025c0d
+      xxHash: 16643722730577980619
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.productByIdPidAndCategory
     target: $.topProducts.products
     requirements:
       - name: __fusion_1_categoryId
+        type: ID!
+        path: $.topProducts.products
         selectionMap: >-
           category.id
       - name: __fusion_1_categoryTag
+        type: String
+        path: $.topProducts.products
         selectionMap: >-
           category.tag
       - name: __fusion_1_id
+        type: ID!
+        path: $.topProducts.products
         selectionMap: >-
           id
       - name: __fusion_1_pid
+        type: ID!
+        path: $.topProducts.products
         selectionMap: >-
           pid
     dependencies:
@@ -77,16 +106,27 @@ nodes:
   - id: 3
     type: Operation
     schema: link
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          pid
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          productById(id: $__fusion_2_id) {
+            pid
+          }
         }
-      }
+      hash: 499b0c6869c24f0ca8ca06210e3a95c56e123ca3756b55c9022bc4723e306ecd
+      shortHash: 499b0c68
+      xxHash: 11041567066039682064
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { pid }
     source: $.productById
     target: $.topProducts.products
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.topProducts.products
         selectionMap: >-
           id
     dependencies:

@@ -1,3 +1,4 @@
+id: 5f4bee2c4cb745b10fa2e47041bc84a37c5af0313d6b26120a72e453c733174c
 operation:
   - document: |
       {
@@ -13,24 +14,35 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: A
-    operation: |
-      query Op_123456789101112_1 {
-        category {
-          featured {
-            __typename
-            ... on Product {
-              name
-            }
-            ... on Review {
-              rating
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          category {
+            featured {
+              __typename
+              ... on Product {
+                name
+              }
+              ... on Review {
+                rating
+              }
             }
           }
         }
-      }
+      hash: b1d3c9f0cbc06071a9c30f064a2be82666a8df9ee46d640a7f51e8045ad3c271
+      shortHash: b1d3c9f0
+      xxHash: 5900209088848180466
+    resultSelectionSet: >-
+      { category { featured } }

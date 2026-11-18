@@ -1,3 +1,4 @@
+id: 8b238fbcb19bbc16f4bb297213151d29f65af4f8699ec4d7132817936e058d32
 operation:
   - document: |
       {
@@ -8,34 +9,55 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 6
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 6
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        wrapper {
-          entity {
-            age
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          wrapper {
+            entity {
+              age
+            }
           }
         }
-      }
+      hash: ab575378ff142e8b6ccdb660364c5f689cd754cfcb5cfe71c8c8309825f4f77d
+      shortHash: ab575378
+      xxHash: 6050192217204879090
+    resultSelectionSet: >-
+      { wrapper { entity { age } } }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_age: Int) {
-        wrapper {
-          entity {
-            name(age: $__fusion_1_age)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_age: Int) {
+          wrapper {
+            entity {
+              name(age: $__fusion_1_age)
+            }
           }
         }
-      }
+      hash: bc367d0554f6a984277aa9fd4b641fb3c5fbbecc6bf16088d845abdb6e99b6d1
+      shortHash: bc367d05
+      xxHash: 8231455912477723305
+    resultSelectionSet: >-
+      { wrapper { entity { name } } }
     requirements:
       - name: __fusion_1_age
+        type: Int
+        path: $.wrapper.entity
         selectionMap: >-
           age
     dependencies:

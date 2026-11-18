@@ -1,3 +1,4 @@
+id: aaf3da96256bb288517753ba0618c343b7a5f045b32668a3f4139abaf418b777
 operation:
   - document: |
       {
@@ -9,44 +10,70 @@ operation:
           fusion__requirement_price_0: price @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 8
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 8
 nodes:
   - id: 1
     type: Operation
     schema: inventory
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          upc
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            upc
+          }
         }
-      }
+      hash: 8cab95a43a4de1182d29364959e043c16ef99742f92f9a5f87d5486ed5c084e1
+      shortHash: 8cab95a4
+      xxHash: 5418842493359688966
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: inventory
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_price: Int
-        $__fusion_2_upc: String!
-        $__fusion_5_price: Int
-      ) {
-        productByUpc(upc: $__fusion_2_upc) {
-          reducedPrice(price: $__fusion_1_price)
-          isExpensive(price: $__fusion_5_price)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_price: Int
+          $__fusion_2_upc: String!
+          $__fusion_5_price: Int
+        ) {
+          productByUpc(upc: $__fusion_2_upc) {
+            reducedPrice(price: $__fusion_1_price)
+            isExpensive(price: $__fusion_5_price)
+          }
         }
-      }
+      hash: 1e4bada0514759356608fc1e11e8b29f6c09de09506949dbfa7742f08d07d6b7
+      shortHash: 1e4bada0
+      xxHash: 18418179278221178319
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { reducedPrice isExpensive }
     source: $.productByUpc
     target: $.products
     requirements:
       - name: __fusion_1_price
+        type: Int
+        path: $.products
         internalAlias: fusion__requirement_price_0
         selectionMap: >-
           price
       - name: __fusion_2_upc
+        type: String!
+        path: $.products
         selectionMap: >-
           upc
       - name: __fusion_5_price
+        type: Int
+        path: $.products
         internalAlias: fusion__requirement_price_0
         selectionMap: >-
           price
@@ -56,17 +83,28 @@ nodes:
   - id: 3
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_3($__fusion_3_upc: String!) {
-        productByUpc(upc: $__fusion_3_upc) {
-          fusion__requirement_price_0: price
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_upc: String!) {
+          productByUpc(upc: $__fusion_3_upc) {
+            fusion__requirement_price_0: price
+          }
         }
-      }
+      hash: a5b4485d71884b45947288331835870f11ce96151ec7e632491e8098a26a0343
+      shortHash: a5b4485d
+      xxHash: 10056822697982276169
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { fusion__requirement_price_0 }
     source: $.productByUpc
     target: $.products
     batchingGroupId: 6
     requirements:
       - name: __fusion_3_upc
+        type: String!
+        path: $.products
         selectionMap: >-
           upc
     dependencies:
@@ -74,17 +112,28 @@ nodes:
   - id: 5
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_5($__fusion_6_upc: String!) {
-        productByUpc(upc: $__fusion_6_upc) {
-          price(withDiscount: true)
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query Op_123456789101112_5($__fusion_6_upc: String!) {
+          productByUpc(upc: $__fusion_6_upc) {
+            price(withDiscount: true)
+          }
         }
-      }
+      hash: fe361e5df3ac53e7ed66a798e1eb96ecb6181b05ebeef7a41c8c1740fa34f71e
+      shortHash: fe361e5d
+      xxHash: 2271867900534476517
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.productByUpc
     target: $.products
     batchingGroupId: 6
     requirements:
       - name: __fusion_6_upc
+        type: String!
+        path: $.products
         selectionMap: >-
           upc
     dependencies:

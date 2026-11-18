@@ -91,6 +91,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: 716b9d423fb1377ac4fa6115e565da1d022471a9326eff0efaf1919cf8d381e5
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -103,26 +104,37 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 88dd533d489e211058ca41194580ec05
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 88dd533d489e211058ca41194580ec05
+      hash: 61fcbd495c197032b027f7fa03bb8d27
+      shortHash: 61fcbd49
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: node
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_61fcbd49_2($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            id @skip(if: $skip)
+      operation:
+        name: testQuery_61fcbd49_2
+        kind: Query
+        document: |
+          query testQuery_61fcbd49_2($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
+              __typename
+              id @skip(if: $skip)
+            }
           }
-        }
+        hash: ff1cd83d6ab5d55047a2c83774296db55e6d92b444ed66152e482fc98d008926
+        shortHash: ff1cd83d
+        xxHash: 285233372155861327
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - skip
       dependencies:
@@ -130,17 +142,26 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_61fcbd49_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_61fcbd49_3
+        kind: Query
+        document: |
+          query testQuery_61fcbd49_3($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
-              id @skip(if: $skip)
-              title
+              ... on Discussion {
+                __typename
+                id @skip(if: $skip)
+                title
+              }
             }
           }
-        }
+        hash: 92671c0bce941c1347b9600e1a839c421f55bfcd0c7ac0556cd7e907491b582a
+        shortHash: 92671c0b
+        xxHash: 12230730933143233839
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename id title } } }
       forwardedVariables:
         - skip
       dependencies:

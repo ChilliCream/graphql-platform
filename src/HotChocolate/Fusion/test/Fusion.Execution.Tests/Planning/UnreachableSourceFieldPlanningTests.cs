@@ -80,6 +80,7 @@ public sealed class UnreachableSourceFieldPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: a721425102a30b28741219149b2f006d76429d366caa8af3e6420592a1107702
             operation:
               - document: |
                   {
@@ -89,27 +90,46 @@ public sealed class UnreachableSourceFieldPlanningTests : FusionTestBase
                     }
                     topReviewer
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 2
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: Operation
                 schema: B
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      id
-                      name
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        id
+                        name
+                      }
                     }
-                  }
+                  hash: fd4bf1b02184e86c744354ce2c5643927f462849bd41bf14490eee0fc80a0a55
+                  shortHash: fd4bf1b0
+                  xxHash: 11837111529987062917
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: A
-                operation: |
-                  query Op_123456789101112_2 {
-                    topReviewer
-                  }
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2 {
+                      topReviewer
+                    }
+                  hash: 59f29def36a74ba0fb7849cc5c4e72a2f0af9c73ce5c673a02686d9d3faf53a8
+                  shortHash: 59f29def
+                  xxHash: 5075075488705743962
+                resultSelectionSet: >-
+                  { topReviewer }
             """);
     }
 
@@ -162,30 +182,50 @@ public sealed class UnreachableSourceFieldPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 1e5be2505f254efa9023836b8fabdd759656288158931bc5c0ed7d13004d9539
             operation:
               - document: |
                   {
                     productCount
                     topReviewer
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 2
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: Operation
                 schema: A
-                operation: |
-                  query Op_123456789101112_1 {
-                    topReviewer
-                  }
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      topReviewer
+                    }
+                  hash: ee4b32e2c7a225dc33e6daece2de57000d370fb65b5ce6880d9e4c8362a11368
+                  shortHash: ee4b32e2
+                  xxHash: 1951633569177605745
+                resultSelectionSet: >-
+                  { topReviewer }
               - id: 2
                 type: Operation
                 schema: B
-                operation: |
-                  query Op_123456789101112_2 {
-                    productCount
-                  }
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2 {
+                      productCount
+                    }
+                  hash: db68954096f46b6db6e3f31bcd9d3135798af7b7f744c1381b39b6b9a619321d
+                  shortHash: db689540
+                  xxHash: 12233370815646752029
+                resultSelectionSet: >-
+                  { productCount }
             """);
     }
 

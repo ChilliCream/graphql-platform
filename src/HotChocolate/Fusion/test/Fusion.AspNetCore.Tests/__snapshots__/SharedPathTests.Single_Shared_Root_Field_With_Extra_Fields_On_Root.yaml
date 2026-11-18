@@ -179,6 +179,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f7c9fb98120e19e7b66be9f6608b02689ccaa4834871a651bfd8421b836dd6ea
   operation:
     - document: |
         {
@@ -189,35 +190,62 @@ operationPlan:
           schema1
           schema2
         }
-      hash: 0664977081936121e0ab7c6a71cb9016
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 0664977081936121e0ab7c6a71cb9016
+      hash: 4a75abf382d52f602e2150a996e24010
+      shortHash: 4a75abf3
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_4a75abf3_1 {
-          viewer {
+      operation:
+        name: Op_4a75abf3_1
+        kind: Query
+        document: |
+          query Op_4a75abf3_1 {
+            viewer {
+              schema1
+            }
             schema1
           }
-          schema1
-        }
+        hash: cb259d91731b59d6c5d4ed0c4e94de194766eef9f777eaaf5e28e6562f5fb226
+        shortHash: cb259d91
+        xxHash: 13280911004391307149
+      resultSelectionSet: >-
+        { viewer { schema1 } schema1 }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_4a75abf3_2 {
-          schema2
-        }
+      operation:
+        name: Op_4a75abf3_2
+        kind: Query
+        document: |
+          query Op_4a75abf3_2 {
+            schema2
+          }
+        hash: 0c756701dbabe4a4042202065d129fe01964c25edbbb30383136b8bb0329a934
+        shortHash: 0c756701
+        xxHash: 14146590994015735811
+      resultSelectionSet: >-
+        { schema2 }
       batchingGroupId: 4
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_4a75abf3_3 {
-          viewer {
-            schema2
+      operation:
+        name: Op_4a75abf3_3
+        kind: Query
+        document: |
+          query Op_4a75abf3_3 {
+            viewer {
+              schema2
+            }
           }
-        }
+        hash: fa3131cefc42fc5d18740948f12087a21f90c723a332c8a4ab0f1ffda1708341
+        shortHash: fa3131ce
+        xxHash: 2281586198802286087
+      resultSelectionSet: >-
+        { viewer { schema2 } }
       batchingGroupId: 4

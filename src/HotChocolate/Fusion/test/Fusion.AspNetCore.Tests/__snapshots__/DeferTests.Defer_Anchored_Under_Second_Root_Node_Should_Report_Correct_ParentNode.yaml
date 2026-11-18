@@ -255,6 +255,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 4c0827b8e3f2889f9f17f83eced5adbdbaafefe561d9d5722ce99f92c84770fd
   operation:
     - document: |
         query t {
@@ -267,29 +268,48 @@ operationPlan:
           }
         }
       name: t
-      hash: c4a89d1d7687730f81553a3f5f71e2b9
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: c4a89d1d7687730f81553a3f5f71e2b9
+      hash: 7bbab574d28af35c2ad950d2ef0ea7e1
+      shortHash: 7bbab574
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query t_7bbab574_1 {
-          products {
-            id
-            name
+      operation:
+        name: t_7bbab574_1
+        kind: Query
+        document: |
+          query t_7bbab574_1 {
+            products {
+              id
+              name
+            }
           }
-        }
+        hash: 4e5fd9d9d86f829be61e78aab839cc8331df63464c980bc8c801b78458e5291b
+        shortHash: 4e5fd9d9
+        xxHash: 13929583909741048917
+      resultSelectionSet: >-
+        { products }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query t_7bbab574_2 {
-          users {
-            __typename
+      operation:
+        name: t_7bbab574_2
+        kind: Query
+        document: |
+          query t_7bbab574_2 {
+            users {
+              __typename
+            }
           }
-        }
+        hash: 436fe09c745e6df72ee5479ae503cad1aa39386eccd06a9801665f4ad423d9d9
+        shortHash: 436fe09c
+        xxHash: 17316104273612788987
+      resultSelectionSet: >-
+        { users }
   deliveryGroups:
     - id: 0
       path: $.users
@@ -297,14 +317,35 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 2
-      nodes:
-        - id: 1
-          type: Operation
-          schema: B
-          operation: |
-            query t_defer_1 {
+      operation:
+        - document: |
+            query t {
               users {
                 id
                 name
               }
             }
+          name: t
+          kind: Query
+          id: "c4a89d1d7687730f81553a3f5f71e2b9#defer_0"
+          hash: "7bbab574d28af35c2ad950d2ef0ea7e1#defer_0"
+          shortHash: 7bbab574
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: t_defer_1
+            kind: Query
+            document: |
+              query t_defer_1 {
+                users {
+                  id
+                  name
+                }
+              }
+            hash: f3cb7898ed437e4403523384825fea05933613f494dd1d680d5118ee9af85aca
+            shortHash: f3cb7898
+            xxHash: 3170810466182934954
+          resultSelectionSet: >-
+            { users }

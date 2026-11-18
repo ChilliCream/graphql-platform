@@ -1,3 +1,4 @@
+id: 58598dd66ac189f2160a77dc775e8b7861796732ea27884edb1ec1c92646fdf9
 operation:
   - document: |
       {
@@ -7,21 +8,32 @@ operation:
           currencyCode @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: accounts
-    operation: |
-      query Op_123456789101112_1 {
-        user(id: "1") {
-          name
-          id
-          currencyCode
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          user(id: "1") {
+            name
+            id
+            currencyCode
+          }
         }
-      }
+      hash: 4b50447f28939834614271318559760744841d457b539c4d63fe60b0a200e4a2
+      shortHash: 4b50447f
+      xxHash: 11745360847207602408
+    resultSelectionSet: >-
+      { user }
 deliveryGroups:
   - id: 0
     path: $.user
@@ -31,32 +43,67 @@ incrementalPlans:
     parentNodeId: 1
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.user
         selectionMap: >-
           id
       - name: __fusion_2_id
+        type: ID!
+        path: $.user
         selectionMap: >-
           id
       - name: __fusion_3_region
+        type: String!
+        path: $.user
         selectionMap: >-
           regionCode
       - name: __fusion_4_currency
+        type: String!
+        path: $.user
         selectionMap: >-
           currencyCode
+    operation:
+      - document: |
+          {
+            user(id: "1") {
+              bio
+              totalSpent
+              shippingFee
+              id @fusion__requirement
+              regionCode @fusion__requirement
+              currencyCode @fusion__requirement
+            }
+          }
+        kind: Query
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
     nodes:
       - id: 1
         type: Operation
         schema: profile
-        operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              bio
-              regionCode
+        operation:
+          name: Op_defer_1
+          kind: Query
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                bio
+                regionCode
+              }
             }
-          }
+          hash: 34246943073f43947d85c48752876d42eaf71bcc94fc4929f8ad2ab0d1aa427f
+          shortHash: "34246943"
+          xxHash: 11887602321110207340
+        lookupTypeName: User
+        resultSelectionSet: >-
+          { bio regionCode }
         source: $.userById
         target: $.user
         requirements:
           - name: __fusion_1_id
+            type: ID!
+            path: $.user
             selectionMap: >-
               id
         dependencies:
@@ -64,27 +111,42 @@ incrementalPlans:
       - id: 2
         type: Operation
         schema: pricing
-        operation: |
-          query Op_defer_2(
-            $__fusion_2_id: ID!
-            $__fusion_3_region: String!
-            $__fusion_4_currency: String!
-          ) {
-            userById(id: $__fusion_2_id) {
-              shippingFee(region: $__fusion_3_region)
-              totalSpent(currency: $__fusion_4_currency)
+        operation:
+          name: Op_defer_2
+          kind: Query
+          document: |
+            query Op_defer_2(
+              $__fusion_2_id: ID!
+              $__fusion_3_region: String!
+              $__fusion_4_currency: String!
+            ) {
+              userById(id: $__fusion_2_id) {
+                shippingFee(region: $__fusion_3_region)
+                totalSpent(currency: $__fusion_4_currency)
+              }
             }
-          }
+          hash: 18a8dc052d941b9e86d2bef7ce790d41ec0d16d3d20d48167721e975c0272c3c
+          shortHash: 18a8dc05
+          xxHash: 7890674745463862955
+        lookupTypeName: User
+        resultSelectionSet: >-
+          { shippingFee totalSpent }
         source: $.userById
         target: $.user
         requirements:
           - name: __fusion_2_id
+            type: ID!
+            path: $.user
             selectionMap: >-
               id
           - name: __fusion_3_region
+            type: String!
+            path: $.user
             selectionMap: >-
               regionCode
           - name: __fusion_4_currency
+            type: String!
+            path: $.user
             selectionMap: >-
               currencyCode
         dependencies:

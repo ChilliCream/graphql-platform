@@ -130,14 +130,18 @@ sourceSchemas:
         endCursor: String
       }
 operationPlan:
+  id: 82efd8b8727d742f786a05297291fdc3918cada2bcc9e5a678bf40f358963de9
   operation:
     - document: |
         query($s: Boolean! = true) {
           __typename @skip(if: $s)
         }
-      hash: 898d8871fc2834a1c0917e971f41079d
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 898d8871fc2834a1c0917e971f41079d
+      hash: 6fe5ef6b2885d351015c1d64f6c1eda8
+      shortHash: 6fe5ef6b
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

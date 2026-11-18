@@ -1,3 +1,4 @@
+id: 27dd2a3285609a9fb30c8421025f533ef927ddf43dc739aab9638971c18b9ee7
 operation:
   - document: |
       {
@@ -9,42 +10,72 @@ operation:
         }
         topReviewer
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
     schema: A
-    operation: |
-      query Op_123456789101112_1 {
-        topReviewer
-      }
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          topReviewer
+        }
+      hash: ee4b32e2c7a225dc33e6daece2de57000d370fb65b5ce6880d9e4c8362a11368
+      shortHash: ee4b32e2
+      xxHash: 1951633569177605745
+    resultSelectionSet: >-
+      { topReviewer }
   - id: 2
     type: Operation
     schema: B
-    operation: |
-      query Op_123456789101112_2 {
-        products {
-          id
-          name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
+          products {
+            id
+            name
+          }
         }
-      }
+      hash: e61767a46ca35f95f427bbdf4819476b6d11296c2741371e197522c75796fa5e
+      shortHash: e61767a4
+      xxHash: 5999181346938544336
+    resultSelectionSet: >-
+      { products }
   - id: 3
     type: ApolloOperation
     schema: A
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Product {
-            reviewCount
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Product {
+              reviewCount
+            }
           }
         }
-      }
+      hash: 605a826ca5853a6af9a29f9c9a209899f3fc65b163b29d9446f2401de189e06e
+      shortHash: 605a826c
+      xxHash: 15748686986294632398
+    entityType: Product
+    resultSelectionSet: >-
+      { reviewCount }
     source: $._entities
     target: $.products
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
     dependencies:

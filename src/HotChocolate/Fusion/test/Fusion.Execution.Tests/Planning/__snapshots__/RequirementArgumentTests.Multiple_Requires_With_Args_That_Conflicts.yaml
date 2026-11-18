@@ -1,3 +1,4 @@
+id: 293826c50a4230dbe0d2ce4c8bcc7f7cb5ae1e0614e257ba5f93d1333de8ea68
 operation:
   - document: |
       {
@@ -9,43 +10,69 @@ operation:
           otherField @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 7
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 7
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        test {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          test {
+            id
+          }
         }
-      }
+      hash: 599722fca6f82bdf13c5a94a4ea99be2bb1b00829b65e2f36974f65653a9072d
+      shortHash: 599722fc
+      xxHash: 1361595709704977008
+    resultSelectionSet: >-
+      { test }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_otherField: String!
-        $__fusion_2_id: ID!
-        $__fusion_5_otherField: String!
-      ) {
-        testById(id: $__fusion_2_id) {
-          anotherWithRequiresAndArgs(otherField: $__fusion_1_otherField)
-          fieldWithRequiresAndArgs(otherField: $__fusion_5_otherField)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_otherField: String!
+          $__fusion_2_id: ID!
+          $__fusion_5_otherField: String!
+        ) {
+          testById(id: $__fusion_2_id) {
+            anotherWithRequiresAndArgs(otherField: $__fusion_1_otherField)
+            fieldWithRequiresAndArgs(otherField: $__fusion_5_otherField)
+          }
         }
-      }
+      hash: 68f4c64e2ee8f7eb628a173f154e74a0e2b1758e6b4e95f7ce8e352c10068127
+      shortHash: 68f4c64e
+      xxHash: 13299033644812696790
+    lookupTypeName: Test
+    resultSelectionSet: >-
+      { anotherWithRequiresAndArgs fieldWithRequiresAndArgs }
     source: $.testById
     target: $.test
     requirements:
       - name: __fusion_1_otherField
+        type: String!
+        path: $.test
         selectionMap: >-
           otherField
       - name: __fusion_2_id
+        type: ID!
+        path: $.test
         selectionMap: >-
           id
       - name: __fusion_5_otherField
+        type: String!
+        path: $.test
         selectionMap: >-
           otherField
     dependencies:
@@ -54,16 +81,27 @@ nodes:
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        testById(id: $__fusion_3_id) {
-          otherField
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          testById(id: $__fusion_3_id) {
+            otherField
+          }
         }
-      }
+      hash: 03e485bc709b91fbd61706cf666d824d4e0043cd6422599965022d1e5c5d8055
+      shortHash: 03e485bc
+      xxHash: 8035072162307278141
+    lookupTypeName: Test
+    resultSelectionSet: >-
+      { otherField }
     source: $.testById
     target: $.test
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.test
         selectionMap: >-
           id
     dependencies:

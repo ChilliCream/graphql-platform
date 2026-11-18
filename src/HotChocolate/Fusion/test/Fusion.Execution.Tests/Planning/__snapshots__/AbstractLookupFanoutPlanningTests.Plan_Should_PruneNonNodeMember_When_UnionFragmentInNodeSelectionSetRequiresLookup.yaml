@@ -1,3 +1,4 @@
+id: 55053d9cc9cd8a59c9b5df3f74749a21709c2196874a753d371b5a7e459f6f0d
 operation:
   - document: |
       {
@@ -18,57 +19,88 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Node
-    idValue: "test-id"
+    idValue: "\"test-id\""
     responseName: node
     branches:
-      - User: 3
+      User: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query Op_123456789101112_2 {
-        node(id: "test-id") {
-          __typename
-          id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
+          node(id: "test-id") {
+            __typename
+            id
+          }
         }
-      }
+      hash: 1113c3d24a1570704b64b8e64977cb9428babd5e53634613daa592a6b8fa8580
+      shortHash: 1113c3d2
+      xxHash: 15763863838456695703
+    resultSelectionSet: >-
+      { node }
     dependencies:
       - id: 1
   - id: 3
     type: Operation
     schema: contributors
-    operation: |
-      query Op_123456789101112_3 {
-        node(id: "test-id") {
-          __typename
-          ... on User {
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3 {
+          node(id: "test-id") {
             __typename
-            id
-            name
+            ... on User {
+              __typename
+              id
+              name
+            }
           }
         }
-      }
+      hash: 29a84bb0f6d73a5d87c1b56432b3885099a29be87df077ed6fb50a94f8d42ba6
+      shortHash: 29a84bb0
+      xxHash: 1780187527478231315
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { node { __typename ... on User { __typename id name } } }
     dependencies:
       - id: 1
   - id: 4
     type: Operation
     schema: accounts
-    operation: |
-      query Op_123456789101112_4($__fusion_1_id: ID!) {
-        userById(id: $__fusion_1_id) {
-          email
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_1_id: ID!) {
+          userById(id: $__fusion_1_id) {
+            email
+          }
         }
-      }
+      hash: ebd9c6bfe8d4088a486fd1f5df3ef3d186a9bea08351c48d26c48b82ff8e2781
+      shortHash: ebd9c6bf
+      xxHash: 1360735653998064348
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { email }
     source: $.userById
     target: $.node<User>
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.node<User>
         selectionMap: >-
           id
     dependencies:

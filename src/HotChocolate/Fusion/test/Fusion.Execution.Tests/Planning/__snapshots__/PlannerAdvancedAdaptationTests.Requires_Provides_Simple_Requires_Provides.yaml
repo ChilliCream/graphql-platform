@@ -1,3 +1,4 @@
+id: afebc52571dcc7792bceacd0868b99292548693b3d34813170ab301cfc9add62
 operation:
   - document: |
       {
@@ -16,41 +17,63 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 3
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
     schema: accounts
-    operation: |
-      query Op_123456789101112_1 {
-        me {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          me {
+            id
+          }
         }
-      }
+      hash: 9028b6fee6c1ec2adce4734ea428d37ad8334783448bd0c8134936231150c42e
+      shortHash: 9028b6fe
+      xxHash: 6632342512777566062
+    resultSelectionSet: >-
+      { me }
   - id: 2
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        userById(id: $__fusion_1_id) {
-          reviews {
-            id
-            author {
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          userById(id: $__fusion_1_id) {
+            reviews {
               id
-              username
-            }
-            product {
-              upc
+              author {
+                id
+                username
+              }
+              product {
+                upc
+              }
             }
           }
         }
-      }
+      hash: be128cf22ae6539195fada718bd39d8b7b0ad4d0db6c9e003bdfb6f181295d0c
+      shortHash: be128cf2
+      xxHash: 17755211485964601904
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { reviews }
     source: $.userById
     target: $.me
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.me
         selectionMap: >-
           id
     dependencies:
@@ -58,16 +81,27 @@ nodes:
   - id: 3
     type: Operation
     schema: inventory
-    operation: |
-      query Op_123456789101112_3($__fusion_2_upc: String!) {
-        productByUpc(upc: $__fusion_2_upc) {
-          inStock
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_upc: String!) {
+          productByUpc(upc: $__fusion_2_upc) {
+            inStock
+          }
         }
-      }
+      hash: 8b12e5c13bcf145f7e9f09ab45a8e104e7977bb7c93fa4cab7d41ae7375eb42c
+      shortHash: 8b12e5c1
+      xxHash: 14274736533394065271
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { inStock }
     source: $.productByUpc
     target: $.me.reviews.product
     requirements:
       - name: __fusion_2_upc
+        type: String!
+        path: $.me.reviews.product
         selectionMap: >-
           upc
     dependencies:

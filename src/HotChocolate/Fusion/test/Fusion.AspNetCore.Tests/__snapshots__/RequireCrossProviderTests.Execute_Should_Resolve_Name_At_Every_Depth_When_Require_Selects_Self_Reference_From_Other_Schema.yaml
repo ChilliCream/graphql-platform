@@ -151,6 +151,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 070e60f0a0e42966ba30da904eaef7db05e10317f7181649dd2338e66141d981
   operation:
     - document: |
         {
@@ -188,39 +189,59 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: c87d0ad280a6ed5c169e04793af5bcb4
-      searchSpace: 3
-      expandedNodes: 5
+      kind: Query
+      id: c87d0ad280a6ed5c169e04793af5bcb4
+      hash: 58c26fe97695d5ff36530d579c872fcd
+      shortHash: 58c26fe9
+  searchSpace: 3
+  expandedNodes: 5
   nodes:
     - id: 1
       type: Operation
       schema: b
-      operation: |
-        query Op_58c26fe9_1 {
-          entity {
+      operation:
+        name: Op_58c26fe9_1
+        kind: Query
+        document: |
+          query Op_58c26fe9_1 {
             entity {
               entity {
-                age
-                id
                 entity {
                   age
+                  id
+                  entity {
+                    age
+                  }
                 }
+                age
+                id
               }
-              age
               id
             }
-            id
           }
-        }
+        hash: 144a50971f9883553005803a381c10036ab52633c13387e6bda16093c0d5971d
+        shortHash: 144a5097
+        xxHash: 355002748003389041
+      resultSelectionSet: >-
+        { entity }
     - id: 2
       type: OperationBatch
       schema: a
-      operation: |
-        query Op_58c26fe9_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
-          entityById(id: $__fusion_1_id) {
-            name(entityAge: $__fusion_2_entityAge)
+      operation:
+        name: Op_58c26fe9_2
+        kind: Query
+        document: |
+          query Op_58c26fe9_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
+            entityById(id: $__fusion_1_id) {
+              name(entityAge: $__fusion_2_entityAge)
+            }
           }
-        }
+        hash: bec14b6fa6f8e6365effdcd6ed71dc120a8eee74c150dbea75a1971a81ebdd13
+        shortHash: bec14b6f
+        xxHash: 13081031482746904025
+      lookupTypeName: Entity
+      resultSelectionSet: >-
+        { name }
       source: $.entityById
       targets:
         - $.entity
@@ -229,9 +250,13 @@ operationPlan:
       batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.entity
           selectionMap: >-
             id
         - name: __fusion_2_entityAge
+          type: Int!
+          path: $.entity
           selectionMap: >-
             entity.age
       dependencies:

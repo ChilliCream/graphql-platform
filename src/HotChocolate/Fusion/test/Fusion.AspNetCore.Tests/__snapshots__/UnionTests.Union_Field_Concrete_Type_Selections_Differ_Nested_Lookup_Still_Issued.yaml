@@ -340,6 +340,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 298cda5a3f5290dc378c8a71b5f5d6b01b3266721bd394dcaa0e1d3f495a490b
   operation:
     - document: |
         query testQuery {
@@ -409,53 +410,73 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: e247a34f83c53d62f2716d850dd0ad4e
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: e247a34f83c53d62f2716d850dd0ad4e
+      hash: 9148209ce4b3b5f41f22d04d64130c64
+      shortHash: 9148209c
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_9148209c_1 {
-          search {
-            __typename
-            ... on ExistingResult {
-              asset {
-                dbId
+      operation:
+        name: testQuery_9148209c_1
+        kind: Query
+        document: |
+          query testQuery_9148209c_1 {
+            search {
+              __typename
+              ... on ExistingResult {
+                asset {
+                  dbId
+                }
               }
-            }
-            ... on ConfigMatchesResult {
-              asset {
-                dbId
+              ... on ConfigMatchesResult {
+                asset {
+                  dbId
+                }
               }
-            }
-            ... on NotSubmissableResult {
-              asset {
-                dbId
+              ... on NotSubmissableResult {
+                asset {
+                  dbId
+                }
               }
-            }
-            ... on CustomResult {
-              asset {
-                dbId
+              ... on CustomResult {
+                asset {
+                  dbId
+                }
               }
             }
           }
-        }
+        hash: 71a6e73da200aaa08a0aa59b5b659fd23ed5f8412bb534eb433d4d7763dc44d4
+        shortHash: 71a6e73d
+        xxHash: 14210534130189599045
+      resultSelectionSet: >-
+        { search }
     - id: 2
       type: OperationBatch
       schema: B
-      operation: |
-        query testQuery_9148209c_2($__fusion_1_dbId: Int!) {
-          assetByDbId(dbId: $__fusion_1_dbId) {
-            meterType {
-              id
-            }
-            category {
-              dbId
+      operation:
+        name: testQuery_9148209c_2
+        kind: Query
+        document: |
+          query testQuery_9148209c_2($__fusion_1_dbId: Int!) {
+            assetByDbId(dbId: $__fusion_1_dbId) {
+              meterType {
+                id
+              }
+              category {
+                dbId
+              }
             }
           }
-        }
+        hash: 36aa4f591113c3e929422941ba04ed142062f1d62f7cb06ca4fa7ce3eb0c549b
+        shortHash: 36aa4f59
+        xxHash: 14416745534218766732
+      lookupTypeName: Asset
+      resultSelectionSet: >-
+        { meterType category }
       source: $.assetByDbId
       targets:
         - $.search<CustomResult>.asset
@@ -463,6 +484,8 @@ operationPlan:
       batchingGroupId: 14
       requirements:
         - name: __fusion_1_dbId
+          type: Int!
+          path: $.search<CustomResult>.asset
           selectionMap: >-
             dbId
       dependencies:
@@ -470,23 +493,34 @@ operationPlan:
     - id: 5
       type: Operation
       schema: B
-      operation: |
-        query testQuery_9148209c_5($__fusion_4_dbId: Int!) {
-          assetByDbId(dbId: $__fusion_4_dbId) {
-            meterType {
-              id
-            }
-            statusMessage
-            category {
-              dbId
+      operation:
+        name: testQuery_9148209c_5
+        kind: Query
+        document: |
+          query testQuery_9148209c_5($__fusion_4_dbId: Int!) {
+            assetByDbId(dbId: $__fusion_4_dbId) {
+              meterType {
+                id
+              }
+              statusMessage
+              category {
+                dbId
+              }
             }
           }
-        }
+        hash: 24c35a80400d850714de79eac630b185c02d2f2f87e1b74d33f60a97e6871e4f
+        shortHash: 24c35a80
+        xxHash: 14266973813342556020
+      lookupTypeName: Asset
+      resultSelectionSet: >-
+        { meterType statusMessage category }
       source: $.assetByDbId
       target: $.search<NotSubmissableResult>.asset
       batchingGroupId: 14
       requirements:
         - name: __fusion_4_dbId
+          type: Int!
+          path: $.search<NotSubmissableResult>.asset
           selectionMap: >-
             dbId
       dependencies:
@@ -494,22 +528,33 @@ operationPlan:
     - id: 8
       type: Operation
       schema: B
-      operation: |
-        query testQuery_9148209c_8($__fusion_7_dbId: Int!) {
-          assetByDbId(dbId: $__fusion_7_dbId) {
-            category {
-              dbId
-            }
-            meterType {
-              id
+      operation:
+        name: testQuery_9148209c_8
+        kind: Query
+        document: |
+          query testQuery_9148209c_8($__fusion_7_dbId: Int!) {
+            assetByDbId(dbId: $__fusion_7_dbId) {
+              category {
+                dbId
+              }
+              meterType {
+                id
+              }
             }
           }
-        }
+        hash: ea420f11b0a3faa9db19d011ffabb55dd090756d72a26dfb0b49e3482308f9a1
+        shortHash: ea420f11
+        xxHash: 4892348978081938634
+      lookupTypeName: Asset
+      resultSelectionSet: >-
+        { category meterType }
       source: $.assetByDbId
       target: $.search<ConfigMatchesResult>.asset
       batchingGroupId: 14
       requirements:
         - name: __fusion_7_dbId
+          type: Int!
+          path: $.search<ConfigMatchesResult>.asset
           selectionMap: >-
             dbId
       dependencies:
@@ -517,14 +562,23 @@ operationPlan:
     - id: 3
       type: OperationBatch
       schema: A
-      operation: |
-        query testQuery_9148209c_3($__fusion_2_dbId: Int!) {
-          categoryByDbId(dbId: $__fusion_2_dbId) {
-            allowedMeterTypes {
-              type
+      operation:
+        name: testQuery_9148209c_3
+        kind: Query
+        document: |
+          query testQuery_9148209c_3($__fusion_2_dbId: Int!) {
+            categoryByDbId(dbId: $__fusion_2_dbId) {
+              allowedMeterTypes {
+                type
+              }
             }
           }
-        }
+        hash: f03278807bb78754c160196531cd11037eed24f2c86f723562c17b35a5314664
+        shortHash: f0327880
+        xxHash: 15797412456046663077
+      lookupTypeName: Category
+      resultSelectionSet: >-
+        { allowedMeterTypes }
       source: $.categoryByDbId
       targets:
         - $.search<CustomResult>.asset.category
@@ -534,6 +588,8 @@ operationPlan:
       batchingGroupId: 15
       requirements:
         - name: __fusion_2_dbId
+          type: Int!
+          path: $.search<CustomResult>.asset.category
           selectionMap: >-
             dbId
       dependencies:
@@ -543,12 +599,21 @@ operationPlan:
     - id: 4
       type: OperationBatch
       schema: A
-      operation: |
-        query testQuery_9148209c_4($__fusion_3_id: Int!) {
-          meterTypeById(id: $__fusion_3_id) {
-            type
+      operation:
+        name: testQuery_9148209c_4
+        kind: Query
+        document: |
+          query testQuery_9148209c_4($__fusion_3_id: Int!) {
+            meterTypeById(id: $__fusion_3_id) {
+              type
+            }
           }
-        }
+        hash: b16a96586434e1aff01fb3cd41d43ff0fbc5eedb7de1436ef3fa9b8f72874bd0
+        shortHash: b16a9658
+        xxHash: 10260743037970774813
+      lookupTypeName: MeterType
+      resultSelectionSet: >-
+        { type }
       source: $.meterTypeById
       targets:
         - $.search<CustomResult>.asset.meterType
@@ -558,6 +623,8 @@ operationPlan:
       batchingGroupId: 15
       requirements:
         - name: __fusion_3_id
+          type: Int!
+          path: $.search<CustomResult>.asset.meterType
           selectionMap: >-
             id
       dependencies:

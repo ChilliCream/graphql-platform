@@ -90,6 +90,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 5469abbd33445ac5c553b62ed47b2449f63e9bea4d203dc98016b550cfbd52b6
   operation:
     - document: |
         {
@@ -101,41 +102,61 @@ operationPlan:
             }
           }
         }
-      hash: 6241a2c7e947e44ea10a93e30b1d1e04
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 6241a2c7e947e44ea10a93e30b1d1e04
+      hash: f71a6d9ff69b4939ee6e11a250bfa12d
+      shortHash: f71a6d9f
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "UHJvZHVjdDox"
+      idValue: "\"UHJvZHVjdDox\""
       responseName: node
       branches:
-        - Product: 3
+        Product: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_f71a6d9f_2 {
-          node(id: "UHJvZHVjdDox") {
-            __typename
-            id
+      operation:
+        name: Op_f71a6d9f_2
+        kind: Query
+        document: |
+          query Op_f71a6d9f_2 {
+            node(id: "UHJvZHVjdDox") {
+              __typename
+              id
+            }
           }
-        }
+        hash: de71599f9b7a21e5d986de48522e707ff4c404033debc674bb8b144517d7e1cc
+        shortHash: de71599f
+        xxHash: 4824273863595365479
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_f71a6d9f_3 {
-          node(id: "UHJvZHVjdDox") {
-            __typename
-            ... on Product {
+      operation:
+        name: Op_f71a6d9f_3
+        kind: Query
+        document: |
+          query Op_f71a6d9f_3 {
+            node(id: "UHJvZHVjdDox") {
               __typename
-              id
-              name
+              ... on Product {
+                __typename
+                id
+                name
+              }
             }
           }
-        }
+        hash: 79602efb2a85d603273b153864966c5203da6f7c2efec7dc9cc056565b856572
+        shortHash: 79602efb
+        xxHash: 6103768664355382499
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { node { __typename ... on Product { __typename id name } } }
       dependencies:
         - id: 1

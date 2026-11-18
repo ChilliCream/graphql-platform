@@ -249,6 +249,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 17c5f32f675595eed7a18ae4da34484e558215db131a90772e90e4fcd806bab3
   operation:
     - document: |
         {
@@ -267,37 +268,57 @@ operationPlan:
             reviewCount
           }
         }
-      hash: 12f71308af490ce2da2bc0dd9764cd3a
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 12f71308af490ce2da2bc0dd9764cd3a
+      hash: 9ad18dbf86e6234a71614b8d68cbef03
+      shortHash: 9ad18dbf
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_9ad18dbf_1 {
-          productsA {
-            id
-            name
+      operation:
+        name: Op_9ad18dbf_1
+        kind: Query
+        document: |
+          query Op_9ad18dbf_1 {
+            productsA {
+              id
+              name
+            }
+            productsB {
+              id
+              name
+            }
           }
-          productsB {
-            id
-            name
-          }
-        }
+        hash: 11ff8c0aa9956bb0d2892850bea7b00c5dd00a831ee55dde99ac5a1770c69ea9
+        shortHash: 11ff8c0a
+        xxHash: 11005284056860933963
+      resultSelectionSet: >-
+        { productsA productsB }
     - id: 2
       type: OperationBatch
       schema: B
-      operation: |
-        query Op_9ad18dbf_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              price
-              reviewCount
+      operation:
+        name: Op_9ad18dbf_2
+        kind: Query
+        document: |
+          query Op_9ad18dbf_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                price
+                reviewCount
+              }
             }
           }
-        }
+        hash: b7f74a9683895cd90d1dd4b5b9f53cbe077bcec5ded2d76f511b26921acad843
+        shortHash: b7f74a96
+        xxHash: 15170247639823025512
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price reviewCount }
       source: $.node<Product>
       targets:
         - $.productsB
@@ -305,6 +326,8 @@ operationPlan:
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productsB
           selectionMap: >-
             id
       dependencies:

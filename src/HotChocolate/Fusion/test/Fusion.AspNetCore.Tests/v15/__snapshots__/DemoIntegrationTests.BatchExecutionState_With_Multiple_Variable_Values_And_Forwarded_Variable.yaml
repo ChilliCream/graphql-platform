@@ -340,6 +340,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: e68412bd9de5c81fb9c3c5c7727920d47f5e0392121b1c212f5c9793b7f99fa8
   operation:
     - document: |
         query($arg1: String, $arg2: String) {
@@ -360,33 +361,48 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 2620c0e4f550a59411ee4172ed8198d1
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: 2620c0e4f550a59411ee4172ed8198d1
+      hash: b1ca18ebff5564cc20147d0129664e5d
+      shortHash: b1ca18eb
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query Op_b1ca18eb_1 {
-          userBySlug(slug: "me") {
-            id
+      operation:
+        name: Op_b1ca18eb_1
+        kind: Query
+        document: |
+          query Op_b1ca18eb_1 {
+            userBySlug(slug: "me") {
+              id
+            }
           }
-        }
+        hash: 2a7f1ec0da59608d67b5d4ca4ab31a709118dcc49d3736a824bf4380945cd841
+        shortHash: 2a7f1ec0
+        xxHash: 6978918324139907630
+      resultSelectionSet: >-
+        { userBySlug { id } }
     - id: 2
       type: Operation
       schema: C
-      operation: |
-        query Op_b1ca18eb_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              feedbacks {
-                edges {
-                  node {
-                    feedback {
-                      buyer {
-                        id
+      operation:
+        name: Op_b1ca18eb_2
+        kind: Query
+        document: |
+          query Op_b1ca18eb_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on User {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          id
+                        }
                       }
                     }
                   }
@@ -394,11 +410,18 @@ operationPlan:
               }
             }
           }
-        }
+        hash: d189cfe8f438e6201aa5c41a7b1cb8513a97385f24d4d811ed2761a0979da031
+        shortHash: d189cfe8
+        xxHash: 1733325756935233487
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { feedbacks }
       source: $.node<User>
       target: $.userBySlug
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.userBySlug
           selectionMap: >-
             id
       dependencies:
@@ -406,19 +429,30 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query Op_b1ca18eb_3($arg2: String, $__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              displayName(arg: $arg2)
+      operation:
+        name: Op_b1ca18eb_3
+        kind: Query
+        document: |
+          query Op_b1ca18eb_3($arg2: String, $__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on User {
+                displayName(arg: $arg2)
+              }
             }
           }
-        }
+        hash: fbb40c1ae25916635a53dc2bd95e0378a0aa0d5d5890c58dcae9397abcbf780f
+        shortHash: fbb40c1a
+        xxHash: 13497110438961145399
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { displayName }
       source: $.node<User>
       target: $.userBySlug.feedbacks.edges.node.feedback.buyer
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.userBySlug.feedbacks.edges.node.feedback.buyer
           selectionMap: >-
             id
       forwardedVariables:
@@ -428,19 +462,30 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query Op_b1ca18eb_4($arg1: String, $__fusion_3_id: ID!) {
-          node(id: $__fusion_3_id) {
-            __typename
-            ... on User {
-              relativeUrl(arg: $arg1)
+      operation:
+        name: Op_b1ca18eb_4
+        kind: Query
+        document: |
+          query Op_b1ca18eb_4($arg1: String, $__fusion_3_id: ID!) {
+            node(id: $__fusion_3_id) {
+              __typename
+              ... on User {
+                relativeUrl(arg: $arg1)
+              }
             }
           }
-        }
+        hash: a2070f1d328d0ee01bdb3bf38827da76709be35ce7b9bc238b5386f58d2007a2
+        shortHash: a2070f1d
+        xxHash: 1789313338117262788
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { relativeUrl }
       source: $.node<User>
       target: $.userBySlug.feedbacks.edges.node.feedback.buyer
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.userBySlug.feedbacks.edges.node.feedback.buyer
           selectionMap: >-
             id
       forwardedVariables:

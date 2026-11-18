@@ -27,13 +27,17 @@ sourceSchemas:
         name: String!
       }
 operationPlan:
+  id: a2238e5d426a28a1ec8df12c831733a7a52ee3e7412d52037e50e8add95a1bdf
   operation:
     - document: |
         query testQuery {
           __typename @fusion__empty
         }
       name: testQuery
-      hash: 8bf3d70802534a3113f13e22114d2695
-      searchSpace: 1
-      expandedNodes: 1
-  nodes:
+      kind: Query
+      id: 8bf3d70802534a3113f13e22114d2695
+      hash: d2f996cbe8f8f0fa43055e90b91eefe5
+      shortHash: d2f996cb
+  searchSpace: 1
+  expandedNodes: 1
+  nodes: []

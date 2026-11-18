@@ -369,6 +369,7 @@ public class RequirementTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 89156cd95236e0a1ecb5c13b6dfc2a9c7bea623049cf3d0907623336868a87e9
             operation:
               - document: |
                   {
@@ -379,33 +380,55 @@ public class RequirementTests : FusionTestBase
                       quote
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 4
-                expandedNodes: 9
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 4
+            expandedNodes: 9
             nodes:
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        id
+                      }
                     }
-                  }
+                  hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+                  shortHash: f991ee77
+                  xxHash: 11674115490493392138
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2($__fusion_2_id: ID!) {
-                    productById(id: $__fusion_2_id) {
-                      quote
-                      estimate
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_2_id: ID!) {
+                      productById(id: $__fusion_2_id) {
+                        quote
+                        estimate
+                      }
                     }
-                  }
+                  hash: 7d6f34c83caec172909b7418579f2bbd0d897669ab0b3e55aa84b16bd3f6560f
+                  shortHash: 7d6f34c8
+                  xxHash: 3122987735805767827
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { quote estimate }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_2_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                 dependencies:
@@ -535,6 +558,7 @@ public class RequirementTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 7a3637e68089675cf344ea98566b6f93383e0e4c9ab7127b5cd1f56a3ad8e516
             operation:
               - document: |
                   {
@@ -546,40 +570,64 @@ public class RequirementTests : FusionTestBase
                       id @fusion__requirement
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      details {
-                        weight
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        details {
+                          weight
+                        }
+                        id
                       }
-                      id
                     }
-                  }
+                  hash: a8add3c3d78f64952b7c303ee03dc8b102e1ddbd17ea61a5979d00c8662e7115
+                  shortHash: a8add3c3
+                  xxHash: 9816577427737023502
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_weight: Int!) {
-                    productById(id: $__fusion_1_id) {
-                      details {
-                        shippingEstimate(weight: $__fusion_2_weight)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_weight: Int!) {
+                      productById(id: $__fusion_1_id) {
+                        details {
+                          shippingEstimate(weight: $__fusion_2_weight)
+                        }
                       }
                     }
-                  }
+                  hash: 3a4c7fc66de32fed937320388dac9d10675d20dc21623f22c347a987f5eb4545
+                  shortHash: 3a4c7fc6
+                  xxHash: 8600007650299864244
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { details { shippingEstimate } }
                 source: $.productById
                 target: $.products
                 requirements:
                   - name: __fusion_1_id
+                    type: Int!
+                    path: $.products
                     selectionMap: >-
                       id
                   - name: __fusion_2_weight
+                    type: Int!
+                    path: $.products.details
                     selectionMap: >-
                       weight
                 dependencies:
@@ -648,6 +696,7 @@ public class RequirementTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 2479825b57b4318238bd0e7cfbb3c573d0b0715a1c5999300a3119244b5dcf2f
             operation:
               - document: |
                   {
@@ -659,38 +708,62 @@ public class RequirementTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      details {
-                        id
-                        weight
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        details {
+                          id
+                          weight
+                        }
                       }
                     }
-                  }
+                  hash: 98c80f2fd2ba0509366aad67411edb00f8584af4bc1357e227e3fb2e3f7d2090
+                  shortHash: 98c80f2f
+                  xxHash: 32846845523536012
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_weight: Int!) {
-                    detailsById(id: $__fusion_1_id) {
-                      shippingEstimate(weight: $__fusion_2_weight)
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_weight: Int!) {
+                      detailsById(id: $__fusion_1_id) {
+                        shippingEstimate(weight: $__fusion_2_weight)
+                      }
                     }
-                  }
+                  hash: 91e556b57e3fbd0120640c1a90d9cfe24f34cedf0a9cfc700626d48090bb603d
+                  shortHash: 91e556b5
+                  xxHash: 15692226372106188760
+                lookupTypeName: Details
+                resultSelectionSet: >-
+                  { shippingEstimate }
                 source: $.detailsById
                 target: $.products.details
                 requirements:
                   - name: __fusion_1_id
+                    type: Int!
+                    path: $.products.details
                     selectionMap: >-
                       id
                   - name: __fusion_2_weight
+                    type: Int!
+                    path: $.products.details
                     selectionMap: >-
                       weight
                 dependencies:

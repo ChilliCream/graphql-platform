@@ -65,6 +65,7 @@ public class EntityChainTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 0b16defb4ab0b095dcc02c0a01f99591d4e7a697d764b3909e1cdc9c7018531d
             operation:
               - document: |
                   {
@@ -81,25 +82,39 @@ public class EntityChainTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 2
             nodes:
               - id: 2
                 type: Operation
                 schema: list
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_key: ProductListInput!) {
-                    productListByProducts(key: $__fusion_1_key) {
-                      selected {
-                        id
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_key: ProductListInput!) {
+                      productListByProducts(key: $__fusion_1_key) {
+                        selected {
+                          id
+                        }
                       }
                     }
-                  }
+                  hash: 47edd1742dc875505dcf9e8e14a90879d20cc0b8167bf838ea3fe9a5439e3fac
+                  shortHash: 47edd174
+                  xxHash: 14181645829405752155
+                lookupTypeName: ProductList
+                resultSelectionSet: >-
+                  { selected }
                 source: $.productListByProducts
                 target: $.topProducts
                 requirements:
                   - name: __fusion_1_key
+                    type: ProductListInput!
+                    path: $.topProducts
                     selectionMap: >-
                       {
                         products: products[{
@@ -113,16 +128,27 @@ public class EntityChainTests : FusionTestBase
               - id: 3
                 type: Operation
                 schema: link
-                operation: |
-                  query Op_123456789101112_3($__fusion_2_id: ID!) {
-                    productById(id: $__fusion_2_id) {
-                      pid
+                operation:
+                  name: Op_123456789101112_3
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_3($__fusion_2_id: ID!) {
+                      productById(id: $__fusion_2_id) {
+                        pid
+                      }
                     }
-                  }
+                  hash: 499b0c6869c24f0ca8ca06210e3a95c56e123ca3756b55c9022bc4723e306ecd
+                  shortHash: 499b0c68
+                  xxHash: 11041567066039682064
+                lookupTypeName: Product
+                resultSelectionSet: >-
+                  { pid }
                 source: $.productById
                 target: $.topProducts.products
                 requirements:
                   - name: __fusion_2_id
+                    type: ID!
+                    path: $.topProducts.products
                     selectionMap: >-
                       id
                 dependencies:
@@ -130,14 +156,22 @@ public class EntityChainTests : FusionTestBase
               - id: 1
                 type: OperationBatch
                 schema: products
-                operation: |
-                  query Op_123456789101112_1 {
-                    topProducts {
-                      products {
-                        id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      topProducts {
+                        products {
+                          id
+                        }
                       }
                     }
-                  }
+                  hash: 96d6b5555907fda46a8a2bc315368737a2ec189c69ea6f4177d182fda6187ab2
+                  shortHash: 96d6b555
+                  xxHash: 2095732619222099599
+                resultSelectionSet: >-
+                  { topProducts }
                 targets:
                   - $
                   - $

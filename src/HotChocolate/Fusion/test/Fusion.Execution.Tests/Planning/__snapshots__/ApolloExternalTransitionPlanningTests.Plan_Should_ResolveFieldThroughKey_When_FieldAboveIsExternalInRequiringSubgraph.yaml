@@ -1,3 +1,4 @@
+id: 9eec3bc7238851b767797bc3bd924c569debfeb705f8fef14da57992ac57ac77
 operation:
   - document: |
       {
@@ -15,42 +16,66 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 3
-    expandedNodes: 10
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 3
+expandedNodes: 10
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        e {
-          next {
-            x
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          e {
+            next {
+              x
+              id
+            }
             id
           }
-          id
         }
-      }
+      hash: 098348d19be513f43e4dc9ea2e145db43af7200a8648da06178a4c07fb84bf7d
+      shortHash: 098348d1
+      xxHash: 14473030736386946769
+    resultSelectionSet: >-
+      { e }
   - id: 2
     type: ApolloOperationBatch
     schema: a
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on E {
-            r
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on E {
+              r
+            }
           }
         }
-      }
+      hash: cec922537e172f117e59ed4e4f3b73b57ef170d26eaf8caadce224f8182c3b5d
+      shortHash: cec92253
+      xxHash: 13935305163121359156
+    entityType: E
+    resultSelectionSet: >-
+      { r }
     source: $._entities
     target: $.e
     batchingGroupId: 4
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.e
         selectionMap: >-
           id
       - name: __fusion_2_next
+        type: TInput_4224581657
+        path: $.e
         selectionMap: >-
           {
             x: next.x
@@ -60,19 +85,30 @@ nodes:
   - id: 3
     type: ApolloOperationBatch
     schema: a
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on T {
-            y
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on T {
+              y
+            }
           }
         }
-      }
+      hash: fd655aa1e7eb1c91a8910d279438b2023fbb83f0ce98a90df04054cfc747d49f
+      shortHash: fd655aa1
+      xxHash: 14304332135376995658
+    entityType: T
+    resultSelectionSet: >-
+      { y }
     source: $._entities
     target: $.e.next
     batchingGroupId: 4
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.e.next
         selectionMap: >-
           id
     dependencies:

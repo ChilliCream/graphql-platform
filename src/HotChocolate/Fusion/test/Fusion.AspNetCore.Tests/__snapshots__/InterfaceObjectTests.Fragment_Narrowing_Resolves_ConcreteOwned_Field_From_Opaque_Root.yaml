@@ -149,6 +149,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 73952c5b35ffed126a47bc9332b5f3b414d5e3ac91f8a807144ad623912ce862
   operation:
     - document: |
         query testQuery {
@@ -161,35 +162,57 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 0365b60d165d5d23badbcfa7b702f3c8
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 0365b60d165d5d23badbcfa7b702f3c8
+      hash: ac84cf0c3518213271a745d56f4ba095
+      shortHash: ac84cf0c
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_ac84cf0c_1 {
-          trendingMedia {
-            id
+      operation:
+        name: testQuery_ac84cf0c_1
+        kind: Query
+        document: |
+          query testQuery_ac84cf0c_1 {
+            trendingMedia {
+              id
+            }
           }
-        }
+        hash: 92c85a3043be446637aecb337cc56364b1a33a8fed9b389fe8975647adb9d4e9
+        shortHash: 92c85a30
+        xxHash: 14563208018373394557
+      resultSelectionSet: >-
+        { trendingMedia { id } }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query testQuery_ac84cf0c_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-            ... on Book {
-              isbn
+      operation:
+        name: testQuery_ac84cf0c_2
+        kind: Query
+        document: |
+          query testQuery_ac84cf0c_2($__fusion_1_id: ID!) {
+            mediaById(id: $__fusion_1_id) {
+              __typename
+              ... on Book {
+                isbn
+              }
             }
           }
-        }
+        hash: c56c15fccbe27e9fd263e50e1b1b6a80b18acda2d06186f86fb1b2bc1b8adee8
+        shortHash: c56c15fc
+        xxHash: 637630199239990066
+      lookupTypeName: Media
+      resultSelectionSet: >-
+        { __typename ... on Book { isbn } }
       source: $.mediaById
       target: $.trendingMedia
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.trendingMedia
           selectionMap: >-
             id
       dependencies:

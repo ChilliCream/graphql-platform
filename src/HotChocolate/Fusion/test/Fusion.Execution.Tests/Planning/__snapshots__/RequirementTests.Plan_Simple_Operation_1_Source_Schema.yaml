@@ -1,3 +1,4 @@
+id: e108bc9745d0c4df2500c14c144b606309a0810399d78e5e48e505eacaf810de
 operation:
   - document: |
       {
@@ -7,36 +8,60 @@ operation:
           title @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        books {
-          id
-          title
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          books {
+            id
+            title
+          }
         }
-      }
+      hash: 223fc4de5d768e61109f2333454df932424931949c7337920eabb346b8b03383
+      shortHash: 223fc4de
+      xxHash: 9694316161429950845
+    resultSelectionSet: >-
+      { books }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: String!, $__fusion_2_title: String) {
-        bookById(id: $__fusion_1_id) {
-          titleAndId(title: $__fusion_2_title)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: String!, $__fusion_2_title: String) {
+          bookById(id: $__fusion_1_id) {
+            titleAndId(title: $__fusion_2_title)
+          }
         }
-      }
+      hash: 391ff5bc0c9cf2a4bee0f7f1efbd42e6461797452fa7595192bf108f41c4b6b4
+      shortHash: 391ff5bc
+      xxHash: 15900285997622496003
+    lookupTypeName: Book
+    resultSelectionSet: >-
+      { titleAndId }
     source: $.bookById
     target: $.books
     requirements:
       - name: __fusion_1_id
+        type: String!
+        path: $.books
         selectionMap: >-
           id
       - name: __fusion_2_title
+        type: String
+        path: $.books
         selectionMap: >-
           title
     dependencies:

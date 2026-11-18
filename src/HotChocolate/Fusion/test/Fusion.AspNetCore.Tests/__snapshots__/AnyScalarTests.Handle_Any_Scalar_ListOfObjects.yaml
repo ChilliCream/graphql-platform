@@ -98,19 +98,31 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 7b96d77e5493362e14af2c09e51dfd25a7a6b8ce55c3ce416b2d220369156f6a
   operation:
     - document: |
         {
           listOfObjects
         }
-      hash: a438b5d25598aedc0f429c045e9ef519
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: a438b5d25598aedc0f429c045e9ef519
+      hash: d853a8aa7d990a8ba4de1b89fd155352
+      shortHash: d853a8aa
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_d853a8aa_1 {
-          listOfObjects
-        }
+      operation:
+        name: Op_d853a8aa_1
+        kind: Query
+        document: |
+          query Op_d853a8aa_1 {
+            listOfObjects
+          }
+        hash: b26eb336c8cc0c721584b9cad66e4b77f68fc5cfe27e5f9fe218d82cb3de244c
+        shortHash: b26eb336
+        xxHash: 9326090266792611534
+      resultSelectionSet: >-
+        { listOfObjects }

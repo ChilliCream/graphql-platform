@@ -1,3 +1,4 @@
+id: e2f48e4be40fe900c9f67fdc1b4c3fa7bbb18f18abc87de07be4b16a7679e76e
 operation:
   - document: |
       {
@@ -6,34 +7,56 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            id
+          }
         }
-      }
+      hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+      shortHash: f991ee77
+      xxHash: 11674115490493392138
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: ApolloOperation
     schema: c
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Product {
-            name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Product {
+              name
+            }
           }
         }
-      }
+      hash: 71e4f349b922d8e41c443e24fda207515c974e6b418eeb9c318eeaa4a6457525
+      shortHash: 71e4f349
+      xxHash: 3144442904161772428
+    entityType: Product
+    resultSelectionSet: >-
+      { name }
     source: $._entities
     target: $.products
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
     dependencies:
@@ -48,26 +71,54 @@ incrementalPlans:
     parentNodeId: 2
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
+    operation:
+      - document: |
+          {
+            products {
+              related {
+                name
+                id @fusion__requirement
+              }
+              id @fusion__requirement
+            }
+          }
+        kind: Query
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
     nodes:
       - id: 1
         type: ApolloOperation
         schema: b
-        operation: |
-          query($representations: [_Any!]!) {
-            _entities(representations: $representations) {
-              ... on Product {
-                related {
-                  id
+        operation:
+          name: Op_defer_1
+          kind: Query
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Product {
+                  related {
+                    id
+                  }
                 }
               }
             }
-          }
+          hash: ae780a8968777f4b25f17e9cc38715db589c11c8c2008ef039bfeb845d3facf3
+          shortHash: ae780a89
+          xxHash: 16079454558213279484
+        entityType: Product
+        resultSelectionSet: >-
+          { related }
         source: $._entities
         target: $.products
         requirements:
           - name: __fusion_1_id
+            type: ID!
+            path: $.products
             selectionMap: >-
               id
         dependencies:
@@ -75,18 +126,29 @@ incrementalPlans:
       - id: 2
         type: ApolloOperation
         schema: c
-        operation: |
-          query($representations: [_Any!]!) {
-            _entities(representations: $representations) {
-              ... on Product {
-                name
+        operation:
+          name: Op_defer_2
+          kind: Query
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Product {
+                  name
+                }
               }
             }
-          }
+          hash: 71e4f349b922d8e41c443e24fda207515c974e6b418eeb9c318eeaa4a6457525
+          shortHash: 71e4f349
+          xxHash: 3144442904161772428
+        entityType: Product
+        resultSelectionSet: >-
+          { name }
         source: $._entities
         target: $.products.related
         requirements:
           - name: __fusion_2_id
+            type: ID!
+            path: $.products.related
             selectionMap: >-
               id
         dependencies:

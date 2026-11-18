@@ -145,6 +145,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6d80b9e56d70265c4f554908fd3ed016fe94ebee418c4badbd2f0e9f2c56ac5c
   operation:
     - document: |
         query($productId: ID!) {
@@ -157,44 +158,66 @@ operationPlan:
             }
           }
         }
-      hash: adc41fd5f1ca71b2c0444fd8f4aab9f5
-      searchSpace: 2
-      expandedNodes: 3
+      kind: Query
+      id: adc41fd5f1ca71b2c0444fd8f4aab9f5
+      hash: 8e568844d197d7ba0b19ab92d5456732
+      shortHash: "8e568844"
+  searchSpace: 2
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_8e568844_1($productId: ID!) {
-          productById(id: $productId) {
-            subgraph1Only {
-              sharedLinked {
-                __typename
+      operation:
+        name: Op_8e568844_1
+        kind: Query
+        document: |
+          query Op_8e568844_1($productId: ID!) {
+            productById(id: $productId) {
+              subgraph1Only {
+                sharedLinked {
+                  __typename
+                }
+                id
               }
-              id
             }
           }
-        }
+        hash: 3e337fccec879ed2f95964f71df9794e6beaf100ba0507fd8503ef95efa8ce5a
+        shortHash: 3e337fcc
+        xxHash: 2549249803052768011
+      resultSelectionSet: >-
+        { productById }
       forwardedVariables:
         - productId
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_8e568844_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on ProductAvailability {
-              sharedLinked {
-                subgraph2Only
+      operation:
+        name: Op_8e568844_2
+        kind: Query
+        document: |
+          query Op_8e568844_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on ProductAvailability {
+                sharedLinked {
+                  subgraph2Only
+                }
               }
             }
           }
-        }
+        hash: cd10e87a32a6b7adb90db50f2aa67b42c6aad7ae530f112d2628dbad359bb8da
+        shortHash: cd10e87a
+        xxHash: 9406753535908939663
+      lookupTypeName: ProductAvailability
+      resultSelectionSet: >-
+        { sharedLinked { subgraph2Only } }
       source: $.node<ProductAvailability>
       target: $.productById.subgraph1Only
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productById.subgraph1Only
           selectionMap: >-
             id
       dependencies:

@@ -1,3 +1,4 @@
+id: 4c8afce4ed7d3f7a7425455e2bf291130b83c1bec1f63c4c63160b5a0521c745
 operation:
   - document: |
       {
@@ -16,63 +17,95 @@ operation:
           price @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          upc
-          name
-          category {
-            averagePrice
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            upc
+            name
+            category {
+              averagePrice
+            }
+            priceEur
+            weight
+            price
           }
-          priceEur
-          weight
-          price
         }
-      }
+      hash: ac2079c3f8d05e5e5832e7373dd117e1e2a0c2575a7fc6f68e45e3a9cb819555
+      shortHash: ac2079c3
+      xxHash: 7851152381976685228
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_upc: String!
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_upc: String!
           $__fusion_2_averagePrice: Int
           $__fusion_3_price: Int
           $__fusion_3_weight: Int
           $__fusion_4_price: Int
           $__fusion_4_weight: Int
-      ) {
-        productByUpc(upc: $__fusion_1_upc) {
-          isExpensiveCategory(averagePrice: $__fusion_2_averagePrice)
-          shippingEstimateEUR(price: $__fusion_3_price, weight: $__fusion_3_weight)
-          shippingEstimate(price: $__fusion_4_price, weight: $__fusion_4_weight)
+        ) {
+          productByUpc(upc: $__fusion_1_upc) {
+            isExpensiveCategory(averagePrice: $__fusion_2_averagePrice)
+            shippingEstimateEUR(price: $__fusion_3_price, weight: $__fusion_3_weight)
+            shippingEstimate(price: $__fusion_4_price, weight: $__fusion_4_weight)
+          }
         }
-      }
+      hash: db059add756685c387085aa0466e64183ab5789ce5185c6d4668775dc37ae1c5
+      shortHash: db059add
+      xxHash: 4505337083040444099
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { isExpensiveCategory shippingEstimateEUR shippingEstimate }
     source: $.productByUpc
     target: $.products
     requirements:
       - name: __fusion_1_upc
+        type: String!
+        path: $.products
         selectionMap: >-
           upc
       - name: __fusion_2_averagePrice
+        type: Int
+        path: $.products
         selectionMap: >-
           category.averagePrice
       - name: __fusion_3_price
+        type: Int
+        path: $.products
         selectionMap: >-
           priceEur
       - name: __fusion_3_weight
+        type: Int
+        path: $.products
         selectionMap: >-
           weight
       - name: __fusion_4_price
+        type: Int
+        path: $.products
         selectionMap: >-
           price
       - name: __fusion_4_weight
+        type: Int
+        path: $.products
         selectionMap: >-
           weight
     dependencies:

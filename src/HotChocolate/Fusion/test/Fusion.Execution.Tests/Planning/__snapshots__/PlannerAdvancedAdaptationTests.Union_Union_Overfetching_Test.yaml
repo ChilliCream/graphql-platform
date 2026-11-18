@@ -1,3 +1,4 @@
+id: b38c02016f2a70ab7cfef0f1723fe2bd186a2596b30b2e79026b9cdff1c656ce
 operation:
   - document: |
       {
@@ -18,42 +19,64 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 3
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        review {
-          __typename
-          ... on AnonymousReview {
-            product {
-              id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          review {
+            __typename
+            ... on AnonymousReview {
+              product {
+                id
+              }
             }
-          }
-          ... on UserReview {
-            product {
-              id
+            ... on UserReview {
+              product {
+                id
+              }
             }
           }
         }
-      }
+      hash: 967d96b589c3f0b50633c785bbd09c2db0531203009312add52d904053728765
+      shortHash: 967d96b5
+      xxHash: 14109990397397509380
+    resultSelectionSet: >-
+      { review }
   - id: 2
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          c
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            c
+          }
         }
-      }
+      hash: 3a3fb071fa4a30daf8ea9583b051551f5a3b8947859baf6d559f83f913cef3b3
+      shortHash: 3a3fb071
+      xxHash: 7372359696074518725
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { c }
     source: $.productById
     target: $.review<UserReview>.product
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.review<UserReview>.product
         selectionMap: >-
           id
     dependencies:
@@ -61,16 +84,27 @@ nodes:
   - id: 3
     type: Operation
     schema: d
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          d
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          productById(id: $__fusion_2_id) {
+            d
+          }
         }
-      }
+      hash: 06b26aed1e15d779e140d14f3fdbe224d1f06b5ade7f907f1d8f0025b93f94b7
+      shortHash: 06b26aed
+      xxHash: 15361385363737612234
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { d }
     source: $.productById
     target: $.review<UserReview>.product
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.review<UserReview>.product
         selectionMap: >-
           id
     dependencies:
@@ -78,16 +112,27 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          b
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_3_id: ID!) {
+          productById(id: $__fusion_3_id) {
+            b
+          }
         }
-      }
+      hash: 57f24192c7ed6617435da8bbe759b1d285407e0dd55380da8161d73a837708d6
+      shortHash: 57f24192
+      xxHash: 1982244346592396496
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { b }
     source: $.productById
     target: $.review<AnonymousReview>.product
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.review<AnonymousReview>.product
         selectionMap: >-
           id
     dependencies:
