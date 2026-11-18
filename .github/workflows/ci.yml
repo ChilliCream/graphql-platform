@@ -639,6 +639,7 @@ jobs:
         validate-aspire-nitro-client,
         validate-nitro-client,
         verify-nitro-npm-package,
+        commercial-compatibility,
       ]
     if: always()
     runs-on: ubuntu-26.04
@@ -652,4 +653,5 @@ jobs:
            needs.verify-aspire-nitro-operations.result == 'failure' ||
            needs.validate-aspire-nitro-client.result == 'failure' ||
            needs.validate-nitro-client.result == 'failure' ||
-           needs.verify-nitro-npm-package.result == 'failure')
+           needs.verify-nitro-npm-package.result == 'failure' ||
+           needs.commercial-compatibility.result == 'failure')
