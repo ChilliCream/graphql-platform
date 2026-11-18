@@ -132,6 +132,7 @@ public class Utf8GraphQLRequestParserDocumentHashCacheTests
         // arrange
         var context = new ParserContext();
         var remembered = context.ParseUntilRemembered(Request);
+        var computed = context.HashProvider.Computed;
         context.DocumentCache.Clear();
         context.DocumentCache.Lookups.Clear();
 
@@ -142,6 +143,7 @@ public class Utf8GraphQLRequestParserDocumentHashCacheTests
         Assert.Equal("client-id", result.DocumentId?.Value);
         Assert.Equal(remembered.DocumentHash, result.DocumentHash);
         Assert.Equal("query GetA { a }", result.Document!.ToString(indented: false));
+        Assert.Equal(computed, context.HashProvider.Computed);
         Assert.Equal(
             new[] { "client-id", remembered.DocumentHash!.Value.Value },
             context.DocumentCache.Lookups.ToArray());
