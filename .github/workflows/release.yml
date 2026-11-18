@@ -822,7 +822,7 @@ jobs:
           repository: ChilliCream/graphql-platform-commercial
           run-id: ${{ needs.build-commercial.outputs.run-id }}
           github-token: ${{ steps.commercial-token.outputs.token }}
-          pattern: router-native-*
+          pattern: nitro-router-{linux,osx,win}-*
           path: assets/router
           merge-multiple: true
 
