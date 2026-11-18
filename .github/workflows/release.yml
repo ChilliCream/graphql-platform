@@ -18,17 +18,14 @@ jobs:
   compute-release-context:
     name: 🧮 Compute release context
     runs-on: ubuntu-26.04
-
     permissions:
       contents: read
-
     outputs:
       git_tag: ${{ steps.ctx.outputs.git_tag }}
       major: ${{ steps.ctx.outputs.major }}
       is_stable: ${{ steps.ctx.outputs.is_stable }}
       is_active_major: ${{ steps.ctx.outputs.is_active_major }}
       is_highest_stable_major: ${{ steps.ctx.outputs.is_highest_stable_major }}
-
     steps:
       - name: 🧮 Compute
         id: ctx
@@ -77,14 +74,11 @@ jobs:
     name: 📝 Create Draft Release
     runs-on: ubuntu-26.04
     needs: [compute-release-context]
-
     permissions:
       contents: write
-
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
       IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
-
     steps:
       - name: 📝 Create draft release
         env:
@@ -123,7 +117,6 @@ jobs:
     name: 📈 Record Fusion PGO profile
     runs-on: ubuntu-26.04
     needs: [compute-release-context]
-
     permissions:
       contents: read
 
@@ -168,10 +161,8 @@ jobs:
     name: 📦 Build NuGet Packages
     runs-on: ubuntu-26.04
     needs: [compute-release-context, record-fusion-pgo-profile]
-
     permissions:
       contents: read
-
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -237,13 +228,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
     needs: [compute-release-context]
-
     permissions:
       contents: read
-
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
-
     strategy:
       matrix:
         include:
@@ -431,10 +419,8 @@ jobs:
     name: 🧱 Pack Nitro CLI npm tarballs
     runs-on: ubuntu-26.04
     needs: [compute-release-context, build-nitro-cli]
-
     permissions:
       contents: read
-
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -507,86 +493,101 @@ jobs:
           name: npm-tarballs
           path: tarballs/*.tgz
 
-  build-router:
-    name: Build Nitro Router artifacts
+  build-commercial:
+    name: 📦 Build Commercial Artifacts
     runs-on: ubuntu-26.04
     needs: [compute-release-context]
     timeout-minutes: 60
 
     outputs:
       run-id: ${{ steps.build.outputs.run-id }}
+      lane: ${{ steps.lane.outputs.lane }}
 
     steps:
-      - name: Checkout
+      - name: 📦 Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/actions
+          show-progress: false
 
-      - name: Create Nitro Router token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      - name: 🔐 Create commercial token
         id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
-          repositories: nitro-router
+          repositories: graphql-platform-commercial
           permission-actions: write
-          permission-contents: read
 
-      - name: Select Nitro Router commit
-        id: router
+      # The commercial repo keeps one release/vX.Y lane per platform minor. The lane's own
+      # workflows build and publish the release.
+      - name: 🛣️ Resolve commercial lane
+        id: lane
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
-        run: echo "sha=$(gh api repos/ChilliCream/nitro-router/commits/main --jq .sha)" >> "$GITHUB_OUTPUT"
+          GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$GIT_TAG" =~ ^([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
+            echo "::error::Cannot derive a commercial lane from '$GIT_TAG'."
+            exit 1
+          fi
+          echo "lane=release/v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and pack Nitro Router
-        uses: ./.github/actions/dispatch-and-watch-workflow
+      - name: 📦 Build commercial artifacts
         id: build
+        uses: ./.github/actions/dispatch-and-watch-workflow
         with:
-          repo: ChilliCream/nitro-router
-          workflow: release-build.yml
-          ref: main
+          repo: ChilliCream/graphql-platform-commercial
+          workflow: build.yml
+          ref: ${{ steps.lane.outputs.lane }}
           version: ${{ needs.compute-release-context.outputs.git_tag }}
-          inputs-json: >-
-            {"graphql_platform_ref":"${{ github.sha }}","router_sha":"${{ steps.router.outputs.sha }}"}
+          inputs-json: '{"graphql_platform_ref":"${{ github.sha }}"}'
+          missing-ref-hint: >-
+            Run ./prepare-release.sh ${{ needs.compute-release-context.outputs.git_tag }}
+            to create the lane, then re-run this job.
           token: ${{ steps.token.outputs.token }}
 
   artifacts-ready:
-    name: Wait for all release artifacts
+    name: ✅ Release Artifacts Ready
     runs-on: ubuntu-26.04
-    needs: [pack-nuget, pack-npm, build-router]
+    needs: [pack-nuget, pack-npm, build-commercial]
 
     steps:
-      - name: Artifacts ready
-        run: echo "Platform and Nitro Router artifacts are ready."
+      - name: ✅ Artifacts ready
+        run: echo "Platform and commercial artifacts are ready."
 
-  publish-router:
-    name: Publish Nitro Router
+  publish-commercial:
+    name: 🚀 Publish Commercial Artifacts
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, build-router, publish-nuget, publish-npm]
+    needs: [compute-release-context, build-commercial, publish-nuget, publish-npm]
     timeout-minutes: 45
 
     steps:
-      - name: Checkout
+      - name: 📦 Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/actions
+          show-progress: false
 
-      - name: Create Nitro Router token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      - name: 🔐 Create commercial token
         id: token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
-          repositories: nitro-router
+          repositories: graphql-platform-commercial
           permission-actions: write
-          permission-contents: read
 
-      - name: Publish prepared Nitro Router artifacts
+      - name: 🚀 Publish commercial artifacts
         uses: ./.github/actions/dispatch-and-watch-workflow
         with:
-          repo: ChilliCream/nitro-router
-          workflow: release-publish.yml
-          ref: main
+          repo: ChilliCream/graphql-platform-commercial
+          workflow: publish.yml
+          ref: ${{ needs.build-commercial.outputs.lane }}
           version: ${{ needs.compute-release-context.outputs.git_tag }}
-          inputs-json: '{"build_run_id":"${{ needs.build-router.outputs.run-id }}"}'
+          inputs-json: '{"build_run_id":"${{ needs.build-commercial.outputs.run-id }}"}'
           token: ${{ steps.token.outputs.token }}
 
   publish-nuget:
@@ -600,7 +601,6 @@ jobs:
       - publish-nitro-ops
       - publish-aspire-nitro-ops
       - artifacts-ready
-
     permissions:
       contents: read
       id-token: write
@@ -639,11 +639,9 @@ jobs:
     name: 🚀 Publish Nitro CLI to npm
     runs-on: ubuntu-26.04
     needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops, artifacts-ready]
-
     permissions:
       contents: read
       id-token: write
-
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
       MAJOR: ${{ needs.compute-release-context.outputs.major }}
@@ -725,10 +723,8 @@ jobs:
     name: 🚀 Publish Nitro CLI operations
     runs-on: ubuntu-26.04
     needs: [compute-release-context, create-draft, pack-nuget, pack-npm, artifacts-ready]
-
     permissions:
       contents: read
-
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -766,10 +762,8 @@ jobs:
     name: 🚀 Publish Fusion Aspire Nitro operations
     runs-on: ubuntu-26.04
     needs: [compute-release-context, create-draft, pack-nuget, artifacts-ready]
-
     permissions:
       contents: read
-
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
@@ -819,18 +813,16 @@ jobs:
     name: 🚀 Publish Release
     runs-on: ubuntu-26.04
     needs:
-      - build-router
-      - publish-router
+      - build-commercial
+      - publish-commercial
       - compute-release-context
       - create-draft
       - publish-nuget
       - publish-npm
       - publish-nitro-ops
       - publish-aspire-nitro-ops
-
     permissions:
       contents: write
-
     env:
       GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
       IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
@@ -841,23 +833,22 @@ jobs:
         with:
           path: assets
 
-      - name: Create Nitro Router token
+      - name: 🔐 Create commercial token
+        id: commercial-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        id: router-token
         with:
           client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
-          repositories: nitro-router
+          repositories: graphql-platform-commercial
           permission-actions: read
-          permission-contents: read
 
-      - name: Download Nitro Router binaries
+      - name: 📥 Download Nitro Router binaries
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          repository: ChilliCream/nitro-router
-          run-id: ${{ needs.build-router.outputs.run-id }}
-          github-token: ${{ steps.router-token.outputs.token }}
+          repository: ChilliCream/graphql-platform-commercial
+          run-id: ${{ needs.build-commercial.outputs.run-id }}
+          github-token: ${{ steps.commercial-token.outputs.token }}
           pattern: router-native-*
           path: assets/router
           merge-multiple: true
@@ -936,7 +927,6 @@ jobs:
     concurrency:
       group: update-github-actions-${{ matrix.repo }}
       cancel-in-progress: false
-
     strategy:
       fail-fast: false
       matrix:

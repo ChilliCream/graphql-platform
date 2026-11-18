@@ -1,5 +1,4 @@
 name: Dispatch and watch workflow
-
 description: Dispatches a workflow_dispatch in another repository and waits for it to complete.
 
 inputs:
@@ -20,6 +19,10 @@ inputs:
     description: Additional inputs for the downstream workflow.
     required: false
     default: "{}"
+  missing-ref-hint:
+    description: Text appended to the error when the dispatch is rejected because `ref` does not exist.
+    required: false
+    default: ""
   is_stable:
     description: Whether the release is a stable (X.Y.Z) version. Forwarded only when set; the target workflow must define that input.
     required: false
@@ -57,6 +60,7 @@ runs:
         REF: ${{ inputs.ref }}
         VERSION: ${{ inputs.version }}
         INPUTS_JSON: ${{ inputs.inputs-json }}
+        MISSING_REF_HINT: ${{ inputs.missing-ref-hint }}
         IS_STABLE: ${{ inputs.is_stable }}
         IS_ACTIVE_MAJOR: ${{ inputs.is_active_major }}
         TRIGGERED_BY: ${{ inputs.triggered_by }}
@@ -81,7 +85,13 @@ runs:
           ARGS+=(--ref "$REF")
         fi
 
-        RUN_URL=$(gh workflow run "$WORKFLOW" --repo "$REPO" "${ARGS[@]}")
+        if ! RUN_URL=$(gh workflow run "$WORKFLOW" --repo "$REPO" "${ARGS[@]}" 2> "$RUNNER_TEMP/dispatch.err"); then
+          cat "$RUNNER_TEMP/dispatch.err" >&2
+          if [ -n "$REF" ] && grep -qi "no ref found" "$RUNNER_TEMP/dispatch.err"; then
+            echo "::error::$REPO has no ref '$REF'.${MISSING_REF_HINT:+ $MISSING_REF_HINT}"
+          fi
+          exit 1
+        fi
 
         if [ -z "$RUN_URL" ]; then
           echo "::error::Dispatch did not return a run URL. Requires gh >= 2.87.0 against github.com."
