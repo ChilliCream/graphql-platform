@@ -538,15 +538,6 @@ jobs:
           inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}","graphql_platform_ref":"${{ github.sha }}"}'
           token: ${{ steps.token.outputs.token }}
 
-  artifacts-ready:
-    name: ✅ Release Artifacts Ready
-    runs-on: ubuntu-26.04
-    needs: [pack-nuget, pack-npm, build-commercial]
-
-    steps:
-      - name: ✅ Artifacts ready
-        run: echo "Platform and commercial artifacts are ready."
-
   publish-commercial:
     name: 🚀 Publish Commercial Artifacts
     runs-on: ubuntu-26.04
@@ -582,14 +573,7 @@ jobs:
   publish-nuget:
     name: 🚀 Publish NuGet packages
     runs-on: ubuntu-26.04
-    needs:
-      - compute-release-context
-      - create-draft
-      - pack-nuget
-      - pack-npm
-      - publish-nitro-ops
-      - publish-aspire-nitro-ops
-      - artifacts-ready
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops, publish-aspire-nitro-ops, build-commercial]
     permissions:
       contents: read
       id-token: write
@@ -627,7 +611,7 @@ jobs:
   publish-npm:
     name: 🚀 Publish Nitro CLI to npm
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops, artifacts-ready]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops, build-commercial]
     permissions:
       contents: read
       id-token: write
@@ -711,7 +695,7 @@ jobs:
   publish-nitro-ops:
     name: 🚀 Publish Nitro CLI operations
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, artifacts-ready]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, build-commercial]
     permissions:
       contents: read
     env:
@@ -750,7 +734,7 @@ jobs:
   publish-aspire-nitro-ops:
     name: 🚀 Publish Fusion Aspire Nitro operations
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, create-draft, pack-nuget, artifacts-ready]
+    needs: [compute-release-context, create-draft, pack-nuget, build-commercial]
     permissions:
       contents: read
     env:
