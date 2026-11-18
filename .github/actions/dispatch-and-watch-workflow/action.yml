@@ -12,21 +12,10 @@ inputs:
     description: Git ref to dispatch the workflow against. Empty dispatches against the repository's default branch.
     required: false
     default: ""
-  version:
-    description: Version passed as the `version` input to the dispatched workflow.
-    required: true
-  is_stable:
-    description: Whether the release is a stable (X.Y.Z) version. Forwarded only when set; the target workflow must define that input.
+  inputs-json:
+    description: Inputs for the dispatched workflow, as a JSON object.
     required: false
-    default: ""
-  is_active_major:
-    description: Whether the release targets the top lane (version.major >= highest stable major). Forwarded only when set; the target workflow must define that input.
-    required: false
-    default: ""
-  triggered_by:
-    description: GitHub username that triggered the release. Forwarded as `triggered_by` only when set; the target workflow must define that input.
-    required: false
-    default: ""
+    default: "{}"
   token:
     description: "Token with `actions: write` on the target repository."
     required: true
@@ -50,24 +39,14 @@ runs:
         REPO: ${{ inputs.repo }}
         WORKFLOW: ${{ inputs.workflow }}
         REF: ${{ inputs.ref }}
-        VERSION: ${{ inputs.version }}
-        IS_STABLE: ${{ inputs.is_stable }}
-        IS_ACTIVE_MAJOR: ${{ inputs.is_active_major }}
-        TRIGGERED_BY: ${{ inputs.triggered_by }}
+        INPUTS_JSON: ${{ inputs.inputs-json }}
       run: |
         set -euo pipefail
 
-        ARGS=(-f version="$VERSION")
-        # Only forward when set; target workflows that don't define these inputs would reject them.
-        if [ -n "$IS_STABLE" ]; then
-          ARGS+=(-f is_stable="$IS_STABLE")
-        fi
-        if [ -n "$IS_ACTIVE_MAJOR" ]; then
-          ARGS+=(-f is_active_major="$IS_ACTIVE_MAJOR")
-        fi
-        if [ -n "$TRIGGERED_BY" ]; then
-          ARGS+=(-f triggered_by="$TRIGGERED_BY")
-        fi
+        ARGS=()
+        while IFS= read -r input; do
+          ARGS+=(-f "$input")
+        done < <(jq -r 'to_entries[] | "\(.key)=\(.value)"' <<< "$INPUTS_JSON")
         if [ -n "$REF" ]; then
           ARGS+=(--ref "$REF")
         fi
