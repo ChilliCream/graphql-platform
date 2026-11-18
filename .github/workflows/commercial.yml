@@ -1,0 +1,194 @@
+name: Commercial Compatibility
+
+run-name: Commercial compatibility (${{ github.event.workflow_run.head_branch || github.ref_name }})
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      graphql_platform_ref:
+        description: Platform ref or SHA (empty uses the selected workflow branch commit)
+        type: string
+        required: false
+      commercial_ref:
+        description: Commercial release lane, for example release/v16.8 (empty uses the newest lane)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commercial-${{ github.event.workflow_run.head_branch || github.ref }}-${{ inputs.graphql_platform_ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    name: Build commercial repo against this commit
+    # Only same-repository CI runs can automatically trigger commercial builds.
+    # Manual dispatch supports any platform branch, ref, or exact commit SHA.
+    if: >-
+      github.repository == 'ChilliCream/graphql-platform' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.conclusion == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    permissions:
+      statuses: write
+
+    env:
+      COMMERCIAL_REPO: ChilliCream/graphql-platform-commercial
+      PLATFORM_REF: ${{ inputs.graphql_platform_ref || github.event.workflow_run.head_sha || github.sha }}
+
+    steps:
+      # The commercial repo has one release/vX.Y lane per platform minor. Its default branch is
+      # the newest lane, which builds against main. A maintenance branch builds its own lane.
+      - name: Select commercial lane
+        id: lane
+        env:
+          COMMERCIAL_REF: ${{ inputs.commercial_ref }}
+          BASE_REF: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REQUESTED_REF: ${{ inputs.graphql_platform_ref }}
+        run: |
+          set -euo pipefail
+
+          # An empty lane dispatches on the default branch of the commercial repo.
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            lane="$COMMERCIAL_REF"
+          elif [[ "$BASE_REF" == "main" ]]; then
+            lane=""
+          elif [[ "$BASE_REF" =~ ^main-version-([0-9]+)-([0-9]+)$ ]]; then
+            lane="release/v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+          else
+            echo "::notice::No commercial lane for pull requests targeting '${BASE_REF:-an unknown branch}'."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "lane=$lane" >> "$GITHUB_OUTPUT"
+
+          # A workflow_run run is attached to the default branch, so the result is reported as a
+          # commit status. A manual run reports one when the built commit is known.
+          if [[ -n "$HEAD_SHA" ]]; then
+            echo "status-sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          elif [[ -z "$REQUESTED_REF" ]]; then
+            echo "status-sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          elif [[ "$REQUESTED_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "status-sha=$REQUESTED_REF" >> "$GITHUB_OUTPUT"
+          fi
+
+      # This privileged workflow never checks out or executes platform branch code.
+      - name: Create commercial token
+        id: commercial-token
+        if: steps.lane.outputs.skip != 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.ACTIONS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
+          owner: ChilliCream
+          repositories: graphql-platform-commercial
+          permission-actions: write
+
+      - name: Dispatch commercial build
+        id: dispatch
+        if: steps.lane.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ steps.commercial-token.outputs.token }}
+          LANE: ${{ steps.lane.outputs.lane }}
+          UPSTREAM_RUN_URL: ${{ github.event.workflow_run.html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+        run: |
+          set -euo pipefail
+
+          args=(-f graphql_platform_ref="$PLATFORM_REF" -f upstream_run_url="$UPSTREAM_RUN_URL")
+          if [[ -n "$LANE" ]]; then
+            args+=(--ref "$LANE")
+          fi
+
+          if ! run_url=$(gh workflow run ci.yml --repo "$COMMERCIAL_REPO" "${args[@]}" 2> dispatch.err); then
+            cat dispatch.err >&2
+            # GitHub rejects a dispatch on a branch that does not exist. Platform lines without
+            # a commercial lane are not built.
+            if [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" && -n "$LANE" ]] \
+              && grep -qi 'no ref found' dispatch.err; then
+              echo "::notice::The commercial repo has no $LANE lane, so this pull request is not built."
+              exit 0
+            fi
+            exit 1
+          fi
+          if [[ ! "$run_url" =~ ^https://github\.com/ChilliCream/graphql-platform-commercial/actions/runs/[0-9]+$ ]]; then
+            echo "::error::Dispatch did not return a run URL. Requires gh >= 2.87.0."
+            exit 1
+          fi
+
+          echo "run-id=${run_url##*/}" >> "$GITHUB_OUTPUT"
+          {
+            echo "Commercial build: $run_url"
+            echo "Commercial lane: ${LANE:-newest (default branch)}"
+            echo "graphql-platform ref: $PLATFORM_REF"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Report pending status
+        if: steps.dispatch.outputs.run-id && steps.lane.outputs.status-sha
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS_SHA: ${{ steps.lane.outputs.status-sha }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$STATUS_SHA" --silent \
+            -f state=pending \
+            -f context="Commercial Compatibility" \
+            -f description="Building the commercial repo against this commit." \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+      - name: Wait for commercial build
+        if: steps.dispatch.outputs.run-id
+        env:
+          GH_TOKEN: ${{ steps.commercial-token.outputs.token }}
+          RUN_ID: ${{ steps.dispatch.outputs.run-id }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if gh run watch "$RUN_ID" --repo "$COMMERCIAL_REPO" --exit-status --compact; then
+              exit 0
+            fi
+            conclusion=$(gh run view "$RUN_ID" --repo "$COMMERCIAL_REPO" --json conclusion --jq .conclusion) || conclusion=""
+            if [[ -n "$conclusion" ]]; then
+              echo "::error::Commercial build concluded with $conclusion."
+              exit 1
+            fi
+            echo "Retrying workflow watch ($attempt/3)."
+            sleep 10
+          done
+          echo "::error::Could not read the commercial build result."
+          exit 1
+
+      - name: Report result status
+        if: always() && steps.dispatch.outputs.run-id && steps.lane.outputs.status-sha
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS_SHA: ${{ steps.lane.outputs.status-sha }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          case "$JOB_STATUS" in
+            success)
+              state=success
+              description="The commercial repo builds against this commit."
+              ;;
+            failure)
+              state=failure
+              description="The commercial repo does not build against this commit."
+              ;;
+            *)
+              state=error
+              description="The commercial build was cancelled."
+              ;;
+          esac
+
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$STATUS_SHA" --silent \
+            -f state="$state" \
+            -f context="Commercial Compatibility" \
+            -f description="$description" \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
