@@ -48,7 +48,9 @@ internal static class RequestTaskExtensions
         }
     }
 
-    // A failure of the abandoned request is read, so it does not surface as an unobserved task exception.
+    /// <summary>
+    /// Reads a failure of the abandoned request, so it does not surface as an unobserved task exception.
+    /// </summary>
     private static void ObserveFailure(Task request)
         => request.ContinueWith(
             static task => _ = task.Exception,

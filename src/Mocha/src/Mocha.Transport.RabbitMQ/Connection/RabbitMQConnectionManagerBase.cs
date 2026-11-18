@@ -263,13 +263,13 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
     private Task OnConnectionBlockedAsync(object? sender, ConnectionBlockedEventArgs e)
     {
-        Logger.LegacyConnectionBlocked(e.Reason);
+        Logger.ConnectionBlocked(e.Reason);
         return Task.CompletedTask;
     }
 
     private Task OnConnectionUnblockedAsync(object? sender, AsyncEventArgs e)
     {
-        Logger.LegacyConnectionUnblocked();
+        Logger.ConnectionUnblocked();
         return Task.CompletedTask;
     }
 

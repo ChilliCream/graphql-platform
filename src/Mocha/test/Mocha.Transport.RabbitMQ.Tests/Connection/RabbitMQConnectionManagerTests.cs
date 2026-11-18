@@ -50,8 +50,9 @@ public sealed class RabbitMQConnectionManagerTests
     public async Task StartAsync_Should_TimeOut_When_ConnectionAttemptDoesNotComplete()
     {
         // arrange
-        await using var manager = CreateManager(NeverConnectAsync);
-        manager.StartTimeout = TimeSpan.FromMilliseconds(100);
+        await using var manager = CreateManager(
+            NeverConnectAsync,
+            options: new RabbitMQConnectionManagerOptions { StartTimeout = TimeSpan.FromMilliseconds(100) });
 
         // act
         var exception = await Assert.ThrowsAsync<TimeoutException>(
@@ -70,8 +71,8 @@ public sealed class RabbitMQConnectionManagerTests
         connection.SetupGet(c => c.IsOpen).Returns(true);
         await using var manager = CreateManager(
             _ => new ValueTask<IConnection>(connection.Object),
-            static (_, ct) => Task.Delay(Timeout.InfiniteTimeSpan, ct));
-        manager.StartTimeout = TimeSpan.FromMilliseconds(100);
+            static (_, ct) => Task.Delay(Timeout.InfiniteTimeSpan, ct),
+            new RabbitMQConnectionManagerOptions { StartTimeout = TimeSpan.FromMilliseconds(100) });
 
         // act
         await Assert.ThrowsAsync<TimeoutException>(
@@ -121,17 +122,15 @@ public sealed class RabbitMQConnectionManagerTests
         connection.SetupGet(c => c.IsOpen).Returns(true);
         var attempts = 0;
         await using var manager = new RabbitMQConnectionManager(
-            NullLogger.Instance,
-            "test",
+            new RabbitMQConnectionLogger(NullLogger.Instance, "test"),
             time,
+            maxRetryDelaySeconds is { } seconds
+                ? new RabbitMQConnectionManagerOptions { MaxRetryDelay = TimeSpan.FromSeconds(seconds) }
+                : new RabbitMQConnectionManagerOptions(),
             _ => Interlocked.Increment(ref attempts) <= failedAttempts
                 ? ValueTask.FromException<IConnection>(new IOException("The broker is unreachable."))
                 : new ValueTask<IConnection>(connection.Object),
             static (_, _) => Task.CompletedTask);
-        if (maxRetryDelaySeconds is { } seconds)
-        {
-            manager.MaxRetryDelay = TimeSpan.FromSeconds(seconds);
-        }
 
         // act
         await manager.StartAsync(TestContext.Current.CancellationToken)
@@ -160,9 +159,10 @@ public sealed class RabbitMQConnectionManagerTests
                 It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync((Exception)Activator.CreateInstance(failure)!);
+        await using var manager = CreateManager(NeverConnectAsync);
 
         // act
-        await RabbitMQConnectionManager.CloseChannelAsync(channel.Object);
+        await manager.CloseChannelAsync(channel.Object);
 
         // assert
         channel.Verify(c => c.DisposeAsync(), Times.Once);
@@ -170,11 +170,12 @@ public sealed class RabbitMQConnectionManagerTests
 
     private static RabbitMQConnectionManager CreateManager(
         Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
-        Func<IConnection, CancellationToken, Task>? setUpConnectionAsync = null)
+        Func<IConnection, CancellationToken, Task>? setUpConnectionAsync = null,
+        RabbitMQConnectionManagerOptions? options = null)
         => new(
-            NullLogger.Instance,
-            "test",
+            new RabbitMQConnectionLogger(NullLogger.Instance, "test"),
             TimeProvider.System,
+            options ?? new RabbitMQConnectionManagerOptions(),
             connectionFactory,
             setUpConnectionAsync ?? (static (_, _) => Task.CompletedTask));
 

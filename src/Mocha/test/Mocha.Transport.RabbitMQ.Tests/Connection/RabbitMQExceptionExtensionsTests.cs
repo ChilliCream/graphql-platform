@@ -1,149 +1,41 @@
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Threading.Channels;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
-public sealed class RabbitMQFailureTests
+public sealed class RabbitMQExceptionExtensionsTests
 {
     [Theory]
     [MemberData(nameof(TransientFailures))]
-    public void Classify_Should_ReturnTransient_When_LaterAttemptCanSucceed(string shape, Exception exception)
+    public void IsPermanentFailure_Should_ReturnFalse_When_LaterAttemptCanSucceed(string shape, Exception exception)
     {
         // act
-        var kind = RabbitMQFailure.Classify(exception);
+        var isPermanent = exception.IsPermanentFailure();
 
         // assert
-        Assert.True(kind == RabbitMQFailureKind.Transient, shape);
+        Assert.False(isPermanent, shape);
     }
 
     [Theory]
     [MemberData(nameof(PermanentFailures))]
-    public void Classify_Should_ReturnPermanent_When_EveryAttemptFailsTheSameWay(string shape, Exception exception)
-    {
-        // act
-        var kind = RabbitMQFailure.Classify(exception);
-
-        // assert
-        Assert.True(kind == RabbitMQFailureKind.Permanent, shape);
-    }
-
-    [Fact]
-    public void GetLogLevel_Should_ReturnWarning_When_FailureIsTransient()
-    {
-        // arrange
-        var exception = new AlreadyClosedException(Shutdown(ShutdownInitiator.Library, 0, "End of stream"));
-
-        // act
-        var level = RabbitMQFailure.GetLogLevel(exception);
-
-        // assert
-        Assert.Equal(LogLevel.Warning, level);
-    }
-
-    [Fact]
-    public void GetLogLevel_Should_ReturnError_When_FailureIsPermanent()
-    {
-        // arrange
-        var exception = new BrokerUnreachableException(new AuthenticationFailureException("ACCESS_REFUSED"));
-
-        // act
-        var level = RabbitMQFailure.GetLogLevel(exception);
-
-        // assert
-        Assert.Equal(LogLevel.Error, level);
-    }
-
-    [Theory]
-    [MemberData(nameof(FailuresWithCloseReason))]
-    public void Describe_Should_ReturnCloseReason_When_ChainHoldsOne(string expected, Exception exception)
-    {
-        // act
-        var description = RabbitMQFailure.Describe(exception);
-
-        // assert
-        Assert.Equal(expected, description);
-    }
-
-    [Theory]
-    [MemberData(nameof(FailuresWithoutCloseReason))]
-    public void Describe_Should_ReturnTypeAndMessageOfInnermostException_When_ChainHoldsNoCloseReason(
-        string expected,
+    public void IsPermanentFailure_Should_ReturnTrue_When_EveryAttemptFailsTheSameWay(
+        string shape,
         Exception exception)
     {
         // act
-        var description = RabbitMQFailure.Describe(exception);
+        var isPermanent = exception.IsPermanentFailure();
 
         // assert
-        Assert.Equal(expected, description);
+        Assert.True(isPermanent, shape);
     }
 
-    public static TheoryData<string, Exception> FailuresWithCloseReason()
-        => new()
-        {
-            {
-                "0 End of stream (initiator Library)",
-                new AlreadyClosedException(Shutdown(ShutdownInitiator.Library, 0, "End of stream"))
-            },
-            {
-                "0 End of stream (initiator Library)",
-                new AlreadyClosedException(
-                    new ShutdownEventArgs(
-                        ShutdownInitiator.Library,
-                        0,
-                        "End of stream",
-                        new IOException("Unable to read data from the transport connection.")))
-            },
-            {
-                "404 NOT_FOUND - no exchange 'orders' in vhost '/' (initiator Peer)",
-                new TimeoutException(
-                    "The broker did not answer a request of the connection attempt in time.",
-                    new OperationInterruptedException(
-                        Shutdown(ShutdownInitiator.Peer, Constants.NotFound, "NOT_FOUND - no exchange 'orders' in vhost '/'")))
-            },
-            {
-                "320 CONNECTION_FORCED - broker forced connection closure (initiator Peer)",
-                new BrokerUnreachableException(
-                    new PossibleAuthenticationFailureException(
-                        "Possibly caused by authentication failure",
-                        new OperationInterruptedException(
-                            Shutdown(
-                                ShutdownInitiator.Peer,
-                                Constants.ConnectionForced,
-                                "CONNECTION_FORCED - broker forced connection closure"))))
-            }
-        };
-
-    public static TheoryData<string, Exception> FailuresWithoutCloseReason()
-        => new()
-        {
-            { "PublishException: Message rejected by broker", new PublishException(1, isReturn: false) },
-            {
-                "OperationInterruptedException: The AMQP operation was interrupted",
-                new OperationInterruptedException()
-            },
-            {
-                "TaskCanceledException: The request was cancelled",
-                new TimeoutException(
-                    "The broker did not answer the request to open a channel.",
-                    new TaskCanceledException("The request was cancelled."))
-            },
-            {
-                "IOException: Unable to read data from the transport connection",
-                new BrokerUnreachableException(
-                    new AggregateException(
-                        new ConnectFailureException(
-                            "Connection failed",
-                            new IOException("Unable to read data from the transport connection."))))
-            },
-            { "TimeoutException: The operation has timed out", new TimeoutException("The operation has timed out") }
-        };
-
-    // Every entry is built to an exception chain that RabbitMQ.Client 7.2.2 produced against a broker.
+    /// <summary>
+    /// Every entry is built to an exception chain that RabbitMQ.Client 7.2.2 produced against a broker.
+    /// </summary>
     public static TheoryData<string, Exception> TransientFailures()
         => new()
         {

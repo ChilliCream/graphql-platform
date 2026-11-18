@@ -16,9 +16,9 @@ public sealed class RabbitMQConnectionManagerIntegrationTests(RabbitMQFixture fi
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var manager = new RabbitMQConnectionManager(
-            NullLogger.Instance,
-            RabbitMQMessagingTransport.ConsumerRole,
+            new RabbitMQConnectionLogger(NullLogger.Instance, RabbitMQConnectionRole.Consumer),
             TimeProvider.System,
+            new RabbitMQConnectionManagerOptions(),
             async _ =>
             {
                 entered.TrySetResult();
@@ -50,9 +50,9 @@ public sealed class RabbitMQConnectionManagerIntegrationTests(RabbitMQFixture fi
         await using var vhost = await fixture.CreateVhostAsync();
         vhost.ConnectionSettings.Password = "wrong-password";
         await using var manager = new RabbitMQConnectionManager(
-            NullLogger.Instance,
-            RabbitMQMessagingTransport.DispatcherRole,
+            new RabbitMQConnectionLogger(NullLogger.Instance, RabbitMQConnectionRole.Dispatcher),
             TimeProvider.System,
+            new RabbitMQConnectionManagerOptions(),
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct),
             static (_, _) => Task.CompletedTask);
         using var requestCancellation = new CancellationTokenSource();
