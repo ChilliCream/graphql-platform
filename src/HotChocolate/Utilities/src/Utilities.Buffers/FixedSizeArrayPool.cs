@@ -92,16 +92,27 @@ internal sealed class FixedSizeArrayPool : IDisposable
 
     public void Abandon(int count) => _bucket.Abandon(count);
 
+    /// <summary>
+    /// Gets the number of array references the pool has reserved slots for.
+    /// </summary>
+    internal int Capacity => _bucket.Capacity;
+
+    internal void Trim() => _bucket.Trim();
+
     public void Dispose() => _bucket.Dispose();
 
     private sealed class Bucket : IDisposable
     {
+        private const int PageShift = 12;
+        private const int PageSize = 1 << PageShift;
+        private const int PageMask = PageSize - 1;
         private readonly int _poolId;
         private readonly int _bufferLength;
-        private readonly byte[]?[] _buffers;
+        private readonly byte[]?[]?[] _pages;
         private readonly int[] _levels;
         private readonly Timer _trimTimer;
         private int _currentLevel;
+        private int _capacity;
         private int _inUse;
         private SpinLock _lock;
         private int _index;
@@ -113,21 +124,30 @@ internal sealed class FixedSizeArrayPool : IDisposable
             TimeSpan trimInterval,
             bool preAllocate)
         {
-            var numberOfBuffers = levels[levels.Length - 1];
+            var stableLevel = levels[0];
 
             _poolId = poolId;
             _bufferLength = bufferLength;
-            _buffers = new byte[numberOfBuffers][];
             _levels = levels;
             _currentLevel = 0;
 
+            // the slots are kept in pages that are created as the pool grows into them,
+            // only the slots of the stable level (first entry in _levels) exist up front.
+            _pages = new byte[]?[]?[((levels[levels.Length - 1] - 1) >> PageShift) + 1];
+
+            for (var i = 0; i < stableLevel; i += PageSize)
+            {
+                var page = new byte[Math.Min(PageSize, stableLevel - i)][];
+                _pages[i >> PageShift] = page;
+                _capacity += page.Length;
+            }
+
             if (preAllocate)
             {
-                // only pre-allocate up to the stable level (first entry in _levels).
-                var stableLevel = levels[0];
+                // only pre-allocate up to the stable level.
                 for (var i = 0; i < stableLevel; i++)
                 {
-                    _buffers[i] = new byte[_bufferLength];
+                    _pages[i >> PageShift]![i & PageMask] = new byte[_bufferLength];
                 }
             }
 
@@ -142,11 +162,12 @@ internal sealed class FixedSizeArrayPool : IDisposable
 
         internal int InUse => _inUse;
 
+        internal int Capacity => _capacity;
+
         internal byte[]? Rent()
         {
             Interlocked.Increment(ref _inUse);
 
-            var buffers = _buffers;
             byte[]? buffer = null;
 
             // While holding the lock, grab whatever is at the next available index and
@@ -160,15 +181,32 @@ internal sealed class FixedSizeArrayPool : IDisposable
             {
                 _lock.Enter(ref lockTaken);
 
-                if (_index >= _levels[_currentLevel] && _currentLevel < _levels.Length - 1)
+                var limit = _levels[_currentLevel];
+
+                if (_index >= limit && _currentLevel < _levels.Length - 1)
                 {
-                    _currentLevel++;
+                    limit = _levels[++_currentLevel];
                 }
 
-                if (_index < _levels[_currentLevel])
+                if (_index < limit)
                 {
-                    buffer = buffers[_index];
-                    buffers[_index++] = null;
+                    var pageIndex = _index >> PageShift;
+                    var offset = _index & PageMask;
+                    var page = _pages[pageIndex];
+
+                    if (page is null || offset >= page.Length)
+                    {
+                        // the pool grew past the slots of this page. Every slot below the index
+                        // is rented out and therefore empty, so the longer page starts empty.
+                        var previousLength = page?.Length ?? 0;
+                        page = new byte[Math.Min(PageSize, limit - (pageIndex << PageShift))][];
+                        _pages[pageIndex] = page;
+                        _capacity += page.Length - previousLength;
+                    }
+
+                    buffer = page[offset];
+                    page[offset] = null;
+                    _index++;
                     allocateBuffer = buffer == null;
                 }
             }
@@ -216,7 +254,8 @@ internal sealed class FixedSizeArrayPool : IDisposable
 
                 if (_index > 0)
                 {
-                    _buffers[--_index] = array;
+                    var index = --_index;
+                    _pages[index >> PageShift]![index & PageMask] = array;
                     returned = true;
                 }
             }
@@ -238,45 +277,73 @@ internal sealed class FixedSizeArrayPool : IDisposable
         // if the pool is not under pressure we step the current level down one
         // notch and null out the buffer slots between the new and old level so
         // those byte[] arrays become eligible for collection.
-        private void Trim()
+        internal void Trim()
         {
-            var currentLevel = _currentLevel;
-
             // nothing to trim if we are already at the stable level.
-            if (currentLevel == 0)
+            if (_currentLevel == 0)
             {
                 return;
             }
 
-            var previousLevel = currentLevel - 1;
-            var previousLimit = _levels[previousLevel];
-
-            // if outstanding buffers exceed the target level the pool is still
-            // under pressure — skip trimming.
-            if (_inUse > previousLimit)
-            {
-                return;
-            }
+            int previousLimit;
+            int inUse;
             var trimmed = 0;
-
             var lockTaken = false;
 
             try
             {
-                var currentLimit = _levels[currentLevel];
-
                 _lock.Enter(ref lockTaken);
 
-                // null out slots between the new limit and the old limit.
-                // only null slots that are beyond _index (i.e. not currently
-                // rented out — those slots are already null).
-                for (var i = previousLimit; i < currentLimit; i++)
+                if (_currentLevel == 0)
                 {
-                    if (_buffers[i] != null)
+                    return;
+                }
+
+                previousLimit = _levels[_currentLevel - 1];
+                inUse = _inUse;
+
+                // if outstanding buffers exceed the target level the pool is still
+                // under pressure, skip trimming.
+                if (inUse > previousLimit)
+                {
+                    return;
+                }
+
+                var currentLimit = _levels[_currentLevel];
+
+                // null out slots between the new limit and the old limit.
+                // slots that are rented out or were never reached are already empty.
+                for (var i = previousLimit; i < currentLimit;)
+                {
+                    var offset = i & PageMask;
+                    var count = Math.Min(currentLimit - i, PageSize - offset);
+                    var page = _pages[i >> PageShift];
+
+                    if (page is not null && offset < page.Length)
                     {
-                        _buffers[i] = null;
-                        trimmed++;
+                        var slots = page.AsSpan(offset, Math.Min(count, page.Length - offset));
+
+                        foreach (var buffer in slots)
+                        {
+                            if (buffer is not null)
+                            {
+                                trimmed++;
+                            }
+                        }
+
+                        if (offset == 0)
+                        {
+                            // the whole page lies above the new limit, so its slots go as well.
+                            _pages[i >> PageShift] = null;
+                            _capacity -= page.Length;
+                        }
+                        else
+                        {
+                            slots.Clear();
+                        }
                     }
+
+                    i += count;
                 }
 
                 // if _index is beyond the new limit we need to pull it back
@@ -285,6 +352,8 @@ internal sealed class FixedSizeArrayPool : IDisposable
                 {
                     _index = previousLimit;
                 }
+
+                _currentLevel--;
             }
             finally
             {
@@ -294,12 +363,10 @@ internal sealed class FixedSizeArrayPool : IDisposable
                 }
             }
 
-            _currentLevel = previousLevel;
-
             var log = Log;
             if (log.IsEnabled())
             {
-                log.PoolTrimmed(_poolId, trimmed, previousLimit, _inUse);
+                log.PoolTrimmed(_poolId, trimmed, previousLimit, inUse);
             }
         }
 
