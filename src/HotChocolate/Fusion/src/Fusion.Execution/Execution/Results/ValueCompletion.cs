@@ -150,18 +150,10 @@ internal sealed class ValueCompletion
                 var propertyValueSnapshot = property.Value.CreateSnapshot();
                 var propertyValueKind = propertyValueSnapshot.ValueKind;
 
-                if (errorTrie is null && propertyValueKind.IsScalarValue())
+                if (errorTrie is null
+                    && propertyValueKind.IsScalarValue()
+                    && TryWriteScalarValue(propertyValueSnapshot, resultField, selection))
                 {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            resultField,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    resultField.SetLeafValue(propertyValueSnapshot);
                     continue;
                 }
 
@@ -205,18 +197,10 @@ internal sealed class ValueCompletion
                 // Fast path: when there are no errors and the source value is a
                 // scalar (string, number, bool) we can set it directly without
                 // going through the full TryCompleteValue type-dispatch chain.
-                if (errorTrie is null && propertyValueKind.IsScalarValue())
+                if (errorTrie is null
+                    && propertyValueKind.IsScalarValue()
+                    && TryWriteScalarValue(propertyValueSnapshot, resultField, selection))
                 {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            resultField,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    resultField.SetLeafValue(propertyValueSnapshot);
                     continue;
                 }
 
@@ -1043,8 +1027,7 @@ internal sealed class ValueCompletion
                 return true;
 
             case TypeKind.Enum:
-                CompleteEnumValue(source, target, selection);
-                return true;
+                return TryCompleteEnumValue(source, target, selection, selection.IsNonNull, errorTrie);
 
             default:
                 throw ThrowHelper.ValueCompletionTypeNotSupported(selection.UnwrappedType);
@@ -1283,8 +1266,7 @@ internal sealed class ValueCompletion
                     break;
 
                 case TypeKind.Enum:
-                    CompleteEnumValue(elementSnapshot, targetElement, selection);
-                    completed = true;
+                    completed = TryCompleteEnumValue(elementSnapshot, targetElement, selection, isNonNull, errorTrieForIndex);
                     break;
 
                 case TypeKind.Interface or TypeKind.Union:
@@ -1315,7 +1297,12 @@ internal sealed class ValueCompletion
             {
                 if (isNonNull)
                 {
-                    return TryCompleteNullContainer(target);
+                    if (elementTypeKind is not TypeKind.Enum || errorTrie is not null)
+                    {
+                        return TryCompleteNullContainer(target);
+                    }
+
+                    propagateItemNull = true;
                 }
 
                 targetElement.SetNullValue();
@@ -1495,51 +1482,64 @@ TryCompleteList_MoveNext:
         return (path, null, selection);
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void CompleteEnumValue(
+    private static bool TryWriteScalarValue(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
         Selection selection)
     {
-        // Reached from dispatch arms guarded only by the type-system enum kind, which
-        // does not guarantee the concrete Fusion CLR type, so the pattern match stays
-        // as a defensive check that masks any other definition to null. A string that
-        // is an accessible member of the composite enum is written through; anything
-        // else (a value unknown to or inaccessible from the composite schema, or a
-        // non-string kind) is masked to null so it can never leak past the gateway.
-        // The raw UTF-8 payload may contain JSON escape sequences, but GraphQL enum
-        // names are [A-Za-z0-9_] only, so an escaped payload cannot match any name
-        // and correctly falls through to masking.
-        if (selection.NamedType is FusionEnumTypeDefinition enumType
+        if (!selection.IsEnumValue)
+        {
+            target.SetLeafValue(source);
+            return true;
+        }
+
+        if (selection.IsNonNull && selection.UnwrappedKind is TypeKind.Enum)
+        {
+            return false;
+        }
+
+        TryWriteEnumValue(source, target, Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private bool TryCompleteEnumValue(
+        SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        Selection selection,
+        bool isNonNull,
+        ErrorTrie? errorTrie)
+    {
+        if (TryWriteEnumValue(source, target, selection.NamedType as FusionEnumTypeDefinition) || !isNonNull)
+        {
+            return true;
+        }
+
+        if (errorTrie?.Error is null)
+        {
+            var error = ErrorHelper.NonNullViolation(target.Path);
+            _store.AddError(_errorHandler.Handle(error));
+        }
+
+        return !_propagateNullValues;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool TryWriteEnumValue(
+        SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        FusionEnumTypeDefinition? enumType)
+    {
+        if (enumType is not null
             && source.TokenType is JsonTokenType.String
             && enumType.Values.ContainsName(source.ValueSpan))
         {
             target.SetLeafValue(source);
+            return true;
         }
-        else
-        {
-            target.SetNullValue();
-        }
-    }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void CompleteEnumValue(
-        SourceResultElementSnapshot source,
-        CompositeResultElement target,
-        FusionEnumTypeDefinition enumType)
-    {
-        // Reached only from call sites guarded by Selection.IsEnumValue, which
-        // guarantees that the selection's named type is a FusionEnumTypeDefinition.
-        // The masking semantics match the selection-based overload above.
-        if (source.TokenType is JsonTokenType.String
-            && enumType.Values.ContainsName(source.ValueSpan))
-        {
-            target.SetLeafValue(source);
-        }
-        else
-        {
-            target.SetNullValue();
-        }
+        target.SetNullValue();
+        return false;
     }
 
     private bool TryCompleteObjectValue(
@@ -1621,18 +1621,9 @@ TryCompleteList_MoveNext:
                 // Fast path: when there are no errors and the source value is a
                 // scalar (string, number, bool) we can set it directly without
                 // going through the full TryCompleteValue type-dispatch chain.
-                if (propertyValueKind.IsScalarValue())
+                if (propertyValueKind.IsScalarValue()
+                    && TryWriteScalarValue(propertyValueSnapshot, targetProperty, selection))
                 {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            targetProperty,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    targetProperty.SetLeafValue(propertyValueSnapshot);
                     continue;
                 }
 
@@ -1752,18 +1743,10 @@ TryCompleteList_MoveNext:
             var propertyValueSnapshot = property.Value.CreateSnapshot();
             var propertyValueKind = propertyValueSnapshot.ValueKind;
 
-            if (errorTrie is null && propertyValueKind.IsScalarValue())
+            if (errorTrie is null
+                && propertyValueKind.IsScalarValue()
+                && TryWriteScalarValue(propertyValueSnapshot, targetProperty, selection))
             {
-                if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                {
-                    CompleteEnumValue(
-                        propertyValueSnapshot,
-                        targetProperty,
-                        Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                    continue;
-                }
-
-                targetProperty.SetLeafValue(propertyValueSnapshot);
                 continue;
             }
 

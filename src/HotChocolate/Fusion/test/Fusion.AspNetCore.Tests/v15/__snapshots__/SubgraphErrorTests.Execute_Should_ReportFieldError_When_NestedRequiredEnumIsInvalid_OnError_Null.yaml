@@ -16,7 +16,19 @@ response:
           "status": null
         },
         "productCount": 1
-      }
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "product",
+            "status"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

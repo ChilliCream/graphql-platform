@@ -11,12 +11,20 @@ response:
     {
       "data": {
         "color": null,
-        "colors": [
-          null
-        ],
+        "colors": null,
         "tail": null
       },
       "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "colors",
+            0
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        },
         {
           "message": "Tail unavailable.",
           "path": [
