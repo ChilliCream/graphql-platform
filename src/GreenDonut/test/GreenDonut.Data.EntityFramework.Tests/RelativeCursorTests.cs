@@ -797,6 +797,153 @@ public class RelativeCursorTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Fetch_Second_Page_With_End_Cursor_Of_First_Page()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Act
+
+        arguments = arguments with { After = first.CreateEndCursor() };
+        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+
+        /*
+        1. Aetherix
+        2. Brightex     <- End cursor of page 1
+        3. Celestara    <- Page 2 - Item 1
+        4. Dynamova     <- Page 2 - Item 2
+        5. Evolvance
+        6. Futurova
+        */
+
+        Assert.Equal(["Celestara", "Dynamova"], second.Select(t => t.Name));
+        Assert.Equal(2, second.Index);
+        Assert.Equal(20, second.TotalCount);
+        Assert.Equal([3, 4, 5, 6, 7], second.CreateRelativeForwardCursors().Select(t => t.Page));
+        Assert.Equal([1], second.CreateRelativeBackwardCursors().Select(t => t.Page));
+    }
+
+    [Fact]
+    public async Task BatchFetch_Second_Page_With_End_Cursor_Of_First_Page()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = (await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken))[1];
+
+        // Act
+
+        arguments = arguments with { After = first.CreateEndCursor() };
+        var second = (await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken))[1];
+
+        // Assert
+
+        /*
+        1. Aetherix
+        2. Brightex     <- End cursor of page 1
+        3. Celestara    <- Page 2 - Item 1
+        4. Dynamova     <- Page 2 - Item 2
+        5. Evolvance
+        6. Futurova
+        */
+
+        Assert.Equal(["Celestara", "Dynamova"], second.Select(t => t.Name));
+        Assert.Equal(2, second.Index);
+        Assert.Equal([1], second.CreateRelativeBackwardCursors().Select(t => t.Page));
+    }
+
+    [Fact]
+    public async Task Fetch_Previous_Page_With_Start_Cursor()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+        var third = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments with { After = first.CreateCursor(first.Last!.Value, 1) },
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Act
+
+        arguments = new PagingArguments(last: 2) { EnableRelativeCursors = true, Before = third.CreateStartCursor() };
+        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+
+        /*
+        1. Aetherix
+        2. Brightex
+        3. Celestara    <- Page 2 - Item 1
+        4. Dynamova     <- Page 2 - Item 2
+        5. Evolvance    <- Start cursor of page 3
+        6. Futurova
+        */
+
+        Assert.Equal(3, third.Index);
+        Assert.Equal(["Celestara", "Dynamova"], second.Select(t => t.Name));
+        Assert.Equal(2, second.Index);
+        Assert.Equal([1], second.CreateRelativeBackwardCursors().Select(t => t.Page));
+    }
+
+    [Fact]
+    public async Task Fetch_After_Regular_Cursor_Has_No_Relative_Cursors()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Act
+
+        arguments = arguments with { After = first.CreateCursor(first.Last!.Value), IncludeTotalCount = true };
+        var second = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+
+        // A regular cursor does not carry the page index: the page does not know its number,
+        // so it has no relative cursors rather than cursors numbered from page 1.
+        Assert.Equal(["Celestara", "Dynamova"], second.Select(t => t.Name));
+        Assert.Null(second.Index);
+        Assert.Equal(20, second.TotalCount);
+        Assert.Empty(second.CreateRelativeForwardCursors());
+        Assert.Empty(second.CreateRelativeBackwardCursors());
+    }
+
+    [Fact]
     public async Task RequestedSize_Not_Evenly_Divisible_By_TotalCount()
     {
         // Arrange

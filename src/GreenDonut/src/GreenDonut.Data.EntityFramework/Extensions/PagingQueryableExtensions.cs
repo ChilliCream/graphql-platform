@@ -688,14 +688,14 @@ public static class PagingQueryableExtensions
     {
         var (hasNext, hasPrevious) = CreatePageFlags(arguments, fetchCount);
 
-        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
+        if (arguments.EnableRelativeCursors && index is not null && totalCount is not null && requestedPageSize is not null)
         {
             return new ValueCursorPage<T>(
                 entries,
                 hasNext,
                 hasPrevious,
                 entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
-                index ?? 1,
+                index.Value,
                 requestedPageSize.Value,
                 totalCount.Value,
                 items);
@@ -722,7 +722,7 @@ public static class PagingQueryableExtensions
     {
         var (hasNext, hasPrevious) = CreatePageFlags(arguments, fetchCount);
 
-        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
+        if (arguments.EnableRelativeCursors && index is not null && totalCount is not null && requestedPageSize is not null)
         {
             return new ElementCursorPage<TElement, TValue>(
                 entries,
@@ -730,7 +730,7 @@ public static class PagingQueryableExtensions
                 hasNext,
                 hasPrevious,
                 entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
-                index ?? 1,
+                index.Value,
                 requestedPageSize.Value,
                 totalCount.Value);
         }
@@ -792,6 +792,14 @@ public static class PagingQueryableExtensions
             return Math.Max(1, (int)Math.Ceiling(totalCount.Value / (double)arguments.Last.Value));
         }
 
+        if (arguments.After is null && arguments.Before is null)
+        {
+            // the first page
+            return 1;
+        }
+
+        // the page index is only known from a relative cursor: after a regular cursor,
+        // the page has no index and no relative cursors rather than wrong ones.
         if (cursor?.IsRelative != true)
         {
             return null;
