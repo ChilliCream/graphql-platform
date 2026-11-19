@@ -1,0 +1,159 @@
+title: Execute_Should_PreserveRequiredSharedParent_When_PublicChildIsNullable
+request:
+  onError: Null
+  document: |
+    {
+      x {
+        a
+        c
+        b
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "x": {
+          "a": null,
+          "c": null,
+          "b": 3
+        }
+      },
+      "errors": [
+        {
+          "message": "failed",
+          "path": [
+            "x",
+            "a"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        x: Row! @shareable
+      }
+
+      type Row @shareable {
+        a: Int!
+        c: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d001368a_1 {
+              x {
+                a
+                c
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "failed",
+                    "path": [
+                      "x",
+                      "a"
+                    ]
+                  }
+                ],
+                "data": null
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        x: Row! @shareable
+      }
+
+      type Row @shareable {
+        a: Int
+        b: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d001368a_2 {
+              x {
+                b
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "x": {
+                    "b": 3
+                  }
+                }
+              }
+operationPlan:
+  id: a71b4ed7a1263803f778d45defa7afdb2d2fcc20039d38dc3cec106ef2124080
+  operation:
+    - document: |
+        {
+          x {
+            a
+            c
+            b
+          }
+        }
+      kind: Query
+      id: d001368ab27f3e27f80c7d4b2fcdcc94
+      hash: d001368ab27f3e27f80c7d4b2fcdcc94
+      shortHash: d001368a
+  searchSpace: 2
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_d001368a_1
+        kind: Query
+        document: |
+          query Op_d001368a_1 {
+            x {
+              a
+              c
+            }
+          }
+        hash: d15210691e805c3ef9cbed286d0a15ea2f7c69f6055acfe51195eccbb6d181ab
+        shortHash: d1521069
+        xxHash: 15067362587519657471
+      resultSelectionSet: >-
+        { x { a c } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_d001368a_2
+        kind: Query
+        document: |
+          query Op_d001368a_2 {
+            x {
+              b
+            }
+          }
+        hash: 68977aeac91986ac0916ef9dcf7563c98da88f05b0478de4679bca62b536b2d9
+        shortHash: 68977aea
+        xxHash: 9881868020298275528
+      resultSelectionSet: >-
+        { x { b } }

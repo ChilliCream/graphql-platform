@@ -227,7 +227,7 @@ internal sealed partial class FetchResultStore
             var targets = _collectTargetCombined.AsSpan(0, targetCount);
 
             // Entities are only reused while the result has no errors.
-            var candidateCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
+            var candidateCount = _errors is { Count: > 0 } || _valueCompletion.HasPendingSharedNulls
                 ? 0
                 : CollectCombinedElementsUnsafe(candidates.Paths, ref _collectProducerCombined);
             var producers = _collectProducerCombined.AsSpan(0, candidateCount);

@@ -1,0 +1,233 @@
+title: Execute_Should_MergeChildren_When_DirectAndFragmentSelectionsShareAResponseName
+request:
+  onError: Null
+  document: |
+    {
+      x {
+        __typename
+        d: detail {
+          a
+        }
+        ... on Row {
+          d: detail {
+            c
+            b
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "x": {
+          "__typename": "Row",
+          "d": {
+            "a": null,
+            "c": null,
+            "b": 3
+          }
+        }
+      },
+      "errors": [
+        {
+          "message": "failed",
+          "path": [
+            "x",
+            "d",
+            "c"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        x: Node @shareable
+      }
+
+      type Detail @shareable {
+        a: String
+        c: String!
+      }
+
+      type Other implements Node @shareable {
+        detail: Detail @shareable
+      }
+
+      type Row implements Node @shareable {
+        detail: Detail @shareable
+      }
+
+      interface Node {
+        detail: Detail
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_6505a6e5_1 {
+              x {
+                __typename
+                d: detail {
+                  a
+                }
+                ... on Row {
+                  d: detail {
+                    c
+                  }
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "failed",
+                    "path": [
+                      "x",
+                      "d",
+                      "c"
+                    ]
+                  }
+                ],
+                "data": {
+                  "x": {
+                    "__typename": "Row",
+                    "d": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        x: Node @shareable
+      }
+
+      type Detail @shareable {
+        b: Int
+      }
+
+      type Other implements Node @shareable {
+        detail: Detail @shareable
+      }
+
+      type Row implements Node @shareable {
+        detail: Detail @shareable
+      }
+
+      interface Node {
+        detail: Detail
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_6505a6e5_2 {
+              x {
+                __typename
+                ... on Row {
+                  d: detail {
+                    b
+                  }
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "x": {
+                    "__typename": "Row",
+                    "d": {
+                      "b": 3
+                    }
+                  }
+                }
+              }
+operationPlan:
+  id: 081c80cc84e36db9131f8f97443ff0db8b9ed2fded193a97e7455879f27438be
+  operation:
+    - document: |
+        {
+          x {
+            __typename
+            d: detail {
+              a
+            }
+            ... on Row {
+              d: detail {
+                c
+                b
+              }
+            }
+          }
+        }
+      kind: Query
+      id: 786a287db9d2df28fd82b1a274cceccf
+      hash: 6505a6e582a683a8b2e35c1ddf2392c7
+      shortHash: 6505a6e5
+  searchSpace: 2
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_6505a6e5_1
+        kind: Query
+        document: |
+          query Op_6505a6e5_1 {
+            x {
+              __typename
+              d: detail {
+                a
+              }
+              ... on Row {
+                d: detail {
+                  c
+                }
+              }
+            }
+          }
+        hash: cea746c421bdc6bb8eebd18f7dfb261cc4a6e773844ab7e212e25b97a3e8b2f7
+        shortHash: cea746c4
+        xxHash: 259654698827421644
+      resultSelectionSet: >-
+        { x { __typename d { a } ... on Row { d { c } } } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_6505a6e5_2
+        kind: Query
+        document: |
+          query Op_6505a6e5_2 {
+            x {
+              __typename
+              ... on Row {
+                d: detail {
+                  b
+                }
+              }
+            }
+          }
+        hash: 93177c99e93e4ed3c59ea2d14b4d95265cc186985b5eb2983f38695ef702d850
+        shortHash: 93177c99
+        xxHash: 2191775698488630143
+      resultSelectionSet: >-
+        { x { __typename ... on Row { d { b } } } }

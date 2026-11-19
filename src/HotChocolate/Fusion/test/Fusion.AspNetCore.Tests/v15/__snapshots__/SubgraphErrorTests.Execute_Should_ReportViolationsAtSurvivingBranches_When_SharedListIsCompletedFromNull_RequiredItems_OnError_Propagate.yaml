@@ -1,0 +1,150 @@
+title: Execute_Should_ReportViolationsAtSurvivingBranches_When_SharedListIsCompletedFromNull
+request:
+  document: |
+    {
+      items {
+        name
+        price
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "items": null
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "items",
+            0,
+            "name"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        items: [Item!] @shareable
+      }
+
+      type Item @shareable {
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_e757baf0_1 {
+              items {
+                name
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "items": null
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        items: [Item!] @shareable
+      }
+
+      type Item @shareable {
+        price: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_e757baf0_2 {
+              items {
+                price
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "items": [
+                    {
+                      "price": 1
+                    },
+                    {
+                      "price": 2
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  id: 5c2c7dad93722ebd0937a666bb16387cb733e0192593c1318e05681f07315a85
+  operation:
+    - document: |
+        {
+          items {
+            name
+            price
+          }
+        }
+      kind: Query
+      id: e757baf005653d76e04e2bface78c286
+      hash: e757baf005653d76e04e2bface78c286
+      shortHash: e757baf0
+  searchSpace: 2
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_e757baf0_1
+        kind: Query
+        document: |
+          query Op_e757baf0_1 {
+            items {
+              name
+            }
+          }
+        hash: 9aa1cc7ccb788baed8fa49e535b5fdeb023eadba1416de450071c24245f4879f
+        shortHash: 9aa1cc7c
+        xxHash: 12085340677966293979
+      resultSelectionSet: >-
+        { items { name } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_e757baf0_2
+        kind: Query
+        document: |
+          query Op_e757baf0_2 {
+            items {
+              price
+            }
+          }
+        hash: fc2eed5496233283755a31fcc5323e5b391d68f0358e0cae112a930825da2d2c
+        shortHash: fc2eed54
+        xxHash: 12333497716125525601
+      resultSelectionSet: >-
+        { items { price } }
