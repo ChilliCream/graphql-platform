@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text;
-using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -196,9 +195,7 @@ public class SubgraphErrorTests : FusionTestBase
               "errors": [{ "message": "Name unavailable.", "path": ["lookups", "byId", "label"] }]
             }
             """);
-        using var gateway = await CreateCompositeSchemaAsync(
-            [("catalog", catalog), ("details", details)],
-            includeOperationPlan: false);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog), ("details", details)]);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -222,7 +219,7 @@ public class SubgraphErrorTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        response.MatchSnapshot(extension: ".json", formatter: SnapshotValueFormatters.GraphQLHttpStable);
+        await MatchSnapshotAsync(gateway, request, response, stableStream: true);
     }
 
     [Theory]
