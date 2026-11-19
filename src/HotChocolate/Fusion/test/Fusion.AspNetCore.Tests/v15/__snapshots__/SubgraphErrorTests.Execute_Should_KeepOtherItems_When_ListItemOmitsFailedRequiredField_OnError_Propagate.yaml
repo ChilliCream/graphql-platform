@@ -1,0 +1,117 @@
+title: Execute_Should_KeepOtherItems_When_ListItemOmitsFailedRequiredField
+request:
+  document: |
+    {
+      rows {
+        name
+        note
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "rows": [
+          {
+            "name": null,
+            "note": null
+          },
+          {
+            "name": "Second",
+            "note": null
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        rows: [Row]
+      }
+
+      type Row {
+        name: String!
+        note: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_2c3c07cb_1 {
+              rows {
+                name
+                note
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "First name unavailable.",
+                    "path": [
+                      "rows",
+                      0,
+                      "name"
+                    ]
+                  },
+                  {
+                    "message": "Second note unavailable.",
+                    "path": [
+                      "rows",
+                      1,
+                      "note"
+                    ]
+                  }
+                ],
+                "data": {
+                  "rows": [
+                    {},
+                    {
+                      "name": "Second"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  id: 05978bbe20219353b53f6465ac5c1deee519f5195b567fcb8501efbc5251f31f
+  operation:
+    - document: |
+        {
+          rows {
+            name
+            note
+          }
+        }
+      kind: Query
+      id: 2c3c07cb0a7325c514a4b5edfd9cab6b
+      hash: 2c3c07cb0a7325c514a4b5edfd9cab6b
+      shortHash: 2c3c07cb
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_2c3c07cb_1
+        kind: Query
+        document: |
+          query Op_2c3c07cb_1 {
+            rows {
+              name
+              note
+            }
+          }
+        hash: b0dcf817fd4d6774064ee9c150823412b41d8b3457686672219314b98c227c32
+        shortHash: b0dcf817
+        xxHash: 17694710017489881099
+      resultSelectionSet: >-
+        { rows }

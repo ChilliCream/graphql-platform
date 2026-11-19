@@ -9,7 +9,190 @@ namespace HotChocolate.Fusion;
 
 public partial class SubgraphErrorTests : FusionTestBase
 {
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_CompleteFieldsInSelectionOrder_When_RequiredFieldWithErrorIsOmitted(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var source = CreateSubgraph(
+            "catalog",
+            """
+            type Query { row: Row tail: Int }
+            type Row { before: Int cause: Int! after: Int }
+            """,
+            """
+            {
+              "data": { "row": { "before": null, "after": null }, "tail": 7 },
+              "errors": [
+                { "message": "Earlier field.", "path": ["row", "before"] },
+                { "message": "Missing field.", "path": ["row", "cause"] },
+                { "message": "Later field.", "path": ["row", "after"] }
+              ]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", source)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ row { before cause after } tail }", onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate, true)]
+    [InlineData(ErrorHandlingMode.Propagate, false)]
+    [InlineData(ErrorHandlingMode.Null, true)]
+    [InlineData(ErrorHandlingMode.Null, false)]
+    public async Task Execute_Should_KeepSiblings_When_NestedRequiredFieldFails(
+        ErrorHandlingMode onError,
+        bool omitField)
+    {
+        // arrange
+        var panel = omitField ? "{}" : """{ "n": null }""";
+        using var catalog = CreateSubgraph(
+            "catalog",
+            """
+            type Query { page: Page tail: String }
+            type Page { panel: Panel keep: String }
+            type Panel { name: String! }
+            """,
+            $$"""
+            {
+              "data": { "page": { "panel": {{panel}}, "keep": "K" }, "tail": "T" },
+              "errors": [{ "message": "Name unavailable.", "path": ["page", "panel", "n"] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            "{ page { panel { n: name } keep } tail }",
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var postFix = (omitField ? "Omitted_OnError_" : "ExplicitNull_OnError_") + onError;
+        await MatchSnapshotAsync(gateway, request, response, postFix: postFix);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportRootFieldError_When_SubgraphOmitsRequiredScalar(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateSubgraph(
+            "catalog",
+            """
+            type Query { stock: Int! tail: Int }
+            """,
+            """
+            {
+              "data": { "tail": 1 },
+              "errors": [{ "message": "Stock unavailable.", "path": ["status"] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ status: stock tail }", onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_KeepOtherItems_When_ListItemOmitsFailedRequiredField(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateSubgraph(
+            "catalog",
+            """
+            type Query { rows: [Row] }
+            type Row { name: String! note: String }
+            """,
+            """
+            {
+              "data": { "rows": [{}, { "name": "Second" }] },
+              "errors": [
+                { "message": "First name unavailable.", "path": ["rows", 0, "name"] },
+                { "message": "Second note unavailable.", "path": ["rows", 1, "note"] }
+              ]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ rows { name note } }", onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
     #region Required list items
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate, false)]
+    [InlineData(ErrorHandlingMode.Propagate, true)]
+    [InlineData(ErrorHandlingMode.Null, false)]
+    [InlineData(ErrorHandlingMode.Null, true)]
+    public async Task Execute_Should_ReportItemIndex_When_SubgraphReturnsNullForRequiredObjectItem(
+        ErrorHandlingMode onError,
+        bool sourceReportsError)
+    {
+        // arrange
+        var payload = sourceReportsError
+            ? """
+              {
+                "data": { "r": [{ "value": 1 }, null], "tail": 4 },
+                "errors": [{ "message": "Row unavailable.", "path": ["r", 1] }]
+              }
+              """
+            : """{ "data": { "r": [{ "value": 1 }, null], "tail": 4 } }""";
+        using var catalog = CreateSubgraph(
+            "catalog",
+            """
+            type Query { rows: [Row!] tail: Int }
+            type Row { value: Int }
+            """,
+            payload);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ r: rows { value } tail }", onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var postFix = (sourceReportsError ? "WithSourceError_" : "WithoutSourceError_") + onError;
+        await MatchSnapshotAsync(gateway, request, response, postFix: postFix);
+    }
 
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]

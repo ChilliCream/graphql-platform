@@ -1,0 +1,82 @@
+title: Execute_Should_ReportRootFieldError_When_SubgraphOmitsRequiredScalar
+request:
+  document: |
+    {
+      status: stock
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "status": null,
+        "tail": 1
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        stock: Int!
+        tail: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_117ef99e_1 {
+              status: stock
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Stock unavailable.",
+                    "path": [
+                      "status"
+                    ]
+                  }
+                ],
+                "data": {
+                  "tail": 1
+                }
+              }
+operationPlan:
+  id: d7b951644af15ec49983a283d3bea1ddd5565168f4b113d927442d2d05330cef
+  operation:
+    - document: |
+        {
+          status: stock
+          tail
+        }
+      kind: Query
+      id: 117ef99e294a53a8fa5b91c2ec1d2067
+      hash: 117ef99e294a53a8fa5b91c2ec1d2067
+      shortHash: 117ef99e
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_117ef99e_1
+        kind: Query
+        document: |
+          query Op_117ef99e_1 {
+            status: stock
+            tail
+          }
+        hash: 69ee1c84b1bc678601b2d6a45b63bda99cd0e557c92ac2caee4bd76f7dfff8ad
+        shortHash: 69ee1c84
+        xxHash: 1787006212636857797
+      resultSelectionSet: >-
+        { status tail }

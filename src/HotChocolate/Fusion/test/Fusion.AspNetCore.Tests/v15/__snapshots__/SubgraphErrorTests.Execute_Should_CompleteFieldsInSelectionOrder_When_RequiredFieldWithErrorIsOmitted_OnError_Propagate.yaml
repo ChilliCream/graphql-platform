@@ -1,0 +1,143 @@
+title: Execute_Should_CompleteFieldsInSelectionOrder_When_RequiredFieldWithErrorIsOmitted
+request:
+  document: |
+    {
+      row {
+        before
+        cause
+        after
+      }
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "row": {
+          "before": null,
+          "cause": null,
+          "after": null
+        },
+        "tail": 7
+      },
+      "errors": [
+        {
+          "message": "Later field.",
+          "path": [
+            "row",
+            "after"
+          ]
+        },
+        {
+          "message": "Earlier field.",
+          "path": [
+            "row",
+            "before"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        row: Row
+        tail: Int
+      }
+
+      type Row {
+        before: Int
+        cause: Int!
+        after: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_efb56f80_1 {
+              row {
+                before
+                cause
+                after
+              }
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Earlier field.",
+                    "path": [
+                      "row",
+                      "before"
+                    ]
+                  },
+                  {
+                    "message": "Missing field.",
+                    "path": [
+                      "row",
+                      "cause"
+                    ]
+                  },
+                  {
+                    "message": "Later field.",
+                    "path": [
+                      "row",
+                      "after"
+                    ]
+                  }
+                ],
+                "data": {
+                  "row": {
+                    "before": null,
+                    "after": null
+                  },
+                  "tail": 7
+                }
+              }
+operationPlan:
+  id: d3735ec83fdf73a22efd94a3cb63cc7caaaa59e962a82fa71715d8a4c77b3ad4
+  operation:
+    - document: |
+        {
+          row {
+            before
+            cause
+            after
+          }
+          tail
+        }
+      kind: Query
+      id: efb56f80be3fabd335d28d58a02752dc
+      hash: efb56f80be3fabd335d28d58a02752dc
+      shortHash: efb56f80
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_efb56f80_1
+        kind: Query
+        document: |
+          query Op_efb56f80_1 {
+            row {
+              before
+              cause
+              after
+            }
+            tail
+          }
+        hash: 2066f6c1608e3cef6e67fbad94aa935fc00504031eee75a074fd9138ff66c668
+        shortHash: 2066f6c1
+        xxHash: 4231863119067741245
+      resultSelectionSet: >-
+        { row tail }
