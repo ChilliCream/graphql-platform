@@ -122,8 +122,9 @@ public sealed class SourceSchemaErrors
                     currentTrie = newTrie;
                 }
 
-                if (i == lastPathIndex)
+                if (i == lastPathIndex && currentTrie.Error is null)
                 {
+                    currentTrie.HasEarlierDescendantError = currentTrie.Count > 0;
                     currentTrie.Error = error;
                 }
             }

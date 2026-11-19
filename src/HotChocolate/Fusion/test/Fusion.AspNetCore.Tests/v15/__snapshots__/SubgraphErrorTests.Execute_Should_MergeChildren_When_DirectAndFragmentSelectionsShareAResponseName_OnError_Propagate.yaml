@@ -21,11 +21,7 @@ response:
       "data": {
         "x": {
           "__typename": "Row",
-          "d": {
-            "a": null,
-            "c": null,
-            "b": 3
-          }
+          "d": null
         }
       },
       "errors": [
@@ -34,7 +30,7 @@ response:
           "path": [
             "x",
             "d",
-            "a"
+            "c"
           ]
         }
       ]

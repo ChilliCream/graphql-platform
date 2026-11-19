@@ -23,7 +23,8 @@ response:
         {
           "message": "failed",
           "path": [
-            "x"
+            "x",
+            "a"
           ]
         }
       ]

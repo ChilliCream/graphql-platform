@@ -17,7 +17,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
-internal sealed class ValueCompletion
+internal sealed partial class ValueCompletion
 {
     private readonly FetchResultStore _store;
     private readonly int _maxDepth;
@@ -25,6 +25,7 @@ internal sealed class ValueCompletion
     private IErrorHandler _errorHandler = default!;
     private ErrorHandlingMode _errorHandlingMode;
     private bool _propagateNullValues;
+    private HashSet<Path>? _sharedErrorPaths;
     private IObjectTypeDefinition? _typeMemoA;
     private IObjectTypeDefinition? _typeMemoB;
 
@@ -51,6 +52,7 @@ internal sealed class ValueCompletion
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
         _propagateNullValues = errorHandlingMode is not ErrorHandlingMode.Null;
+        _sharedErrorPaths?.Clear();
         _typeMemoA = null;
         _typeMemoB = null;
     }
@@ -64,6 +66,7 @@ internal sealed class ValueCompletion
         _errorHandler = default!;
         _errorHandlingMode = default;
         _propagateNullValues = false;
+        _sharedErrorPaths?.Clear();
         _typeMemoA = null;
         _typeMemoB = null;
     }
@@ -108,6 +111,12 @@ internal sealed class ValueCompletion
         else if (TryUpgradeOpaqueTarget(objectContext.SelectionSet, target, source))
         {
             objectContext = target.GetObjectContext();
+        }
+
+        if (errorTrie is { Count: > 0 }
+            && !CompleteOmittedDescendants(sourceSnapshot, target, errorTrie, resultSelectionSet))
+        {
+            return !PropagateNullValues(target);
         }
 
         if (resultSelectionSet.HasSourceResponseNameMappings)
@@ -405,6 +414,8 @@ internal sealed class ValueCompletion
 
     public void FinalizePocketedErrors(CompositeResultElement resultData)
     {
+        CompleteSharedErrorPaths();
+
         if (!_store.HasPocketedErrors)
         {
             return;
@@ -637,7 +648,12 @@ internal sealed class ValueCompletion
 
         if (sourceValueKind is JsonValueKind.Null && target.Type?.NamedType().IsSharedValueType() == true)
         {
-            if (errorTrie?.FindFirstError() is { } sharedError)
+            if (errorTrie is { Count: > 0 }
+                && TryGetSelectionContext(target, out var selection, out var type))
+            {
+                ReportCollapsedErrors(target, errorTrie, type, selection, resultSelectionSet, isShared: true);
+            }
+            else if (errorTrie?.Error is { } sharedError)
             {
                 PocketErrors(target.Path, resultSelectionSet, sharedError);
             }
@@ -662,6 +678,14 @@ internal sealed class ValueCompletion
             && target.GetObjectContext() is { SelectionSet.DeclaringSelection: not null } objectContext)
         {
             return CompleteFailedLookup(errorTrie, target, objectContext, resultSelectionSet);
+        }
+
+        if (target.IsRoot && targetKind is JsonValueKind.Object && errorTrie is { Count: > 0 })
+        {
+            ForwardError(errorTrie.Error, target.Path);
+            return CompleteOmittedDescendants(source, target, errorTrie, resultSelectionSet)
+                ? CompleteErrorResult(target, resultSelectionSet)
+                : !PropagateNullValues(target);
         }
 
         var fallbackError = errorTrie?.FindFirstError() ??
@@ -970,9 +994,6 @@ internal sealed class ValueCompletion
         }
     }
 
-    // TODO: When extracting an error from a path below the current field,
-    //       we should try to use the path of the original error if it's
-    //       part of what was selected.
     /// <summary>
     /// Completes a source value against the field type of <paramref name="selection"/>.
     /// The type shape is read from facts precomputed on the selection, so a call
@@ -1066,10 +1087,28 @@ internal sealed class ValueCompletion
         Selection selection,
         ResultSelectionSet? resultSelectionSet)
     {
+        if (errorTrie is { Count: > 0 })
+        {
+            var isShared = selection.IsValueTypeNamedType && (!selection.IsNonNull || !_propagateNullValues);
+            ReportCollapsedErrors(target, errorTrie, selection.Type, selection, resultSelectionSet, isShared);
+            if (isShared)
+            {
+                return true;
+            }
+
+            if (!selection.IsNonNull || !_propagateNullValues)
+            {
+                target.SetNullValue();
+                return true;
+            }
+
+            return false;
+        }
+
         if (selection.IsNonNull)
         {
             IError error;
-            if (errorTrie?.FindFirstError() is { } errorFromPath)
+            if (errorTrie?.Error is { } errorFromPath)
             {
                 var path = target.CompactPath.ToPath(target.Operation);
                 error = ErrorBuilder.FromError(errorFromPath)
@@ -1095,7 +1134,7 @@ internal sealed class ValueCompletion
 
         if (sourceValueKind is JsonValueKind.Null && selection.IsValueTypeNamedType)
         {
-            if (errorTrie?.FindFirstError() is { } error
+            if (errorTrie?.Error is { } error
                 && resultSelectionSet is not null)
             {
                 PocketErrors(target.Path, resultSelectionSet, error);
@@ -1110,7 +1149,7 @@ internal sealed class ValueCompletion
         // down-stream null propagation.
         // So we try to get an error that is associated with this field
         // or with a path below it.
-        if (errorTrie?.FindFirstError() is { } nullErrorFromPath)
+        if (errorTrie?.Error is { } nullErrorFromPath)
         {
             var errorWithPath = ErrorBuilder.FromError(nullErrorFromPath)
                 .SetPath(target.Path)
@@ -1237,7 +1276,8 @@ internal sealed class ValueCompletion
                 // so the errors below it are forwarded with their paths.
                 if (errorTrieForIndex is { Count: > 0 })
                 {
-                    ForwardListElementErrors(errorTrieForIndex, target, i, elementType, selection);
+                    var context = GetErrorPathContext(targetEnumerator.Current, elementType, selection, resultSelectionSet);
+                    ReportFirstDescendantError(errorTrieForIndex, context);
                 }
 
                 if (isNonNull)
@@ -1389,19 +1429,6 @@ TryCompleteList_MoveNext:
 
         return errorTrieForIndex;
     }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private void ForwardListElementErrors(
-        ErrorTrie errorTrieForIndex,
-        CompositeResultElement target,
-        int index,
-        IType elementType,
-        Selection selection)
-        => ForwardErrors(
-            errorTrieForIndex,
-            target.CompactPath.ToPath(target.Operation, index),
-            elementType,
-            selection);
 
     /// <summary>
     /// Forwards every error below a null value at <paramref name="path"/>. Each error keeps
@@ -1590,6 +1617,12 @@ TryCompleteList_MoveNext:
                 ?? throw new InvalidOperationException(
                     "Cannot initialize a result object without a selection set.");
             target.InitializeObjectValue(objectSelectionSet, out objectContext);
+        }
+
+        if (errorTrie is { Count: > 0 }
+            && !CompleteOmittedDescendants(source, target, errorTrie, resultSelectionSet))
+        {
+            return TryCompleteNullContainer(target);
         }
 
         if (resultSelectionSet is { HasSourceResponseNameMappings: true })

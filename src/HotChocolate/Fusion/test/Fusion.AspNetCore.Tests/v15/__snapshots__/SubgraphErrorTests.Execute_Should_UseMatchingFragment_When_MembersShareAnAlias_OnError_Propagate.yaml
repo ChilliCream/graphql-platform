@@ -25,7 +25,9 @@ response:
         {
           "message": "failed",
           "path": [
-            "item"
+            "item",
+            "details",
+            "model"
           ]
         }
       ]

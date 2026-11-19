@@ -4288,7 +4288,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
 
         // assert
         RenderData(store).MatchInlineSnapshot("""{"r":[null,{"n":"OK"}]}""");
-        Assert.Equal(["r[0]", "r[1].n"], store.Errors!.Select(error => error.Path!.Print()));
+        Assert.Equal(["r[0].n", "r[1].n"], store.Errors!.Select(error => error.Path!.Print()));
     }
 
     [Fact]

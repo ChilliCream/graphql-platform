@@ -27,7 +27,8 @@ response:
           "message": "first",
           "path": [
             "rows",
-            0
+            0,
+            "n"
           ]
         },
         {

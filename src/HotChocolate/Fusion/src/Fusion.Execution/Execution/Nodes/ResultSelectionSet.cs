@@ -223,6 +223,41 @@ internal sealed class ResultSelectionSet
         return false;
     }
 
+    internal string GetResponseName(string sourceName, IComplexTypeDefinition? objectType)
+    {
+        if (!HasSourceResponseNameMappings)
+        {
+            return sourceName;
+        }
+
+        if (_sourceResponseNameMappings is not null)
+        {
+            foreach (var mapping in _sourceResponseNameMappings)
+            {
+                if (mapping.SourceResponseName == sourceName)
+                {
+                    return mapping.ResponseName;
+                }
+            }
+        }
+
+        foreach (var fragment in _fragments)
+        {
+            if (objectType is not null && fragment.TypeCondition?.IsAssignableFrom(objectType) == false)
+            {
+                continue;
+            }
+
+            var mapped = fragment.Body.GetResponseName(sourceName, objectType);
+            if (mapped != sourceName)
+            {
+                return mapped;
+            }
+        }
+
+        return sourceName;
+    }
+
     internal bool TryMapResponseName(
         string responseName,
         out SourceResponseNameMapping mapping)

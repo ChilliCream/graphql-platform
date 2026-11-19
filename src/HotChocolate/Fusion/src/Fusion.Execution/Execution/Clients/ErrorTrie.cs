@@ -51,6 +51,11 @@ public sealed class ErrorTrie : Dictionary<object, ErrorTrie>
     public IError? Error { get; set; }
 
     /// <summary>
+    /// Gets whether the source reported a descendant before the error at this path.
+    /// </summary>
+    internal bool HasEarlierDescendantError { get; set; }
+
+    /// <summary>
     /// Finds and returns the first error encountered in the trie using depth-first traversal.
     /// </summary>
     public IError? FindFirstError()

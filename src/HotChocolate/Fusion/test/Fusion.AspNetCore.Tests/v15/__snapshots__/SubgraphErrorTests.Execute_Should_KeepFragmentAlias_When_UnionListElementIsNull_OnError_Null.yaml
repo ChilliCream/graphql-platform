@@ -34,7 +34,8 @@ response:
           "message": "failed",
           "path": [
             "rows",
-            1
+            1,
+            "name"
           ]
         }
       ]

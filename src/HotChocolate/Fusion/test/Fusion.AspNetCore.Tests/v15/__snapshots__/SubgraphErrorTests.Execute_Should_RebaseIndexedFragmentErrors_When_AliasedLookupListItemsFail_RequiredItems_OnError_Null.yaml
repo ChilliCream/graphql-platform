@@ -21,10 +21,12 @@ response:
       },
       "errors": [
         {
-          "message": "second",
+          "message": "first",
           "path": [
             "p",
-            "r"
+            "r",
+            0,
+            "n"
           ]
         }
       ]

@@ -26,7 +26,18 @@ response:
             }
           ]
         }
-      }
+      },
+      "errors": [
+        {
+          "message": "no name",
+          "path": [
+            "product",
+            "items",
+            0,
+            "name"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: A

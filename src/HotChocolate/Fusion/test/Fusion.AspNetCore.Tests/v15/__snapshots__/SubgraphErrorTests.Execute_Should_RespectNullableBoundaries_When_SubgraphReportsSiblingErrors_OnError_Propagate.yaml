@@ -20,9 +20,12 @@ response:
       },
       "errors": [
         {
-          "message": "Second SKU failed.",
+          "message": "Name failed.",
           "path": [
-            "products"
+            "products",
+            0,
+            "details",
+            "name"
           ]
         }
       ]

@@ -14,18 +14,20 @@ response:
     {
       "data": {
         "product": {
-          "items": [
-            {
-              "name": null,
-              "price": 1
-            },
-            {
-              "name": null,
-              "price": 2
-            }
+          "items": null
+        }
+      },
+      "errors": [
+        {
+          "message": "no name",
+          "path": [
+            "product",
+            "items",
+            0,
+            "name"
           ]
         }
-      }
+      ]
     }
 sourceSchemas:
   - name: A

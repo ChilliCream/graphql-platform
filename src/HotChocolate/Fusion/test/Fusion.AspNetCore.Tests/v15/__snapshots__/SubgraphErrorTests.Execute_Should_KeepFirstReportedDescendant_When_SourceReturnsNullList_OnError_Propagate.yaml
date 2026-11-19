@@ -16,9 +16,11 @@ response:
       },
       "errors": [
         {
-          "message": "another row failed",
+          "message": "name failed",
           "path": [
-            "rows"
+            "rows",
+            1,
+            "name"
           ]
         },
         {

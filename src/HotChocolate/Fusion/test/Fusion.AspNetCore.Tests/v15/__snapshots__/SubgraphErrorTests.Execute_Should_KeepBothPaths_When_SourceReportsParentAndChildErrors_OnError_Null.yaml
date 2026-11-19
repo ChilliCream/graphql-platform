@@ -21,6 +21,12 @@ response:
         {
           "message": "parent",
           "path": [
+            "x"
+          ]
+        },
+        {
+          "message": "child",
+          "path": [
             "x",
             "a"
           ]
