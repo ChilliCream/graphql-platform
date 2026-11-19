@@ -26,6 +26,13 @@ response:
           ]
         },
         {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "price"
+          ]
+        },
+        {
           "message": "Rating unavailable.",
           "path": [
             "item",

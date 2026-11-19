@@ -1,4 +1,4 @@
-title: Execute_Should_ReportOnlyFailingField_When_LookupBubblesToNull
+title: Execute_Should_ReportEachUnresolvedField_When_LookupBubblesToNull
 request:
   onError: Null
   document: |
@@ -25,6 +25,13 @@ response:
           "path": [
             "item",
             "label"
+          ]
+        },
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "price"
           ]
         }
       ]

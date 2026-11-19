@@ -186,7 +186,7 @@ public class SubgraphErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    public async Task Execute_Should_ReportOnlyFailingField_When_LookupBubblesToNull(ErrorHandlingMode onError)
+    public async Task Execute_Should_ReportEachUnresolvedField_When_LookupBubblesToNull(ErrorHandlingMode onError)
     {
         // arrange
         using var catalog = CreateProductCatalog();
@@ -257,6 +257,55 @@ public class SubgraphErrorTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReportOnlyFieldError_When_LookupReturnsNullSiblingValue()
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            {
+              "data": { "lookups": { "byId": { "price": null, "label": null } } },
+              "errors": [{ "message": "Description unavailable.", "path": ["lookups", "byId", "label"] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("catalog", catalog), ("details", details)],
+            includeOperationPlan: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ item: product { id price label: description } }");
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var result = await response.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "item": {
+                  "id": 1,
+                  "price": null,
+                  "label": null
+                }
+              },
+              "errors": [
+                {
+                  "message": "Description unavailable.",
+                  "path": [
+                    "item",
+                    "label"
+                  ]
+                }
+              ]
+            }
+            """);
     }
 
     [Fact]

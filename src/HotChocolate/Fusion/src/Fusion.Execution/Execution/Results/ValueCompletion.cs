@@ -692,6 +692,7 @@ internal sealed class ValueCompletion
         ResultSelectionSet resultSelectionSet)
     {
         var path = target.Path;
+        var lookupError = errors.Error;
         var hasRequiredField = false;
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
@@ -709,13 +710,13 @@ internal sealed class ValueCompletion
             if (errors.TryGetValue(sourceName, out var fieldErrors))
             {
                 var fieldPath = path.Append(responseName);
-                ForwardError(fieldErrors, fieldPath);
+                ForwardError(fieldErrors.Error, fieldPath);
                 if (fieldErrors.Count > 0)
                 {
                     ForwardErrors(fieldErrors, fieldPath, selection.Type, selection);
                 }
             }
-            else if (errors.Error is not null)
+            else
             {
                 if (target.ValueKind is JsonValueKind.Object
                     && target.TryGetProperty(selection.Utf8ResponseName, out var field)
@@ -724,7 +725,8 @@ internal sealed class ValueCompletion
                     continue;
                 }
 
-                ForwardError(errors, path.Append(responseName));
+                lookupError ??= errors.FindFirstError();
+                ForwardError(lookupError, path.Append(responseName));
             }
 
             hasRequiredField |= selection.IsNonNull;
@@ -1400,7 +1402,7 @@ TryCompleteList_MoveNext:
             var (childPath, childType, childSelection) =
                 MapErrorPathSegment(segment, path, type, selection);
 
-            ForwardError(childErrorTrie, childPath);
+            ForwardError(childErrorTrie.Error, childPath);
 
             if (childErrorTrie.Count > 0)
             {
@@ -1427,7 +1429,7 @@ TryCompleteList_MoveNext:
             var (childPath, childType, childSelection) =
                 MapErrorPathSegment(segment, frame.Path, frame.Type, frame.Selection);
 
-            ForwardError(childErrorTrie, childPath);
+            ForwardError(childErrorTrie.Error, childPath);
 
             if (childErrorTrie.Count > 0)
             {
@@ -1436,16 +1438,11 @@ TryCompleteList_MoveNext:
         }
     }
 
-    private void ForwardError(ErrorTrie errorTrie, Path path)
+    private void ForwardError(IError? error, Path path)
     {
-        if (errorTrie.Error is { } error)
+        if (error is not null)
         {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(path)
-                .Build();
-            errorWithPath = _errorHandler.Handle(errorWithPath);
-
-            _store.AddError(errorWithPath);
+            _store.AddError(_errorHandler.Handle(error.WithPath(path)));
         }
     }
 
