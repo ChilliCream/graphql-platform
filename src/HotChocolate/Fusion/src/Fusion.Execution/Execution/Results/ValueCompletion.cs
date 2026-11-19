@@ -101,6 +101,11 @@ internal sealed class ValueCompletion
             return ApplyPocketedErrors(target);
         }
 
+        if (errorTrie?.Error is { } lookupError)
+        {
+            AddFieldError(lookupError, target);
+        }
+
         if (!target.TryGetObjectContext(out var objectContext))
         {
             objectContext = InitializeTargetObject(source, target);
