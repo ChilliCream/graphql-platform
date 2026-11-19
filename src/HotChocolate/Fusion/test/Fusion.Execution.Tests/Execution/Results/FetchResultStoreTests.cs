@@ -47,6 +47,89 @@ public sealed class FetchResultStoreTests : FusionTestBase
 
     private static readonly Operation s_snapshotOperation = PlanOperation(s_snapshotSchema, "{ noop }").Operation;
 
+    [Fact]
+    public void FinalizeResult_Should_UseCurrentObject_When_ParentWasReplaced()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { box: Box @shareable }
+            type Box @shareable { x: Item @shareable }
+            type Item @shareable { name: String! }
+            """,
+            """
+            # name: B
+            type Query { box: Box @shareable }
+            type Box @shareable { x: Item @shareable }
+            type Item @shareable { price: Int }
+            """);
+        var plan = PlanOperation(schema, "{ box { x { n:name price } } }");
+        var nodes = plan.RootNodes.Cast<OperationExecutionNode>().ToDictionary(node => node.SchemaName!);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(resultArena, schema, DefaultErrorHandler.Default, plan.Operation, ErrorHandlingMode.Propagate,
+            includeFlags: default, deferFlags: default, pathSegmentLocalPoolCapacity: 16);
+        var first = CreateSourceSchemaResult(sourceArena, CompactPath.Root, """{"data":{"box":{"x":null}}}""");
+        var second = CreateSourceSchemaResult(sourceArena, CompactPath.Root, """{"data":{"box":{"x":{"price":3}}}}""");
+        store.AddPartialResult(SelectionPath.Root, first, nodes["A"].ResultSelectionSet, containsErrors: false);
+
+        // act
+        var box = store.Result.Data.GetProperty("box");
+        box.SetObjectValue(box.SelectionSet!);
+        store.AddPartialResult(SelectionPath.Root, second, nodes["B"].ResultSelectionSet, containsErrors: false);
+        store.FinalizePocketedErrors();
+
+        // assert
+        RenderData(store).MatchInlineSnapshot("""{"box":{"x":{"n":null,"price":3}}}""");
+        Assert.Empty(store.Errors ?? []);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FinalizeResult_Should_PreferSourceError_When_SharedNullsOverlap(bool sourceErrorFirst)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { x: X @shareable }
+            type X @shareable { a: String! }
+            """,
+            """
+            # name: B
+            type Query { x: X @shareable }
+            type X @shareable { b: Int }
+            """);
+        var plan = PlanOperation(schema, "{ x { n:a b } }");
+        var nodes = plan.RootNodes.Cast<OperationExecutionNode>().ToDictionary(node => node.SchemaName!);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(resultArena, schema, DefaultErrorHandler.Default, plan.Operation, ErrorHandlingMode.Propagate,
+            includeFlags: default, deferFlags: default, pathSegmentLocalPoolCapacity: 16);
+        var clean = CreateSourceSchemaResult(sourceArena, CompactPath.Root, """{"data":{"x":null}}""");
+        var failed = CreateSourceSchemaResult(sourceArena, CompactPath.Root,
+            """{"data":{"x":null},"errors":[{"message":"name failed","path":["x","n"]}]}""");
+        var sibling = CreateSourceSchemaResult(sourceArena, CompactPath.Root, """{"data":{"x":{"b":1}}}""");
+
+        // act
+        var first = sourceErrorFirst ? failed : clean;
+        var second = sourceErrorFirst ? clean : failed;
+        store.AddPartialResult(SelectionPath.Root, first, nodes["A"].ResultSelectionSet, first.HasErrors);
+        store.AddPartialResult(SelectionPath.Root, second, nodes["A"].ResultSelectionSet, second.HasErrors);
+        store.AddPartialResult(SelectionPath.Root, sibling, nodes["B"].ResultSelectionSet, sibling.HasErrors);
+        store.FinalizePocketedErrors();
+
+        // assert
+        RenderData(store).MatchInlineSnapshot("""{"x":null}""");
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("name failed", error.Message);
+        Assert.Equal("x.n", error.Path?.Print());
+    }
+
     [Theory]
     [InlineData("ABC", ErrorHandlingMode.Propagate)]
     [InlineData("BCA", ErrorHandlingMode.Propagate)]

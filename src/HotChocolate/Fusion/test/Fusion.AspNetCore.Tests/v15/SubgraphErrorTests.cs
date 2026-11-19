@@ -1,13 +1,17 @@
 using System.Net;
 using System.Text;
+using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-public partial class SubgraphErrorTests : FusionTestBase
+public class SubgraphErrorTests : FusionTestBase
 {
     #region Required list items
 
@@ -15,6 +19,537 @@ public partial class SubgraphErrorTests : FusionTestBase
         type Query { product: Product }
         type Product @key(fields: "id") { id: Int! }
         """;
+
+    [Theory]
+    [InlineData("AB", ErrorHandlingMode.Propagate, false)]
+    [InlineData("BA", ErrorHandlingMode.Propagate, false)]
+    [InlineData("AB", ErrorHandlingMode.Null, false)]
+    [InlineData("BA", ErrorHandlingMode.Null, false)]
+    [InlineData("AB", ErrorHandlingMode.Propagate, true)]
+    [InlineData("BA", ErrorHandlingMode.Propagate, true)]
+    [InlineData("AB", ErrorHandlingMode.Null, true)]
+    [InlineData("BA", ErrorHandlingMode.Null, true)]
+    public async Task Execute_Should_PreserveRequiredSharedParent_When_PublicChildIsNullable(
+        string arrivalOrder,
+        ErrorHandlingMode mode,
+        bool list)
+    {
+        // arrange
+        var order = new SourceResultOrder(arrivalOrder);
+        var queryType = list ? "type Query { x: [Row!]! @shareable } " : "type Query { x: Row! @shareable } ";
+        using var names = CreateOrderedSubgraph("A", queryType + "type Row @shareable { a: Int! c: Int }",
+            list
+                ? """{"data":null,"errors":[{"message":"failed","path":["x",0,"a"]}]}"""
+                : """{"data":null,"errors":[{"message":"failed","path":["x","a"]}]}""",
+            order);
+        using var prices = CreateOrderedSubgraph("B", queryType + "type Row @shareable { a: Int b: Int }",
+            list ? """{"data":{"x":[{"b":3}]}}""" : """{"data":{"x":{"b":3}}}""",
+            order);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", names), ("B", prices)],
+            configureGatewayBuilder: builder => builder.AddDiagnosticEventListener(_ => order));
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ x { a c b } }", onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var shape = list ? "List" : "Object";
+        await MatchSnapshotAsync(gateway, request, response, postFix: $"{shape}_{arrivalOrder}_OnError_{mode}");
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_KeepLookupData_When_SharedUnionMemberFieldFails(ErrorHandlingMode mode)
+    {
+        // arrange
+        using var products = CreateSubgraph("A",
+            """
+            type Query { product: Product localProduct(id: Int!): Product @lookup }
+            type Product @key(fields: "id") { id: Int! item: Item @shareable }
+            union Item = Book
+            type Book @shareable { title: String! }
+            """,
+            """{"data":{"product":{"id":1,"item":null}},"errors":[{"message":"title failed","path":["product","item","name"]}]}""");
+        using var books = CreateSubgraph("B",
+            """
+            type Query { byId(id: Int!): Product @lookup }
+            type Product @key(fields: "id") { id: Int! item: Item @shareable }
+            union Item = Book
+            type Book @shareable { title: String author: String }
+            """,
+            """{"data":{"byId":{"item":{"__typename":"Book","author":"B"}}}}""");
+        using var gateway = await CreateCompositeSchemaAsync([("A", products), ("B", books)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            "{ product { item { ... on Book { name:title author } } } }",
+            onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + mode);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_KeepIndexedError_When_LookupSuppliesSharedList(ErrorHandlingMode mode)
+    {
+        // arrange
+        using var products = CreateSubgraph("A",
+            """
+            type Query { product: Product localProduct(id: Int!): Product @lookup }
+            type Product @key(fields: "id") { id: Int! items: [Item!] @shareable }
+            type Item @shareable { name: String! }
+            """,
+            """{"data":{"product":{"id":1,"items":null}},"errors":[{"message":"no name","path":["product","items",0,"name"]}]}""");
+        using var prices = CreateSubgraph("B",
+            """
+            type Query { byId(id: Int!): Product @lookup }
+            type Product @key(fields: "id") { id: Int! items: [Item!] @shareable }
+            type Item @shareable { price: Int }
+            """,
+            """{"data":{"byId":{"items":[{"price":1},{"price":2}]}}}""");
+        using var gateway = await CreateCompositeSchemaAsync([("A", products), ("B", prices)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            "{ product { items { name price } } }",
+            onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + mode);
+    }
+
+    [Fact]
+    public async Task Execute_Should_PreserveRequiredSharedObject_When_OnlyOneSourceBubblesAChildError()
+    {
+        // arrange
+        using var names = CreateSubgraph("A",
+            "type Query { x: Row! @shareable } type Row @shareable { a: String! }",
+            """{"data":null,"errors":[{"message":"failed","path":["x","a"]}]}""");
+        using var prices = CreateSubgraph("B",
+            "type Query { x: Row! @shareable tail: Int } type Row @shareable { b: Int }",
+            """{"data":{"x":{"b":3},"tail":4}}""");
+        using var gateway = await CreateCompositeSchemaAsync([("A", names), ("B", prices)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            "{ x { a b } tail }",
+            onError: ErrorHandlingMode.Null);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_MergeChildren_When_DirectAndFragmentSelectionsShareAResponseName(
+        ErrorHandlingMode mode)
+    {
+        // arrange
+        const string types = """
+            type Query { x: Node @shareable }
+            interface Node { detail: Detail }
+            type Row implements Node @shareable { detail: Detail @shareable }
+            type Other implements Node @shareable { detail: Detail @shareable }
+            """;
+        using var names = CreateSubgraph("A", types + "\n" + "type Detail @shareable { a: String c: String! }",
+            """{"data":{"x":{"__typename":"Row","d":null}},"errors":[{"message":"failed","path":["x","d","c"]}]}""");
+        using var prices = CreateSubgraph("B", types + "\n" + "type Detail @shareable { b: Int }",
+            """{"data":{"x":{"__typename":"Row","d":{"b":3}}}}""");
+        using var gateway = await CreateCompositeSchemaAsync([("A", names), ("B", prices)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            "{ x { __typename d:detail { a } ... on Row { d:detail { c b } } } }",
+            onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + mode);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate, true)]
+    [InlineData(ErrorHandlingMode.Propagate, false)]
+    [InlineData(ErrorHandlingMode.Null, true)]
+    [InlineData(ErrorHandlingMode.Null, false)]
+    public async Task Execute_Should_RespectReportOrder_When_SourceReportsParentAndRequiredChildErrors(
+        ErrorHandlingMode mode,
+        bool parentFirst)
+    {
+        // arrange
+        using var names = CreateSubgraph("A",
+            "type Query { x: Row @shareable } type Row @shareable { a: String! }",
+            parentFirst
+                ? """{"data":{"x":null},"errors":[{"message":"parent","path":["x"]},{"message":"child","path":["x","a"]}]}"""
+                : """{"data":{"x":null},"errors":[{"message":"child","path":["x","a"]},{"message":"parent","path":["x"]}]}""");
+        using var prices = CreateSubgraph("B",
+            "type Query { x: Row @shareable } type Row @shareable { b: Int }",
+            """{"data":{"x":{"b":3}}}""");
+        using var gateway = await CreateCompositeSchemaAsync([("A", names), ("B", prices)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            "{ x { a b } }",
+            onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var order = parentFirst ? "ParentFirst" : "ChildFirst";
+        await MatchSnapshotAsync(gateway, request, response, postFix: $"{order}_OnError_{mode}");
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportOneParentError_When_BothSourcesFailAtSamePosition(ErrorHandlingMode mode)
+    {
+        // arrange
+        const string payload = """{"data":{"x":null},"errors":[{"message":"failed","path":["x"]}]}""";
+        using var first = CreateSubgraph("A",
+            """
+            type Query { x: Item @shareable }
+            type Item @shareable { name: String }
+            """,
+            payload);
+        using var second = CreateSubgraph("B",
+            """
+            type Query { x: Item @shareable }
+            type Item @shareable { price: Int }
+            """,
+            payload);
+        using var gateway = await CreateCompositeSchemaAsync([("A", first), ("B", second)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ x { name price } }", onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + mode);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_EnforceSharedChildNullability_When_LookupCompletesMissingItem(
+        ErrorHandlingMode mode)
+    {
+        // arrange
+        using var products = CreateSubgraph("A",
+            """
+            type Query { product: Product localProduct(id: Int!): Product @lookup }
+            type Product @key(fields: "id") { id: Int! item: Item @shareable }
+            type Item @shareable { name: String! }
+            """,
+            """{"data":{"product":{"id":1,"item":null}}}""");
+        using var prices = CreateSubgraph("B",
+            """
+            type Query { byId(id: Int!): Product @lookup }
+            type Product @key(fields: "id") { id: Int! item: Item @shareable }
+            type Item @shareable { price: Int }
+            """,
+            """{"data":{"byId":{"item":{"price":1}}}}""");
+        using var gateway = await CreateCompositeSchemaAsync([("A", products), ("B", prices)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ product { item { name price } } }", onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + mode);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportViolationsInEachNullableBranch_When_SharedObjectIsNull(
+        ErrorHandlingMode mode)
+    {
+        // arrange
+        using var names = CreateSubgraph("A",
+            """
+            type Query { box: Box @shareable }
+            type Box @shareable { left: Item @shareable right: Item @shareable }
+            type Item @shareable { name: String! code: Int! }
+            """,
+            """{"data":{"box":null}}""");
+        using var prices = CreateSubgraph("B",
+            """
+            type Query { box: Box @shareable }
+            type Box @shareable { left: Item @shareable right: Item @shareable }
+            type Item @shareable { price: Int }
+            """,
+            """{"data":{"box":{"left":{"price":1},"right":{"price":2}}}}""");
+        using var gateway = await CreateCompositeSchemaAsync([("A", names), ("B", prices)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ box { left { n:name code price } right { n:name price } } }", onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + mode);
+    }
+
+    [Theory]
+    [InlineData("[Item!]", ErrorHandlingMode.Propagate)]
+    [InlineData("[Item]", ErrorHandlingMode.Propagate)]
+    [InlineData("[Item!]", ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportViolationsAtSurvivingBranches_When_SharedListIsCompletedFromNull(
+        string listType,
+        ErrorHandlingMode mode)
+    {
+        // arrange
+        using var names = CreateSubgraph("A",
+            $$"""
+            type Query { items: {{listType}} @shareable }
+            type Item @shareable { name: String! }
+            """,
+            """{"data":{"items":null}}""");
+        using var prices = CreateSubgraph("B",
+            $$"""
+            type Query { items: {{listType}} @shareable }
+            type Item @shareable { price: Int }
+            """,
+            """{"data":{"items":[{"price":1},{"price":2}]}}""");
+        using var gateway = await CreateCompositeSchemaAsync([("A", names), ("B", prices)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ items { name price } }", onError: mode);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var itemType = listType == "[Item!]" ? "RequiredItems" : "NullableItems";
+        await MatchSnapshotAsync(gateway, request, response, postFix: $"{itemType}_OnError_{mode}");
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_KeepSibling_When_SubgraphReturnsAnAlreadyNulledList(ErrorHandlingMode onError)
+    {
+        // arrange
+        var order = new SourceResultOrder("AB");
+        using var names = CreateOrderedSubgraph(
+            "A",
+            """
+            type Query { rows: [Row!] @shareable }
+            type Row @shareable { name: String! }
+            """,
+            """{ "data": { "rows": [{ "name": null }] } }""",
+            order);
+        using var prices = CreateOrderedSubgraph(
+            "B",
+            """
+            type Query { rows: [Row!] @shareable total: Int }
+            type Row @shareable { price: Int }
+            """,
+            """{ "data": { "rows": [{ "price": 3 }], "total": 4 } }""",
+            order);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", names), ("B", prices)],
+            configureGatewayBuilder: builder => builder.AddDiagnosticEventListener(_ => order));
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ rows { name price } total }", onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData("ABC", ErrorHandlingMode.Propagate)]
+    [InlineData("BCA", ErrorHandlingMode.Propagate)]
+    [InlineData("CAB", ErrorHandlingMode.Propagate)]
+    [InlineData("ABC", ErrorHandlingMode.Null)]
+    [InlineData("BCA", ErrorHandlingMode.Null)]
+    [InlineData("CAB", ErrorHandlingMode.Null)]
+    public async Task Execute_Should_KeepSibling_When_SubgraphReturnsAnAlreadyNulledObject(
+        string arrivalOrder,
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        var order = new SourceResultOrder(arrivalOrder);
+        using var names = CreateOrderedSubgraph(
+            "A",
+            """
+            type Query { details: Details @shareable }
+            type Details @shareable { name: String! }
+            """,
+            """
+            {
+              "data": { "details": null },
+              "errors": [{ "message": "Name unavailable.", "path": ["details", "name"] }]
+            }
+            """,
+            order);
+        using var prices = CreateOrderedSubgraph(
+            "B",
+            """
+            type Query { details: Details @shareable }
+            type Details @shareable { price: Int }
+            """,
+            """{ "data": { "details": { "price": 3 } } }""",
+            order);
+        using var stock = CreateOrderedSubgraph(
+            "C",
+            """
+            type Query { details: Details @shareable total: Int }
+            type Details @shareable { available: Boolean }
+            """,
+            """{ "data": { "details": { "available": true }, "total": 4 } }""",
+            order);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", names), ("B", prices), ("C", stock)],
+            configureGatewayBuilder: builder => builder.AddDiagnosticEventListener(_ => order));
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ details { name price available } total }", onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: arrivalOrder + "_OnError_" + onError);
+    }
+
+    private TestServer CreateOrderedSubgraph(string name, string schema, string payload, SourceResultOrder order)
+        => CreateSourceSchema(name, schema, mockHttpResponse: async _ =>
+        {
+            await order.WaitForTurnAsync(name);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+        });
+
+    private sealed class SourceResultOrder : FusionExecutionDiagnosticEventListener
+    {
+        private readonly Dictionary<string, Step> _steps = [];
+
+        public SourceResultOrder(string order)
+        {
+            var previous = Task.CompletedTask;
+            foreach (var name in order)
+            {
+                var step = new Step(previous);
+                _steps.Add(name.ToString(), step);
+                previous = step.Completed.Task;
+            }
+        }
+
+        public Task WaitForTurnAsync(string name)
+            => _steps[name].Previous.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
+
+        public override IDisposable ExecuteOperationNode(
+            OperationPlanContext context,
+            OperationExecutionNode node,
+            string schemaName)
+            => _steps[schemaName];
+
+        // The next response is released after this node has enqueued its result for merging.
+        private sealed class Step(Task previous) : IDisposable
+        {
+            public Task Previous { get; } = previous;
+
+            public TaskCompletionSource Completed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public void Dispose() => Completed.TrySetResult();
+        }
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate, false)]
+    [InlineData(ErrorHandlingMode.Propagate, true)]
+    [InlineData(ErrorHandlingMode.Null, false)]
+    [InlineData(ErrorHandlingMode.Null, true)]
+    public async Task Execute_Should_ReportItemIndex_When_SubgraphReturnsNullForRequiredObjectItem(
+        ErrorHandlingMode onError,
+        bool sourceReportsError)
+    {
+        // arrange
+        var payload = sourceReportsError
+            ? """
+              {
+                "data": { "r": [{ "value": 1 }, null], "tail": 4 },
+                "errors": [{ "message": "Row unavailable.", "path": ["r", 1] }]
+              }
+              """
+            : """{ "data": { "r": [{ "value": 1 }, null], "tail": 4 } }""";
+        using var catalog = CreateSubgraph(
+            "catalog",
+            """
+            type Query { rows: [Row!] tail: Int }
+            type Row { value: Int }
+            """,
+            payload);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ r: rows { value } tail }", onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var postFix = (sourceReportsError ? "WithSourceError_" : "WithoutSourceError_") + onError;
+        await MatchSnapshotAsync(gateway, request, response, postFix: postFix);
+    }
 
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]

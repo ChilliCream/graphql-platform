@@ -1,0 +1,184 @@
+title: Execute_Should_EnforceSharedChildNullability_When_LookupCompletesMissingItem
+request:
+  onError: Null
+  document: |
+    {
+      product {
+        item {
+          name
+          price
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "product": {
+          "item": {
+            "name": null,
+            "price": 1
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+        localProduct(id: Int!): Product @lookup
+      }
+
+      type Item @shareable {
+        name: String!
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        item: Item @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_525753a1_1 {
+              product {
+                item {
+                  name
+                }
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "id": 1,
+                    "item": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Item @shareable {
+        price: Int
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        item: Item @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_525753a1_2($__fusion_1_id: Int!) {
+              byId(id: $__fusion_1_id) {
+                item {
+                  price
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "byId": {
+                    "item": {
+                      "price": 1
+                    }
+                  }
+                }
+              }
+operationPlan:
+  id: f1f45582bbf1adad8c47e6fa2bb4a5feb2eff0aa5c664e88fded88adbe05bf3e
+  operation:
+    - document: |
+        {
+          product {
+            item {
+              name
+              price
+            }
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 525753a18912bffb534e10d34c972bbe
+      hash: 525753a18912bffb534e10d34c972bbe
+      shortHash: 525753a1
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_525753a1_1
+        kind: Query
+        document: |
+          query Op_525753a1_1 {
+            product {
+              item {
+                name
+              }
+              id
+            }
+          }
+        hash: b2d8f4d1089cad51872cfd164d8889bf386281714051016c17e7d28b5de290ce
+        shortHash: b2d8f4d1
+        xxHash: 16971558837644440486
+      resultSelectionSet: >-
+        { product { item { name } id } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_525753a1_2
+        kind: Query
+        document: |
+          query Op_525753a1_2($__fusion_1_id: Int!) {
+            byId(id: $__fusion_1_id) {
+              item {
+                price
+              }
+            }
+          }
+        hash: dc3a54a9ab70b510399b63a091aa20f8e2fd08440b6110a30c097a16b9b2d766
+        shortHash: dc3a54a9
+        xxHash: 8878976938730333035
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { item { price } }
+      source: $.byId
+      target: $.product
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.product
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

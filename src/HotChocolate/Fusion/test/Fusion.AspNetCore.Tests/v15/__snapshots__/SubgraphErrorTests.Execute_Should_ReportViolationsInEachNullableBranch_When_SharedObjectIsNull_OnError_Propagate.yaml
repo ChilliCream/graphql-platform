@@ -1,0 +1,232 @@
+title: Execute_Should_ReportViolationsInEachNullableBranch_When_SharedObjectIsNull
+request:
+  document: |
+    {
+      box {
+        left {
+          n: name
+          code
+          price
+        }
+        right {
+          n: name
+          price
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "box": {
+          "left": {
+            "n": null,
+            "code": null,
+            "price": 1
+          },
+          "right": {
+            "n": null,
+            "price": 2
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        box: Box @shareable
+      }
+
+      type Box @shareable {
+        left: Item @shareable
+        right: Item @shareable
+      }
+
+      type Item @shareable {
+        name: String!
+        code: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a5a949ff_1 {
+              box {
+                left {
+                  n: name
+                  code
+                }
+                right {
+                  n: name
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "box": null
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        box: Box @shareable
+      }
+
+      type Box @shareable {
+        left: Item @shareable
+        right: Item @shareable
+      }
+
+      type Item @shareable {
+        price: Int
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_a5a949ff_2 {
+                  box {
+                    right {
+                      price
+                    }
+                  }
+                }
+            - document: |
+                query Op_a5a949ff_3 {
+                  box {
+                    left {
+                      price
+                    }
+                  }
+                }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "box": {
+                    "left": {
+                      "price": 1
+                    },
+                    "right": {
+                      "price": 2
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "box": {
+                    "left": {
+                      "price": 1
+                    },
+                    "right": {
+                      "price": 2
+                    }
+                  }
+                }
+              }
+operationPlan:
+  id: ca260802d3dda1c4cac5f287062dfdd421ec46a99ded5cd9f69548eac9c7c880
+  operation:
+    - document: |
+        {
+          box {
+            left {
+              n: name
+              code
+              price
+            }
+            right {
+              n: name
+              price
+            }
+          }
+        }
+      kind: Query
+      id: 9886a4d0e9440e0563db2fa2c5404624
+      hash: a5a949ff77a2a5a4773a16a8df41881b
+      shortHash: a5a949ff
+  searchSpace: 2
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_a5a949ff_1
+        kind: Query
+        document: |
+          query Op_a5a949ff_1 {
+            box {
+              left {
+                n: name
+                code
+              }
+              right {
+                n: name
+              }
+            }
+          }
+        hash: 46c802c3d7914a115c0943d57868fb721d5b7518a67781c4a9b861ebabc44f7b
+        shortHash: 46c802c3
+        xxHash: 14351376646388004085
+      resultSelectionSet: >-
+        { box { left { n code } right { n } } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_a5a949ff_2
+        kind: Query
+        document: |
+          query Op_a5a949ff_2 {
+            box {
+              right {
+                price
+              }
+            }
+          }
+        hash: da23ee611aeb86a7eeed4840085743291329ae1d2ee4df03cb3b2d99a7f0e1c0
+        shortHash: da23ee61
+        xxHash: 13969126386270942381
+      resultSelectionSet: >-
+        { box { right { price } } }
+      batchingGroupId: 4
+    - id: 3
+      type: Operation
+      schema: B
+      operation:
+        name: Op_a5a949ff_3
+        kind: Query
+        document: |
+          query Op_a5a949ff_3 {
+            box {
+              left {
+                price
+              }
+            }
+          }
+        hash: 4b7a9f7891e26a95ae604e4142fb4f609bd076b92fa04ce85aefb60173c4fff5
+        shortHash: 4b7a9f78
+        xxHash: 13075507535609106650
+      resultSelectionSet: >-
+        { box { left { price } } }
+      batchingGroupId: 4
