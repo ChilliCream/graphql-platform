@@ -12,8 +12,32 @@ response:
     {
       "data": {
         "product": null,
-        "productCount": null
-      }
+        "productCount": 1
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "product",
+            "scores",
+            0
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        },
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "product",
+            "scores",
+            2
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

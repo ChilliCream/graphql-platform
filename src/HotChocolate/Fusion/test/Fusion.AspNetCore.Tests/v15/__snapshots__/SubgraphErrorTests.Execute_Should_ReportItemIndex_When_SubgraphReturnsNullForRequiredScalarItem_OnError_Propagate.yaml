@@ -10,8 +10,20 @@ response:
     {
       "data": {
         "scores": null,
-        "reviewCount": null
-      }
+        "reviewCount": 3
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "scores",
+            1
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog
