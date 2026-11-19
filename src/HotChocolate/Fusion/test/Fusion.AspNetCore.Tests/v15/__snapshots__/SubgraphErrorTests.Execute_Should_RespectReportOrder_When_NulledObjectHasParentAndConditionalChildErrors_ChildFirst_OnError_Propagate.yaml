@@ -15,9 +15,10 @@ response:
       },
       "errors": [
         {
-          "message": "Parent",
+          "message": "Child",
           "path": [
-            "row"
+            "row",
+            "n"
           ]
         }
       ]
@@ -57,16 +58,16 @@ sourceSchemas:
               {
                 "errors": [
                   {
-                    "message": "Parent",
-                    "path": [
-                      "row"
-                    ]
-                  },
-                  {
                     "message": "Child",
                     "path": [
                       "row",
                       "n"
+                    ]
+                  },
+                  {
+                    "message": "Parent",
+                    "path": [
+                      "row"
                     ]
                   }
                 ],

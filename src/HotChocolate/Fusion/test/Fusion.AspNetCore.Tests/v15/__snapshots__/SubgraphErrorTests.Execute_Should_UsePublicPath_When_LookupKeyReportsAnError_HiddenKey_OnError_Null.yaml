@@ -19,8 +19,7 @@ response:
         {
           "message": "Key error.",
           "path": [
-            "item",
-            "id"
+            "item"
           ]
         }
       ]

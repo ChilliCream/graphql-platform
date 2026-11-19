@@ -17,9 +17,11 @@ response:
       },
       "errors": [
         {
-          "message": "another row failed",
+          "message": "name failed",
           "path": [
-            "rows"
+            "rows",
+            1,
+            "name"
           ]
         },
         {
@@ -62,18 +64,18 @@ sourceSchemas:
               {
                 "errors": [
                   {
-                    "message": "row failed",
-                    "path": [
-                      "rows",
-                      1
-                    ]
-                  },
-                  {
                     "message": "name failed",
                     "path": [
                       "rows",
                       1,
                       "name"
+                    ]
+                  },
+                  {
+                    "message": "row failed",
+                    "path": [
+                      "rows",
+                      1
                     ]
                   },
                   {

@@ -8,7 +8,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Policies;
-using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Collections;
@@ -101,6 +100,11 @@ internal sealed class ValueCompletion
             return ApplyPocketedErrors(target);
         }
 
+        if (errorTrie?.Error is { } lookupError)
+        {
+            AddFieldError(lookupError, target);
+        }
+
         if (!target.TryGetObjectContext(out var objectContext))
         {
             objectContext = InitializeTargetObject(source, target);
@@ -120,6 +124,7 @@ internal sealed class ValueCompletion
 
                 if (resultSelectionSet.TryMapSourceResponseName(
                     property,
+                    objectContext.SelectionSet?.Type,
                     out var responseNameMapping))
                 {
                     if (!objectContext.TryGetProperty(
@@ -168,7 +173,7 @@ internal sealed class ValueCompletion
                 ErrorTrie? errorTrieForResponseName = null;
                 errorTrie?.TryGetValue(sourceResponseName, out errorTrieForResponseName);
 
-                var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
+                var childSet = resultSelectionSet.TryGetChild(selection.ResponseName, objectContext.SelectionSet?.Type);
                 if (!TryCompleteValue(
                         propertyValueSnapshot,
                         resultField,
@@ -223,7 +228,7 @@ internal sealed class ValueCompletion
                 ErrorTrie? errorTrieForResponseName = null;
                 errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
-                var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
+                var childSet = resultSelectionSet.TryGetChild(selection.ResponseName, objectContext.SelectionSet?.Type);
                 if (!TryCompleteValue(
                         propertyValueSnapshot,
                         resultField,
@@ -322,8 +327,14 @@ internal sealed class ValueCompletion
         IError error,
         CompactPath path)
     {
-        var operation = target.Operation;
-        var errorPath = path.ToPath(operation);
+        var errorPath = GetErrorPath(path, target.Operation);
+
+        if (!errorPath.IsComplete)
+        {
+            ReportError(error, errorPath.PublicPrefix);
+
+            return CompleteErrorResult(target, resultSelectionSet);
+        }
 
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
@@ -336,15 +347,14 @@ internal sealed class ValueCompletion
                 return true;
             }
 
-            if (!target.TryGetProperty(responseName, out var fieldResult)
-                || fieldResult.IsInternal)
+            if (!target.TryGetProperty(responseName, out var fieldResult) || fieldResult.IsInternal)
             {
                 continue;
             }
 
             var selection = fieldResult.AssertSelection();
 
-            if (!ApplyFieldError(fieldResult, selection, error, errorPath.Append(responseName)))
+            if (!ApplyFieldError(fieldResult, selection, error, errorPath.ForField(responseName)))
             {
                 return false;
             }
@@ -362,7 +372,9 @@ internal sealed class ValueCompletion
             if (_store.TryGetResult(reachablePath, out var fieldResult)
                 && fieldResult.Selection is { } selection)
             {
-                return ApplyFieldError(fieldResult, selection, error, path);
+                var errorPath = GetErrorPath(fieldResult);
+
+                return ApplyFieldError(fieldResult, selection, error, errorPath.ResolveDescendant(path));
             }
 
             reachablePath = reachablePath.Parent;
@@ -664,7 +676,59 @@ internal sealed class ValueCompletion
             return CompleteFailedLookup(errorTrie, target, objectContext, resultSelectionSet);
         }
 
-        var fallbackError = errorTrie?.FindFirstError() ??
+        if (errorTrie is { Count: > 0 } && targetKind is JsonValueKind.Object)
+        {
+            var completed = target.SelectionSet is not { } fields
+                || TryCompleteCollapsedObject(target, errorTrie, fields, resultSelectionSet);
+
+            if (errorTrie.Error is { } directError)
+            {
+                AddFieldError(directError, target);
+            }
+
+            return completed
+                ? CompleteErrorResult(target, resultSelectionSet)
+                : !PropagateNullValues(target);
+        }
+
+        if (errorTrie is { Count: > 0 }
+            && TryGetSelectionContext(target, out var selection, out var targetType))
+        {
+            ForwardSourceErrors(errorTrie, target, targetType, selection, resultSelectionSet);
+
+            return !_propagateNullValues || target.IsNullable || !PropagateNullValues(target);
+        }
+
+        var error = errorTrie?.Error;
+
+        if (error is not null && targetKind is JsonValueKind.Object)
+        {
+            string? onlyField = null;
+            foreach (var name in resultSelectionSet.ResponseNames)
+            {
+                if (!target.TryGetProperty(name, out var field)
+                    || field.Selection is not { IsInternal: false } selected
+                    || selected.Field.IsIntrospectionField || !_store.IsSelectionActive(selected))
+                {
+                    continue;
+                }
+
+                if (onlyField is not null)
+                {
+                    onlyField = null;
+                    break;
+                }
+
+                onlyField = name;
+            }
+
+            var path = GetErrorPath(target);
+            ReportError(error, path.ForField(onlyField));
+
+            return CompleteErrorResult(target, resultSelectionSet);
+        }
+
+        var fallbackError = error ??
             ErrorBuilder.New()
                 .SetMessage("Unexpected Execution Error")
                 .Build();
@@ -687,27 +751,39 @@ internal sealed class ValueCompletion
         CompositeObjectContext objectContext,
         ResultSelectionSet resultSelectionSet)
     {
-        var path = target.Path;
+        var path = GetErrorPath(target);
         var lookupError = errorTrie.Error;
+
         if (errorTrie.Count > 0)
         {
             foreach (var responseName in resultSelectionSet.ResponseNames)
             {
-                if (!TryGetFieldErrorTrie(responseName, out var fieldErrorTrie)
-                    || !objectContext.TryGetVisibleProperty(responseName, out _, out var selection)
+                if (!TryGetFieldErrorTrie(responseName, out var fieldErrorTrie))
+                {
+                    continue;
+                }
+
+                if (!objectContext.TryGetVisibleProperty(responseName, out _, out var selection)
                     || selection.Field.IsIntrospectionField)
                 {
                     continue;
                 }
 
-                var fieldPath = path.Append(responseName);
-                ForwardError(fieldErrorTrie.Error, fieldPath);
+                var fieldPath = path.ForField(responseName);
+
                 if (fieldErrorTrie.Count > 0)
                 {
-                    ForwardErrors(fieldErrorTrie, fieldPath, selection.Type, selection);
+                    var children = resultSelectionSet.TryGetChild(responseName, objectContext.SelectionSet?.Type);
+                    var fieldType = path.IsComplete ? selection.Type : null;
+                    var context = new ErrorPathContext(fieldPath, fieldType, selection, children, fieldPath);
+                    ForwardSourceErrors(fieldErrorTrie, context);
+                }
+                else if (fieldErrorTrie.Error is { } fieldError)
+                {
+                    ReportError(fieldError, fieldPath);
                 }
 
-                if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
+                if (_propagateNullValues && selection.IsNonNull)
                 {
                     return !PropagateNullValues(target);
                 }
@@ -730,8 +806,13 @@ internal sealed class ValueCompletion
             }
 
             lookupError ??= errorTrie.FindFirstError();
-            ForwardError(lookupError, path.Append(responseName));
-            if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
+
+            if (lookupError is not null)
+            {
+                ReportError(lookupError, path.ForField(responseName));
+            }
+
+            if (_propagateNullValues && selection.IsNonNull)
             {
                 return !PropagateNullValues(target);
             }
@@ -741,13 +822,25 @@ internal sealed class ValueCompletion
 
         bool TryGetFieldErrorTrie(string responseName, [NotNullWhen(true)] out ErrorTrie? fieldErrorTrie)
         {
-            if (resultSelectionSet.HasSourceResponseNameMappings
-                && resultSelectionSet.TryMapResponseName(responseName, out var mapping))
+            if (!resultSelectionSet.HasSourceResponseNameMappings)
             {
-                responseName = mapping.SourceResponseName;
+                return errorTrie.TryGetValue(responseName, out fieldErrorTrie);
             }
 
-            return errorTrie.TryGetValue(responseName, out fieldErrorTrie);
+            foreach (var (segment, child) in errorTrie)
+            {
+                if (segment is string sourceName
+                    && resultSelectionSet.GetResponseName(sourceName, objectContext.SelectionSet?.Type) == responseName)
+                {
+                    fieldErrorTrie = child;
+
+                    return true;
+                }
+            }
+
+            fieldErrorTrie = null;
+
+            return false;
         }
     }
 
@@ -864,27 +957,18 @@ internal sealed class ValueCompletion
         IError error,
         CompactPath path)
     {
-        var operation = target.Operation;
-        var errorPath = path.ToPath(operation);
-        var hasResponseNames = false;
+        var errorPath = GetErrorPath(path, target.Operation);
+
+        if (!errorPath.IsComplete || resultSelectionSet.ResponseNames.IsEmpty)
+        {
+            ReportError(error, errorPath.PublicPrefix);
+
+            return true;
+        }
 
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
-            hasResponseNames = true;
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(errorPath.Append(responseName))
-                .Build();
-
-            _store.AddError(_errorHandler.Handle(errorWithPath));
-        }
-
-        if (!hasResponseNames)
-        {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(errorPath)
-                .Build();
-
-            _store.AddError(_errorHandler.Handle(errorWithPath));
+            ReportError(error, errorPath.ForField(responseName));
         }
 
         return true;
@@ -1066,77 +1150,74 @@ internal sealed class ValueCompletion
         Selection selection,
         ResultSelectionSet? resultSelectionSet)
     {
-        if (selection.IsNonNull)
+        if (!selection.IsNonNull && sourceValueKind is JsonValueKind.Null && selection.IsValueTypeNamedType)
         {
-            IError error;
-            if (errorTrie?.FindFirstError() is { } errorFromPath)
+            if (errorTrie?.FindFirstError() is { } sharedError && resultSelectionSet is not null)
             {
-                var path = target.CompactPath.ToPath(target.Operation);
-                error = ErrorBuilder.FromError(errorFromPath)
-                    .SetPath(path)
-                    .Build();
-            }
-            else
-            {
-                var path = target.CompactPath.ToPath(target.Operation);
-                error = ErrorBuilder.New()
-                    .SetMessage(FusionExecutionResources.ErrorHelper_NonNullViolation)
-                    .SetCode(ErrorCodes.Execution.NonNullViolation)
-                    .SetPath(path)
-                    .Build();
+                PocketErrors(target.Path, resultSelectionSet, sharedError);
             }
 
-            error = _errorHandler.Handle(error);
-
-            _store.AddError(error);
-
-            return !_propagateNullValues;
-        }
-
-        if (sourceValueKind is JsonValueKind.Null && selection.IsValueTypeNamedType)
-        {
-            if (errorTrie?.FindFirstError() is { } error
-                && resultSelectionSet is not null)
-            {
-                PocketErrors(target.Path, resultSelectionSet, error);
-            }
-
-            // For shared parent types we keep the target untouched so that
-            // sibling subgraph results can still initialize and populate it.
             return true;
         }
 
-        // If the value is null, it might've been nulled due to a
-        // down-stream null propagation.
-        // So we try to get an error that is associated with this field
-        // or with a path below it.
-        if (errorTrie?.FindFirstError() is { } nullErrorFromPath)
+        if (errorTrie is { Count: > 0 })
         {
-            var errorWithPath = ErrorBuilder.FromError(nullErrorFromPath)
-                .SetPath(target.Path)
-                .Build();
-            errorWithPath = _errorHandler.Handle(errorWithPath);
-
-            _store.AddError(errorWithPath);
+            ForwardSourceErrors(errorTrie, target, selection.Type, selection, resultSelectionSet);
+        }
+        else if (errorTrie?.Error is { } error)
+        {
+            AddFieldError(error, target);
+        }
+        else if (selection.IsNonNull)
+        {
+            ReportNonNullViolation(target);
         }
         else
         {
             target.SetNullValue();
         }
 
-        return true;
+        return !selection.IsNonNull || !_propagateNullValues;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private void AddFieldError(IError fieldError, CompositeResultElement target)
+    private void ReportNonNullViolation(CompositeResultElement field)
     {
-        var errorWithPath = ErrorBuilder.FromError(fieldError)
-            .SetPath(target.Path)
-            .Build();
-        errorWithPath = _errorHandler.Handle(errorWithPath);
-
-        _store.AddError(errorWithPath);
+        var path = GetErrorPath(field).PublicPrefix;
+        _store.AddError(_errorHandler.Handle(ErrorHelper.NonNullViolation(path)));
     }
+
+    private void AddFieldError(IError error, CompositeResultElement target)
+        => ReportError(error, GetErrorPath(target).PublicPrefix);
+
+    private ClientErrorPath GetErrorPath(CompositeResultElement target)
+        => GetErrorPath(target.CompactPath, target.Operation);
+
+    private ClientErrorPath GetErrorPath(CompactPath compactPath, Operation operation)
+    {
+        var path = Path.Root;
+        foreach (var segment in compactPath.Segments)
+        {
+            if (segment < 0)
+            {
+                path = path.Append(~segment);
+                continue;
+            }
+
+            var selection = operation.GetSelectionById(segment);
+
+            if (selection.IsInternal || !_store.IsSelectionActive(selection))
+            {
+                return new ClientErrorPath(path, IsComplete: false);
+            }
+
+            path = path.Append(selection.ResponseName);
+        }
+
+        return new ClientErrorPath(path, IsComplete: true);
+    }
+
+    private void ReportError(IError error, Path path)
+        => _store.AddError(_errorHandler.Handle(error.WithPath(path)));
 
     /// <summary>
     /// Completes the elements of a nested list. The element shape of nested list
@@ -1213,7 +1294,6 @@ internal sealed class ValueCompletion
             ? (IComplexTypeDefinition)selection.NamedType
             : null;
         SelectionSet? listObjectSelectionSet = null;
-        var propagateItemNull = false;
         var i = 0;
         var elements = source.EnumerateElementSnapshots();
 
@@ -1224,44 +1304,40 @@ internal sealed class ValueCompletion
 
             ErrorTrie? errorTrieForIndex = null;
 
-            if (errorTrie is not null)
-            {
-                errorTrieForIndex = GetListElementErrorTrie(errorTrie, target, i);
-            }
+            errorTrie?.TryGetValue(i, out errorTrieForIndex);
 
+            var targetElement = targetEnumerator.Current;
             var elementSnapshot = elements.Current;
             var elementValueKind = elementSnapshot.ValueKind;
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
-                // The element might have been nulled due to a down-stream null propagation,
-                // so the errors below it are forwarded with their paths.
                 if (errorTrieForIndex is { Count: > 0 })
                 {
-                    ForwardListElementErrors(errorTrieForIndex, target, i, elementType, selection);
+                    ForwardSourceErrors(errorTrieForIndex, targetElement, elementType, selection, resultSelectionSet);
                 }
-
-                if (isNonNull)
+                else if (errorTrieForIndex?.Error is { } elementError)
                 {
-                    if (errorTrieForIndex?.FindFirstError() is null)
-                    {
-                        var item = targetEnumerator.Current;
-                        var error = ErrorHelper.NonNullViolation(item.CompactPath.ToPath(item.Operation));
-                        _store.AddError(_errorHandler.Handle(error));
-                    }
-
-                    if (_propagateNullValues && !selection.IsLeaf)
-                    {
-                        return TryCompleteNullContainer(target);
-                    }
-
-                    propagateItemNull |= _propagateNullValues;
+                    AddFieldError(elementError, targetElement);
+                }
+                else if (isNonNull)
+                {
+                    ReportNonNullViolation(targetElement);
                 }
 
-                targetEnumerator.Current.SetNullValue();
+                if (isNonNull && _propagateNullValues)
+                {
+                    return TryCompleteNullContainer(target);
+                }
+
+                targetElement.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
-            var targetElement = targetEnumerator.Current;
+            if (errorTrieForIndex?.Error is { } itemError)
+            {
+                AddFieldError(itemError, targetElement);
+            }
+
             bool completed;
 
             switch (elementTypeKind)
@@ -1326,7 +1402,7 @@ TryCompleteList_MoveNext:
             i++;
         }
 
-        return !propagateItemNull || TryCompleteNullContainer(target);
+        return true;
     }
 
     private static bool TryCompleteNullContainer(CompositeResultElement target)
@@ -1365,134 +1441,160 @@ TryCompleteList_MoveNext:
         return !_propagateNullValues;
     }
 
-    /// <summary>
-    /// Gets the error trie of the list element at <paramref name="index"/> and reports
-    /// the error that is attached to the element itself.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private ErrorTrie? GetListElementErrorTrie(
-        ErrorTrie errorTrie,
+    private void ForwardSourceErrors(
+        ErrorTrie errors,
         CompositeResultElement target,
-        int index)
-    {
-        errorTrie.TryGetValue(index, out var errorTrieForIndex);
-
-        if (errorTrieForIndex?.Error is { } error)
-        {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(target.CompactPath.ToPath(target.Operation, index))
-                .Build();
-            errorWithPath = _errorHandler.Handle(errorWithPath);
-
-            _store.AddError(errorWithPath);
-        }
-
-        return errorTrieForIndex;
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private void ForwardListElementErrors(
-        ErrorTrie errorTrieForIndex,
-        CompositeResultElement target,
-        int index,
-        IType elementType,
-        Selection selection)
-        => ForwardErrors(
-            errorTrieForIndex,
-            target.CompactPath.ToPath(target.Operation, index),
-            elementType,
-            selection);
-
-    /// <summary>
-    /// Forwards every error below a null value at <paramref name="path"/>. Each error keeps
-    /// its path in client response names down to the deepest segment that maps to a selection.
-    /// </summary>
-    private void ForwardErrors(
-        ErrorTrie errorTrie,
-        Path path,
         IType? type,
-        Selection selection)
+        Selection selection,
+        ResultSelectionSet? selections)
+        => ForwardSourceErrors(errors, GetErrorPath(target).ForSourceErrors(type, selection, selections));
+
+    // A collapsed source subtree keeps the errors reported through the cause at each nullable boundary.
+    private void ForwardSourceErrors(ErrorTrie errors, ErrorPathContext context)
     {
-        Stack<ErrorTrieFrame>? stack = null;
+        var node = errors;
+        var paths = new ErrorPathCandidates(context);
+        HashSet<Path>? nulled = null;
 
-        // The direct children are walked without a stack, which is only needed for deeper errors.
-        foreach (var (segment, childErrorTrie) in errorTrie)
+        while (node.Count == 1 && node.Error is null)
         {
-            var (childPath, childType, childSelection) =
-                MapErrorPathSegment(segment, path, type, selection);
-
-            ForwardError(childErrorTrie.Error, childPath);
-
-            if (childErrorTrie.Count > 0)
-            {
-                stack ??= new Stack<ErrorTrieFrame>();
-                stack.Push(new ErrorTrieFrame(childErrorTrie, childPath, childType, childSelection));
-                ForwardErrors(stack);
-            }
+            var child = node.GetEnumerator();
+            child.MoveNext();
+            paths = MapErrorPathSegment(paths, child.Current.Key);
+            node = child.Current.Value;
         }
-    }
 
-    private void ForwardErrors(Stack<ErrorTrieFrame> stack)
-    {
-        while (stack.TryPop(out var frame))
+        if (node.Count == 0)
         {
-            if (!frame.Children.MoveNext())
+            Report(node, paths);
+
+            return;
+        }
+
+        var pending = new PriorityQueue<SourceErrorVisit, int>();
+        QueueSourceErrors(node, paths);
+
+        while (pending.TryDequeue(out var visit, out _))
+        {
+            if (nulled is not null && IsBelowNulledPath(visit.Paths.First.Path, nulled))
             {
                 continue;
             }
 
-            // The frame goes back with its advanced enumerator so the siblings follow the subtree.
-            stack.Push(frame);
-
-            var (segment, childErrorTrie) = frame.Children.Current;
-            var (childPath, childType, childSelection) =
-                MapErrorPathSegment(segment, frame.Path, frame.Type, frame.Selection);
-
-            ForwardError(childErrorTrie.Error, childPath);
-
-            if (childErrorTrie.Count > 0)
+            if (!visit.IsError && visit.Node.Count > 0)
             {
-                stack.Push(new ErrorTrieFrame(childErrorTrie, childPath, childType, childSelection));
+                QueueSourceErrors(visit.Node, visit.Paths);
             }
+            else if (!Report(visit.Node, visit.Paths))
+            {
+                break;
+            }
+        }
+
+        bool Report(ErrorTrie current, ErrorPathCandidates candidates)
+        {
+            var field = candidates.First;
+
+            if (current.Error is not { } error)
+            {
+                return true;
+            }
+
+            if (field.Type is not null
+                || current == errors
+                || ((errors.Error is null || !context.Path.Equals(field.Path)) && !HasReportedErrorAt(field.Path)))
+            {
+                ReportError(error, field.Path);
+            }
+
+            if (candidates.GetPropagationBoundary() is { } boundary)
+            {
+                if (boundary.Equals(context.Path))
+                {
+                    return false;
+                }
+
+                (nulled ??= []).Add(boundary);
+            }
+
+            return true;
+        }
+
+        void QueueSourceErrors(ErrorTrie node, ErrorPathCandidates paths)
+        {
+            if (node.Error is not null)
+            {
+                pending.Enqueue(new SourceErrorVisit(node, paths, IsError: true), node.ErrorIndex);
+            }
+
+            foreach (var (segment, child) in node)
+            {
+                var mapped = MapErrorPathSegment(paths, segment);
+                pending.Enqueue(new SourceErrorVisit(child, mapped, IsError: false), child.FirstErrorIndex);
+            }
+        }
+
+        static bool IsBelowNulledPath(Path path, HashSet<Path> nulled)
+        {
+            while (!path.IsRoot)
+            {
+                if (nulled.Contains(path))
+                {
+                    return true;
+                }
+
+                path = path.Parent;
+            }
+
+            return false;
         }
     }
 
-    private void ForwardError(IError? error, Path path)
+    private ErrorPathCandidates MapErrorPathSegment(
+        ErrorPathCandidates parents,
+        object segment)
     {
-        if (error is not null)
-        {
-            _store.AddError(_errorHandler.Handle(error.WithPath(path)));
-        }
-    }
+        ErrorPathCandidates mapped = default;
+        AddMatches(parents.First);
 
-    /// <summary>
-    /// Maps an error path segment below <paramref name="path"/> to the client path. A segment that
-    /// does not map to a client selection keeps <paramref name="path"/> and yields no type.
-    /// </summary>
-    private static (Path Path, IType? Type, Selection Selection) MapErrorPathSegment(
-        object segment,
-        Path path,
-        IType? type,
-        Selection selection)
-    {
-        if (type?.NullableType() is { } nullableType)
+        if (parents.Others is not null)
         {
-            if (segment is int index && nullableType.Kind is TypeKind.List)
+            foreach (var parent in parents.Others)
             {
-                return (path.Append(index), nullableType.ElementType(), selection);
-            }
-
-            if (segment is string responseName
-                && nullableType is IObjectTypeDefinition objectType
-                && selection.GetSelectionSet(objectType) is { } selectionSet
-                && selectionSet.TryGetSelection(responseName, out var fieldSelection)
-                && !fieldSelection.IsInternal)
-            {
-                return (path.Append(fieldSelection.ResponseName), fieldSelection.Type, fieldSelection);
+                AddMatches(parent);
             }
         }
 
-        return (path, null, selection);
+        // An unmapped source suffix is reported on its deepest public client selection.
+        return mapped.First.Type is null
+            ? new ErrorPathCandidates(parents.First with { Type = null })
+            : mapped;
+
+        void AddMatches(ErrorPathContext parent)
+        {
+            var type = parent.Type?.NullableType();
+
+            if (type is ListType list && segment is int index)
+            {
+                mapped.Add(
+                    parent.Child(parent.Path.Append(index), list.ElementType, parent.Selection, parent.Selections));
+            }
+            else if (type is ITypeDefinition namedType && namedType.IsCompositeType() && segment is string sourceName)
+            {
+                foreach (var possibleType in _schema.GetPossibleTypes(namedType))
+                {
+                    var name = parent.Selections?.GetResponseName(sourceName, possibleType) ?? sourceName;
+
+                    if (parent.Selection.GetSelectionSet(possibleType) is { } selectionSet
+                        && selectionSet.TryGetSelection(name, out var field)
+                        && !field.IsInternal && _store.IsSelectionActive(field))
+                    {
+                        var children = parent.Selections?.TryGetChild(name, possibleType);
+                        mapped.Add(parent.Child(parent.Path.Append(name), field.Type, field, children));
+                    }
+                }
+            }
+        }
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -1583,6 +1685,11 @@ TryCompleteList_MoveNext:
 
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.
+        if (errorTrie?.Error is { } lookupError)
+        {
+            AddFieldError(lookupError, target);
+        }
+
         if (!target.TryGetObjectContext(out var objectContext))
         {
             var objectSelectionSet = preparedSelectionSet
@@ -1698,6 +1805,43 @@ TryCompleteList_MoveNext:
     }
 
     /// <summary>
+    /// Completes field errors from a subgraph that returned null for the entire object.
+    /// </summary>
+    private bool TryCompleteCollapsedObject(
+        CompositeResultElement target,
+        ErrorTrie errors,
+        SelectionSet fields,
+        ResultSelectionSet resultSelectionSet)
+    {
+        foreach (var selection in fields.Selections)
+        {
+            if (selection.IsInternal || !_store.IsSelectionActive(selection))
+            {
+                continue;
+            }
+
+            var responseName = selection.ResponseName;
+            var sourceName = resultSelectionSet.HasSourceResponseNameMappings
+                && resultSelectionSet.TryMapResponseName(responseName, fields.Type, out var mapping)
+                    ? mapping.SourceResponseName
+                    : responseName;
+
+            if (errors.TryGetValue(sourceName, out var fieldErrors)
+                && !TryCompleteNullValue(
+                    JsonValueKind.Undefined,
+                    target.GetPropertyBySelectionId(selection.Id),
+                    fieldErrors,
+                    selection,
+                    resultSelectionSet.TryGetChild(responseName, fields.Type)))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Completes the properties of a source object whose result selection set maps
     /// source response names to different composite response names.
     /// </summary>
@@ -1722,6 +1866,7 @@ TryCompleteList_MoveNext:
 
             if (resultSelectionSet.TryMapSourceResponseName(
                 property,
+                objectType,
                 out var responseNameMapping))
             {
                 if (!objectContext.TryGetProperty(
@@ -1961,20 +2106,90 @@ TryCompleteList_MoveNext:
         }
     }
 
-    private struct ErrorTrieFrame(
-        ErrorTrie errorTrie,
-        Path path,
-        IType? type,
-        Selection selection)
+    private bool HasReportedErrorAt(Path path)
     {
-        public Dictionary<object, ErrorTrie>.Enumerator Children = errorTrie.GetEnumerator();
+        if (_store.Errors is { } errors)
+        {
+            foreach (var error in errors)
+            {
+                if (path.Equals(error.Path))
+                {
+                    return true;
+                }
+            }
+        }
 
-        public readonly Path Path = path;
-
-        public readonly IType? Type = type;
-
-        public readonly Selection Selection = selection;
+        return false;
     }
+
+    private readonly record struct ClientErrorPath(Path PublicPrefix, bool IsComplete)
+    {
+        public Path ResolveDescendant(Path descendant) => IsComplete ? descendant : PublicPrefix;
+
+        public Path ForField(string? name) => IsComplete && name is not null ? PublicPrefix.Append(name) : PublicPrefix;
+
+        public ErrorPathContext ForSourceErrors(IType? type, Selection selection, ResultSelectionSet? selections)
+            => new(PublicPrefix, IsComplete ? type : null, selection, selections, PublicPrefix);
+    }
+
+    private readonly record struct ErrorPathContext(
+        Path Path,
+        IType? Type,
+        Selection Selection,
+        ResultSelectionSet? Selections,
+        Path NullableBoundary)
+    {
+        public ErrorPathContext Child(Path path, IType type, Selection selection, ResultSelectionSet? selections)
+            => new(path, type, selection, selections, type is NonNullType ? NullableBoundary : path);
+    }
+
+    private struct ErrorPathCandidates(ErrorPathContext first)
+    {
+        public ErrorPathContext First = first;
+        public List<ErrorPathContext>? Others;
+
+        public readonly Path? GetPropagationBoundary()
+        {
+            if (First.Type is not NonNullType)
+            {
+                return null;
+            }
+
+            var boundary = First.NullableBoundary;
+
+            if (Others is not null)
+            {
+                foreach (var candidate in Others)
+                {
+                    if (candidate.Type is not NonNullType || !First.Path.Equals(candidate.Path))
+                    {
+                        return null;
+                    }
+
+                    if (candidate.NullableBoundary.Length > boundary.Length)
+                    {
+                        boundary = candidate.NullableBoundary;
+                    }
+                }
+            }
+
+            return boundary;
+        }
+
+        public void Add(ErrorPathContext candidate)
+        {
+            if (First.Type is null)
+            {
+                First = candidate;
+            }
+            else if (candidate != First && (Others is null || !Others.Contains(candidate)))
+            {
+                (Others ??= []).Add(candidate);
+            }
+        }
+    }
+
+    private readonly record struct SourceErrorVisit(ErrorTrie Node, ErrorPathCandidates Paths, bool IsError);
 }
 
 file static class ValueCompletionExtensions

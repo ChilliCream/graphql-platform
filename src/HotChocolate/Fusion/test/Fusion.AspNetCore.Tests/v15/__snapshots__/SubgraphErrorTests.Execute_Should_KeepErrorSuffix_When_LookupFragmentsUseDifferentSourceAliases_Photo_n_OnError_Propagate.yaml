@@ -28,7 +28,8 @@ response:
           "message": "Detail unavailable.",
           "path": [
             "asset",
-            "details"
+            "details",
+            "n"
           ]
         }
       ]

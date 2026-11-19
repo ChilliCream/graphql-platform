@@ -18,9 +18,27 @@ response:
       },
       "errors": [
         {
-          "message": "Later name.",
+          "message": "Another earlier note.",
           "path": [
-            "rows"
+            "rows",
+            0,
+            "note"
+          ]
+        },
+        {
+          "message": "Required name.",
+          "path": [
+            "rows",
+            1,
+            "name"
+          ]
+        },
+        {
+          "message": "Earlier note.",
+          "path": [
+            "rows",
+            1,
+            "note"
           ]
         },
         {
@@ -73,19 +91,19 @@ sourceSchemas:
                     ]
                   },
                   {
-                    "message": "Required name.",
-                    "path": [
-                      "rows",
-                      1,
-                      "name"
-                    ]
-                  },
-                  {
                     "message": "Another earlier note.",
                     "path": [
                       "rows",
                       0,
                       "note"
+                    ]
+                  },
+                  {
+                    "message": "Required name.",
+                    "path": [
+                      "rows",
+                      1,
+                      "name"
                     ]
                   },
                   {

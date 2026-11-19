@@ -16,7 +16,8 @@ response:
         {
           "message": "Unexpected Execution Error",
           "path": [
-            "other"
+            "other",
+            "userId"
           ]
         }
       ]

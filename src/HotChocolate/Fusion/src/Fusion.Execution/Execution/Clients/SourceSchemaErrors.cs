@@ -46,6 +46,7 @@ public sealed class SourceSchemaErrors
 
         ImmutableArray<IError>.Builder? rootErrors = null;
         var root = new ErrorTrie();
+        var errorIndex = 0;
 
         foreach (var jsonError in json.EnumerateArray())
         {
@@ -63,7 +64,7 @@ public sealed class SourceSchemaErrors
                 continue;
             }
 
-            AddToTrie(root, error);
+            AddToTrie(root, error, errorIndex++);
         }
 
         return new SourceSchemaErrors
@@ -81,10 +82,11 @@ public sealed class SourceSchemaErrors
     internal static SourceSchemaErrors Create(ReadOnlySpan<IError> errors)
     {
         var root = new ErrorTrie();
+        var errorIndex = 0;
 
         foreach (var error in errors)
         {
-            AddToTrie(root, error);
+            AddToTrie(root, error, errorIndex++);
         }
 
         return new SourceSchemaErrors { RootErrors = [], Trie = root };
@@ -96,7 +98,8 @@ public sealed class SourceSchemaErrors
     /// </summary>
     /// <param name="root">The trie that the error is added to.</param>
     /// <param name="error">The error to add. Its path must not be <c>null</c>.</param>
-    private static void AddToTrie(ErrorTrie root, IError error)
+    /// <param name="errorIndex">The position of the error among the reported field errors.</param>
+    private static void AddToTrie(ErrorTrie root, IError error, int errorIndex)
     {
         var currentTrie = root;
         var path = error.Path!;
@@ -117,14 +120,15 @@ public sealed class SourceSchemaErrors
                 }
                 else
                 {
-                    var newTrie = new ErrorTrie();
+                    var newTrie = new ErrorTrie { FirstErrorIndex = errorIndex };
                     currentTrie[pathSegment] = newTrie;
                     currentTrie = newTrie;
                 }
 
-                if (i == lastPathIndex)
+                if (i == lastPathIndex && currentTrie.Error is null)
                 {
                     currentTrie.Error = error;
+                    currentTrie.ErrorIndex = errorIndex;
                 }
             }
         }

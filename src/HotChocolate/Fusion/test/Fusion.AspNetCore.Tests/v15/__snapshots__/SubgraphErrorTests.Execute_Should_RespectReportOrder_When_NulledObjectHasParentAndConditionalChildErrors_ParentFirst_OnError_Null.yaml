@@ -20,6 +20,13 @@ response:
           "path": [
             "row"
           ]
+        },
+        {
+          "message": "Child",
+          "path": [
+            "row",
+            "n"
+          ]
         }
       ]
     }

@@ -14,9 +14,16 @@ response:
       },
       "errors": [
         {
-          "message": "selected",
+          "message": "first",
           "path": [
             "row"
+          ]
+        },
+        {
+          "message": "selected",
+          "path": [
+            "row",
+            "n"
           ]
         }
       ]

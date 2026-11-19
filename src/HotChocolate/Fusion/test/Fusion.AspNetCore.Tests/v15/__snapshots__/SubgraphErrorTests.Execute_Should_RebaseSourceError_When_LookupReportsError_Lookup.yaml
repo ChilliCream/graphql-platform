@@ -15,7 +15,15 @@ response:
           "id": 1,
           "n": "OK"
         }
-      }
+      },
+      "errors": [
+        {
+          "message": "lookup",
+          "path": [
+            "p"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: A

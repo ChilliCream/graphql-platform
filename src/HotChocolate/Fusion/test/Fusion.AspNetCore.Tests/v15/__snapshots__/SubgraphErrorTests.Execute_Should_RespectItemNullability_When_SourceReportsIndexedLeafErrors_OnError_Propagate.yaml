@@ -26,34 +26,10 @@ response:
           }
         },
         {
-          "message": "Last color failed.",
-          "path": [
-            "colors",
-            1
-          ]
-        },
-        {
           "message": "First score failed.",
           "path": [
             "scores",
             0
-          ]
-        },
-        {
-          "message": "Cannot return null for non-nullable field.",
-          "path": [
-            "scores",
-            1
-          ],
-          "extensions": {
-            "code": "HC0018"
-          }
-        },
-        {
-          "message": "Last score failed.",
-          "path": [
-            "scores",
-            2
           ]
         }
       ]

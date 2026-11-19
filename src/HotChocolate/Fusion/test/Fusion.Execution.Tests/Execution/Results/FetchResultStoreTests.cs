@@ -4310,9 +4310,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
 
         // assert
         Assert.Equal(
-            duplicatePaths
-                ? ["foos[0].code", "foos[0].code", "foos[1].code", "foos[1].code"]
-                : ["foos[0].code", "foos[1].code"],
+            ["foos[0].code", "foos[1].code"],
             store.Errors!.Select(error => error.Path!.Print()));
         RenderData(store).MatchInlineSnapshot(
             """

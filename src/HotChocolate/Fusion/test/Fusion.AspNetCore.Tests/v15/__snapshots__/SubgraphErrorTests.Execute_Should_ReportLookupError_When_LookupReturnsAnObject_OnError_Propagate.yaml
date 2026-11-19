@@ -15,7 +15,15 @@ response:
           "id": 1,
           "label": "Mug"
         }
-      }
+      },
+      "errors": [
+        {
+          "message": "Lookup error.",
+          "path": [
+            "item"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog
