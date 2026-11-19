@@ -19,17 +19,34 @@ response:
     {
       "data": {
         "box": {
-          "left": {
-            "n": null,
-            "code": null,
-            "price": 1
-          },
-          "right": {
-            "n": null,
-            "price": 2
+          "left": null,
+          "right": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "box",
+            "left",
+            "n"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        },
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "box",
+            "right",
+            "n"
+          ],
+          "extensions": {
+            "code": "HC0018"
           }
         }
-      }
+      ]
     }
 sourceSchemas:
   - name: A

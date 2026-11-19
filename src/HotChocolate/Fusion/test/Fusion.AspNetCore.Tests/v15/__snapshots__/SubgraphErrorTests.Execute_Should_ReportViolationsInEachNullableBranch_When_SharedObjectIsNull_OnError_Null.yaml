@@ -30,7 +30,42 @@ response:
             "price": 2
           }
         }
-      }
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "box",
+            "left",
+            "code"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        },
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "box",
+            "left",
+            "n"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        },
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "box",
+            "right",
+            "n"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: A

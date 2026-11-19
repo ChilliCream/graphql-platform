@@ -11,6 +11,15 @@ request:
 response:
   body: |
     {
+      "data": {
+        "x": [
+          {
+            "a": null,
+            "c": null,
+            "b": 3
+          }
+        ]
+      },
       "errors": [
         {
           "message": "failed",

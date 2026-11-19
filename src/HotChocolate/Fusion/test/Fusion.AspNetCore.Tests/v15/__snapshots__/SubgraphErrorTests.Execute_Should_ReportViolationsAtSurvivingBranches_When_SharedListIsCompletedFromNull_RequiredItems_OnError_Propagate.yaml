@@ -11,17 +11,21 @@ response:
   body: |
     {
       "data": {
-        "items": [
-          {
-            "name": null,
-            "price": 1
-          },
-          {
-            "name": null,
-            "price": 2
+        "items": null
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "items",
+            0,
+            "name"
+          ],
+          "extensions": {
+            "code": "HC0018"
           }
-        ]
-      }
+        }
+      ]
     }
 sourceSchemas:
   - name: A

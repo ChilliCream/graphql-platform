@@ -23,7 +23,9 @@ response:
           "message": "Cannot return null for non-nullable field.",
           "path": [
             "page",
-            "items"
+            "items",
+            0,
+            "name"
           ],
           "extensions": {
             "code": "HC0018"

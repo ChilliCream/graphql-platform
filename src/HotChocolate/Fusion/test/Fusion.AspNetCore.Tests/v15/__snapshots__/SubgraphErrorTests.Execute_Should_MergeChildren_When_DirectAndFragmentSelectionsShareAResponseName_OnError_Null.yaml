@@ -35,14 +35,6 @@ response:
           "path": [
             "x",
             "d",
-            "a"
-          ]
-        },
-        {
-          "message": "failed",
-          "path": [
-            "x",
-            "d",
             "c"
           ]
         }

@@ -915,12 +915,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
     internal OperationResult Complete(bool reusable = false, bool retainMemoryForDefer = false)
     {
-        _resultStore.FinalizePocketedErrors();
-
-        if (PolicyEvaluationResult.RequiresFinalization)
-        {
-            _resultStore.FinalizeDeniedSelections(PolicyEvaluationResult);
-        }
+        _resultStore.FinalizeResult(PolicyEvaluationResult);
 
         var environment = Schema.TryGetEnvironment();
 

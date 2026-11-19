@@ -14,12 +14,22 @@ response:
     {
       "data": {
         "product": {
-          "item": {
-            "name": null,
-            "price": 1
+          "item": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "product",
+            "item",
+            "name"
+          ],
+          "extensions": {
+            "code": "HC0018"
           }
         }
-      }
+      ]
     }
 sourceSchemas:
   - name: A

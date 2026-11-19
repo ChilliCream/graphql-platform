@@ -99,7 +99,6 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultDocument _result = default!;
     private readonly ValueCompletion _valueCompletion;
     private List<IError>? _errors;
-    private Dictionary<Path, IError>? _pocketedErrors;
     private bool _disposed;
 
     internal FetchResultStore()
@@ -622,50 +621,33 @@ AddErrors_Next:
         => selection.IsIncluded(_includeFlags, _wideIncludeFlags)
             && !selection.IsDeferred(_deferFlags, _wideDeferFlags);
 
-    internal void PocketError(Path path, IError error)
+    internal bool TryGetResult(CompactPath path, out CompositeResultElement element)
     {
-        _pocketedErrors ??= [];
-        _pocketedErrors.TryAdd(path, error);
-    }
-
-    internal bool HasPocketedErrors
-        => _pocketedErrors?.Count > 0;
-
-    internal List<KeyValuePair<Path, IError>> GetPocketedErrorsSnapshot()
-        => _pocketedErrors is { Count: > 0 } errors
-            ? [.. errors]
-            : [];
-
-    internal bool RemovePocketedError(Path path)
-        => _pocketedErrors?.Remove(path) ?? false;
-
-    internal void RemovePocketedErrorsInSubtree(Path path)
-    {
-        if (_pocketedErrors is not { Count: > 0 })
+        element = _result.Data;
+        foreach (var segment in path.Segments)
         {
-            return;
-        }
-
-        List<Path>? pathsToRemove = null;
-
-        foreach (var errorPath in _pocketedErrors.Keys)
-        {
-            if (PathUtilities.IsPathInSubtree(errorPath, path, includeSelf: true))
+            if (segment >= 0)
             {
-                pathsToRemove ??= [];
-                pathsToRemove.Add(errorPath);
+                if (element.ValueKind is not JsonValueKind.Object
+                    || !element.TryGetProperty(_operation.GetSelectionById(segment).Utf8ResponseName, out element))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                var index = ~segment;
+
+                if (element.ValueKind is not JsonValueKind.Array || index >= element.GetArrayLength())
+                {
+                    return false;
+                }
+
+                element = element[index];
             }
         }
 
-        if (pathsToRemove is null)
-        {
-            return;
-        }
-
-        foreach (var pathToRemove in pathsToRemove)
-        {
-            _pocketedErrors.Remove(pathToRemove);
-        }
+        return true;
     }
 
     internal bool TryGetResult(Path path, out CompositeResultElement element)
@@ -722,25 +704,18 @@ AddErrors_Next:
         }
     }
 
-    public void FinalizePocketedErrors()
+    public void FinalizeResult(PolicyEvaluationResult policyResult)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         lock (_lock)
         {
-            _valueCompletion.FinalizePocketedErrors(_result.Data);
-            _valueCompletion.FinalizeInaccessibleRuntimeTypes(_result.Data);
-        }
-    }
-
-    public void FinalizeDeniedSelections(PolicyEvaluationResult policyResult)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(policyResult);
-
-        lock (_lock)
-        {
-            _valueCompletion.FinalizeDeniedSelections(_result.Data, policyResult);
+            if (_valueCompletion.HasPendingSharedNulls
+                || _result.RequiresNullMarkerFinalization
+                || policyResult.RequiresFinalization)
+            {
+                _valueCompletion.FinalizeResult(policyResult);
+            }
         }
     }
 
@@ -754,7 +729,7 @@ AddErrors_Next:
     {
         var additionalTargets = new AdditionalTargets(this, additionalPaths);
 
-        if (additionalTargets.Length > 0 && errorTrie is null && !HasPocketedErrors)
+        if (additionalTargets.Length > 0 && errorTrie is null && !_valueCompletion.HasPendingSharedNulls)
         {
             return SaveSafeResultWithLeafCopy(
                 resultData,
@@ -818,7 +793,7 @@ AddErrors_Next:
         try
         {
             var canCopy = errorCount == (_errors?.Count ?? 0)
-                && !HasPocketedErrors
+                && !_valueCompletion.HasPendingSharedNulls
                 && TryCollectLeafValues(primary, dataElement, resultSelectionSet, ref leafCount, out primarySelectionSet);
             var leafValues = _leafValues.AsSpan(0, leafCount);
 
@@ -843,7 +818,7 @@ AddErrors_Next:
                 }
 
                 // Once an error is pocketed, the remaining targets are completed from the source data.
-                canCopy &= !HasPocketedErrors;
+                canCopy &= !_valueCompletion.HasPendingSharedNulls;
             }
 
             return true;
@@ -1212,7 +1187,7 @@ AddErrors_Next:
             }
 
             // Entities are only reused while the result has no errors.
-            if (_errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 })
+            if (_errors is { Count: > 0 } || _valueCompletion.HasPendingSharedNulls)
             {
                 return BuildVariableValueSetsUnsafe(
                     _collectTargetCombined.AsSpan(0, targetCount),

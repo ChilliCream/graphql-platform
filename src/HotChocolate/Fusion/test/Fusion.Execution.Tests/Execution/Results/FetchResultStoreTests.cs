@@ -14,6 +14,7 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -79,11 +80,13 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var box = store.Result.Data.GetProperty("box");
         box.SetObjectValue(box.SelectionSet!);
         store.AddPartialResult(SelectionPath.Root, second, nodes["B"].ResultSelectionSet, containsErrors: false);
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
 
         // assert
-        RenderData(store).MatchInlineSnapshot("""{"box":{"x":{"n":null,"price":3}}}""");
-        Assert.Empty(store.Errors ?? []);
+        RenderData(store).MatchInlineSnapshot("""{"box":{"x":null}}""");
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("HC0018", error.Code);
+        Assert.Equal("box.x.n", error.Path?.Print());
     }
 
     [Theory]
@@ -121,7 +124,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         store.AddPartialResult(SelectionPath.Root, first, nodes["A"].ResultSelectionSet, first.HasErrors);
         store.AddPartialResult(SelectionPath.Root, second, nodes["A"].ResultSelectionSet, second.HasErrors);
         store.AddPartialResult(SelectionPath.Root, sibling, nodes["B"].ResultSelectionSet, sibling.HasErrors);
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
 
         // assert
         RenderData(store).MatchInlineSnapshot("""{"x":null}""");
@@ -187,7 +190,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             store.AddPartialResult(SelectionPath.Root, result, nodes[source].ResultSelectionSet, result.HasErrors);
         }
 
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
 
         // assert
         RenderData(store).MatchInlineSnapshot(mode is ErrorHandlingMode.Null
@@ -692,7 +695,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             sourceArena);
 
         // act
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
 
         // assert
         RenderData(store).MatchInlineSnapshot(
@@ -721,7 +724,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             sourceArena);
 
         // act
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
 
         // assert
         Assert.Equal("null", RenderData(store));
@@ -753,7 +756,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             sourceArena);
 
         // act
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
 
         // assert
         Assert.Equal(expected, RenderData(store));

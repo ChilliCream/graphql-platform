@@ -19,7 +19,7 @@ response:
       },
       "errors": [
         {
-          "message": "parent",
+          "message": "child",
           "path": [
             "x",
             "a"

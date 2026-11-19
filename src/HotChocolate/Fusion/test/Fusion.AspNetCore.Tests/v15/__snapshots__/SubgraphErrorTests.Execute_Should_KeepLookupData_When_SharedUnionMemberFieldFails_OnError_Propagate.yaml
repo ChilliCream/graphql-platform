@@ -16,7 +16,10 @@ response:
     {
       "data": {
         "product": {
-          "item": null
+          "item": {
+            "name": null,
+            "author": "B"
+          }
         }
       },
       "errors": [
@@ -25,7 +28,7 @@ response:
           "path": [
             "product",
             "item",
-            "__typename"
+            "name"
           ]
         }
       ]

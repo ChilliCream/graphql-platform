@@ -10,6 +10,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -2832,7 +2833,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
 
         // assert
         // The '_entities' subgraph path is rewritten to the client-facing path.
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         Assert.True(fooAdded && barAdded);
         var error = Assert.Single(store.Errors!);
         Assert.Equal("boom", error.Message);
@@ -2877,7 +2878,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
                 containsErrors: true));
 
         // assert
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         var error = Assert.Single(store.Errors!);
         Assert.Equal("boom", error.Message);
         Assert.Null(error.Path);
@@ -2918,7 +2919,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: true);
 
         // assert
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         Assert.True(added);
         var error = Assert.Single(store.Errors!);
         Assert.Equal("boom", error.Message);
@@ -2959,7 +2960,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: true);
 
         // assert
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         Assert.True(added);
         var error = Assert.Single(store.Errors!);
         Assert.Equal("boom", error.Message);
@@ -3005,7 +3006,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: true);
 
         // assert
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         Assert.True(added);
         var error = Assert.Single(store.Errors!);
         Assert.Equal("boom", error.Message);
@@ -3051,7 +3052,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: true);
 
         // assert
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         Assert.True(added);
         var error = Assert.Single(store.Errors!);
         Assert.Equal("boom", error.Message);
@@ -3094,7 +3095,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: true);
 
         // assert
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         Assert.True(added);
         var error = Assert.Single(store.Errors!);
         Assert.Equal("masked", error.Message);
@@ -3130,7 +3131,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: false);
 
         // assert
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         Assert.True(added);
         var error = Assert.Single(store.Errors!);
         Assert.Equal(
@@ -3173,7 +3174,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: false);
 
         // assert
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(PolicyEvaluationResult.Empty);
         Assert.True(added);
         var error = Assert.Single(store.Errors!);
         Assert.Equal(
