@@ -22,14 +22,16 @@ response:
           "message": "Name unavailable.",
           "path": [
             "item",
-            "price"
+            "label"
           ]
         },
         {
-          "message": "Name unavailable.",
+          "message": "Rating unavailable.",
           "path": [
             "item",
-            "reviews"
+            "reviews",
+            0,
+            "stars"
           ]
         }
       ]

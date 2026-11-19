@@ -22,15 +22,7 @@ response:
         {
           "message": "Product unavailable.",
           "path": [
-            "item",
-            "description"
-          ]
-        },
-        {
-          "message": "Product unavailable.",
-          "path": [
-            "item",
-            "price"
+            "item"
           ]
         }
       ]

@@ -3667,6 +3667,10 @@ AddErrors_Next:
         return conditionType.IsAssignableFrom(runtimeType);
     }
 
+    internal bool IsSelectionActive(Selection selection)
+        => selection.IsIncluded(_includeFlags, _wideIncludeFlags)
+            && !selection.IsDeferred(_deferFlags, _wideDeferFlags);
+
     private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errors)
     {
         if (errors is null || sourcePath.IsRoot)
@@ -3687,10 +3691,18 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!current.TryGetValue(segment.Name, out current))
+            if (!current.TryGetValue(segment.Name, out var child))
             {
-                return null;
+                // A wrapper can fail before its nested lookup executes.
+                if (current.Error is not { } error)
+                {
+                    return null;
+                }
+
+                return current.Count == 0 ? current : new ErrorTrie { Error = error };
             }
+
+            current = child;
         }
 
         return current;

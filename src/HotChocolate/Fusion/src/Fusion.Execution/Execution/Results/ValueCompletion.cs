@@ -86,13 +86,12 @@ internal sealed class ValueCompletion
 
         if (sourceSnapshot.ValueKind is not JsonValueKind.Object)
         {
-            var error = errorTrie?.FindFirstError();
             var canExecutionContinue =
                 BuildResultForInvalidSource(
                     sourceSnapshot,
                     target,
                     resultSelectionSet,
-                    error);
+                    errorTrie);
 
             if (!canExecutionContinue)
             {
@@ -632,19 +631,28 @@ internal sealed class ValueCompletion
         SourceResultElementSnapshot source,
         CompositeResultElement target,
         ResultSelectionSet resultSelectionSet,
-        IError? error)
+        ErrorTrie? errorTrie)
     {
         var sourceValueKind = source.ValueKind;
 
         if (sourceValueKind is JsonValueKind.Null && target.Type?.NamedType().IsSharedValueType() == true)
         {
-            if (error is not null)
+            if (errorTrie?.FindFirstError() is { } sharedError)
             {
-                PocketErrors(target.Path, resultSelectionSet, error);
+                PocketErrors(target.Path, resultSelectionSet, sharedError);
             }
 
             return true;
         }
+
+        if (sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined
+            && errorTrie is { Count: > 0 } or { Error: not null }
+            && target.SelectionSet is { DeclaringSelection: not null } selections)
+        {
+            return CompleteFailedLookup(errorTrie, target, selections, resultSelectionSet);
+        }
+
+        var error = errorTrie?.FindFirstError();
 
         // A clean null source without an associated error is a legitimate
         // "not found" state (e.g. a lookup that resolved to null), so each
@@ -671,6 +679,58 @@ internal sealed class ValueCompletion
         }
 
         return BuildErrorResult(target, resultSelectionSet, fallbackError, target.CompactPath);
+    }
+
+    /// <summary>
+    /// Completes the public fields supplied by a failed lookup. An error on the lookup itself
+    /// applies to its single public field or to their common parent.
+    /// </summary>
+    private bool CompleteFailedLookup(
+        ErrorTrie errors,
+        CompositeResultElement target,
+        SelectionSet selections,
+        ResultSelectionSet resultSelectionSet)
+    {
+        var path = target.Path;
+        var fieldCount = 0;
+        string? fieldName = null;
+        var hasRequiredField = false;
+        foreach (var responseName in resultSelectionSet.ResponseNames)
+        {
+            if (!selections.TryGetSelection(responseName, out var selection)
+                || selection.IsInternal
+                || selection.Field.IsIntrospectionField
+                || !_store.IsSelectionActive(selection))
+            {
+                continue;
+            }
+
+            fieldCount++;
+            fieldName = responseName;
+            hasRequiredField |= selection.IsNonNull;
+
+            var sourceName = resultSelectionSet.TryMapResponseName(responseName, out var mapping)
+                ? mapping.SourceResponseName
+                : responseName;
+            if (errors.TryGetValue(sourceName, out var fieldErrors))
+            {
+                var fieldPath = path.Append(responseName);
+                ForwardError(fieldErrors, fieldPath);
+                if (fieldErrors.Count > 0)
+                {
+                    ForwardErrors(fieldErrors, fieldPath, selection.Type, selection);
+                }
+            }
+        }
+
+        if (errors.Error is not null && fieldCount > 0)
+        {
+            ForwardError(errors, fieldCount == 1 ? path.Append(fieldName!) : path);
+        }
+
+        return _errorHandlingMode is not ErrorHandlingMode.Propagate
+            || !hasRequiredField
+            || !PropagateNullValues(target);
     }
 
     /// <summary>

@@ -26,13 +26,6 @@ response:
             "item",
             "label"
           ]
-        },
-        {
-          "message": "Name unavailable.",
-          "path": [
-            "item",
-            "price"
-          ]
         }
       ]
     }

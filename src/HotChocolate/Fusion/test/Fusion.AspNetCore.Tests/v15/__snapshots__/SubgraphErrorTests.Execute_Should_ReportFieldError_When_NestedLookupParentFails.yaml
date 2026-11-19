@@ -15,7 +15,16 @@ response:
           "id": 1,
           "label": null
         }
-      }
+      },
+      "errors": [
+        {
+          "message": "Lookups unavailable.",
+          "path": [
+            "item",
+            "label"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog
