@@ -108,6 +108,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a20a1ca80c0f4035f8d9b8304781e571ce4c20d442478c85ea67d705986fd04f
   operation:
     - document: |
         query testQuery {
@@ -121,27 +122,46 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 2706d1a4cd87db759cecc20719875fdd
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 2706d1a4cd87db759cecc20719875fdd
+      hash: f3bb7334daafefafae0b10d44f0d19bc
+      shortHash: f3bb7334
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_f3bb7334_1 {
-          exclusiveSubgraphA {
-            __typename
+      operation:
+        name: testQuery_f3bb7334_1
+        kind: Query
+        document: |
+          query testQuery_f3bb7334_1 {
+            exclusiveSubgraphA {
+              __typename
+            }
           }
-        }
+        hash: e0d1196ce94e1a4be48b27f02e370cabcfd7f3608e0760464e9306050989540e
+        shortHash: e0d1196c
+        xxHash: 1134507734277233375
+      resultSelectionSet: >-
+        { exclusiveSubgraphA }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_f3bb7334_2 {
-          viewer {
-            subType {
-              subgraphB
+      operation:
+        name: testQuery_f3bb7334_2
+        kind: Query
+        document: |
+          query testQuery_f3bb7334_2 {
+            viewer {
+              subType {
+                subgraphB
+              }
             }
           }
-        }
+        hash: 6ea057deeb9d692b73f521d0967d3109d771618e33a3448538fc6cde4867c0fd
+        shortHash: 6ea057de
+        xxHash: 18067857980587203470
+      resultSelectionSet: >-
+        { viewer { subType { subgraphB } } }

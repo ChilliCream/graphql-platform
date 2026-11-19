@@ -278,6 +278,7 @@ public class ProvidesPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 32a2bf93b9def9b9986b3da286b42c1a8a67753555849e05a4bb734ea6386576
             operation:
               - document: |
                   {
@@ -288,32 +289,51 @@ public class ProvidesPlannerTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 2
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: Operation
                 schema: a
-                operation: |
-                  query Op_123456789101112_1 {
-                    topOrders {
-                      customer {
-                        name
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      topOrders {
+                        customer {
+                          name
+                        }
                       }
                     }
-                  }
+                  hash: 07825de2f59448f4ecc6f2327a456745b9a9db678fe091db009cf7c53e1dd5a7
+                  shortHash: 07825de2
+                  xxHash: 12056292174082988652
+                resultSelectionSet: >-
+                  { topOrders { customer { name } } }
               - id: 2
                 type: Operation
                 schema: b
-                operation: |
-                  query Op_123456789101112_2 {
-                    topOrders {
-                      customer {
-                        email
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2 {
+                      topOrders {
+                        customer {
+                          email
+                        }
                       }
                     }
-                  }
+                  hash: ad2bc7b2275979f829ffcd508765484b608258454963b47c4fe109a468cf6b65
+                  shortHash: ad2bc7b2
+                  xxHash: 13100717385094878081
+                resultSelectionSet: >-
+                  { topOrders { customer { email } } }
             """);
     }
 

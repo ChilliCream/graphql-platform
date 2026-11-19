@@ -106,6 +106,7 @@ sourceSchemas:
         email: String
       }
 operationPlan:
+  id: 7744d80eed63852080a82338ddbaf482bb5836ae50ccc2a5cb0f4e676600d7b4
   operation:
     - document: |
         query($include: Boolean!) {
@@ -126,57 +127,88 @@ operationPlan:
             }
           }
         }
-      hash: e9b006467a2d7a438ff1a92196542dc9
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: e9b006467a2d7a438ff1a92196542dc9
+      hash: bee05c5dceebe964911699e0bff15437
+      shortHash: bee05c5d
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "Qm90OjE="
+      idValue: "\"Qm90OjE=\""
       responseName: node
       branches:
-        - Bot: 5
-        - User: 3
+        Bot: 5
+        User: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_bee05c5d_2 {
-          node(id: "Qm90OjE=") {
-            __typename
-            id
+      operation:
+        name: Op_bee05c5d_2
+        kind: Query
+        document: |
+          query Op_bee05c5d_2 {
+            node(id: "Qm90OjE=") {
+              __typename
+              id
+            }
           }
-        }
+        hash: 948a4f01eda3360acfdcc82b2d35c1c84bed5a7606d932429609c1657ff4fa30
+        shortHash: 948a4f01
+        xxHash: 12134465745326294651
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: CONTRIBUTORS
-      operation: |
-        query Op_bee05c5d_3 {
-          node(id: "Qm90OjE=") {
-            __typename
-            ... on User {
+      operation:
+        name: Op_bee05c5d_3
+        kind: Query
+        document: |
+          query Op_bee05c5d_3 {
+            node(id: "Qm90OjE=") {
               __typename
-              id
+              ... on User {
+                __typename
+                id
+              }
             }
           }
-        }
+        hash: 9368f4025658ddc84a9b2d4f92e5ee52d28ade1792f616730902c082c5282106
+        shortHash: 9368f402
+        xxHash: 11604643670694342347
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { node { __typename ... on User { __typename id } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: ACCOUNTS
-      operation: |
-        query Op_bee05c5d_4($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            email
+      operation:
+        name: Op_bee05c5d_4
+        kind: Query
+        document: |
+          query Op_bee05c5d_4($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              email
+            }
           }
-        }
+        hash: 34610175af0620e8f5b4a40d9c87a9036a9ed6f56759afa97032421d3bd30bf3
+        shortHash: "34610175"
+        xxHash: 12005956799178020082
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { email }
       source: $.userById
       target: $.node<User>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<User>
           selectionMap: >-
             id
       conditions:
@@ -187,31 +219,51 @@ operationPlan:
     - id: 5
       type: Operation
       schema: CONTRIBUTORS
-      operation: |
-        query Op_bee05c5d_5 {
-          node(id: "Qm90OjE=") {
-            __typename
-            ... on Bot {
+      operation:
+        name: Op_bee05c5d_5
+        kind: Query
+        document: |
+          query Op_bee05c5d_5 {
+            node(id: "Qm90OjE=") {
               __typename
-              id
+              ... on Bot {
+                __typename
+                id
+              }
             }
           }
-        }
+        hash: e7251046756e01f22c7e869f6bc58f8fdceef2ddc24bb9c6c2ac651e65c6d610
+        shortHash: e7251046
+        xxHash: 3604940628633359924
+      lookupTypeName: Bot
+      resultSelectionSet: >-
+        { node { __typename ... on Bot { __typename id } } }
       dependencies:
         - id: 1
     - id: 6
       type: Operation
       schema: ACCOUNTS
-      operation: |
-        query Op_bee05c5d_6($__fusion_2_id: ID!) {
-          botById(id: $__fusion_2_id) {
-            owner
+      operation:
+        name: Op_bee05c5d_6
+        kind: Query
+        document: |
+          query Op_bee05c5d_6($__fusion_2_id: ID!) {
+            botById(id: $__fusion_2_id) {
+              owner
+            }
           }
-        }
+        hash: 5bc432951f71b6e95d9919168d59ab24ffa0728cc59bc762b701a870500ecbe2
+        shortHash: 5bc43295
+        xxHash: 12743841931417851807
+      lookupTypeName: Bot
+      resultSelectionSet: >-
+        { owner }
       source: $.botById
       target: $.node<Bot>
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.node<Bot>
           selectionMap: >-
             id
       conditions:

@@ -1,3 +1,4 @@
+id: acb7c186fded29e84ca61b0214b01b1079f015ae0d5920ff2182d85ad5695902
 operation:
   - document: |
       query(
@@ -232,75 +233,94 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 12
-    expandedNodes: 66
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 12
+expandedNodes: 66
 nodes:
   - id: 1
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_1($includeReviews: Boolean!) {
-        viewer {
-          reviews(first: 5) @include(if: $includeReviews) {
-            pageInfo {
-              hasNextPage
-              hasPreviousPage
-              startCursor
-              endCursor
-            }
-            edges {
-              cursor
-              node {
-                id
-                body
-                stars
-                author {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1($includeReviews: Boolean!) {
+          viewer {
+            reviews(first: 5) @include(if: $includeReviews) {
+              pageInfo {
+                hasNextPage
+                hasPreviousPage
+                startCursor
+                endCursor
+              }
+              edges {
+                cursor
+                node {
                   id
+                  body
+                  stars
+                  author {
+                    id
+                  }
                 }
               }
             }
           }
         }
-      }
+      hash: 70aadd244e432d87ef924d34d329e3cdc0b79e3019b858dd1adecbcf31df9669
+      shortHash: 70aadd24
+      xxHash: 18208276380645330079
+    resultSelectionSet: >-
+      { viewer { reviews } }
     forwardedVariables:
       - includeReviews
   - id: 2
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_2(
-        $level1: Boolean!
-        $level2: Boolean!
-        $level3: Boolean!
-      ) {
-        productById(id: "1") {
-          id
-          name
-          ... @include(if: $level1) {
-            description
-            ... @skip(if: $level2) {
-              price
-              ... @include(if: $level3) {
-                dimension {
-                  height
-                  width
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $level1: Boolean!
+          $level2: Boolean!
+          $level3: Boolean!
+        ) {
+          productById(id: "1") {
+            id
+            name
+            ... @include(if: $level1) {
+              description
+              ... @skip(if: $level2) {
+                price
+                ... @include(if: $level3) {
+                  dimension {
+                    height
+                    width
+                  }
                 }
               }
             }
           }
-        }
-        products(first: 3) {
-          edges {
-            node {
-              name
-              description
-              price
-              id
+          products(first: 3) {
+            edges {
+              node {
+                name
+                description
+                price
+                id
+              }
             }
           }
         }
-      }
+      hash: 00180784c5fca62a77eb4b1a5ef2a6113cb231c93ddd055affff39ee36b26026
+      shortHash: "00180784"
+      xxHash: 5050035578557775898
+    resultSelectionSet: >-
+      { productById products }
     forwardedVariables:
       - level1
       - level2
@@ -308,40 +328,59 @@ nodes:
   - id: 3
     type: Operation
     schema: search
-    operation: |
-      query Op_123456789101112_3 {
-        searchContent(query: "extreme") {
-          __typename
-          id
-          title
-          description
-          ... on Product {
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3 {
+          searchContent(query: "extreme") {
+            __typename
             id
-          }
-          ... on Article {
-            content
-            author {
+            title
+            description
+            ... on Product {
               id
             }
-            publishedAt
-            tags
+            ... on Article {
+              content
+              author {
+                id
+              }
+              publishedAt
+              tags
+            }
           }
         }
-      }
+      hash: 1bc700ef1869aa5bfedb991356838a0c89e829cced1ef42463a0ff8b594638f7
+      shortHash: 1bc700ef
+      xxHash: 17980985450971573062
+    resultSelectionSet: >-
+      { searchContent }
   - id: 10
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_10($__fusion_7_id: ID!) {
-        productById(id: $__fusion_7_id) {
-          name
-          price
+    operation:
+      name: Op_123456789101112_10
+      kind: Query
+      document: |
+        query Op_123456789101112_10($__fusion_7_id: ID!) {
+          productById(id: $__fusion_7_id) {
+            name
+            price
+          }
         }
-      }
+      hash: 13fe190be7dfd21cca59aa653976c631da55f77e6da01f7e50f2901afde50769
+      shortHash: 13fe190b
+      xxHash: 5452731415243763132
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { name price }
     source: $.productById
     target: $.searchContent<Product>
     requirements:
       - name: __fusion_7_id
+        type: ID!
+        path: $.searchContent<Product>
         selectionMap: >-
           id
     dependencies:
@@ -349,38 +388,57 @@ nodes:
   - id: 25
     type: Operation
     schema: users
-    operation: |
-      query Op_123456789101112_25 {
-        viewer {
-          displayName
+    operation:
+      name: Op_123456789101112_25
+      kind: Query
+      document: |
+        query Op_123456789101112_25 {
+          viewer {
+            displayName
+          }
         }
-      }
+      hash: 08a3e67637555618d54222cdbde9387e5d627c7391d404d7fa7e6903f1ed3eb8
+      shortHash: 08a3e676
+      xxHash: 15165681327325456677
+    resultSelectionSet: >-
+      { viewer { displayName } }
   - id: 4
     type: Operation
     schema: users
-    operation: |
-      query Op_123456789101112_4(
-        $level3: Boolean!
-        $level4: Boolean!
-        $__fusion_1_id: ID!
-      ) {
-        userById(id: $__fusion_1_id) {
-          displayName
-          reviews(first: 2) @include(if: $level3) {
-            nodes {
-              id
-              ... @skip(if: $level4) {
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4(
+          $level3: Boolean!
+          $level4: Boolean!
+          $__fusion_1_id: ID!
+        ) {
+          userById(id: $__fusion_1_id) {
+            displayName
+            reviews(first: 2) @include(if: $level3) {
+              nodes {
                 id
+                ... @skip(if: $level4) {
+                  id
+                }
               }
             }
           }
         }
-      }
+      hash: 7311c04f10a34394a014053b02d17f7960d39535dd045def08eb2cdfaa5796eb
+      shortHash: 7311c04f
+      xxHash: 1426209096955868281
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { displayName reviews }
     source: $.userById
     target: $.searchContent<Article>.author
     batchingGroupId: 30
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.searchContent<Article>.author
         selectionMap: >-
           id
     forwardedVariables:
@@ -391,22 +449,33 @@ nodes:
   - id: 26
     type: Operation
     schema: users
-    operation: |
-      query Op_123456789101112_26($level3: Boolean!, $__fusion_22_id: ID!) {
-        userById(id: $__fusion_22_id) {
-          displayName
-          reviews(first: 3) @skip(if: $level3) {
-            nodes {
-              id
+    operation:
+      name: Op_123456789101112_26
+      kind: Query
+      document: |
+        query Op_123456789101112_26($level3: Boolean!, $__fusion_22_id: ID!) {
+          userById(id: $__fusion_22_id) {
+            displayName
+            reviews(first: 3) @skip(if: $level3) {
+              nodes {
+                id
+              }
             }
           }
         }
-      }
+      hash: 2ebb5a6d6c44ed3c9f4de7d92ba716994ad8e48f9fcb9202df0457e918120765
+      shortHash: 2ebb5a6d
+      xxHash: 18335825966022712204
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { displayName reviews }
     source: $.userById
     target: $.viewer.reviews.edges.node.author
     batchingGroupId: 30
     requirements:
       - name: __fusion_22_id
+        type: ID!
+        path: $.viewer.reviews.edges.node.author
         selectionMap: >-
           id
     conditions:
@@ -419,26 +488,37 @@ nodes:
   - id: 9
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_9($level1: Boolean!, $__fusion_6_id: ID!) {
-        productById(id: $__fusion_6_id) {
-          reviews(first: 3) {
-            nodes {
-              id
-              body
-              stars
-              author @skip(if: $level1) {
+    operation:
+      name: Op_123456789101112_9
+      kind: Query
+      document: |
+        query Op_123456789101112_9($level1: Boolean!, $__fusion_6_id: ID!) {
+          productById(id: $__fusion_6_id) {
+            reviews(first: 3) {
+              nodes {
                 id
+                body
+                stars
+                author @skip(if: $level1) {
+                  id
+                }
               }
             }
           }
         }
-      }
+      hash: c66c6c5310a511d186e9d3444c65ea04b760936d36fde5aff4b307b59f930b8d
+      shortHash: c66c6c53
+      xxHash: 3089575217217223774
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { reviews }
     source: $.productById
     target: $.searchContent<Product>
     batchingGroupId: 31
     requirements:
       - name: __fusion_6_id
+        type: ID!
+        path: $.searchContent<Product>
         selectionMap: >-
           id
     conditions:
@@ -451,31 +531,42 @@ nodes:
   - id: 17
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_17(
-        $level1: Boolean!
-        $includeReviews: Boolean!
-        $__fusion_14_id: ID!
-      ) {
-        productById(id: $__fusion_14_id) {
-          averageRating
-          reviews(first: 5) @include(if: $includeReviews) {
-            nodes {
-              id
-              body
-              stars
-              author @skip(if: $level1) {
+    operation:
+      name: Op_123456789101112_17
+      kind: Query
+      document: |
+        query Op_123456789101112_17(
+          $level1: Boolean!
+          $includeReviews: Boolean!
+          $__fusion_14_id: ID!
+        ) {
+          productById(id: $__fusion_14_id) {
+            averageRating
+            reviews(first: 5) @include(if: $includeReviews) {
+              nodes {
                 id
+                body
+                stars
+                author @skip(if: $level1) {
+                  id
+                }
               }
             }
           }
         }
-      }
+      hash: 7eef9a0c3805a132b77b1546a9936a606a9343f70d2e170702216a7888b9b017
+      shortHash: 7eef9a0c
+      xxHash: 8232072516771829612
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { averageRating reviews }
     source: $.productById
     target: $.products.edges.node
     batchingGroupId: 31
     requirements:
       - name: __fusion_14_id
+        type: ID!
+        path: $.products.edges.node
         selectionMap: >-
           id
     forwardedVariables:
@@ -486,41 +577,52 @@ nodes:
   - id: 23
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_23(
-        $includeReviews: Boolean!
-        $includeMetadata: Boolean!
-        $__fusion_20_id: ID!
-      ) {
-        productById(id: $__fusion_20_id) {
-          reviews(first: 10) {
-            pageInfo {
-              hasNextPage
-              ... @include(if: $includeMetadata) {
-                hasPreviousPage
-                startCursor
-                endCursor
+    operation:
+      name: Op_123456789101112_23
+      kind: Query
+      document: |
+        query Op_123456789101112_23(
+          $includeReviews: Boolean!
+          $includeMetadata: Boolean!
+          $__fusion_20_id: ID!
+        ) {
+          productById(id: $__fusion_20_id) {
+            reviews(first: 10) {
+              pageInfo {
+                hasNextPage
+                ... @include(if: $includeMetadata) {
+                  hasPreviousPage
+                  startCursor
+                  endCursor
+                }
               }
-            }
-            edges {
-              cursor
-              node {
-                id
-                body
-                stars
-                author @include(if: $includeReviews) {
+              edges {
+                cursor
+                node {
                   id
+                  body
+                  stars
+                  author @include(if: $includeReviews) {
+                    id
+                  }
                 }
               }
             }
           }
         }
-      }
+      hash: de7e570e3a2cca47f8ce43db1bd96d829d724e14bdf19c445ecbd44a46e76f14
+      shortHash: de7e570e
+      xxHash: 3574020953864281737
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { reviews }
     source: $.productById
     target: $.productById
     batchingGroupId: 31
     requirements:
       - name: __fusion_20_id
+        type: ID!
+        path: $.productById
         selectionMap: >-
           id
     conditions:
@@ -544,17 +646,28 @@ nodes:
   - id: 5
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_5($__fusion_2_id: ID!) {
-        reviewById(id: $__fusion_2_id) {
-          body
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query Op_123456789101112_5($__fusion_2_id: ID!) {
+          reviewById(id: $__fusion_2_id) {
+            body
+          }
         }
-      }
+      hash: be3d21ac2de3089e490e2af9728a86a5a7e5c64ba07c73cbdfd158487a0bd663
+      shortHash: be3d21ac
+      xxHash: 13720536415547644514
+    lookupTypeName: Review
+    resultSelectionSet: >-
+      { body }
     source: $.reviewById
     target: $.searchContent<Article>.author.reviews.nodes
     batchingGroupId: 32
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.searchContent<Article>.author.reviews.nodes
         selectionMap: >-
           id
     conditions:
@@ -565,23 +678,34 @@ nodes:
   - id: 6
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_6($level5: Boolean!, $__fusion_3_id: ID!) {
-        reviewById(id: $__fusion_3_id) {
-          stars
-          product {
-            id
-            ... @include(if: $level5) {
+    operation:
+      name: Op_123456789101112_6
+      kind: Query
+      document: |
+        query Op_123456789101112_6($level5: Boolean!, $__fusion_3_id: ID!) {
+          reviewById(id: $__fusion_3_id) {
+            stars
+            product {
               id
+              ... @include(if: $level5) {
+                id
+              }
             }
           }
         }
-      }
+      hash: 935df3fb9fe2dea33696257a8e8d0ca41398e9e7d9b4dac97cec9ec1afa8c545
+      shortHash: 935df3fb
+      xxHash: 9299177577061036615
+    lookupTypeName: Review
+    resultSelectionSet: >-
+      { stars product }
     source: $.reviewById
     target: $.searchContent<Article>.author.reviews.nodes
     batchingGroupId: 32
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.searchContent<Article>.author.reviews.nodes
         selectionMap: >-
           id
     conditions:
@@ -596,28 +720,39 @@ nodes:
   - id: 27
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_27(
-        $level4: Boolean!
-        $level5: Boolean!
-        $__fusion_23_id: ID!
-      ) {
-        reviewById(id: $__fusion_23_id) {
-          body
-          stars
-          product @include(if: $level4) {
-            id
-            ... @skip(if: $level5) {
+    operation:
+      name: Op_123456789101112_27
+      kind: Query
+      document: |
+        query Op_123456789101112_27(
+          $level4: Boolean!
+          $level5: Boolean!
+          $__fusion_23_id: ID!
+        ) {
+          reviewById(id: $__fusion_23_id) {
+            body
+            stars
+            product @include(if: $level4) {
               id
+              ... @skip(if: $level5) {
+                id
+              }
             }
           }
         }
-      }
+      hash: 9ee305a32b381c0e102f07d349a2c892bbeeb6b55aa124717a1cf78ae43662d7
+      shortHash: 9ee305a3
+      xxHash: 11670464787688329586
+    lookupTypeName: Review
+    resultSelectionSet: >-
+      { body stars product }
     source: $.reviewById
     target: $.viewer.reviews.edges.node.author.reviews.nodes
     batchingGroupId: 32
     requirements:
       - name: __fusion_23_id
+        type: ID!
+        path: $.viewer.reviews.edges.node.author.reviews.nodes
         selectionMap: >-
           id
     conditions:
@@ -631,29 +766,40 @@ nodes:
   - id: 11
     type: Operation
     schema: users
-    operation: |
-      query Op_123456789101112_11(
-        $level2: Boolean!
-        $level3: Boolean!
-        $__fusion_8_id: ID!
-      ) {
-        userById(id: $__fusion_8_id) {
-          displayName
-          reviews(first: 2) @include(if: $level2) {
-            nodes {
-              id
-              ... @skip(if: $level3) {
+    operation:
+      name: Op_123456789101112_11
+      kind: Query
+      document: |
+        query Op_123456789101112_11(
+          $level2: Boolean!
+          $level3: Boolean!
+          $__fusion_8_id: ID!
+        ) {
+          userById(id: $__fusion_8_id) {
+            displayName
+            reviews(first: 2) @include(if: $level2) {
+              nodes {
                 id
+                ... @skip(if: $level3) {
+                  id
+                }
               }
             }
           }
         }
-      }
+      hash: d3168f219c77641016daa987c437da7cc479e0494cb058f8f3e46dd5db388b98
+      shortHash: d3168f21
+      xxHash: 9345583460032435404
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { displayName reviews }
     source: $.userById
     target: $.searchContent<Product>.reviews.nodes.author
     batchingGroupId: 33
     requirements:
       - name: __fusion_8_id
+        type: ID!
+        path: $.searchContent<Product>.reviews.nodes.author
         selectionMap: >-
           id
     conditions:
@@ -669,29 +815,40 @@ nodes:
   - id: 18
     type: Operation
     schema: users
-    operation: |
-      query Op_123456789101112_18(
-        $level2: Boolean!
-        $level3: Boolean!
-        $__fusion_15_id: ID!
-      ) {
-        userById(id: $__fusion_15_id) {
-          displayName
-          reviews(first: 3) @include(if: $level2) {
-            nodes {
-              id
-              ... @skip(if: $level3) {
+    operation:
+      name: Op_123456789101112_18
+      kind: Query
+      document: |
+        query Op_123456789101112_18(
+          $level2: Boolean!
+          $level3: Boolean!
+          $__fusion_15_id: ID!
+        ) {
+          userById(id: $__fusion_15_id) {
+            displayName
+            reviews(first: 3) @include(if: $level2) {
+              nodes {
                 id
+                ... @skip(if: $level3) {
+                  id
+                }
               }
             }
           }
         }
-      }
+      hash: 76e2fdf6f2a06124da3b26c721056e46606937c2b3a50a91d47497956cc3d4b9
+      shortHash: 76e2fdf6
+      xxHash: 7521101345283813155
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { displayName reviews }
     source: $.userById
     target: $.products.edges.node.reviews.nodes.author
     batchingGroupId: 33
     requirements:
       - name: __fusion_15_id
+        type: ID!
+        path: $.products.edges.node.reviews.nodes.author
         selectionMap: >-
           id
     conditions:
@@ -707,17 +864,28 @@ nodes:
   - id: 24
     type: Operation
     schema: users
-    operation: |
-      query Op_123456789101112_24($__fusion_21_id: ID!) {
-        userById(id: $__fusion_21_id) {
-          displayName
+    operation:
+      name: Op_123456789101112_24
+      kind: Query
+      document: |
+        query Op_123456789101112_24($__fusion_21_id: ID!) {
+          userById(id: $__fusion_21_id) {
+            displayName
+          }
         }
-      }
+      hash: dd9d37becaf02e69aa1b24197f191d124e3b47680739b9da67e8817a3aab2747
+      shortHash: dd9d37be
+      xxHash: 16917323918263324903
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { displayName }
     source: $.userById
     target: $.productById.reviews.edges.node.author
     batchingGroupId: 33
     requirements:
       - name: __fusion_21_id
+        type: ID!
+        path: $.productById.reviews.edges.node.author
         selectionMap: >-
           id
     conditions:
@@ -730,17 +898,28 @@ nodes:
   - id: 7
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_7($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
-          name
+    operation:
+      name: Op_123456789101112_7
+      kind: Query
+      document: |
+        query Op_123456789101112_7($__fusion_4_id: ID!) {
+          productById(id: $__fusion_4_id) {
+            name
+          }
         }
-      }
+      hash: 4d2ce55c81a7e3d4c4f012b790c0d25e277782b5fcad133524ae0e86a37dbdd3
+      shortHash: 4d2ce55c
+      xxHash: 14084280147853433395
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { name }
     source: $.productById
     target: $.searchContent<Article>.author.reviews.nodes.product
     batchingGroupId: 34
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.searchContent<Article>.author.reviews.nodes.product
         selectionMap: >-
           id
     dependencies:
@@ -748,21 +927,32 @@ nodes:
   - id: 8
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_8($level6: Boolean!, $__fusion_5_id: ID!) {
-        productById(id: $__fusion_5_id) {
-          price
-          dimension @skip(if: $level6) {
-            height
-            width
+    operation:
+      name: Op_123456789101112_8
+      kind: Query
+      document: |
+        query Op_123456789101112_8($level6: Boolean!, $__fusion_5_id: ID!) {
+          productById(id: $__fusion_5_id) {
+            price
+            dimension @skip(if: $level6) {
+              height
+              width
+            }
           }
         }
-      }
+      hash: c47518603b891572e5f9301fe5e8e0fb5ed0d9bb8c5a4626d5ab90039032a418
+      shortHash: c4751860
+      xxHash: 8556996128006284089
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price dimension }
     source: $.productById
     target: $.searchContent<Article>.author.reviews.nodes.product
     batchingGroupId: 34
     requirements:
       - name: __fusion_5_id
+        type: ID!
+        path: $.searchContent<Article>.author.reviews.nodes.product
         selectionMap: >-
           id
     conditions:
@@ -775,17 +965,28 @@ nodes:
   - id: 28
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_28($__fusion_24_id: ID!) {
-        productById(id: $__fusion_24_id) {
-          name
+    operation:
+      name: Op_123456789101112_28
+      kind: Query
+      document: |
+        query Op_123456789101112_28($__fusion_24_id: ID!) {
+          productById(id: $__fusion_24_id) {
+            name
+          }
         }
-      }
+      hash: b017649242b945b185f31e934802bee1b000d0eff6bb78efcdd9c879f4fa963a
+      shortHash: b0176492
+      xxHash: 9786061836948021046
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { name }
     source: $.productById
     target: $.viewer.reviews.edges.node.author.reviews.nodes.product
     batchingGroupId: 34
     requirements:
       - name: __fusion_24_id
+        type: ID!
+        path: $.viewer.reviews.edges.node.author.reviews.nodes.product
         selectionMap: >-
           id
     conditions:
@@ -796,21 +997,32 @@ nodes:
   - id: 29
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_29($level6: Boolean!, $__fusion_25_id: ID!) {
-        productById(id: $__fusion_25_id) {
-          price
-          dimension @include(if: $level6) {
-            height
-            width
+    operation:
+      name: Op_123456789101112_29
+      kind: Query
+      document: |
+        query Op_123456789101112_29($level6: Boolean!, $__fusion_25_id: ID!) {
+          productById(id: $__fusion_25_id) {
+            price
+            dimension @include(if: $level6) {
+              height
+              width
+            }
           }
         }
-      }
+      hash: a44bdba620156a86a209df62b3438a21c36801b9e2c06b0e304b9b2ba9e19491
+      shortHash: a44bdba6
+      xxHash: 13787265162373396076
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price dimension }
     source: $.productById
     target: $.viewer.reviews.edges.node.author.reviews.nodes.product
     batchingGroupId: 34
     requirements:
       - name: __fusion_25_id
+        type: ID!
+        path: $.viewer.reviews.edges.node.author.reviews.nodes.product
         selectionMap: >-
           id
     conditions:
@@ -825,12 +1037,21 @@ nodes:
   - id: 12
     type: OperationBatch
     schema: reviews
-    operation: |
-      query Op_123456789101112_12($__fusion_9_id: ID!) {
-        reviewById(id: $__fusion_9_id) {
-          body
+    operation:
+      name: Op_123456789101112_12
+      kind: Query
+      document: |
+        query Op_123456789101112_12($__fusion_9_id: ID!) {
+          reviewById(id: $__fusion_9_id) {
+            body
+          }
         }
-      }
+      hash: 798fe6cae4ad41960ed84673a4a29d76002894f413ef4cc945434bf130572691
+      shortHash: 798fe6ca
+      xxHash: 1778860237863546261
+    lookupTypeName: Review
+    resultSelectionSet: >-
+      { body }
     source: $.reviewById
     targets:
       - $.searchContent<Product>.reviews.nodes.author.reviews.nodes
@@ -838,6 +1059,8 @@ nodes:
     batchingGroupId: 35
     requirements:
       - name: __fusion_9_id
+        type: ID!
+        path: $.searchContent<Product>.reviews.nodes.author.reviews.nodes
         selectionMap: >-
           id
     conditions:
@@ -849,38 +1072,49 @@ nodes:
   - id: 13
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_13(
-        $level4: Boolean!
-        $level5: Boolean!
-        $level6: Boolean!
-        $__fusion_10_id: ID!
-      ) {
-        reviewById(id: $__fusion_10_id) {
-          stars
-          product {
-            id
-            ... @include(if: $level4) {
-              ... @skip(if: $level5) {
-                reviews(first: 1) @include(if: $level6) {
-                  nodes {
-                    id
-                    body
-                    stars
+    operation:
+      name: Op_123456789101112_13
+      kind: Query
+      document: |
+        query Op_123456789101112_13(
+          $level4: Boolean!
+          $level5: Boolean!
+          $level6: Boolean!
+          $__fusion_10_id: ID!
+        ) {
+          reviewById(id: $__fusion_10_id) {
+            stars
+            product {
+              id
+              ... @include(if: $level4) {
+                ... @skip(if: $level5) {
+                  reviews(first: 1) @include(if: $level6) {
+                    nodes {
+                      id
+                      body
+                      stars
+                    }
                   }
+                  id
                 }
                 id
               }
-              id
             }
           }
         }
-      }
+      hash: 5676d9a4bd14ebbdfa1e71058b180cb2179e1ef72369587a495440d0747f750a
+      shortHash: 5676d9a4
+      xxHash: 17965916267394197890
+    lookupTypeName: Review
+    resultSelectionSet: >-
+      { stars product }
     source: $.reviewById
     target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes
     batchingGroupId: 35
     requirements:
       - name: __fusion_10_id
+        type: ID!
+        path: $.searchContent<Product>.reviews.nodes.author.reviews.nodes
         selectionMap: >-
           id
     conditions:
@@ -897,23 +1131,34 @@ nodes:
   - id: 20
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_20($level4: Boolean!, $__fusion_17_id: ID!) {
-        reviewById(id: $__fusion_17_id) {
-          stars
-          product {
-            id
-            ... @include(if: $level4) {
+    operation:
+      name: Op_123456789101112_20
+      kind: Query
+      document: |
+        query Op_123456789101112_20($level4: Boolean!, $__fusion_17_id: ID!) {
+          reviewById(id: $__fusion_17_id) {
+            stars
+            product {
               id
+              ... @include(if: $level4) {
+                id
+              }
             }
           }
         }
-      }
+      hash: 751fdfe8e8df1c81b4447ed7de62c9ca06f4afbb5cf3da87e51ab8089c28b4bb
+      shortHash: 751fdfe8
+      xxHash: 4979326556832634751
+    lookupTypeName: Review
+    resultSelectionSet: >-
+      { stars product }
     source: $.reviewById
     target: $.products.edges.node.reviews.nodes.author.reviews.nodes
     batchingGroupId: 35
     requirements:
       - name: __fusion_17_id
+        type: ID!
+        path: $.products.edges.node.reviews.nodes.author.reviews.nodes
         selectionMap: >-
           id
     conditions:
@@ -928,12 +1173,21 @@ nodes:
   - id: 14
     type: OperationBatch
     schema: products
-    operation: |
-      query Op_123456789101112_14($__fusion_11_id: ID!) {
-        productById(id: $__fusion_11_id) {
-          name
+    operation:
+      name: Op_123456789101112_14
+      kind: Query
+      document: |
+        query Op_123456789101112_14($__fusion_11_id: ID!) {
+          productById(id: $__fusion_11_id) {
+            name
+          }
         }
-      }
+      hash: bbec5c21a9af5d8c2633c70ef7a90eaa3cbf39921828341305deb933c577439e
+      shortHash: bbec5c21
+      xxHash: 15076959507009763079
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { name }
     source: $.productById
     targets:
       - $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
@@ -941,6 +1195,8 @@ nodes:
     batchingGroupId: 36
     requirements:
       - name: __fusion_11_id
+        type: ID!
+        path: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
         selectionMap: >-
           id
     dependencies:
@@ -950,17 +1206,28 @@ nodes:
   - id: 15
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_15($__fusion_12_id: ID!) {
-        productById(id: $__fusion_12_id) {
-          price
+    operation:
+      name: Op_123456789101112_15
+      kind: Query
+      document: |
+        query Op_123456789101112_15($__fusion_12_id: ID!) {
+          productById(id: $__fusion_12_id) {
+            price
+          }
         }
-      }
+      hash: 1c5eec568a4adb7199082ea5c289792c8e9191e328c10c3cb1ccee93802a7a61
+      shortHash: 1c5eec56
+      xxHash: 64388043762721741
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.productById
     target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36
     requirements:
       - name: __fusion_12_id
+        type: ID!
+        path: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
         selectionMap: >-
           id
     conditions:
@@ -971,20 +1238,31 @@ nodes:
   - id: 16
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_16($__fusion_13_id: ID!) {
-        productById(id: $__fusion_13_id) {
-          dimension {
-            height
-            width
+    operation:
+      name: Op_123456789101112_16
+      kind: Query
+      document: |
+        query Op_123456789101112_16($__fusion_13_id: ID!) {
+          productById(id: $__fusion_13_id) {
+            dimension {
+              height
+              width
+            }
           }
         }
-      }
+      hash: c8df12b9e69cf044c3f68fe57555cf9887ab4944b1394396e3338ca3509a6643
+      shortHash: c8df12b9
+      xxHash: 5020678809203160322
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { dimension }
     source: $.productById
     target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36
     requirements:
       - name: __fusion_13_id
+        type: ID!
+        path: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
         selectionMap: >-
           id
     conditions:
@@ -997,21 +1275,32 @@ nodes:
   - id: 22
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_22($level5: Boolean!, $__fusion_19_id: ID!) {
-        productById(id: $__fusion_19_id) {
-          price
-          dimension @skip(if: $level5) {
-            height
-            width
+    operation:
+      name: Op_123456789101112_22
+      kind: Query
+      document: |
+        query Op_123456789101112_22($level5: Boolean!, $__fusion_19_id: ID!) {
+          productById(id: $__fusion_19_id) {
+            price
+            dimension @skip(if: $level5) {
+              height
+              width
+            }
           }
         }
-      }
+      hash: e0290b2647c57aa425411b59931d186bce0b895d13ef0065bd04cf1ce2d0fa99
+      shortHash: e0290b26
+      xxHash: 7086325360457343282
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price dimension }
     source: $.productById
     target: $.products.edges.node.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36
     requirements:
       - name: __fusion_19_id
+        type: ID!
+        path: $.products.edges.node.reviews.nodes.author.reviews.nodes.product
         selectionMap: >-
           id
     conditions:

@@ -1,3 +1,4 @@
+id: ae4e5ab8a63d815601a32aad1a8a9a3960e62c41e5fb69e16aa08148194eeb78
 operation:
   - document: |
       {
@@ -12,37 +13,59 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
     schema: authors
-    operation: |
-      query Op_123456789101112_1 {
-        books {
-          id
-          author {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          books {
             id
+            author {
+              id
+            }
           }
         }
-      }
+      hash: c32e8657b6b2c1166bce5bd20d61e98f091ed383cc899495c0cef8f339e977c3
+      shortHash: c32e8657
+      xxHash: 15718704241603702868
+    resultSelectionSet: >-
+      { books }
   - id: 2
     type: ApolloOperation
     schema: pricing
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Book {
-            price
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Book {
+              price
+            }
           }
         }
-      }
+      hash: 61adcafe25b9c2e00d3bced731b8f623118dca5097a8c3d05ed371798d1dd9e0
+      shortHash: 61adcafe
+      xxHash: 12922900905606822583
+    entityType: Book
+    resultSelectionSet: >-
+      { price }
     source: $._entities
     target: $.books
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.books
         selectionMap: >-
           id
     dependencies:
@@ -50,18 +73,29 @@ nodes:
   - id: 3
     type: ApolloOperation
     schema: catalog
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Author {
-            name
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Author {
+              name
+            }
           }
         }
-      }
+      hash: 9a9d23616abec556493c50b68f13072e7d4d2361930521f061c8b3560f3fc28e
+      shortHash: 9a9d2361
+      xxHash: 1071248480985140561
+    entityType: Author
+    resultSelectionSet: >-
+      { name }
     source: $._entities
     target: $.books.author
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.books.author
         selectionMap: >-
           id
     dependencies:

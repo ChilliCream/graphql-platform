@@ -113,6 +113,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a0b8bcf3accd641a9263e0a04624c8008e8dfbbf8d1550f926875f85f5eb0f93
   operation:
     - document: |
         {
@@ -122,33 +123,55 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 4634dd9b18a690cd3eeb7f078b23e134
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 4634dd9b18a690cd3eeb7f078b23e134
+      hash: e24d93b6245cedd878fff4452f5f16b9
+      shortHash: e24d93b6
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_e24d93b6_1 {
-          topProduct {
-            price
-            id
+      operation:
+        name: Op_e24d93b6_1
+        kind: Query
+        document: |
+          query Op_e24d93b6_1 {
+            topProduct {
+              price
+              id
+            }
           }
-        }
+        hash: 84bd1b3156c34547ab6199423c370c8f03b7c7829ad5a9611f6f988b3eebefe8
+        shortHash: 84bd1b31
+        xxHash: 792357840583933075
+      resultSelectionSet: >-
+        { topProduct }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_e24d93b6_2($__fusion_1_id: Int!) {
-          productById(id: $__fusion_1_id) {
-            name
+      operation:
+        name: Op_e24d93b6_2
+        kind: Query
+        document: |
+          query Op_e24d93b6_2($__fusion_1_id: Int!) {
+            productById(id: $__fusion_1_id) {
+              name
+            }
           }
-        }
+        hash: bf35c0369f1f10a1cde6798060c7c7d616445bd051cc7a1520632d714d4a7060
+        shortHash: bf35c036
+        xxHash: 6904251992924969846
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.productById
       target: $.topProduct
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.topProduct
           selectionMap: >-
             id
       dependencies:

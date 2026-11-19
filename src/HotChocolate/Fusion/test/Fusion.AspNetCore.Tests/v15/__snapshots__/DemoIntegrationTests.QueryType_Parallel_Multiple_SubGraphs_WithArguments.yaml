@@ -385,6 +385,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 8fb79d9c0c62852a8f1910e6ea2939cbf1293efa9282ea3abdc12b7e11b1093c
   operation:
     - document: |
         query TopProducts {
@@ -401,39 +402,61 @@ operationPlan:
           }
         }
       name: TopProducts
-      hash: 4a544b60aaeb90cab08d4d28d93b1c06
-      searchSpace: 2
-      expandedNodes: 5
+      kind: Query
+      id: 4a544b60aaeb90cab08d4d28d93b1c06
+      hash: ca09eae12d7fcd12534855b54bb04f05
+      shortHash: ca09eae1
+  searchSpace: 2
+  expandedNodes: 5
   nodes:
     - id: 1
       type: Operation
       schema: C
-      operation: |
-        query TopProducts_ca09eae1_1 {
-          topProducts(first: 5) {
-            weight
-            id
+      operation:
+        name: TopProducts_ca09eae1_1
+        kind: Query
+        document: |
+          query TopProducts_ca09eae1_1 {
+            topProducts(first: 5) {
+              weight
+              id
+            }
           }
-        }
+        hash: 90276b6e191bf54ec2cace479fdde75b060e23b02ebbbefe808fc0ef73938eb3
+        shortHash: 90276b6e
+        xxHash: 13551850936811052441
+      resultSelectionSet: >-
+        { topProducts }
     - id: 2
       type: Operation
       schema: D
-      operation: |
-        query TopProducts_ca09eae1_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              deliveryEstimate(zip: "12345") {
-                min
-                max
+      operation:
+        name: TopProducts_ca09eae1_2
+        kind: Query
+        document: |
+          query TopProducts_ca09eae1_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                deliveryEstimate(zip: "12345") {
+                  min
+                  max
+                }
               }
             }
           }
-        }
+        hash: 98b858647e12290e9b63a2dd096592dd16d52362fb37672fa05b93c3ffd6d9f7
+        shortHash: 98b85864
+        xxHash: 4392293577395449671
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { deliveryEstimate }
       source: $.node<Product>
       target: $.topProducts
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.topProducts
           selectionMap: >-
             id
       dependencies:
@@ -441,21 +464,32 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query TopProducts_ca09eae1_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              reviews {
-                body
+      operation:
+        name: TopProducts_ca09eae1_3
+        kind: Query
+        document: |
+          query TopProducts_ca09eae1_3($__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on Product {
+                reviews {
+                  body
+                }
               }
             }
           }
-        }
+        hash: 6d8b85e04212d6f5d462717f356cbdc012fcd1915ad52fc34f392480f9f5b9dc
+        shortHash: 6d8b85e0
+        xxHash: 11202112020223218863
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { reviews }
       source: $.node<Product>
       target: $.topProducts
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.topProducts
           selectionMap: >-
             id
       dependencies:

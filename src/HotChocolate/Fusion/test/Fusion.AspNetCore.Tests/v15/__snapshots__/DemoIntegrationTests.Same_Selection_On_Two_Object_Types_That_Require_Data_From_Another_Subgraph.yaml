@@ -155,6 +155,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: c9159c3638a351e1459c705dad3c51253205d04de82cb5c3aaafbe40bdcdd4ae
   operation:
     - document: |
         {
@@ -173,38 +174,58 @@ operationPlan:
             }
           }
         }
-      hash: ea26dbd70d09faf9f892d75802cf575e
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: ea26dbd70d09faf9f892d75802cf575e
+      hash: e2224f1b985fbda85e8bf7b9b94be074
+      shortHash: e2224f1b
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_e2224f1b_1 {
-          item1 {
-            product {
-              id
+      operation:
+        name: Op_e2224f1b_1
+        kind: Query
+        document: |
+          query Op_e2224f1b_1 {
+            item1 {
+              product {
+                id
+              }
+            }
+            item2 {
+              product {
+                id
+              }
             }
           }
-          item2 {
-            product {
-              id
-            }
-          }
-        }
+        hash: 9be075a63d63ede7bcd1597a522651a1ebabfdaeb8792f41270fbc4e19645e1b
+        shortHash: 9be075a6
+        xxHash: 8287171871325115487
+      resultSelectionSet: >-
+        { item1 item2 }
     - id: 2
       type: OperationBatch
       schema: B
-      operation: |
-        query Op_e2224f1b_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
+      operation:
+        name: Op_e2224f1b_2
+        kind: Query
+        document: |
+          query Op_e2224f1b_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                name
+              }
             }
           }
-        }
+        hash: 633becfd737e8f3cbe38c2ada233847092cf9a5be707146ed112c63fed08e937
+        shortHash: 633becfd
+        xxHash: 5689478028442708906
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.node<Product>
       targets:
         - $.item2.product
@@ -212,6 +233,8 @@ operationPlan:
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.item2.product
           selectionMap: >-
             id
       dependencies:

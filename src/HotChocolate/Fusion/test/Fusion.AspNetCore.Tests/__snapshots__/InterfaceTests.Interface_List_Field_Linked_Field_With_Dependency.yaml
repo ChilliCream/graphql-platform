@@ -163,6 +163,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: de18503d26c2bde5c94342a7f35561082e69e881fd4b4c0665252579bb7b124b
   operation:
     - document: |
         query testQuery {
@@ -176,35 +177,57 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 1e57752ca414413aee85189d41001217
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 1e57752ca414413aee85189d41001217
+      hash: 171db7a79a3d029b568597f040bda466
+      shortHash: 171db7a7
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_171db7a7_1 {
-          authorables {
-            __typename
-            author {
-              id
+      operation:
+        name: testQuery_171db7a7_1
+        kind: Query
+        document: |
+          query testQuery_171db7a7_1 {
+            authorables {
+              __typename
+              author {
+                id
+              }
             }
           }
-        }
+        hash: d91b0e75f838414459d39380e4bcc9806a9f69b4211e4919281d00f613cc9704
+        shortHash: d91b0e75
+        xxHash: 14615918368641570387
+      resultSelectionSet: >-
+        { authorables }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_171db7a7_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
+      operation:
+        name: testQuery_171db7a7_2
+        kind: Query
+        document: |
+          query testQuery_171db7a7_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              displayName
+            }
           }
-        }
+        hash: cd9bba5c17b0e3d362a3e2f7296d7326abe9dfbeb2fd0e2eb9965774ea9bf05f
+        shortHash: cd9bba5c
+        xxHash: 6452727696495812782
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { displayName }
       source: $.authorById
       target: $.authorables.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.authorables.author
           selectionMap: >-
             id
       dependencies:

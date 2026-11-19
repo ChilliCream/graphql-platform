@@ -171,6 +171,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a08d2ff45428fe0179c67f2099c32ff26f78d53bb3158a50c431b279bf258a1c
   operation:
     - document: |
         query testQuery {
@@ -188,39 +189,61 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: e441aa3d8c393525cde45a5d2b10a1a1
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: e441aa3d8c393525cde45a5d2b10a1a1
+      hash: 236f64a0eb63ca8efc0a62035aca0f99
+      shortHash: 236f64a0
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_236f64a0_1 {
-          trendingMedia {
-            id
-            views
+      operation:
+        name: testQuery_236f64a0_1
+        kind: Query
+        document: |
+          query testQuery_236f64a0_1 {
+            trendingMedia {
+              id
+              views
+            }
           }
-        }
+        hash: 2730e275772126d59ffa6dd1e624f1351874d4a5bc9c90c336778a1026e0af42
+        shortHash: "2730e275"
+        xxHash: 17493282409720406980
+      resultSelectionSet: >-
+        { trendingMedia { id views } }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query testQuery_236f64a0_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-            ... on Book {
-              isbn
-            }
-            ... on Movie {
-              runtime
+      operation:
+        name: testQuery_236f64a0_2
+        kind: Query
+        document: |
+          query testQuery_236f64a0_2($__fusion_1_id: ID!) {
+            mediaById(id: $__fusion_1_id) {
+              __typename
+              ... on Book {
+                isbn
+              }
+              ... on Movie {
+                runtime
+              }
             }
           }
-        }
+        hash: ca2bbd984017f62ab954356ed729569bb97ff6a5ea3eccb28632fe5c94808da3
+        shortHash: ca2bbd98
+        xxHash: 2486788896412671585
+      lookupTypeName: Media
+      resultSelectionSet: >-
+        { __typename ... on Book { isbn } ... on Movie { runtime } }
       source: $.mediaById
       target: $.trendingMedia
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.trendingMedia
           selectionMap: >-
             id
       dependencies:

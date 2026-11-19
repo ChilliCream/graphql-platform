@@ -606,6 +606,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 65c87d5d30b363ed1add2cbfb5ac58b650efde8c248528c9bfbf317bd9eac715
   operation:
     - document: |
         {
@@ -619,38 +620,62 @@ operationPlan:
             dimensions @fusion__requirement
           }
         }
-      hash: ea32520877a75c44eb873871f33f2a3a
-      searchSpace: 4
-      expandedNodes: 27
+      kind: Query
+      id: ea32520877a75c44eb873871f33f2a3a
+      hash: 76b1ca4d1fe9ae24baf67d5d0154a270
+      shortHash: 76b1ca4d
+  searchSpace: 4
+  expandedNodes: 27
   nodes:
     - id: 1
       type: Operation
       schema: products
-      operation: |
-        query Op_76b1ca4d_1 {
-          products {
-            id
-            dimensions
+      operation:
+        name: Op_76b1ca4d_1
+        kind: Query
+        document: |
+          query Op_76b1ca4d_1 {
+            products {
+              id
+              dimensions
+            }
           }
-        }
+        hash: 35cc313ba73ba4d2f03236bb26beb6567fda001ddc0ec456c732f74e4f5699a9
+        shortHash: 35cc313b
+        xxHash: 7092603230921301881
+      resultSelectionSet: >-
+        { products }
     - id: 3
       type: ApolloOperation
       schema: tax
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Product {
-              tax
+      operation:
+        name: Op_76b1ca4d_3
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                tax
+              }
             }
           }
-        }
+        hash: 51448dcf87c15f79de69aa33d937b324b3d2c1655138e15d56cc1b495dfa0f51
+        shortHash: 51448dcf
+        xxHash: 6776010394665285456
+      entityType: Product
+      resultSelectionSet: >-
+        { tax }
       source: $._entities
       target: $.products
       requirements:
         - name: __fusion_2_weight
+          type: Int
+          path: $.products
           selectionMap: >-
             weight
         - name: __fusion_3_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
       dependencies:
@@ -659,21 +684,34 @@ operationPlan:
     - id: 8
       type: ApolloOperation
       schema: shipping
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Product {
-              estimate
+      operation:
+        name: Op_76b1ca4d_8
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                estimate
+              }
             }
           }
-        }
+        hash: 07c096c77edf179ea746d5bf5d8c6ee14831364de1535931b823533f57abb5c0
+        shortHash: 07c096c7
+        xxHash: 4484875409075470930
+      entityType: Product
+      resultSelectionSet: >-
+        { estimate }
       source: $._entities
       target: $.products
       requirements:
         - name: __fusion_10_weight
+          type: Int
+          path: $.products
           selectionMap: >-
             weight
         - name: __fusion_11_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
       dependencies:
@@ -682,14 +720,23 @@ operationPlan:
     - id: 6
       type: ApolloOperationBatch
       schema: geometry
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Product {
-              volume
+      operation:
+        name: Op_76b1ca4d_6
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                volume
+              }
             }
           }
-        }
+        hash: 2862809bfa3a12d2dc4671f6d697167ca29911ba26cc517e2c88bfb364f8045b
+        shortHash: 2862809b
+        xxHash: 9710860504998307168
+      entityType: Product
+      resultSelectionSet: >-
+        { volume }
       source: $._entities
       targets:
         - $.products
@@ -697,9 +744,13 @@ operationPlan:
       batchingGroupId: 11
       requirements:
         - name: __fusion_7_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
         - name: __fusion_8_dimensions
+          type: "[Int!]"
+          path: $.products
           selectionMap: >-
             dimensions
       dependencies:
@@ -707,14 +758,23 @@ operationPlan:
     - id: 4
       type: ApolloOperationBatch
       schema: metrics
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Product {
-              weight
+      operation:
+        name: Op_76b1ca4d_4
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                weight
+              }
             }
           }
-        }
+        hash: ea9c360e8ad47e031a4386b99d8804a8f19e9f62431725a4189a5258f70c6b00
+        shortHash: ea9c360e
+        xxHash: 9311476111593612061
+      entityType: Product
+      resultSelectionSet: >-
+        { weight }
       source: $._entities
       targets:
         - $.products
@@ -722,9 +782,13 @@ operationPlan:
       batchingGroupId: 12
       requirements:
         - name: __fusion_13_volume
+          type: Int
+          path: $.products
           selectionMap: >-
             volume
         - name: __fusion_4_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
       dependencies:

@@ -116,6 +116,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a91b5de8d807699fcf5f85947e957294ee4ad542e1e2edb36a179f00765f110d
   operation:
     - document: |
         {
@@ -136,57 +137,88 @@ operationPlan:
             }
           }
         }
-      hash: ba741afe233242691e18f411421b356e
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: ba741afe233242691e18f411421b356e
+      hash: 0211fc798c74238e13a3f7ab0008eaef
+      shortHash: 0211fc79
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "VXNlcjox"
+      idValue: "\"VXNlcjox\""
       responseName: node
       branches:
-        - User: 3
+        User: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_0211fc79_2 {
-          node(id: "VXNlcjox") {
-            __typename
-            id
+      operation:
+        name: Op_0211fc79_2
+        kind: Query
+        document: |
+          query Op_0211fc79_2 {
+            node(id: "VXNlcjox") {
+              __typename
+              id
+            }
           }
-        }
+        hash: 1cbb911aea0302964a0ae21ed6ae97dde3db0c35a21566077c1963508b957ca8
+        shortHash: 1cbb911a
+        xxHash: 11225423180126798251
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: CONTRIBUTORS
-      operation: |
-        query Op_0211fc79_3 {
-          node(id: "VXNlcjox") {
-            __typename
-            ... on User {
+      operation:
+        name: Op_0211fc79_3
+        kind: Query
+        document: |
+          query Op_0211fc79_3 {
+            node(id: "VXNlcjox") {
               __typename
-              id
-              name
+              ... on User {
+                __typename
+                id
+                name
+              }
             }
           }
-        }
+        hash: d2b6cfb24b209f63f2005003e8662ddd0797b1958343775e4295088def161dfd
+        shortHash: d2b6cfb2
+        xxHash: 15941417944492451170
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { node { __typename ... on User { __typename id name } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: ACCOUNTS
-      operation: |
-        query Op_0211fc79_4($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            email
+      operation:
+        name: Op_0211fc79_4
+        kind: Query
+        document: |
+          query Op_0211fc79_4($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              email
+            }
           }
-        }
+        hash: 6635fb430a7fd04abd6b229c80724e434a7e753ff8989751af3e1fc8c3040aea
+        shortHash: 6635fb43
+        xxHash: 5130211933726451541
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { email }
       source: $.userById
       target: $.node<User>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<User>
           selectionMap: >-
             id
       dependencies:

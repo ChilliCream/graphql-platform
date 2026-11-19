@@ -1,3 +1,4 @@
+id: 2cdedd8c3f3e2fc15b2b5bf4acb2d9d0a0bf0e6c5d14182a8d7233851ca63bdc
 operation:
   - document: |
       {
@@ -11,22 +12,33 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        root {
-          level1 {
-            level2 {
-              level3 {
-                value
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          root {
+            level1 {
+              level2 {
+                level3 {
+                  value
+                }
               }
             }
           }
         }
-      }
+      hash: a15f8261171ad842af762bef94cea6330c2e6d0e64226783a23336859a958551
+      shortHash: a15f8261
+      xxHash: 7876779904293453820
+    resultSelectionSet: >-
+      { root }

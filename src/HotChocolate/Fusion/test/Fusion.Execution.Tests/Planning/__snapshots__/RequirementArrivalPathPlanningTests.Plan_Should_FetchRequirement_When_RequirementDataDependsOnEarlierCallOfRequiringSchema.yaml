@@ -1,3 +1,4 @@
+id: 1eb609b5c43d360f1784d830ef2077ea6f31387ccf0504cb613c2040267ef942
 operation:
   - document: |
       {
@@ -14,39 +15,61 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 7
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 7
 nodes:
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2 {
-        root {
-          a {
-            id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
+          root {
+            a {
+              id
+            }
           }
         }
-      }
+      hash: 65715fff13dbab520c7dd672fe68ed2de7c3019d4ab65e2ff6589d2b87fef64d
+      shortHash: 65715fff
+      xxHash: 10668267333143345368
+    resultSelectionSet: >-
+      { root { a } }
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_3($__fusion_1_id: ID!) {
-        h1ById(id: $__fusion_1_id) {
-          b {
-            l {
-              x
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_1_id: ID!) {
+          h1ById(id: $__fusion_1_id) {
+            b {
+              l {
+                x
+              }
+              id
             }
-            id
           }
         }
-      }
+      hash: 374241f2686d32d9159f698a3263b8ecbd40f25f62c2bc4cd8d6e4e495d7cff3
+      shortHash: 374241f2
+      xxHash: 8145051031305642926
+    lookupTypeName: H1
+    resultSelectionSet: >-
+      { b }
     source: $.h1ById
     target: $.root.a
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.root.a
         selectionMap: >-
           id
     dependencies:
@@ -54,21 +77,34 @@ nodes:
   - id: 4
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_4($__fusion_2_id: ID!, $__fusion_3_v: String) {
-        h2ById(id: $__fusion_2_id) {
-          l {
-            f(v: $__fusion_3_v)
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_2_id: ID!, $__fusion_3_v: String) {
+          h2ById(id: $__fusion_2_id) {
+            l {
+              f(v: $__fusion_3_v)
+            }
           }
         }
-      }
+      hash: 326e863a71a1880756f8959f1069f727107cd25e314590ce57b542d14b003738
+      shortHash: 326e863a
+      xxHash: 14847007229333643972
+    lookupTypeName: H2
+    resultSelectionSet: >-
+      { l { f } }
     source: $.h2ById
     target: $.root.a.b
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.root.a.b
         selectionMap: >-
           id
       - name: __fusion_3_v
+        type: String
+        path: $.root.a.b.l
         selectionMap: >-
           x
     dependencies:

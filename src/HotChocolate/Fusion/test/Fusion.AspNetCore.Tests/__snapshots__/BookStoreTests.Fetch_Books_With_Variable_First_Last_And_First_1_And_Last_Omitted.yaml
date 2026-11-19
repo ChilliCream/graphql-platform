@@ -217,6 +217,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 5f908a7f0ed20c3b9ce0066a630a71cf9033e276f125d461f04dc8625772ecd5
   operation:
     - document: |
         query GetBooks($first: Int, $last: Int) {
@@ -232,41 +233,63 @@ operationPlan:
           }
         }
       name: GetBooks
-      hash: b3ba0c354c79c81f558193175117dfb4
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: b3ba0c354c79c81f558193175117dfb4
+      hash: 938ff9c055f12c1e277010b7756339fa
+      shortHash: 938ff9c0
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetBooks_938ff9c0_1($first: Int, $last: Int) {
-          books(first: $first, last: $last) {
-            nodes {
-              id
-              title
-              author {
+      operation:
+        name: GetBooks_938ff9c0_1
+        kind: Query
+        document: |
+          query GetBooks_938ff9c0_1($first: Int, $last: Int) {
+            books(first: $first, last: $last) {
+              nodes {
                 id
+                title
+                author {
+                  id
+                }
               }
             }
           }
-        }
+        hash: a3e2a248f9a43dcfea1b54396ac84100c38d9ea65c0e79b7259745d3cb345e23
+        shortHash: a3e2a248
+        xxHash: 10188665908138200591
+      resultSelectionSet: >-
+        { books }
       forwardedVariables:
         - first
         - last
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query GetBooks_938ff9c0_2($__fusion_1_id: Int!) {
-          authorById(id: $__fusion_1_id) {
-            name
+      operation:
+        name: GetBooks_938ff9c0_2
+        kind: Query
+        document: |
+          query GetBooks_938ff9c0_2($__fusion_1_id: Int!) {
+            authorById(id: $__fusion_1_id) {
+              name
+            }
           }
-        }
+        hash: f5da80e744b876b829c24ba21f3a107ea79cad59dff5e7593198e7921c741640
+        shortHash: f5da80e7
+        xxHash: 5835928108557881131
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { name }
       source: $.authorById
       target: $.books.nodes.author
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.books.nodes.author
           selectionMap: >-
             id
       dependencies:

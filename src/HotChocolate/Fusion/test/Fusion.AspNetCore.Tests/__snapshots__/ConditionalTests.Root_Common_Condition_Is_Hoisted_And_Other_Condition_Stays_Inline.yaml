@@ -51,6 +51,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: d4dda98c89621bf29f460808146f2cc9d1f57e30842a5da707a85478b8d85569
   operation:
     - document: |
         query testQuery($s: Boolean!, $x: Boolean!) {
@@ -58,18 +59,29 @@ operationPlan:
           b @skip(if: $s)
         }
       name: testQuery
-      hash: fb1ca071f02029360c5f14e331eb4443
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: fb1ca071f02029360c5f14e331eb4443
+      hash: 337dd2aac6522eb1350cd6b4ea833dc0
+      shortHash: 337dd2aa
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_337dd2aa_1($x: Boolean!) {
-          a @include(if: $x)
-          b
-        }
+      operation:
+        name: testQuery_337dd2aa_1
+        kind: Query
+        document: |
+          query testQuery_337dd2aa_1($x: Boolean!) {
+            a @include(if: $x)
+            b
+          }
+        hash: 24a637581a2c8938e9537be6a9f305cadae1eba17ccf2609c96caab7b25700ef
+        shortHash: 24a63758
+        xxHash: 18145807247188926725
+      resultSelectionSet: >-
+        { a b }
       conditions:
         - variable: $s
           passingValue: false

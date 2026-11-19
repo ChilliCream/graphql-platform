@@ -417,6 +417,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 463bf34ac47ca829004fbdc50d562ef961b34be00538102e4e73c994c6d8bb71
   operation:
     - document: |
         query Requires {
@@ -438,44 +439,66 @@ operationPlan:
           }
         }
       name: Requires
-      hash: 2a01009c0a2c1a5ecafecee5663d60d4
-      searchSpace: 2
-      expandedNodes: 3
+      kind: Query
+      id: 2a01009c0a2c1a5ecafecee5663d60d4
+      hash: beac16b73cdc2003ae293980af039c1b
+      shortHash: beac16b7
+  searchSpace: 2
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query Requires_beac16b7_1 {
-          reviews {
-            body
-            author {
-              id
-            }
-            product {
-              id
-            }
-          }
-        }
-    - id: 2
-      type: Operation
-      schema: D
-      operation: |
-        query Requires_beac16b7_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              deliveryEstimate(zip: "12345") {
-                min
-                max
+      operation:
+        name: Requires_beac16b7_1
+        kind: Query
+        document: |
+          query Requires_beac16b7_1 {
+            reviews {
+              body
+              author {
+                id
+              }
+              product {
+                id
               }
             }
           }
-        }
+        hash: 714e8d429788c00a6af8c85fc8c91eed60c4134266194497e37771c8d50f373d
+        shortHash: 714e8d42
+        xxHash: 15525273958196042721
+      resultSelectionSet: >-
+        { reviews }
+    - id: 2
+      type: Operation
+      schema: D
+      operation:
+        name: Requires_beac16b7_2
+        kind: Query
+        document: |
+          query Requires_beac16b7_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                deliveryEstimate(zip: "12345") {
+                  min
+                  max
+                }
+              }
+            }
+          }
+        hash: 1a45c33247089b8c05353109a4bedc9b7a07efe2366ced361e865577e400c516
+        shortHash: 1a45c332
+        xxHash: 1891830931738590244
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { deliveryEstimate }
       source: $.node<Product>
       target: $.reviews.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.reviews.product
           selectionMap: >-
             id
       dependencies:
@@ -483,16 +506,27 @@ operationPlan:
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query Requires_beac16b7_3($__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            name
+      operation:
+        name: Requires_beac16b7_3
+        kind: Query
+        document: |
+          query Requires_beac16b7_3($__fusion_2_id: ID!) {
+            productById(id: $__fusion_2_id) {
+              name
+            }
           }
-        }
+        hash: 4c59e0c02b013be11facfc553507271a3ef44315759e4070bfd73ae97e83e0b8
+        shortHash: 4c59e0c0
+        xxHash: 15920340330033611842
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.productById
       target: $.reviews.product
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.reviews.product
           selectionMap: >-
             id
       dependencies:
@@ -500,20 +534,31 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: |
-        query Requires_beac16b7_4($__fusion_3_id: ID!) {
-          node(id: $__fusion_3_id) {
-            __typename
-            ... on User {
-              name
-              birthdate
+      operation:
+        name: Requires_beac16b7_4
+        kind: Query
+        document: |
+          query Requires_beac16b7_4($__fusion_3_id: ID!) {
+            node(id: $__fusion_3_id) {
+              __typename
+              ... on User {
+                name
+                birthdate
+              }
             }
           }
-        }
+        hash: 73de8b65358b27cdfc7064654b32e53e2e7b74f58c83906c38bd24208c998e29
+        shortHash: 73de8b65
+        xxHash: 13281164262781433600
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { name birthdate }
       source: $.node<User>
       target: $.reviews.author
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.reviews.author
           selectionMap: >-
             id
       dependencies:

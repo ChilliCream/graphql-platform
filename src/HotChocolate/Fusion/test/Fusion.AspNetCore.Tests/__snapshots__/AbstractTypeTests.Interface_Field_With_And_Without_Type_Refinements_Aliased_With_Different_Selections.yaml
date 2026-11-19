@@ -256,6 +256,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 4182beac089403096e3b6e2f4363ff499ddad9978698bce03f2c77adc15eacd6
   operation:
     - document: |
         {
@@ -278,43 +279,65 @@ operationPlan:
             }
           }
         }
-      hash: 4b49caaca7efb88c8e14174c17e784ce
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 4b49caaca7efb88c8e14174c17e784ce
+      hash: 2bff80251ec40ed7284da396d31caf09
+      shortHash: 2bff8025
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_2bff8025_1 {
-          abstractTypes {
-            __typename
-            someId: id
-            id
-          }
-          b: abstractTypes {
-            __typename
-            ... on Author {
+      operation:
+        name: Op_2bff8025_1
+        kind: Query
+        document: |
+          query Op_2bff8025_1 {
+            abstractTypes {
+              __typename
+              someId: id
               id
             }
+            b: abstractTypes {
+              __typename
+              ... on Author {
+                id
+              }
+            }
           }
-        }
+        hash: 942596d5d1be4f81b1a2c364fd7f6a6c7693a02b67bd1814ed0aa86be727e8f8
+        shortHash: 942596d5
+        xxHash: 13162229995450160163
+      resultSelectionSet: >-
+        { abstractTypes { __typename someId id } b { __typename ... on Author { id } } }
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_2bff8025_3($__fusion_2_id: ID!) {
-          discussionById(id: $__fusion_2_id) {
-            upvotes
-            ... on Discussion {
-              score
+      operation:
+        name: Op_2bff8025_3
+        kind: Query
+        document: |
+          query Op_2bff8025_3($__fusion_2_id: ID!) {
+            discussionById(id: $__fusion_2_id) {
+              upvotes
+              ... on Discussion {
+                score
+              }
             }
           }
-        }
+        hash: 7efb8c54291a6b9733f4e3107edeebf95d966f45390fe617577ec52c91fe4bab
+        shortHash: 7efb8c54
+        xxHash: 10220916330209763221
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { upvotes ... on Discussion { score } }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.abstractTypes<Discussion>
           selectionMap: >-
             id
       dependencies:
@@ -322,12 +345,21 @@ operationPlan:
     - id: 2
       type: OperationBatch
       schema: C
-      operation: |
-        query Op_2bff8025_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            upvotes
+      operation:
+        name: Op_2bff8025_2
+        kind: Query
+        document: |
+          query Op_2bff8025_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              upvotes
+            }
           }
-        }
+        hash: 3d3b03ef33ca33169696aa6595d2e81e48fc0c2db4eb3895fe01a10ee8292650
+        shortHash: 3d3b03ef
+        xxHash: 12074712563041795399
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { upvotes }
       source: $.authorById
       targets:
         - $.b<Author>
@@ -335,6 +367,8 @@ operationPlan:
       batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.b<Author>
           selectionMap: >-
             id
       dependencies:

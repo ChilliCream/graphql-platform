@@ -390,18 +390,21 @@ public sealed partial class SourceResultDocument : IDisposable
         // quote and the size covers both quotes. The unquoted value is obtained by slicing one byte
         // in on each side, which keeps every stored location pointing at a real byte and avoids any
         // arithmetic on the packed location.
+        var value = ReadRawValue(row.Location, row.SizeOrLength);
+
         if (!includeQuotes && row.TokenType is JsonTokenType.String or JsonTokenType.PropertyName)
         {
-            return ReadRawValue(row.Location, row.SizeOrLength)[1..^1];
+            return value[1..^1];
         }
 
-        return ReadRawValue(row.Location, row.SizeOrLength);
+        return value;
     }
 
     /// <summary>
     /// Reads raw data from the data chunks. Data contained in a single chunk is returned as a
     /// slice over that chunk; data that spans chunk boundaries is copied into a fresh buffer.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ReadOnlySpan<byte> ReadRawValue(int location, int size)
     {
         var startChunkIndex = location >>> DataOffsetBits;
@@ -421,6 +424,15 @@ public sealed partial class SourceResultDocument : IDisposable
             return MemoryMarshal.CreateReadOnlySpan(ref start, size);
         }
 
+        return ReadRawValueAcrossChunks(startChunkIndex, offsetInStartChunk, size);
+    }
+
+    /// <summary>
+    /// Copies raw data that spans data chunk boundaries into a fresh buffer.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private ReadOnlySpan<byte> ReadRawValueAcrossChunks(int startChunkIndex, int offsetInStartChunk, int size)
+    {
         Span<byte> buffer = new byte[size];
         var bytesRead = 0;
         var chunkIndex = startChunkIndex;

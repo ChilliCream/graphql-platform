@@ -216,6 +216,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 59422996d7c7cd46ca8e46fe5d1daff71ed6e469f0559cc27fbab58a91ced27d
   operation:
     - document: |
         query testQuery {
@@ -234,38 +235,60 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 80a6e51cf6b31f7d8790bc74ca04346d
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: 80a6e51cf6b31f7d8790bc74ca04346d
+      hash: 40a12cd0f30c3393c17f5534c07956c6
+      shortHash: 40a12cd0
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_40a12cd0_1 {
-          anotherUsers {
-            id
+      operation:
+        name: testQuery_40a12cd0_1
+        kind: Query
+        document: |
+          query testQuery_40a12cd0_1 {
+            anotherUsers {
+              id
+            }
           }
-        }
+        hash: f8ddf1ea1b4d4d8a33e39680a03566a71e483e068310791f9b8d121aac4e9d4f
+        shortHash: f8ddf1ea
+        xxHash: 7886524637398604440
+      resultSelectionSet: >-
+        { anotherUsers { id } }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query testQuery_40a12cd0_2($__fusion_1_id: ID!) {
-          nodeById(id: $__fusion_1_id) {
-            __typename
-            name
-            ... on User {
-              age
-              id
+      operation:
+        name: testQuery_40a12cd0_2
+        kind: Query
+        document: |
+          query testQuery_40a12cd0_2($__fusion_1_id: ID!) {
+            nodeById(id: $__fusion_1_id) {
+              __typename
               name
+              ... on User {
+                age
+                id
+                name
+              }
             }
           }
-        }
+        hash: 5fa1cbd6d590a80812fb08eb28d7fa9af13f0166d41c34a498e9ee4dc84041f3
+        shortHash: 5fa1cbd6
+        xxHash: 16560608951865804321
+      lookupTypeName: NodeWithName
+      resultSelectionSet: >-
+        { __typename name ... on User { age id name } }
       source: $.nodeById
       target: $.anotherUsers
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.anotherUsers
           selectionMap: >-
             id
       dependencies:
@@ -273,16 +296,27 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query testQuery_40a12cd0_3($__fusion_2_id: ID!) {
-          nodeByKey(id: $__fusion_2_id) {
-            score
+      operation:
+        name: testQuery_40a12cd0_3
+        kind: Query
+        document: |
+          query testQuery_40a12cd0_3($__fusion_2_id: ID!) {
+            nodeByKey(id: $__fusion_2_id) {
+              score
+            }
           }
-        }
+        hash: 22f7891dae0c317c89666896037bb4a6dd99d0ee38b021e63e658c5c7cc84bee
+        shortHash: 22f7891d
+        xxHash: 483236454348933977
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { score }
       source: $.nodeByKey
       target: $.anotherUsers<User>
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.anotherUsers<User>
           selectionMap: >-
             id
       dependencies:

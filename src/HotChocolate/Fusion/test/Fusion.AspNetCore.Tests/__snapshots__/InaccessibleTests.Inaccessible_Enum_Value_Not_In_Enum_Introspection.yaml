@@ -70,6 +70,7 @@ sourceSchemas:
         ITEM2
       }
 operationPlan:
+  id: d5513a4c997e11aa510eb258a9813463c954ee9f7394ca6b31fd2c1d8718ed8d
   operation:
     - document: |
         {
@@ -79,9 +80,12 @@ operationPlan:
             }
           }
         }
-      hash: f0154421cb8920eb2f14b593b2d467e9
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: f0154421cb8920eb2f14b593b2d467e9
+      hash: b2b3486f9e6237d4b22c422f0f4ea63c
+      shortHash: b2b3486f
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

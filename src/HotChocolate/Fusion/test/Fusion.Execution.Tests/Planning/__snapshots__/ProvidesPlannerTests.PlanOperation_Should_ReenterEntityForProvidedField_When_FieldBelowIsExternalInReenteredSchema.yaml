@@ -1,3 +1,4 @@
+id: a7d30825c7c5476ea9498ba218895c14903a312ace5ead8efa94a7b3a471fb11
 operation:
   - document: |
       {
@@ -11,41 +12,63 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        orders {
-          item {
-            customer {
-              email
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          orders {
+            item {
+              customer {
+                email
+              }
             }
+            id
           }
-          id
         }
-      }
+      hash: 8d67b6f20c5969aad011786acaab9dc9ba7364e8a54fe2f18236a20afa882b7b
+      shortHash: 8d67b6f2
+      xxHash: 10970322977830876723
+    resultSelectionSet: >-
+      { orders }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        orderById(id: $__fusion_1_id) {
-          item {
-            customer {
-              name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          orderById(id: $__fusion_1_id) {
+            item {
+              customer {
+                name
+              }
             }
           }
         }
-      }
+      hash: 86ec947b3076e56e1df09cb56b6a05cb5f7cb972a7d634bf903fe2ff1f5742d8
+      shortHash: 86ec947b
+      xxHash: 3340485282627517230
+    lookupTypeName: Order
+    resultSelectionSet: >-
+      { item { customer { name } } }
     source: $.orderById
     target: $.orders
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.orders
         selectionMap: >-
           id
     dependencies:

@@ -89,6 +89,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: d033a78d9b5f8c651b5035c999e4284c22ae83cb728499d713927cc045bc172e
   operation:
     - document: |
         {
@@ -98,18 +99,29 @@ operationPlan:
             }
           }
         }
-      hash: 88db52e8ab1dfecd0de99cb4a094158b
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 88db52e8ab1dfecd0de99cb4a094158b
+      hash: deadf20a7a929c5a48446b760e299bf5
+      shortHash: deadf20a
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_deadf20a_1 {
-          job {
-            items {
-              name
+      operation:
+        name: Op_deadf20a_1
+        kind: Query
+        document: |
+          query Op_deadf20a_1 {
+            job {
+              items {
+                name
+              }
             }
           }
-        }
+        hash: aeb796f245b96d27319157a05a28c3dac3b56596e23f12add43d183f5fbf90df
+        shortHash: aeb796f2
+        xxHash: 457730349617718198
+      resultSelectionSet: >-
+        { job }

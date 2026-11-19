@@ -1,3 +1,4 @@
+id: d9b178c09f9b75b5447a916920f443d886f85aa68e1fd905d61ed07603cc2d4c
 operation:
   - document: |
       {
@@ -13,24 +14,35 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        book {
-          featured {
-            __typename
-            ... on Cat {
-              age
-            }
-            ... on Dog {
-              tricks
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          book {
+            featured {
+              __typename
+              ... on Cat {
+                age
+              }
+              ... on Dog {
+                tricks
+              }
             }
           }
         }
-      }
+      hash: 494adae64bfd5965ed114189d0b142af90762c5183cca0bbf0c2a45e35d6331b
+      shortHash: 494adae6
+      xxHash: 2446306219634372817
+    resultSelectionSet: >-
+      { book }

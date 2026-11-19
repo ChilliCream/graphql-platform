@@ -6,7 +6,6 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Policies;
-using HotChocolate.Types;
 using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -30,7 +29,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     /// <summary>
     /// The version of the operation plan JSON format written by this formatter.
     /// </summary>
-    private const string FormatVersion = "1.3.0";
+    private const string FormatVersion = "1.4.0";
 
     private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
     {
@@ -395,55 +394,6 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(GetSelectionPath(selection).ToString());
 
         jsonWriter.WriteEndObject();
-    }
-
-    private static int GetIncrementalPlanIndex(OperationPlan plan, Operation operation)
-    {
-        for (var i = 0; i < plan.IncrementalPlans.Length; i++)
-        {
-            if (ReferenceEquals(plan.IncrementalPlans[i].Operation, operation))
-            {
-                return i;
-            }
-        }
-
-        throw ThrowHelper.PolicyPlanSelectionNotInPlan();
-    }
-
-    private static SelectionPath GetSelectionPath(Selection selection)
-    {
-        // Collected from the selection up to the root and replayed in reverse.
-        var segments = new List<(string Name, bool IsTypeCondition)>();
-        var current = selection;
-
-        while (true)
-        {
-            segments.Add((current.ResponseName, false));
-
-            var selectionSet = current.DeclaringSelectionSet;
-
-            if (selectionSet.DeclaringSelection is not { } parent)
-            {
-                break;
-            }
-
-            if (parent.NamedType is not IObjectTypeDefinition)
-            {
-                segments.Add((selectionSet.Type.Name, true));
-            }
-
-            current = parent;
-        }
-
-        var path = SelectionPath.Root;
-
-        for (var i = segments.Count - 1; i >= 0; i--)
-        {
-            var (name, isTypeCondition) = segments[i];
-            path = isTypeCondition ? path.AppendFragment(name) : path.AppendField(name);
-        }
-
-        return path;
     }
 
     private static void WriteIncrementalPlans(
@@ -869,7 +819,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        WriteConditions(jsonWriter, operationDef.Conditions);
+        WriteConditions(jsonWriter, operationDef.Conditions, operationDef.ConditionAlternatives);
 
         if (operationDef.ForwardedVariables.Length > 0)
         {
@@ -986,7 +936,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteEndArray();
         }
 
-        WriteConditions(jsonWriter, operationDef.Conditions);
+        WriteConditions(jsonWriter, operationDef.Conditions, operationDef.ConditionAlternatives);
 
         if (operationDef.ForwardedVariables.Length > 0)
         {
@@ -1079,7 +1029,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        WriteDependencies(jsonWriter, node.Dependencies, node.ParentDependencies);
+        WriteDependencies(jsonWriter, node.Dependencies, node.OptionalDependencies, node.ParentDependencies);
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
@@ -1168,7 +1118,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteNumberValue(batchNode.Id);
 
         WriteRequirements(jsonWriter, operationDef.Requirements);
-        WriteConditions(jsonWriter, operationDef.Conditions);
+        WriteConditions(jsonWriter, operationDef.Conditions, operationDef.ConditionAlternatives);
         WriteForwardedVariables(jsonWriter, operationDef.ForwardedVariables);
 
         if (operationDef.RequiresFileUpload)
@@ -1177,7 +1127,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        WriteDependencies(jsonWriter, operationDef.Dependencies, operationDef.ParentDependencies);
+        WriteDependencies(
+            jsonWriter,
+            operationDef.Dependencies,
+            operationDef.OptionalDependencies,
+            operationDef.ParentDependencies);
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
@@ -1263,9 +1217,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     private static void WriteDependencies(
         JsonWriter jsonWriter,
         ReadOnlySpan<IOperationPlanNode> dependencies,
+        ReadOnlySpan<IOperationPlanNode> optionalDependencies,
         ReadOnlySpan<int> parentDependencies)
     {
-        if (dependencies.Length == 0 && parentDependencies.Length == 0)
+        if (dependencies.Length == 0 && optionalDependencies.Length == 0 && parentDependencies.Length == 0)
         {
             return;
         }
@@ -1273,10 +1228,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("dependencies");
         jsonWriter.WriteStartArray();
 
-        foreach (var dependency in dependencies)
-        {
-            jsonWriter.WriteNumberValue(dependency.Id);
-        }
+        WriteDependencyIds(jsonWriter, dependencies, optionalDependencies);
 
         foreach (var parentStepId in parentDependencies)
         {
@@ -1286,28 +1238,51 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndArray();
     }
 
-    private static void WriteConditions(JsonWriter jsonWriter, ReadOnlySpan<ExecutionNodeCondition> conditions)
+    private static void WriteConditions(
+        JsonWriter jsonWriter,
+        ReadOnlySpan<ExecutionNodeCondition> conditions,
+        ReadOnlySpan<ExecutionNodeCondition[]> conditionAlternatives)
     {
         if (conditions.Length > 0)
         {
             jsonWriter.WritePropertyName("conditions");
+            WriteConditionArray(jsonWriter, conditions);
+        }
+
+        if (conditionAlternatives.Length > 0)
+        {
+            jsonWriter.WritePropertyName("conditionAlternatives");
             jsonWriter.WriteStartArray();
 
-            foreach (var condition in conditions)
+            foreach (var alternative in conditionAlternatives)
             {
-                jsonWriter.WriteStartObject();
-
-                jsonWriter.WritePropertyName("variable");
-                jsonWriter.WriteStringValue("$" + condition.VariableName);
-
-                jsonWriter.WritePropertyName("passingValue");
-                jsonWriter.WriteBooleanValue(condition.PassingValue);
-
-                jsonWriter.WriteEndObject();
+                WriteConditionArray(jsonWriter, alternative);
             }
 
             jsonWriter.WriteEndArray();
         }
+    }
+
+    private static void WriteConditionArray(
+        JsonWriter jsonWriter,
+        ReadOnlySpan<ExecutionNodeCondition> conditions)
+    {
+        jsonWriter.WriteStartArray();
+
+        foreach (var condition in conditions)
+        {
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WritePropertyName("variable");
+            jsonWriter.WriteStringValue("$" + condition.VariableName);
+
+            jsonWriter.WritePropertyName("passingValue");
+            jsonWriter.WriteBooleanValue(condition.PassingValue);
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
     }
 
     private static void WriteIntrospectionNode(
@@ -1440,26 +1415,5 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     }
 
     private static void TryWriteConditions(JsonWriter jsonWriter, ExecutionNode node)
-    {
-        if (node.Conditions.Length > 0)
-        {
-            jsonWriter.WritePropertyName("conditions");
-            jsonWriter.WriteStartArray();
-
-            foreach (var condition in node.Conditions)
-            {
-                jsonWriter.WriteStartObject();
-
-                jsonWriter.WritePropertyName("variable");
-                jsonWriter.WriteStringValue("$" + condition.VariableName);
-
-                jsonWriter.WritePropertyName("passingValue");
-                jsonWriter.WriteBooleanValue(condition.PassingValue);
-
-                jsonWriter.WriteEndObject();
-            }
-
-            jsonWriter.WriteEndArray();
-        }
-    }
+        => WriteConditions(jsonWriter, node.Conditions, node.ConditionAlternatives);
 }

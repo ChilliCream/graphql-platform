@@ -136,6 +136,7 @@ sourceSchemas:
         endCursor: String
       }
 operationPlan:
+  id: f3a75ce7248e0bf6d807858ab5a76da9359a65b0d209ed3db49bf64496c420b4
   operation:
     - document: |
         {
@@ -143,9 +144,12 @@ operationPlan:
             name
           }
         }
-      hash: 9223ffc3277e3c06f858e4b6429381be
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 9223ffc3277e3c06f858e4b6429381be
+      hash: 5cddb45336fd254ecdaf2e7cb5e89de1
+      shortHash: 5cddb453
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

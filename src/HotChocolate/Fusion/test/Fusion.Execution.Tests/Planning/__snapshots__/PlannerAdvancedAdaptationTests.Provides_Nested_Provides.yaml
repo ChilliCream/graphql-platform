@@ -1,3 +1,4 @@
+id: d62d67049619468d2051e765a7284e7b9812c3cb864205d0998c9a38a57ba051
 operation:
   - document: |
       {
@@ -13,24 +14,35 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: all-products
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
-          categories {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
             id
-            name
-            details {
+            categories {
               id
               name
+              details {
+                id
+                name
+              }
             }
           }
         }
-      }
+      hash: e71de26b18d62c75a286fae7f2e1c29ae06ee914518707466765327220bdd9a7
+      shortHash: e71de26b
+      xxHash: 12731655434071372543
+    resultSelectionSet: >-
+      { products }

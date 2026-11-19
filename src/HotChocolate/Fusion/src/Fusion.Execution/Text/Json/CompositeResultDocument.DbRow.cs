@@ -160,10 +160,16 @@ public sealed partial class CompositeResultDocument
         /// 8 bits = 256 combinations
         /// </remarks>
         public ElementFlags Flags
-            => (ElementFlags)((_selectionAndFlags >>> FlagsShift) & FlagsMask);
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (ElementFlags)((_selectionAndFlags >>> FlagsShift) & FlagsMask);
+        }
 
         public bool IsNullMarker
-            => (Flags & ElementFlags.NullMarker) is ElementFlags.NullMarker;
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (Flags & ElementFlags.NullMarker) is ElementFlags.NullMarker;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int ReadOperationReferenceId(int selectionAndFlags)

@@ -4,7 +4,7 @@ using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 namespace HotChocolate.AspNetCore;
 
 /// <summary>
-/// Answers a request that no GraphQL middleware handled. From the 2026-09-03 revision of the
+/// Answers a request that no GraphQL middleware handled. From the September 2026 edition of the
 /// GraphQL over HTTP specification on, a request on the GraphQL endpoint whose method the
 /// endpoint does not support is answered 405 with an <c>Allow</c> header, an OPTIONS request
 /// is answered 204 with the same header, and a POST or QUERY request whose Content-Type the

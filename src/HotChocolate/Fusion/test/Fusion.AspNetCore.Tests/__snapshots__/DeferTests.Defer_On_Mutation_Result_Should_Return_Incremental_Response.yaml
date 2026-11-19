@@ -133,6 +133,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 348a39810b9eacbef7f81177088ffe7827e7a9bf790dbcfec97ce64aa2348707
   operation:
     - document: |
         mutation {
@@ -141,20 +142,31 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 13c684da11988412ecf904c2d5ba5d31
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Mutation
+      id: 13c684da11988412ecf904c2d5ba5d31
+      hash: 654979adf678ba0b25661914ea45e4be
+      shortHash: 654979ad
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        mutation Op_654979ad_1 {
-          createProduct(name: "Widget") {
-            name
-            id
+      operation:
+        name: Op_654979ad_1
+        kind: Mutation
+        document: |
+          mutation Op_654979ad_1 {
+            createProduct(name: "Widget") {
+              name
+              id
+            }
           }
-        }
+        hash: 50d33902aceb8c1d295d1cd5691d30bf91818c2efea582c419879ea354fd1003
+        shortHash: 50d33902
+        xxHash: 13686394640091751881
+      resultSelectionSet: >-
+        { createProduct }
   deliveryGroups:
     - id: 0
       path: $.createProduct
@@ -165,22 +177,47 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.createProduct
           selectionMap: >-
             id
+      operation:
+        - document: |
+            mutation {
+              createProduct(name: "Widget") {
+                price
+                id @fusion__requirement
+              }
+            }
+          kind: Mutation
+          id: "13c684da11988412ecf904c2d5ba5d31#defer_0"
+          hash: "654979adf678ba0b25661914ea45e4be#defer_0"
+          shortHash: 654979ad
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query Op_defer_2($__fusion_1_id: ID!) {
-              productById(id: $__fusion_1_id) {
-                price
+          operation:
+            name: Op_defer_2
+            kind: Query
+            document: |
+              query Op_defer_2($__fusion_1_id: ID!) {
+                productById(id: $__fusion_1_id) {
+                  price
+                }
               }
-            }
+            hash: aca24a659c55781fdb03ecad929bd495498d6daef36d0c27a29c7db7bba024ee
+            shortHash: aca24a65
+            xxHash: 12493773018935945807
+          lookupTypeName: Product
+          resultSelectionSet: >-
+            { price }
           source: $.productById
           target: $.createProduct
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.createProduct
               selectionMap: >-
                 id
           dependencies:

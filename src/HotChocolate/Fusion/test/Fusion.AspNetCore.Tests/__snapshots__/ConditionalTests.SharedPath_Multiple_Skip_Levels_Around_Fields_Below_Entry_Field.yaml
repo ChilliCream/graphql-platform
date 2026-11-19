@@ -77,6 +77,7 @@ sourceSchemas:
         fieldB: String!
       }
 operationPlan:
+  id: ad7fd97960de818f379b607bc3df11d1c871500734e07c170c864e72e1bcde4d
   operation:
     - document: |
         query testQuery($skip1: Boolean!, $skip2: Boolean!) {
@@ -90,35 +91,54 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 18cbe722a20118b8580d5a3d204b71fe
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 18cbe722a20118b8580d5a3d204b71fe
+      hash: c099bff074b026e46b9754ca9feb8322
+      shortHash: c099bff0
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_c099bff0_1($skip1: Boolean!, $skip2: Boolean!) {
-          viewer {
-            ... @skip(if: $skip1) {
-              ... @skip(if: $skip2) {
-                fieldA
+      operation:
+        name: testQuery_c099bff0_1
+        kind: Query
+        document: |
+          query testQuery_c099bff0_1($skip1: Boolean!, $skip2: Boolean!) {
+            viewer {
+              ... @skip(if: $skip1) {
+                ... @skip(if: $skip2) {
+                  fieldA
+                }
               }
             }
           }
-        }
+        hash: e0a9b715d66517743b1d225b97298ccb4512d5560a50efb33cb6d788d7c6fbc2
+        shortHash: e0a9b715
+        xxHash: 4741191827661388852
+      resultSelectionSet: >-
+        { viewer { ... { ... { fieldA } } } }
       forwardedVariables:
         - skip1
         - skip2
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_c099bff0_2 {
-          viewer {
-            fieldB
+      operation:
+        name: testQuery_c099bff0_2
+        kind: Query
+        document: |
+          query testQuery_c099bff0_2 {
+            viewer {
+              fieldB
+            }
           }
-        }
+        hash: 4ae6b831de11d520981a3ce38ca501a878ad5263f82d04e17802c9e9f87edd29
+        shortHash: 4ae6b831
+        xxHash: 1752918408691215560
+      resultSelectionSet: >-
+        { viewer { fieldB } }
       conditions:
         - variable: $skip1
           passingValue: false

@@ -142,6 +142,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 799627c0a29530d152d37bb07ceae47d481570e9193d798281e66af9dc2359dd
   operation:
     - document: |
         {
@@ -156,23 +157,34 @@ operationPlan:
             }
           }
         }
-      hash: 9ce288fff586a3c44c82115bd729190a
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 9ce288fff586a3c44c82115bd729190a
+      hash: 39311c2ef84caa365dbb7528f3c0948e
+      shortHash: 39311c2e
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_39311c2e_1 {
-          abstractTypes {
-            __typename
-            id
-            ... on Discussion {
-              title
-            }
-            ... on Author {
-              name
+      operation:
+        name: Op_39311c2e_1
+        kind: Query
+        document: |
+          query Op_39311c2e_1 {
+            abstractTypes {
+              __typename
+              id
+              ... on Discussion {
+                title
+              }
+              ... on Author {
+                name
+              }
             }
           }
-        }
+        hash: 0898bc7f0f79700cb27c5080ac141b0fd9d9d03df2541234707ffee89d519226
+        shortHash: 0898bc7f
+        xxHash: 16051279613106620611
+      resultSelectionSet: >-
+        { abstractTypes }

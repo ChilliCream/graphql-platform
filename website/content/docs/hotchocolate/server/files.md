@@ -3,7 +3,7 @@ title: Files
 description: "Approaches for handling file uploads and downloads in Hot Chocolate: the Upload scalar with multipart requests, presigned upload URLs, and serving files."
 ---
 
-Handling files is traditionally not a concern of a GraphQL server, which is also why the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md) specification does not mention it.
+Handling files is traditionally not a concern of a GraphQL server, which is also why the [GraphQL over HTTP](https://http-spec.graphql.org/September2026/) specification does not mention it.
 
 That said, at some point in the development of a new application you will likely have to deal with files in some way. This page gives you guidance on the available approaches.
 
@@ -214,7 +214,7 @@ builder.Services.Configure<FormOptions>(options =>
 });
 ```
 
-`MultipartBodyLengthLimit` applies to every section, and a section over it is rejected with the error code `HC0135`. The `operations` field is also limited by the [maximum request size](./endpoints.md#maxallowedrequestsize), and when that is the smaller of the two limits, an `operations` field over it is rejected with the error code `HC0010`. A request body over the web server's limit, or over `BufferBodyLengthLimit` when `BufferBody` is set, is rejected with the error code `HC0136`. Under the `Draft20260903` [transport version](./http-transport.md#transport-versions), these responses have a `413` status code.
+`MultipartBodyLengthLimit` applies to every section, and a section over it is rejected with the error code `HC0135`. The `operations` field is also limited by the [maximum request size](./endpoints.md#maxallowedrequestsize), and when that is the smaller of the two limits, an `operations` field over it is rejected with the error code `HC0010`. A request body over the web server's limit, or over `BufferBodyLengthLimit` when `BufferBody` is set, is rejected with the error code `HC0136`. Under the `September2026` [transport version](./http-transport.md#transport-versions), these responses have a `413` status code.
 
 Depending on your web server, you might need to configure these limits elsewhere as well. [Kestrel](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#kestrel-maximum-request-body-size) and [IIS](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#iis) are covered in the ASP.NET Core documentation.
 

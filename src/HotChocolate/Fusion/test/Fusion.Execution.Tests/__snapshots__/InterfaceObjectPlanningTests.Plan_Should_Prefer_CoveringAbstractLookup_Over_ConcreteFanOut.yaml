@@ -1,3 +1,4 @@
+id: 36d66ccd4acc97cffd68e3dd1ce6c8921895952a2c5e95d4f0c9386058f4fc45
 operation:
   - document: |
       {
@@ -9,35 +10,57 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: opaque
-    operation: |
-      query Op_123456789101112_1 {
-        product {
-          id
-        }
-      }
-  - id: 2
-    type: Operation
-    schema: products
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          __typename
-          ... on Bread {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          product {
             id
           }
         }
-      }
+      hash: 2faef13dd54dcce950f793b35ea4b9e24891095e4405bbf2920509a6f1791dc4
+      shortHash: 2faef13d
+      xxHash: 14157010451816306771
+    resultSelectionSet: >-
+      { product { id } }
+  - id: 2
+    type: Operation
+    schema: products
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            __typename
+            ... on Bread {
+              id
+            }
+          }
+        }
+      hash: d53deaa866040dbdee4eb46552ad2026e2bbddabc1297100dc5b5f8d7c4791ad
+      shortHash: d53deaa8
+      xxHash: 1081604004854639113
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { __typename ... on Bread { id } }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
     dependencies:

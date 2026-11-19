@@ -107,6 +107,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ec4d7a3a1a29f23f792b2fbe4926a29a27e82f39e361a28f3e19b7739085d79a
   operation:
     - document: |
         mutation {
@@ -118,30 +119,49 @@ operationPlan:
             }
           }
         }
-      hash: aedae48a240aab3b87a98a38225ee61c
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Mutation
+      id: aedae48a240aab3b87a98a38225ee61c
+      hash: f2f2495103ab7ab2216433f4deb197bf
+      shortHash: f2f24951
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        mutation Op_f2f24951_1 {
-          doSomething {
-            something
-            viewer {
-              subgraphA
+      operation:
+        name: Op_f2f24951_1
+        kind: Mutation
+        document: |
+          mutation Op_f2f24951_1 {
+            doSomething {
+              something
+              viewer {
+                subgraphA
+              }
             }
           }
-        }
+        hash: 7c0f0f6f277520c4ee117ccbb53f83023b12b18287ce4f872e5e20076854eeaa
+        shortHash: 7c0f0f6f
+        xxHash: 15511957333164797700
+      resultSelectionSet: >-
+        { doSomething }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_f2f24951_2 {
-          viewer {
-            subgraphB
+      operation:
+        name: Op_f2f24951_2
+        kind: Query
+        document: |
+          query Op_f2f24951_2 {
+            viewer {
+              subgraphB
+            }
           }
-        }
+        hash: d7a5274a09df1ceb88cede5d07a35d4de018ec484c4c6e5e1e12b5a4d6691b0f
+        shortHash: d7a5274a
+        xxHash: 17044089005280320394
+      resultSelectionSet: >-
+        { subgraphB }
       source: $.viewer
       target: $.doSomething.viewer

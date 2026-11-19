@@ -82,6 +82,7 @@ sourceSchemas:
         value: String
       }
 operationPlan:
+  id: 84f3b74293e5b9a5ea9a52dbc78e5d58cb0ee6f22d1b32259d614844bcecd535
   operation:
     - document: |
         {
@@ -93,20 +94,31 @@ operationPlan:
             }
           }
         }
-      hash: 69ae31f3547d052e53cb8b25119dcee8
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 69ae31f3547d052e53cb8b25119dcee8
+      hash: 4d0b2677a554c6d9271f010797cf70ee
+      shortHash: 4d0b2677
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_4d0b2677_1 {
-          someField {
-            __typename
-            value
-            ... on ConcreteTypeA {
-              specificToA
+      operation:
+        name: Op_4d0b2677_1
+        kind: Query
+        document: |
+          query Op_4d0b2677_1 {
+            someField {
+              __typename
+              value
+              ... on ConcreteTypeA {
+                specificToA
+              }
             }
           }
-        }
+        hash: 6a8582e0dac250ee3514172bd6e725c4d3dab77a07e9ce4a399cccd800dba44d
+        shortHash: 6a8582e0
+        xxHash: 14792087573018273570
+      resultSelectionSet: >-
+        { someField { __typename value ... on ConcreteTypeA { specificToA } } }

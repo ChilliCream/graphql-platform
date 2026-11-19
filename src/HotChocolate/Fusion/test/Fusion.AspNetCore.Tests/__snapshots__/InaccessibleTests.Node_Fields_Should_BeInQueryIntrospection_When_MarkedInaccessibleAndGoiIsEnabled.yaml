@@ -75,6 +75,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: 4799c0df090c335a02f76f5d4735a054c8c87d73078bd73258ff50db360cee81
   operation:
     - document: |
         {
@@ -84,9 +85,12 @@ operationPlan:
             }
           }
         }
-      hash: 656b52998773a3d9267f4546ad71796f
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 656b52998773a3d9267f4546ad71796f
+      hash: 2921e62934c9bbf0ee044d65e143438c
+      shortHash: "2921e629"
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

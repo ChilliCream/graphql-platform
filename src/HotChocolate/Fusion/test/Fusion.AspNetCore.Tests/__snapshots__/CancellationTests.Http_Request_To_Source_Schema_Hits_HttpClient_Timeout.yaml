@@ -46,6 +46,7 @@ sourceSchemas:
               }
             }
 operationPlan:
+  id: df1abbc0a73d57b186424d5b22f563131e40ba151efc4cb8fc029ba27762b365
   operation:
     - document: |
         {
@@ -53,16 +54,27 @@ operationPlan:
             id
           }
         }
-      hash: f954559fd39b5aeceb046f0278765b95
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: f954559fd39b5aeceb046f0278765b95
+      hash: 486d07e5b26a89e416bd23c75b892c79
+      shortHash: 486d07e5
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_486d07e5_1 {
-          topProduct {
-            id
+      operation:
+        name: Op_486d07e5_1
+        kind: Query
+        document: |
+          query Op_486d07e5_1 {
+            topProduct {
+              id
+            }
           }
-        }
+        hash: 508530aaab4fbbf288ad9fe9689cdb93ed0ed4bfbcdf64c62e6f70f9cb5c5dee
+        shortHash: 508530aa
+        xxHash: 16418766676207633240
+      resultSelectionSet: >-
+        { topProduct }

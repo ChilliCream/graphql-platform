@@ -198,6 +198,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ba8ec6746ae8cc7afaf955ed6384b58ee08a96f1398fc4c3d7b103f7f71f6d01
   operation:
     - document: |
         {
@@ -209,44 +210,68 @@ operationPlan:
             }
           }
         }
-      hash: 33751a6166aba4eb7f9198c6aebdf80d
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 33751a6166aba4eb7f9198c6aebdf80d
+      hash: 12ec73ed991207ae3bc5b78abf8091dc
+      shortHash: 12ec73ed
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_12ec73ed_1 {
-          resources {
-            displayImage {
-              originId
-              origin
+      operation:
+        name: Op_12ec73ed_1
+        kind: Query
+        document: |
+          query Op_12ec73ed_1 {
+            resources {
+              displayImage {
+                originId
+                origin
+              }
             }
           }
-        }
+        hash: 1f44f3d36cd01fb9f0faa48bed14bad4023ceebfb04aeba0339be7d7cac24632
+        shortHash: 1f44f3d3
+        xxHash: 16246250036840490341
+      resultSelectionSet: >-
+        { resources }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_12ec73ed_2(
-          $__fusion_1_origin: FileOrigin!
-          $__fusion_1_originId: UUID!
-        ) {
-          fileByOriginIdAndOrigin(
-            originId: $__fusion_1_originId
-            origin: $__fusion_1_origin
+      operation:
+        name: Op_12ec73ed_2
+        kind: Query
+        document: |
+          query Op_12ec73ed_2(
+            $__fusion_1_origin: FileOrigin!
+            $__fusion_1_originId: UUID!
           ) {
-            id
+            fileByOriginIdAndOrigin(
+              originId: $__fusion_1_originId
+              origin: $__fusion_1_origin
+            ) {
+              id
+            }
           }
-        }
+        hash: 624aff35fb2a42083949c1880ed4a6d44be37a6f1f805b9a767a80a89a97314e
+        shortHash: 624aff35
+        xxHash: 5624583526824498515
+      lookupTypeName: File
+      resultSelectionSet: >-
+        { id }
       source: $.fileByOriginIdAndOrigin
       target: $.resources.displayImage
       requirements:
         - name: __fusion_1_origin
+          type: FileOrigin!
+          path: $.resources.displayImage
           selectionMap: >-
             origin
         - name: __fusion_1_originId
+          type: UUID!
+          path: $.resources.displayImage
           selectionMap: >-
             originId
       dependencies:

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -231,6 +232,7 @@ public sealed class OperationPlanExecutorWakeupTests : FusionTestBase
             allNodes,
             deliveryGroups: [],
             incrementalPlans: [],
+            policies: PolicyPlan.Empty,
             searchSpace: 0,
             expandedNodes: 0);
     }

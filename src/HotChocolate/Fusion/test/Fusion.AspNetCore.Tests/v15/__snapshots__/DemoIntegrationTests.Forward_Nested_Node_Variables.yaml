@@ -156,6 +156,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6e5f9603ebf8587022f31168f94094c689965f99f9b89a0f1af1f745228ccafa
   operation:
     - document: |
         query ProductReviews($id: ID!, $first: Int!) {
@@ -168,25 +169,36 @@ operationPlan:
           }
         }
       name: ProductReviews
-      hash: 229d44af0c409ccd864b8c4c97a62a47
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 229d44af0c409ccd864b8c4c97a62a47
+      hash: a31f6868bbb43c4726864f440816041b
+      shortHash: a31f6868
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - Product: 3
+        Product: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query ProductReviews_a31f6868_2($id: ID!) {
-          node(id: $id) {
-            __typename
+      operation:
+        name: ProductReviews_a31f6868_2
+        kind: Query
+        document: |
+          query ProductReviews_a31f6868_2($id: ID!) {
+            node(id: $id) {
+              __typename
+            }
           }
-        }
+        hash: dce891a84c198c32102fe78b3b0083acec4e22bb069c3721d32ad8c912ba1373
+        shortHash: dce891a8
+        xxHash: 16494943653832331434
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -194,17 +206,26 @@ operationPlan:
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query ProductReviews_a31f6868_3($id: ID!, $first: Int!) {
-          node(id: $id) {
-            __typename
-            ... on Product {
+      operation:
+        name: ProductReviews_a31f6868_3
+        kind: Query
+        document: |
+          query ProductReviews_a31f6868_3($id: ID!, $first: Int!) {
+            node(id: $id) {
               __typename
-              id
-              repeat(num: $first)
+              ... on Product {
+                __typename
+                id
+                repeat(num: $first)
+              }
             }
           }
-        }
+        hash: cb174d13254963af4b164f16b299511585188e8474b0824f60ad678f2e2fe439
+        shortHash: cb174d13
+        xxHash: 9001946885052042820
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { node { __typename ... on Product { __typename id repeat } } }
       forwardedVariables:
         - id
         - first

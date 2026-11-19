@@ -153,6 +153,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 85e59401cd9d53b8be8f5035ad05144e877800749ad06e5c8bd80290faf086c8
   operation:
     - document: |
         {
@@ -165,40 +166,64 @@ operationPlan:
             }
           }
         }
-      hash: a376330ac7d38f54161eacf8938dc778
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: a376330ac7d38f54161eacf8938dc778
+      hash: b4bb855f8531296bdd0870d76d064a2d
+      shortHash: b4bb855f
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_b4bb855f_1 {
-          products {
-            id
-            details {
-              weight
+      operation:
+        name: Op_b4bb855f_1
+        kind: Query
+        document: |
+          query Op_b4bb855f_1 {
+            products {
+              id
+              details {
+                weight
+              }
             }
           }
-        }
+        hash: ed128227ec53c4bd9bc93c426eb138c1ae04f70640b105a8cbd54f6018bc276e
+        shortHash: ed128227
+        xxHash: 10505008707333797213
+      resultSelectionSet: >-
+        { products }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_b4bb855f_2($__fusion_1_id: Int!, $__fusion_2_weight: Int!) {
-          productById(id: $__fusion_1_id) {
-            details {
-              shippingEstimate(weight: $__fusion_2_weight)
+      operation:
+        name: Op_b4bb855f_2
+        kind: Query
+        document: |
+          query Op_b4bb855f_2($__fusion_1_id: Int!, $__fusion_2_weight: Int!) {
+            productById(id: $__fusion_1_id) {
+              details {
+                shippingEstimate(weight: $__fusion_2_weight)
+              }
             }
           }
-        }
+        hash: ed4e987fe006a941c48dc59c5a11f38c90b63067f4496711e20e2fd15938b673
+        shortHash: ed4e987f
+        xxHash: 5677373786374388957
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { details { shippingEstimate } }
       source: $.productById
       target: $.products
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.products
           selectionMap: >-
             id
         - name: __fusion_2_weight
+          type: Int!
+          path: $.products.details
           selectionMap: >-
             weight
       dependencies:

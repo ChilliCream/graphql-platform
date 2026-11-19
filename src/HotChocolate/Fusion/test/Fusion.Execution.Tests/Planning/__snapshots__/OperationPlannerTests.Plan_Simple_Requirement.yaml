@@ -1,3 +1,4 @@
+id: 67ec236e61bf0f2df251747706d93f4490dba64a87e359b941381b796fdc0307
 operation:
   - document: |
       query GetTopProducts {
@@ -10,40 +11,64 @@ operation:
         }
       }
     name: GetTopProducts
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query GetTopProducts_123456789101112_1 {
-        topProducts {
-          id
-          name
-          region
+    operation:
+      name: GetTopProducts_123456789101112_1
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_1 {
+          topProducts {
+            id
+            name
+            region
+          }
         }
-      }
+      hash: 99b1a0bc15e758646fd70582dd5f12456b94855e75c41f52f9481f0a560721e0
+      shortHash: 99b1a0bc
+      xxHash: 13266545978416997335
+    resultSelectionSet: >-
+      { topProducts }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query GetTopProducts_123456789101112_2(
-        $__fusion_1_id: ID!
+    operation:
+      name: GetTopProducts_123456789101112_2
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_2(
+          $__fusion_1_id: ID!
           $__fusion_2_region: String!
-      ) {
-        productById(id: $__fusion_1_id) {
-          price(region: $__fusion_2_region)
+        ) {
+          productById(id: $__fusion_1_id) {
+            price(region: $__fusion_2_region)
+          }
         }
-      }
+      hash: d1449a564d7c39f6211ad55d329730f9412e6f58507867f3b1ba97552976b291
+      shortHash: d1449a56
+      xxHash: 18069274232815985517
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.productById
     target: $.topProducts
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.topProducts
         selectionMap: >-
           id
       - name: __fusion_2_region
+        type: String!
+        path: $.topProducts
         selectionMap: >-
           region
     dependencies:

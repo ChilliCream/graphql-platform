@@ -390,6 +390,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
             [],
             operationNode.ResultSelectionSet,
             [],
+            [],
             requiresFileUpload: false,
             schema);
         using var activity = new Activity("ApolloOperationSpanTest");
