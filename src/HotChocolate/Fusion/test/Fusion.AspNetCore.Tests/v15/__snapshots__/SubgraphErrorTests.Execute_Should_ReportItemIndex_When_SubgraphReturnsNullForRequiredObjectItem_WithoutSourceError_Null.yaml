@@ -19,7 +19,19 @@ response:
           null
         ],
         "tail": 4
-      }
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "r",
+            1
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

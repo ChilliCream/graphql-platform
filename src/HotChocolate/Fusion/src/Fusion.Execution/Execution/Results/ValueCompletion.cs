@@ -1236,7 +1236,7 @@ internal sealed class ValueCompletion
                     ForwardListElementErrors(errorTrieForIndex, target, i, elementType, selection);
                 }
 
-                if (isNonNull && selection.IsLeaf)
+                if (isNonNull)
                 {
                     if (errorTrieForIndex?.FindFirstError() is null)
                     {
@@ -1245,11 +1245,12 @@ internal sealed class ValueCompletion
                         _store.AddError(_errorHandler.Handle(error));
                     }
 
+                    if (_propagateNullValues && !selection.IsLeaf)
+                    {
+                        return TryCompleteNullContainer(target);
+                    }
+
                     propagateItemNull |= _propagateNullValues;
-                }
-                else if (isNonNull && _propagateNullValues)
-                {
-                    return TryCompleteNullContainer(target);
                 }
 
                 targetEnumerator.Current.SetNullValue();
