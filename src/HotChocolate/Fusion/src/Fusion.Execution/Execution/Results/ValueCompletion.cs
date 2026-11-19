@@ -1470,6 +1470,11 @@ TryCompleteList_MoveNext:
     {
         AssertDepthAllowed(ref depth);
 
+        if (target.IsNullOrInvalidated && errorTrie is null or { Count: 0 })
+        {
+            return true;
+        }
+
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.
         if (!target.TryGetObjectContext(out var objectContext))
