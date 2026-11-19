@@ -3667,14 +3667,12 @@ AddErrors_Next:
         return conditionType.IsAssignableFrom(runtimeType);
     }
 
-    private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errors)
+    private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errorTrie)
     {
-        if (errors is null || sourcePath.IsRoot)
+        if (errorTrie is null || sourcePath.IsRoot)
         {
-            return errors;
+            return errorTrie;
         }
-
-        var current = errors;
 
         for (var i = 0; i < sourcePath.Length; i++)
         {
@@ -3687,13 +3685,20 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!current.TryGetValue(segment.Name, out current))
+            if (!errorTrie.TryGetValue(segment.Name, out var childErrorTrie))
             {
-                return null;
+                if (errorTrie.Error is not { } error)
+                {
+                    return null;
+                }
+
+                return errorTrie.Count == 0 ? errorTrie : new ErrorTrie { Error = error };
             }
+
+            errorTrie = childErrorTrie;
         }
 
-        return current;
+        return errorTrie;
     }
 
     private CompositeResultElement GetStartObjectResultUnsafe(Path path)
