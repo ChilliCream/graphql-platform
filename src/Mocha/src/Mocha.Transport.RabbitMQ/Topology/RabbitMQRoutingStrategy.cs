@@ -216,19 +216,20 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         }
 
         // Generated temporary reply queues expire without consumers and inherit quorum replication settings.
-        var isReplyQueue = rabbitConfiguration.IsTemporary && rabbitEndpoint.Kind == ReceiveEndpointKind.Reply;
+        var isReplyQueue = rabbitEndpoint.Kind == ReceiveEndpointKind.Reply;
+        var isTemporaryReplyQueue = isReplyQueue && rabbitConfiguration.IsTemporary;
 
         var queue = _topology.GetOrAddQueue(
             rabbitConfiguration.QueueName,
             _ => new RabbitMQQueueConfiguration
             {
-                AutoDelete = rabbitConfiguration.IsTemporary && !isReplyQueue,
+                AutoDelete = rabbitConfiguration.IsTemporary && !isTemporaryReplyQueue,
                 AutoProvision = rabbitConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint,
-                IsTemporaryReplyQueue = isReplyQueue
+                IsReplyQueue = isReplyQueue
             });
 
-        if (isReplyQueue && queue.Origin is not TopologyOrigin.Declared)
+        if (isTemporaryReplyQueue && queue.Origin is not TopologyOrigin.Declared)
         {
             queue.MarkExpiring(rabbitConfiguration.TemporaryExpiry ?? s_replyQueueExpiration);
         }

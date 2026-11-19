@@ -75,16 +75,6 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     public Task StartAsync(CancellationToken cancellationToken) => _connection.StartAsync(cancellationToken);
 
     /// <summary>
-    /// Makes one round trip on a new connection, so a connection the broker refuses after the handshake
-    /// does not count as ready.
-    /// </summary>
-    public static async Task SetUpConnectionAsync(IConnection connection, CancellationToken cancellationToken)
-    {
-        await using var channel = await connection.CreateChannelAsync(s_probeChannelOptions, cancellationToken);
-        await channel.CloseAsync(cancellationToken);
-    }
-
-    /// <summary>
     /// Registers a consumer for a queue and waits for its first attempt to attach. The consumer attaches
     /// again by itself whenever its channel or its connection is lost, until it is stopped.
     /// </summary>

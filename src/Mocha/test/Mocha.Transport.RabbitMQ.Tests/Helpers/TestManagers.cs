@@ -25,7 +25,7 @@ internal static class TestManagers
                 TimeProvider.System,
                 new RabbitMQConnectionManagerOptions(),
                 connectionFactory,
-                RabbitMQConsumerManager.SetUpConnectionAsync));
+                static (connection, cancellationToken) => connection.ProbeAsync(cancellationToken)));
 
     /// <summary>
     /// Gets whether the connection is ready and every consumer is attached.

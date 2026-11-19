@@ -45,7 +45,8 @@ public sealed class RabbitMQQueueConfiguration : TopologyConfiguration<RabbitMQM
     public bool? AutoProvision { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this is a generated temporary reply queue.
+    /// Gets or sets a value indicating whether the queue receives the replies of this instance.
+    /// The default message limits of the transport are not applied to a reply queue.
     /// </summary>
-    internal bool IsTemporaryReplyQueue { get; set; }
+    public bool IsReplyQueue { get; set; }
 }

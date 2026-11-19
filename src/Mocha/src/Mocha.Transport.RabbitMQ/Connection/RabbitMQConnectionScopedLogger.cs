@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Mocha.Transport.RabbitMQ;
@@ -5,11 +6,26 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// A logger that writes each entry inside the logging scope of one RabbitMQ connection.
 /// </summary>
-internal sealed class RabbitMQConnectionScopedLogger(ILogger logger, RabbitMQConnectionLogScope scope) : ILogger
+internal sealed class RabbitMQConnectionScopedLogger : ILogger
 {
-    public bool IsEnabled(LogLevel logLevel) => logger.IsEnabled(logLevel);
+    private readonly ILogger _logger;
+    private readonly RabbitMQConnectionLogScope _scope;
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => logger.BeginScope(state);
+    private RabbitMQConnectionScopedLogger(ILogger logger, RabbitMQConnectionLogScope scope, string connectionName)
+    {
+        _logger = logger;
+        _scope = scope;
+        ConnectionName = connectionName;
+    }
+
+    /// <summary>
+    /// Gets the name the broker shows for the connection.
+    /// </summary>
+    public string ConnectionName { get; }
+
+    public bool IsEnabled(LogLevel logLevel) => _logger.IsEnabled(logLevel);
+
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => _logger.BeginScope(state);
 
     public void Log<TState>(
         LogLevel logLevel,
@@ -18,14 +34,43 @@ internal sealed class RabbitMQConnectionScopedLogger(ILogger logger, RabbitMQCon
         Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
-        if (!logger.IsEnabled(logLevel))
+        if (!_logger.IsEnabled(logLevel))
         {
             return;
         }
 
-        using (logger.BeginScope(scope))
+        using (_logger.BeginScope(_scope))
         {
-            logger.Log(logLevel, eventId, state, exception, formatter);
+            _logger.Log(logLevel, eventId, state, exception, formatter);
         }
+    }
+
+    /// <summary>
+    /// Creates the logger for the consumer connection of a transport.
+    /// </summary>
+    /// <param name="context">The setup context of the transport.</param>
+    /// <param name="transportName">The name of the transport.</param>
+    /// <param name="connection">The provider of the connection.</param>
+    public static RabbitMQConnectionScopedLogger Create(
+        IMessagingSetupContext context,
+        string transportName,
+        IRabbitMQConnectionProvider connection)
+    {
+        const string role = RabbitMQConnectionRole.Consumer;
+        var serviceName = context.Host.ServiceName ?? context.Host.ProcessName;
+        var connectionName = $"{serviceName} {transportName} {role}";
+
+        return new RabbitMQConnectionScopedLogger(
+            context.Services.GetRequiredService<ILoggerFactory>().CreateLogger(RabbitMQLogCategory.Consumer),
+            new RabbitMQConnectionLogScope(
+                serviceName,
+                context.Host.InstanceId,
+                transportName,
+                connectionName,
+                role,
+                connection.Host,
+                connection.Port,
+                connection.VirtualHost),
+            connectionName);
     }
 }

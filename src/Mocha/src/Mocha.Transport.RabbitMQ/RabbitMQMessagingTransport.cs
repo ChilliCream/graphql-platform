@@ -91,47 +91,38 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             _topology.AddBinding(binding);
         }
 
-        // Reconnect delays and timeouts follow the system clock, also when the application replaces the clock.
-        var timeProvider = TimeProvider.System;
+        Dispatcher = CreateDispatcher(context);
+        ConsumerManager = CreateConsumerManager(context);
+    }
 
-        Dispatcher = new RabbitMQDispatcher(
-            context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>(),
-            Connection.CreateAsync,
-            ProvisionTopologyAsync);
+    private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
+    {
+        var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
 
-        const string role = RabbitMQConnectionRole.Consumer;
-        var serviceName = context.Host.ServiceName ?? context.Host.ProcessName;
-        var connectionName = $"{serviceName} {Name} {role}";
+        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync);
 
-        // Every entry of the consumer connection and its consumers carries the values of the connection.
-        var logger = new RabbitMQConnectionScopedLogger(
-            context.Services.GetRequiredService<ILoggerFactory>().CreateLogger(RabbitMQLogCategory.Consumer),
-            new RabbitMQConnectionLogScope(
-                serviceName,
-                context.Host.InstanceId,
-                Name,
-                connectionName,
-                role,
-                Connection.Host,
-                Connection.Port,
-                Connection.VirtualHost));
+        async Task ProvisionTopologyAsync(IConnection connection, CancellationToken cancellationToken)
+        {
+            await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+            await new RabbitMQTopologyProvisioner(_topology, connection).ProvisionAsync(channel, cancellationToken);
+        }
+    }
 
-        ConsumerManager = new RabbitMQConsumerManager(
+    private RabbitMQConsumerManager CreateConsumerManager(IMessagingSetupContext context)
+    {
+        var timeProvider = context.Services.GetTimeProvider();
+        var logger = RabbitMQConnectionScopedLogger.Create(context, Name, Connection);
+
+        return new RabbitMQConsumerManager(
             new RabbitMQConsumerLogger(logger, timeProvider),
             timeProvider,
             new RabbitMQConsumerManagerOptions(),
             new RabbitMQConnectionManager(
-                new RabbitMQConnectionLogger(logger, role),
+                new RabbitMQConnectionLogger(logger, RabbitMQConnectionRole.Consumer),
                 timeProvider,
                 new RabbitMQConnectionManagerOptions(),
-                cancellationToken => Connection.CreateAsync(connectionName, cancellationToken),
-                RabbitMQConsumerManager.SetUpConnectionAsync));
-    }
-
-    private async Task ProvisionTopologyAsync(IConnection connection, CancellationToken cancellationToken)
-    {
-        await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
-        await new RabbitMQTopologyProvisioner(_topology, connection).ProvisionAsync(channel, cancellationToken);
+                cancellationToken => Connection.CreateAsync(logger.ConnectionName, cancellationToken),
+                static (connection, cancellationToken) => connection.ProbeAsync(cancellationToken)));
     }
 
     /// <inheritdoc />
