@@ -97,26 +97,16 @@ public sealed class FetchResultStoreTests : FusionTestBase
             pathSegmentLocalPoolCapacity: 16);
 
         // act
-        var exception = Record.Exception(() =>
+        foreach (var name in order)
         {
-            foreach (var name in order)
-            {
-                var source = name.ToString();
-                var result = CreateSourceSchemaResult(sourceArena, CompactPath.Root, payloads[source]);
-                store.AddPartialResult(SelectionPath.Root, result, nodes[source].ResultSelectionSet, result.HasErrors);
-            }
-
-            store.FinalizePocketedErrors();
-        });
-
-        // assert
-        if (mode is ErrorHandlingMode.Propagate && order is "ABC" or "CAB")
-        {
-            Assert.IsType<ArgumentOutOfRangeException>(exception);
-            return;
+            var source = name.ToString();
+            var result = CreateSourceSchemaResult(sourceArena, CompactPath.Root, payloads[source]);
+            store.AddPartialResult(SelectionPath.Root, result, nodes[source].ResultSelectionSet, result.HasErrors);
         }
 
-        Assert.Null(exception);
+        store.FinalizePocketedErrors();
+
+        // assert
         RenderData(store).MatchInlineSnapshot(mode is ErrorHandlingMode.Null
             ? """{"x":{"a":null,"b":"B","c":"C"},"alive":"OK"}"""
             : """{"x":null,"alive":"OK"}""");

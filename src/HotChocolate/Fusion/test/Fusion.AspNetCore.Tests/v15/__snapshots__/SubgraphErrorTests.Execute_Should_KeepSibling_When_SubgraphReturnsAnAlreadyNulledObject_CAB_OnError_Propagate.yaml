@@ -18,12 +18,6 @@ response:
       },
       "errors": [
         {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "details"
-          ]
-        },
-        {
           "message": "Name unavailable.",
           "path": [
             "details",

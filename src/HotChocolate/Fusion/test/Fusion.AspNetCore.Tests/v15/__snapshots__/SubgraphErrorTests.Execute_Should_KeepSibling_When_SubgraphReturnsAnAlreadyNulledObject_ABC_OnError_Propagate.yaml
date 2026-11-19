@@ -14,26 +14,14 @@ response:
     {
       "data": {
         "details": null,
-        "total": null
+        "total": 4
       },
       "errors": [
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "details"
-          ]
-        },
         {
           "message": "Name unavailable.",
           "path": [
             "details",
             "name"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "total"
           ]
         }
       ]
