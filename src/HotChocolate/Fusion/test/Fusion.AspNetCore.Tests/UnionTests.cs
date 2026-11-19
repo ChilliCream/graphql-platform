@@ -7,11 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-// TODO once execution is implemented:
-// - Returning null for a union (list item)
-// - Returning different combinations inside of list
-// TODO
-// - spreading interface selection on union field
 public class UnionTests : FusionTestBase
 {
     #region union { ... }
