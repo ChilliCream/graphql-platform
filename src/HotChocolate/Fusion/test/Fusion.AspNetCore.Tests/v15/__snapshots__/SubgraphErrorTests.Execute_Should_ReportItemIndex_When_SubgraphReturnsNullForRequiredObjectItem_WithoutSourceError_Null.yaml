@@ -1,0 +1,110 @@
+title: Execute_Should_ReportItemIndex_When_SubgraphReturnsNullForRequiredObjectItem
+request:
+  onError: Null
+  document: |
+    {
+      r: rows {
+        value
+      }
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "r": [
+          {
+            "value": 1
+          },
+          null
+        ],
+        "tail": 4
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "r",
+            1
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        rows: [Row!]
+        tail: Int
+      }
+
+      type Row {
+        value: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0fa3ce9d_1 {
+              r: rows {
+                value
+              }
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "r": [
+                    {
+                      "value": 1
+                    },
+                    null
+                  ],
+                  "tail": 4
+                }
+              }
+operationPlan:
+  id: 07943d48f077bed55851714585876ffa5a01d3f71e0dfbfa847c90cdc952a29b
+  operation:
+    - document: |
+        {
+          r: rows {
+            value
+          }
+          tail
+        }
+      kind: Query
+      id: 0fa3ce9d4b6dd16aac721a80cc0ddc62
+      hash: 0fa3ce9d4b6dd16aac721a80cc0ddc62
+      shortHash: 0fa3ce9d
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_0fa3ce9d_1
+        kind: Query
+        document: |
+          query Op_0fa3ce9d_1 {
+            r: rows {
+              value
+            }
+            tail
+          }
+        hash: 3775c6f66026ac66ba8f8b0a257bd7e425cdf98b9a17e291e1296291b28af6e2
+        shortHash: 3775c6f6
+        xxHash: 6053553908713446731
+      resultSelectionSet: >-
+        { r tail }
