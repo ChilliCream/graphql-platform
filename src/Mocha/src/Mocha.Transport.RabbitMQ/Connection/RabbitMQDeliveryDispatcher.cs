@@ -53,9 +53,21 @@ internal sealed class RabbitMQDeliveryDispatcher(
         => WaitUntilAsync(maxConcurrency - 1, cancellationToken);
 
     /// <summary>
-    /// Waits until no handler runs.
+    /// Waits until no handler runs. Returns <c>0</c>, or the number of handlers that still run when
+    /// <paramref name="cancellationToken"/> is cancelled first.
     /// </summary>
-    public Task WaitForIdleAsync(CancellationToken cancellationToken) => WaitUntilAsync(0, cancellationToken);
+    public async Task<int> WaitForIdleAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await WaitUntilAsync(0, cancellationToken);
+            return 0;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return RunningCount;
+        }
+    }
 
     /// <summary>
     /// Discards the deliveries that no worker has taken yet.

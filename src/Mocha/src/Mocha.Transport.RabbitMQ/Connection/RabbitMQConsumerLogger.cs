@@ -62,34 +62,15 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger, TimeProvide
             delay);
     }
 
-    public void ConsumerChannelLostWhileStopping(RabbitMQConsumer consumer, ShutdownEventArgs? reason)
-        => ConsumerChannelLostWhileStopping(
-            consumer.QueueName,
-            reason?.ReplyCode ?? 0,
-            reason?.ReplyText ?? "consumer cancelled by the broker",
-            reason?.Initiator ?? ShutdownInitiator.Peer,
-            consumer.RunningHandlers);
-
     public void ConsumerBlockedByHandlers(RabbitMQConsumer consumer, TimeSpan gracePeriod)
         => ConsumerBlockedByHandlers(consumer.QueueName, consumer.MaxConcurrency, gracePeriod);
 
-    public void ConsumerUnblocked(RabbitMQConsumer consumer, long blockedSince, TimeSpan gracePeriod)
-        => ConsumerUnblocked(consumer.QueueName, timeProvider.GetElapsedTime(blockedSince) + gracePeriod);
-
-    public void ConsumerDrainStarted(RabbitMQConsumer consumer)
-        => ConsumerDrainStarted(consumer.QueueName, consumer.RunningHandlers);
-
-    public void ConsumerDrainTimedOut(RabbitMQConsumer consumer, long stopStarted)
-        => ConsumerDrainTimedOut(
+    public void ConsumerStopped(RabbitMQConsumer consumer, long stopStarted, int runningHandlers)
+        => ConsumerStopped(
+            runningHandlers > 0 ? LogLevel.Warning : LogLevel.Information,
             consumer.QueueName,
-            consumer.RunningHandlers,
-            timeProvider.GetElapsedTime(stopStarted));
-
-    public void ConsumerHandlersCancelled(RabbitMQConsumer consumer)
-        => ConsumerHandlersCancelled(consumer.QueueName, consumer.RunningHandlers);
-
-    public void ConsumerStopped(RabbitMQConsumer consumer, long stopStarted)
-        => ConsumerStopped(consumer.QueueName, timeProvider.GetElapsedTime(stopStarted), consumer.RunningHandlers);
+            timeProvider.GetElapsedTime(stopStarted),
+            runningHandlers);
 
     public void ConsumerFailed(RabbitMQConsumer consumer, Exception exception)
         => ConsumerFailed(exception, consumer.QueueName);
@@ -145,30 +126,9 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger, TimeProvide
             + "run after {GracePeriod}; waiting for one to return")]
     private partial void ConsumerBlockedByHandlers(string queue, ushort maxConcurrency, TimeSpan gracePeriod);
 
-    [LoggerMessage(LogLevel.Information, "RabbitMQ consumer of {Queue} unblocked after {Elapsed}; attaching again")]
-    private partial void ConsumerUnblocked(string queue, TimeSpan elapsed);
-
     [LoggerMessage(
-        LogLevel.Information,
-        "RabbitMQ consumer of {Queue} stopping; waiting for {RunningHandlers} handlers")]
-    private partial void ConsumerDrainStarted(string queue, int runningHandlers);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "RabbitMQ consumer of {Queue} stopped waiting after {Elapsed}; {RunningHandlers} handlers "
-            + "cancelled, their messages return to the queue")]
-    private partial void ConsumerDrainTimedOut(string queue, int runningHandlers, TimeSpan elapsed);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "RabbitMQ consumer of {Queue} stopping without waiting; {RunningHandlers} handlers cancelled, their "
-            + "messages return to the queue")]
-    private partial void ConsumerHandlersCancelled(string queue, int runningHandlers);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "RabbitMQ consumer of {Queue} stopped after {Elapsed} ({RunningHandlers} handlers still running)")]
-    private partial void ConsumerStopped(string queue, TimeSpan elapsed, int runningHandlers);
+        Message = "RabbitMQ consumer of {Queue} stopped after {Elapsed}; {RunningHandlers} handlers did not return in time")]
+    private partial void ConsumerStopped(LogLevel level, string queue, TimeSpan elapsed, int runningHandlers);
 
     [LoggerMessage(LogLevel.Critical, "RabbitMQ consumer of {Queue} failed unexpectedly; it no longer consumes")]
     private partial void ConsumerFailed(Exception exception, string queue);
@@ -205,17 +165,6 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger, TimeProvide
         ShutdownInitiator initiator,
         int cancelledHandlers,
         TimeSpan delay);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "RabbitMQ consumer of {Queue} lost its channel while stopping: {ReplyCode} {ReplyText} (initiator "
-            + "{Initiator}); {CancelledHandlers} handlers cancelled, their messages can be delivered again")]
-    private partial void ConsumerChannelLostWhileStopping(
-        string queue,
-        ushort replyCode,
-        string replyText,
-        ShutdownInitiator initiator,
-        int cancelledHandlers);
 
     [LoggerMessage(
         LogLevel.Warning,

@@ -8,7 +8,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// Consumes one queue. A single task attaches the consumer to a channel, waits until the channel or the
 /// broker-side consumer is lost, and attaches again, until the consumer is stopped.
 /// </summary>
-/// <param name="connections">The manager of the connection the consumer attaches on.</param>
+/// <param name="connectionManager">The manager of the connection the consumer attaches on.</param>
 /// <param name="logger">The logger for consumer events.</param>
 /// <param name="options">The timeouts and the retry delay of the consumer.</param>
 /// <param name="timeProvider">The clock used for elapsed times, delays and timeouts.</param>
@@ -19,7 +19,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <param name="maxConcurrency">The largest number of messages that are handled at the same time.</param>
 /// <param name="onStopped">Called on each stop of the consumer, after the stop ended.</param>
 internal sealed class RabbitMQConsumer(
-    RabbitMQConnectionManager connections,
+    RabbitMQConnectionManager connectionManager,
     RabbitMQConsumerLogger logger,
     RabbitMQConsumerManagerOptions options,
     TimeProvider timeProvider,
@@ -30,6 +30,11 @@ internal sealed class RabbitMQConsumer(
     ushort maxConcurrency,
     Action<RabbitMQConsumer> onStopped) : IAsyncDisposable
 {
+    private static readonly CreateChannelOptions s_channelOptions = new(
+        publisherConfirmationsEnabled: false,
+        publisherConfirmationTrackingEnabled: false,
+        consumerDispatchConcurrency: 1);
+
     private readonly RabbitMQDeliveryDispatcher _dispatcher = new(maxConcurrency, messageHandler, logger, queueName);
 
     /// <summary>
@@ -118,7 +123,7 @@ internal sealed class RabbitMQConsumer(
                 // delivers them again. Without the discard, their buffers stay rented while every worker is busy.
                 _dispatcher.DiscardQueued();
 
-                var getting = connections.GetConnectionAsync(stop);
+                var getting = connectionManager.GetConnectionAsync(stop);
                 if (!getting.IsCompleted)
                 {
                     // An endpoint must start during a broker outage and attach later. So the registration must not
@@ -130,7 +135,7 @@ internal sealed class RabbitMQConsumer(
 
                 // The broker does not answer requests on a connection it blocked for a memory or disk alarm.
                 // An attach there would only time out.
-                await connections.WaitWhileBlockedAsync(stop);
+                await connectionManager.WaitWhileBlockedAsync(stop);
 
                 RabbitMQConsumerAttachment attachment;
                 try
@@ -200,14 +205,29 @@ internal sealed class RabbitMQConsumer(
         }
         catch (OperationCanceledException) when (stop.IsCancellationRequested)
         {
-            await DrainAsync(wasAttached);
+            var stopStarted = timeProvider.GetTimestamp();
+            var attachment = _current;
+
+            // The health check does not report an attachment during the drain.
+            _current = null;
+
+            // A consumer that is not attached still waits for the handlers of its lost channels.
+            var runningHandlers = attachment is null
+                ? await _dispatcher.WaitForIdleAsync(_drainDeadline.Token)
+                : await attachment.StopAsync(_drainDeadline.Token);
+
+            // A consumer that never attached writes no "stopped" entry.
+            if (wasAttached)
+            {
+                logger.ConsumerStopped(this, stopStarted, runningHandlers);
+            }
         }
         catch (Exception ex)
         {
             _startup.TrySetException(ex);
 
             // A disposed connection manager is the cause of the failure, and the disposal is not an error.
-            if (!connections.IsDisposed)
+            if (!connectionManager.IsDisposed)
             {
                 logger.ConsumerFailed(this, ex);
             }
@@ -233,97 +253,6 @@ internal sealed class RabbitMQConsumer(
     }
 
     /// <summary>
-    /// Ends the current attachment after a stop. Waits for running handlers until the drain deadline passes,
-    /// then cancels the handlers that still run and closes the channel.
-    /// </summary>
-    private async Task DrainAsync(bool wasAttached)
-    {
-        var stopStarted = timeProvider.GetTimestamp();
-        var drainToken = _drainDeadline.Token;
-        var attachment = _current;
-
-        // The health check does not report an attachment during the drain.
-        _current = null;
-
-        // A stop whose token is already cancelled, such as a disposal, does not wait for handlers.
-        var waitsForHandlers = !drainToken.IsCancellationRequested;
-        if (waitsForHandlers && RunningHandlers > 0)
-        {
-            logger.ConsumerDrainStarted(this);
-        }
-
-        if (attachment is { IsLost: false, Channel.IsOpen: true })
-        {
-            try
-            {
-                // Asks the broker to stop delivering. Running handlers can still acknowledge on the open
-                // channel. Deliveries that arrive during this call are still accepted.
-                await attachment.CancelAsync(drainToken);
-            }
-            catch
-            {
-                // The channel is closed below.
-            }
-        }
-        else
-        {
-            // The client closes a channel before it raises the shutdown, so nobody else cancels the
-            // handlers in that gap.
-            attachment?.CancelHandlers();
-        }
-
-        // Retire before the wait reads the count. A worker checks the flag and counts its handler under one
-        // lock, so either the wait sees the handler or the worker skips the delivery.
-        attachment?.Retire();
-        try
-        {
-            // The wait also covers handlers of older channels. They hold a worker until they return.
-            var idle = _dispatcher.WaitForIdleAsync(drainToken);
-            if (attachment is not null)
-            {
-                // Waiting for the loss only writes the log entry. A lost channel cancels its handlers, and the
-                // wait for idle goes on.
-                await Task.WhenAny(idle, attachment.Lost);
-                if (!idle.IsCompleted && RunningHandlers > 0)
-                {
-                    logger.ConsumerChannelLostWhileStopping(this, await attachment.Lost);
-                }
-            }
-
-            await idle;
-        }
-        catch (OperationCanceledException)
-        {
-            if (RunningHandlers > 0)
-            {
-                if (waitsForHandlers)
-                {
-                    logger.ConsumerDrainTimedOut(this, stopStarted);
-                }
-                else
-                {
-                    logger.ConsumerHandlersCancelled(this);
-                }
-            }
-
-            // At the deadline, cancel the handlers that still run. Their messages return to the queue when
-            // the channel closes.
-            attachment?.CancelHandlers();
-        }
-
-        if (attachment is not null)
-        {
-            await attachment.CloseAsync();
-        }
-
-        // A consumer that never attached writes no "stopped" entry.
-        if (wasAttached)
-        {
-            logger.ConsumerStopped(this, stopStarted);
-        }
-    }
-
-    /// <summary>
     /// Opens a channel, prepares it, waits for a free handler and starts consuming. The attach timeout
     /// bounds the whole attempt, without the wait for a handler.
     /// </summary>
@@ -340,16 +269,25 @@ internal sealed class RabbitMQConsumer(
         {
             _state = ConsumerState.Attaching;
 
+            // An open that is not started cannot time out and replace the connection of other consumers.
+            stop.ThrowIfCancellationRequested();
+
             // The connection manager bounds the open with the same timeout. A second timer would race it and
             // hide its error, such as a blocked connection.
-            attachment = await RabbitMQConsumerAttachment.OpenAsync(
-                connections,
-                connection,
-                logger,
-                QueueName,
-                _dispatcher,
-                timeout,
-                stop);
+            var opening = connectionManager.OpenChannelAsync(connection, s_channelOptions, timeout);
+            IChannel channel;
+            try
+            {
+                channel = await opening.WaitAsync(stop);
+            }
+            catch (OperationCanceledException) when (stop.IsCancellationRequested)
+            {
+                // The open does not end with the token. The channel is closed once it is open.
+                _ = opening.CloseWhenOpenedAsync(connectionManager);
+                throw;
+            }
+
+            attachment = new RabbitMQConsumerAttachment(channel, connectionManager, _dispatcher, logger, QueueName);
 
             attachCts.CancelAfter(GetRemaining(timeout, timeProvider.GetElapsedTime(started)));
             if (prepareAsync is not null)
@@ -370,24 +308,23 @@ internal sealed class RabbitMQConsumer(
             if (!capacity.IsCompletedSuccessfully)
             {
                 _state = ConsumerState.WaitingForHandlers;
-
-                // The handlers were cancelled when their channel was lost. Only a handler that ignores the
-                // cancellation is still running after the grace period.
-                var gracePeriod = options.BlockedGracePeriod;
                 try
                 {
                     try
                     {
-                        await capacity.WaitAsync(gracePeriod, timeProvider);
+                        await capacity.WaitAsync(options.BlockedGracePeriod, timeProvider);
                     }
                     catch (TimeoutException)
                     {
-                        var blockedSince = timeProvider.GetTimestamp();
-                        logger.ConsumerBlockedByHandlers(this, gracePeriod);
-
-                        await capacity;
-                        logger.ConsumerUnblocked(this, blockedSince, gracePeriod);
+                        // The handlers were cancelled when their channel was lost. Only a handler that ignores
+                        // the cancellation is still running after the grace period.
+                        if (!capacity.IsCompleted)
+                        {
+                            logger.ConsumerBlockedByHandlers(this, options.BlockedGracePeriod);
+                        }
                     }
+
+                    await capacity;
                 }
                 catch (OperationCanceledException) when (!stop.IsCancellationRequested)
                 {

@@ -7,22 +7,43 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// The broker-side consumer on one channel. A lost or closed attachment is never used again.
 /// </summary>
-internal sealed class RabbitMQConsumerAttachment(
-    IChannel channel,
-    RabbitMQConnectionManager connections,
-    RabbitMQDeliveryDispatcher dispatcher,
-    RabbitMQConsumerLogger logger,
-    string queueName) : AsyncDefaultBasicConsumer(channel)
+internal sealed class RabbitMQConsumerAttachment : AsyncDefaultBasicConsumer
 {
-    private static readonly CreateChannelOptions s_channelOptions = new(
-        publisherConfirmationsEnabled: false,
-        publisherConfirmationTrackingEnabled: false,
-        consumerDispatchConcurrency: 1);
-
+    private readonly RabbitMQConnectionManager _connectionManager;
+    private readonly RabbitMQDeliveryDispatcher _dispatcher;
+    private readonly RabbitMQConsumerLogger _logger;
+    private readonly string _queueName;
     private readonly CancellationTokenSource _handlers = new();
     private readonly TaskCompletionSource<ShutdownEventArgs?> _lost = new(
         TaskCreationOptions.RunContinuationsAsynchronously);
     private volatile bool _isRetired;
+
+    /// <summary>
+    /// Creates the attachment for an open channel and starts to watch the channel for its shutdown.
+    /// </summary>
+    /// <param name="channel">The open channel.</param>
+    /// <param name="connectionManager">The manager that closes the channel.</param>
+    /// <param name="dispatcher">Receives the deliveries of the attachment.</param>
+    /// <param name="logger">The logger for failures of handler cancellation.</param>
+    /// <param name="queueName">The name of the queue the attachment consumes.</param>
+    public RabbitMQConsumerAttachment(
+        IChannel channel,
+        RabbitMQConnectionManager connectionManager,
+        RabbitMQDeliveryDispatcher dispatcher,
+        RabbitMQConsumerLogger logger,
+        string queueName) : base(channel)
+    {
+        _connectionManager = connectionManager;
+        _dispatcher = dispatcher;
+        _logger = logger;
+        _queueName = queueName;
+
+        channel.ChannelShutdownAsync += (_, reason) =>
+        {
+            OnLost(reason);
+            return Task.CompletedTask;
+        };
+    }
 
     /// <summary>
     /// Gets the consumer tag the broker assigned, or an empty string until the subscription is confirmed.
@@ -51,52 +72,6 @@ internal sealed class RabbitMQConsumerAttachment(
     public bool IsRetired => _isRetired;
 
     /// <summary>
-    /// Opens a channel. The open does not end with <paramref name="cancellationToken"/>, but the wait for it
-    /// does, and the channel is closed when the open completes later.
-    /// </summary>
-    /// <param name="connections">The manager that opens and closes the channel.</param>
-    /// <param name="connection">The connection to open the channel on.</param>
-    /// <param name="logger">The logger for failures of handler cancellation.</param>
-    /// <param name="queueName">The name of the queue the attachment consumes.</param>
-    /// <param name="dispatcher">Receives the deliveries of the attachment.</param>
-    /// <param name="timeout">How long the broker can take to open the channel.</param>
-    /// <param name="cancellationToken">Ends the wait for the open.</param>
-    public static async Task<RabbitMQConsumerAttachment> OpenAsync(
-        RabbitMQConnectionManager connections,
-        IConnection connection,
-        RabbitMQConsumerLogger logger,
-        string queueName,
-        RabbitMQDeliveryDispatcher dispatcher,
-        TimeSpan timeout,
-        CancellationToken cancellationToken)
-    {
-        // An open that is not started cannot time out and replace the connection of other consumers.
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var opening = connections.OpenChannelAsync(connection, s_channelOptions, timeout);
-        IChannel channel;
-        try
-        {
-            channel = await opening.WaitAsync(cancellationToken);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            // The channel is closed once it is open.
-            _ = opening.CloseWhenOpenedAsync(connections);
-            throw;
-        }
-
-        var attachment = new RabbitMQConsumerAttachment(channel, connections, dispatcher, logger, queueName);
-        channel.ChannelShutdownAsync += (_, reason) =>
-        {
-            attachment.OnLost(reason);
-            return Task.CompletedTask;
-        };
-
-        return attachment;
-    }
-
-    /// <summary>
     /// Runs <paramref name="prepareAsync"/> on the channel. A failure leaves the attachment open, and the
     /// caller closes it.
     /// </summary>
@@ -122,28 +97,59 @@ internal sealed class RabbitMQConsumerAttachment(
             .WaitOrAbandonAsync(cancellationToken);
 
         Tag = await Channel
-            .BasicConsumeAsync(queueName, autoAck: false, consumer: this, cancellationToken)
+            .BasicConsumeAsync(_queueName, autoAck: false, consumer: this, cancellationToken)
             .WaitOrAbandonAsync(cancellationToken);
     }
 
     /// <summary>
-    /// Asks the broker to stop delivering. Handlers that run settle their messages on the open channel.
+    /// Stops consuming and waits for running handlers until <paramref name="drainToken"/> is cancelled, then
+    /// cancels the handlers that still run and closes the channel.
     /// </summary>
-    /// <param name="cancellationToken">Ends the wait for the broker.</param>
-    public Task CancelAsync(CancellationToken cancellationToken)
-        => Channel.BasicCancelAsync(Tag, noWait: false, cancellationToken).WaitOrAbandonAsync(cancellationToken);
+    /// <param name="drainToken">Ends the wait for the broker and for running handlers.</param>
+    /// <returns>The number of handlers that still ran when the wait ended.</returns>
+    public async Task<int> StopAsync(CancellationToken drainToken)
+    {
+        if (!IsLost && Channel.IsOpen)
+        {
+            try
+            {
+                // Asks the broker to stop delivering. Running handlers can still acknowledge on the open
+                // channel. Deliveries that arrive during this call are still accepted.
+                await Channel.BasicCancelAsync(Tag, noWait: false, drainToken).WaitOrAbandonAsync(drainToken);
+            }
+            catch
+            {
+                // The channel is closed below.
+            }
+        }
+        else
+        {
+            // The client closes a channel before it raises the shutdown, so nobody else cancels the
+            // handlers in that gap.
+            CancelHandlers();
+        }
 
-    /// <summary>
-    /// Stops starting handlers for deliveries of this attachment. Running handlers are not cancelled.
-    /// </summary>
-    public void Retire() => _isRetired = true;
+        // Retire before the wait reads the count. A worker checks the flag and counts its handler under one
+        // lock, so either the wait sees the handler or the worker skips the delivery.
+        _isRetired = true;
+
+        // The wait also covers handlers of older channels. They hold a worker until they return.
+        var running = await _dispatcher.WaitForIdleAsync(drainToken);
+        if (running > 0)
+        {
+            CancelHandlers();
+        }
+
+        await CloseAsync();
+        return running;
+    }
 
     /// <summary>
     /// Stops starting handlers and cancels the handlers that run, without waiting for their callbacks.
     /// </summary>
     public void CancelHandlers()
     {
-        Retire();
+        _isRetired = true;
         _ = CancelCallbacksAsync();
 
         async Task CancelCallbacksAsync()
@@ -155,7 +161,7 @@ internal sealed class RabbitMQConsumerAttachment(
             }
             catch (Exception ex)
             {
-                logger.HandlerCancellationFailed(ex, queueName);
+                _logger.HandlerCancellationFailed(ex, _queueName);
             }
         }
     }
@@ -163,7 +169,7 @@ internal sealed class RabbitMQConsumerAttachment(
     /// <summary>
     /// Closes the channel, waiting no longer than the close timeout of the connection manager.
     /// </summary>
-    public Task CloseAsync() => connections.CloseChannelAsync(Channel);
+    public Task CloseAsync() => _connectionManager.CloseChannelAsync(Channel);
 
     /// <inheritdoc />
     public override Task HandleBasicDeliverAsync(
@@ -196,7 +202,7 @@ internal sealed class RabbitMQConsumerAttachment(
             buffer.AsMemory(0, body.Length),
             HandlerToken);
 
-        if (!dispatcher.TryEnqueue(new RabbitMQDeliveryDispatcher.Delivery(this, eventArgs, buffer)))
+        if (!_dispatcher.TryEnqueue(new RabbitMQDeliveryDispatcher.Delivery(this, eventArgs, buffer)))
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
@@ -214,7 +220,7 @@ internal sealed class RabbitMQConsumerAttachment(
     private void OnLost(ShutdownEventArgs? reason)
     {
         // No handler starts from here on, and the reason is there before the handler token is cancelled.
-        Retire();
+        _isRetired = true;
         _lost.TrySetResult(reason);
         CancelHandlers();
     }
