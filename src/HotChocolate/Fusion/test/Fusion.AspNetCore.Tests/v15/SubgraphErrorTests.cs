@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -181,6 +182,47 @@ public class SubgraphErrorTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, response);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReportLookupErrorInDeferredPayload_When_DeferredLookupFails()
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            {
+              "data": { "lookups": { "byId": null } },
+              "errors": [{ "message": "Name unavailable.", "path": ["lookups", "byId", "label"] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("catalog", catalog), ("details", details)],
+            includeOperationPlan: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query($hidePrice: Boolean!) {
+              item: product {
+                id
+                ... @defer(label: "details") {
+                  price @skip(if: $hidePrice)
+                  label: name
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["hidePrice"] = true },
+            onError: ErrorHandlingMode.Null);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        response.MatchSnapshot(extension: ".json", formatter: SnapshotValueFormatters.GraphQLHttpStable);
     }
 
     [Theory]

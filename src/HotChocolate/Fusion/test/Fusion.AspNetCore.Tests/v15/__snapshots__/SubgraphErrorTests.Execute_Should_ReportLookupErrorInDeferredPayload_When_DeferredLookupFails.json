@@ -1,0 +1,53 @@
+{
+  "kind": "stable-stream",
+  "payloadCount": 2,
+  "initial": {
+    "data": {
+      "item": {
+        "id": 1
+      }
+    }
+  },
+  "pending": [
+    {
+      "id": "0",
+      "path": [
+        "item"
+      ],
+      "label": "details"
+    }
+  ],
+  "incremental": [
+    {
+      "id": "0",
+      "path": [
+        "item"
+      ],
+      "data": {
+        "label": null
+      },
+      "errors": [
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "label"
+          ]
+        }
+      ]
+    }
+  ],
+  "completed": [
+    {
+      "id": "0"
+    }
+  ],
+  "final": {
+    "data": {
+      "item": {
+        "id": 1,
+        "label": null
+      }
+    }
+  }
+}

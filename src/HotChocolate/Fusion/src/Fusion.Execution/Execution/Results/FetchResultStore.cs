@@ -3667,18 +3667,12 @@ AddErrors_Next:
         return conditionType.IsAssignableFrom(runtimeType);
     }
 
-    internal bool IsSelectionActive(Selection selection)
-        => selection.IsIncluded(_includeFlags, _wideIncludeFlags)
-            && !selection.IsDeferred(_deferFlags, _wideDeferFlags);
-
-    private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errors)
+    private static ErrorTrie? GetErrorTrie(SelectionPath sourcePath, ErrorTrie? errorTrie)
     {
-        if (errors is null || sourcePath.IsRoot)
+        if (errorTrie is null || sourcePath.IsRoot)
         {
-            return errors;
+            return errorTrie;
         }
-
-        var current = errors;
 
         for (var i = 0; i < sourcePath.Length; i++)
         {
@@ -3691,21 +3685,20 @@ AddErrors_Next:
                 continue;
             }
 
-            if (!current.TryGetValue(segment.Name, out var child))
+            if (!errorTrie.TryGetValue(segment.Name, out var childErrorTrie))
             {
-                // A wrapper can fail before its nested lookup executes.
-                if (current.Error is not { } error)
+                if (errorTrie.Error is not { } error)
                 {
                     return null;
                 }
 
-                return current.Count == 0 ? current : new ErrorTrie { Error = error };
+                return errorTrie.Count == 0 ? errorTrie : new ErrorTrie { Error = error };
             }
 
-            current = child;
+            errorTrie = childErrorTrie;
         }
 
-        return current;
+        return errorTrie;
     }
 
     private CompositeResultElement GetStartObjectResultUnsafe(Path path)

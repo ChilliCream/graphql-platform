@@ -645,31 +645,31 @@ internal sealed class ValueCompletion
             return true;
         }
 
-        if (sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined
-            && errorTrie is { Count: > 0 } or { Error: not null }
-            && target.SelectionSet is { DeclaringSelection: not null } selections)
-        {
-            return CompleteFailedLookup(errorTrie, target, selections, resultSelectionSet);
-        }
-
-        var error = errorTrie?.FindFirstError();
-
-        // A clean null source without an associated error is a legitimate
-        // "not found" state (e.g. a lookup that resolved to null), so each
-        // selected field is completed with its own nullability semantics
-        // instead of surfacing an unexpected execution error.
-        if (sourceValueKind is JsonValueKind.Null && error is null)
+        if (sourceValueKind is JsonValueKind.Null && errorTrie is null or { Count: 0, Error: null })
         {
             return CompleteNullSource(source, target, resultSelectionSet);
         }
 
-        var fallbackError = error ??
+        var targetKind = target.ValueKind;
+        if (targetKind is JsonValueKind.Undefined && TryInitializeTargetObject(target))
+        {
+            targetKind = JsonValueKind.Object;
+        }
+
+        if (targetKind is JsonValueKind.Object
+            && sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined
+            && errorTrie is { Count: > 0 } or { Error: not null }
+            && target.GetObjectContext() is { SelectionSet.DeclaringSelection: not null } objectContext)
+        {
+            return CompleteFailedLookup(errorTrie, target, objectContext, resultSelectionSet);
+        }
+
+        var fallbackError = errorTrie?.FindFirstError() ??
             ErrorBuilder.New()
                 .SetMessage("Unexpected Execution Error")
                 .Build();
 
-        if (target.ValueKind is JsonValueKind.Undefined
-            && !TryInitializeTargetObject(target))
+        if (targetKind is JsonValueKind.Undefined)
         {
             return BuildErrorResultForUndefinedTarget(
                 target,
@@ -681,54 +681,55 @@ internal sealed class ValueCompletion
         return BuildErrorResult(target, resultSelectionSet, fallbackError, target.CompactPath);
     }
 
-    /// <summary>
-    /// Reports field errors before assigning a lookup failure to unresolved siblings.
-    /// Completion stops when a non-null field propagates to the parent.
-    /// </summary>
     private bool CompleteFailedLookup(
-        ErrorTrie errors,
+        ErrorTrie errorTrie,
         CompositeResultElement target,
-        SelectionSet selections,
+        CompositeObjectContext objectContext,
         ResultSelectionSet resultSelectionSet)
     {
         var path = target.Path;
-        if (errors.Count > 0)
+        var lookupError = errorTrie.Error;
+        if (errorTrie.Count > 0)
         {
             foreach (var responseName in resultSelectionSet.ResponseNames)
             {
-                var selection = GetActiveField(responseName, out var fieldErrors);
-                if (selection is null || fieldErrors is null)
+                if (!TryGetFieldErrorTrie(responseName, out var fieldErrorTrie)
+                    || !objectContext.TryGetVisibleProperty(responseName, out _, out var selection)
+                    || selection.Field.IsIntrospectionField)
                 {
                     continue;
                 }
 
                 var fieldPath = path.Append(responseName);
-                ForwardError(fieldErrors.Error, fieldPath);
-                if (fieldErrors.Count > 0)
+                ForwardError(fieldErrorTrie.Error, fieldPath);
+                if (fieldErrorTrie.Count > 0)
                 {
-                    ForwardErrors(fieldErrors, fieldPath, selection.Type, selection);
+                    ForwardErrors(fieldErrorTrie, fieldPath, selection.Type, selection);
                 }
 
                 if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
                 {
                     return !PropagateNullValues(target);
                 }
+
+                if (errorTrie.Count == 1)
+                {
+                    lookupError ??= fieldErrorTrie.Error;
+                }
             }
         }
 
-        var lookupError = errors.Error;
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
-            var selection = GetActiveField(responseName, out var fieldErrors);
-            if (selection is null || fieldErrors is not null
-                || (target.ValueKind is JsonValueKind.Object
-                    && target.TryGetProperty(selection.Utf8ResponseName, out var field)
-                    && field.ValueKind is not JsonValueKind.Undefined))
+            if (!objectContext.TryGetVisibleProperty(responseName, out var field, out var selection)
+                || selection.Field.IsIntrospectionField
+                || field.ValueKind is not JsonValueKind.Undefined
+                || (errorTrie.Count > 0 && TryGetFieldErrorTrie(responseName, out _)))
             {
                 continue;
             }
 
-            lookupError ??= errors.FindFirstError();
+            lookupError ??= errorTrie.FindFirstError();
             ForwardError(lookupError, path.Append(responseName));
             if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
             {
@@ -738,26 +739,15 @@ internal sealed class ValueCompletion
 
         return true;
 
-        Selection? GetActiveField(string responseName, out ErrorTrie? fieldErrors)
+        bool TryGetFieldErrorTrie(string responseName, [NotNullWhen(true)] out ErrorTrie? fieldErrorTrie)
         {
-            fieldErrors = null;
-            if (!selections.TryGetSelection(responseName, out var selection)
-                || selection.IsInternal
-                || selection.Field.IsIntrospectionField
-                || !_store.IsSelectionActive(selection))
+            if (resultSelectionSet.HasSourceResponseNameMappings
+                && resultSelectionSet.TryMapResponseName(responseName, out var mapping))
             {
-                return null;
+                responseName = mapping.SourceResponseName;
             }
 
-            if (errors.Count > 0)
-            {
-                var sourceName = resultSelectionSet.TryMapResponseName(responseName, out var mapping)
-                    ? mapping.SourceResponseName
-                    : responseName;
-                errors.TryGetValue(sourceName, out fieldErrors);
-            }
-
-            return selection;
+            return errorTrie.TryGetValue(responseName, out fieldErrorTrie);
         }
     }
 
