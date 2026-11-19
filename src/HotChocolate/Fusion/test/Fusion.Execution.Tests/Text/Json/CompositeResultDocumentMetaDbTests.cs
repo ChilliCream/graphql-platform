@@ -6,6 +6,11 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
 {
     private MetaDb _metaDb = MetaDb.Create(CommonTestExtensions.CreateArena());
 
+    // 0x800 sets the lowest id bit a reader on a shifted layout would mistake for the token type,
+    // 0x8000 is the first id a 15 bit field loses, and the maximum sets the sign bit.
+    public static TheoryData<int> SourceDocumentIds()
+        => new() { 0x800, 0x8000, DbRow.MaxSourceDocumentId };
+
     private static Cursor CreateCursor(int index) => Cursor.CreateZero().AddRows(index);
 
     // The chunk schedule is geometric (chunk i holds 1 << (10 + Min(i, 7)) bytes), so the absolute
@@ -231,7 +236,7 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         // Arrange - Test boundary values
         const int maxLocation = 0x07FFFFFF; // 27 bits
         const int maxSizeOrLength = int.MaxValue; // 31 bits
-        const int maxSourceDocumentId = 0x7FFF; // 15 bits (reduced from 16)
+        const int maxSourceDocumentId = DbRow.MaxSourceDocumentId; // 28 bits
         const int maxParentRow = 0x0FFFFFFF; // 28 bits
         const int maxSelectionSetId = DbRow.OperationReferenceIdMask; // 22 bits
 
@@ -253,6 +258,105 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         Assert.Equal(maxSourceDocumentId, row.SourceDocumentId);
         Assert.Equal(maxParentRow, row.Parent);
         Assert.Equal(maxSelectionSetId, row.OperationReferenceId);
+    }
+
+    [Theory]
+    [MemberData(nameof(SourceDocumentIds))]
+    public void Append_Should_RoundTripSourceDocumentIdAndTokenType_When_IdIsLarge(int sourceDocumentId)
+    {
+        // arrange
+        // act
+        var cursor = _metaDb.Append(ElementTokenType.String, sourceDocumentId: sourceDocumentId);
+
+        // assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(sourceDocumentId, row.SourceDocumentId);
+        Assert.Equal(ElementTokenType.String, row.TokenType);
+    }
+
+    [Theory]
+    [MemberData(nameof(SourceDocumentIds))]
+    public void ReplacePreserveParent_Should_RoundTripSourceDocumentIdAndTokenType_When_IdIsLarge(
+        int sourceDocumentId)
+    {
+        // arrange
+        var cursor = _metaDb.Append(ElementTokenType.Null);
+
+        // act
+        _metaDb.ReplacePreserveParent(cursor, ElementTokenType.String, sourceDocumentId: sourceDocumentId);
+
+        // assert
+        var row = _metaDb.Get(cursor);
+        Assert.Equal(sourceDocumentId, row.SourceDocumentId);
+        Assert.Equal(ElementTokenType.String, row.TokenType);
+    }
+
+    [Theory]
+    [MemberData(nameof(SourceDocumentIds))]
+    public void GetElementTokenType_Should_ReturnTokenType_When_IdIsLarge(int sourceDocumentId)
+    {
+        // arrange
+        var cursor = _metaDb.Append(ElementTokenType.String, sourceDocumentId: sourceDocumentId);
+
+        // act
+        var tokenType = _metaDb.GetElementTokenType(cursor);
+
+        // assert
+        Assert.Equal(ElementTokenType.String, tokenType);
+    }
+
+    [Theory]
+    [MemberData(nameof(SourceDocumentIds))]
+    public void GetStartCursor_Should_ReturnTokenType_When_IdIsLarge(int sourceDocumentId)
+    {
+        // arrange
+        var cursor = _metaDb.Append(ElementTokenType.String, sourceDocumentId: sourceDocumentId);
+
+        // act
+        var (startCursor, tokenType) = _metaDb.GetStartCursor(cursor);
+
+        // assert
+        Assert.Equal(cursor, startCursor);
+        Assert.Equal(ElementTokenType.String, tokenType);
+    }
+
+    [Theory]
+    [MemberData(nameof(SourceDocumentIds))]
+    public void GetElementTokenType_Should_ReturnTargetTokenType_When_ReferenceTargetHasLargeId(
+        int sourceDocumentId)
+    {
+        // arrange
+        var target = _metaDb.Append(ElementTokenType.StartObject, sourceDocumentId: sourceDocumentId);
+        var reference = _metaDb.Append(
+            ElementTokenType.Reference,
+            location: target.Value,
+            sourceDocumentId: sourceDocumentId);
+
+        // act
+        var tokenType = _metaDb.GetElementTokenType(reference);
+
+        // assert
+        Assert.Equal(ElementTokenType.StartObject, tokenType);
+    }
+
+    [Theory]
+    [MemberData(nameof(SourceDocumentIds))]
+    public void GetStartCursor_Should_ReturnTargetCursorAndTokenType_When_ReferenceTargetHasLargeId(
+        int sourceDocumentId)
+    {
+        // arrange
+        var target = _metaDb.Append(ElementTokenType.StartObject, sourceDocumentId: sourceDocumentId);
+        var reference = _metaDb.Append(
+            ElementTokenType.Reference,
+            location: target.Value,
+            sourceDocumentId: sourceDocumentId);
+
+        // act
+        var (startCursor, tokenType) = _metaDb.GetStartCursor(reference);
+
+        // assert
+        Assert.Equal(target, startCursor);
+        Assert.Equal(ElementTokenType.StartObject, tokenType);
     }
 
     [Fact]
