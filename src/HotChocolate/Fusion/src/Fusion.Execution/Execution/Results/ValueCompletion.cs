@@ -86,13 +86,12 @@ internal sealed class ValueCompletion
 
         if (sourceSnapshot.ValueKind is not JsonValueKind.Object)
         {
-            var error = errorTrie?.FindFirstError();
             var canExecutionContinue =
                 BuildResultForInvalidSource(
                     sourceSnapshot,
                     target,
                     resultSelectionSet,
-                    error);
+                    errorTrie);
 
             if (!canExecutionContinue)
             {
@@ -632,8 +631,26 @@ internal sealed class ValueCompletion
         SourceResultElementSnapshot source,
         CompositeResultElement target,
         ResultSelectionSet resultSelectionSet,
-        IError? error)
+        ErrorTrie? errorTrie)
     {
+        if (errorTrie is not null && target.ValueKind is JsonValueKind.Object)
+        {
+            foreach (var name in resultSelectionSet.ResponseNames)
+            {
+                var sourceName = resultSelectionSet.TryMapResponseName(name, out var mapping)
+                    ? mapping.SourceResponseName
+                    : name;
+                if (target.TryGetProperty(name, out var field)
+                    && field.IsInternal
+                    && errorTrie.TryGetValue(sourceName, out var fieldErrors)
+                    && fieldErrors.FindFirstError() is { } fieldError)
+                {
+                    _store.RecordRequirementError(field, fieldError);
+                }
+            }
+        }
+
+        var error = errorTrie?.FindFirstError();
         var sourceValueKind = source.ValueKind;
 
         if (sourceValueKind is JsonValueKind.Null && IsValueType(target.Type))
@@ -861,16 +878,19 @@ internal sealed class ValueCompletion
         return canExecutionContinue;
     }
 
-    private bool ApplyFieldError(
+    internal bool ApplyFieldError(
         CompositeResultElement fieldResult,
         Selection selection,
         IError error,
         Path path)
     {
-        var errorWithPath = ErrorBuilder.FromError(error)
-            .SetPath(path)
-            .Build();
-        errorWithPath = _errorHandler.Handle(errorWithPath);
+        if (selection.IsInternal)
+        {
+            _store.RecordRequirementError(fieldResult, error);
+            return true;
+        }
+
+        var errorWithPath = _errorHandler.Handle(error.WithPath(path));
 
         _store.AddError(errorWithPath);
 
@@ -1006,6 +1026,12 @@ internal sealed class ValueCompletion
         Selection selection,
         ResultSelectionSet? resultSelectionSet)
     {
+        if (selection.IsInternal && errorTrie?.FindFirstError() is { } requirementError)
+        {
+            _store.RecordRequirementError(target, requirementError);
+            return true;
+        }
+
         if (selection.IsNonNull)
         {
             IError error;
