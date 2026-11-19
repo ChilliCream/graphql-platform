@@ -260,6 +260,61 @@ public class SubgraphErrorTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Execute_Should_KeepEarlierErrors_When_NonNullLookupFieldPropagates()
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            {
+              "data": { "lookups": { "byId": null } },
+              "errors": [
+                { "message": "Price unavailable.", "path": ["lookups", "byId", "cost"] },
+                { "message": "Name unavailable.", "path": ["lookups", "byId", "label"] }
+              ]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("catalog", catalog), ("details", details)],
+            includeOperationPlan: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ item: product { id cost: price label: name description } }");
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var result = await response.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "item": null
+              },
+              "errors": [
+                {
+                  "message": "Price unavailable.",
+                  "path": [
+                    "item",
+                    "cost"
+                  ]
+                },
+                {
+                  "message": "Name unavailable.",
+                  "path": [
+                    "item",
+                    "label"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Execute_Should_ReportOnlyFieldError_When_LookupReturnsNullSiblingValue()
     {
         // arrange
