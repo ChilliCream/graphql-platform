@@ -1195,6 +1195,10 @@ internal sealed class ValueCompletion
         {
             targetEnumerator = target.InitializeArrayValue(source.GetArrayLength());
         }
+        else if (target.IsNullOrInvalidated && errorTrie is null or { Count: 0 })
+        {
+            return true;
+        }
         else if (target.ValueKind is not JsonValueKind.Array
             || target.GetArrayLength() != source.GetArrayLength())
         {

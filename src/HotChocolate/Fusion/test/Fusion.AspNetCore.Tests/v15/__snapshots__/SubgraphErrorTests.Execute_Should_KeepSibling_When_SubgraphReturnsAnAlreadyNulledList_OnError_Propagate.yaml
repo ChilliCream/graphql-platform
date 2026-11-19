@@ -13,15 +13,9 @@ response:
     {
       "data": {
         "rows": null,
-        "total": null
+        "total": 4
       },
       "errors": [
-        {
-          "message": "Cannot merge shared list results with different lengths.",
-          "path": [
-            "rows"
-          ]
-        },
         {
           "message": "Cannot return null for non-nullable field.",
           "path": [
