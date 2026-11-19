@@ -18,7 +18,8 @@ public class SubgraphErrorTests : FusionTestBase
         ErrorHandlingMode onError)
     {
         // arrange
-        using var catalog = CreateCatalogSubgraph(
+        using var catalog = CreateSubgraph(
+            "catalog",
             """
             type Query {
               ratings: [Int!]
@@ -58,7 +59,8 @@ public class SubgraphErrorTests : FusionTestBase
         ErrorHandlingMode onError)
     {
         // arrange
-        using var catalog = CreateCatalogSubgraph(
+        using var catalog = CreateSubgraph(
+            "catalog",
             """
             type Query {
               weeklyAvailability: [[Availability!]]
@@ -101,7 +103,8 @@ public class SubgraphErrorTests : FusionTestBase
         ErrorHandlingMode onError)
     {
         // arrange
-        using var catalog = CreateCatalogSubgraph(
+        using var catalog = CreateSubgraph(
+            "catalog",
             """
             type Query {
               product: Product
@@ -138,9 +141,9 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
     }
 
-    private TestServer CreateCatalogSubgraph(string schema, string responseBody)
+    private TestServer CreateSubgraph(string name, string schema, string responseBody)
         => CreateSourceSchema(
-            "catalog",
+            name,
             schema,
             mockHttpResponse: _ => Task.FromResult(
                 new HttpResponseMessage(HttpStatusCode.OK)
@@ -298,26 +301,49 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
     }
 
-    [Fact]
-    public async Task Execute_Should_KeepEarlierErrors_When_NonNullLookupFieldPropagates()
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_StopAtNonNullFieldInPropagateMode_When_DirectLookupReportsSiblingErrors(
+        ErrorHandlingMode onError)
     {
         // arrange
         using var catalog = CreateProductCatalog();
-        using var details = CreateProductDetailsSubgraph(
+        using var details = CreateSubgraph(
+            "details",
+            """
+            type Query { productById(id: Int!): Product @lookup }
+            type Product @key(fields: "id") {
+              id: Int!
+              price: Int
+              name: String!
+              description: String
+            }
+            """,
             """
             {
-              "data": { "lookups": { "byId": null } },
+              "data": { "productById": null },
               "errors": [
-                { "message": "Price unavailable.", "path": ["lookups", "byId", "cost"] },
-                { "message": "Name unavailable.", "path": ["lookups", "byId", "label"] }
+                { "message": "Description unavailable.", "path": ["productById", "description"] },
+                { "message": "Price unavailable.", "path": ["productById", "cost"] },
+                { "message": "Name unavailable.", "path": ["productById", "label"] }
               ]
             }
             """);
-        using var gateway = await CreateCompositeSchemaAsync(
-            [("catalog", catalog), ("details", details)],
-            includeOperationPlan: false);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog), ("details", details)]);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        var request = new OperationRequest("{ item: product { id cost: price label: name description } }");
+        var request = new OperationRequest(
+            """
+            {
+              item: product {
+                id
+                cost: price
+                label: name
+                description
+              }
+            }
+            """,
+            onError: onError);
 
         // act
         using var response = await client.PostAsync(
@@ -326,31 +352,7 @@ public class SubgraphErrorTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        using var result = await response.ReadAsResultAsync(TestContext.Current.CancellationToken);
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "item": null
-              },
-              "errors": [
-                {
-                  "message": "Price unavailable.",
-                  "path": [
-                    "item",
-                    "cost"
-                  ]
-                },
-                {
-                  "message": "Name unavailable.",
-                  "path": [
-                    "item",
-                    "label"
-                  ]
-                }
-              ]
-            }
-            """);
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Fact]
@@ -442,7 +444,8 @@ public class SubgraphErrorTests : FusionTestBase
     }
 
     private TestServer CreateProductCatalog()
-        => CreateCatalogSubgraph(
+        => CreateSubgraph(
+            "catalog",
             """
             type Query { product: Product }
             type Product @key(fields: "id") { id: Int! }
@@ -450,7 +453,7 @@ public class SubgraphErrorTests : FusionTestBase
             """{ "data": { "item": { "id": 1 } } }""");
 
     private TestServer CreateProductDetailsSubgraph(string responseBody)
-        => CreateSourceSchema(
+        => CreateSubgraph(
             "details",
             """
             type Query { lookups: Lookups! @internal }
@@ -466,11 +469,7 @@ public class SubgraphErrorTests : FusionTestBase
 
             type Review { rating: Int! }
             """,
-            mockHttpResponse: _ => Task.FromResult(
-                new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent(responseBody, Encoding.UTF8, "application/json")
-                }));
+            responseBody);
 
     #endregion
 
