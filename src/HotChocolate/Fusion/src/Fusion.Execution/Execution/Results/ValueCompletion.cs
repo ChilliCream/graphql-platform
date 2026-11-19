@@ -1131,6 +1131,7 @@ internal sealed class ValueCompletion
             ? (IComplexTypeDefinition)selection.NamedType
             : null;
         SelectionSet? listObjectSelectionSet = null;
+        var propagateItemNull = false;
         var i = 0;
         var elements = source.EnumerateElementSnapshots();
 
@@ -1157,9 +1158,20 @@ internal sealed class ValueCompletion
                     ForwardListElementErrors(errorTrieForIndex, target, i, elementType, selection);
                 }
 
-                if (isNonNull && _propagateNullValues)
+                if (isNonNull && selection.IsLeaf)
                 {
-                    return false;
+                    if (errorTrieForIndex?.FindFirstError() is null)
+                    {
+                        var item = targetEnumerator.Current;
+                        var error = ErrorHelper.NonNullViolation(item.CompactPath.ToPath(item.Operation));
+                        _store.AddError(_errorHandler.Handle(error));
+                    }
+
+                    propagateItemNull |= _propagateNullValues;
+                }
+                else if (isNonNull && _propagateNullValues)
+                {
+                    return TryCompleteNullContainer(target);
                 }
 
                 targetEnumerator.Current.SetNullValue();
@@ -1220,7 +1232,7 @@ internal sealed class ValueCompletion
             {
                 if (isNonNull)
                 {
-                    return false;
+                    return TryCompleteNullContainer(target);
                 }
 
                 targetElement.SetNullValue();
@@ -1231,6 +1243,17 @@ TryCompleteList_MoveNext:
             i++;
         }
 
+        return !propagateItemNull || TryCompleteNullContainer(target);
+    }
+
+    private static bool TryCompleteNullContainer(CompositeResultElement target)
+    {
+        if (!target.IsNullable)
+        {
+            return false;
+        }
+
+        target.SetNullValue();
         return true;
     }
 
@@ -1494,7 +1517,8 @@ TryCompleteList_MoveNext:
                 objectType,
                 depth,
                 resultSelectionSet,
-                objectContext);
+                objectContext)
+                || TryCompleteNullContainer(target);
         }
 
         var properties = source.EnumeratePropertySnapshots();
@@ -1544,7 +1568,7 @@ TryCompleteList_MoveNext:
                         resultSelectionSet?.TryGetChild(selection.ResponseName, objectType),
                         preparedSelectionSet: null))
                     {
-                        return false;
+                        return TryCompleteNullContainer(target);
                     }
 
                     continue;
@@ -1564,7 +1588,7 @@ TryCompleteList_MoveNext:
                         depth,
                         resultSelectionSet?.TryGetChild(selection.ResponseName, objectType)))
                     {
-                        return false;
+                        return TryCompleteNullContainer(target);
                     }
 
                     continue;
@@ -1583,7 +1607,7 @@ TryCompleteList_MoveNext:
                     depth,
                     childSet))
             {
-                return false;
+                return TryCompleteNullContainer(target);
             }
         }
 

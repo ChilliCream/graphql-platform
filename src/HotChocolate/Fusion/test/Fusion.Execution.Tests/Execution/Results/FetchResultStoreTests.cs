@@ -787,7 +787,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """
             {"sibling":"ok","tags":null}
             """);
-        Assert.Null(store.Errors);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal(ErrorCodes.Execution.NonNullViolation, error.Code);
+        Assert.Equal("tags[1]", error.Path?.Print());
     }
 
     [Theory]
