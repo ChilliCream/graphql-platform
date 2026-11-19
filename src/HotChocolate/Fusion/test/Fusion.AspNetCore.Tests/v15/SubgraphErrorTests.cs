@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace HotChocolate.Fusion;
 
-public class SubgraphErrorTests : FusionTestBase
+public partial class SubgraphErrorTests : FusionTestBase
 {
     #region Required list items
 

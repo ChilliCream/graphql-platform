@@ -47,6 +47,84 @@ public sealed class FetchResultStoreTests : FusionTestBase
 
     private static readonly Operation s_snapshotOperation = PlanOperation(s_snapshotSchema, "{ noop }").Operation;
 
+    [Theory]
+    [InlineData("ABC", ErrorHandlingMode.Propagate)]
+    [InlineData("BCA", ErrorHandlingMode.Propagate)]
+    [InlineData("CAB", ErrorHandlingMode.Propagate)]
+    [InlineData("ABC", ErrorHandlingMode.Null)]
+    [InlineData("BCA", ErrorHandlingMode.Null)]
+    [InlineData("CAB", ErrorHandlingMode.Null)]
+    public void AddPartialResult_Should_PreserveSiblings_When_SharedParentNullArrivesInAnyOrder(
+        string order,
+        ErrorHandlingMode mode)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { x: X @shareable }
+            type X @shareable { a: String! }
+            """,
+            """
+            # name: B
+            type Query { x: X @shareable }
+            type X @shareable { b: String }
+            """,
+            """
+            # name: C
+            type Query { x: X @shareable alive: String }
+            type X @shareable { c: String }
+            """);
+        var plan = PlanOperation(schema, "{ x { a b c } alive }");
+        var nodes = plan.RootNodes.Cast<OperationExecutionNode>().ToDictionary(node => node.SchemaName!);
+        var payloads = new Dictionary<string, string>
+        {
+            ["A"] = """{"data":{"x":null},"errors":[{"message":"bad a","path":["x","a"]}]}""",
+            ["B"] = """{"data":{"x":{"b":"B"}}}""",
+            ["C"] = """{"data":{"x":{"c":"C"},"alive":"OK"}}"""
+        };
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            mode,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        // act
+        var exception = Record.Exception(() =>
+        {
+            foreach (var name in order)
+            {
+                var source = name.ToString();
+                var result = CreateSourceSchemaResult(sourceArena, CompactPath.Root, payloads[source]);
+                store.AddPartialResult(SelectionPath.Root, result, nodes[source].ResultSelectionSet, result.HasErrors);
+            }
+
+            store.FinalizePocketedErrors();
+        });
+
+        // assert
+        if (mode is ErrorHandlingMode.Propagate && order is "ABC" or "CAB")
+        {
+            Assert.IsType<ArgumentOutOfRangeException>(exception);
+            return;
+        }
+
+        Assert.Null(exception);
+        RenderData(store).MatchInlineSnapshot(mode is ErrorHandlingMode.Null
+            ? """{"x":{"a":null,"b":"B","c":"C"},"alive":"OK"}"""
+            : """{"x":null,"alive":"OK"}""");
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("bad a", error.Message);
+        Assert.Equal("x.a", error.Path?.Print());
+    }
+
     [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
     {
