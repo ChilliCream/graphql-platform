@@ -1,0 +1,95 @@
+title: Execute_Should_ReportAliasedFieldPath_When_SubgraphReturnsInvalidRequiredEnum
+request:
+  document: |
+    {
+      product {
+        status: availability
+      }
+      productCount
+    }
+response:
+  body: |
+    {
+      "data": {
+        "product": {
+          "status": false
+        },
+        "productCount": 1
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+        productCount: Int!
+      }
+
+      type Product {
+        availability: Availability!
+      }
+
+      enum Availability {
+        IN_STOCK
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4daeea8a_1 {
+              product {
+                status: availability
+              }
+              productCount
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "status": false
+                  },
+                  "productCount": 1
+                }
+              }
+operationPlan:
+  id: f6c7cb6529852a70ab77647096b93ac3f67ee82f240f6d820906d690bd03aaa9
+  operation:
+    - document: |
+        {
+          product {
+            status: availability
+          }
+          productCount
+        }
+      kind: Query
+      id: 5e2229be5ddbf4c6ad227da098e46aa4
+      hash: 4daeea8aa39c37df3a205a2b16998638
+      shortHash: 4daeea8a
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_4daeea8a_1
+        kind: Query
+        document: |
+          query Op_4daeea8a_1 {
+            product {
+              status: availability
+            }
+            productCount
+          }
+        hash: 8d6a922078f9e8f3119460f9356e7c806889073474eb477334983955edf716e3
+        shortHash: 8d6a9220
+        xxHash: 365501340509291932
+      resultSelectionSet: >-
+        { product productCount }

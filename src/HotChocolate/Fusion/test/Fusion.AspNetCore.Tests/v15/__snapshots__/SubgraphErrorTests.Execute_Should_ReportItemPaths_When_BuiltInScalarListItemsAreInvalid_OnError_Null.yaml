@@ -1,0 +1,190 @@
+title: Execute_Should_ReportItemPaths_When_BuiltInScalarListItemsAreInvalid
+request:
+  onError: Null
+  document: |
+    {
+      scores: ratings
+      counts
+      prices
+      labels
+      flags
+      ids
+    }
+response:
+  body: |
+    {
+      "data": {
+        "scores": [
+          1,
+          "2",
+          3
+        ],
+        "counts": [
+          -2147483648,
+          2147483647,
+          -2147483649,
+          2147483648,
+          1.5,
+          null
+        ],
+        "prices": [
+          1,
+          2.5,
+          -3e2,
+          1e400
+        ],
+        "labels": [
+          [
+            "sale",
+            {
+              "name": "blue"
+            }
+          ],
+          null,
+          [
+            []
+          ]
+        ],
+        "flags": [
+          true,
+          0,
+          false
+        ],
+        "ids": [
+          "123",
+          123
+        ]
+      },
+      "errors": [
+        {
+          "message": "Product ID unavailable.",
+          "path": [
+            "ids",
+            1
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        ratings: [Int!]
+        counts: [Int]
+        prices: [Float]
+        labels: [[String]]
+        flags: [Boolean]
+        ids: [ID]
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_75c7ea50_1 {
+              scores: ratings
+              counts
+              prices
+              labels
+              flags
+              ids
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Product ID unavailable.",
+                    "path": [
+                      "ids",
+                      1
+                    ]
+                  }
+                ],
+                "data": {
+                  "scores": [
+                    1,
+                    "2",
+                    3
+                  ],
+                  "counts": [
+                    -2147483648,
+                    2147483647,
+                    -2147483649,
+                    2147483648,
+                    1.5,
+                    null
+                  ],
+                  "prices": [
+                    1,
+                    2.5,
+                    -3e2,
+                    1e400
+                  ],
+                  "labels": [
+                    [
+                      "sale",
+                      {
+                        "name": "blue"
+                      }
+                    ],
+                    null,
+                    [
+                      []
+                    ]
+                  ],
+                  "flags": [
+                    true,
+                    0,
+                    false
+                  ],
+                  "ids": [
+                    "123",
+                    123
+                  ]
+                }
+              }
+operationPlan:
+  id: 17b01fd02a3d058c9696385e75dc10c55066d9203dbe24300f04deb1cb93b106
+  operation:
+    - document: |
+        {
+          scores: ratings
+          counts
+          prices
+          labels
+          flags
+          ids
+        }
+      kind: Query
+      id: a0c8f499f8b9ecf3ed6d54a96f18338d
+      hash: 75c7ea508e5455cf108048ab6a4a6283
+      shortHash: 75c7ea50
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_75c7ea50_1
+        kind: Query
+        document: |
+          query Op_75c7ea50_1 {
+            scores: ratings
+            counts
+            prices
+            labels
+            flags
+            ids
+          }
+        hash: 5cab00977b3e101cf03801e01b9448e3b8dc4fdce33402e4ba6c494f8c767afc
+        shortHash: 5cab0097
+        xxHash: 10676067746642674202
+      resultSelectionSet: >-
+        { scores counts prices labels flags ids }

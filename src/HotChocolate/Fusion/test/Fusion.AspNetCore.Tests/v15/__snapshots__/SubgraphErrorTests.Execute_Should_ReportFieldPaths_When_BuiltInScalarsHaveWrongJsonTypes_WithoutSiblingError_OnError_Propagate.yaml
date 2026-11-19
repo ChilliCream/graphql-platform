@@ -1,0 +1,132 @@
+title: Execute_Should_ReportFieldPaths_When_BuiltInScalarsHaveWrongJsonTypes
+request:
+  document: |
+    {
+      name
+      price
+      product {
+        quantity: stock
+        active
+      }
+      lookup {
+        id
+      }
+      reviews
+    }
+response:
+  body: |
+    {
+      "data": {
+        "name": 7,
+        "price": "2.5",
+        "product": {
+          "quantity": "42",
+          "active": "false"
+        },
+        "lookup": {
+          "id": 123
+        },
+        "reviews": null
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        name: String
+        price: Float
+        product: Product
+        lookup: Product
+        reviews: Int
+      }
+
+      type Product {
+        stock: Int
+        active: Boolean
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_8a9f251c_1 {
+              name
+              price
+              product {
+                quantity: stock
+                active
+              }
+              lookup {
+                id
+              }
+              reviews
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "name": 7,
+                  "price": "2.5",
+                  "product": {
+                    "quantity": "42",
+                    "active": "false"
+                  },
+                  "lookup": {
+                    "id": 123
+                  },
+                  "reviews": null
+                }
+              }
+operationPlan:
+  id: 79c1ac157df72646fbecc484caaaed6fcd93a7fb9a070bc6b6de4da31177daf4
+  operation:
+    - document: |
+        {
+          name
+          price
+          product {
+            quantity: stock
+            active
+          }
+          lookup {
+            id
+          }
+          reviews
+        }
+      kind: Query
+      id: 51ef38ffec8fd322755f93845e18ce6c
+      hash: 8a9f251cf05fd07aa54cd21ea0fc70e8
+      shortHash: 8a9f251c
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_8a9f251c_1
+        kind: Query
+        document: |
+          query Op_8a9f251c_1 {
+            name
+            price
+            product {
+              quantity: stock
+              active
+            }
+            lookup {
+              id
+            }
+            reviews
+          }
+        hash: cf31bd9b0d3bf46ac2de9f49c18897f4e178de26f56c86a281725a11f29b471c
+        shortHash: cf31bd9b
+        xxHash: 14771961512642024377
+      resultSelectionSet: >-
+        { name price product lookup reviews }

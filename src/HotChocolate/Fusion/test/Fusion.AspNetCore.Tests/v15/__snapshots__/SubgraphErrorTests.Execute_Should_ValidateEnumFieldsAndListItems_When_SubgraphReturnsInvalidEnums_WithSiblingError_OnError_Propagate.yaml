@@ -1,0 +1,106 @@
+title: Execute_Should_ValidateEnumFieldsAndListItems_When_SubgraphReturnsInvalidEnums
+request:
+  document: |
+    {
+      color
+      availableColors
+      price
+    }
+response:
+  body: |
+    {
+      "data": {
+        "color": null,
+        "availableColors": [
+          null
+        ],
+        "price": null
+      },
+      "errors": [
+        {
+          "message": "Price unavailable.",
+          "path": [
+            "price"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        color: Color
+        availableColors: [Color!]
+        price: Int
+      }
+
+      enum Color {
+        RED
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_11def322_1 {
+              color
+              availableColors
+              price
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Price unavailable.",
+                    "path": [
+                      "price"
+                    ]
+                  }
+                ],
+                "data": {
+                  "color": 7,
+                  "availableColors": [
+                    "UNKNOWN"
+                  ],
+                  "price": null
+                }
+              }
+operationPlan:
+  id: 39a2d33be4e7628c87bfee336ceb9e73b23944e4c4839b627c14af00eafade52
+  operation:
+    - document: |
+        {
+          color
+          availableColors
+          price
+        }
+      kind: Query
+      id: a4ffbe0c332fb91247ab4b102fd91223
+      hash: 11def322e003da911797173715f9e189
+      shortHash: 11def322
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_11def322_1
+        kind: Query
+        document: |
+          query Op_11def322_1 {
+            color
+            availableColors
+            price
+          }
+        hash: eea4f0922fbc92365c815048cebacf6f4cc5fcb46029eba6868f7dce8f17cc9c
+        shortHash: eea4f092
+        xxHash: 6029294796068597719
+      resultSelectionSet: >-
+        { color availableColors price }

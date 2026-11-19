@@ -1,0 +1,122 @@
+title: Execute_Should_ReportInvalidListItems_When_SubgraphReturnsScalarsForEnumLists
+request:
+  onError: Null
+  document: |
+    {
+      colors
+      variants: variantColors
+      variantCount
+    }
+response:
+  body: |
+    {
+      "data": {
+        "colors": null,
+        "variants": null,
+        "variantCount": null
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "colors"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "variantCount"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "variants"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        colors: [Color]
+        variantColors: [[Color]!]
+        variantCount: Int!
+      }
+
+      enum Color {
+        RED
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_7226ae6d_1 {
+              colors
+              variants: variantColors
+              variantCount
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Variant colors unavailable.",
+                    "path": [
+                      "variants",
+                      2
+                    ]
+                  }
+                ],
+                "data": {
+                  "colors": "RED",
+                  "variants": [
+                    "RED",
+                    [
+                      "RED"
+                    ],
+                    false
+                  ],
+                  "variantCount": 3
+                }
+              }
+operationPlan:
+  id: 5f635e8bc9eddf76e3ff421eb0bdde00386995861ccc4bfc2b8df9d4af65e7e5
+  operation:
+    - document: |
+        {
+          colors
+          variants: variantColors
+          variantCount
+        }
+      kind: Query
+      id: efc1402e767ade128e6b0d86beaad68a
+      hash: 7226ae6dd8a55f0ee12ef513ab0046e6
+      shortHash: 7226ae6d
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_7226ae6d_1
+        kind: Query
+        document: |
+          query Op_7226ae6d_1 {
+            colors
+            variants: variantColors
+            variantCount
+          }
+        hash: 696c6d55ce6f0be6ce958d39801d3a839198cfe23aa278c06f322c94a9e57007
+        shortHash: 696c6d55
+        xxHash: 3987806935829444590
+      resultSelectionSet: >-
+        { colors variants variantCount }

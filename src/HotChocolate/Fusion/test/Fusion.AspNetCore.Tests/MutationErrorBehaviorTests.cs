@@ -163,11 +163,10 @@ public class MutationErrorBehaviorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Mutation_Should_IntegrateCoercionError_When_LookupKeyHasWrongType()
+    public async Task Mutation_Should_IntegrateCoercionError_When_LookupKeyHasInvalidFormat()
     {
         // arrange
-        // REVIEWS owns the mutation and returns a Review whose id key is a raw JSON int instead of
-        // an encoded relay global id. The hand-crafted response bypasses normal id serialization.
+        // The source returns a string ID that the Relay lookup cannot decode.
         using var reviews = CreateSourceSchema(
             "REVIEWS",
             """
@@ -187,13 +186,11 @@ public class MutationErrorBehaviorTests : FusionTestBase
                 new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(
-                        """{"data":{"createReview":{"id":1,"__typename":"Review"}}}""",
+                        """{"data":{"createReview":{"id":"1","__typename":"Review"}}}""",
                         Encoding.UTF8,
                         new MediaTypeHeaderValue("application/json"))
                 }));
 
-        // STARS is the relay Node owner, so enriching Review.body runs through node(id: ID!). The
-        // raw int id is fed where an encoded global id (string) is required, so node rejects it.
         using var stars = CreateSourceSchema(
             "STARS",
             builder => builder

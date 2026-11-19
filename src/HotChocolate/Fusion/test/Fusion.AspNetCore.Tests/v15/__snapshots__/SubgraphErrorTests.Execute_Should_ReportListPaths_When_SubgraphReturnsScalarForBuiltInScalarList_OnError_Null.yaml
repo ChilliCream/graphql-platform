@@ -1,0 +1,117 @@
+title: Execute_Should_ReportListPaths_When_SubgraphReturnsScalarForBuiltInScalarList
+request:
+  onError: Null
+  document: |
+    {
+      scores: ratings
+      weeks: weeklyRatings
+      reviewCount
+    }
+response:
+  body: |
+    {
+      "data": {
+        "scores": 5,
+        "weeks": [
+          [
+            4.5
+          ],
+          null,
+          null
+        ],
+        "reviewCount": null
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "reviewCount"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "scores"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "weeks"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        ratings: [Int]
+        weeklyRatings: [[Float]!]
+        reviewCount: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_c74b4e49_1 {
+              scores: ratings
+              weeks: weeklyRatings
+              reviewCount
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "scores": 5,
+                  "weeks": [
+                    [
+                      4.5
+                    ],
+                    3,
+                    [
+                      2
+                    ]
+                  ],
+                  "reviewCount": 3
+                }
+              }
+operationPlan:
+  id: 13db075627e4d1245c960e001f07d3717187304b3d1dd379ec0beeb06ae88098
+  operation:
+    - document: |
+        {
+          scores: ratings
+          weeks: weeklyRatings
+          reviewCount
+        }
+      kind: Query
+      id: b137e54393fcc514114ade10c385a1a2
+      hash: c74b4e49ffd5b1715cfc0be5aee8c6be
+      shortHash: c74b4e49
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_c74b4e49_1
+        kind: Query
+        document: |
+          query Op_c74b4e49_1 {
+            scores: ratings
+            weeks: weeklyRatings
+            reviewCount
+          }
+        hash: 2fff5d559c5507504064c20bb205ec3eaccf543a24e9368783bd676d711a083e
+        shortHash: 2fff5d55
+        xxHash: 8133496499723821174
+      resultSelectionSet: >-
+        { scores weeks reviewCount }

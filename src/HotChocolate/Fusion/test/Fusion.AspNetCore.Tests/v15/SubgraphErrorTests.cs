@@ -1,10 +1,423 @@
+using System.Net;
+using System.Text;
+using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using Microsoft.AspNetCore.TestHost;
 
 namespace HotChocolate.Fusion;
 
 public class SubgraphErrorTests : FusionTestBase
 {
+    #region Leaf completion
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportItemIndex_When_SubgraphReturnsNullForRequiredScalarItem(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateCatalogSubgraph(
+            """
+            type Query {
+              ratings: [Int!]
+              reviewCount: Int!
+            }
+            """,
+            """
+            {
+              "data": { "scores": [5, null, 3], "reviewCount": 3 }
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              scores: ratings
+              reviewCount
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportAliasedFieldPath_When_SubgraphReturnsInvalidRequiredEnum(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateCatalogSubgraph(
+            """
+            type Query {
+              product: Product
+              productCount: Int!
+            }
+
+            type Product {
+              availability: Availability!
+            }
+
+            enum Availability { IN_STOCK }
+            """,
+            """
+            {
+              "data": { "product": { "status": false }, "productCount": 1 }
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              product {
+                status: availability
+              }
+              productCount
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_KeepIndexedSubgraphError_When_RequiredEnumItemIsNull(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateCatalogSubgraph(
+            """
+            type Query {
+              weeklyAvailability: [[Availability!]]
+              weekCount: Int!
+            }
+
+            enum Availability { IN_STOCK }
+            """,
+            """
+            {
+              "data": { "weeks": [["IN_STOCK", null], ["IN_STOCK"]], "weekCount": 2 },
+              "errors": [{ "message": "Availability unavailable.", "path": ["weeks", 0, 1] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              weeks: weeklyAvailability
+              weekCount
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate, false)]
+    [InlineData(ErrorHandlingMode.Propagate, true)]
+    [InlineData(ErrorHandlingMode.Null, false)]
+    [InlineData(ErrorHandlingMode.Null, true)]
+    public async Task Execute_Should_ValidateEnumFieldsAndListItems_When_SubgraphReturnsInvalidEnums(
+        ErrorHandlingMode onError,
+        bool hasSiblingError)
+    {
+        // arrange
+        var subgraphResponse = hasSiblingError
+            ? """
+              {
+                "data": { "color": 7, "availableColors": ["UNKNOWN"], "price": null },
+                "errors": [{ "message": "Price unavailable.", "path": ["price"] }]
+              }
+              """
+            : """
+              {
+                "data": { "color": 7, "availableColors": ["UNKNOWN"], "price": null }
+              }
+              """;
+        using var catalog = CreateCatalogSubgraph(
+            """
+            type Query {
+              color: Color
+              availableColors: [Color!]
+              price: Int
+            }
+
+            enum Color { RED }
+            """,
+            subgraphResponse);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              color
+              availableColors
+              price
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var scenario = hasSiblingError ? "WithSiblingError" : "WithoutSiblingError";
+        await MatchSnapshotAsync(gateway, request, response, postFix: $"{scenario}_OnError_{onError}");
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportInvalidListItems_When_SubgraphReturnsScalarsForEnumLists(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateCatalogSubgraph(
+            """
+            type Query {
+              colors: [Color]
+              variantColors: [[Color]!]
+              variantCount: Int!
+            }
+
+            enum Color { RED }
+            """,
+            """
+            {
+              "data": { "colors": "RED", "variants": ["RED", ["RED"], false], "variantCount": 3 },
+              "errors": [{ "message": "Variant colors unavailable.", "path": ["variants", 2] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              colors
+              variants: variantColors
+              variantCount
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate, false)]
+    [InlineData(ErrorHandlingMode.Propagate, true)]
+    [InlineData(ErrorHandlingMode.Null, false)]
+    [InlineData(ErrorHandlingMode.Null, true)]
+    public async Task Execute_Should_ReportFieldPaths_When_BuiltInScalarsHaveWrongJsonTypes(
+        ErrorHandlingMode onError,
+        bool hasSiblingError)
+    {
+        // arrange
+        var errors = hasSiblingError
+            ? """, "errors": [{ "message": "Reviews unavailable.", "path": ["reviews"] }]"""
+            : "";
+        using var catalog = CreateCatalogSubgraph(
+            """
+            type Query {
+              name: String
+              price: Float
+              product: Product
+              lookup: Product
+              reviews: Int
+            }
+
+            type Product {
+              stock: Int
+              active: Boolean
+              id: ID!
+            }
+            """,
+            $$"""
+            {
+              "data": {
+                "name": 7,
+                "price": "2.5",
+                "product": { "quantity": "42", "active": "false" },
+                "lookup": { "id": 123 },
+                "reviews": null
+              }{{errors}}
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              name
+              price
+              product { quantity: stock active }
+              lookup { id }
+              reviews
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var scenario = hasSiblingError ? "WithSiblingError" : "WithoutSiblingError";
+        await MatchSnapshotAsync(gateway, request, response, postFix: $"{scenario}_OnError_{onError}");
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportItemPaths_When_BuiltInScalarListItemsAreInvalid(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateCatalogSubgraph(
+            """
+            type Query {
+              ratings: [Int!]
+              counts: [Int]
+              prices: [Float]
+              labels: [[String]]
+              flags: [Boolean]
+              ids: [ID]
+            }
+            """,
+            """
+            {
+              "data": {
+                "scores": [1, "2", 3],
+                "counts": [-2147483648, 2147483647, -2147483649, 2147483648, 1.5, null],
+                "prices": [1, 2.5, -3e2, 1e400],
+                "labels": [["sale", {"name": "blue"}], null, [[]]],
+                "flags": [true, 0, false],
+                "ids": ["123", 123]
+              },
+              "errors": [{ "message": "Product ID unavailable.", "path": ["ids", 1] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              scores: ratings
+              counts
+              prices
+              labels
+              flags
+              ids
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportListPaths_When_SubgraphReturnsScalarForBuiltInScalarList(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateCatalogSubgraph(
+            """
+            type Query {
+              ratings: [Int]
+              weeklyRatings: [[Float]!]
+              reviewCount: Int!
+            }
+            """,
+            """
+            {
+              "data": { "scores": 5, "weeks": [[4.5], 3, [2]], "reviewCount": 3 }
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              scores: ratings
+              weeks: weeklyRatings
+              reviewCount
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    private TestServer CreateCatalogSubgraph(string schema, string responseBody)
+        => CreateSourceSchema(
+            "catalog",
+            schema,
+            mockHttpResponse: _ => Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(responseBody, Encoding.UTF8, "application/json")
+                }));
+
+    #endregion
+
     #region Parallel, Shared Entry Field
 
     [Fact(Skip = "There should only ever be one error associated with a field")]

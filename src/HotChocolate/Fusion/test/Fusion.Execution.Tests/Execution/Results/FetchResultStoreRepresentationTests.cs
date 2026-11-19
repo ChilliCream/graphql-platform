@@ -466,8 +466,10 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
               foos: [Foo]
             }
 
+            scalar Key
+
             type Foo {
-              id: ID!
+              id: Key!
             }
             """);
 
@@ -486,7 +488,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             schema,
             SelectionPath.Root.AppendField("foos"),
             [],
-            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("Key"))],
             "Foo",
             ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }"));
 
@@ -1428,9 +1430,12 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Theory]
-    [InlineData("{}")]
-    [InlineData("{\"__typename\":123}")]
-    public void CreateRepresentationVariableValue_Should_SkipEntity_When_RuntimeTypeNameIsUnavailable(string data)
+    [InlineData("{}", "Empty", null)]
+    [InlineData("""{"__typename":123}""", "Empty", null)]
+    public void CreateRepresentationVariableValue_Should_CompleteRepresentation_When_RuntimeTypeNameIsUnavailable(
+        string data,
+        string expectedRepresentation,
+        string? expectedErrorPath)
     {
         // arrange
         var schema = ComposeConcreteBranchSchema();
@@ -1453,7 +1458,9 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField);
 
         // assert
-        Assert.Equal(RepresentationValue.Empty, representation);
+        var json = representation.IsEmpty ? "Empty" : Normalize(representation.Value);
+        json.MatchInlineSnapshot(expectedRepresentation);
+        Assert.Equal(expectedErrorPath, store.Errors?.SingleOrDefault()?.Path?.Print());
     }
 
     [Fact]

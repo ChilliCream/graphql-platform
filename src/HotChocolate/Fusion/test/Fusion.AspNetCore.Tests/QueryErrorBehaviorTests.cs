@@ -74,11 +74,10 @@ public class QueryErrorBehaviorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Query_Should_IntegrateCoercionError_When_LookupKeyHasWrongType()
+    public async Task Query_Should_IntegrateCoercionError_When_LookupKeyHasInvalidFormat()
     {
         // arrange
-        // A owns the entry field and returns a Review whose id key is a raw JSON int instead of an
-        // encoded relay global id. The hand-crafted response bypasses normal id serialization.
+        // The source returns a string ID that the Relay lookup cannot decode.
         using var a = CreateSourceSchema(
             "A",
             """
@@ -94,13 +93,11 @@ public class QueryErrorBehaviorTests : FusionTestBase
                 new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(
-                        """{"data":{"review":{"id":1,"__typename":"Review"}}}""",
+                        """{"data":{"review":{"id":"1","__typename":"Review"}}}""",
                         Encoding.UTF8,
                         new MediaTypeHeaderValue("application/json"))
                 }));
 
-        // B is the relay Node owner, so enriching Review.body runs through node(id: ID!). The raw
-        // int id from A is fed where an encoded global id (string) is required, so node rejects it.
         using var b = CreateSourceSchema(
             "B",
             builder => builder

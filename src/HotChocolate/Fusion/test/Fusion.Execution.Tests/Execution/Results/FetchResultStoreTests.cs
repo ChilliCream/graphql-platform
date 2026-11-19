@@ -2989,8 +2989,10 @@ public sealed class FetchResultStoreTests : FusionTestBase
               foos: [Foo]
             }
 
+            scalar Key
+
             type Foo {
-              id: ID!
+              id: Key!
             }
             """);
 
@@ -3008,7 +3010,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             SelectionPath.Root.AppendField("foos"),
             [],
             [
-                Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))
+                Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("Key"))
             ]);
 
         // assert

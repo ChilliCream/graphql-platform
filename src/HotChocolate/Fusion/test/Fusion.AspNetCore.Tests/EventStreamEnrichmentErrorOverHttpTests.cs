@@ -79,15 +79,14 @@ public class EventStreamEnrichmentErrorOverHttpTests(NatsResource nats) : Fusion
             .Format("Review", 1);
 
         // act
-        // The first event carries the raw database key (not a valid global id), so the node lookup
-        // that fetches `body` fails. The second event carries the encoded global id and resolves.
+        // The first ID is a string the Relay lookup cannot decode. The second is a valid global ID.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
         await WaitForConsumerAsync(
             nats.NatsConnectionString,
             stream.Name,
             expectedCount: 1,
             cts.Token);
-        await PublishAsync(nats.NatsConnectionString, Topic, """{"review":{"id":1}}""", cts.Token);
+        await PublishAsync(nats.NatsConnectionString, Topic, """{"review":{"id":"1"}}""", cts.Token);
         await PublishAsync(
             nats.NatsConnectionString,
             Topic,
@@ -106,10 +105,6 @@ public class EventStreamEnrichmentErrorOverHttpTests(NatsResource nats) : Fusion
         }
 
         // assert
-        // First event: the message carried a raw int id, so the relay `node(id: ID!)` enrichment
-        // lookup is fed an int where a string global id is required. That error is integrated and
-        // `body` (non-null) null-propagates to the non-null root; the stream is NOT torn down.
-        // Second event: the stream recovered and delivered the enriched review.
         Assert.Equal(2, results.Count);
         results.MatchInlineSnapshots(
             [
@@ -118,17 +113,14 @@ public class EventStreamEnrichmentErrorOverHttpTests(NatsResource nats) : Fusion
                   "data": null,
                   "errors": [
                     {
-                      "message": "The argument literal representation is `HotChocolate.Language.IntValueNode` which is not compatible with the request literal type `HotChocolate.Language.StringValueNode`.",
+                      "message": "The node ID string has an invalid format.",
                       "path": [
                         "onCreateReview",
                         "review",
                         "body"
                       ],
                       "extensions": {
-                        "fieldName": "node",
-                        "argumentName": "id",
-                        "requestedType": "HotChocolate.Language.StringValueNode",
-                        "actualType": "HotChocolate.Language.IntValueNode"
+                        "originalValue": "1"
                       }
                     }
                   ]
