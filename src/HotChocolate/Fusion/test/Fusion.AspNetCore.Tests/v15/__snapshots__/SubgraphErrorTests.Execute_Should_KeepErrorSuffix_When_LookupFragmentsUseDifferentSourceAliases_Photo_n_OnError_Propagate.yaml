@@ -1,0 +1,252 @@
+title: Execute_Should_KeepErrorSuffix_When_LookupFragmentsUseDifferentSourceAliases
+request:
+  document: |
+    {
+      asset {
+        __typename
+        details: title {
+          n: name
+        }
+        ... on Photo {
+          details: title {
+            other
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "asset": {
+          "__typename": "Photo",
+          "details": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Detail unavailable.",
+          "path": [
+            "asset",
+            "details"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        asset: Asset
+      }
+
+      type Book implements Asset @key(fields: "id") {
+        id: ID!
+      }
+
+      type Photo implements Asset @key(fields: "id") {
+        id: ID!
+      }
+
+      interface Asset @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_645e9d2b_1 {
+              asset {
+                __typename
+                ... on Photo {
+                  __typename
+                }
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "asset": {
+                    "__typename": "Photo",
+                    "id": "1"
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: ID!): Asset @lookup
+      }
+
+      type Book implements Asset {
+        id: ID!
+        title: Detail!
+      }
+
+      type Detail @shareable {
+        name: String!
+        other: String!
+      }
+
+      type Photo implements Asset {
+        id: ID!
+        title: Detail! @shareable
+      }
+
+      interface Asset {
+        id: ID!
+        title: Detail
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_645e9d2b_2($__fusion_1_id: ID!) {
+              byId(id: $__fusion_1_id) {
+                __typename
+                details: title {
+                  n: name
+                }
+                ... on Photo {
+                  fusion__field_1: title {
+                    other
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "1"
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Detail unavailable.",
+                    "path": [
+                      "byId",
+                      "details",
+                      "n"
+                    ]
+                  }
+                ],
+                "data": {
+                  "byId": null
+                }
+              }
+  - name: photos
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+
+      type Detail @shareable {
+        name: String!
+        other: String!
+      }
+
+      type Photo {
+        id: ID!
+        title: Detail @shareable
+      }
+operationPlan:
+  id: 5fca904382e133623180d0765ff57dec37c269c706a2662ea7faf65c460a03f2
+  operation:
+    - document: |
+        {
+          asset {
+            __typename
+            details: title {
+              n: name
+            }
+            id @fusion__requirement
+            ... on Photo {
+              details: title {
+                other
+              }
+            }
+          }
+        }
+      kind: Query
+      id: 6229673ac003709288840d01c897452c
+      hash: 645e9d2bbbd62a8303352ea8c3758fdc
+      shortHash: 645e9d2b
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_645e9d2b_1
+        kind: Query
+        document: |
+          query Op_645e9d2b_1 {
+            asset {
+              __typename
+              ... on Photo {
+                __typename
+              }
+              id
+            }
+          }
+        hash: 2a2ebe00ed6f8167729e1e78784cc306b587c707c37d522b9bcee08ec0f92f3b
+        shortHash: 2a2ebe00
+        xxHash: 15268938652689434271
+      resultSelectionSet: >-
+        { asset }
+    - id: 2
+      type: Operation
+      schema: details
+      operation:
+        name: Op_645e9d2b_2
+        kind: Query
+        document: |
+          query Op_645e9d2b_2($__fusion_1_id: ID!) {
+            byId(id: $__fusion_1_id) {
+              __typename
+              details: title {
+                n: name
+              }
+              ... on Photo {
+                fusion__field_1: title {
+                  other
+                }
+              }
+            }
+          }
+        hash: 9b3a95433b8ff2b9b27f2ce3ec862631e79fef9b47318a44bf5f095d940b6332
+        shortHash: 9b3a9543
+        xxHash: 16887225276055045449
+      lookupTypeName: Asset
+      resultSelectionSet: >-
+        { __typename details { n } ... on Photo { fusion__field_1: title @fusion__responseName(name: "details") { other } } }
+      source: $.byId
+      target: $.asset
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.asset
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -1,0 +1,125 @@
+title: Execute_Should_KeepSiblingErrors_When_NullableItemCollapses
+request:
+  document: |
+    {
+      v {
+        a
+        b
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "v": [
+          null
+        ]
+      },
+      "errors": [
+        {
+          "message": "first",
+          "path": [
+            "v",
+            0,
+            "a"
+          ]
+        },
+        {
+          "message": "second",
+          "path": [
+            "v",
+            0,
+            "b"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        v: [Row]
+      }
+
+      type Row {
+        a: Int
+        b: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_c1d3e196_1 {
+              v {
+                a
+                b
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "first",
+                    "path": [
+                      "v",
+                      0,
+                      "a"
+                    ]
+                  },
+                  {
+                    "message": "second",
+                    "path": [
+                      "v",
+                      0,
+                      "b"
+                    ]
+                  }
+                ],
+                "data": {
+                  "v": [
+                    null
+                  ]
+                }
+              }
+operationPlan:
+  id: a8b81c2f7060c125bebb366eb55f1453db665bcb353c0cf297a2756a3a94cbb3
+  operation:
+    - document: |
+        {
+          v {
+            a
+            b
+          }
+        }
+      kind: Query
+      id: c1d3e196d27fa1a8825c51d499d892f0
+      hash: c1d3e196d27fa1a8825c51d499d892f0
+      shortHash: c1d3e196
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_c1d3e196_1
+        kind: Query
+        document: |
+          query Op_c1d3e196_1 {
+            v {
+              a
+              b
+            }
+          }
+        hash: c11e03e042ddfec2239badd80f2d395ee2d6b93477ca20d13730bcc776eb0e65
+        shortHash: c11e03e0
+        xxHash: 3305342975032563107
+      resultSelectionSet: >-
+        { v }

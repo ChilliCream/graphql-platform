@@ -1,0 +1,111 @@
+title: Execute_Should_ReportOneError_When_SourceSuffixesMapToTheSameClientField
+request:
+  document: |
+    {
+      row {
+        n
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "row": null
+      },
+      "errors": [
+        {
+          "message": "selected",
+          "path": [
+            "row"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        row: Row
+      }
+
+      type Row {
+        n: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_697559ea_1 {
+              row {
+                n
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "first",
+                    "path": [
+                      "row",
+                      "extra"
+                    ]
+                  },
+                  {
+                    "message": "second",
+                    "path": [
+                      "row",
+                      "other"
+                    ]
+                  },
+                  {
+                    "message": "selected",
+                    "path": [
+                      "row",
+                      "n"
+                    ]
+                  }
+                ],
+                "data": {
+                  "row": null
+                }
+              }
+operationPlan:
+  id: 413b2a30bcb4fc29c37c7a87ad42c86ef2c606dd1b00619d31d8714bfac9ba80
+  operation:
+    - document: |
+        {
+          row {
+            n
+          }
+        }
+      kind: Query
+      id: 697559eabb7832972eeb479e00bc8805
+      hash: 697559eabb7832972eeb479e00bc8805
+      shortHash: 697559ea
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_697559ea_1
+        kind: Query
+        document: |
+          query Op_697559ea_1 {
+            row {
+              n
+            }
+          }
+        hash: fb88f5d88cc202db48d71cda7342313e40ff38ff3d7439a658f77f2194ff5e3e
+        shortHash: fb88f5d8
+        xxHash: 2541540915119232645
+      resultSelectionSet: >-
+        { row }

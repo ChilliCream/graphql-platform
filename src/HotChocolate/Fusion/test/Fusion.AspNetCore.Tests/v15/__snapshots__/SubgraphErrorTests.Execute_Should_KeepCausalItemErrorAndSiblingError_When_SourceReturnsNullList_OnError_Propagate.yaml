@@ -1,0 +1,131 @@
+title: Execute_Should_KeepCausalItemErrorAndSiblingError_When_SourceReturnsNullList
+request:
+  document: |
+    {
+      rows {
+        name
+      }
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "rows": null,
+        "tail": null
+      },
+      "errors": [
+        {
+          "message": "another row failed",
+          "path": [
+            "rows"
+          ]
+        },
+        {
+          "message": "tail failed",
+          "path": [
+            "tail"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        rows: [Row!]
+        tail: Int
+      }
+
+      type Row {
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_bcf3043a_1 {
+              rows {
+                name
+              }
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "row failed",
+                    "path": [
+                      "rows",
+                      1
+                    ]
+                  },
+                  {
+                    "message": "name failed",
+                    "path": [
+                      "rows",
+                      1,
+                      "name"
+                    ]
+                  },
+                  {
+                    "message": "another row failed",
+                    "path": [
+                      "rows",
+                      0
+                    ]
+                  },
+                  {
+                    "message": "tail failed",
+                    "path": [
+                      "tail"
+                    ]
+                  }
+                ],
+                "data": {
+                  "rows": null,
+                  "tail": null
+                }
+              }
+operationPlan:
+  id: 7966910a9e66421ac7f9d9d4f171f2ace4b7e5440e38ca6578b5c203e52f0ddd
+  operation:
+    - document: |
+        {
+          rows {
+            name
+          }
+          tail
+        }
+      kind: Query
+      id: bcf3043ace3a80fc2f7c3871d48df3c6
+      hash: bcf3043ace3a80fc2f7c3871d48df3c6
+      shortHash: bcf3043a
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_bcf3043a_1
+        kind: Query
+        document: |
+          query Op_bcf3043a_1 {
+            rows {
+              name
+            }
+            tail
+          }
+        hash: 4378c5435352a88022c7e8a3de40e1ab3e81a9d3ce3b4af9322bdff3c666a241
+        shortHash: 4378c543
+        xxHash: 13508659246740573796
+      resultSelectionSet: >-
+        { rows tail }

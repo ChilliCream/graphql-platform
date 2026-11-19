@@ -1,0 +1,112 @@
+title: Execute_Should_RespectReportOrder_When_NulledObjectHasParentAndConditionalChildErrors
+request:
+  onError: Null
+  document: |
+    query($skip: Boolean! = false) {
+      row {
+        n: value @skip(if: $skip)
+        ignored @include(if: false)
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "row": null
+      },
+      "errors": [
+        {
+          "message": "Parent",
+          "path": [
+            "row"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        row: Row
+      }
+
+      type Row {
+        value: Int!
+        ignored: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_7ea41e24_1($skip: Boolean! = false) {
+              row {
+                n: value @skip(if: $skip)
+              }
+            }
+          variables: |
+            {
+              "skip": false
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Parent",
+                    "path": [
+                      "row"
+                    ]
+                  },
+                  {
+                    "message": "Child",
+                    "path": [
+                      "row",
+                      "n"
+                    ]
+                  }
+                ],
+                "data": {
+                  "row": null
+                }
+              }
+operationPlan:
+  id: a8cabe2ab25bed6af964da128ce95e984106262fd46d0b0f8376ce5626ac416d
+  operation:
+    - document: |
+        query($skip: Boolean! = false) {
+          row {
+            n: value @skip(if: $skip)
+          }
+        }
+      kind: Query
+      id: 3ddd8cec8258ed0c2e644511889a35dc
+      hash: 7ea41e2473ea632e8caefc8525a08395
+      shortHash: 7ea41e24
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_7ea41e24_1
+        kind: Query
+        document: |
+          query Op_7ea41e24_1($skip: Boolean! = false) {
+            row {
+              n: value @skip(if: $skip)
+            }
+          }
+        hash: 3aa0546cec4ed92b25962d29b9f35e92a528c65e20331fa8221efb8ac5008c04
+        shortHash: 3aa0546c
+        xxHash: 17293164474415451630
+      resultSelectionSet: >-
+        { row }
+      forwardedVariables:
+        - skip

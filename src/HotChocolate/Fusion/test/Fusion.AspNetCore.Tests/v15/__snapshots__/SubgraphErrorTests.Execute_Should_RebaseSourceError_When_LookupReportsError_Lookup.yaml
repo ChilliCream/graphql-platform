@@ -1,0 +1,173 @@
+title: Execute_Should_RebaseSourceError_When_LookupReportsError
+request:
+  document: |
+    {
+      p: product {
+        id
+        n: name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "p": {
+          "id": 1,
+          "n": "OK"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_5ce7ea73_1 {
+              p: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "p": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_5ce7ea73_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  n: name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "lookup",
+                    "path": [
+                      "lookups",
+                      "byId"
+                    ]
+                  }
+                ],
+                "data": {
+                  "lookups": {
+                    "byId": {
+                      "n": "OK"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  id: 22ed34ac65f07431d95bc7d227b25127904283b3c94ad897b8ba07e806dbdc32
+  operation:
+    - document: |
+        {
+          p: product {
+            id
+            id @fusion__requirement
+            n: name
+          }
+        }
+      kind: Query
+      id: 741223a9a118d67eb1c28ac6d22a8ee2
+      hash: 5ce7ea735b3cc15cf0ec23cdf9e29e4a
+      shortHash: 5ce7ea73
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_5ce7ea73_1
+        kind: Query
+        document: |
+          query Op_5ce7ea73_1 {
+            p: product {
+              id
+            }
+          }
+        hash: f8d7acb4f6f21b3807d3f5d93ab10b3c2b31714fc75925bce1ff0ac90400a296
+        shortHash: f8d7acb4
+        xxHash: 9790114930887900353
+      resultSelectionSet: >-
+        { p }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_5ce7ea73_2
+        kind: Query
+        document: |
+          query Op_5ce7ea73_2($__fusion_1_id: Int!) {
+            lookups {
+              byId(id: $__fusion_1_id) {
+                n: name
+              }
+            }
+          }
+        hash: 2a35ddf24e6741579819cfac93c8d892f039886dbbad6a758115a2a35bf0b819
+        shortHash: 2a35ddf2
+        xxHash: 1550682548108128442
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { n }
+      source: $.lookups.byId
+      target: $.p
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.p
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
