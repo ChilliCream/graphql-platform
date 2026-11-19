@@ -558,7 +558,7 @@ public class RequirementTests : FusionTestBase
         MatchInline(
             plan,
             """
-            id: 7a3637e68089675cf344ea98566b6f93383e0e4c9ab7127b5cd1f56a3ad8e516
+            id: 64351b59cc89eefc50ef51f60b3ce646940b945b308bea293f9a2533e891e425
             operation:
               - document: |
                   {
@@ -596,7 +596,7 @@ public class RequirementTests : FusionTestBase
                   shortHash: a8add3c3
                   xxHash: 9816577427737023502
                 resultSelectionSet: >-
-                  { products }
+                  { products { details { __typename weight } id } }
               - id: 2
                 type: Operation
                 schema: b

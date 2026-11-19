@@ -188,7 +188,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 5d16e02e4a7f0bcdc496d65f030bb1aeba4fb878352ff1d855380a729ba99fb9
+  id: 9cc8a4c11e366e4de9905a638466a4ce8894bf65d714337753b730398cb5f9d5
   operation:
     - document: |
         query GetUser {
@@ -227,7 +227,7 @@ operationPlan:
         shortHash: 734bc818
         xxHash: 15739999752072096881
       resultSelectionSet: >-
-        { reviews }
+        { reviews { body author { id } } }
     - id: 2
       type: Operation
       schema: A

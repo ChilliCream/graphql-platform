@@ -1,4 +1,4 @@
-id: b2f2bbabc0b1d26684c392c411b5b363d31b7e3ad61792597a0aaa17e0766724
+id: 9939282217c00893cb0cfd48c31479c24e749e9528260e06531ee463f83cb5ab
 operation:
   - document: |
       mutation {
@@ -41,7 +41,7 @@ nodes:
       shortHash: 6dc35db2
       xxHash: 9561269719161907611
     resultSelectionSet: >-
-      { doOther }
+      { doOther { me { t } id } }
   - id: 2
     type: Operation
     schema: a

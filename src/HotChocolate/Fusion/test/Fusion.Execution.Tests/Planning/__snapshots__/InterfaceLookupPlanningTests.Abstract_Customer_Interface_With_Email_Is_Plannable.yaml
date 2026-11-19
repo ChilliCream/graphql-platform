@@ -1,4 +1,4 @@
-id: f6abf268b3a5d464f40a8a05ecafce0ed30ea4dc1af1989c626fc91158b0e2b5
+id: 19cb04bc4e0cdca240a587ffccf6ef0cf1f489ee543628349c7360268ae7c03e
 operation:
   - document: |
       {
@@ -47,7 +47,7 @@ nodes:
       shortHash: c7845a61
       xxHash: 5946333898351363375
     resultSelectionSet: >-
-      { ordersByAgent }
+      { ordersByAgent { edges { node { id customer { __typename id } } } } }
   - id: 2
     type: Operation
     schema: de

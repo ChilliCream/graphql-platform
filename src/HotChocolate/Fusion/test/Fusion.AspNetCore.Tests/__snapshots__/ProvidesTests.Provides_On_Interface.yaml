@@ -108,7 +108,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
-  id: 9aedff646ff839fc9d0ec53ad45463a2f4c0da9f12f62890963bc1cf6f8b1c6d
+  id: bcda189169e4d0411e64b15f1f6030db061100830e428ec7cb2b191f9c4d587c
   operation:
     - document: |
         {
@@ -155,4 +155,4 @@ operationPlan:
         shortHash: b744b7dd
         xxHash: 17948994167229189567
       resultSelectionSet: >-
-        { book }
+        { book { featured { __typename ... on Cat { age } ... on Dog { tricks } } } }

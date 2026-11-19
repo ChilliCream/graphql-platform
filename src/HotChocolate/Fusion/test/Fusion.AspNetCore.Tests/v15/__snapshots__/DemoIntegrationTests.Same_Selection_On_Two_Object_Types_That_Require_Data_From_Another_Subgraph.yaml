@@ -155,7 +155,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: c9159c3638a351e1459c705dad3c51253205d04de82cb5c3aaafbe40bdcdd4ae
+  id: b19145d83d4c6bed1020ef87c98429c8507496697daee150810df9cab440c402
   operation:
     - document: |
         {
@@ -204,7 +204,7 @@ operationPlan:
         shortHash: 9be075a6
         xxHash: 8287171871325115487
       resultSelectionSet: >-
-        { item1 item2 }
+        { item1 { product { id } } item2 { product { id } } }
     - id: 2
       type: OperationBatch
       schema: B

@@ -1,4 +1,4 @@
-id: 5638d257f9e280db5061d3c9d18f4c5003ef69eed5bc6f0c6f0c075db4449ff8
+id: f3d7fc43e318287ca7e9dd93518dfc06d127ee32c0b7169012218548700be556
 operation:
   - document: |
       subscription {
@@ -41,7 +41,7 @@ nodes:
       shortHash: f92b2f4c
       xxHash: 1819270763937879956
     resultSelectionSet: >-
-      { doOther }
+      { doOther { me { t } id } }
   - id: 2
     type: Operation
     schema: a

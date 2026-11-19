@@ -1,4 +1,4 @@
-id: a7d30825c7c5476ea9498ba218895c14903a312ace5ead8efa94a7b3a471fb11
+id: abb266f121d4f8399906a6a87adb71af36f6b353aa910f59fcf3b5ba0f6b4553
 operation:
   - document: |
       {
@@ -40,7 +40,7 @@ nodes:
       shortHash: 8d67b6f2
       xxHash: 10970322977830876723
     resultSelectionSet: >-
-      { orders }
+      { orders { item { customer { email } } id } }
   - id: 2
     type: Operation
     schema: a

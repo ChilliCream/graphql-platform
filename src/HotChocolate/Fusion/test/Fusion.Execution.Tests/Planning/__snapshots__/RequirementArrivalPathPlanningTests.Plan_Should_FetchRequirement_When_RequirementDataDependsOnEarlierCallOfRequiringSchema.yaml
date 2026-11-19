@@ -1,4 +1,4 @@
-id: 1eb609b5c43d360f1784d830ef2077ea6f31387ccf0504cb613c2040267ef942
+id: 5bdf8ddbd999bebf7587f906f4401e5920b5330e93fbfa47a29e4e745e8c5fa0
 operation:
   - document: |
       {
@@ -63,7 +63,7 @@ nodes:
       xxHash: 8145051031305642926
     lookupTypeName: H1
     resultSelectionSet: >-
-      { b }
+      { b { l { __typename x } id } }
     source: $.h1ById
     target: $.root.a
     requirements:

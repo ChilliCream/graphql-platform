@@ -1,4 +1,4 @@
-id: d62d67049619468d2051e765a7284e7b9812c3cb864205d0998c9a38a57ba051
+id: 4a7a90e76d5ec48371db186ee89e1bb821a730856e1c81a1bee74a5dfb21fcc6
 operation:
   - document: |
       {
@@ -45,4 +45,4 @@ nodes:
       shortHash: e71de26b
       xxHash: 12731655434071372543
     resultSelectionSet: >-
-      { products }
+      { products { id categories { id name details { id name } } } }

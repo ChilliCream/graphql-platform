@@ -153,7 +153,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 85e59401cd9d53b8be8f5035ad05144e877800749ad06e5c8bd80290faf086c8
+  id: cd7708f08c4fea1accca6aeae12866a2a1cd80a9dbac54b4f0bbe8462f75cc5d
   operation:
     - document: |
         {
@@ -192,7 +192,7 @@ operationPlan:
         shortHash: ed128227
         xxHash: 10505008707333797213
       resultSelectionSet: >-
-        { products }
+        { products { id details { weight } } }
     - id: 2
       type: Operation
       schema: b

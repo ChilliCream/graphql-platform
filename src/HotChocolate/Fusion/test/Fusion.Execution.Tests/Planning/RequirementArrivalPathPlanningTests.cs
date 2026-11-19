@@ -825,7 +825,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
-            id: 980c8a177d620c7c84c3667ec01899270eb6e4345ecd45e7bda2351360632ca9
+            id: fe57adedbeb216c2a2fb892f9c2ed62acf7ccdb36ffebee19f5106fd18c14364
             operation:
               - document: |
                   mutation {
@@ -869,7 +869,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                   shortHash: cac8c653
                   xxHash: 6209407811876964816
                 resultSelectionSet: >-
-                  { doB }
+                  { doB { viewer { vt { f2 { id } } } } }
               - id: 2
                 type: Operation
                 schema: D
@@ -1015,7 +1015,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
-            id: ccf6583e9b24d4c9c61169edf1e54bdc45042ba7c8d72d8b159c2ffb5b093633
+            id: 24ee721fb319ccc9004716a85831304a57b346d01f69e4c2d0a947c1f1b5721b
             operation:
               - document: |
                   {
@@ -1122,7 +1122,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                   shortHash: 160741bb
                   xxHash: 5870523207090737025
                 resultSelectionSet: >-
-                  { x }
+                  { x { t { __typename n } id } }
                 batchingGroupId: 5
               - id: 4
                 type: Operation
@@ -1144,7 +1144,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                   shortHash: 15d76e16
                   xxHash: 7336655642061676120
                 resultSelectionSet: >-
-                  { x }
+                  { x { t { n } } }
                 batchingGroupId: 5
             """);
     }

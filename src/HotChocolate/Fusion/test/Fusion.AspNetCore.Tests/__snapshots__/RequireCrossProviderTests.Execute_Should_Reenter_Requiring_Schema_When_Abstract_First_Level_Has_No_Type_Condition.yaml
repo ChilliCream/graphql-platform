@@ -241,7 +241,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: b27f4cb43555eedcd311fbcada873340c21e24071d1ee8e36f5aca22f2093e67
+  id: 10b70c67a4f3786ff760deff7cd31eefaa3d0eb6a767d41700d895fd749b36c6
   operation:
     - document: |
         {
@@ -344,7 +344,7 @@ operationPlan:
         shortHash: 5e20430c
         xxHash: 466061709385306516
       resultSelectionSet: >-
-        { orders }
+        { orders { id customer { __typename } } }
       batchingGroupId: 5
     - id: 4
       type: Operation
@@ -367,5 +367,5 @@ operationPlan:
         shortHash: 2921cdd5
         xxHash: 3193713425186979845
       resultSelectionSet: >-
-        { orders }
+        { orders { customer { __typename ... on Customer { id } } } }
       batchingGroupId: 5

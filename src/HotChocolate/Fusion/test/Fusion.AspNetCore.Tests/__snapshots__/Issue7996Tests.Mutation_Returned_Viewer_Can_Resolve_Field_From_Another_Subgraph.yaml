@@ -107,7 +107,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: ec4d7a3a1a29f23f792b2fbe4926a29a27e82f39e361a28f3e19b7739085d79a
+  id: 1d6be441b493b5b5df8aa081ff0251c794fa2de4dbbc55f7dbf901abf85cb784
   operation:
     - document: |
         mutation {
@@ -145,7 +145,7 @@ operationPlan:
         shortHash: 7c0f0f6f
         xxHash: 15511957333164797700
       resultSelectionSet: >-
-        { doSomething }
+        { doSomething { something viewer { subgraphA } } }
     - id: 2
       type: Operation
       schema: B

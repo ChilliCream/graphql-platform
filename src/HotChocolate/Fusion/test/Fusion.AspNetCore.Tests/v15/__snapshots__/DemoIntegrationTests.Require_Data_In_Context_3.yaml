@@ -880,7 +880,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: abee1c25fad0dae7d629e3ebf755b3f316e8d2b4ff3a95af549f6c65a7fa9919
+  id: c1b153da5352e90e713076f00a4fbcf84760f369d33b8689d19afba45ab199a4
   operation:
     - document: |
         query Large {
@@ -962,7 +962,7 @@ operationPlan:
         xxHash: 230339351698870140
       lookupTypeName: User
       resultSelectionSet: >-
-        { reviews }
+        { reviews { body author { id } product } }
       source: $.node<User>
       target: $.users
       requirements:

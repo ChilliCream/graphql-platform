@@ -1,4 +1,4 @@
-id: b4a0f701e82540076e230671711e0f4e578c4ae0fb31af29bc429e912b6d3e7a
+id: a2413401cc34975c5da35d2ce7b17b793f2ee5ce2f8b393ae6e411a83fdea244
 operation:
   - document: |
       {
@@ -101,7 +101,7 @@ nodes:
       shortHash: c0eb1b6a
       xxHash: 353369140000315026
     resultSelectionSet: >-
-      { orders }
+      { orders { id customer { __typename } } }
     batchingGroupId: 5
   - id: 4
     type: Operation
@@ -124,5 +124,5 @@ nodes:
       shortHash: 8485f3d7
       xxHash: 15051843334004293780
     resultSelectionSet: >-
-      { orders }
+      { orders { customer { __typename ... on Customer { id } } } }
     batchingGroupId: 5

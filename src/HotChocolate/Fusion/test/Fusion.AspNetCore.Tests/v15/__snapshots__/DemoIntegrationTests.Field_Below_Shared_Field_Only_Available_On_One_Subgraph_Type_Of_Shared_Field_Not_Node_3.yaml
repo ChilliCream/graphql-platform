@@ -182,7 +182,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: a384a08758381e4461547f6f76d2e85b1d3bc587f78025b06c05b00e54910f3d
+  id: 75e5470e3ca2b6fdb7c800de206b503fd6e2e07b89dd2ea3fb62b2a94a8b1a0e
   operation:
     - document: |
         query($productId: ID!) {
@@ -229,7 +229,7 @@ operationPlan:
         shortHash: a85e3af7
         xxHash: 14752999323830711478
       resultSelectionSet: >-
-        { productById }
+        { productById { subgraph1Only { subgraph1Only sharedLinked { sharedScalar subgraph1Only } id } } }
       forwardedVariables:
         - productId
     - id: 2

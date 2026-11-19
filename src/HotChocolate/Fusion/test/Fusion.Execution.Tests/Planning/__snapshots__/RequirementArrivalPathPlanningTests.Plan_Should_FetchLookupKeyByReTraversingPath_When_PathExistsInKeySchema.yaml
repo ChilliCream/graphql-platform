@@ -1,4 +1,4 @@
-id: 7f2b6277bf4a70805f62e5f518f699827301b1b0d852aa7732997c77d8775fcc
+id: 2f8b3037616d7c2d5739859841dd61ef7c8f8df9a9c10302ff416f8d21e33152
 operation:
   - document: |
       {
@@ -88,7 +88,7 @@ nodes:
       shortHash: "09782999"
       xxHash: 11927572499165394578
     resultSelectionSet: >-
-      { good { p } }
+      { good { p { t { f } } } }
     requirements:
       - name: __fusion_2_q
         type: String

@@ -1,4 +1,4 @@
-id: cd9ef93667243c1166179dc9307d4b6eed2bf91a5d107682b2721a8160b41028
+id: 970676fbf6575bae5d958bf9f5978105d273001a5e7e967eb12ceb673b411dd8
 operation:
   - document: |
       {
@@ -58,7 +58,7 @@ nodes:
       shortHash: 53b51ba5
       xxHash: 15657460751648869004
     resultSelectionSet: >-
-      { userFromA }
+      { userFromA { id profile { __typename displayName ... on AdminAccount { accountType } ... on GuestAccount { accountType } ... on AdminAccount { adminLevel } ... on GuestAccount { guestToken } } } }
   - id: 2
     type: Operation
     schema: b

@@ -450,7 +450,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 0f7e81497b6676b1d6c8b2f67443e5b7c8411bfe0a40ca5415a7097ddd98821d
+  id: 949862d1d3d04af6eb4cf4b1a197b8c6cf9eeece6331d89eacc6b79ca5e6f353
   operation:
     - document: |
         query GetUser($skip: Boolean!) {
@@ -520,7 +520,7 @@ operationPlan:
         xxHash: 12390452335447417889
       lookupTypeName: User
       resultSelectionSet: >-
-        { reviews }
+        { reviews { body author { errorField id } } }
       source: $.node<User>
       target: $.users
       requirements:

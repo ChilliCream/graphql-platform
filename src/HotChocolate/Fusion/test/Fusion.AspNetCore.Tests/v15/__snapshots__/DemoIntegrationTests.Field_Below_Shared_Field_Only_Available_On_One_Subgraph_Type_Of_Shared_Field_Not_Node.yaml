@@ -145,7 +145,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 6d80b9e56d70265c4f554908fd3ed016fe94ebee418c4badbd2f0e9f2c56ac5c
+  id: a073a1bb0268ceaaf688e1015e0ea46d00649d6599e39d6b287afa6c8fd7f172
   operation:
     - document: |
         query($productId: ID!) {
@@ -186,7 +186,7 @@ operationPlan:
         shortHash: 3e337fcc
         xxHash: 2549249803052768011
       resultSelectionSet: >-
-        { productById }
+        { productById { subgraph1Only { sharedLinked { __typename } id } } }
       forwardedVariables:
         - productId
     - id: 2

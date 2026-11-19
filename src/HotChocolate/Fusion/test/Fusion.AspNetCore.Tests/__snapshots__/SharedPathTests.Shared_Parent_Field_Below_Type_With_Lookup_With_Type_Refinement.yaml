@@ -184,7 +184,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: edc7f39669895eb9e0668c4764a82f104c08becaf5c4df4c3019e50c6c0f9e71
+  id: 8e4138c125f238ab73ca9de0550f7529529e442e2459da1a6fa45ce5fa22d0c3
   operation:
     - document: |
         {
@@ -228,7 +228,7 @@ operationPlan:
         shortHash: 1cc546bb
         xxHash: 9616390446883977992
       resultSelectionSet: >-
-        { unsharedInterface }
+        { unsharedInterface { __typename ... on Product { shared { schema1 } id } } }
     - id: 2
       type: Operation
       schema: B

@@ -329,7 +329,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 53e72e066a6d490aa7194993f7f07a148c332ce3cd50ff69abda093ad2932389
+  id: c0f4d57d57105fd5019338198c8208d0b66184fd9040683baf60507dd603da2c
   operation:
     - document: |
         {
@@ -404,7 +404,7 @@ operationPlan:
         xxHash: 5208033323473872181
       lookupTypeName: User
       resultSelectionSet: >-
-        { feedbacks }
+        { feedbacks { edges { node { feedback { buyer { id } } } } } }
       source: $.node<User>
       target: $.userBySlug
       requirements:
