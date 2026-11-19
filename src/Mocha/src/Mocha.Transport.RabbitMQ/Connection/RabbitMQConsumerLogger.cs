@@ -85,20 +85,20 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger, TimeProvide
             delivery.BasicProperties.CorrelationId);
 
     /// <summary>
-    /// Writes that a message was not settled because its channel is closed. <paramref name="settlement"/> is
-    /// <c>ack</c> or <c>nack</c>.
+    /// Writes that a message was not settled because its channel is closed. <paramref name="ack"/> is
+    /// <c>true</c> for a skipped ack and <c>false</c> for a skipped nack.
     /// </summary>
     public void SettlementSkipped(
         IReceiveContext context,
-        string? queue,
-        string settlement,
+        string queue,
+        bool ack,
         BasicDeliverEventArgs delivery)
     {
         using (logger.BeginMessageScope(LogLevel.Information, context))
         {
             SettlementSkipped(
                 queue,
-                settlement,
+                ack ? "ack" : "nack",
                 delivery.BasicProperties.MessageId ?? context.MessageId,
                 delivery.ConsumerTag,
                 delivery.DeliveryTag,
@@ -116,9 +116,6 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger, TimeProvide
         TimeSpan elapsed,
         ushort maxPrefetch,
         ushort maxConcurrency);
-
-    [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue} could not attach; its endpoint does not start")]
-    public partial void ConsumerRegistrationFailed(Exception exception, string queue);
 
     [LoggerMessage(
         LogLevel.Error,
@@ -190,7 +187,7 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger, TimeProvide
             + "{ConsumerTag}, delivery {DeliveryTag}, redelivered {Redelivered}); the message stays "
             + "unacknowledged and can be delivered again")]
     private partial void SettlementSkipped(
-        string? queue,
+        string queue,
         string settlement,
         string? messageId,
         string consumerTag,

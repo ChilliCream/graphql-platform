@@ -267,7 +267,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
     }
 
     [Fact]
-    public async Task Consumer_Should_PrepareAgain_When_PreparedChannelIsLostWhileWaitingForHandler()
+    public async Task Consumer_Should_PrepareNoChannel_When_ItWaitsForAHandlerOfTheLostChannel()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
@@ -298,16 +298,12 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         try
         {
             // act
-            // the handler ignores its cancellation, so the second channel is prepared and then waits for it
+            // the handler ignores its cancellation, so the consumer waits for it before it opens a channel
             await probe.Channel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
             await Wait.UntilAsync(manager.HasBlockedConsumer);
-            await probe.Channel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
-            var blockedAgain = await Condition.WaitAsync(
-                () => probe.PreparedCount == 3 && manager.HasBlockedConsumer(),
-                TestTimeouts.Signal);
 
             // assert
-            Assert.True(blockedAgain);
+            Assert.Equal(1, probe.PreparedCount);
             Assert.Equal(1, gate.ActiveHandlers);
         }
         finally

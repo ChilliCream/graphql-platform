@@ -6,8 +6,8 @@ namespace Mocha.Transport.RabbitMQ;
 internal sealed class RabbitMQConsumerManagerOptions
 {
     /// <summary>
-    /// Gets how long one attempt to attach a consumer can take before it is abandoned and retried. The wait
-    /// for a handler of a lost channel to return does not count.
+    /// Gets how long a consumer can take to open a channel, and how long it can then take to declare its queue
+    /// and start consuming. An attempt that exceeds one of the two limits is abandoned and retried.
     /// </summary>
     public TimeSpan AttachTimeout { get; init; } = TimeSpan.FromSeconds(60);
 

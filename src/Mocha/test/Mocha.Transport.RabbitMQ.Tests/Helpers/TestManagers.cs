@@ -78,7 +78,7 @@ internal static class TestManagers
         CancellationToken cancellationToken)
         => manager.RegisterConsumerAsync(
             queueName,
-            prepareAsync: null,
+            static (_, _, _) => Task.CompletedTask,
             messageHandler,
             maxPrefetch,
             maxConcurrency,

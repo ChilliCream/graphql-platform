@@ -233,6 +233,31 @@ internal sealed class RabbitMQConnectionManager(
     }
 
     /// <summary>
+    /// Opens a channel on a connection, and ends the wait when <paramref name="cancellationToken"/> is
+    /// cancelled. The open itself goes on, and its channel is closed when it completes.
+    /// </summary>
+    public async Task<IChannel> OpenChannelAsync(
+        IConnection connection,
+        CreateChannelOptions options,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        // An open that is not started cannot time out and replace the connection of other callers.
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var opening = OpenChannelAsync(connection, options, timeout);
+        try
+        {
+            return await opening.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _ = opening.CloseWhenOpenedAsync(this);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Replaces the ready connection because the broker stopped answering on it. The connection is closed in
     /// the background before the next one is created.
     /// </summary>

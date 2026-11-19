@@ -118,9 +118,8 @@ public sealed class RabbitMQConsumerAttachmentIntegrationTests(RabbitMQFixture f
         }
 
         // assert
-        await Assert.ThrowsAsync<ObjectDisposedException>(() =>
-            registration.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken)
-        );
+        var consumer = await registration.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        Assert.Equal(ConsumerState.Stopped, consumer.State);
     }
 
     [Fact]

@@ -129,8 +129,9 @@ internal sealed class RabbitMQConsumerAttachment : AsyncDefaultBasicConsumer
             CancelHandlers();
         }
 
-        // Retire before the wait reads the count. A worker checks the flag and counts its handler under one
-        // lock, so either the wait sees the handler or the worker skips the delivery.
+        // From here, no worker starts a handler for a queued delivery of this attachment. This must be set
+        // before the wait. If not, the wait can see no running handler and return, and a worker can start a
+        // handler after that.
         _isRetired = true;
 
         // The wait also covers handlers of older channels. They hold a worker until they return.

@@ -10,7 +10,9 @@ namespace Mocha.Transport.RabbitMQ.Middlewares;
 /// Receive middleware that sends a BasicAck on successful processing and a BasicNack (with requeue) on failure,
 /// ensuring messages are properly acknowledged or returned to the broker.
 /// </summary>
-internal sealed class RabbitMQAcknowledgementMiddleware
+/// <param name="logger">The logger for a settlement that was skipped.</param>
+/// <param name="queueName">The name of the queue the endpoint consumes.</param>
+internal sealed class RabbitMQAcknowledgementMiddleware(RabbitMQConsumerLogger logger, string queueName)
 {
     /// <summary>
     /// Invokes the next middleware in the pipeline and acknowledges or negatively acknowledges the message based on the outcome.
@@ -63,11 +65,7 @@ internal sealed class RabbitMQAcknowledgementMiddleware
             }
         }
 
-        (context.Transport as RabbitMQMessagingTransport)?.ConsumerManager.Logger.SettlementSkipped(
-            context,
-            (context.Endpoint as RabbitMQReceiveEndpoint)?.Queue.Name,
-            ack ? "ack" : "nack",
-            eventArgs);
+        logger.SettlementSkipped(context, queueName, ack, eventArgs);
     }
 
     /// <summary>
@@ -75,9 +73,13 @@ internal sealed class RabbitMQAcknowledgementMiddleware
     /// </summary>
     public static ReceiveMiddlewareConfiguration Create()
         => new(
-            static (_, next) =>
+            static (context, next) =>
             {
-                var middleware = new RabbitMQAcknowledgementMiddleware();
+                var transport = (RabbitMQMessagingTransport)context.Transport;
+                var endpoint = (RabbitMQReceiveEndpoint)context.Endpoint;
+                var middleware = new RabbitMQAcknowledgementMiddleware(
+                    transport.ConsumerManager.Logger,
+                    endpoint.Queue.Name);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "RabbitMQAcknowledgement");

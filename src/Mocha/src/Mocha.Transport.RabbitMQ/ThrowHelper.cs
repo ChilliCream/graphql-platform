@@ -41,15 +41,6 @@ internal static class ThrowHelper
             $"The broker did not answer a request while the consumer for queue '{queueName}' attached.",
             innerException);
 
-    public static OperationInterruptedException ConsumerChannelLostWhileWaiting(
-        string queueName,
-        ShutdownEventArgs? reason)
-        => reason is null
-            ? new OperationInterruptedException()
-            : new OperationInterruptedException(
-                reason,
-                $"The channel of the consumer for queue '{queueName}' was lost while it waited for a handler.");
-
     public static TimeoutException ConnectionTimedOut(TimeSpan timeout, Exception innerException)
         => new($"Connecting to RabbitMQ did not complete within {timeout}.", innerException);
 

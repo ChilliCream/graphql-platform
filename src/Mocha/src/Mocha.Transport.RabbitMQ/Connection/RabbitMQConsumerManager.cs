@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Runtime.ExceptionServices;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -81,7 +80,7 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     /// <param name="queueName">The name of the queue to consume.</param>
     /// <param name="prepareAsync">
     /// Runs on every new channel of the consumer before it consumes, for example to declare the queue and
-    /// its bindings, or <c>null</c> to consume at once.
+    /// its bindings.
     /// </param>
     /// <param name="messageHandler">Handles one delivered message.</param>
     /// <param name="maxPrefetch">The largest number of unacknowledged messages the broker delivers.</param>
@@ -97,7 +96,7 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     /// </exception>
     internal async Task<RabbitMQConsumer> RegisterConsumerAsync(
         string queueName,
-        Func<IConnection, IChannel, CancellationToken, Task>? prepareAsync,
+        Func<IConnection, IChannel, CancellationToken, Task> prepareAsync,
         Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
         ushort maxPrefetch,
         ushort maxConcurrency,
@@ -121,37 +120,15 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
         ImmutableInterlocked.Update(ref _consumers, static (consumers, added) => consumers.Add(added), consumer);
         consumer.Start();
 
-        if (_isDisposed)
-        {
-            await consumer.DisposeAsync();
-            ObjectDisposedException.ThrowIf(_isDisposed, this);
-        }
-
-        Exception? failure = null;
         try
         {
             await consumer.Startup.WaitAsync(cancellationToken);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch
         {
+            // The registration was cancelled, or the first attempt failed in a way that repeats.
             await consumer.DisposeAsync();
             throw;
-        }
-        catch (Exception ex)
-        {
-            failure = ex;
-        }
-
-        // The disposal of the manager stopped the consumer while it attached.
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
-
-        if (failure is not null)
-        {
-            Logger.ConsumerRegistrationFailed(failure, queueName);
-
-            // A consumer whose attempts all fail the same way does not keep attaching in the background.
-            await consumer.DisposeAsync();
-            ExceptionDispatchInfo.Throw(failure);
         }
 
         return consumer;

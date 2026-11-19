@@ -16,7 +16,7 @@ internal enum ConsumerState
     Attaching,
 
     /// <summary>
-    /// The consumer declared its queue and waits until a handler of a lost channel returns.
+    /// The consumer has no channel and waits until a handler of a lost channel returns.
     /// </summary>
     WaitingForHandlers,
 
