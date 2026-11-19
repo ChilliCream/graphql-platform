@@ -283,10 +283,10 @@ public class Utf8GraphQLRequestParserDocumentHashCacheTests
         var document = "{ a }"u8;
 
         // act
-        cache.Add(document, isEscaped: false, key: 42, new OperationDocumentHash("a", "custom", HashFormat.Hex));
+        cache.Add(document, isEscaped: false, new OperationDocumentHash("a", "custom", HashFormat.Hex));
 
         // assert
-        Assert.False(cache.TryGetHash(document, isEscaped: false, key: 42, out _));
+        Assert.False(cache.TryGetHash(document, isEscaped: false, out _));
     }
 
     [Fact]
@@ -296,62 +296,54 @@ public class Utf8GraphQLRequestParserDocumentHashCacheTests
         var cache = new DocumentHashCache(new MD5DocumentHashProvider(HashFormat.Hex));
         var document = "{ a }"u8;
         var hash = new OperationDocumentHash("a", "custom", HashFormat.Hex);
-        cache.Add(document, isEscaped: false, key: 42, hash);
+        cache.Add(document, isEscaped: false, hash);
 
         // act
-        cache.Add(document, isEscaped: false, key: 42, hash);
+        cache.Add(document, isEscaped: false, hash);
 
         // assert
-        Assert.True(cache.TryGetHash(document, isEscaped: false, key: 42, out var stored));
+        Assert.True(cache.TryGetHash(document, isEscaped: false, out var stored));
         Assert.Equal(hash, stored);
     }
 
     [Fact]
-    public void TryGetHash_Should_ReturnFalse_When_KeyMatchesAndBytesDiffer()
+    public void TryGetHash_Should_ReturnFalse_When_BytesDifferInTheSameBucket()
     {
         // arrange
-        var cache = new DocumentHashCache(new MD5DocumentHashProvider(HashFormat.Hex));
+        var cache = new DocumentHashCache(
+            new MD5DocumentHashProvider(HashFormat.Hex),
+            bucketCount: 1,
+            maxDocumentLength: 64);
         var hash = new OperationDocumentHash("a", "custom", HashFormat.Hex);
-        cache.Add("{ a }"u8, isEscaped: false, key: 42, hash);
-        cache.Add("{ a }"u8, isEscaped: false, key: 42, hash);
+        cache.Add("{ a }"u8, isEscaped: false, hash);
+        cache.Add("{ a }"u8, isEscaped: false, hash);
 
         // act
-        var found = cache.TryGetHash("{ b }"u8, isEscaped: false, key: 42, out _);
+        var found = cache.TryGetHash("{ b }"u8, isEscaped: false, out _);
 
         // assert
         Assert.False(found);
-        Assert.True(cache.TryGetHash("{ a }"u8, isEscaped: false, key: 42, out _));
+        Assert.True(cache.TryGetHash("{ a }"u8, isEscaped: false, out _));
     }
 
     [Fact]
-    public void TryGetHash_Should_ReturnFalse_When_KeyAndBytesMatchAndEscapeModeDiffers()
+    public void TryGetHash_Should_ReturnFalse_When_BytesMatchAndEscapeModeDiffers()
     {
         // arrange
-        var cache = new DocumentHashCache(new MD5DocumentHashProvider(HashFormat.Hex));
+        var cache = new DocumentHashCache(
+            new MD5DocumentHashProvider(HashFormat.Hex),
+            bucketCount: 1,
+            maxDocumentLength: 64);
         var hash = new OperationDocumentHash("a", "custom", HashFormat.Hex);
-        cache.Add("{ a }"u8, isEscaped: true, key: 42, hash);
-        cache.Add("{ a }"u8, isEscaped: true, key: 42, hash);
+        cache.Add("{ a }"u8, isEscaped: true, hash);
+        cache.Add("{ a }"u8, isEscaped: true, hash);
 
         // act
-        var found = cache.TryGetHash("{ a }"u8, isEscaped: false, key: 42, out _);
+        var found = cache.TryGetHash("{ a }"u8, isEscaped: false, out _);
 
         // assert
         Assert.False(found);
-        Assert.True(cache.TryGetHash("{ a }"u8, isEscaped: true, key: 42, out _));
-    }
-
-    [Fact]
-    public void ComputeKey_Should_ReturnDifferentKeys_When_EscapeModeDiffers()
-    {
-        // arrange
-        var document = "{ a }"u8;
-
-        // act
-        var escaped = DocumentHashCache.ComputeKey(document, isEscaped: true);
-        var plain = DocumentHashCache.ComputeKey(document, isEscaped: false);
-
-        // assert
-        Assert.NotEqual(escaped, plain);
+        Assert.True(cache.TryGetHash("{ a }"u8, isEscaped: true, out _));
     }
 
     [Fact]
@@ -368,13 +360,13 @@ public class Utf8GraphQLRequestParserDocumentHashCacheTests
         for (var i = 0; i < documents.Length; i++)
         {
             var hash = new OperationDocumentHash($"hash{i}", "custom", HashFormat.Hex);
-            cache.Add(documents[i], isEscaped: false, key: i + 1, hash);
-            cache.Add(documents[i], isEscaped: false, key: i + 1, hash);
+            cache.Add(documents[i], isEscaped: false, hash);
+            cache.Add(documents[i], isEscaped: false, hash);
         }
 
         // assert
         var stored = documents
-            .Select((document, i) => cache.TryGetHash(document, isEscaped: false, key: i + 1, out _))
+            .Select(document => cache.TryGetHash(document, isEscaped: false, out _))
             .ToArray();
         Assert.Equal(new[] { true, false, false, true, true, true }, stored);
     }

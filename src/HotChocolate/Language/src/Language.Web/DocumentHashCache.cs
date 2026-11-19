@@ -73,34 +73,17 @@ internal sealed class DocumentHashCache
             : null;
 
     /// <summary>
-    /// Computes the lookup key of a JSON-encoded document string that is unescaped before it is hashed
-    /// when <paramref name="isEscaped"/> is <c>true</c>.
-    /// </summary>
-    public static int ComputeKey(ReadOnlySpan<byte> rawDocument, bool isEscaped)
-    {
-#if NET8_0_OR_GREATER
-        var hashCode = new HashCode();
-        hashCode.AddBytes(rawDocument);
-        hashCode.Add(isEscaped);
-        return hashCode.ToHashCode();
-#else
-        var hash = isEscaped ? 2166136261u : 2166136260u;
-
-        foreach (var value in rawDocument)
-        {
-            hash = unchecked((hash ^ value) * 16777619u);
-        }
-
-        return unchecked((int)hash);
-#endif
-    }
-
-    /// <summary>
     /// Tries to get the hash of the document string that is byte for byte equal to
     /// <paramref name="rawDocument"/> and was hashed with the same <paramref name="isEscaped"/> mode.
     /// </summary>
-    public bool TryGetHash(ReadOnlySpan<byte> rawDocument, bool isEscaped, int key, out OperationDocumentHash hash)
+    /// <param name="rawDocument">The JSON-encoded document string without its quotes.</param>
+    /// <param name="isEscaped">
+    /// <c>true</c> when the document string is unescaped before it is hashed.
+    /// </param>
+    /// <param name="hash">The hash of the document.</param>
+    public bool TryGetHash(ReadOnlySpan<byte> rawDocument, bool isEscaped, out OperationDocumentHash hash)
     {
+        var key = ComputeKey(rawDocument, isEscaped);
         var start = (key & _bucketMask) * BucketSize;
 
         for (var i = start; i < start + BucketSize; i++)
@@ -120,15 +103,22 @@ internal sealed class DocumentHashCache
 
     /// <summary>
     /// Records a miss for <paramref name="rawDocument"/> and stores its hash when the miss recorded
-    /// before it in the same bucket had the same key. A full bucket replaces its entries in turn.
+    /// before it in the same bucket was for the same document. A full bucket replaces its entries
+    /// in turn.
     /// </summary>
-    public void Add(ReadOnlySpan<byte> rawDocument, bool isEscaped, int key, OperationDocumentHash hash)
+    /// <param name="rawDocument">The JSON-encoded document string without its quotes.</param>
+    /// <param name="isEscaped">
+    /// <c>true</c> when the document string is unescaped before it is hashed.
+    /// </param>
+    /// <param name="hash">The hash of the document.</param>
+    public void Add(ReadOnlySpan<byte> rawDocument, bool isEscaped, OperationDocumentHash hash)
     {
         if (rawDocument.Length > MaxDocumentLength)
         {
             return;
         }
 
+        var key = ComputeKey(rawDocument, isEscaped);
         var bucket = key & _bucketMask;
 
         // Best effort: a document that takes turns with other documents of a full bucket
@@ -166,6 +156,25 @@ internal sealed class DocumentHashCache
         }
 
         Volatile.Write(ref _entries[free], new Entry(key, isEscaped, rawDocument.ToArray(), hash));
+    }
+
+    private static int ComputeKey(ReadOnlySpan<byte> rawDocument, bool isEscaped)
+    {
+#if NET8_0_OR_GREATER
+        var hashCode = new HashCode();
+        hashCode.AddBytes(rawDocument);
+        hashCode.Add(isEscaped);
+        return hashCode.ToHashCode();
+#else
+        var hash = isEscaped ? 2166136261u : 2166136260u;
+
+        foreach (var value in rawDocument)
+        {
+            hash = unchecked((hash ^ value) * 16777619u);
+        }
+
+        return unchecked((int)hash);
+#endif
     }
 
     private sealed class Entry(int key, bool isEscaped, byte[] rawDocument, OperationDocumentHash hash)

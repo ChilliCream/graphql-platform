@@ -454,7 +454,6 @@ public ref struct Utf8GraphQLRequestParser
         try
         {
             var rawDocumentBody = documentBody;
-            var rawDocumentKey = 0;
             var rememberHash = false;
             OperationDocumentHash knownHash = default;
 
@@ -464,8 +463,7 @@ public ref struct Utf8GraphQLRequestParser
                 && rawDocumentBody.Length > 0
                 && rawDocumentBody.Length <= hashCache.MaxDocumentLength)
             {
-                rawDocumentKey = DocumentHashCache.ComputeKey(rawDocumentBody, isEscaped);
-                rememberHash = !hashCache.TryGetHash(rawDocumentBody, isEscaped, rawDocumentKey, out knownHash);
+                rememberHash = !hashCache.TryGetHash(rawDocumentBody, isEscaped, out knownHash);
             }
 
             var isHashKnown = !knownHash.IsEmpty;
@@ -495,7 +493,7 @@ public ref struct Utf8GraphQLRequestParser
 
                         if (rememberHash)
                         {
-                            _hashCache!.Add(rawDocumentBody, isEscaped, rawDocumentKey, hash);
+                            _hashCache!.Add(rawDocumentBody, isEscaped, hash);
                         }
                     }
                     else
