@@ -1,0 +1,93 @@
+title: Execute_Should_ReportEachItemPath_When_RequiredListContainsMultipleNulls
+request:
+  document: |
+    {
+      product {
+        scores: ratings
+      }
+      productCount
+    }
+response:
+  body: |
+    {
+      "data": {
+        "product": null,
+        "productCount": null
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+        productCount: Int!
+      }
+
+      type Product {
+        ratings: [Int!]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_e2909838_1 {
+              product {
+                scores: ratings
+              }
+              productCount
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "scores": [
+                      null,
+                      5,
+                      null
+                    ]
+                  },
+                  "productCount": 1
+                }
+              }
+operationPlan:
+  id: d50b6899fce8e2dd0e21e91510d81ca019b2f5d974107ddbe3fd4fe787406f41
+  operation:
+    - document: |
+        {
+          product {
+            scores: ratings
+          }
+          productCount
+        }
+      kind: Query
+      id: 72fef84727ac3eb9c2f6b009155e9e98
+      hash: e2909838a8b14e35a66869f9030757ed
+      shortHash: e2909838
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_e2909838_1
+        kind: Query
+        document: |
+          query Op_e2909838_1 {
+            product {
+              scores: ratings
+            }
+            productCount
+          }
+        hash: 55ab31f2a0a49fa032252dc976d3143164b7515a46553a8d93086b4abffe9886
+        shortHash: 55ab31f2
+        xxHash: 17655854696940701352
+      resultSelectionSet: >-
+        { product productCount }
