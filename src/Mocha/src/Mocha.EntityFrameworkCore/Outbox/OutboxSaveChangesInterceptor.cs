@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Intercepts Entity Framework Core save changes events to signal the outbox processor
-/// that messages are ready for dispatch.
+/// of the application that created the context.
 /// </summary>
-internal sealed class OutboxSaveChangesInterceptor(IOutboxSignal signal) : SaveChangesInterceptor
+internal sealed class OutboxSaveChangesInterceptor : SaveChangesInterceptor
 {
     /// <inheritdoc />
     public override ValueTask<int> SavedChangesAsync(
@@ -26,9 +27,10 @@ internal sealed class OutboxSaveChangesInterceptor(IOutboxSignal signal) : SaveC
             return result;
         }
 
-        if (context.Database.CurrentTransaction is null)
+        if (context.Database.CurrentTransaction is null
+            && context.GetApplicationServiceProvider() is { } services)
         {
-            signal.SetAfterAmbientTransaction();
+            services.GetRequiredService<IOutboxSignal>().SetAfterAmbientTransaction();
         }
 
         return result;

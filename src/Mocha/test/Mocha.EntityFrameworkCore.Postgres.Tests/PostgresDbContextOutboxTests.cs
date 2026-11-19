@@ -862,6 +862,38 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
     }
 
+    [Fact]
+    public async Task OutboxPublishAsync_Should_Throw_When_BusComesFromProviderWithoutOutbox()
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
+        await EnsureCreatedAsync(provider);
+        var otherServices = new ServiceCollection();
+        otherServices.AddLogging();
+        otherServices.AddMessageBus().AddInMemory();
+        await using var other = otherServices.BuildServiceProvider();
+        var otherRuntime = (MessagingRuntime)other.GetRequiredService<IMessagingRuntime>();
+        await otherRuntime.StartAsync(TestToken);
+        var endpoint = otherRuntime.GetPublishEndpoint(otherRuntime.GetMessageType(typeof(OrderPlaced)));
+        await using var scope = provider.CreateAsyncScope();
+        await using var otherScope = other.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        var otherBus = otherScope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await db.Outbox(otherBus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
+
+        // assert
+        Assert.Equal(
+            "The message was not sent. It was dispatched through dbContext.Outbox(bus), but the dispatch "
+            + $"pipeline of endpoint '{endpoint.Name}' has no outbox middleware to store it. Use the message bus "
+            + "from the service provider that registers the outbox.",
+            exception.Message);
+        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
+    }
+
     private async Task<string> CreateDatabaseAsync()
     {
         var connectionString = await fixture.CreateDatabaseAsync();

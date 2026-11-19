@@ -9,19 +9,9 @@ namespace Mocha.EntityFrameworkCore;
 /// saga support) into the DbContext internal service provider during context construction.
 /// </summary>
 /// <param name="options">The messaging options containing service configuration delegates to apply.</param>
-/// <param name="applicationServices">The application services the DbContext options were configured from.</param>
-internal class MessagingDbContextOptionsExtension(
-    MessagingDbContextOptions options,
-    IServiceProvider applicationServices) : IDbContextOptionsExtension
+internal class MessagingDbContextOptionsExtension(MessagingDbContextOptions options) : IDbContextOptionsExtension
 {
     private readonly Action<IServiceCollection>[] _configureServices = [.. options.ConfigureServices];
-
-    /// <summary>
-    /// Gets the application services of the DbContext. They are read per context through
-    /// <see cref="MessagingApplicationServices"/> and are not part of the internal service provider cache key,
-    /// so applications in the same process share one internal service provider.
-    /// </summary>
-    public IServiceProvider ApplicationServices { get; } = applicationServices;
 
     /// <summary>
     /// Gets the extension metadata used by EF Core for service provider caching and debug output.
@@ -35,8 +25,6 @@ internal class MessagingDbContextOptionsExtension(
     /// <param name="services">The DbContext internal service collection to populate.</param>
     public void ApplyServices(IServiceCollection services)
     {
-        services.AddScoped<MessagingApplicationServices>();
-
         foreach (var configureService in _configureServices)
         {
             configureService(services);

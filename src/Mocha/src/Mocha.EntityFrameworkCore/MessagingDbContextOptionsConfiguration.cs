@@ -25,6 +25,6 @@ internal class MessagingDbContextOptionsConfiguration<TContext>(IOptionsMonitor<
             throw new InvalidOperationException($"No options found for context {name}");
         }
 
-        optionsBuilder.AddMessagingExtensions(options, serviceProvider);
+        optionsBuilder.AddMessagingExtensions(options);
     }
 }

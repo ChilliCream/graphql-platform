@@ -1,16 +1,12 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Mocha.Scheduling;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Intercepts Entity Framework Core save changes events to signal the scheduler
-/// that messages are ready for dispatch.
+/// of the application that created the context.
 /// </summary>
-internal sealed class SchedulingSaveChangesInterceptor(
-    ISchedulerSignal signal,
-    TimeProvider timeProvider)
-    : SaveChangesInterceptor
+internal sealed class SchedulingSaveChangesInterceptor : SaveChangesInterceptor
 {
     /// <inheritdoc />
     public override ValueTask<int> SavedChangesAsync(
@@ -29,9 +25,10 @@ internal sealed class SchedulingSaveChangesInterceptor(
             return result;
         }
 
-        if (context.Database.CurrentTransaction is null)
+        if (context.Database.CurrentTransaction is null
+            && context.GetApplicationServiceProvider() is { } services)
         {
-            signal.Notify(timeProvider.GetUtcNow());
+            services.NotifyScheduler();
         }
 
         return result;

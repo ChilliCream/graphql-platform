@@ -1,13 +1,9 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using Mocha.EntityFrameworkCore;
 using Mocha.Scheduling;
-
-#pragma warning disable EF1001 // LoggingOptions is an internal EF Core API, used here only to construct event data for tests.
 
 namespace Mocha.Tests.Scheduling;
 
@@ -15,6 +11,9 @@ public sealed class SchedulingInterceptorTests : IDisposable
 {
     private static readonly DateTimeOffset s_baseTime =
         new(2026, 6, 1, 12, 0, 0, TimeSpan.Zero);
+
+    private static readonly SchedulingDbTransactionInterceptor s_transactionInterceptor = new();
+    private static readonly SchedulingSaveChangesInterceptor s_saveChangesInterceptor = new();
 
     private readonly SqliteConnection _connection;
 
@@ -28,12 +27,14 @@ public sealed class SchedulingInterceptorTests : IDisposable
     public void TransactionCommitted_Should_NotifySignalWithExactTime_When_Called()
     {
         // arrange
-        var timeProvider = new FakeTimeProvider(s_baseTime);
         var signal = new RecordingSchedulerSignal();
-        var interceptor = new SchedulingDbTransactionInterceptor(signal, timeProvider);
+        using var services = CreateServices(signal);
+        using var scope = services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        using var transaction = dbContext.Database.BeginTransaction();
 
         // act
-        interceptor.TransactionCommitted(null!, null!);
+        transaction.Commit();
 
         // assert
         var notification = Assert.Single(signal.Notifications);
@@ -44,12 +45,15 @@ public sealed class SchedulingInterceptorTests : IDisposable
     public async Task TransactionCommittedAsync_Should_NotifySignalWithExactTime_When_Called()
     {
         // arrange
-        var timeProvider = new FakeTimeProvider(s_baseTime);
         var signal = new RecordingSchedulerSignal();
-        var interceptor = new SchedulingDbTransactionInterceptor(signal, timeProvider);
+        await using var services = CreateServices(signal);
+        await using var scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
+            TestContext.Current.CancellationToken);
 
         // act
-        await interceptor.TransactionCommittedAsync(null!, null!, TestContext.Current.CancellationToken);
+        await transaction.CommitAsync(TestContext.Current.CancellationToken);
 
         // assert
         var notification = Assert.Single(signal.Notifications);
@@ -57,18 +61,16 @@ public sealed class SchedulingInterceptorTests : IDisposable
     }
 
     [Fact]
-    public async Task SavedChanges_Should_NotifySignal_When_NoAmbientTransaction()
+    public void SavedChanges_Should_NotifySignal_When_NoAmbientTransaction()
     {
         // arrange
-        var timeProvider = new FakeTimeProvider(s_baseTime);
         var signal = new RecordingSchedulerSignal();
-        var interceptor = new SchedulingSaveChangesInterceptor(signal, timeProvider);
+        using var services = CreateServices(signal);
+        using var scope = services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
 
-        await using var dbContext = CreateDbContext();
-        var eventData = CreateSaveChangesEventData(dbContext);
-
-        // act  no transaction is open on the context
-        interceptor.SavedChanges(eventData, 1);
+        // act
+        dbContext.SaveChanges();
 
         // assert
         var notification = Assert.Single(signal.Notifications);
@@ -79,40 +81,17 @@ public sealed class SchedulingInterceptorTests : IDisposable
     public async Task SavedChanges_Should_NotNotifySignal_When_AmbientTransactionExists()
     {
         // arrange
-        var timeProvider = new FakeTimeProvider(s_baseTime);
         var signal = new RecordingSchedulerSignal();
-        var interceptor = new SchedulingSaveChangesInterceptor(signal, timeProvider);
-
-        await using var dbContext = CreateDbContext();
-        dbContext.Database.EnsureCreated();
-
-        // Begin a transaction so CurrentTransaction is non-null
+        await using var services = CreateServices(signal);
+        await using var scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
         await using var transaction = await dbContext.Database.BeginTransactionAsync(
             TestContext.Current.CancellationToken);
-        var eventData = CreateSaveChangesEventData(dbContext);
 
         // act
-        interceptor.SavedChanges(eventData, 1);
+        await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        // assert  signal should NOT have been notified
-        Assert.Empty(signal.Notifications);
-    }
-
-    [Fact]
-    public void SavedChanges_Should_ReturnResult_When_ContextIsNull()
-    {
-        // arrange
-        var timeProvider = new FakeTimeProvider(s_baseTime);
-        var signal = new RecordingSchedulerSignal();
-        var interceptor = new SchedulingSaveChangesInterceptor(signal, timeProvider);
-
-        var eventData = CreateSaveChangesEventData(context: null);
-
-        // act
-        var result = interceptor.SavedChanges(eventData, 42);
-
-        // assert  result passes through, no notification
-        Assert.Equal(42, result);
+        // assert
         Assert.Empty(signal.Notifications);
     }
 
@@ -120,45 +99,29 @@ public sealed class SchedulingInterceptorTests : IDisposable
     public async Task SavedChangesAsync_Should_NotifySignal_When_NoAmbientTransaction()
     {
         // arrange
-        var timeProvider = new FakeTimeProvider(s_baseTime);
         var signal = new RecordingSchedulerSignal();
-        var interceptor = new SchedulingSaveChangesInterceptor(signal, timeProvider);
-
-        await using var dbContext = CreateDbContext();
-        var eventData = CreateSaveChangesEventData(dbContext);
+        await using var services = CreateServices(signal);
+        await using var scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TestDbContext>();
 
         // act
-        var result = await interceptor.SavedChangesAsync(eventData, 1, TestContext.Current.CancellationToken);
+        await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, result);
         var notification = Assert.Single(signal.Notifications);
         Assert.Equal(s_baseTime, notification);
     }
 
-    private TestDbContext CreateDbContext()
+    private ServiceProvider CreateServices(RecordingSchedulerSignal signal)
     {
-        var options = new DbContextOptionsBuilder<TestDbContext>()
+        var services = new ServiceCollection();
+        services.AddSingleton<ISchedulerSignal>(signal);
+        services.AddSingleton<TimeProvider>(new FakeTimeProvider(s_baseTime));
+        services.AddDbContext<TestDbContext>(options => options
             .UseSqlite(_connection)
-            .Options;
+            .AddInterceptors(s_transactionInterceptor, s_saveChangesInterceptor));
 
-        return new TestDbContext(options);
-    }
-
-    private static SaveChangesCompletedEventData CreateSaveChangesEventData(DbContext? context)
-    {
-        var loggingOptions = new LoggingOptions();
-        var eventDefinition = new StubEventDefinition(
-            loggingOptions,
-            new EventId(1, "TestSaveChanges"),
-            LogLevel.Information,
-            "TestSaveChanges");
-
-        return new SaveChangesCompletedEventData(
-            eventDefinition,
-            static (_, _) => "test",
-            context!,
-            entitiesSavedCount: 0);
+        return services.BuildServiceProvider();
     }
 
     public void Dispose()
@@ -178,13 +141,6 @@ public sealed class SchedulingInterceptorTests : IDisposable
         public Task WaitUntilAsync(DateTimeOffset wakeTime, CancellationToken cancellationToken)
             => Task.CompletedTask;
     }
-
-    private sealed class StubEventDefinition(
-        ILoggingOptions loggingOptions,
-        EventId eventId,
-        LogLevel level,
-        string eventIdCode)
-        : EventDefinitionBase(loggingOptions, eventId, level, eventIdCode);
 
     private sealed class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options);
 }

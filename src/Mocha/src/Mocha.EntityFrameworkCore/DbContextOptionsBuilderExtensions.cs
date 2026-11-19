@@ -11,15 +11,13 @@ internal static class DbContextOptionsBuilderExtensions
     /// </summary>
     /// <param name="optionsBuilder">The DbContext options builder to extend.</param>
     /// <param name="options">The messaging options carrying service configuration delegates.</param>
-    /// <param name="applicationServices">The application services the options are configured from.</param>
     /// <returns>The same <paramref name="optionsBuilder"/> instance for chaining.</returns>
     public static DbContextOptionsBuilder AddMessagingExtensions(
         this DbContextOptionsBuilder optionsBuilder,
-        MessagingDbContextOptions options,
-        IServiceProvider applicationServices)
+        MessagingDbContextOptions options)
     {
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(
-            new MessagingDbContextOptionsExtension(options, applicationServices));
+            new MessagingDbContextOptionsExtension(options));
 
         return optionsBuilder;
     }

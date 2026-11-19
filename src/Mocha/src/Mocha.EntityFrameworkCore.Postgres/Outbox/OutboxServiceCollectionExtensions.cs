@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
@@ -105,16 +104,9 @@ public static class OutboxServiceCollectionExtensions
 
         builder.ConfigureEntityFrameworkServices(static services =>
         {
-            services.AddScoped(static sp =>
-            {
-                var applicationServices = sp.GetRequiredService<MessagingApplicationServices>().Services;
-                return new PostgresDbContextOutbox(
-                    applicationServices.GetTimeProvider(),
-                    sp.GetRequiredService<ICurrentDbContext>());
-            });
-            services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
-            services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
-            services.AddScoped<IMessageOutbox>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddScoped(static sp => new PostgresDbContextOutbox(sp.GetRequiredService<ICurrentDbContext>()));
+            services.AddScoped<IResettableService>(static sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddScoped<IMessageOutbox>(static sp => sp.GetRequiredService<PostgresDbContextOutbox>());
         });
 
         return builder;
