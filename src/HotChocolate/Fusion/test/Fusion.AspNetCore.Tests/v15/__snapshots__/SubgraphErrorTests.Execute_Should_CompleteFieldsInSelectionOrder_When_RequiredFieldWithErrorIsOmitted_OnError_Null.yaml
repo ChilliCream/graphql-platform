@@ -35,6 +35,13 @@ response:
             "row",
             "before"
           ]
+        },
+        {
+          "message": "Missing field.",
+          "path": [
+            "row",
+            "cause"
+          ]
         }
       ]
     }

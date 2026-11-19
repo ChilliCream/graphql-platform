@@ -110,6 +110,19 @@ internal sealed class ValueCompletion
             objectContext = target.GetObjectContext();
         }
 
+        if (errorTrie is { Count: > 0 }
+            && objectContext.SelectionSet is { } fields
+            && HasOmittedFieldError(sourceSnapshot, errorTrie))
+        {
+            if (!TryCompleteSparseObject(sourceSnapshot, target, errorTrie, fields, resultSelectionSet, depth: 0)
+                && PropagateNullValues(target))
+            {
+                return false;
+            }
+
+            return ApplyPocketedErrors(target);
+        }
+
         if (resultSelectionSet.HasSourceResponseNameMappings)
         {
             foreach (var property in source.EnumerateObject())
@@ -1592,6 +1605,14 @@ TryCompleteList_MoveNext:
             target.InitializeObjectValue(objectSelectionSet, out objectContext);
         }
 
+        if (errorTrie is { Count: > 0 }
+            && objectContext.SelectionSet is { } fields
+            && HasOmittedFieldError(source, errorTrie))
+        {
+            return TryCompleteSparseObject(source, target, errorTrie, fields, resultSelectionSet, depth)
+                || TryCompleteNullContainer(target);
+        }
+
         if (resultSelectionSet is { HasSourceResponseNameMappings: true })
         {
             return TryCompleteMappedObjectProperties(
@@ -1691,6 +1712,68 @@ TryCompleteList_MoveNext:
                     childSet))
             {
                 return TryCompleteNullContainer(target);
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HasOmittedFieldError(SourceResultElementSnapshot source, ErrorTrie errors)
+    {
+        foreach (var (segment, fieldErrors) in errors)
+        {
+            if (segment is string name && fieldErrors.Error is not null && !source.TryGetProperty(name, out _))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Completes present and failed omitted fields in selection order, up to the first propagating error.
+    /// </summary>
+    private bool TryCompleteSparseObject(
+        SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        ErrorTrie errors,
+        SelectionSet fields,
+        ResultSelectionSet? resultSelectionSet,
+        int depth)
+    {
+        foreach (var selection in fields.Selections)
+        {
+            if (!_store.IsSelectionActive(selection))
+            {
+                continue;
+            }
+
+            var responseName = selection.ResponseName;
+            var sourceName = resultSelectionSet is { HasSourceResponseNameMappings: true }
+                && resultSelectionSet.TryMapResponseName(responseName, out var mapping)
+                    ? mapping.SourceResponseName
+                    : responseName;
+            var present = source.TryGetProperty(sourceName, out var value);
+            errors.TryGetValue(sourceName, out var fieldErrors);
+
+            if (!present && (fieldErrors?.Error is null || selection.IsInternal))
+            {
+                continue;
+            }
+
+            var field = target.GetPropertyBySelectionId(selection.Id);
+            var childSet = resultSelectionSet?.TryGetChild(responseName, fields.Type);
+
+            if (!TryCompleteValue(
+                    present ? value.CreateSnapshot() : default,
+                    field,
+                    fieldErrors,
+                    selection,
+                    depth,
+                    childSet))
+            {
+                return false;
             }
         }
 

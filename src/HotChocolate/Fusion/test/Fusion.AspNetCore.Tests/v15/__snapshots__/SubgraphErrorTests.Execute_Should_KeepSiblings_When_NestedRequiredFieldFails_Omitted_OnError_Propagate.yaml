@@ -15,13 +15,21 @@ response:
     {
       "data": {
         "page": {
-          "panel": {
-            "n": null
-          },
+          "panel": null,
           "keep": "K"
         },
         "tail": "T"
-      }
+      },
+      "errors": [
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "page",
+            "panel",
+            "n"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

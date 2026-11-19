@@ -618,6 +618,10 @@ AddErrors_Next:
         return true;
     }
 
+    internal bool IsSelectionActive(Selection selection)
+        => selection.IsIncluded(_includeFlags, _wideIncludeFlags)
+            && !selection.IsDeferred(_deferFlags, _wideDeferFlags);
+
     internal void PocketError(Path path, IError error)
     {
         _pocketedErrors ??= [];

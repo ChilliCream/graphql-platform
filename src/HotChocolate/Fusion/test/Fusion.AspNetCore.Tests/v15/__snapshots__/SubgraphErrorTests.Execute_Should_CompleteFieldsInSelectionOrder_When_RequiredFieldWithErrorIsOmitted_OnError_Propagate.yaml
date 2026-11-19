@@ -13,26 +13,22 @@ response:
   body: |
     {
       "data": {
-        "row": {
-          "before": null,
-          "cause": null,
-          "after": null
-        },
+        "row": null,
         "tail": 7
       },
       "errors": [
-        {
-          "message": "Later field.",
-          "path": [
-            "row",
-            "after"
-          ]
-        },
         {
           "message": "Earlier field.",
           "path": [
             "row",
             "before"
+          ]
+        },
+        {
+          "message": "Missing field.",
+          "path": [
+            "row",
+            "cause"
           ]
         }
       ]

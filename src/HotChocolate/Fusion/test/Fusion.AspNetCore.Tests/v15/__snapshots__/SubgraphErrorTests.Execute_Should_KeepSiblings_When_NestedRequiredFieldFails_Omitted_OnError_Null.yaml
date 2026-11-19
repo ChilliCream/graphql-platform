@@ -22,7 +22,17 @@ response:
           "keep": "K"
         },
         "tail": "T"
-      }
+      },
+      "errors": [
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "page",
+            "panel",
+            "n"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

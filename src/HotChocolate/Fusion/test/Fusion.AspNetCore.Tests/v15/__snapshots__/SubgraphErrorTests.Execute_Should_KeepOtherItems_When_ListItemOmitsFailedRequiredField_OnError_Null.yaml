@@ -22,7 +22,25 @@ response:
             "note": null
           }
         ]
-      }
+      },
+      "errors": [
+        {
+          "message": "First name unavailable.",
+          "path": [
+            "rows",
+            0,
+            "name"
+          ]
+        },
+        {
+          "message": "Second note unavailable.",
+          "path": [
+            "rows",
+            1,
+            "note"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog
