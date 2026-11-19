@@ -1,0 +1,164 @@
+title: Execute_Should_KeepSibling_When_SubgraphReturnsAnAlreadyNulledList
+request:
+  document: |
+    {
+      rows {
+        name
+        price
+      }
+      total
+    }
+response:
+  body: |
+    {
+      "data": {
+        "rows": null,
+        "total": null
+      },
+      "errors": [
+        {
+          "message": "Cannot merge shared list results with different lengths.",
+          "path": [
+            "rows"
+          ]
+        },
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "rows",
+            0,
+            "name"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        rows: [Row!] @shareable
+      }
+
+      type Row @shareable {
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d0e74e17_2 {
+              rows {
+                name
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "rows": [
+                    {
+                      "name": null
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        rows: [Row!] @shareable
+        total: Int
+      }
+
+      type Row @shareable {
+        price: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d0e74e17_1 {
+              rows {
+                price
+              }
+              total
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "rows": [
+                    {
+                      "price": 3
+                    }
+                  ],
+                  "total": 4
+                }
+              }
+operationPlan:
+  id: 27715ebd1235cf5505b97ee8f2adddba7427f6ef8c1c1b6b2ae4cab79783935c
+  operation:
+    - document: |
+        {
+          rows {
+            name
+            price
+          }
+          total
+        }
+      kind: Query
+      id: d0e74e177926db61c5cceedd56cb37f3
+      hash: d0e74e177926db61c5cceedd56cb37f3
+      shortHash: d0e74e17
+  searchSpace: 2
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation:
+        name: Op_d0e74e17_1
+        kind: Query
+        document: |
+          query Op_d0e74e17_1 {
+            rows {
+              price
+            }
+            total
+          }
+        hash: b85e2c0e0e8e27a402d08b6f39b6fa2cd1375fe1fcae4bdb825f50582bf80fc0
+        shortHash: b85e2c0e
+        xxHash: 10293929048203248838
+      resultSelectionSet: >-
+        { rows { price } total }
+    - id: 2
+      type: Operation
+      schema: A
+      operation:
+        name: Op_d0e74e17_2
+        kind: Query
+        document: |
+          query Op_d0e74e17_2 {
+            rows {
+              name
+            }
+          }
+        hash: f2e35cb4972d953e3e3cfb8a0845718687054c61dfa3ff229fe5a6c594f13565
+        shortHash: f2e35cb4
+        xxHash: 1021907482264687727
+      resultSelectionSet: >-
+        { rows { name } }
