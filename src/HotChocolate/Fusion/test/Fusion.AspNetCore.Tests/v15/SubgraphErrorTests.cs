@@ -242,8 +242,8 @@ public class SubgraphErrorTests : FusionTestBase
             {
               item: product {
                 id
+                name
                 price
-                description
               }
             }
             """,

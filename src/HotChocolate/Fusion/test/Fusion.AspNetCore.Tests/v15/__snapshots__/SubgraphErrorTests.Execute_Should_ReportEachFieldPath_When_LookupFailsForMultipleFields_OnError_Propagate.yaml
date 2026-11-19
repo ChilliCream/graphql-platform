@@ -4,26 +4,22 @@ request:
     {
       item: product {
         id
+        name
         price
-        description
       }
     }
 response:
   body: |
     {
       "data": {
-        "item": {
-          "id": 1,
-          "price": null,
-          "description": null
-        }
+        "item": null
       },
       "errors": [
         {
           "message": "Product unavailable.",
           "path": [
             "item",
-            "description"
+            "name"
           ]
         },
         {
@@ -53,7 +49,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_285830b1_1 {
+            query Op_5755773f_1 {
               item: product {
                 id
               }
@@ -98,11 +94,11 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_285830b1_2($__fusion_1_id: Int!) {
+            query Op_5755773f_2($__fusion_1_id: Int!) {
               lookups {
                 byId(id: $__fusion_1_id) {
+                  name
                   price
-                  description
                 }
               }
             }
@@ -131,21 +127,21 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: cbe049be9ffa688789bb4721bd9318ff3a631f05f9dd6ec631ec529212e3cab7
+  id: 0cb9e341d84985cd9f0a4615ba2492cfdf89086c6929ac6c538f0c240f6477ce
   operation:
     - document: |
         {
           item: product {
             id
             id @fusion__requirement
+            name
             price
-            description
           }
         }
       kind: Query
-      id: 45797186d4aa5a42e28f137bcb43d162
-      hash: 285830b14f7215308e2a0ccddad82cee
-      shortHash: 285830b1
+      id: a78fa0f70e9d36a3c478792aa33e552f
+      hash: 5755773fbe26af8f2d64392b917ca3f3
+      shortHash: 5755773f
   searchSpace: 1
   expandedNodes: 2
   nodes:
@@ -153,40 +149,40 @@ operationPlan:
       type: Operation
       schema: catalog
       operation:
-        name: Op_285830b1_1
+        name: Op_5755773f_1
         kind: Query
         document: |
-          query Op_285830b1_1 {
+          query Op_5755773f_1 {
             item: product {
               id
             }
           }
-        hash: 9bbda5c2a4aed0070f32296f3a77cccaa3f943b0f38f8376e3f6090dc1ba2fa8
-        shortHash: 9bbda5c2
-        xxHash: 335399078522962395
+        hash: 9cd6ffa9237d4018255e1fabd8d421407eb408f5ffbd8d205d715ff5df509fb0
+        shortHash: 9cd6ffa9
+        xxHash: 7462454391520912289
       resultSelectionSet: >-
         { item }
     - id: 2
       type: Operation
       schema: details
       operation:
-        name: Op_285830b1_2
+        name: Op_5755773f_2
         kind: Query
         document: |
-          query Op_285830b1_2($__fusion_1_id: Int!) {
+          query Op_5755773f_2($__fusion_1_id: Int!) {
             lookups {
               byId(id: $__fusion_1_id) {
+                name
                 price
-                description
               }
             }
           }
-        hash: dcf3ad5b52a4dfae0af6252f42ce522d353cdb4ec08fe3d72af2e1788beda9de
-        shortHash: dcf3ad5b
-        xxHash: 7190074782762607868
+        hash: 12880d336e16dd48fe33dde9d30fa9e4fd871321518f947646f38f404c4320d2
+        shortHash: 12880d33
+        xxHash: 10097183722040073586
       lookupTypeName: Product
       resultSelectionSet: >-
-        { price description }
+        { name price }
       source: $.lookups.byId
       target: $.item
       requirements:
