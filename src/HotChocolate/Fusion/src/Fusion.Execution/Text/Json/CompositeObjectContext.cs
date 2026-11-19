@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
+using ElementFlags = HotChocolate.Fusion.Text.Json.CompositeResultDocument.ElementFlags;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -59,6 +61,27 @@ internal readonly struct CompositeObjectContext
         }
 
         return TryGetRawObjectProperty(propertyName, out value, out selection);
+    }
+
+    public bool TryGetVisibleProperty(
+        string responseName,
+        out CompositeResultElement value,
+        [NotNullWhen(true)] out Selection? selection)
+    {
+        if (_selectionSet is not null && _selectionSet.TryGetSelection(responseName, out selection))
+        {
+            var cursor = _objectStartCursor + CompositeResultDocument.GetValueRowOffset(_selectionSet, selection);
+            var flags = _document._metaDb.GetFlags(cursor - 1);
+            if ((flags & (ElementFlags.IsInternal | ElementFlags.IsExcluded)) == ElementFlags.None)
+            {
+                value = new CompositeResultElement(_document, cursor);
+                return true;
+            }
+        }
+
+        value = default;
+        selection = null;
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

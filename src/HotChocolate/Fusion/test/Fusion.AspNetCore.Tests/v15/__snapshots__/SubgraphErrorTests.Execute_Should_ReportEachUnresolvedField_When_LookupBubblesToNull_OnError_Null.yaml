@@ -1,0 +1,178 @@
+title: Execute_Should_ReportEachUnresolvedField_When_LookupBubblesToNull
+request:
+  onError: Null
+  document: |
+    {
+      item: product {
+        id
+        price
+        label: name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": {
+          "id": 1,
+          "price": null,
+          "label": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "label"
+          ]
+        },
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "price"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_8940a22f_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_8940a22f_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  price
+                  label: name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Name unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId",
+                      "label"
+                    ]
+                  }
+                ],
+                "data": {
+                  "lookups": {
+                    "byId": null
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            price
+            label: name
+          }
+        }
+      hash: 7aa57575593526dd805d2e2ea28e252a
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation: |
+        query Op_8940a22f_1 {
+          item: product {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: details
+      operation: |
+        query Op_8940a22f_2($__fusion_1_id: Int!) {
+          lookups {
+            byId(id: $__fusion_1_id) {
+              price
+              label: name
+            }
+          }
+        }
+      source: $.lookups.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
