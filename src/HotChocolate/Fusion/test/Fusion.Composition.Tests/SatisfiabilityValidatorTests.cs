@@ -5380,29 +5380,31 @@ public sealed class SatisfiabilityValidatorTests
         Assert.True(result.IsSuccess);
     }
 
-    [Fact]
-    public void Validate_Should_Succeed_When_RequirementIsResolvableWithoutRequiringSchema()
+    [Theory]
+    [InlineData("Viewer", true)]
+    [InlineData("[Viewer]", false)]
+    public void Validate_Should_CheckArgumentCardinality_When_RequirementComesFromSharedRoot(
+        string returnType,
+        bool satisfiable)
     {
         // arrange
-        // A delivers firstName through the shared root path, so B resolves fullName in its first
-        // call and needs no lookup for Viewer.
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(
             [
-                """
+                $$"""
                 # Schema A
                 type Query {
-                    viewers: [Viewer] @shareable
+                    viewer: {{returnType}} @shareable
                 }
 
                 type Viewer {
                     firstName: String!
                 }
                 """,
-                """
+                $$"""
                 # Schema B
                 type Query {
-                    viewers: [Viewer] @shareable
+                    viewer: {{returnType}} @shareable
                 }
 
                 type Viewer {
@@ -5420,7 +5422,10 @@ public sealed class SatisfiabilityValidatorTests
         var result = satisfiabilityValidator.Validate();
 
         // assert
-        Assert.True(result.IsSuccess);
+        Assert.Equal(satisfiable, result.IsSuccess);
+        Assert.Equal(
+            satisfiable ? [] : [LogEntryCodes.UnsatisfiableQueryPath, LogEntryCodes.UnsatisfiableQueryPath],
+            log.Select(entry => entry.Code));
     }
 
     [Fact]

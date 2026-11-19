@@ -76,6 +76,7 @@ internal sealed partial class SatisfiabilityValidator
                 _lookupCache,
                 _facts,
                 _queryViewerField,
+                _apolloFederationSchemaNames,
                 _options.IncludeSatisfiabilityPaths);
     }
 
@@ -940,15 +941,18 @@ internal sealed partial class SatisfiabilityValidator
 
         var scope = path is null
             ? RequirementScope.Unanchored
-            : new RequirementScope(
-                new VisitAnchor(this, work.Key, path.Item),
-                ArrivalPath: null,
-                AllowsReRootedCalls: true,
-                BelowReRootedViewer: null,
-                ResolvesFieldAtParent: null);
+            : CreateVisitScope(work.Key, path.Item);
 
         return ValidateRequirements(requirements, field, schemaName, work.Key.ObjectType, path?.Item, [], scope, budget);
     }
+
+    private RequirementScope CreateVisitScope(VisitKey key, SatisfiabilityPathItem item)
+        => new(
+            new VisitAnchor(this, key, item),
+            ArrivalPath: null,
+            AllowsReRootedCalls: true,
+            BelowReRootedViewer: null,
+            ResolvesFieldAtParent: null);
 
     /// <summary>
     /// Validates that <paramref name="schemaName"/> can resolve <paramref name="field"/> on <paramref name="type"/>,
@@ -1118,7 +1122,9 @@ internal sealed partial class SatisfiabilityValidator
                 parentPathItem,
                 ancestors,
                 scope,
-                budget);
+                budget,
+                cycleDetectionPath: null,
+                unavailableSchemaNames: null);
 
     /// <summary>
     /// Determines whether a new call can enter the holding schema at <paramref name="type"/> held on

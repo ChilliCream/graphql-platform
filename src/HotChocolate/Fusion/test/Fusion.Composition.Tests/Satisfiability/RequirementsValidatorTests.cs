@@ -73,6 +73,7 @@ public sealed class RequirementsValidatorTests
                 lookupCache,
                 new SatisfiabilityFactsBuilder(schema, lookupCache).Build(),
                 queryViewerField: null,
+                apolloFederationSchemaNames: new HashSet<string>(),
                 includeSatisfiabilityPaths: false);
         var selectedValue = new FieldSelectionMapParser("specialField").Parse();
         var selectionSet =
@@ -167,6 +168,7 @@ public sealed class RequirementsValidatorTests
                 lookupCache,
                 new SatisfiabilityFactsBuilder(schema, lookupCache).Build(),
                 queryViewerField: null,
+                apolloFederationSchemaNames: new HashSet<string>(),
                 includeSatisfiabilityPaths: true);
         var selectionSet =
             new ValueSelectionToSelectionSetRewriter(schema).Rewrite(

@@ -32,6 +32,9 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// Whether a new call can enter the holding schema at the object when the path item holding the object
 /// provides a selection set; otherwise <c>false</c>.
 /// </param>
+/// <param name="RequiresItemLookup">
+/// The requiring schemas for which a call above the object would bind one argument to multiple list items.
+/// </param>
 internal sealed record VisitKey(
     MutableObjectTypeDefinition ObjectType,
     string? SchemaName,
@@ -40,4 +43,5 @@ internal sealed record VisitKey(
     ExclusionReaches? Exclusions,
     VisitLeaf? Leaf,
     bool ViewerFallback,
-    bool HolderReentry);
+    bool HolderReentry,
+    SchemaSetRef RequiresItemLookup);

@@ -1,4 +1,4 @@
-title: Execute_Should_ResolveBatchedOperation_When_RequirementAnchorIsBelowList
+title: Execute_Should_ResolveBatchedOperation_When_ListItemsHaveLookup
 request:
   document: |
     {
@@ -22,10 +22,10 @@ response:
             "id": 1,
             "variants": [
               {
-                "shippingEstimate": null
+                "shippingEstimate": 20
               },
               {
-                "shippingEstimate": null
+                "shippingEstimate": 22
               }
             ]
           },
@@ -33,10 +33,10 @@ response:
             "id": 2,
             "variants": [
               {
-                "shippingEstimate": null
+                "shippingEstimate": 40
               },
               {
-                "shippingEstimate": null
+                "shippingEstimate": 42
               }
             ]
           }
@@ -63,6 +63,7 @@ sourceSchemas:
       type Query {
         products: [Product!]!
         reviews: [Review!]!
+        variantById(id: Int!): Variant @lookup @internal
       }
 
       type Product {
@@ -74,7 +75,8 @@ sourceSchemas:
         id: Int! @shareable
       }
 
-      type Variant {
+      type Variant @key(fields: "id") {
+        id: Int! @shareable
         weight: Int!
       }
     interactions:
@@ -85,6 +87,7 @@ sourceSchemas:
               products {
                 id
                 variants {
+                  id
                   weight
                 }
               }
@@ -102,9 +105,11 @@ sourceSchemas:
                       "id": 1,
                       "variants": [
                         {
+                          "id": 110,
                           "weight": 10
                         },
                         {
+                          "id": 111,
                           "weight": 11
                         }
                       ]
@@ -113,9 +118,11 @@ sourceSchemas:
                       "id": 2,
                       "variants": [
                         {
+                          "id": 120,
                           "weight": 20
                         },
                         {
+                          "id": 121,
                           "weight": 21
                         }
                       ]
@@ -139,6 +146,7 @@ sourceSchemas:
 
       type Query {
         productById(id: Int!): Product @lookup @internal
+        variantById(id: Int!): Variant @lookup @internal
         reviewById(id: Int!): Review @lookup @internal
       }
 
@@ -152,30 +160,90 @@ sourceSchemas:
         id: Int! @shareable
       }
 
-      type Variant {
+      type Variant @key(fields: "id") {
         shippingEstimate(weight: Int! @require(field: "weight")): Int!
+        id: Int! @shareable
       }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          document: |
-            query Op_b3de1d94_2($__fusion_1_id: Int!) {
-              reviewById(id: $__fusion_1_id) {
-                text
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_1_id": 7
-              },
-              {
-                "__fusion_1_id": 8
-              }
-            ]
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_b3de1d94_2($__fusion_1_id: Int!) {
+                  reviewById(id: $__fusion_1_id) {
+                    text
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_1_id": 7
+                  },
+                  {
+                    "__fusion_1_id": 8
+                  }
+                ]
+            - document: |
+                query Op_b3de1d94_3($__fusion_2_id: Int!, $__fusion_3_weight: Int!) {
+                  variantById(id: $__fusion_2_id) {
+                    shippingEstimate(weight: $__fusion_3_weight)
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": 110,
+                    "__fusion_3_weight": 10
+                  },
+                  {
+                    "__fusion_2_id": 111,
+                    "__fusion_3_weight": 11
+                  },
+                  {
+                    "__fusion_2_id": 120,
+                    "__fusion_3_weight": 20
+                  },
+                  {
+                    "__fusion_2_id": 121,
+                    "__fusion_3_weight": 21
+                  }
+                ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
+            - |
+              {
+                "data": {
+                  "variantById": {
+                    "shippingEstimate": 40
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "variantById": {
+                    "shippingEstimate": 42
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "variantById": {
+                    "shippingEstimate": 20
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "variantById": {
+                    "shippingEstimate": 22
+                  }
+                }
+              }
             - |
               {
                 "data": {
@@ -193,15 +261,15 @@ sourceSchemas:
                 }
               }
 operationPlan:
-  id: 9f7e3056d47c5d2cd3b557c5f1086b0f50d0da25652ad0e3c65b4e4c7858386f
+  id: ef9cddfd15b5ee046691424378797186fd1bfdf42296465dbfa340ac229b016a
   operation:
     - document: |
         {
           products {
             id
-            id @fusion__requirement
             variants {
               shippingEstimate
+              id @fusion__requirement
               weight @fusion__requirement
             }
           }
@@ -229,6 +297,7 @@ operationPlan:
             products {
               id
               variants {
+                id
                 weight
               }
             }
@@ -236,9 +305,9 @@ operationPlan:
               id
             }
           }
-        hash: e57cde1f3fba4ba29e0ef887b4158c9e464a752ab789a937b9d57feddd8082fe
-        shortHash: e57cde1f
-        xxHash: 3360290498109568757
+        hash: b1a79a11e3bc82777d48f1578cb5c15019521aaabb20f3ffc5e67024208adada
+        shortHash: b1a79a11
+        xxHash: 17408787143917180170
       resultSelectionSet: >-
         { products reviews }
     - id: 2
@@ -278,25 +347,23 @@ operationPlan:
         kind: Query
         document: |
           query Op_b3de1d94_3($__fusion_2_id: Int!, $__fusion_3_weight: Int!) {
-            productById(id: $__fusion_2_id) {
-              variants {
-                shippingEstimate(weight: $__fusion_3_weight)
-              }
+            variantById(id: $__fusion_2_id) {
+              shippingEstimate(weight: $__fusion_3_weight)
             }
           }
-        hash: 11939f02b42715405bd09b336381c7ae3ebb07607a1a5c1db6ecfa0c992e9046
-        shortHash: 11939f02
-        xxHash: 13468043629679487483
-      lookupTypeName: Product
+        hash: 4cbb270017a5b1ad45bee8d5d1f5d672a67ec6fbeb50754ca474148ecfb44942
+        shortHash: 4cbb2700
+        xxHash: 401183000237438616
+      lookupTypeName: Variant
       resultSelectionSet: >-
-        { variants { shippingEstimate } }
-      source: $.productById
-      target: $.products
+        { shippingEstimate }
+      source: $.variantById
+      target: $.products.variants
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           type: Int!
-          path: $.products
+          path: $.products.variants
           selectionMap: >-
             id
         - name: __fusion_3_weight

@@ -21,6 +21,11 @@ internal abstract class PathAnchor
     public abstract bool ReroutesViewerFields { get; }
 
     /// <summary>
+    /// Determines whether a call above the object in the given schema would span multiple list items.
+    /// </summary>
+    public abstract bool RequiresItemLookup(string schemaName, ImmutableHashSet<string> unavailableSchemaNames);
+
+    /// <summary>
     /// Determines whether <paramref name="schemaName"/> can hold the object at its position without
     /// data from <paramref name="unavailableSchemaNames"/>.
     /// </summary>
@@ -65,6 +70,9 @@ internal abstract class PathAnchor
         public override SatisfiabilityPathItem Item => anchor.Item;
 
         public override bool ReroutesViewerFields => false;
+
+        public override bool RequiresItemLookup(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
+            => anchor.RequiresItemLookup(schemaName, unavailableSchemaNames);
 
         public override bool CanHold(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
             => anchor.CanHold(schemaName, unavailableSchemaNames)

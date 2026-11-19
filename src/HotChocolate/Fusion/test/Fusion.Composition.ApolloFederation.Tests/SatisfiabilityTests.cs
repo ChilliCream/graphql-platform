@@ -8,6 +8,86 @@ namespace HotChocolate.Fusion.ApolloFederation;
 public sealed class SatisfiabilityTests
 {
     [Theory]
+    [InlineData("Variant", false)]
+    [InlineData("[Variant!]!", false)]
+    [InlineData("[Variant!]!", true)]
+    public void Compose_Should_CheckVariantKey_When_SharedFieldReturnsRequiringType(
+        string variantsType,
+        bool hasVariantKey)
+    {
+        // arrange
+        var variantKey = hasVariantKey ? """@key(fields: "id")""" : "";
+        var catalog =
+            $$"""
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+            type Query { products: [Product!]! }
+            type Product @key(fields: "id") {
+                id: ID!
+                variants: {{variantsType}} @shareable
+            }
+            type Variant {{variantKey}} {
+                id: ID! @shareable
+                weight: Int!
+            }
+            """;
+        var shipping =
+            $$"""
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable", "@external", "@requires"])
+            type Product @key(fields: "id") {
+                id: ID!
+                variants: {{variantsType}} @shareable
+            }
+            type Variant {{variantKey}} {
+                id: ID! @shareable
+                weight: Int! @external
+                shippingEstimate: Int! @requires(fields: "weight")
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(new SourceSchemaText("A", catalog), new SourceSchemaText("B", shipping));
+
+        // assert
+        Assert.Equal(hasVariantKey, result.IsSuccess);
+        Assert.Equal(
+            hasVariantKey ? [] : [LogEntryCodes.UnsatisfiableQueryPath, LogEntryCodes.UnsatisfiableQueryPath],
+            log.Select(entry => entry.Code));
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_ProductRequiresWeightsOfKeylessListItems()
+    {
+        // arrange
+        const string catalog =
+            """
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+            type Query { products: [Product!]! }
+            type Product @key(fields: "id") {
+                id: ID!
+                variants: [Variant!]!
+            }
+            type Variant { weight: Int! }
+            """;
+        const string shipping =
+            """
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+            type Product @key(fields: "id") {
+                id: ID!
+                variants: [Variant!]! @external
+                shippingEstimate: Int! @requires(fields: "variants { weight }")
+            }
+            type Variant { weight: Int! @external }
+            """;
+
+        // act
+        var (result, log) = Compose(new SourceSchemaText("A", catalog), new SourceSchemaText("B", shipping));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public void Compose_Should_Fail_When_ValueTypeFieldIsUnreachableThroughUnsharedRootField(
@@ -832,9 +912,14 @@ public sealed class SatisfiabilityTests
         log.Select(e => e.Message).MatchInlineSnapshots(
         [
             """
-            Unable to access the field 'Entity.name' on path 'A:Query.entity<Entity> -> B:Entity.entity<Entity>'.
-              Unable to transition between schemas 'B' and 'A' for access to field 'A:Entity.name<String>'.
-                No lookups found for type 'Entity' in schema 'A'.
+            Unable to access the field 'Entity.name' on path 'A:Query.entity<Entity>'.
+              Unable to satisfy the requirement '{ entity { age } }' on field 'A:Entity.name<String>'.
+                The field 'Entity.name' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'Entity' that could resolve the field once the required data has been fetched.
+            """,
+            """
+            Unable to access the field 'Entity.name' on path 'B:Query.entity<Entity>'.
+              Unable to satisfy the requirement '{ entity { age } }' on field 'A:Entity.name<String>'.
+                The field 'Entity.name' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'Entity' that could resolve the field once the required data has been fetched.
             """
         ]);
     }

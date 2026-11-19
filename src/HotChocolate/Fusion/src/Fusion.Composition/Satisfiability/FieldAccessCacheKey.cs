@@ -1,34 +1,26 @@
+using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Collections;
+using HotChocolate.Language;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
-internal sealed class FieldAccessCacheKey(
-    MutableOutputFieldDefinition field,
+internal readonly struct FieldAccessCacheKey(
+    FieldNode selection,
     MutableObjectTypeDefinition type,
-    string? schemaName,
-    string? excludedSchemaName,
-    bool isAccessPathItem)
+    SatisfiabilityPathItem? parent) : IEquatable<FieldAccessCacheKey>
 {
-    private readonly MutableOutputFieldDefinition _field = field;
+    private readonly FieldNode _selection = selection;
     private readonly MutableObjectTypeDefinition _type = type;
-    private readonly string? _schemaName = schemaName;
-    private readonly string? _excludedSchemaName = excludedSchemaName;
-    private readonly bool _isAccessPathItem = isAccessPathItem;
-    private readonly int _hashCode = HashCode.Combine(field, type, schemaName, excludedSchemaName, isAccessPathItem);
+    private readonly SatisfiabilityPathItem? _parent = parent;
 
-    public override int GetHashCode() => _hashCode;
+    public bool Equals(FieldAccessCacheKey other)
+        => ReferenceEquals(_selection, other._selection)
+            && ReferenceEquals(_type, other._type)
+            && ReferenceEquals(_parent, other._parent);
 
-    public override bool Equals(object? obj)
-    {
-        if (obj is not FieldAccessCacheKey other)
-        {
-            return false;
-        }
+    public override bool Equals(object? obj) => obj is FieldAccessCacheKey other && Equals(other);
 
-        return _field == other._field
-            && _type == other._type
-            && _schemaName == other._schemaName
-            && _excludedSchemaName == other._excludedSchemaName
-            && _isAccessPathItem == other._isAccessPathItem;
-    }
+    public override int GetHashCode()
+        => HashCode.Combine(RuntimeHelpers.GetHashCode(_selection), _type, RuntimeHelpers.GetHashCode(_parent));
 }

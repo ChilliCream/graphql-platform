@@ -23,6 +23,7 @@ internal sealed partial class SatisfiabilityValidator
     private void InitializeExclusions()
     {
         _exclusions.Clear();
+        _requiringSchemas = SchemaSetRef.Empty;
 
         var relevant = new Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSetRef, HashSet<int>>>();
         var readRelevant = new Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSetRef, HashSet<int>>>();
@@ -42,8 +43,17 @@ internal sealed partial class SatisfiabilityValidator
             {
                 foreach (var schemaName in field.GetSchemaNames())
                 {
-                    if (field.GetFusionRequiresRequirements(schemaName) is not { } requirements
-                        || (!isProvided && _facts.IsFieldResolvableOn(type, field, schemaName)))
+                    if (field.GetFusionRequiresRequirements(schemaName) is not { } requirements)
+                    {
+                        continue;
+                    }
+
+                    if (!_apolloFederationSchemaNames.Contains(schemaName))
+                    {
+                        _requiringSchemas = AddToSchemaSet(_requiringSchemas, schemaName);
+                    }
+
+                    if (!isProvided && _facts.IsFieldResolvableOn(type, field, schemaName))
                     {
                         continue;
                     }
@@ -558,7 +568,7 @@ internal sealed partial class SatisfiabilityValidator
             // a node lookup, or the call holding the parent in the same schema made without it.
             var holderAvailable = !_schemaSets.Contains(exclusion.Schemas, holder);
             var parentReach =
-                new ExclusionReach(exclusion.Schemas, SchemaSetRef.Empty, null, false, SchemaSetRef.Empty, default);
+                new ExclusionReach(exclusion.Schemas, SchemaSetRef.Empty, null, false, SchemaSetRef.Empty, default, SchemaSetRef.Empty);
 
             if (parentKey is not null)
             {
@@ -584,10 +594,15 @@ internal sealed partial class SatisfiabilityValidator
             _schemaSets.IntersectWith(buffer, info.Schemas);
             _schemaSets.IntersectWith(buffer, exclusion.Relevant);
 
+            var requiresItemLookup = parent is { } parentWork
+                ? GetSchemasRequiringItemLookup(item, parentWork, parentReach.RequiresItemLookup, exclusion.SchemaNames)
+                : SchemaSetRef.Empty;
+
             anchor.Initialize(
                 type,
                 item,
                 viewerFallback,
+                requiresItemLookup,
                 exclusion,
                 buffer,
                 provides,
@@ -630,7 +645,8 @@ internal sealed partial class SatisfiabilityValidator
                         exclusion,
                         reach,
                         holderAvailable,
-                        ref parentResolutions)));
+                        ref parentResolutions),
+                    requiresItemLookup));
             _schemaSets.ReturnBuffer(buffer);
         }
 

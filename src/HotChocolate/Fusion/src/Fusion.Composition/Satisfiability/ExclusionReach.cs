@@ -25,10 +25,14 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// The calls of the access path that hold the object or its parent, by whether a requirement read at the
 /// object without that data may take data from them.
 /// </param>
+/// <param name="RequiresItemLookup">
+/// The schemas that need a lookup at this object to bind an argument without the unavailable data.
+/// </param>
 internal readonly record struct ExclusionReach(
     SchemaSetRef Unavailable,
     SchemaSetRef Reach,
     SchemaSelectionSets? ReachProvides,
     bool HolderAvailable,
     SchemaSetRef ViewerOnly,
-    ArrivalCalls Arrival);
+    ArrivalCalls Arrival,
+    SchemaSetRef RequiresItemLookup);

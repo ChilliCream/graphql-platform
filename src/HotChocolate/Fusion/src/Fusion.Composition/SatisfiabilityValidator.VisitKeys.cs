@@ -14,6 +14,7 @@ namespace HotChocolate.Fusion;
 internal sealed partial class SatisfiabilityValidator
 {
     private readonly SchemaSetInterner _schemaSets;
+    private SchemaSetRef _requiringSchemas;
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSetRef> _fieldSchemas = [];
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSelectionSets?> _fieldProvides = [];
     private readonly Dictionary<MutableObjectTypeDefinition, VisitTypeInfo> _visitTypeInfos = [];
@@ -78,6 +79,10 @@ internal sealed partial class SatisfiabilityValidator
             : SchemaSetRef.Empty;
         var viewerFallback = parentKey.ViewerFallback && _viewerFallbackTypes.Contains(type);
 
+        var requiresItemLookup = _exclusions.ContainsKey(type)
+            ? GetSchemasRequiringItemLookup(item, parent, parentKey.RequiresItemLookup, [])
+            : SchemaSetRef.Empty;
+
         // The reaches without the data of some schemas are created first, and the lookup keys of the
         // reach read them.
         var exclusions = CreateExclusionReaches(type, info, item, parent, viewerFallback);
@@ -96,6 +101,7 @@ internal sealed partial class SatisfiabilityValidator
             type,
             item,
             viewerFallback,
+            requiresItemLookup,
             exclusion: null,
             buffer,
             provides,
@@ -133,7 +139,73 @@ internal sealed partial class SatisfiabilityValidator
             exclusions,
             leaf,
             viewerFallback,
-            holderReentry);
+            holderReentry,
+            requiresItemLookup);
+    }
+
+    /// <summary>
+    /// Gets the schemas in which a requirement below this field needs a lookup at or below its result.
+    /// A list starts a new boundary, and a usable lookup on a singular field's parent ends it.
+    /// </summary>
+    private SchemaSetRef GetSchemasRequiringItemLookup(
+        SatisfiabilityPathItem item,
+        in WorkItem parent,
+        SchemaSetRef blocked,
+        ImmutableHashSet<string> unavailableSchemaNames)
+    {
+        if (item.Field.Type.IsListType())
+        {
+            return _requiringSchemas;
+        }
+
+        if (blocked == SchemaSetRef.Empty || parent.Path is null)
+        {
+            return blocked;
+        }
+
+        var type = parent.Key.ObjectType;
+        var parentItem = parent.Path.Item;
+        ulong[]? buffer = null;
+        RequirementScope? scope = null;
+
+        foreach (var index in GetVisitTypeInfo(type).LookupSchemas)
+        {
+            var schemaName = _schemaSets.GetSchemaName(index);
+
+            if (!_schemaSets.Contains(blocked, index)
+                || unavailableSchemaNames.Contains(schemaName)
+                || !item.Field.ExistsInSchema(schemaName)
+                || item.Field.IsPartial(schemaName))
+            {
+                continue;
+            }
+
+            if ((unavailableSchemaNames.IsEmpty
+                    && parentItem.ProvidedSelectionSet is null
+                    && _facts.CanTransition(type, schemaName, parentItem.SchemaName))
+                || _requirementsValidator.CanReenterThroughLookup(
+                    type,
+                    schemaName,
+                    parentItem,
+                    [],
+                    scope ??= CreateVisitScope(parent.Key, parentItem),
+                    _decisionBudget,
+                    cycleDetectionPath: null,
+                    unavailableSchemaNames))
+            {
+                buffer ??= _schemaSets.RentBuffer(blocked);
+                SchemaSetInterner.Remove(buffer, index);
+            }
+        }
+
+        if (buffer is null)
+        {
+            return blocked;
+        }
+
+        var result = _schemaSets.Intern(buffer);
+        _schemaSets.ReturnBuffer(buffer);
+        return result;
     }
 
     /// <summary>
@@ -302,6 +374,7 @@ internal sealed partial class SatisfiabilityValidator
                 type,
                 lookupItem,
                 viewerFallback,
+                SchemaSetRef.Empty,
                 exclusion: null,
                 buffer,
                 provides: null,
@@ -329,7 +402,8 @@ internal sealed partial class SatisfiabilityValidator
             reaches.Exclusions,
             leaf,
             viewerFallback,
-            HolderReentry: false);
+            HolderReentry: false,
+            SchemaSetRef.Empty);
     }
 
     /// <summary>
@@ -344,7 +418,8 @@ internal sealed partial class SatisfiabilityValidator
             null,
             null,
             !ReferenceEquals(rootType, _schema.QueryType) && _viewerFallbackTypes.Contains(rootType),
-            HolderReentry: false);
+            HolderReentry: false,
+            SchemaSetRef.Empty);
 
     /// <summary>
     /// Restricts <paramref name="buffer"/> to the schemas that the visit of <paramref name="type"/>,
@@ -1040,6 +1115,7 @@ internal sealed partial class SatisfiabilityValidator
         bool HolderAvailable,
         bool ViewerFallback,
         bool AllowsReRootedCalls,
+        SchemaSetRef RequiresItemLookup,
         ExclusionReaches? Exclusions);
 
     /// <summary>
@@ -1067,12 +1143,19 @@ internal sealed partial class SatisfiabilityValidator
         private MutableObjectTypeDefinition _type = null!;
         private SatisfiabilityPathItem _item = null!;
         private bool _viewerFallback;
+        private SchemaSetRef _requiresItemLookup;
         private Exclusion? _exclusion;
         private ulong[] _buffer = null!;
         private List<(int SchemaIndex, SelectionSetNode SelectionSet)>? _provides;
         private ExclusionReaches? _exclusions;
 
         public override SatisfiabilityPathItem Item => _item;
+
+        public override bool RequiresItemLookup(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
+            => IsCurrent(unavailableSchemaNames)
+                ? validator._schemaSets.Contains(_requiresItemLookup, schemaName)
+                : GetExclusionReach(unavailableSchemaNames) is not { } entry
+                    || validator._schemaSets.Contains(entry.RequiresItemLookup, schemaName);
 
         public override bool ReroutesViewerFields => _viewerFallback && AllowsReRootedCalls;
 
@@ -1101,6 +1184,7 @@ internal sealed partial class SatisfiabilityValidator
             MutableObjectTypeDefinition type,
             SatisfiabilityPathItem item,
             bool viewerFallback,
+            SchemaSetRef requiresItemLookup,
             Exclusion? exclusion,
             ulong[] buffer,
             List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides,
@@ -1111,6 +1195,7 @@ internal sealed partial class SatisfiabilityValidator
             _type = type;
             _item = item;
             _viewerFallback = viewerFallback;
+            _requiresItemLookup = requiresItemLookup;
             _exclusion = exclusion;
             _buffer = buffer;
             _provides = provides;
@@ -1152,6 +1237,7 @@ internal sealed partial class SatisfiabilityValidator
                 _type,
                 _item,
                 _viewerFallback,
+                _requiresItemLookup,
                 _exclusion,
                 independentBuffer,
                 _provides,
@@ -1169,6 +1255,7 @@ internal sealed partial class SatisfiabilityValidator
                 IsCurrentHolderAvailable(),
                 _viewerFallback,
                 AllowsReRootedCalls,
+                _requiresItemLookup,
                 _exclusions);
 
         public override bool CanHold(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
@@ -1268,6 +1355,12 @@ internal sealed partial class SatisfiabilityValidator
         : PathAnchor
     {
         public override SatisfiabilityPathItem Item => item;
+
+        public override bool RequiresItemLookup(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
+            => unavailableSchemaNames.IsEmpty
+                ? validator._schemaSets.Contains(key.RequiresItemLookup, schemaName)
+                : validator.FindExclusionReach(key, key.Exclusions, unavailableSchemaNames) is not { } entry
+                    || validator._schemaSets.Contains(entry.RequiresItemLookup, schemaName);
 
         public override bool ReroutesViewerFields => key.ViewerFallback;
 

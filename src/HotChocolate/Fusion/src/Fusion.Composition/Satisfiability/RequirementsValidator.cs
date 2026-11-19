@@ -14,6 +14,7 @@ internal sealed class RequirementsValidator(
     FusionLookupDirectiveCache lookupCache,
     SatisfiabilityFacts facts,
     MutableOutputFieldDefinition? queryViewerField,
+    IReadOnlySet<string> apolloFederationSchemaNames,
     bool includeSatisfiabilityPaths)
 {
     private readonly FusionLookupDirectiveCache _lookupCache = lookupCache;
@@ -227,10 +228,9 @@ internal sealed class RequirementsValidator(
             context.Depth == 0 || !context.AllowNestedFieldsFromExcludedSchema
                 ? context.ExcludeSchemaName
                 : null;
-        // The cache tells an access path item, whose holding call may depend on unavailable data, apart
-        // from an item that the walk created.
         var previousIsArrival = previousPathItem is not null && IsArrivalItem(previousPathItem, context);
-        var cacheKey = new FieldAccessCacheKey(field, type, previousSchemaName, excludeSchemaName, previousIsArrival);
+        // Each descent creates a path item. A proof for a singular sibling cannot stand for a list item.
+        var cacheKey = new FieldAccessCacheKey(fieldNode, type, previousPathItem);
 
         if (context.FieldAccessCache.Contains(cacheKey))
         {
@@ -911,9 +911,18 @@ internal sealed class RequirementsValidator(
                     keyErrors));
         }
 
-        // Without a lookup the field can only be resolved by a call that holds the type, which works when
-        // the requirements depend neither on that call nor on a call re-rooted at Query.viewer.
-        if (CanResolveInHoldingCall(
+        // Federation sends required fields in an entity representation. Native field arguments can also
+        // be bound in an ancestor call that reaches exactly one instance of the requiring object.
+        if (!apolloFederationSchemaNames.Contains(schemaName)
+            && CanBindInHoldingCall(
+                schemaName,
+                parentPathItem,
+                ancestors,
+                scope,
+                budget,
+                cycleDetectionPath,
+                unavailableSchemaNames)
+            && CanResolveInHoldingCall(
                 requirements,
                 type,
                 schemaName,
@@ -945,7 +954,9 @@ internal sealed class RequirementsValidator(
         SatisfiabilityPathItem? parentPathItem,
         IReadOnlyList<SatisfiabilityPathItem> ancestors,
         RequirementScope scope,
-        SatisfiabilityExplanationBudget budget)
+        SatisfiabilityExplanationBudget budget,
+        SatisfiabilityPath? cycleDetectionPath,
+        ImmutableHashSet<string>? unavailableSchemaNames)
     {
         foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName))
         {
@@ -956,7 +967,84 @@ internal sealed class RequirementsValidator(
                     ancestors,
                     scope,
                     excludeSchemaName: null,
-                    budget).IsEmpty)
+                    budget,
+                    cycleDetectionPath: cycleDetectionPath,
+                    unavailableSchemaNames: unavailableSchemaNames).IsEmpty)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether a native field argument can be bound once per requiring object in a holding call.
+    /// A lookup below the nearest list can carry that argument through singular fields.
+    /// </summary>
+    private bool CanBindInHoldingCall(
+        string schemaName,
+        SatisfiabilityPathItem? item,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        RequirementScope scope,
+        SatisfiabilityExplanationBudget budget,
+        SatisfiabilityPath? cycleDetectionPath,
+        ImmutableHashSet<string> unavailableSchemaNames)
+    {
+        if (item is null)
+        {
+            return true;
+        }
+
+        var edge = item;
+        var depth = 0;
+
+        while (true)
+        {
+            if (scope.Anchor is { } anchor && ReferenceEquals(edge, anchor.Item))
+            {
+                if (!anchor.RequiresItemLookup(schemaName, unavailableSchemaNames))
+                {
+                    return true;
+                }
+
+                break;
+            }
+
+            if (edge.Field.Type.IsListType())
+            {
+                break;
+            }
+
+            if (depth == ancestors.Count)
+            {
+                return true;
+            }
+
+            edge = ancestors[depth++];
+        }
+
+        for (var i = 0; i < depth; i++)
+        {
+            var child = i == 0 ? item : ancestors[i - 1];
+
+            if (!child.Field.ExistsInSchema(schemaName))
+            {
+                break;
+            }
+
+            if (child.Type is MutableObjectTypeDefinition parentType
+                && !child.Field.IsPartial(schemaName)
+                && _lookupCache.GetPossibleFusionLookupDirectives(parentType, schemaName).Count > 0
+                && CanReenterThroughLookup(
+                    parentType,
+                    schemaName,
+                    ancestors[i],
+                    ancestors.Skip(i + 1).ToArray(),
+                    scope,
+                    budget,
+                    cycleDetectionPath,
+                    unavailableSchemaNames))
             {
                 return true;
             }

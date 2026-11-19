@@ -489,7 +489,7 @@ public class RequireCrossProviderTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Execute_Should_ResolveBatchedOperation_When_RequirementAnchorIsBelowList()
+    public async Task Execute_Should_ResolveBatchedOperation_When_ListItemsHaveLookup()
     {
         // arrange
         using var schemaA = CreateSourceSchema(
@@ -525,7 +525,17 @@ public class RequireCrossProviderTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
+        await AssertAndMatchSnapshotAsync(gateway, request, result, results =>
+        {
+            var products = Assert.Single(results).Data.GetProperty("products");
+            var estimates = products.EnumerateArray()
+                .Select(product => product.GetProperty("variants").EnumerateArray()
+                    .Select(variant => variant.GetProperty("shippingEstimate").GetInt32())
+                    .ToArray())
+                .ToArray();
+
+            Assert.Equal([[20, 22], [40, 42]], estimates);
+        });
     }
 
     private Task<Gateway> CreateSelfReferenceGatewayAsync(bool includeOperationPlan)
@@ -1053,8 +1063,7 @@ public class RequireCrossProviderTests : FusionTestBase
         }
     }
 
-    // Require where Variant.shippingEstimate in b requires weight from a, Variant has no lookup and
-    // sits in a list below the Product lookup target, and Review.text is batched with that lookup.
+    // Each variant has a lookup in b and requires its weight from a.
     public static class ListAnchorRequire
     {
         // a serves products 1 and 2 with two variants each, and reviews 7 and 8.
@@ -1065,6 +1074,10 @@ public class RequireCrossProviderTests : FusionTestBase
                 public IEnumerable<Product> GetProducts() => [new(1), new(2)];
 
                 public IEnumerable<Review> GetReviews() => [new(7), new(8)];
+
+                [Lookup]
+                [Internal]
+                public Variant? GetVariantById(int id) => new(id - 100);
             }
 
             public sealed class Product(int id)
@@ -1078,6 +1091,9 @@ public class RequireCrossProviderTests : FusionTestBase
 
             public sealed class Variant(int weight)
             {
+                [Shareable]
+                public int Id => weight + 100;
+
                 public int Weight => weight;
             }
 
@@ -1088,7 +1104,7 @@ public class RequireCrossProviderTests : FusionTestBase
             }
         }
 
-        // b computes the shipping estimate as twice the weight and the review text from the id.
+        // Each variant has its own base rate in b and takes its weight from a.
         public static class SchemaB
         {
             public class Query
@@ -1096,6 +1112,10 @@ public class RequireCrossProviderTests : FusionTestBase
                 [Lookup]
                 [Internal]
                 public Product? GetProductById(int id) => new(id);
+
+                [Lookup]
+                [Internal]
+                public Variant? GetVariantById(int id) => new(id - 100);
 
                 [Lookup]
                 [Internal]
@@ -1108,12 +1128,15 @@ public class RequireCrossProviderTests : FusionTestBase
                 public int Id => id;
 
                 [Shareable]
-                public IEnumerable<Variant> GetVariants() => [new(), new()];
+                public IEnumerable<Variant> GetVariants() => [new(id * 10), new((id * 10) + 1)];
             }
 
-            public sealed class Variant
+            public sealed class Variant(int baseRate)
             {
-                public int GetShippingEstimate([Require("weight")] int weight) => weight * 2;
+                [Shareable]
+                public int Id => baseRate + 100;
+
+                public int GetShippingEstimate([Require("weight")] int weight) => baseRate + weight;
             }
 
             public sealed class Review(int id)
