@@ -1130,12 +1130,25 @@ internal sealed class ValueCompletion
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void AddFieldError(IError fieldError, CompositeResultElement target)
     {
-        var errorWithPath = ErrorBuilder.FromError(fieldError)
-            .SetPath(target.Path)
-            .Build();
-        errorWithPath = _errorHandler.Handle(errorWithPath);
+        var path = Path.Root;
+        foreach (var segment in target.CompactPath.Segments)
+        {
+            if (segment < 0)
+            {
+                path = path.Append(~segment);
+                continue;
+            }
 
-        _store.AddError(errorWithPath);
+            var selection = target.Operation.GetSelectionById(segment);
+            if (selection.IsInternal || !_store.IsSelectionActive(selection))
+            {
+                break;
+            }
+
+            path = path.Append(selection.ResponseName);
+        }
+
+        _store.AddError(_errorHandler.Handle(fieldError.WithPath(path)));
     }
 
     /// <summary>
