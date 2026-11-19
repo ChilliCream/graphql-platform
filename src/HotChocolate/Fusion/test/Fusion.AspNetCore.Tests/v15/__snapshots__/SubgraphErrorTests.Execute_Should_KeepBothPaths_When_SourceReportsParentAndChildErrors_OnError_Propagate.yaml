@@ -1,0 +1,156 @@
+title: Execute_Should_KeepBothPaths_When_SourceReportsParentAndChildErrors
+request:
+  document: |
+    {
+      x {
+        a
+        b
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "x": null
+      },
+      "errors": [
+        {
+          "message": "parent",
+          "path": [
+            "x",
+            "a"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        x: Row @shareable
+      }
+
+      type Row @shareable {
+        a: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_7d51c20a_1 {
+              x {
+                a
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "parent",
+                    "path": [
+                      "x"
+                    ]
+                  },
+                  {
+                    "message": "child",
+                    "path": [
+                      "x",
+                      "a"
+                    ]
+                  }
+                ],
+                "data": {
+                  "x": null
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        x: Row @shareable
+      }
+
+      type Row @shareable {
+        b: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_7d51c20a_2 {
+              x {
+                b
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "x": {
+                    "b": 3
+                  }
+                }
+              }
+operationPlan:
+  id: 12dc6974f45bd71a46e9c50a93ad9bf9c8a293d8d42fc2936d9943bae3b81bcf
+  operation:
+    - document: |
+        {
+          x {
+            a
+            b
+          }
+        }
+      kind: Query
+      id: 7d51c20a0a6925f50a266c000744b18d
+      hash: 7d51c20a0a6925f50a266c000744b18d
+      shortHash: 7d51c20a
+  searchSpace: 2
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_7d51c20a_1
+        kind: Query
+        document: |
+          query Op_7d51c20a_1 {
+            x {
+              a
+            }
+          }
+        hash: 0f0e563325e33fe5697f6037be3679b2f9f0d8daa8fd1347f00bacff159243c1
+        shortHash: 0f0e5633
+        xxHash: 15173046257369264729
+      resultSelectionSet: >-
+        { x { a } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_7d51c20a_2
+        kind: Query
+        document: |
+          query Op_7d51c20a_2 {
+            x {
+              b
+            }
+          }
+        hash: 840509628098482d11a26133f13f6180adbc2526e657c2df496b9196d2d0af90
+        shortHash: "84050962"
+        xxHash: 7871044328266823918
+      resultSelectionSet: >-
+        { x { b } }

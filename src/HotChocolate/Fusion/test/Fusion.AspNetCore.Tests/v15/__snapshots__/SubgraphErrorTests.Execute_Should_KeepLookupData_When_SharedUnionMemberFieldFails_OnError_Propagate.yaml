@@ -1,0 +1,134 @@
+title: Execute_Should_KeepLookupData_When_SharedUnionMemberFieldFails
+request:
+  document: |
+    {
+      product {
+        item {
+          ... on Book {
+            name: title
+            author
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error"
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+        localProduct(id: Int!): Product @lookup
+      }
+
+      type Book @shareable {
+        title: String!
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        item: Item @shareable
+      }
+
+      union Item = Book
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_29265179_1 {
+              product {
+                item {
+                  __typename
+                  ... on Book {
+                    name: title
+                  }
+                }
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "title failed",
+                    "path": [
+                      "product",
+                      "item",
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "product": {
+                    "id": 1,
+                    "item": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Book @shareable {
+        title: String
+        author: String
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        item: Item @shareable
+      }
+
+      union Item = Book
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_29265179_2($__fusion_1_id: Int!) {
+              byId(id: $__fusion_1_id) {
+                item {
+                  __typename
+                  ... on Book {
+                    author
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "byId": {
+                    "item": {
+                      "__typename": "Book",
+                      "author": "B"
+                    }
+                  }
+                }
+              }

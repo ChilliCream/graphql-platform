@@ -4253,6 +4253,44 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """);
     }
 
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public void AddPartialResult_Should_MapGeneratedAlias_When_ListItemsReportSourceErrors(ErrorHandlingMode mode)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { rows: [Item] }
+            type Item { name: String! }
+            """);
+        var plan = PlanOperation(schema, "{ r:rows { n:name } }");
+        var selections = Utf8GraphQLParser.Parse(
+                """{ r { fusion__field_1:name @fusion__responseName(name: "n") } }""")
+            .Definitions.OfType<OperationDefinitionNode>().Single().SelectionSet;
+        var resultSelectionSet = ResultSelectionSet.CreateFromPlan(selections, schema);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(resultArena, schema, DefaultErrorHandler.Default, plan.Operation, mode,
+            includeFlags: default, deferFlags: default, pathSegmentLocalPoolCapacity: 16);
+        var source = CreateSourceSchemaResult(sourceArena, CompactPath.Root,
+            """
+            {"data":{"r":[null,{"fusion__field_1":"OK"}]},"errors":[
+              {"message":"first","path":["r",0,"fusion__field_1"]},
+              {"message":"second","path":["r",1,"fusion__field_1"]}]}
+            """);
+
+        // act
+        store.AddPartialResult(SelectionPath.Root, source, resultSelectionSet, containsErrors: true);
+        store.FinalizePocketedErrors();
+
+        // assert
+        RenderData(store).MatchInlineSnapshot("""{"r":[null,{"n":"OK"}]}""");
+        Assert.Equal(["r[0]", "r[1].n"], store.Errors!.Select(error => error.Path!.Print()));
+    }
+
     [Fact]
     public void AddPartialResult_Should_CompleteRepeatedTargets_When_SourceResultHasErrors()
     {

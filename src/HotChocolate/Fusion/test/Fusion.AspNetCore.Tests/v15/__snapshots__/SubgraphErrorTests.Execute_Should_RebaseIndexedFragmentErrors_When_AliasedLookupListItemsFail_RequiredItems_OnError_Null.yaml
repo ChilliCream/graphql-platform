@@ -1,0 +1,210 @@
+title: Execute_Should_RebaseIndexedFragmentErrors_When_AliasedLookupListItemsFail
+request:
+  onError: Null
+  document: |
+    {
+      p: product {
+        r: items {
+          ... on Book {
+            n: name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "p": {
+          "r": null
+        }
+      },
+      "errors": [
+        {
+          "message": "second",
+          "path": [
+            "p",
+            "r"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a3e542fc_1 {
+              p: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "p": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Book {
+        name: String!
+      }
+
+      type Photo {
+        id: ID!
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        items: [Item!]
+      }
+
+      union Item = Book | Photo
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a3e542fc_2($__fusion_1_id: Int!) {
+              byId(id: $__fusion_1_id) {
+                r: items {
+                  __typename
+                  ... on Book {
+                    n: name
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "first",
+                    "path": [
+                      "byId",
+                      "r",
+                      0,
+                      "n"
+                    ]
+                  },
+                  {
+                    "message": "second",
+                    "path": [
+                      "byId",
+                      "r",
+                      1,
+                      "n"
+                    ]
+                  }
+                ],
+                "data": {
+                  "byId": {
+                    "r": null
+                  }
+                }
+              }
+operationPlan:
+  id: 5a46f1bc498fc4f42e8fc58db61a61a0cd4219d054eed3e9c6914a05840aafc4
+  operation:
+    - document: |
+        {
+          p: product {
+            r: items {
+              __typename @fusion__requirement
+              ... on Book {
+                n: name
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: b9d6d692c64078f515c84b97f60b7c1f
+      hash: a3e542fcc37ddea0cd5bfe4b1364117d
+      shortHash: a3e542fc
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_a3e542fc_1
+        kind: Query
+        document: |
+          query Op_a3e542fc_1 {
+            p: product {
+              id
+            }
+          }
+        hash: e38e30d577a06ee88ff26253f8a9ee38e09c785989f04b6460a836d0c61310fd
+        shortHash: e38e30d5
+        xxHash: 6057222909157219494
+      resultSelectionSet: >-
+        { p }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_a3e542fc_2
+        kind: Query
+        document: |
+          query Op_a3e542fc_2($__fusion_1_id: Int!) {
+            byId(id: $__fusion_1_id) {
+              r: items {
+                __typename
+                ... on Book {
+                  n: name
+                }
+              }
+            }
+          }
+        hash: 312c013f89652cb9572d8cb84969004d3b67bf640be48b7f5d9c57cb58633e12
+        shortHash: 312c013f
+        xxHash: 3292416715633214758
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { r }
+      source: $.byId
+      target: $.p
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.p
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -1,0 +1,205 @@
+title: Execute_Should_KeepIndexedError_When_LookupSuppliesSharedList
+request:
+  document: |
+    {
+      product {
+        items {
+          name
+          price
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "product": {
+          "items": [
+            {
+              "name": null,
+              "price": 1
+            },
+            {
+              "name": null,
+              "price": 2
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+        localProduct(id: Int!): Product @lookup
+      }
+
+      type Item @shareable {
+        name: String!
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        items: [Item!] @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_05a6117e_1 {
+              product {
+                items {
+                  name
+                }
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "no name",
+                    "path": [
+                      "product",
+                      "items",
+                      0,
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "product": {
+                    "id": 1,
+                    "items": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Item @shareable {
+        price: Int
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        items: [Item!] @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_05a6117e_2($__fusion_1_id: Int!) {
+              byId(id: $__fusion_1_id) {
+                items {
+                  price
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "byId": {
+                    "items": [
+                      {
+                        "price": 1
+                      },
+                      {
+                        "price": 2
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  id: e21848d4957a8b3c6271349c9e5f398f7667234c6add623c265d105a73ea52f8
+  operation:
+    - document: |
+        {
+          product {
+            items {
+              name
+              price
+            }
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 05a6117e8b2e7fdfca7d5c90d4bfe600
+      hash: 05a6117e8b2e7fdfca7d5c90d4bfe600
+      shortHash: 05a6117e
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_05a6117e_1
+        kind: Query
+        document: |
+          query Op_05a6117e_1 {
+            product {
+              items {
+                name
+              }
+              id
+            }
+          }
+        hash: b6931b030e131e6b7fa894a1a28117c71727d17b4603f1f8359736800ffb9fb0
+        shortHash: b6931b03
+        xxHash: 1516908073706744742
+      resultSelectionSet: >-
+        { product { items { name } id } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_05a6117e_2
+        kind: Query
+        document: |
+          query Op_05a6117e_2($__fusion_1_id: Int!) {
+            byId(id: $__fusion_1_id) {
+              items {
+                price
+              }
+            }
+          }
+        hash: 97343d93f74d60fc4cf12b2b1fa175d3eba2ab846529fe01a15f76912c3ad93b
+        shortHash: 97343d93
+        xxHash: 6178114416341231862
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { items { price } }
+      source: $.byId
+      target: $.product
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.product
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
