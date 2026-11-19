@@ -1,0 +1,90 @@
+title: Execute_Should_MaskInvalidEnums_When_SiblingMayHaveAnError
+request:
+  document: |
+    {
+      color
+      colors
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "color": 7,
+        "colors": [
+          null
+        ],
+        "tail": null
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        color: Color
+        colors: [Color!]
+        tail: Int
+      }
+
+      enum Color {
+        RED
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_e0ffd9e5_1 {
+              color
+              colors
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "color": 7,
+                  "colors": [
+                    "UNKNOWN"
+                  ],
+                  "tail": null
+                }
+              }
+operationPlan:
+  id: b0e1f6694fbb9736123fc75c7a5a67dc90f51761d69c0544fe94b246ecae0b75
+  operation:
+    - document: |
+        {
+          color
+          colors
+          tail
+        }
+      kind: Query
+      id: e0ffd9e5cd476daac397cbcc89409ad9
+      hash: e0ffd9e5cd476daac397cbcc89409ad9
+      shortHash: e0ffd9e5
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_e0ffd9e5_1
+        kind: Query
+        document: |
+          query Op_e0ffd9e5_1 {
+            color
+            colors
+            tail
+          }
+        hash: bfe740db15a973f282458e75eb91fbece640b312f94ed1e3f4740d2640e052a3
+        shortHash: bfe740db
+        xxHash: 11703478450875369172
+      resultSelectionSet: >-
+        { color colors tail }
