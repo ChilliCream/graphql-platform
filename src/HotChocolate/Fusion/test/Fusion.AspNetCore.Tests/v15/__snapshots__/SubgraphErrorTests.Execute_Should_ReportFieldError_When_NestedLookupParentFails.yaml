@@ -1,0 +1,173 @@
+title: Execute_Should_ReportFieldError_When_NestedLookupParentFails
+request:
+  document: |
+    {
+      item: product {
+        id
+        label: description
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": {
+          "id": 1,
+          "label": null
+        }
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_38f97cb4_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_38f97cb4_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  label: description
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Lookups unavailable.",
+                    "path": [
+                      "lookups"
+                    ]
+                  }
+                ],
+                "data": null
+              }
+operationPlan:
+  id: 36ef69251a26efb5f85396ef326d4f548ce342cec21ae707c839cdcbd24c96fb
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            label: description
+          }
+        }
+      kind: Query
+      id: 5601dcc0107612f2f79e412c34199839
+      hash: 38f97cb4df483f6db2d56823b5680b49
+      shortHash: 38f97cb4
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_38f97cb4_1
+        kind: Query
+        document: |
+          query Op_38f97cb4_1 {
+            item: product {
+              id
+            }
+          }
+        hash: b84f817ec461632631205f55fbed3ab159462fe5440054e9bdfb1a2bddc88b9e
+        shortHash: b84f817e
+        xxHash: 17873301979565020506
+      resultSelectionSet: >-
+        { item }
+    - id: 2
+      type: Operation
+      schema: details
+      operation:
+        name: Op_38f97cb4_2
+        kind: Query
+        document: |
+          query Op_38f97cb4_2($__fusion_1_id: Int!) {
+            lookups {
+              byId(id: $__fusion_1_id) {
+                label: description
+              }
+            }
+          }
+        hash: 2ff48d22584f5cedaf6410b15b3b0c05a87120c74f1eb57eff1a91aa06145017
+        shortHash: 2ff48d22
+        xxHash: 3963239283347388509
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { label }
+      source: $.lookups.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.item
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

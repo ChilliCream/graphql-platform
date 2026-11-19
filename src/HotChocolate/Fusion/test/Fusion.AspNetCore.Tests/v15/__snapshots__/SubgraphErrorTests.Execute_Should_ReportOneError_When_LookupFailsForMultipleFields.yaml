@@ -1,0 +1,199 @@
+title: Execute_Should_ReportOneError_When_LookupFailsForMultipleFields
+request:
+  document: |
+    {
+      item: product {
+        id
+        price
+        description
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": {
+          "id": 1,
+          "price": null,
+          "description": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Product unavailable.",
+          "path": [
+            "item",
+            "description"
+          ]
+        },
+        {
+          "message": "Product unavailable.",
+          "path": [
+            "item",
+            "price"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_285830b1_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_285830b1_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  price
+                  description
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Product unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId"
+                    ]
+                  }
+                ],
+                "data": {
+                  "lookups": {
+                    "byId": null
+                  }
+                }
+              }
+operationPlan:
+  id: cbe049be9ffa688789bb4721bd9318ff3a631f05f9dd6ec631ec529212e3cab7
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            price
+            description
+          }
+        }
+      kind: Query
+      id: 45797186d4aa5a42e28f137bcb43d162
+      hash: 285830b14f7215308e2a0ccddad82cee
+      shortHash: 285830b1
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_285830b1_1
+        kind: Query
+        document: |
+          query Op_285830b1_1 {
+            item: product {
+              id
+            }
+          }
+        hash: 9bbda5c2a4aed0070f32296f3a77cccaa3f943b0f38f8376e3f6090dc1ba2fa8
+        shortHash: 9bbda5c2
+        xxHash: 335399078522962395
+      resultSelectionSet: >-
+        { item }
+    - id: 2
+      type: Operation
+      schema: details
+      operation:
+        name: Op_285830b1_2
+        kind: Query
+        document: |
+          query Op_285830b1_2($__fusion_1_id: Int!) {
+            lookups {
+              byId(id: $__fusion_1_id) {
+                price
+                description
+              }
+            }
+          }
+        hash: dcf3ad5b52a4dfae0af6252f42ce522d353cdb4ec08fe3d72af2e1788beda9de
+        shortHash: dcf3ad5b
+        xxHash: 7190074782762607868
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price description }
+      source: $.lookups.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.item
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

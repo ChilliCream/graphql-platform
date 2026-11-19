@@ -1,0 +1,218 @@
+title: Execute_Should_KeepErrorPaths_When_MultipleLookupFieldsFail
+request:
+  document: |
+    {
+      item: product {
+        id
+        price
+        reviews {
+          stars: rating
+        }
+        label: name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": null
+      },
+      "errors": [
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "price"
+          ]
+        },
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "reviews"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0b6787e2_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0b6787e2_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  price
+                  reviews {
+                    stars: rating
+                  }
+                  label: name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Rating unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId",
+                      "reviews",
+                      0,
+                      "stars"
+                    ]
+                  },
+                  {
+                    "message": "Name unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId",
+                      "label"
+                    ]
+                  }
+                ],
+                "data": {
+                  "lookups": {
+                    "byId": null
+                  }
+                }
+              }
+operationPlan:
+  id: 25fd6bd612f3c2a5b33720cd769b8b3c75d97fa1e57f264dc7b8114879de153c
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            price
+            reviews {
+              stars: rating
+            }
+            label: name
+          }
+        }
+      kind: Query
+      id: 8ccf59745dcf6ee2dcd6e8af448f07fb
+      hash: 0b6787e2e564bedbb57fa9ab179769b6
+      shortHash: 0b6787e2
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_0b6787e2_1
+        kind: Query
+        document: |
+          query Op_0b6787e2_1 {
+            item: product {
+              id
+            }
+          }
+        hash: 39941fe452b66d9239d75cccb9ec1aaef24dd570ccbce05b2fee1c26d9fc1263
+        shortHash: 39941fe4
+        xxHash: 8806244813437813374
+      resultSelectionSet: >-
+        { item }
+    - id: 2
+      type: Operation
+      schema: details
+      operation:
+        name: Op_0b6787e2_2
+        kind: Query
+        document: |
+          query Op_0b6787e2_2($__fusion_1_id: Int!) {
+            lookups {
+              byId(id: $__fusion_1_id) {
+                price
+                reviews {
+                  stars: rating
+                }
+                label: name
+              }
+            }
+          }
+        hash: 420c34a9c3f425ae30f4fbff124b3f388471eed93a4fa0a81e094d701ba41677
+        shortHash: 420c34a9
+        xxHash: 8593182514696460554
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price reviews label }
+      source: $.lookups.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.item
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

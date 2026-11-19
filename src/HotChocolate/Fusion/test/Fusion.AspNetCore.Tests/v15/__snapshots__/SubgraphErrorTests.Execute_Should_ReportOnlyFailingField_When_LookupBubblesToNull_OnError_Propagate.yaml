@@ -1,0 +1,196 @@
+title: Execute_Should_ReportOnlyFailingField_When_LookupBubblesToNull
+request:
+  document: |
+    {
+      item: product {
+        id
+        price
+        label: name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": null
+      },
+      "errors": [
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "label"
+          ]
+        },
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "price"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_8940a22f_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_8940a22f_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  price
+                  label: name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Name unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId",
+                      "label"
+                    ]
+                  }
+                ],
+                "data": {
+                  "lookups": {
+                    "byId": null
+                  }
+                }
+              }
+operationPlan:
+  id: 3803c37e91b1041347054d9725b0615c00718727ec44d7c2a10407bcb4f3f16c
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            price
+            label: name
+          }
+        }
+      kind: Query
+      id: 7aa57575593526dd805d2e2ea28e252a
+      hash: 8940a22fbff053e34a4fed8b45f6bb3f
+      shortHash: 8940a22f
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_8940a22f_1
+        kind: Query
+        document: |
+          query Op_8940a22f_1 {
+            item: product {
+              id
+            }
+          }
+        hash: fccaee106c518c877922441c99d206ae09445917a0c83c20ca986a663298d265
+        shortHash: fccaee10
+        xxHash: 15699889637423527644
+      resultSelectionSet: >-
+        { item }
+    - id: 2
+      type: Operation
+      schema: details
+      operation:
+        name: Op_8940a22f_2
+        kind: Query
+        document: |
+          query Op_8940a22f_2($__fusion_1_id: Int!) {
+            lookups {
+              byId(id: $__fusion_1_id) {
+                price
+                label: name
+              }
+            }
+          }
+        hash: bf760a1cfdfdf5aa0ac6ed1a5d625fcd3ecb2242bb1ef0af06e88031d342bbb7
+        shortHash: bf760a1c
+        xxHash: 512505355855564197
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price label }
+      source: $.lookups.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.item
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
