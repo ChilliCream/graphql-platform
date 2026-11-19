@@ -17,7 +17,7 @@ internal static class TestManagers
         Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
         RabbitMQConsumerManagerOptions options)
         => new(
-            new RabbitMQConsumerLogger(NullLogger.Instance),
+            new RabbitMQConsumerLogger(NullLogger.Instance, TimeProvider.System),
             TimeProvider.System,
             options,
             new RabbitMQConnectionManager(
@@ -46,6 +46,17 @@ internal static class TestManagers
         => manager.Consumers.Any(consumer => consumer.State is ConsumerState.WaitingForHandlers);
 
     /// <summary>
+    /// Waits until the consumer is attached, polling its state.
+    /// </summary>
+    public static async Task WaitUntilAttachedAsync(this RabbitMQConsumer consumer, CancellationToken cancellationToken)
+    {
+        while (!consumer.IsAttached)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken);
+        }
+    }
+
+    /// <summary>
     /// Runs the consumer health check of a transport and returns the reported reasons.
     /// </summary>
     public static async Task<string[]> CheckConsumerHealthAsync(this RabbitMQMessagingTransport transport)
@@ -72,4 +83,34 @@ internal static class TestManagers
             maxPrefetch,
             maxConcurrency,
             cancellationToken);
+}
+
+/// <summary>
+/// Remembers the channel a consumer prepared last, which is the channel it attaches on, and how many channels
+/// it prepared.
+/// </summary>
+internal sealed class ChannelProbe
+{
+    private volatile IChannel? _channel;
+    private int _preparedCount;
+
+    /// <summary>
+    /// Gets the channel the consumer prepared last.
+    /// </summary>
+    public IChannel Channel => _channel ?? throw new InvalidOperationException("No channel was prepared.");
+
+    /// <summary>
+    /// Gets the number of channels the consumer prepared.
+    /// </summary>
+    public int PreparedCount => Volatile.Read(ref _preparedCount);
+
+    /// <summary>
+    /// Records the channel. Use it as the prepare callback of a consumer.
+    /// </summary>
+    public Task PrepareAsync(IConnection connection, IChannel channel, CancellationToken cancellationToken)
+    {
+        _channel = channel;
+        Interlocked.Increment(ref _preparedCount);
+        return Task.CompletedTask;
+    }
 }

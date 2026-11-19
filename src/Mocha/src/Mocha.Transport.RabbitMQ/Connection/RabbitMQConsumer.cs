@@ -1,5 +1,3 @@
-using System.Buffers;
-using System.Threading.Channels;
 using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -10,21 +8,32 @@ namespace Mocha.Transport.RabbitMQ;
 /// Consumes one queue. A single task attaches the consumer to a channel, waits until the channel or the
 /// broker-side consumer is lost, and attaches again, until the consumer is stopped.
 /// </summary>
-internal sealed class RabbitMQConsumer : IAsyncDisposable
+/// <param name="connections">The manager of the connection the consumer attaches on.</param>
+/// <param name="logger">The logger for consumer events.</param>
+/// <param name="options">The timeouts and the retry delay of the consumer.</param>
+/// <param name="timeProvider">The clock used for elapsed times, delays and timeouts.</param>
+/// <param name="queueName">The name of the queue the consumer consumes.</param>
+/// <param name="prepareAsync">Runs on every new channel before the consumer consumes, or <c>null</c>.</param>
+/// <param name="messageHandler">Handles one delivered message.</param>
+/// <param name="maxPrefetch">The largest number of unacknowledged messages the broker delivers.</param>
+/// <param name="maxConcurrency">The largest number of messages that are handled at the same time.</param>
+/// <param name="onStopped">Called on each stop of the consumer, after the stop ended.</param>
+internal sealed class RabbitMQConsumer(
+    RabbitMQConnectionManager connections,
+    RabbitMQConsumerLogger logger,
+    RabbitMQConsumerManagerOptions options,
+    TimeProvider timeProvider,
+    string queueName,
+    Func<IConnection, IChannel, CancellationToken, Task>? prepareAsync,
+    Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
+    ushort maxPrefetch,
+    ushort maxConcurrency,
+    Action<RabbitMQConsumer> onStopped) : IAsyncDisposable
 {
-    private static readonly CancellationToken s_noDrain = new(canceled: true);
-
-    private static readonly CreateChannelOptions s_channelOptions = new(
-        publisherConfirmationsEnabled: false,
-        publisherConfirmationTrackingEnabled: false,
-        consumerDispatchConcurrency: 1);
-
-    private readonly RabbitMQConsumerManager _manager;
-    private readonly Func<IConnection, IChannel, CancellationToken, Task>? _prepareAsync;
-    private readonly Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> _messageHandler;
+    private readonly RabbitMQDeliveryDispatcher _dispatcher = new(maxConcurrency, messageHandler, logger, queueName);
 
     /// <summary>
-    /// Ends the lifecycle task.
+    /// Ends every wait of the lifecycle task.
     /// </summary>
     private readonly CancellationTokenSource _stopRequested = new();
 
@@ -33,97 +42,44 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
     /// </summary>
     private readonly CancellationTokenSource _drainDeadline = new();
 
-    /// <summary>
-    /// One queue for the lifetime of the consumer. Every delivery names the attachment it arrived on.
-    /// </summary>
-    private readonly Channel<Delivery> _deliveries = System.Threading.Channels.Channel.CreateUnbounded<Delivery>();
+    private readonly TaskCompletionSource _startup = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     /// <summary>
-    /// One permit per concurrent handler. A handler holds its permit until it returns, also after its
-    /// channel was lost.
+    /// The lifecycle task, or <c>null</c> until <see cref="Start"/> was called.
     /// </summary>
-    private readonly SemaphoreSlim _slots;
-
-    private readonly TaskCompletionSource<Exception?> _firstAttempt = new(
-        TaskCreationOptions.RunContinuationsAsynchronously);
-    private readonly object _stopSync = new();
-    private readonly Task _lifecycle;
-    private readonly Task _workers;
+    private volatile Task? _lifecycle;
 
     /// <summary>
-    /// Written by the lifecycle task, and by the stop after the lifecycle task ended.
+    /// Set only while the state is <see cref="ConsumerState.Attached"/>.
     /// </summary>
-    private volatile Attachment? _attachment;
+    private volatile RabbitMQConsumerAttachment? _current;
+
     private volatile ConsumerState _state;
-
-    /// <summary>
-    /// Completed and replaced on every change of the state.
-    /// </summary>
-    private TaskCompletionSource _stateChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    private Task? _stopTask;
-    private bool _wasAttached;
-
-    public RabbitMQConsumer(
-        RabbitMQConsumerManager manager,
-        string queueName,
-        Func<IConnection, IChannel, CancellationToken, Task>? prepareAsync,
-        Func<IChannel, BasicDeliverEventArgs, CancellationToken, ValueTask> messageHandler,
-        ushort maxPrefetch,
-        ushort maxConcurrency)
-    {
-        _manager = manager;
-        _prepareAsync = prepareAsync;
-        _messageHandler = messageHandler;
-        QueueName = queueName;
-        MaxPrefetch = maxPrefetch;
-        MaxConcurrency = maxConcurrency;
-        _slots = new SemaphoreSlim(maxConcurrency, maxConcurrency);
-
-        var workers = new Task[maxConcurrency];
-        for (var i = 0; i < workers.Length; i++)
-        {
-            workers[i] = Task.Run(WorkAsync);
-        }
-
-        _workers = Task.WhenAll(workers);
-        _lifecycle = Task.Run(RunAsync);
-    }
 
     /// <summary>
     /// Gets the name of the queue the consumer consumes.
     /// </summary>
-    public string QueueName { get; }
+    public string QueueName => queueName;
 
     /// <summary>
     /// Gets the largest number of unacknowledged messages the broker delivers to the consumer.
     /// </summary>
-    public ushort MaxPrefetch { get; }
+    public ushort MaxPrefetch => maxPrefetch;
 
     /// <summary>
     /// Gets the largest number of messages that are handled at the same time.
     /// </summary>
-    public ushort MaxConcurrency { get; }
-
-    /// <summary>
-    /// Gets the consumer tag the broker assigned, or <c>null</c> while the consumer is not attached.
-    /// </summary>
-    public string? ConsumerTag => _attachment?.Tag;
-
-    /// <summary>
-    /// Gets the channel the consumer receives deliveries on, or <c>null</c> while it is not attached.
-    /// </summary>
-    public IChannel? Channel => _attachment?.Channel;
+    public ushort MaxConcurrency => maxConcurrency;
 
     /// <summary>
     /// Gets whether the consumer is attached to an open channel and the broker delivers to it.
     /// </summary>
-    public bool IsAttached
-        => _state is ConsumerState.Attached && _attachment is { IsLost: false, Channel.IsOpen: true };
+    public bool IsAttached => _state is ConsumerState.Attached && _current is { IsLost: false, Channel.IsOpen: true };
 
     /// <summary>
     /// Gets the number of handlers that have not returned, including cancelled handlers of a lost channel.
     /// </summary>
-    public int RunningHandlers => Math.Max(0, MaxConcurrency - _slots.CurrentCount);
+    public int RunningHandlers => _dispatcher.RunningCount;
 
     /// <summary>
     /// Gets the state of the consumer.
@@ -131,230 +87,340 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
     public ConsumerState State => _state;
 
     /// <summary>
-    /// Gets a task that completes after the first attempt to attach: with <c>null</c> when the consumer
-    /// attached or no connection was ready, and with the failure when the attempt failed.
+    /// Gets a task that completes after the first attempt to attach, or as soon as the consumer must wait for
+    /// a connection. It faults when the first attempt fails in a way that repeats on every attempt, or when
+    /// the consumer fails unexpectedly before that.
     /// </summary>
-    public Task<Exception?> FirstAttempt => _firstAttempt.Task;
+    public Task Startup => _startup.Task;
 
     /// <summary>
-    /// Waits until the consumer is attached. Fails when the consumer is stopped.
+    /// Starts the workers and the lifecycle task. Call it one time, after the consumer is registered.
     /// </summary>
-    public ValueTask WaitUntilAttachedAsync(CancellationToken cancellationToken)
+    public void Start()
     {
-        return IsAttached ? ValueTask.CompletedTask : WaitAsync(cancellationToken);
-
-        async ValueTask WaitAsync(CancellationToken cancellationToken)
-        {
-            while (true)
-            {
-                // Read before the state, so a change after the check below completes this task.
-                var changed = Volatile.Read(ref _stateChanged).Task;
-                if (IsAttached)
-                {
-                    return;
-                }
-
-                if (_state == ConsumerState.Stopped)
-                {
-                    throw ThrowHelper.ConsumerStopped(QueueName);
-                }
-
-                await changed.WaitAsync(cancellationToken);
-            }
-        }
-    }
-
-    private void SetState(ConsumerState state)
-    {
-        _state = state;
-        Interlocked
-            .Exchange(ref _stateChanged, new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously))
-            .TrySetResult();
+        _dispatcher.Start();
+        _lifecycle = Task.Run(RunAsync);
     }
 
     private async Task RunAsync()
     {
         var stop = _stopRequested.Token;
-        var connections = _manager.Connection;
-        var timeProvider = _manager.TimeProvider;
-        var logger = _manager.Logger;
-        var options = _manager.Options;
         var detachedSince = timeProvider.GetTimestamp();
         var attempt = 0;
+        var wasAttached = false;
 
         try
         {
             while (true)
             {
-                SetState(ConsumerState.WaitingForConnection);
-                if (!connections.IsConnected)
+                _state = ConsumerState.WaitingForConnection;
+                // The queue can still hold deliveries of the last channel. That channel is closed, so the broker
+                // delivers them again. Without the discard, their buffers stay rented while every worker is busy.
+                _dispatcher.DiscardQueued();
+
+                var getting = connections.GetConnectionAsync(stop);
+                if (!getting.IsCompleted)
                 {
-                    // A registration does not wait for an outage to end.
-                    _firstAttempt.TrySetResult(null);
+                    // An endpoint must start during a broker outage and attach later. So the registration must not
+                    // wait for a connection.
+                    _startup.TrySetResult();
                 }
 
-                IConnection connection;
-                Attachment attachment;
+                var connection = await getting;
+
+                // The broker does not answer requests on a connection it blocked for a memory or disk alarm.
+                // An attach there would only time out.
+                await connections.WaitWhileBlockedAsync(stop);
+
+                RabbitMQConsumerAttachment attachment;
                 try
                 {
-                    connection = await connections.GetConnectionAsync(stop);
-                    SetState(ConsumerState.Attaching);
-                    attachment = await AttachAsync(connection, stop);
+                    attachment = await AttachAsync(connection);
                 }
-                catch (Exception ex) when (!stop.IsCancellationRequested)
+                catch (Exception ex)
                 {
+                    // A failure that comes with a stop ends the loop as a stop, so the drain runs. It is not a
+                    // failed attempt.
+                    stop.ThrowIfCancellationRequested();
+
+                    // On the first attempt, a failure that repeats on every attempt fails the registration, such as
+                    // a queue that exists with other arguments. The caller disposes the consumer, so a retry has no
+                    // purpose.
+                    if (ex.IsPermanentFailure() && _startup.TrySetException(ex))
+                    {
+                        return;
+                    }
+
                     attempt++;
-                    var delay = ExponentialBackoff.CalculateDelay(
+                    var retryDelay = ExponentialBackoff.CalculateDelay(
                         attempt,
                         options.InitialRetryDelay,
                         options.MaxRetryDelay);
 
-                    // A first attempt that fails the same way every time fails the registration, which reports it.
-                    if (!_firstAttempt.TrySetResult(ex) || !ex.IsPermanentFailure())
-                    {
-                        logger.ConsumerAttachFailed(
-                            ex,
-                            QueueName,
-                            attempt,
-                            timeProvider.GetElapsedTime(detachedSince),
-                            delay);
-                    }
+                    // The registration returns this consumer, which keeps trying in the background.
+                    _startup.TrySetResult();
+                    _state = ConsumerState.WaitingForConnection;
+                    logger.ConsumerAttachFailed(this, ex, attempt, detachedSince, retryDelay);
 
-                    await Task.Delay(delay, timeProvider, stop);
+                    await Task.Delay(retryDelay, timeProvider, stop);
                     continue;
                 }
 
-                _attachment = attachment;
-                _wasAttached = true;
-                SetState(ConsumerState.Attached);
-                _firstAttempt.TrySetResult(null);
-                logger.ConsumerAttached(
-                    attachment.Tag,
-                    QueueName,
-                    timeProvider.GetElapsedTime(detachedSince),
-                    MaxPrefetch,
-                    MaxConcurrency);
+                var attachedAt = timeProvider.GetTimestamp();
+                wasAttached = true;
+                _current = attachment;
+                _state = ConsumerState.Attached;
+                _startup.TrySetResult();
+                logger.ConsumerAttached(this, attachment, detachedSince);
 
-                // Completes on a channel shutdown and on a cancel by the broker, also when either came first.
+                // Completes when the channel shuts down or the broker cancels the consumer, for example when its
+                // queue is deleted.
                 var reason = await attachment.Lost.WaitAsync(stop);
 
                 detachedSince = timeProvider.GetTimestamp();
-                _attachment = null;
-                SetState(ConsumerState.WaitingForConnection);
-                var cancelledHandlers = RunningHandlers;
-                attachment.CancelHandlers();
+                _current = null;
+                _state = ConsumerState.WaitingForConnection;
 
                 // An attachment that did not last counts as a failed attempt, so a consumer that the broker
                 // keeps cancelling backs off.
                 attempt =
-                    timeProvider.GetElapsedTime(attachment.AttachedAt, detachedSince) < options.InitialRetryDelay
+                    timeProvider.GetElapsedTime(attachedAt, detachedSince) < options.InitialRetryDelay
                         ? attempt + 1
                         : 0;
-                var backoff =
+                var delay =
                     attempt > 0
                         ? ExponentialBackoff.CalculateDelay(attempt, options.InitialRetryDelay, options.MaxRetryDelay)
                         : TimeSpan.Zero;
-                logger.ConsumerLost(
-                    QueueName,
-                    reason,
-                    cancelledHandlers,
-                    isConnectionLost: !connection.IsOpen,
-                    backoff);
-                await _manager.Connection.CloseChannelAsync(attachment.Channel);
+                logger.ConsumerLost(this, reason, isConnectionLost: !connection.IsOpen, delay);
 
-                if (attempt > 0)
-                {
-                    await Task.Delay(backoff, timeProvider, stop);
-                }
+                // Closing the channel returns its unacknowledged messages to the queue.
+                await attachment.CloseAsync();
+                await Task.Delay(delay, timeProvider, stop);
             }
         }
-        catch (Exception) when (stop.IsCancellationRequested)
+        catch (OperationCanceledException) when (stop.IsCancellationRequested)
         {
-            // The stop takes over. A registration that still waits for the first attempt ends with it.
-            _firstAttempt.TrySetResult(null);
+            await DrainAsync(wasAttached);
         }
         catch (Exception ex)
         {
-            _firstAttempt.TrySetResult(ex);
-            SetState(ConsumerState.Stopped);
+            _startup.TrySetException(ex);
+
+            // A disposed connection manager is the cause of the failure, and the disposal is not an error.
             if (!connections.IsDisposed)
             {
-                logger.ConsumerFailed(ex, QueueName);
+                logger.ConsumerFailed(this, ex);
             }
+        }
+        finally
+        {
+            _startup.TrySetResult();
+
+            // An unexpected failure leaves the attachment in this field. Cancel its handlers and close it.
+            var attachment = _current;
+            _current = null;
+            if (attachment is not null)
+            {
+                attachment.CancelHandlers();
+                await attachment.CloseAsync();
+            }
+
+            _dispatcher.Complete();
+
+            // Stopped is final. The consumer stays in the registry, so the health check still reports it.
+            _state = ConsumerState.Stopped;
         }
     }
 
     /// <summary>
-    /// Opens a channel, prepares it, waits for a free handler slot and starts consuming. The attach timeout
-    /// bounds the whole attempt, without the wait for a handler slot.
+    /// Ends the current attachment after a stop. Waits for running handlers until the drain deadline passes,
+    /// then cancels the handlers that still run and closes the channel.
     /// </summary>
-    private async Task<Attachment> AttachAsync(IConnection connection, CancellationToken stop)
+    private async Task DrainAsync(bool wasAttached)
     {
-        var connections = _manager.Connection;
-        var timeProvider = _manager.TimeProvider;
-        var timeout = _manager.Options.AttachTimeout;
+        var stopStarted = timeProvider.GetTimestamp();
+        var drainToken = _drainDeadline.Token;
+        var attachment = _current;
 
-        // The broker does not answer on a connection it blocked.
-        await connections.WaitWhileBlockedAsync(stop);
+        // The health check does not report an attachment during the drain.
+        _current = null;
 
-        var attemptStarted = timeProvider.GetTimestamp();
-        var opening = connections.OpenChannelAsync(connection, s_channelOptions, timeout);
-        IChannel channel;
+        // A stop whose token is already cancelled, such as a disposal, does not wait for handlers.
+        var waitsForHandlers = !drainToken.IsCancellationRequested;
+        if (waitsForHandlers && RunningHandlers > 0)
+        {
+            logger.ConsumerDrainStarted(this);
+        }
+
+        if (attachment is { IsLost: false, Channel.IsOpen: true })
+        {
+            try
+            {
+                // Asks the broker to stop delivering. Running handlers can still acknowledge on the open
+                // channel. Deliveries that arrive during this call are still accepted.
+                await attachment.CancelAsync(drainToken);
+            }
+            catch
+            {
+                // The channel is closed below.
+            }
+        }
+        else
+        {
+            // The client closes a channel before it raises the shutdown, so nobody else cancels the
+            // handlers in that gap.
+            attachment?.CancelHandlers();
+        }
+
+        // Retire before the wait reads the count. A worker checks the flag and counts its handler under one
+        // lock, so either the wait sees the handler or the worker skips the delivery.
+        attachment?.Retire();
         try
         {
-            channel = await opening.WaitAsync(stop);
+            // The wait also covers handlers of older channels. They hold a worker until they return.
+            var idle = _dispatcher.WaitForIdleAsync(drainToken);
+            if (attachment is not null)
+            {
+                // Waiting for the loss only writes the log entry. A lost channel cancels its handlers, and the
+                // wait for idle goes on.
+                await Task.WhenAny(idle, attachment.Lost);
+                if (!idle.IsCompleted && RunningHandlers > 0)
+                {
+                    logger.ConsumerChannelLostWhileStopping(this, await attachment.Lost);
+                }
+            }
+
+            await idle;
         }
-        catch (OperationCanceledException) when (stop.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
-            // The consumer was stopped. The channel is closed once it is open.
-            _ = CloseWhenOpenedAsync(opening);
-            throw;
+            if (RunningHandlers > 0)
+            {
+                if (waitsForHandlers)
+                {
+                    logger.ConsumerDrainTimedOut(this, stopStarted);
+                }
+                else
+                {
+                    logger.ConsumerHandlersCancelled(this);
+                }
+            }
+
+            // At the deadline, cancel the handlers that still run. Their messages return to the queue when
+            // the channel closes.
+            attachment?.CancelHandlers();
         }
 
-        var attachment = new Attachment(this, channel);
+        if (attachment is not null)
+        {
+            await attachment.CloseAsync();
+        }
+
+        // A consumer that never attached writes no "stopped" entry.
+        if (wasAttached)
+        {
+            logger.ConsumerStopped(this, stopStarted);
+        }
+    }
+
+    /// <summary>
+    /// Opens a channel, prepares it, waits for a free handler and starts consuming. The attach timeout
+    /// bounds the whole attempt, without the wait for a handler.
+    /// </summary>
+    private async Task<RabbitMQConsumerAttachment> AttachAsync(IConnection connection)
+    {
+        var stop = _stopRequested.Token;
+        var timeout = options.AttachTimeout;
+        var started = timeProvider.GetTimestamp();
         using var attachCts = CancellationTokenSource.CreateLinkedTokenSource(stop);
         var attachToken = attachCts.Token;
+
+        RabbitMQConsumerAttachment? attachment = null;
         try
         {
-            channel.ChannelShutdownAsync += attachment.OnChannelShutdownAsync;
+            _state = ConsumerState.Attaching;
 
-            // What the open left of the timeout bounds the requests that follow.
-            attachCts.CancelAfter(GetRemaining(timeout, timeProvider.GetElapsedTime(attemptStarted)));
-            if (_prepareAsync is not null)
+            // The connection manager bounds the open with the same timeout. A second timer would race it and
+            // hide its error, such as a blocked connection.
+            attachment = await RabbitMQConsumerAttachment.OpenAsync(
+                connections,
+                connection,
+                logger,
+                QueueName,
+                _dispatcher,
+                timeout,
+                stop);
+
+            attachCts.CancelAfter(GetRemaining(timeout, timeProvider.GetElapsedTime(started)));
+            if (prepareAsync is not null)
             {
-                await _prepareAsync(connection, channel, attachToken).WaitOrAbandonAsync(attachToken);
+                await attachment.PrepareAsync(connection, prepareAsync, attachToken);
             }
 
             // The queue and its bindings exist from here on, also while the consumer waits for a handler.
             // That wait does not count against the timeout.
             attachCts.CancelAfter(Timeout.InfiniteTimeSpan);
-            var used = timeProvider.GetElapsedTime(attemptStarted);
-            await WaitForFreeSlotAsync(stop);
+            var used = timeProvider.GetElapsedTime(started);
 
+            // Handlers of a lost channel keep running, and a new attachment needs one free handler. The wait
+            // also ends when this channel is lost. For an exclusive queue, the broker deletes the queue with
+            // its connection. The next attempt declares the queue again instead of waiting for a stuck handler.
+            using var waitCts = CancellationTokenSource.CreateLinkedTokenSource(stop, attachment.HandlerToken);
+            var capacity = _dispatcher.WaitForCapacityAsync(waitCts.Token);
+            if (!capacity.IsCompletedSuccessfully)
+            {
+                _state = ConsumerState.WaitingForHandlers;
+
+                // The handlers were cancelled when their channel was lost. Only a handler that ignores the
+                // cancellation is still running after the grace period.
+                var gracePeriod = options.BlockedGracePeriod;
+                try
+                {
+                    try
+                    {
+                        await capacity.WaitAsync(gracePeriod, timeProvider);
+                    }
+                    catch (TimeoutException)
+                    {
+                        var blockedSince = timeProvider.GetTimestamp();
+                        logger.ConsumerBlockedByHandlers(this, gracePeriod);
+
+                        await capacity;
+                        logger.ConsumerUnblocked(this, blockedSince, gracePeriod);
+                    }
+                }
+                catch (OperationCanceledException) when (!stop.IsCancellationRequested)
+                {
+                    // The wait is cancelled when this channel is lost. A cancel that is not from stop fails the
+                    // attempt.
+                    throw ThrowHelper.ConsumerChannelLostWhileWaiting(QueueName, await attachment.Lost);
+                }
+
+                _state = ConsumerState.Attaching;
+            }
+
+            // Subscribing comes after the wait, because a subscription without a free handler takes deliveries
+            // it cannot run. For a quorum queue, each such delivery uses up the delivery limit of the message.
             attachCts.CancelAfter(GetRemaining(timeout, used));
-            await channel
-                .BasicQosAsync(prefetchSize: 0, prefetchCount: MaxPrefetch, global: false, attachToken)
-                .WaitOrAbandonAsync(attachToken);
-
-            attachment.AttachedAt = timeProvider.GetTimestamp();
-            attachment.Tag = await channel
-                .BasicConsumeAsync(QueueName, autoAck: false, consumer: attachment, attachToken)
-                .WaitOrAbandonAsync(attachToken);
-
+            await attachment.SubscribeAsync(MaxPrefetch, attachToken);
             return attachment;
         }
         catch (Exception ex)
         {
-            // A request may still be in flight, so the channel is closed without waiting for it.
-            attachment.StopAccepting();
-            _ = _manager.Connection.CloseChannelAsync(channel);
+            if (attachment is not null)
+            {
+                // A request may still be in flight, so the channel is closed without waiting for it.
+                attachment.CancelHandlers();
+                _ = attachment.CloseAsync();
+            }
 
             if (ex is not OperationCanceledException || stop.IsCancellationRequested)
             {
                 throw;
             }
 
-            // Without the timeout the client's own timeout for a request ended the attempt.
+            // A cancel that is not from stop is a timeout. It is either the attach timer or the client's own
+            // request timeout.
             throw attachCts.IsCancellationRequested
                 ? ThrowHelper.ConsumerAttachTimedOut(QueueName, timeout)
                 : ThrowHelper.ConsumerAttachRequestTimedOut(QueueName, ex);
@@ -365,374 +431,38 @@ internal sealed class RabbitMQConsumer : IAsyncDisposable
         => timeout == Timeout.InfiniteTimeSpan ? timeout
         : used < timeout ? timeout - used : TimeSpan.Zero;
 
-    private async Task CloseWhenOpenedAsync(Task<IChannel> opening)
-    {
-        try
-        {
-            await _manager.Connection.CloseChannelAsync(await opening);
-        }
-        catch
-        {
-            // The channel could not be opened.
-        }
-    }
-
-    /// <summary>
-    /// Waits until at least one handler slot is free. Handlers of a lost channel keep their slot until they
-    /// return, and a new attachment needs one free slot.
-    /// </summary>
-    private async ValueTask WaitForFreeSlotAsync(CancellationToken stop)
-    {
-        if (_slots.CurrentCount > 0)
-        {
-            return;
-        }
-
-        SetState(ConsumerState.WaitingForHandlers);
-
-        // The handlers were cancelled when their channel was lost. Only a handler that ignores the
-        // cancellation is still running after the grace period.
-        var gracePeriod = _manager.Options.BlockedGracePeriod;
-        if (!await _slots.WaitAsync(gracePeriod, stop))
-        {
-            var blockedSince = _manager.TimeProvider.GetTimestamp();
-            _manager.Logger.ConsumerBlockedByHandlers(QueueName, MaxConcurrency, gracePeriod);
-
-            await _slots.WaitAsync(stop);
-
-            _manager.Logger.ConsumerUnblocked(
-                QueueName,
-                _manager.TimeProvider.GetElapsedTime(blockedSince) + gracePeriod);
-        }
-
-        _slots.Release();
-        SetState(ConsumerState.Attaching);
-    }
-
-    private async Task WorkAsync()
-    {
-        var reader = _deliveries.Reader;
-        while (await reader.WaitToReadAsync())
-        {
-            while (reader.TryRead(out var delivery))
-            {
-                try
-                {
-                    // What a lost or stopping attachment left in the queue is skipped. The broker delivers
-                    // it again once the channel is closed.
-                    var attachment = delivery.Attachment;
-                    if (!attachment.IsAccepting)
-                    {
-                        continue;
-                    }
-
-                    await _slots.WaitAsync();
-                    try
-                    {
-                        await _messageHandler(attachment.Channel, delivery.EventArgs, attachment.HandlerToken);
-                    }
-                    catch (OperationCanceledException) when (attachment.HandlerToken.IsCancellationRequested)
-                    {
-                        // The channel was lost or the stop stopped waiting.
-                    }
-                    catch (Exception ex)
-                    {
-                        _manager.Logger.DeliveryFailed(ex, QueueName, delivery.EventArgs);
-                    }
-                    finally
-                    {
-                        _slots.Release();
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(delivery.Buffer);
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// Stops consuming and waits for running handlers until <paramref name="drainToken"/> is cancelled, then
     /// cancels the handlers that still run and closes the channel. Handlers are cancelled at once when their
     /// channel is lost, and closing the channel does not depend on the token.
     /// </summary>
-    public Task StopAsync(CancellationToken drainToken)
+    public async Task StopAsync(CancellationToken drainToken)
     {
-        Task stopTask;
-        lock (_stopSync)
-        {
-            if (_stopTask is null && drainToken.IsCancellationRequested)
-            {
-                // The stop knows from its first step that it does not wait for handlers.
-                _drainDeadline.Cancel();
-            }
-
-            stopTask = _stopTask ??= StopCoreAsync();
-        }
-
-        return stopTask.IsCompleted ? stopTask : WaitForStopAsync(stopTask, drainToken);
-    }
-
-    private async Task WaitForStopAsync(Task stopTask, CancellationToken drainToken)
-    {
-        // The token of any caller ends the wait for running handlers.
+        // The token of each caller can end the wait for running handlers. A later caller with a shorter
+        // token shortens the drain.
         await using var registration = drainToken.UnsafeRegister(
             static state => ((CancellationTokenSource)state!).Cancel(),
             _drainDeadline);
 
-        await stopTask;
-    }
-
-    private async Task StopCoreAsync()
-    {
-        // Leaves the caller's lock.
-        await Task.Yield();
-
-        var logger = _manager.Logger;
-        var started = _manager.TimeProvider.GetTimestamp();
-        var drainToken = _drainDeadline.Token;
-
         await _stopRequested.CancelAsync();
-        await _lifecycle;
-
-        // From here on this method owns the attachment.
-        var attachment = _attachment;
-        _attachment = null;
-
-        // A stop whose token is already cancelled, such as a disposal, does not wait for handlers.
-        var waitsForHandlers = !drainToken.IsCancellationRequested;
-        if (waitsForHandlers && RunningHandlers > 0)
-        {
-            logger.ConsumerDrainStarted(QueueName, RunningHandlers);
-        }
-
-        // The attachment whose channel is open, so that its handlers can still settle their messages.
-        Attachment? settling = null;
-        if (attachment is not null)
-        {
-            if (attachment is { IsLost: false, Channel.IsOpen: true })
-            {
-                try
-                {
-                    // The broker stops delivering. Handlers that run settle their messages on the open channel.
-                    await attachment
-                        .Channel.BasicCancelAsync(attachment.Tag, noWait: false, drainToken)
-                        .WaitOrAbandonAsync(drainToken);
-                }
-                catch
-                {
-                    // The channel is closed below.
-                }
-
-                attachment.StopAccepting();
-                settling = attachment;
-            }
-            else
-            {
-                // The channel is gone, so its handlers cannot settle their messages any more.
-                attachment.CancelHandlers();
-            }
-        }
-
-        // The workers finish the handlers they started, skip what is left in the queue, and end.
-        _deliveries.Writer.TryComplete();
         try
         {
-            if (settling is not null)
+            // A consumer that was not started has nothing to stop. A later start ends at once.
+            if (_lifecycle is { } lifecycle)
             {
-                // The handlers are cancelled as soon as their channel is lost, and the wait for them goes on.
-                await Task.WhenAny(_workers, settling.Lost).WaitAsync(drainToken);
-                if (!_workers.IsCompleted)
-                {
-                    var cancelledHandlers = RunningHandlers;
-                    settling.CancelHandlers();
-                    if (cancelledHandlers > 0)
-                    {
-                        logger.ConsumerChannelLostWhileStopping(QueueName, await settling.Lost, cancelledHandlers);
-                    }
-                }
+                await lifecycle;
             }
-
-            await _workers.WaitAsync(drainToken);
         }
-        catch (OperationCanceledException)
+        finally
         {
-            var runningHandlers = RunningHandlers;
-            if (runningHandlers > 0)
-            {
-                if (waitsForHandlers)
-                {
-                    logger.ConsumerDrainTimedOut(
-                        QueueName,
-                        runningHandlers,
-                        _manager.TimeProvider.GetElapsedTime(started));
-                }
-                else
-                {
-                    logger.ConsumerHandlersCancelled(QueueName, runningHandlers);
-                }
-            }
-
-            attachment?.CancelHandlers();
-        }
-
-        if (attachment is not null)
-        {
-            await _manager.Connection.CloseChannelAsync(attachment.Channel);
-        }
-
-        SetState(ConsumerState.Stopped);
-        _manager.Remove(this);
-
-        if (_wasAttached)
-        {
-            logger.ConsumerStopped(QueueName, _manager.TimeProvider.GetElapsedTime(started), RunningHandlers);
+            // Removes the consumer from the registry of the manager. Each stop call runs this, so the removal
+            // is safe to repeat.
+            onStopped(this);
         }
     }
 
     /// <summary>
     /// Stops consuming, cancels running handlers without waiting for them, and closes the channel.
     /// </summary>
-    public async ValueTask DisposeAsync() => await StopAsync(s_noDrain);
-
-    private readonly record struct Delivery(Attachment Attachment, BasicDeliverEventArgs EventArgs, byte[] Buffer);
-
-    /// <summary>
-    /// The broker-side consumer on one channel. A lost attachment is never used again.
-    /// </summary>
-    private sealed class Attachment : AsyncDefaultBasicConsumer
-    {
-        /// <summary>
-        /// Cancels the handlers of this attachment. It is never disposed, because it has no timer and is not
-        /// linked.
-        /// </summary>
-        private readonly CancellationTokenSource _handlers = new();
-        private readonly TaskCompletionSource<ShutdownEventArgs?> _lost = new(
-            TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly RabbitMQConsumer _owner;
-        private volatile bool _isAccepting = true;
-
-        public Attachment(RabbitMQConsumer owner, IChannel channel) : base(channel)
-        {
-            _owner = owner;
-            HandlerToken = _handlers.Token;
-        }
-
-        /// <summary>
-        /// Gets or sets the consumer tag the broker assigned.
-        /// </summary>
-        public string Tag { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets the timestamp at which consuming was requested.
-        /// </summary>
-        public long AttachedAt { get; set; }
-
-        /// <summary>
-        /// Gets a task that completes when the channel shut down, with the reason, or when the broker
-        /// cancelled the consumer, with <c>null</c>.
-        /// </summary>
-        public Task<ShutdownEventArgs?> Lost => _lost.Task;
-
-        /// <summary>
-        /// Gets whether the channel shut down or the broker cancelled the consumer.
-        /// </summary>
-        public bool IsLost => _lost.Task.IsCompleted;
-
-        /// <summary>
-        /// Gets the token that is cancelled for the handlers of this attachment.
-        /// </summary>
-        public CancellationToken HandlerToken { get; }
-
-        /// <summary>
-        /// Gets whether handlers may still start for deliveries of this attachment.
-        /// </summary>
-        public bool IsAccepting => _isAccepting;
-
-        public override Task HandleBasicDeliverAsync(
-            string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IReadOnlyBasicProperties properties,
-            ReadOnlyMemory<byte> body,
-            CancellationToken cancellationToken = default)
-        {
-            if (!_isAccepting)
-            {
-                // The broker delivers the message again once the channel is closed.
-                return Task.CompletedTask;
-            }
-
-            // The client returns the body's buffer to its pool once this callback returns.
-            var buffer = ArrayPool<byte>.Shared.Rent(body.Length);
-            body.CopyTo(buffer);
-
-            var eventArgs = new BasicDeliverEventArgs(
-                consumerTag,
-                deliveryTag,
-                redelivered,
-                exchange,
-                routingKey,
-                properties,
-                buffer.AsMemory(0, body.Length),
-                HandlerToken);
-
-            if (!_owner._deliveries.Writer.TryWrite(new Delivery(this, eventArgs, buffer)))
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public override async Task HandleBasicCancelAsync(
-            string consumerTag,
-            CancellationToken cancellationToken = default)
-        {
-            await base.HandleBasicCancelAsync(consumerTag, cancellationToken);
-            OnLost(reason: null);
-        }
-
-        public Task OnChannelShutdownAsync(object? _, ShutdownEventArgs reason)
-        {
-            OnLost(reason);
-            return Task.CompletedTask;
-        }
-
-        private void OnLost(ShutdownEventArgs? reason)
-        {
-            _isAccepting = false;
-            _lost.TrySetResult(reason);
-        }
-
-        /// <summary>
-        /// Stops starting handlers for deliveries of this attachment.
-        /// </summary>
-        public void StopAccepting() => _isAccepting = false;
-
-        /// <summary>
-        /// Stops starting handlers and cancels the handlers that run.
-        /// </summary>
-        public void CancelHandlers()
-        {
-            _isAccepting = false;
-            _ = CancelHandlersAsync();
-        }
-
-        private async Task CancelHandlersAsync()
-        {
-            try
-            {
-                // The callbacks of handlers run on the thread pool, not on the caller.
-                await _handlers.CancelAsync();
-            }
-            catch (Exception ex)
-            {
-                _owner._manager.Logger.HandlerCancellationFailed(ex, _owner.QueueName);
-            }
-        }
-    }
+    public async ValueTask DisposeAsync() => await StopAsync(new CancellationToken(canceled: true));
 }

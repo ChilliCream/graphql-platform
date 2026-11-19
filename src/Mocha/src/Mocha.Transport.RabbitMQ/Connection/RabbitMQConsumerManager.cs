@@ -102,7 +102,8 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     /// reason that a later attempt can overcome.
     /// </returns>
     /// <exception cref="Exception">
-    /// The first attempt failed for a reason that repeats on every attempt. The consumer is stopped.
+    /// The first attempt failed for a reason that repeats on every attempt, or the consumer failed
+    /// unexpectedly. The consumer is stopped.
     /// </exception>
     internal async Task<RabbitMQConsumer> RegisterConsumerAsync(
         string queueName,
@@ -116,8 +117,19 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentOutOfRangeException.ThrowIfZero(maxConcurrency);
 
-        var consumer = new RabbitMQConsumer(this, queueName, prepareAsync, messageHandler, maxPrefetch, maxConcurrency);
+        var consumer = new RabbitMQConsumer(
+            _connection,
+            Logger,
+            Options,
+            TimeProvider,
+            queueName,
+            prepareAsync,
+            messageHandler,
+            maxPrefetch,
+            maxConcurrency,
+            Remove);
         ImmutableInterlocked.Update(ref _consumers, static (consumers, added) => consumers.Add(added), consumer);
+        consumer.Start();
 
         if (_isDisposed)
         {
@@ -125,21 +137,25 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
             ObjectDisposedException.ThrowIf(_isDisposed, this);
         }
 
-        Exception? failure;
+        Exception? failure = null;
         try
         {
-            failure = await consumer.FirstAttempt.WaitAsync(cancellationToken);
+            await consumer.Startup.WaitAsync(cancellationToken);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             await consumer.DisposeAsync();
             throw;
+        }
+        catch (Exception ex)
+        {
+            failure = ex;
         }
 
         // The disposal of the manager stopped the consumer while it attached.
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        if (failure?.IsPermanentFailure() is true)
+        if (failure is not null)
         {
             Logger.ConsumerRegistrationFailed(failure, queueName);
 
@@ -169,9 +185,10 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
 
         // A cancelled open would cost the connection a channel number, so the open runs to its end.
         var opening = _connection.OpenChannelAsync(connection, s_probeChannelOptions, Options.AttachTimeout);
+        IChannel? channel = null;
         try
         {
-            var channel = await opening.WaitOrAbandonAsync(deadlineToken);
+            channel = await opening.WaitOrAbandonAsync(deadlineToken);
             try
             {
                 await channel
@@ -185,10 +202,10 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
         }
         catch (OperationCanceledException ex) when (deadlineToken.IsCancellationRequested)
         {
-            if (!opening.IsCompleted)
+            if (channel is null)
             {
-                // A channel that still opens is closed.
-                _ = CloseWhenOpenedAsync(opening);
+                // A channel that this method did not get is closed once it is open.
+                _ = opening.CloseWhenOpenedAsync(_connection);
             }
 
             LogQueueDeleteFailed(ThrowHelper.QueueDeleteTimedOut(queueName, timeout, ex), queueName);
@@ -202,18 +219,6 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     private void LogQueueDeleteFailed(Exception exception, string queueName)
     {
         Logger.QueueDeleteFailed(exception, queueName);
-    }
-
-    private async Task CloseWhenOpenedAsync(Task<IChannel> opening)
-    {
-        try
-        {
-            await _connection.CloseChannelAsync(await opening);
-        }
-        catch
-        {
-            // The channel could not be opened.
-        }
     }
 
     internal void Remove(RabbitMQConsumer consumer)

@@ -46,4 +46,23 @@ internal static class RabbitMQChannelExtensions
             }
         }
     }
+
+    extension(Task<IChannel> opening)
+    {
+        /// <summary>
+        /// Closes the channel once the open completes. Does nothing when the open fails.
+        /// </summary>
+        /// <param name="connections">The manager that closes the channel.</param>
+        public async Task CloseWhenOpenedAsync(RabbitMQConnectionManager connections)
+        {
+            try
+            {
+                await connections.CloseChannelAsync(await opening);
+            }
+            catch
+            {
+                // The channel could not be opened.
+            }
+        }
+    }
 }

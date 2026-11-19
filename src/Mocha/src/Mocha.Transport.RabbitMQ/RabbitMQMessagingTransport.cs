@@ -117,7 +117,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                 Connection.VirtualHost));
 
         ConsumerManager = new RabbitMQConsumerManager(
-            new RabbitMQConsumerLogger(logger),
+            new RabbitMQConsumerLogger(logger, timeProvider),
             timeProvider,
             new RabbitMQConsumerManagerOptions(),
             new RabbitMQConnectionManager(

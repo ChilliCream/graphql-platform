@@ -22,17 +22,13 @@ internal static class ThrowHelper
     public static ObjectDisposedException ConnectionManagerDisposed()
         => new(typeof(RabbitMQConnectionManager).FullName);
 
-    public static InvalidOperationException ReplyEndpointNotStarted()
-        => new("The RabbitMQ reply endpoint is not started.");
-
-    public static Exception BeforeAndAfterConflict()
-        => Mocha.ThrowHelper.BeforeAndAfterConflict();
+    public static Exception BeforeAndAfterConflict() => Mocha.ThrowHelper.BeforeAndAfterConflict();
 
     public static Exception TemporaryEndpointQueueConflict(string queueName, string? endpointName)
         => new InvalidOperationException(
             $"Queue '{queueName}' is explicitly declared without auto-delete, which conflicts with "
-            + $"receive endpoint '{endpointName}' being marked Temporary(). Declare the queue with "
-            + "AutoDelete(), or remove Temporary() from the endpoint.");
+                + $"receive endpoint '{endpointName}' being marked Temporary(). Declare the queue with "
+                + "AutoDelete(), or remove Temporary() from the endpoint.");
 
     public static OperationInterruptedException ConnectionClosedDuringSetup(ShutdownEventArgs? reason)
         => reason is null ? new OperationInterruptedException() : new AlreadyClosedException(reason);
@@ -45,8 +41,14 @@ internal static class ThrowHelper
             $"The broker did not answer a request while the consumer for queue '{queueName}' attached.",
             innerException);
 
-    public static InvalidOperationException ConsumerStopped(string queueName)
-        => new($"The consumer for queue '{queueName}' is stopped.");
+    public static OperationInterruptedException ConsumerChannelLostWhileWaiting(
+        string queueName,
+        ShutdownEventArgs? reason)
+        => reason is null
+            ? new OperationInterruptedException()
+            : new OperationInterruptedException(
+                reason,
+                $"The channel of the consumer for queue '{queueName}' was lost while it waited for a handler.");
 
     public static TimeoutException ConnectionTimedOut(TimeSpan timeout, Exception innerException)
         => new($"Connecting to RabbitMQ did not complete within {timeout}.", innerException);

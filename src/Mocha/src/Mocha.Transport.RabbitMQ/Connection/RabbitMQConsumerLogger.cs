@@ -9,15 +9,29 @@ namespace Mocha.Transport.RabbitMQ;
 /// Writes the log entries about the consumers of one RabbitMQ connection.
 /// </summary>
 /// <param name="logger">The logger that receives the entries.</param>
-internal sealed partial class RabbitMQConsumerLogger(ILogger logger)
+/// <param name="timeProvider">The clock used for the elapsed times in the entries.</param>
+internal sealed partial class RabbitMQConsumerLogger(ILogger logger, TimeProvider timeProvider)
 {
-    public void ConsumerAttachFailed(Exception exception, string queue, int attempt, TimeSpan elapsed, TimeSpan delay)
+    public void ConsumerAttached(RabbitMQConsumer consumer, RabbitMQConsumerAttachment attachment, long detachedSince)
+        => ConsumerAttached(
+            attachment.Tag,
+            consumer.QueueName,
+            timeProvider.GetElapsedTime(detachedSince),
+            consumer.MaxPrefetch,
+            consumer.MaxConcurrency);
+
+    public void ConsumerAttachFailed(
+        RabbitMQConsumer consumer,
+        Exception exception,
+        int attempt,
+        long detachedSince,
+        TimeSpan delay)
         => ConsumerAttachFailed(
             exception,
             exception.IsPermanentFailure() ? LogLevel.Error : LogLevel.Warning,
-            queue,
+            consumer.QueueName,
             attempt,
-            elapsed,
+            timeProvider.GetElapsedTime(detachedSince),
             delay);
 
     /// <summary>
@@ -25,22 +39,22 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger)
     /// <paramref name="reason"/> is <c>null</c>.
     /// </summary>
     public void ConsumerLost(
-        string queue,
+        RabbitMQConsumer consumer,
         ShutdownEventArgs? reason,
-        int cancelledHandlers,
         bool isConnectionLost,
         TimeSpan delay)
     {
+        var cancelledHandlers = consumer.RunningHandlers;
         if (reason is null)
         {
-            ConsumerCancelled(queue, cancelledHandlers, delay);
+            ConsumerCancelled(consumer.QueueName, cancelledHandlers, delay);
             return;
         }
 
         // The loss of the connection has its own entry. This one adds what happened to running handlers.
         ConsumerChannelLost(
             isConnectionLost && cancelledHandlers == 0 ? LogLevel.Debug : LogLevel.Warning,
-            queue,
+            consumer.QueueName,
             reason.ReplyCode,
             reason.ReplyText,
             reason.Initiator,
@@ -48,13 +62,37 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger)
             delay);
     }
 
-    public void ConsumerChannelLostWhileStopping(string queue, ShutdownEventArgs? reason, int cancelledHandlers)
+    public void ConsumerChannelLostWhileStopping(RabbitMQConsumer consumer, ShutdownEventArgs? reason)
         => ConsumerChannelLostWhileStopping(
-            queue,
+            consumer.QueueName,
             reason?.ReplyCode ?? 0,
             reason?.ReplyText ?? "consumer cancelled by the broker",
             reason?.Initiator ?? ShutdownInitiator.Peer,
-            cancelledHandlers);
+            consumer.RunningHandlers);
+
+    public void ConsumerBlockedByHandlers(RabbitMQConsumer consumer, TimeSpan gracePeriod)
+        => ConsumerBlockedByHandlers(consumer.QueueName, consumer.MaxConcurrency, gracePeriod);
+
+    public void ConsumerUnblocked(RabbitMQConsumer consumer, long blockedSince, TimeSpan gracePeriod)
+        => ConsumerUnblocked(consumer.QueueName, timeProvider.GetElapsedTime(blockedSince) + gracePeriod);
+
+    public void ConsumerDrainStarted(RabbitMQConsumer consumer)
+        => ConsumerDrainStarted(consumer.QueueName, consumer.RunningHandlers);
+
+    public void ConsumerDrainTimedOut(RabbitMQConsumer consumer, long stopStarted)
+        => ConsumerDrainTimedOut(
+            consumer.QueueName,
+            consumer.RunningHandlers,
+            timeProvider.GetElapsedTime(stopStarted));
+
+    public void ConsumerHandlersCancelled(RabbitMQConsumer consumer)
+        => ConsumerHandlersCancelled(consumer.QueueName, consumer.RunningHandlers);
+
+    public void ConsumerStopped(RabbitMQConsumer consumer, long stopStarted)
+        => ConsumerStopped(consumer.QueueName, timeProvider.GetElapsedTime(stopStarted), consumer.RunningHandlers);
+
+    public void ConsumerFailed(RabbitMQConsumer consumer, Exception exception)
+        => ConsumerFailed(exception, consumer.QueueName);
 
     public void DeliveryFailed(Exception exception, string queue, BasicDeliverEventArgs delivery)
         => DeliveryFailed(
@@ -91,7 +129,7 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger)
         LogLevel.Information,
         "RabbitMQ consumer of {Queue} attached after {Elapsed} (tag {ConsumerTag}, prefetch "
             + "{MaxPrefetch}, concurrency {MaxConcurrency})")]
-    public partial void ConsumerAttached(
+    private partial void ConsumerAttached(
         string consumerTag,
         string queue,
         TimeSpan elapsed,
@@ -105,35 +143,35 @@ internal sealed partial class RabbitMQConsumerLogger(ILogger logger)
         LogLevel.Error,
         "RabbitMQ consumer of {Queue} blocked: all {MaxConcurrency} handlers of the lost channel still "
             + "run after {GracePeriod}; waiting for one to return")]
-    public partial void ConsumerBlockedByHandlers(string queue, ushort maxConcurrency, TimeSpan gracePeriod);
+    private partial void ConsumerBlockedByHandlers(string queue, ushort maxConcurrency, TimeSpan gracePeriod);
 
     [LoggerMessage(LogLevel.Information, "RabbitMQ consumer of {Queue} unblocked after {Elapsed}; attaching again")]
-    public partial void ConsumerUnblocked(string queue, TimeSpan elapsed);
+    private partial void ConsumerUnblocked(string queue, TimeSpan elapsed);
 
     [LoggerMessage(
         LogLevel.Information,
         "RabbitMQ consumer of {Queue} stopping; waiting for {RunningHandlers} handlers")]
-    public partial void ConsumerDrainStarted(string queue, int runningHandlers);
+    private partial void ConsumerDrainStarted(string queue, int runningHandlers);
 
     [LoggerMessage(
         LogLevel.Warning,
         "RabbitMQ consumer of {Queue} stopped waiting after {Elapsed}; {RunningHandlers} handlers "
             + "cancelled, their messages return to the queue")]
-    public partial void ConsumerDrainTimedOut(string queue, int runningHandlers, TimeSpan elapsed);
+    private partial void ConsumerDrainTimedOut(string queue, int runningHandlers, TimeSpan elapsed);
 
     [LoggerMessage(
         LogLevel.Information,
         "RabbitMQ consumer of {Queue} stopping without waiting; {RunningHandlers} handlers cancelled, their "
             + "messages return to the queue")]
-    public partial void ConsumerHandlersCancelled(string queue, int runningHandlers);
+    private partial void ConsumerHandlersCancelled(string queue, int runningHandlers);
 
     [LoggerMessage(
         LogLevel.Information,
         "RabbitMQ consumer of {Queue} stopped after {Elapsed} ({RunningHandlers} handlers still running)")]
-    public partial void ConsumerStopped(string queue, TimeSpan elapsed, int runningHandlers);
+    private partial void ConsumerStopped(string queue, TimeSpan elapsed, int runningHandlers);
 
     [LoggerMessage(LogLevel.Critical, "RabbitMQ consumer of {Queue} failed unexpectedly; it no longer consumes")]
-    public partial void ConsumerFailed(Exception exception, string queue);
+    private partial void ConsumerFailed(Exception exception, string queue);
 
     [LoggerMessage(LogLevel.Error, "RabbitMQ consumer of {Queue}: stopping failed")]
     public partial void ConsumerStopFailed(Exception exception, string queue);

@@ -30,8 +30,10 @@ public class RabbitMQConsumerManagerRecoveryTests
         await using var manager = await CreateManagerAsync(vhost);
         var received = new DeliveryRecorder();
 
-        var registration = await manager.RegisterConsumerAsync(
+        var probe = new ChannelProbe();
+        await manager.RegisterConsumerAsync(
             QueueName,
+            probe.PrepareAsync,
             received.HandleAsync,
             maxPrefetch: 1,
             maxConcurrency: 1,
@@ -43,7 +45,7 @@ public class RabbitMQConsumerManagerRecoveryTests
         // act
         // acking an unknown delivery tag makes the broker close the channel with 406 PRECONDITION_FAILED,
         // which is what a consumer timeout does before RabbitMQ 4.3
-        await CloseChannelByBrokerAsync(registration);
+        await CloseChannelByBrokerAsync(probe);
         await admin.PublishAsync("B");
 
         // assert
@@ -90,8 +92,10 @@ public class RabbitMQConsumerManagerRecoveryTests
         var received = new DeliveryRecorder();
         var abandonedHandlerCancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var registration = await manager.RegisterConsumerAsync(
+        var probe = new ChannelProbe();
+        await manager.RegisterConsumerAsync(
             QueueName,
+            probe.PrepareAsync,
             async (channel, eventArgs, cancellationToken) =>
             {
                 // the first delivery of A blocks without being acked, as a handler retrying in place would
@@ -121,7 +125,7 @@ public class RabbitMQConsumerManagerRecoveryTests
         Assert.Equal("A", await received.NextAsync());
 
         // act
-        await CloseChannelByBrokerAsync(registration);
+        await CloseChannelByBrokerAsync(probe);
         await admin.PublishAsync("B");
 
         // assert
@@ -443,9 +447,9 @@ public class RabbitMQConsumerManagerRecoveryTests
         return manager;
     }
 
-    private static async Task CloseChannelByBrokerAsync(RabbitMQConsumer registration)
+    private static async Task CloseChannelByBrokerAsync(ChannelProbe probe)
     {
-        var channel = registration.Channel!;
+        var channel = probe.Channel;
         await channel.BasicAckAsync(deliveryTag: 9999, multiple: false, TestContext.Current.CancellationToken);
 
         var deadline = DateTimeOffset.UtcNow.Add(s_promptly);

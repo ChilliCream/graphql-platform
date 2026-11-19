@@ -26,8 +26,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
         await manager.StartAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);
+        var probe = new ChannelProbe();
         var registration = await manager.RegisterConsumerAsync(
             "orders",
+            probe.PrepareAsync,
             gate.HandleAsync,
             maxPrefetch: 1,
             maxConcurrency: 1,
@@ -38,7 +40,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         try
         {
             // act
-            await registration.Channel!.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
+            await probe.Channel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
             var blocked = await Condition.WaitAsync(
                 () => gate.CancelledHandlers == 1 && manager.HasBlockedConsumer(),
                 TestTimeouts.Signal);
@@ -76,8 +78,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
         await manager.StartAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);
+        var probe = new ChannelProbe();
         var registration = await manager.RegisterConsumerAsync(
             "orders",
+            probe.PrepareAsync,
             gate.HandleAsync,
             maxPrefetch: 2,
             maxConcurrency: 2,
@@ -90,7 +94,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         try
         {
             // act
-            var lostChannel = registration.Channel!;
+            var lostChannel = probe.Channel;
             await lostChannel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
             var redelivered = await Condition.WaitAsync(
                 () => gate.Delivered.Count == 2 && gate.CancelledHandlers == 1 && gate.ActiveHandlers == 1,
@@ -122,8 +126,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
         await manager.StartAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 2);
+        var probe = new ChannelProbe();
         var registration = await manager.RegisterConsumerAsync(
             "orders",
+            probe.PrepareAsync,
             gate.HandleAsync,
             maxPrefetch: 4,
             maxConcurrency: 2,
@@ -138,7 +144,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         try
         {
             // act
-            await registration.Channel!.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
+            await probe.Channel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
             var cancelled = await Condition.WaitAsync(() => gate.CancelledHandlers == 2, TestTimeouts.Signal);
 
             // the consumer must not consume, and so not prefetch, while no handler can take a message
@@ -175,8 +181,10 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
         await manager.StartAsync(TestContext.Current.CancellationToken);
         var gate = new HandlerGate(blockedHandlers: 1);
+        var probe = new ChannelProbe();
         var registration = await manager.RegisterConsumerAsync(
             "orders",
+            probe.PrepareAsync,
             gate.HandleAsync,
             maxPrefetch: 1,
             maxConcurrency: 1,
@@ -187,7 +195,7 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
         try
         {
             // act
-            var lostChannel = registration.Channel!;
+            var lostChannel = probe.Channel;
             await lostChannel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
             var cancelled = await Condition.WaitAsync(() => gate.CancelledHandlers == 1, TestTimeouts.Signal);
             using var deadline = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
@@ -251,6 +259,110 @@ public sealed class RabbitMQConsumerCapacityTests(RabbitMQFixture fixture)
             Assert.False(registration.IsAttached);
             Assert.Equal(1, gate.ActiveHandlers);
             Assert.Equal(1, (await vhost.Broker.GetQueueAsync("orders"))?.Messages);
+        }
+        finally
+        {
+            gate.Release.TrySetResult();
+        }
+    }
+
+    [Fact]
+    public async Task Consumer_Should_PrepareAgain_When_PreparedChannelIsLostWhileWaitingForHandler()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await channel.QueueDeclareAsync(
+            "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+        await using var manager = TestManagers.CreateConsumerManager(
+            async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct),
+            new RabbitMQConsumerManagerOptions { InitialRetryDelay = TimeSpan.FromMilliseconds(50) });
+        await manager.StartAsync(TestContext.Current.CancellationToken);
+        var gate = new HandlerGate(blockedHandlers: 1);
+        var probe = new ChannelProbe();
+        await manager.RegisterConsumerAsync(
+            "orders",
+            probe.PrepareAsync,
+            gate.HandleAsync,
+            maxPrefetch: 1,
+            maxConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        await channel.BasicPublishAsync("", "orders", "order"u8.ToArray(), TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+
+        try
+        {
+            // act
+            // the handler ignores its cancellation, so the second channel is prepared and then waits for it
+            await probe.Channel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
+            await Wait.UntilAsync(manager.HasBlockedConsumer);
+            await probe.Channel.BasicAckAsync(9999, multiple: false, TestContext.Current.CancellationToken);
+            var blockedAgain = await Condition.WaitAsync(
+                () => probe.PreparedCount == 3 && manager.HasBlockedConsumer(),
+                TestTimeouts.Signal);
+
+            // assert
+            Assert.True(blockedAgain);
+            Assert.Equal(1, gate.ActiveHandlers);
+        }
+        finally
+        {
+            gate.Release.TrySetResult();
+        }
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_StartNoHandler_When_DeliveriesWereQueuedBehindTheRunningHandler()
+    {
+        // arrange
+        await using var vhost = await fixture.CreateVhostAsync();
+        await using var connection = await vhost.ConnectionFactory.CreateConnectionAsync(TestContext.Current.CancellationToken);
+        await using var channel = await connection.CreateChannelAsync(cancellationToken: TestContext.Current.CancellationToken);
+        await channel.QueueDeclareAsync(
+            "orders",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+        await using var manager = TestManagers.CreateConsumerManager(
+            async ct => await vhost.ConnectionFactory.CreateConnectionAsync(ct));
+        await manager.StartAsync(TestContext.Current.CancellationToken);
+        var gate = new HandlerGate(blockedHandlers: 1);
+        var registration = await manager.RegisterConsumerAsync(
+            "orders",
+            gate.HandleAsync,
+            maxPrefetch: 5,
+            maxConcurrency: 1,
+            TestContext.Current.CancellationToken);
+        for (var i = 0; i < 5; i++)
+        {
+            await channel.BasicPublishAsync("", "orders", Encoding.UTF8.GetBytes($"order-{i}"), TestContext.Current.CancellationToken);
+        }
+
+        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+        await vhost.Broker.WaitForMessagesAsync("orders", 0);
+        using var drain = new CancellationTokenSource(TestTimeouts.Signal);
+
+        try
+        {
+            // act
+            var stopping = registration.StopAsync(drain.Token);
+            await vhost.Broker.WaitForNoConsumerAsync("orders");
+            gate.Release.TrySetResult();
+            await stopping.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
+            var invocationsAtStop = gate.Invocations;
+            var startedAnother = await Condition.WaitAsync(
+                () => gate.Invocations != invocationsAtStop,
+                TimeSpan.FromMilliseconds(500));
+            await vhost.Broker.WaitForMessagesAsync("orders", 5 - gate.Delivered.Count);
+
+            // assert
+            Assert.False(startedAnother);
         }
         finally
         {
