@@ -104,14 +104,14 @@ The reply queue that the transport generates per service instance (`response-<in
 | Property                                        | 16.7                                    | 16.8                                                                           |
 | ----------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------ |
 | Auto-delete                                     | Yes                                     | No                                                                             |
-| Expiry without consumers (`x-expires`)          | 30 minutes                              | One minute                                                                     |
+| Expiry without consumers (`x-expires`)          | 30 minutes                              | 5 minutes                                                                      |
 | Queue type when the transport default is quorum | Chosen by the broker                    | Quorum, with `x-quorum-initial-group-size` if configured                       |
 | Removed                                         | By RabbitMQ when its consumer goes away | By Mocha when the reply endpoint stops, otherwise by RabbitMQ after the expiry |
 
 What you will observe:
 
 - The queue stays during a short disconnection, and replies wait in it until Mocha has reconnected. In 16.7 RabbitMQ deleted the queue when the connection was lost.
-- After a process that ended without stopping the bus, the queue remains on the broker for one minute.
+- After a process that ended without stopping the bus, the queue remains on the broker for 5 minutes.
 - With auto-provisioning enabled, Mocha deletes the queue when the reply endpoint stops, also when the runtime is disposed without a stop. It waits at most 5 seconds for the deletion.
 - Queue policies, dashboards, and alerts that select auto-delete queues no longer match the reply queue.
 

@@ -41,7 +41,7 @@ public class RabbitMQReplyQueueTests
         Assert.True(queue.Durable);
         Assert.False(queue.Exclusive);
         Assert.False(queue.AutoDelete);
-        Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 60000 }, queue.Arguments);
+        Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 300000 }, queue.Arguments);
     }
 
     [Theory]
@@ -81,7 +81,7 @@ public class RabbitMQReplyQueueTests
         Assert.Equal(
             new Dictionary<string, object?>
             {
-                ["x-expires"] = 60000,
+                ["x-expires"] = 300000,
                 ["x-queue-type"] = RabbitMQQueueType.Quorum,
                 ["x-quorum-initial-group-size"] = 5
             },

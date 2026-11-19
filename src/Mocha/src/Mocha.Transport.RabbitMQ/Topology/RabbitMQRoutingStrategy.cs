@@ -8,7 +8,11 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingTransport>
 {
-    private static readonly TimeSpan s_replyQueueExpiration = TimeSpan.FromMinutes(1);
+    /// <summary>
+    /// The expiry of a generated reply queue without consumers. It is longer than the default response timeout
+    /// of a request, which is two minutes.
+    /// </summary>
+    private static readonly TimeSpan s_replyQueueExpiration = TimeSpan.FromMinutes(5);
 
     private RabbitMQMessagingTopology _topology =>
         field ??= Transport.Topology;

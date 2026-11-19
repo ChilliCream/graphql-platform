@@ -165,7 +165,7 @@ public class RabbitMQReceiveTopologyConventionTests
         Assert.True(queue.Durable);
         Assert.False(queue.Exclusive);
         Assert.False(queue.AutoDelete);
-        Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 60000 }, queue.Arguments);
+        Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 300000 }, queue.Arguments);
     }
 
     [Fact]

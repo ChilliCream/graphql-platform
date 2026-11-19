@@ -173,7 +173,7 @@ public class RequestReplyTests
         Assert.True(replyQueue.GetProperty("durable").GetBoolean());
         Assert.False(replyQueue.GetProperty("exclusive").GetBoolean());
         Assert.False(replyQueue.GetProperty("auto_delete").GetBoolean());
-        Assert.Equal(60000, expires);
+        Assert.Equal(300000, expires);
     }
 
     [Fact]
