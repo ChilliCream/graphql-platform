@@ -90,7 +90,7 @@ internal sealed class PolicyEvaluationResult
                 _isAttributed ? denial.Descriptor : null);
         }
 
-        return selection.IsNonNull ? ErrorHelper.DeniedNonNullField(path) : null;
+        return selection.IsNonNull ? ErrorHelper.NonNullViolation(path) : null;
     }
 
     /// <summary>
