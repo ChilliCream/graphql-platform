@@ -125,7 +125,7 @@ public sealed partial class CompositeResultDocument
             // int 4: PropertyName token
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 16),
-                (int)ElementTokenType.PropertyName << 15);
+                DbRow.PackSourceAndType(ElementTokenType.PropertyName, 0));
 
             _next = cursor + 1;
             return cursor;
@@ -161,7 +161,7 @@ public sealed partial class CompositeResultDocument
                 // int 4: PropertyName token
                 Unsafe.WriteUnaligned(
                     ref Unsafe.Add(ref row0, 16),
-                    (int)ElementTokenType.PropertyName << 15);
+                    DbRow.PackSourceAndType(ElementTokenType.PropertyName, 0));
 
                 // Row 1: None value with parent = cursor value of Row 0 (= next.Value)
                 ref var row1 = ref Unsafe.Add(ref row0, DbRow.Size);
@@ -210,7 +210,9 @@ public sealed partial class CompositeResultDocument
                 ((propertyCount * 2) + 1) & 0x1FFFFFFF);
 
             // int 4: StartObject token (sourceDocumentId = 0)
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), (int)ElementTokenType.StartObject << 15);
+            Unsafe.WriteUnaligned(
+                ref Unsafe.Add(ref row, 16),
+                DbRow.PackSourceAndType(ElementTokenType.StartObject, 0));
 
             _next = cursor + 1;
             return cursor;
@@ -243,7 +245,7 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 12), (length + 1) & 0x1FFFFFFF);
 
             // int 4: StartArray token (sourceDocumentId = 0)
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), (int)ElementTokenType.StartArray << 15);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), DbRow.PackSourceAndType(ElementTokenType.StartArray, 0));
 
             _next = cursor + 1;
             return cursor;
@@ -262,7 +264,7 @@ public sealed partial class CompositeResultDocument
             // ints 1..3 zeroed (int 4 is written directly below)
             Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 4), 0, 12);
             // int 4: EndObject token
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), (int)ElementTokenType.EndObject << 15);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), DbRow.PackSourceAndType(ElementTokenType.EndObject, 0));
 
             _next = cursor + 1;
             return cursor;
@@ -281,7 +283,7 @@ public sealed partial class CompositeResultDocument
             // ints 1..3 zeroed (int 4 is written directly below)
             Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row, 4), 0, 12);
             // int 4: EndArray token
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), (int)ElementTokenType.EndArray << 15);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref row, 16), DbRow.PackSourceAndType(ElementTokenType.EndArray, 0));
 
             _next = cursor + 1;
             return cursor;
@@ -615,6 +617,7 @@ public sealed partial class CompositeResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             AssertValidCursor(cursor);
+            Debug.Assert(sourceDocumentId is >= 0 and <= DbRow.MaxSourceDocumentId);
             Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             ref var row = ref RowRef(cursor);
@@ -637,7 +640,7 @@ public sealed partial class CompositeResultDocument
             // int 4: SourceDocumentId + TokenType. int 0 (parent) is intentionally left untouched.
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset),
-                (sourceDocumentId & 0x7FFF) | (((int)tokenType & 0x0F) << 15));
+                DbRow.PackSourceAndType(tokenType, sourceDocumentId));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -770,7 +773,7 @@ public sealed partial class CompositeResultDocument
 
             ref var row = ref RowRef(cursor);
             var sourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset));
-            var tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
+            var tokenType = DbRow.ReadTokenType(sourceAndType);
 
             if (tokenType is ElementTokenType.Reference)
             {
@@ -778,7 +781,7 @@ public sealed partial class CompositeResultDocument
                 cursor = new Cursor(value);
                 row = ref RowRef(cursor);
                 sourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset));
-                tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
+                tokenType = DbRow.ReadTokenType(sourceAndType);
             }
 
             return (cursor, tokenType);
@@ -906,14 +909,14 @@ public sealed partial class CompositeResultDocument
             AssertValidCursor(cursor);
 
             var sourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(cursor), DbRow.SourceAndTypeOffset));
-            var tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
+            var tokenType = DbRow.ReadTokenType(sourceAndType);
 
             if (resolveReferences && tokenType == ElementTokenType.Reference)
             {
                 var value = GetLocation(cursor);
                 var resolved = new Cursor(value);
                 sourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref RowRef(resolved), DbRow.SourceAndTypeOffset));
-                tokenType = (ElementTokenType)((sourceAndType >>> 15) & 0x0F);
+                tokenType = DbRow.ReadTokenType(sourceAndType);
             }
 
             return tokenType;

@@ -894,6 +894,11 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         var count = _sourceCount;
 
+        if (count > DbRow.MaxSourceDocumentId)
+        {
+            throw ThrowHelper.TooManySourceDocuments();
+        }
+
         if (count == _sources.Length)
         {
             GrowSources();
