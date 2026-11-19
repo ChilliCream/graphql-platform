@@ -11,11 +11,21 @@ response:
   body: |
     {
       "data": {
-        "product": {
-          "status": false
-        },
+        "product": null,
         "productCount": 1
-      }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "product",
+            "status"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

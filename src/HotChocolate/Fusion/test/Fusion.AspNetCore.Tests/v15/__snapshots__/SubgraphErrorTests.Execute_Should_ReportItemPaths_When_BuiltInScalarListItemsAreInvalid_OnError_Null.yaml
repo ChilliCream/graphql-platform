@@ -16,52 +16,132 @@ response:
       "data": {
         "scores": [
           1,
-          "2",
+          null,
           3
         ],
         "counts": [
           -2147483648,
           2147483647,
-          -2147483649,
-          2147483648,
-          1.5,
+          null,
+          null,
+          null,
           null
         ],
         "prices": [
           1,
           2.5,
           -3e2,
-          1e400
+          null
         ],
         "labels": [
           [
             "sale",
-            {
-              "name": "blue"
-            }
+            null
           ],
           null,
           [
-            []
+            null
           ]
         ],
         "flags": [
           true,
-          0,
+          null,
           false
         ],
         "ids": [
           "123",
-          123
+          null
         ]
       },
       "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "counts",
+            2
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "counts",
+            3
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "counts",
+            4
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "flags",
+            1
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
         {
           "message": "Product ID unavailable.",
           "path": [
             "ids",
             1
           ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "labels",
+            0,
+            1
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "labels",
+            2,
+            0
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "prices",
+            3
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "scores",
+            1
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
         }
       ]
     }

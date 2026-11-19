@@ -17,18 +17,64 @@ response:
   body: |
     {
       "data": {
-        "name": 7,
-        "price": "2.5",
+        "name": null,
+        "price": null,
         "product": {
-          "quantity": "42",
-          "active": "false"
+          "quantity": null,
+          "active": null
         },
-        "lookup": {
-          "id": 123
-        },
+        "lookup": null,
         "reviews": null
       },
       "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "lookup",
+            "id"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "name"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "price"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "product",
+            "active"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "product",
+            "quantity"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
         {
           "message": "Reviews unavailable.",
           "path": [

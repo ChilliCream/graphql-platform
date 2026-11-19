@@ -268,7 +268,7 @@ ReadValue:
                     goto AfterValue;
 
                 default:
-                    end = ReadNumber(data, position, offset);
+                    end = ReadNumber(data, position, offset, out var numberFormat);
 
                     if (end < 0)
                     {
@@ -277,10 +277,10 @@ ReadValue:
                             goto IncompleteValue;
                         }
 
-                        end = ReadNumberAtEndOfInput(data, position, offset, bufferPool);
+                        end = ReadNumberAtEndOfInput(data, position, offset, bufferPool, out numberFormat);
                     }
 
-                    AppendNumberToken(ref metaDb, location, end - position);
+                    metaDb.AppendNumber(location, end - position, numberFormat);
                     position = end;
                     goto AfterValue;
             }
@@ -941,8 +941,9 @@ NextWindow:
     /// Reads the number that starts at <paramref name="start"/> and returns the position after it, or
     /// -1 when the number reaches the end of <paramref name="data"/>.
     /// </summary>
-    private static int ReadNumber(ReadOnlySpan<byte> data, int start, int offset)
+    private static int ReadNumber(ReadOnlySpan<byte> data, int start, int offset, out NumberFormat format)
     {
+        format = NumberFormat.Int32;
         var position = start;
 
         if (data[position] == (byte)'-')
@@ -955,6 +956,7 @@ NextWindow:
             }
         }
 
+        var digitsStart = position;
         if (data[position] == (byte)'0')
         {
             position++;
@@ -975,6 +977,7 @@ NextWindow:
 
         if (data[position] == (byte)'.')
         {
+            format = NumberFormat.Decimal;
             position++;
 
             if (position == data.Length)
@@ -997,6 +1000,7 @@ NextWindow:
 
         if ((data[position] | 0x20) == (byte)'e')
         {
+            var mantissaLength = position - start;
             position++;
 
             if (position < data.Length && data[position] is (byte)'+' or (byte)'-')
@@ -1014,11 +1018,25 @@ NextWindow:
                 throw ThrowHelper.InvalidSourceJson(data, position, offset);
             }
 
+            var exponentStart = position;
             position = SkipDigits(data, position + 1);
+            // At most 208 mantissa bytes and two exponent digits keep the magnitude below 1e308.
+            format = mantissaLength <= 208 && position - exponentStart <= 2
+                ? NumberFormat.Decimal
+                : NumberFormat.PotentialDoubleOverflow;
 
             if (position == data.Length)
             {
                 return -1;
+            }
+        }
+        else if (format is NumberFormat.Int32 && position - digitsStart >= 10)
+        {
+            var digits = data[digitsStart..position];
+            var limit = digitsStart == start ? "2147483647"u8 : "2147483648"u8;
+            if (digits.Length > 10 || digits.SequenceCompareTo(limit) > 0)
+            {
+                format = NumberFormat.Decimal;
             }
         }
 
@@ -1038,7 +1056,8 @@ NextWindow:
         ReadOnlySpan<byte> data,
         int start,
         int offset,
-        ArrayPool<byte> bufferPool)
+        ArrayPool<byte> bufferPool,
+        out NumberFormat format)
     {
         // The number is read again followed by a delimiter, which ends a complete number.
         var number = data[start..];
@@ -1049,7 +1068,7 @@ NextWindow:
             number.CopyTo(buffer);
             buffer[number.Length] = (byte)' ';
 
-            if (ReadNumber(buffer.AsSpan(0, number.Length + 1), 0, offset + start) != number.Length)
+            if (ReadNumber(buffer.AsSpan(0, number.Length + 1), 0, offset + start, out format) != number.Length)
             {
                 throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
             }

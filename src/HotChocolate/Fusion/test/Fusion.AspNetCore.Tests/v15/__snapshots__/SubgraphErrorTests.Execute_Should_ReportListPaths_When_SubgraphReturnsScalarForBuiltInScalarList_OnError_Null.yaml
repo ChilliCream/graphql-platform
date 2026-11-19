@@ -11,34 +11,37 @@ response:
   body: |
     {
       "data": {
-        "scores": 5,
+        "scores": null,
         "weeks": [
           [
             4.5
           ],
           null,
-          null
+          [
+            2
+          ]
         ],
-        "reviewCount": null
+        "reviewCount": 3
       },
       "errors": [
         {
           "message": "Unexpected Execution Error",
           "path": [
-            "reviewCount"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
             "scores"
-          ]
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
         },
         {
           "message": "Unexpected Execution Error",
           "path": [
-            "weeks"
-          ]
+            "weeks",
+            1
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
         }
       ]
     }

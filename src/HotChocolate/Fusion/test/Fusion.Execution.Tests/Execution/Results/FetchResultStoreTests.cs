@@ -610,7 +610,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
-    public void AddPartialResults_Should_MaskUnknownEnumValue_When_EnumValueIsListElement()
+    public void AddPartialResults_Should_ReportInvalidLeaf_When_NullableEnumItemIsUnknown()
     {
         // arrange
         var schema = ComposeSchema(
@@ -642,11 +642,13 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """
             {"colors":["RED",null,"BLUE"]}
             """);
-        Assert.Null(store.Errors);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal(ErrorCodes.Execution.CannotSerializeLeafValue, error.Code);
+        Assert.Equal("colors[1]", error.Path?.Print());
     }
 
     [Fact]
-    public void AddPartialResults_Should_MaskEnumValue_When_PayloadContainsEscapeSequence()
+    public void AddPartialResults_Should_CompleteEnumValue_When_PayloadEscapesACharacterInItsName()
     {
         // arrange
         var schema = ComposeSchema(
@@ -666,7 +668,6 @@ public sealed class FetchResultStoreTests : FusionTestBase
         using var sourceArena = new MemoryArena();
 
         // act
-        // the payload spells RED with a JSON escape sequence, which can never match an enum name
         using var store = CreateLiveStore(
             schema,
             "{ color sibling }",
@@ -675,10 +676,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
             sourceArena);
 
         // assert
-        RenderData(store).MatchInlineSnapshot(
-            """
-            {"color":null,"sibling":"visible"}
-            """);
+        using var data = JsonDocument.Parse(RenderData(store));
+        Assert.Equal("RED", data.RootElement.GetProperty("color").GetString());
+        Assert.Equal("visible", data.RootElement.GetProperty("sibling").GetString());
         Assert.Null(store.Errors);
     }
 
@@ -787,15 +787,18 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """
             {"sibling":"ok","tags":null}
             """);
-        Assert.Null(store.Errors);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal(ErrorCodes.Execution.NonNullViolation, error.Code);
+        Assert.Equal("tags[1]", error.Path?.Print());
     }
 
     [Theory]
-    [InlineData("RED", """{"color":"RED","broken":null}""")]
-    [InlineData("YELLOW", """{"color":null,"broken":null}""")]
+    [InlineData("RED", """{"color":"RED","broken":null}""", "broken")]
+    [InlineData("YELLOW", """{"color":null,"broken":null}""", "color", "broken")]
     public void AddPartialResults_Should_CompleteEnumOnSlowPath_When_ErrorTrieIsPresent(
         string enumValue,
-        string expected)
+        string expected,
+        params string[] errorPaths)
     {
         // arrange
         // the error trie disables the scalar fast path, so enums complete on the slow path
@@ -842,9 +845,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
         // assert
         Assert.True(added);
         Assert.Equal(expected, RenderData(store));
-        Assert.NotNull(store.Errors);
-        var error = Assert.Single(store.Errors);
-        Assert.Equal("boom", error.Message);
+        Assert.Equal(errorPaths, store.Errors!.Select(error => error.Path?.Print()));
+        Assert.Equal("boom", store.Errors![^1].Message);
     }
 
     [Fact]

@@ -410,11 +410,10 @@ internal sealed class EntityReuseCandidateMap
 
         for (var i = 0; i < responseNames.Length; i++)
         {
-            // A leaf value is only assigned between fields of the same enum type.
             if (!selectionSet.TryGetSelection(responseNames[i], out var selection)
                 || !reference.TryGetSelection(responseNames[i], out var referenceSelection)
-                || selection.IsEnumValue != referenceSelection.IsEnumValue
-                || (selection.IsEnumValue && !ReferenceEquals(selection.NamedType, referenceSelection.NamedType)))
+                || selection.UnwrappedKind != referenceSelection.UnwrappedKind
+                || !ReferenceEquals(selection.NamedType, referenceSelection.NamedType))
             {
                 return null;
             }

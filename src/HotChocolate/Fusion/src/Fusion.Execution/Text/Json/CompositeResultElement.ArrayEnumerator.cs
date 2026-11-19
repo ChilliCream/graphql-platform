@@ -56,6 +56,13 @@ public readonly partial struct CompositeResultElement
             }
         }
 
+        /// <summary>
+        /// Assigns a primitive source value to the current, newly initialized array slot.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly void SetInitialPrimitiveValue(SourceResultElementSnapshot source)
+            => _document.AssignInitialPrimitiveValue(_cursor, source);
+
         /// <inheritdoc />
         object IEnumerator.Current => Current;
 
@@ -81,22 +88,7 @@ public readonly partial struct CompositeResultElement
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            var start = _start;
             var end = _end;
-
-            if (_cursor == start)
-            {
-                var first = start + 1;
-                if (first < end)
-                {
-                    _cursor = first;
-                    return true;
-                }
-
-                _cursor = end;
-                return false;
-            }
-
             var next = _cursor + 1;
             if (next < end)
             {

@@ -1431,7 +1431,10 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
 
     [Theory]
     [InlineData("{}", "Empty", null)]
-    [InlineData("""{"__typename":123}""", "Empty", null)]
+    [InlineData(
+        """{"__typename":123}""",
+        """{"representations":[{"__typename":"Entity","data":{"foo":null}}]}""",
+        "entities[0].data.__typename")]
     public void CreateRepresentationVariableValue_Should_CompleteRepresentation_When_RuntimeTypeNameIsUnavailable(
         string data,
         string expectedRepresentation,

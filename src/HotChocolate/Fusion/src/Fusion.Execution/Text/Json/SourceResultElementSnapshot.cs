@@ -332,6 +332,23 @@ internal readonly ref struct SourceResultElementSnapshot
     /// <summary>Tries to get the current JSON number as an <see cref="int"/> without throwing.</summary>
     public bool TryGetInt32(out int value) => Element.TryGetInt32(out value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool IsInt32()
+    {
+        Debug.Assert(TokenType is JsonTokenType.Number);
+
+        return _row.NumberFormat is SourceResultDocument.NumberFormat.Int32;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool IsFiniteDouble()
+    {
+        Debug.Assert(TokenType is JsonTokenType.Number);
+
+        return (_row.NumberFormat is not SourceResultDocument.NumberFormat.PotentialDoubleOverflow && _row.SizeOrLength <= 308)
+            || (TryGetDouble(out var value) && double.IsFinite(value));
+    }
+
     /// <summary>Gets the current JSON number as an <see cref="int"/>.</summary>
     /// <exception cref="FormatException">Out of range for <see cref="int"/>.</exception>
     public int GetInt32() => Element.GetInt32();

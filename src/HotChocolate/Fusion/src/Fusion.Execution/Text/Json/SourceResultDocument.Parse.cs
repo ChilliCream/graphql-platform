@@ -354,15 +354,4 @@ public sealed partial class SourceResultDocument
 
         return end.Index - start.Index + 1;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AppendNumberToken(
-        ref MetaDb metaDb,
-        int startLocation,
-        int tokenLength)
-        => metaDb.Append(
-            JsonTokenType.Number,
-            startLocation,
-            tokenLength,
-            hasComplexChildren: false);
 }

@@ -10,12 +10,31 @@ response:
   body: |
     {
       "data": {
-        "color": 7,
-        "availableColors": [
-          null
-        ],
+        "color": null,
+        "availableColors": null,
         "price": null
-      }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "availableColors",
+            0
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "color"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

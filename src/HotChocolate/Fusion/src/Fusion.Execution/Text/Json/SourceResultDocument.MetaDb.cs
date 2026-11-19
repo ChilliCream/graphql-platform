@@ -106,10 +106,16 @@ public sealed partial class SourceResultDocument
             int length = DbRow.UnknownSize,
             int numberOfRows = 1,
             bool hasComplexChildren = false)
+            => AppendRow(new DbRow(tokenType, startLocation, length, numberOfRows, hasComplexChildren));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void AppendNumber(int location, int length, NumberFormat format)
+            => AppendRow(new DbRow(JsonTokenType.Number, location, length, (int)format, hasComplexChildren: false));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Cursor AppendRow(DbRow row)
         {
             var (cursor, buffer, byteOffset) = AcquireSlot();
-
-            var row = new DbRow(tokenType, startLocation, length, numberOfRows, hasComplexChildren);
             ref var dest = ref MemoryMarshal.GetArrayDataReference(buffer);
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
 

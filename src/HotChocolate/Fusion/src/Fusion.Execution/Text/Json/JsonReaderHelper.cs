@@ -48,35 +48,12 @@ internal static class JsonReaderHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ElementTokenType ToElementTokenType(this JsonTokenType tokenType)
     {
-        switch (tokenType)
+        if (tokenType > JsonTokenType.Null)
         {
-            case JsonTokenType.None:
-                return ElementTokenType.None;
-            case JsonTokenType.StartArray:
-                return ElementTokenType.StartArray;
-            case JsonTokenType.EndArray:
-                return ElementTokenType.EndArray;
-            case JsonTokenType.StartObject:
-                return ElementTokenType.StartObject;
-            case JsonTokenType.EndObject:
-                return ElementTokenType.EndObject;
-            case JsonTokenType.PropertyName:
-                return ElementTokenType.PropertyName;
-            case JsonTokenType.Comment:
-                return ElementTokenType.Comment;
-            case JsonTokenType.String:
-                return ElementTokenType.String;
-            case JsonTokenType.Number:
-                return ElementTokenType.Number;
-            case JsonTokenType.True:
-                return ElementTokenType.True;
-            case JsonTokenType.False:
-                return ElementTokenType.False;
-            case JsonTokenType.Null:
-                return ElementTokenType.Null;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null);
+            throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null);
         }
+
+        return (ElementTokenType)tokenType;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

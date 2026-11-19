@@ -603,7 +603,7 @@ public sealed partial class CompositeResultDocument
         // (int 0). Every other packed field is fully rewritten so no stale bits survive from a
         // prior value written into this slot.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal readonly void ReplacePreserveParent(
+        internal readonly ElementTokenType ReplacePreserveParent(
             Cursor cursor,
             ElementTokenType tokenType,
             int location = 0,
@@ -618,6 +618,8 @@ public sealed partial class CompositeResultDocument
             Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             ref var row = ref RowRef(cursor);
+
+            var previousSourceAndType = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset));
 
             // int 1: OperationReferenceId + OperationReferenceType + Flags
             Unsafe.WriteUnaligned(
@@ -638,6 +640,8 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset),
                 (sourceDocumentId & 0x7FFF) | (((int)tokenType & 0x0F) << 15));
+
+            return (ElementTokenType)((previousSourceAndType >>> 15) & 0x0F);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

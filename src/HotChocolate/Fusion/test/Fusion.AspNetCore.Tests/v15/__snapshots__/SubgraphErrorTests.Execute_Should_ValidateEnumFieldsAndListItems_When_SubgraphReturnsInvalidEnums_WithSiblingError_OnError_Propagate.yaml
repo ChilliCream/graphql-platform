@@ -11,12 +11,29 @@ response:
     {
       "data": {
         "color": null,
-        "availableColors": [
-          null
-        ],
+        "availableColors": null,
         "price": null
       },
       "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "availableColors",
+            0
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "color"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        },
         {
           "message": "Price unavailable.",
           "path": [

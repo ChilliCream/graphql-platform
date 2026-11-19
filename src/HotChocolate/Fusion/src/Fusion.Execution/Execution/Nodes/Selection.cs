@@ -112,6 +112,22 @@ public sealed class Selection : ISelection
         var namedType = type.NamedType();
         _namedType = namedType;
 
+        if (namedType.Kind is TypeKind.Scalar)
+        {
+            ScalarResultType = namedType.Name switch
+            {
+                SpecScalarNames.String.Name or SpecScalarNames.ID.Name => ScalarSerializationType.String,
+                SpecScalarNames.Int.Name => ScalarSerializationType.Int,
+                SpecScalarNames.Float.Name => ScalarSerializationType.Float,
+                SpecScalarNames.Boolean.Name => ScalarSerializationType.Boolean,
+                _ => ScalarSerializationType.Any
+            };
+            if (unwrappedType.Kind is TypeKind.Scalar)
+            {
+                ScalarFieldResultType = ScalarResultType;
+            }
+        }
+
         if (namedType.IsLeafType())
         {
             _flags |= Flags.Leaf;
@@ -200,6 +216,18 @@ public sealed class Selection : ISelection
     /// non-null wrappers removed.
     /// </summary>
     public ITypeDefinition NamedType => _namedType;
+
+    /// <summary>
+    /// Gets the JSON representation of the named scalar, or <see cref="ScalarSerializationType.Any"/>
+    /// for a custom scalar and <see cref="ScalarSerializationType.Undefined"/> for other types.
+    /// </summary>
+    internal ScalarSerializationType ScalarResultType { get; }
+
+    /// <summary>
+    /// Gets the scalar representation of the field itself, or <see cref="ScalarSerializationType.Undefined"/>
+    /// when the field is a list or a composite value.
+    /// </summary>
+    internal ScalarSerializationType ScalarFieldResultType { get; }
 
     /// <inheritdoc />
     public IOutputFieldDefinition Field { get; }

@@ -13,10 +13,22 @@ response:
     {
       "data": {
         "product": {
-          "status": false
+          "status": null
         },
         "productCount": 1
-      }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "product",
+            "status"
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

@@ -19,6 +19,9 @@ internal static class ErrorHelper
     private static readonly ImmutableOrderedDictionary<string, object?> s_nonNullViolationExtensions
         = ImmutableOrderedDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.NonNullViolation);
 
+    private static readonly ImmutableOrderedDictionary<string, object?> s_invalidLeafResultExtensions
+        = ImmutableOrderedDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.CannotSerializeLeafValue);
+
     public static OperationResult EmptyVariableBatch()
         => RequestError(
             ErrorBuilder.New()
@@ -163,6 +166,14 @@ internal static class ErrorHelper
 
         return builder.Build();
     }
+
+    public static IError InvalidLeafResult(Path path)
+        => new Error
+        {
+            Message = "Unexpected Execution Error",
+            Path = path,
+            Extensions = s_invalidLeafResultExtensions
+        };
 
     public static IError NonNullViolation(Path path)
         => new Error

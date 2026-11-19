@@ -19,7 +19,7 @@ public sealed partial class SourceResultDocument
         private readonly int _sizeOrLengthUnion;
 
         // Top nybble is JsonTokenType
-        // remaining nybbles are the number of rows to skip to get to the next value
+        // remaining nybbles hold the JSON number format for numbers, or the row count for other tokens
         // This isn't limiting on the number of rows, since Span.MaxLength / sizeof(DbRow) can't
         // exceed that range.
         private readonly int _numberOfRowsAndTypeUnion;
@@ -28,14 +28,14 @@ public sealed partial class SourceResultDocument
             JsonTokenType jsonTokenType,
             int location,
             int sizeOrLength,
-            int numberOfRows,
+            int rowsOrNumberFormat,
             bool hasComplexChildren)
         {
             Debug.Assert(jsonTokenType is > JsonTokenType.None and <= JsonTokenType.Null);
             Debug.Assert((byte)jsonTokenType < 1 << 4);
             Debug.Assert(location >= 0);
             Debug.Assert(sizeOrLength >= UnknownSize);
-            Debug.Assert(numberOfRows is >= 1 and <= 0x0FFFFFFF);
+            Debug.Assert(rowsOrNumberFormat is >= 1 and <= 0x0FFFFFFF);
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
             _location = location;
@@ -44,7 +44,7 @@ public sealed partial class SourceResultDocument
                 ? sizeOrLength | int.MinValue
                 // Clear sign bit
                 : sizeOrLength & int.MaxValue;
-            _numberOfRowsAndTypeUnion = ((int)jsonTokenType << 28) | numberOfRows;
+            _numberOfRowsAndTypeUnion = ((int)jsonTokenType << 28) | rowsOrNumberFormat;
         }
 
         /// <summary>
@@ -66,9 +66,18 @@ public sealed partial class SourceResultDocument
         /// </summary>
         internal bool HasComplexChildren => _sizeOrLengthUnion < 0;
 
-        internal int NumberOfRows =>
-            _numberOfRowsAndTypeUnion
-            & 0x0FFFFFFF; // Number of rows that the current JSON element occupies within the database
+        internal int NumberOfRows => TokenType is JsonTokenType.Number
+            ? 1
+            : _numberOfRowsAndTypeUnion & 0x0FFFFFFF;
+
+        internal NumberFormat NumberFormat
+        {
+            get
+            {
+                Debug.Assert(TokenType is JsonTokenType.Number);
+                return (NumberFormat)(_numberOfRowsAndTypeUnion & 0x0FFFFFFF);
+            }
+        }
 
         internal JsonTokenType TokenType => (JsonTokenType)(unchecked((uint)_numberOfRowsAndTypeUnion) >> 28);
 
@@ -77,5 +86,12 @@ public sealed partial class SourceResultDocument
         internal const int NoLocation = -1;
 
         internal bool IsSimpleValue => TokenType >= JsonTokenType.PropertyName;
+    }
+
+    internal enum NumberFormat
+    {
+        Int32 = 1,
+        Decimal,
+        PotentialDoubleOverflow
     }
 }

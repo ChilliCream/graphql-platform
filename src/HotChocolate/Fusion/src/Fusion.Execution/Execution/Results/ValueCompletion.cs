@@ -149,20 +149,9 @@ internal sealed class ValueCompletion
                 }
 
                 var propertyValueSnapshot = property.Value.CreateSnapshot();
-                var propertyValueKind = propertyValueSnapshot.ValueKind;
 
-                if (errorTrie is null && propertyValueKind.IsScalarValue())
+                if (errorTrie is null && TryWriteLeafField(propertyValueSnapshot, resultField, selection))
                 {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            resultField,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    resultField.SetLeafValue(propertyValueSnapshot);
                     continue;
                 }
 
@@ -201,23 +190,9 @@ internal sealed class ValueCompletion
                 }
 
                 var propertyValueSnapshot = properties.Value;
-                var propertyValueKind = propertyValueSnapshot.ValueKind;
 
-                // Fast path: when there are no errors and the source value is a
-                // scalar (string, number, bool) we can set it directly without
-                // going through the full TryCompleteValue type-dispatch chain.
-                if (errorTrie is null && propertyValueKind.IsScalarValue())
+                if (errorTrie is null && TryWriteLeafField(propertyValueSnapshot, resultField, selection))
                 {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            resultField,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    resultField.SetLeafValue(propertyValueSnapshot);
                     continue;
                 }
 
@@ -979,12 +954,11 @@ internal sealed class ValueCompletion
                     resultSelectionSet);
 
             case TypeKind.Scalar:
-                target.SetLeafValue(source);
-                return true;
+                return TryWriteScalarValue(source, target, selection.ScalarResultType)
+                    || TryCompleteInvalidLeaf(target, selection.IsNonNull, errorTrie);
 
             case TypeKind.Enum:
-                CompleteEnumValue(source, target, selection);
-                return true;
+                return TryCompleteEnumValue(source, target, selection, selection.IsNonNull, errorTrie);
 
             default:
                 throw ThrowHelper.ValueCompletionTypeNotSupported(selection.UnwrappedType);
@@ -1126,6 +1100,11 @@ internal sealed class ValueCompletion
     {
         AssertDepthAllowed(ref depth);
 
+        if (source.TokenType is not JsonTokenType.StartArray && selection.IsLeaf)
+        {
+            return TryCompleteInvalidLeaf(target, !target.IsNullable, errorTrie);
+        }
+
         // A shared list slot may already be populated by a sibling subgraph
         // result. Create the array only on the first write; otherwise reuse it
         // so sibling contributions accumulate through the positional merge below.
@@ -1134,6 +1113,13 @@ internal sealed class ValueCompletion
         if (target.ValueKind is JsonValueKind.Undefined)
         {
             targetEnumerator = target.InitializeArrayValue(source.GetArrayLength());
+            if (elementTypeKind is TypeKind.Scalar
+                && selection.ScalarResultType is not ScalarSerializationType.Any
+                && errorTrie is null)
+            {
+                return TryCompleteNewScalarList(source, targetEnumerator, selection.ScalarResultType, isNonNull)
+                    || TryCompleteNullContainer(target);
+            }
         }
         else if (target.ValueKind is not JsonValueKind.Array
             || target.GetArrayLength() != source.GetArrayLength())
@@ -1149,10 +1135,10 @@ internal sealed class ValueCompletion
             ? (IComplexTypeDefinition)selection.NamedType
             : null;
         SelectionSet? listObjectSelectionSet = null;
-        var i = 0;
+        var listCompleted = true;
         var elements = source.EnumerateElementSnapshots();
 
-        while (elements.MoveNext())
+        for (var i = 0; elements.MoveNext(); i++)
         {
             var success = targetEnumerator.MoveNext();
             Debug.Assert(success, "The lists must have the same size.");
@@ -1164,6 +1150,7 @@ internal sealed class ValueCompletion
                 errorTrieForIndex = GetListElementErrorTrie(errorTrie, target, i);
             }
 
+            var targetElement = targetEnumerator.Current;
             var elementSnapshot = elements.Current;
             var elementValueKind = elementSnapshot.ValueKind;
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
@@ -1175,16 +1162,22 @@ internal sealed class ValueCompletion
                     ForwardListElementErrors(errorTrieForIndex, target, i, elementType, selection);
                 }
 
-                if (isNonNull && _propagateNullValues)
+                if (selection.IsLeaf)
                 {
-                    return false;
+                    listCompleted &= TryCompleteAsNull(
+                        targetElement, isNonNull, errorTrieForIndex?.FindFirstError() is not null);
+                    continue;
                 }
 
-                targetEnumerator.Current.SetNullValue();
-                goto TryCompleteList_MoveNext;
+                if (isNonNull && _propagateNullValues)
+                {
+                    return TryCompleteNullContainer(target);
+                }
+
+                targetElement.SetNullValue();
+                continue;
             }
 
-            var targetElement = targetEnumerator.Current;
             bool completed;
 
             switch (elementTypeKind)
@@ -1201,13 +1194,13 @@ internal sealed class ValueCompletion
                     break;
 
                 case TypeKind.Scalar:
-                    targetElement.SetLeafValue(elementSnapshot);
-                    completed = true;
+                    completed = TryWriteScalarValue(elementSnapshot, targetElement, selection.ScalarResultType)
+                        || TryCompleteInvalidLeaf(targetElement, isNonNull, errorTrieForIndex);
                     break;
 
                 case TypeKind.Enum:
-                    CompleteEnumValue(elementSnapshot, targetElement, selection);
-                    completed = true;
+                    completed = TryCompleteEnumValue(
+                        elementSnapshot, targetElement, selection, isNonNull, errorTrieForIndex);
                     break;
 
                 case TypeKind.Interface or TypeKind.Union:
@@ -1234,22 +1227,55 @@ internal sealed class ValueCompletion
                     break;
             }
 
-            if (!completed)
+            if (completed)
             {
-                if (isNonNull)
-                {
-                    return false;
-                }
-
-                targetElement.SetNullValue();
-                goto TryCompleteList_MoveNext;
+                continue;
             }
 
-TryCompleteList_MoveNext:
-            i++;
+            if (!isNonNull)
+            {
+                targetElement.SetNullValue();
+                continue;
+            }
+
+            if (!selection.IsLeaf)
+            {
+                return TryCompleteNullContainer(target);
+            }
+
+            listCompleted = false;
         }
 
-        return true;
+        return listCompleted || TryCompleteNullContainer(target);
+    }
+
+    private bool TryCompleteNewScalarList(
+        SourceResultElementSnapshot source,
+        CompositeResultElement.ArrayEnumerator targets,
+        ScalarSerializationType scalarType,
+        bool isNonNull)
+    {
+        var completed = true;
+        var elements = source.EnumerateElementSnapshots();
+        while (elements.MoveNext())
+        {
+            var success = targets.MoveNext();
+            Debug.Assert(success, "The lists must have the same size.");
+
+            var element = elements.Current;
+            if (IsValidScalarValue(element, scalarType))
+            {
+                targets.SetInitialPrimitiveValue(element);
+                continue;
+            }
+
+            var target = targets.Current;
+            completed &= element.TokenType is JsonTokenType.Null or JsonTokenType.None
+                ? TryCompleteAsNull(target, isNonNull, hasSourceError: false)
+                : TryCompleteInvalidLeaf(target, isNonNull, errorTrie: null);
+        }
+
+        return completed;
     }
 
     /// <summary>
@@ -1412,51 +1438,121 @@ TryCompleteList_MoveNext:
         return (path, null, selection);
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void CompleteEnumValue(
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryWriteLeafField(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
         Selection selection)
     {
-        // Reached from dispatch arms guarded only by the type-system enum kind, which
-        // does not guarantee the concrete Fusion CLR type, so the pattern match stays
-        // as a defensive check that masks any other definition to null. A string that
-        // is an accessible member of the composite enum is written through; anything
-        // else (a value unknown to or inaccessible from the composite schema, or a
-        // non-string kind) is masked to null so it can never leak past the gateway.
-        // The raw UTF-8 payload may contain JSON escape sequences, but GraphQL enum
-        // names are [A-Za-z0-9_] only, so an escaped payload cannot match any name
-        // and correctly falls through to masking.
-        if (selection.NamedType is FusionEnumTypeDefinition enumType
-            && source.TokenType is JsonTokenType.String
-            && enumType.Values.ContainsName(source.ValueSpan))
+        if (IsValidScalarValue(source, selection.ScalarFieldResultType)
+            || (selection.UnwrappedKind is TypeKind.Enum
+                && source.TokenType is JsonTokenType.String
+                && Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType).Values.ContainsName(source.ValueSpan)))
         {
             target.SetLeafValue(source);
+            return true;
         }
-        else
+
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryWriteScalarValue(
+        SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        ScalarSerializationType type)
+    {
+        if (!IsValidScalarValue(source, type))
         {
-            target.SetNullValue();
+            return false;
         }
+
+        target.SetLeafValue(source);
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsValidScalarValue(SourceResultElementSnapshot source, ScalarSerializationType type)
+    {
+        var token = source.TokenType;
+        return type switch
+        {
+            ScalarSerializationType.String => token is JsonTokenType.String,
+            ScalarSerializationType.Boolean => token is JsonTokenType.True or JsonTokenType.False,
+            ScalarSerializationType.Int => token is JsonTokenType.Number && source.IsInt32(),
+            ScalarSerializationType.Float => token is JsonTokenType.Number && source.IsFiniteDouble(),
+            ScalarSerializationType.Any => token is not (JsonTokenType.Null or JsonTokenType.None),
+            _ => false
+        };
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void CompleteEnumValue(
+    private bool TryCompleteEnumValue(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
-        FusionEnumTypeDefinition enumType)
+        Selection selection,
+        bool isNonNull,
+        ErrorTrie? errorTrie)
     {
-        // Reached only from call sites guarded by Selection.IsEnumValue, which
-        // guarantees that the selection's named type is a FusionEnumTypeDefinition.
-        // The masking semantics match the selection-based overload above.
         if (source.TokenType is JsonTokenType.String
-            && enumType.Values.ContainsName(source.ValueSpan))
+            && selection.NamedType is FusionEnumTypeDefinition enumType
+            && (enumType.Values.TryGetValue(source.ValueSpan, out var value)
+                || enumType.Values.TryGetValue(source.AssertString(), allowInaccessibleFields: true, out value)))
         {
+            if (value.IsInaccessible)
+            {
+                return TryCompleteAsNull(target, isNonNull, errorTrie?.Error is not null);
+            }
+
             target.SetLeafValue(source);
+            return true;
         }
-        else
+
+        return TryCompleteInvalidLeaf(target, isNonNull, errorTrie);
+    }
+
+    private bool TryCompleteInvalidLeaf(CompositeResultElement target, bool isNonNull, ErrorTrie? errorTrie)
+    {
+        if (errorTrie?.Error is null)
         {
-            target.SetNullValue();
+            var path = target.CompactPath.ToPath(target.Operation);
+            _store.AddError(_errorHandler.Handle(ErrorHelper.InvalidLeafResult(path)));
         }
+
+        return TrySetNullValue(target, isNonNull);
+    }
+
+    private bool TryCompleteAsNull(CompositeResultElement target, bool isNonNull, bool hasSourceError)
+    {
+        if (isNonNull && !hasSourceError)
+        {
+            var error = ErrorHelper.NonNullViolation(target.CompactPath.ToPath(target.Operation));
+            _store.AddError(_errorHandler.Handle(error));
+        }
+
+        return TrySetNullValue(target, isNonNull);
+    }
+
+    private bool TrySetNullValue(CompositeResultElement target, bool isNonNull)
+    {
+        if (isNonNull && _propagateNullValues)
+        {
+            return false;
+        }
+
+        target.SetNullValue();
+        return true;
+    }
+
+    private static bool TryCompleteNullContainer(CompositeResultElement target)
+    {
+        if (!target.IsNullable)
+        {
+            return false;
+        }
+
+        target.SetNullValue();
+        return true;
     }
 
     private bool TryCompleteObjectValue(
@@ -1512,7 +1608,8 @@ TryCompleteList_MoveNext:
                 objectType,
                 depth,
                 resultSelectionSet,
-                objectContext);
+                objectContext)
+                || TryCompleteNullContainer(target);
         }
 
         var properties = source.EnumeratePropertySnapshots();
@@ -1525,29 +1622,15 @@ TryCompleteList_MoveNext:
             }
 
             var propertyValueSnapshot = properties.Value;
-            var propertyValueKind = propertyValueSnapshot.ValueKind;
 
             if (errorTrie is null)
             {
-                // Fast path: when there are no errors and the source value is a
-                // scalar (string, number, bool) we can set it directly without
-                // going through the full TryCompleteValue type-dispatch chain.
-                if (propertyValueKind.IsScalarValue())
+                if (TryWriteLeafField(propertyValueSnapshot, targetProperty, selection))
                 {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            targetProperty,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    targetProperty.SetLeafValue(propertyValueSnapshot);
                     continue;
                 }
 
-                if (propertyValueKind is JsonValueKind.Object
+                if (propertyValueSnapshot.TokenType is JsonTokenType.StartObject
                     && selection.UnwrappedKind is TypeKind.Object)
                 {
                     var namedType = selection.NamedType;
@@ -1562,13 +1645,13 @@ TryCompleteList_MoveNext:
                         resultSelectionSet?.TryGetChild(selection.ResponseName, objectType),
                         preparedSelectionSet: null))
                     {
-                        return false;
+                        return TryCompleteNullContainer(target);
                     }
 
                     continue;
                 }
 
-                if (propertyValueKind is JsonValueKind.Array
+                if (propertyValueSnapshot.TokenType is JsonTokenType.StartArray
                     && selection.UnwrappedKind is TypeKind.List)
                 {
                     if (!TryCompleteList(
@@ -1582,7 +1665,7 @@ TryCompleteList_MoveNext:
                         depth,
                         resultSelectionSet?.TryGetChild(selection.ResponseName, objectType)))
                     {
-                        return false;
+                        return TryCompleteNullContainer(target);
                     }
 
                     continue;
@@ -1601,7 +1684,7 @@ TryCompleteList_MoveNext:
                     depth,
                     childSet))
             {
-                return false;
+                return TryCompleteNullContainer(target);
             }
         }
 
@@ -1661,20 +1744,9 @@ TryCompleteList_MoveNext:
             }
 
             var propertyValueSnapshot = property.Value.CreateSnapshot();
-            var propertyValueKind = propertyValueSnapshot.ValueKind;
 
-            if (errorTrie is null && propertyValueKind.IsScalarValue())
+            if (errorTrie is null && TryWriteLeafField(propertyValueSnapshot, targetProperty, selection))
             {
-                if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                {
-                    CompleteEnumValue(
-                        propertyValueSnapshot,
-                        targetProperty,
-                        Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                    continue;
-                }
-
-                targetProperty.SetLeafValue(propertyValueSnapshot);
                 continue;
             }
 
@@ -1890,11 +1962,6 @@ TryCompleteList_MoveNext:
 
 file static class ValueCompletionExtensions
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsScalarValue(this JsonValueKind valueKind)
-        => valueKind is JsonValueKind.String or JsonValueKind.Number
-            or JsonValueKind.True or JsonValueKind.False;
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IType ElementType(this IType type)
         => type switch

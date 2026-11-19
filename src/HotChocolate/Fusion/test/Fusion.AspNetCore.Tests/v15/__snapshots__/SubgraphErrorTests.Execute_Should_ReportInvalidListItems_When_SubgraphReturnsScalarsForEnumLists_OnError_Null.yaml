@@ -12,26 +12,40 @@ response:
     {
       "data": {
         "colors": null,
-        "variants": null,
-        "variantCount": null
+        "variants": [
+          null,
+          [
+            "RED"
+          ],
+          null
+        ],
+        "variantCount": 3
       },
       "errors": [
         {
           "message": "Unexpected Execution Error",
           "path": [
             "colors"
-          ]
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
         },
         {
           "message": "Unexpected Execution Error",
           "path": [
-            "variantCount"
-          ]
+            "variants",
+            0
+          ],
+          "extensions": {
+            "code": "EXEC_INVALID_LEAF_VALUE"
+          }
         },
         {
-          "message": "Unexpected Execution Error",
+          "message": "Variant colors unavailable.",
           "path": [
-            "variants"
+            "variants",
+            2
           ]
         }
       ]

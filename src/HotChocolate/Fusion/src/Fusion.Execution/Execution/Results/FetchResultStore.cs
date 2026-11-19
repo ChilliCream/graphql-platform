@@ -967,7 +967,7 @@ AddErrors_Next:
     /// set does not select.
     /// </summary>
     /// <returns>
-    /// <c>true</c> if the selection set is a concrete object type whose leaves have the enum types
+    /// <c>true</c> if the selection set is a concrete object type whose leaves have the types
     /// of the collected leaves; otherwise, <c>false</c>.
     /// </returns>
     private bool TryGetLeafRowOffsets(
@@ -1009,9 +1009,8 @@ AddErrors_Next:
                     continue;
                 }
 
-                // A completed enum value is only assigned to a field of the same enum type.
-                if (selection.IsEnumValue != leafSelection.IsEnumValue
-                    || (selection.IsEnumValue && !ReferenceEquals(selection.NamedType, leafSelection.NamedType)))
+                if (selection.UnwrappedKind != leafSelection.UnwrappedKind
+                    || !ReferenceEquals(selection.NamedType, leafSelection.NamedType))
                 {
                     canCopy = false;
                     break;
