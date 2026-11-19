@@ -221,8 +221,10 @@ public class SubgraphErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
     }
 
-    [Fact]
-    public async Task Execute_Should_ReportOneError_When_LookupFailsForMultipleFields()
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportEachFieldPath_When_LookupFailsForMultipleFields(ErrorHandlingMode onError)
     {
         // arrange
         using var catalog = CreateProductCatalog();
@@ -244,7 +246,8 @@ public class SubgraphErrorTests : FusionTestBase
                 description
               }
             }
-            """);
+            """,
+            onError: onError);
 
         // act
         using var response = await client.PostAsync(
@@ -253,7 +256,7 @@ public class SubgraphErrorTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        await MatchSnapshotAsync(gateway, request, response);
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
     }
 
     [Fact]

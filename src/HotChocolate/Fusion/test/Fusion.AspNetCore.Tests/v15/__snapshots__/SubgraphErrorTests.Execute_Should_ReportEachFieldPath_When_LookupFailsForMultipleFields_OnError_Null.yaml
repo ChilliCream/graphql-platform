@@ -1,5 +1,6 @@
-title: Execute_Should_ReportOneError_When_LookupFailsForMultipleFields
+title: Execute_Should_ReportEachFieldPath_When_LookupFailsForMultipleFields
 request:
+  onError: Null
   document: |
     {
       item: product {
@@ -22,7 +23,15 @@ response:
         {
           "message": "Product unavailable.",
           "path": [
-            "item"
+            "item",
+            "description"
+          ]
+        },
+        {
+          "message": "Product unavailable.",
+          "path": [
+            "item",
+            "price"
           ]
         }
       ]

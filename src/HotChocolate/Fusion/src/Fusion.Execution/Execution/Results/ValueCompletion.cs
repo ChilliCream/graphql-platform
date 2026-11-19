@@ -682,8 +682,8 @@ internal sealed class ValueCompletion
     }
 
     /// <summary>
-    /// Completes the public fields supplied by a failed lookup. An error on the lookup itself
-    /// applies to its single public field or to their common parent.
+    /// Reports lookup errors at the public fields the lookup failed to supply.
+    /// Errors on individual fields retain their client paths.
     /// </summary>
     private bool CompleteFailedLookup(
         ErrorTrie errors,
@@ -692,8 +692,6 @@ internal sealed class ValueCompletion
         ResultSelectionSet resultSelectionSet)
     {
         var path = target.Path;
-        var fieldCount = 0;
-        string? fieldName = null;
         var hasRequiredField = false;
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
@@ -704,10 +702,6 @@ internal sealed class ValueCompletion
             {
                 continue;
             }
-
-            fieldCount++;
-            fieldName = responseName;
-            hasRequiredField |= selection.IsNonNull;
 
             var sourceName = resultSelectionSet.TryMapResponseName(responseName, out var mapping)
                 ? mapping.SourceResponseName
@@ -721,11 +715,19 @@ internal sealed class ValueCompletion
                     ForwardErrors(fieldErrors, fieldPath, selection.Type, selection);
                 }
             }
-        }
+            else if (errors.Error is not null)
+            {
+                if (target.ValueKind is JsonValueKind.Object
+                    && target.TryGetProperty(selection.Utf8ResponseName, out var field)
+                    && field.ValueKind is not JsonValueKind.Undefined)
+                {
+                    continue;
+                }
 
-        if (errors.Error is not null && fieldCount > 0)
-        {
-            ForwardError(errors, fieldCount == 1 ? path.Append(fieldName!) : path);
+                ForwardError(errors, path.Append(responseName));
+            }
+
+            hasRequiredField |= selection.IsNonNull;
         }
 
         return _errorHandlingMode is not ErrorHandlingMode.Propagate
