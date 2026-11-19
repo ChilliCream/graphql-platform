@@ -209,8 +209,8 @@ public class SubgraphErrorTests : FusionTestBase
               }
             }
             """,
-            variables: new Dictionary<string, object?> { ["hidePrice"] = true },
-            onError: ErrorHandlingMode.Null);
+            onError: ErrorHandlingMode.Null,
+            variables: new Dictionary<string, object?> { ["hidePrice"] = true });
 
         // act
         using var response = await client.PostAsync(
