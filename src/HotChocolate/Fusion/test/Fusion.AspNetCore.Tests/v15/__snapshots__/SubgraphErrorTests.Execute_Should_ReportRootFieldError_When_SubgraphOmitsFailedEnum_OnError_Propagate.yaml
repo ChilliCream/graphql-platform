@@ -8,10 +8,14 @@ request:
 response:
   body: |
     {
-      "data": {
-        "status": null,
-        "tail": 1
-      }
+      "errors": [
+        {
+          "message": "Availability unavailable.",
+          "path": [
+            "status"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: catalog

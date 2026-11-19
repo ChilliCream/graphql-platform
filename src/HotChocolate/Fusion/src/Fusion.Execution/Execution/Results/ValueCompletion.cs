@@ -110,6 +110,12 @@ internal sealed class ValueCompletion
             objectContext = target.GetObjectContext();
         }
 
+        if (errorTrie is { Count: > 0 }
+            && !TryCompleteOmittedLeafErrors(sourceSnapshot, objectContext, errorTrie, resultSelectionSet))
+        {
+            return !PropagateNullValues(target) && ApplyPocketedErrors(target);
+        }
+
         if (resultSelectionSet.HasSourceResponseNameMappings)
         {
             foreach (var property in source.EnumerateObject())
@@ -249,6 +255,33 @@ internal sealed class ValueCompletion
         }
 
         return ApplyPocketedErrors(target);
+    }
+
+    private bool TryCompleteOmittedLeafErrors(
+        SourceResultElementSnapshot source,
+        CompositeObjectContext objectContext,
+        ErrorTrie errors,
+        ResultSelectionSet? resultSelectionSet)
+    {
+        foreach (var (segment, fieldErrors) in errors)
+        {
+            if (fieldErrors.Error is null
+                || segment is not string sourceName
+                || source.TryGetProperty(sourceName, out _))
+            {
+                continue;
+            }
+
+            var name = resultSelectionSet?.GetResponseName(sourceName, objectContext.SelectionSet?.Type) ?? sourceName;
+            if (objectContext.TryGetVisibleProperty(name, out var field, out var selection)
+                && selection.UnwrappedKind is TypeKind.Scalar or TypeKind.Enum
+                && !TryCompleteNullValue(JsonValueKind.Undefined, field, fieldErrors, selection, resultSelectionSet: null))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private CompositeObjectContext InitializeTargetObject(
@@ -1590,6 +1623,12 @@ TryCompleteList_MoveNext:
                 ?? throw new InvalidOperationException(
                     "Cannot initialize a result object without a selection set.");
             target.InitializeObjectValue(objectSelectionSet, out objectContext);
+        }
+
+        if (errorTrie is { Count: > 0 }
+            && !TryCompleteOmittedLeafErrors(source, objectContext, errorTrie, resultSelectionSet))
+        {
+            return TryCompleteNullContainer(target);
         }
 
         if (resultSelectionSet is { HasSourceResponseNameMappings: true })
