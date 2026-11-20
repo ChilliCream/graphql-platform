@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using System.Transactions;
-using CookieCrumble;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -88,13 +87,7 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         }
 
         // assert
-        signal.Events.Distinct().ToArray().MatchInlineSnapshot(
-            """
-            [
-              "before-complete",
-              "notify(rows=1)"
-            ]
-            """);
+        Assert.Equal(["before-complete", "notify(rows=1)"], signal.Events.Distinct().ToArray());
     }
 
     [Fact]

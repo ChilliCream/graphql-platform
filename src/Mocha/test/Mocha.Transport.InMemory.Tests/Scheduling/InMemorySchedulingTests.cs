@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
@@ -110,36 +109,16 @@ public class InMemorySchedulingTests
                 TestContext.Current.CancellationToken);
         }
 
-        var atInvocation = new { PreparationCalls = preparationCalls, ObservationCalls = observationCalls };
+        var callsAtInvocation = (preparationCalls, observationCalls);
         time.Advance(TimeSpan.FromMinutes(11));
         var delivered = await received.Task.WaitAsync(s_deliveryTimeout, TestContext.Current.CancellationToken);
 
         // assert
-        new
-        {
-            AtInvocation = atInvocation,
-            AtDelivery = new { PreparationCalls = preparationCalls, ObservationCalls = observationCalls },
-            Body = System.Text.Encoding.UTF8.GetString(delivered.Body.Span),
-            Header = delivered.Headers?.GetValue("prepared-header"),
-            SentAt = delivered.SentAt?.ToString("O"),
-            ScheduledTime = delivered.ScheduledTime?.ToString("O")
-        }.MatchInlineSnapshot(
-            """
-            {
-              "AtInvocation": {
-                "PreparationCalls": 1,
-                "ObservationCalls": 1
-              },
-              "AtDelivery": {
-                "PreparationCalls": 1,
-                "ObservationCalls": 1
-              },
-              "Body": "{\"Text\":\"prepared\"}",
-              "Header": "stored",
-              "SentAt": "2026-06-01T12:11:00.0000000+00:00",
-              "ScheduledTime": "2026-06-01T12:10:00.0000000+00:00"
-            }
-            """);
+        Assert.Equal((1, 1), callsAtInvocation);
+        Assert.Equal((1, 1), (preparationCalls, observationCalls));
+        Assert.Equal("{\"Text\":\"prepared\"}", System.Text.Encoding.UTF8.GetString(delivered.Body.Span));
+        Assert.Equal("stored", delivered.Headers?.GetValue("prepared-header"));
+        Assert.Equal((s_start.AddMinutes(11), s_start.AddMinutes(10)), (delivered.SentAt, delivered.ScheduledTime));
     }
 
     [Fact]

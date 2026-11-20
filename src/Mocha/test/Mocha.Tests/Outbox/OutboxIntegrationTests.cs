@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Outbox;
@@ -73,19 +72,8 @@ public class OutboxIntegrationTests
 
         // assert
         Assert.True(await recorder.WaitAsync(s_timeout));
-        new
-        {
-            Delivered = recorder.Messages.Cast<OutboxTestEvent>().Select(message => message.Payload),
-            Stored = outbox.Envelopes.Count
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Delivered": [
-                "stored"
-              ],
-              "Stored": 1
-            }
-            """);
+        Assert.Equal(["stored"], recorder.Messages.Cast<OutboxTestEvent>().Select(message => message.Payload));
+        Assert.Single(outbox.Envelopes);
     }
 
     [Fact]
@@ -123,10 +111,9 @@ public class OutboxIntegrationTests
             new PublishOptions { Headers = new Dictionary<string, object?> { ["x-skip-outbox"] = "true" } },
             CancellationToken.None);
         await bus.PublishAsync(new OutboxTestEvent { Payload = "capture-me" }, CancellationToken.None);
-        var delivered = await recorder.WaitAsync(s_timeout);
+        await recorder.WaitAsync(s_timeout);
 
         // assert
-        Assert.True(delivered);
         Assert.Equal("skip-me", Assert.IsType<OutboxTestEvent>(Assert.Single(recorder.Messages)).Payload);
         Assert.Equal(
             "capture-me",

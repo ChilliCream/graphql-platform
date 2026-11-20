@@ -482,7 +482,7 @@ public class MessagePreparationTests
     }
 
     [Fact]
-    public async Task PublishAsync_Should_SkipOutbox_When_MiddlewareShortCircuits()
+    public async Task PublishAsync_Should_NeitherStoreNorSend_When_MiddlewareShortCircuits()
     {
         // arrange
         var persisted = false;
@@ -699,24 +699,12 @@ public class MessagePreparationTests
             : bus.SchedulePublishAsync(new TargetMessage("scheduled"), time, CancellationToken.None));
 
         // assert
-        var envelope = Assert.Single(store.Envelopes);
-        new
-        {
-            result,
-            envelope.ScheduledTime,
-            Message = Deserialize(envelope).Value
-        }.MatchInlineSnapshot(
-            """
-            {
-              "result": {
-                "Token": "test:scheduled",
-                "ScheduledTime": "2030-01-01T00:00:00+00:00",
-                "IsCancellable": true
-              },
-              "ScheduledTime": "2030-01-01T00:00:00+00:00",
-              "Message": "scheduled"
-            }
-            """);
+        Assert.Equal(
+            new SchedulingResult { Token = "test:scheduled", ScheduledTime = time, IsCancellable = true },
+            result);
+        Assert.Equal(
+            [(time, "scheduled")],
+            store.Envelopes.Select(envelope => (envelope.ScheduledTime, Deserialize(envelope).Value)));
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
         Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
     }
