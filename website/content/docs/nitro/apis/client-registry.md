@@ -45,25 +45,48 @@ Once a client version is no longer in use, it reaches its end of life. At this p
 
 In the context of GraphQL, the operations file is a structured file that holds a collection of persisted operations for a client. This file serves as a reference for the client to manage and execute specific operations against a GraphQL API.
 
-### Understanding the Format and Structure
+### Supported Formats
 
-The operations file typically adopts the JSON format as used by Relay. It comprises key-value pairs, with each pair representing a unique persisted operation. The key corresponds to a hash identifier for the operation, and the value is the GraphQL operation string. Below is an illustrative example of an operations file (`operations.json`):
+`nitro client upload` and `nitro client validate` accept the operations file in two JSON formats. The format is detected from the file content.
+
+#### Relay-style
+
+A JSON object of key-value pairs, each representing a unique persisted operation. The key is the operation ID (a hash of the operation), and the value is the GraphQL operation string.
 
 ```json
 {
-   "913abc361487c481cf6015841c0eca22": "{ me { username } }",
-   "0e7cf2125e8eb711b470cc72c73ca77e": "{ me { id } }"
-   ...
+  "913abc361487c481cf6015841c0eca22": "{ me { username } }",
+  "0e7cf2125e8eb711b470cc72c73ca77e": "{ me { id } }"
+}
+```
+
+#### Apollo persisted query manifest
+
+The manifest that Apollo tooling generates, for example `@apollo/generate-persisted-query-manifest`, `rover persisted-queries generate`, Apollo Kotlin, and Apollo iOS. The root `format` property must be `apollo-persisted-query-manifest` and `version` must be `1`.
+
+```json
+{
+  "format": "apollo-persisted-query-manifest",
+  "version": 1,
+  "operations": [
+    {
+      "id": "c2b2c5ba7a6b6c1d6b0f6fd3b36a2fa1e7f6a2c86c8f0d2d6b0b4d3f2e1a9c87",
+      "body": "query GetMe { me { username } }",
+      "name": "GetMe",
+      "type": "query"
+    }
+  ]
 }
 ```
 
 ### Compatibility with GraphQL Clients
 
-Several GraphQL clients have built-in support for this Relay-style operations file format. This compatibility allows for a standardized way of handling persisted operations across different clients. For more details on how various clients implement and work with persisted operations, consider referring to their respective documentation:
+Several GraphQL clients have built-in support for these operations file formats. This compatibility allows for a standardized way of handling persisted operations across different clients. For more details on how various clients implement and work with persisted operations, consider referring to their respective documentation:
 
 - [StrawberryShake](../../strawberryshake/performance/persisted-operations.md)
 - [URQL](https://nearform.com/open-source/urql/docs/advanced/persistence-and-uploads/)
 - [Relay](https://relay.dev/docs/guides/persisted-queries/)
+- [Apollo Client](https://www.apollographql.com/docs/react/api/link/persisted-queries)
 
 # Setting Up a Client Registry
 
