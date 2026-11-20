@@ -42,5 +42,6 @@ Hot Chocolate is not bound to a specific database. The data middleware works wit
 
 - [Entity Framework](./integrations/entity-framework.md) for EF Core DbContext patterns and pooling.
 - [MongoDB](./integrations/mongodb.md) for the MongoDB driver integration.
+- [Elasticsearch](./integrations/elasticsearch.md) for Elasticsearch through ES|QL.
 - [Marten](./integrations/marten.md) for Marten document database support.
 - [Extending Filtering](./integrations/extending-filtering.md) for building custom filter providers.

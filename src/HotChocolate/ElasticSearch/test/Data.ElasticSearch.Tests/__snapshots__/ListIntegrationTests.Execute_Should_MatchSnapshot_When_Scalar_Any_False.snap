@@ -1,0 +1,10 @@
+{
+  "data": {
+    "test": [
+      {
+        "bar": "A",
+        "scalarList": []
+      }
+    ]
+  }
+}

@@ -109,6 +109,7 @@
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Pipeline/HotChocolate.PersistedOperations.Pipeline.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Redis/HotChocolate.PersistedOperations.Redis.csproj" />
     <Project Path="HotChocolate/Primitives/src/Primitives/HotChocolate.Primitives.csproj" />
+    <Project Path="HotChocolate/ElasticSearch/src/Data/HotChocolate.Data.ElasticSearch.csproj" />
     <Project Path="HotChocolate/Raven/src/Data/HotChocolate.Data.Raven.csproj" />
     <Project Path="HotChocolate/Spatial/src/Data/HotChocolate.Data.Spatial.csproj" />
     <Project Path="HotChocolate/Spatial/src/Types/HotChocolate.Types.Spatial.csproj" />
