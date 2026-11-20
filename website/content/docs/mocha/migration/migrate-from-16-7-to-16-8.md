@@ -53,7 +53,7 @@ The dispatch pipeline runs `DispatchMiddlewares.Instrumentation`, transport and 
 
 - Middleware registered without an anchor now runs before serialization, so `context.Envelope` is not set yet. Change the message and headers before calling `next(context)`. Changes made after `await next(context)` do not affect the sent or stored message.
 - Middleware anchored before or after `DispatchMiddlewares.Serialization.Key` runs for every message, including scheduled and outboxed messages. Use `after: DispatchMiddlewares.Serialization.Key` for middleware that works on the serialized envelope.
-- The RabbitMQ routing key and Azure Service Bus message property middleware run directly after `DispatchMiddlewares.Instrumentation`, so application middleware can read and override the values they set.
+- The RabbitMQ routing key and Azure Service Bus message property middleware run before `DispatchMiddlewares.Serialization`, after application middleware registered without an anchor or on the bus, and keep a value whose header is already set. Middleware overrides a value by setting its header (`x-routing-key`, or a key from `AzureServiceBusMessageHeaders`) and reads the extracted values when it is anchored `after: DispatchMiddlewares.Serialization.Key`.
 
 ## `UseTransaction()` uses its own DbContext
 

@@ -104,11 +104,12 @@ public class RabbitMQRoutingKeyTests
         Assert.Equal("ORD-999", capturedRoutingKey);
     }
 
-    [Fact]
-    public async Task ExecuteAsync_Should_PreserveBusMiddlewareRoutingKey_When_ExtractorIsConfigured()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Serialization")]
+    public async Task ExecuteAsync_Should_PreserveBusMiddlewareRoutingKey_When_ExtractorIsConfigured(string? before)
     {
         // arrange
-        string? extractedRoutingKey = null;
         object? preparedRoutingKey = null;
         await using var runtime = CreateRuntime(builder =>
         {
@@ -119,22 +120,25 @@ public class RabbitMQRoutingKeyTests
             });
             builder.ConfigureMessageBus(bus =>
             {
-                bus.UseDispatch(new DispatchMiddlewareConfiguration(
-                    (_, next) => context =>
-                    {
-                        extractedRoutingKey = context.Headers.Get(RabbitMQMessageHeaders.RoutingKey);
-                        context.Headers.Set(RabbitMQMessageHeaders.RoutingKey, "from-middleware");
-                        return next(context);
-                    },
-                    "OverrideRoutingKey"));
-                bus.UseDispatch(new DispatchMiddlewareConfiguration(
-                    (_, _) => context =>
-                    {
-                        DispatchSerializerMiddleware.Serialize(context);
-                        preparedRoutingKey = context.Envelope!.Headers!.GetValue(RabbitMQMessageHeaders.RoutingKey.Key);
-                        return default;
-                    },
-                    "CaptureEnvelope"));
+                bus.UseDispatch(
+                    new DispatchMiddlewareConfiguration(
+                        (_, next) => context =>
+                        {
+                            context.Headers.Set(RabbitMQMessageHeaders.RoutingKey, "from-middleware");
+                            return next(context);
+                        },
+                        "OverrideRoutingKey"),
+                    before: before);
+                bus.UseDispatch(
+                    new DispatchMiddlewareConfiguration(
+                        (_, _) => context =>
+                        {
+                            preparedRoutingKey = context.Envelope!.Headers!.GetValue(
+                                RabbitMQMessageHeaders.RoutingKey.Key);
+                            return default;
+                        },
+                        "CaptureEnvelope"),
+                    after: DispatchMiddlewares.Serialization.Key);
             });
         });
         var messageType = runtime.GetMessageType(typeof(OrderCreated));
@@ -153,7 +157,6 @@ public class RabbitMQRoutingKeyTests
         }
 
         // assert
-        Assert.Equal("ORD-123", extractedRoutingKey);
         Assert.Equal("from-middleware", preparedRoutingKey);
     }
 
