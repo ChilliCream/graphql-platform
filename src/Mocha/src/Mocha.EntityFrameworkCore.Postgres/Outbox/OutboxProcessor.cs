@@ -13,11 +13,6 @@ namespace Mocha.Outbox;
 /// </summary>
 public sealed class PostgresOutboxProcessor
 {
-    private const int CriticalAttemptInterval = 10;
-
-    // A due message the claim did not return is held by another instance, so it is checked again shortly.
-    private static readonly TimeSpan s_heldMessagePollingInterval = TimeSpan.FromSeconds(1);
-
     private readonly ILogger<PostgresOutboxProcessor> _logger;
     private readonly IServiceProvider _services;
     private readonly IMessagingRuntime _runtime;
@@ -144,7 +139,7 @@ public sealed class PostgresOutboxProcessor
         }
 
         // The claim did not return the message that is due, so another instance holds it.
-        return secondsUntilDue <= 0 ? s_heldMessagePollingInterval : TimeSpan.FromSeconds(secondsUntilDue);
+        return secondsUntilDue <= 0 ? _options.HeldMessagePollingInterval : TimeSpan.FromSeconds(secondsUntilDue);
     }
 
     private async Task<EventResult> ProcessEventAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
@@ -281,7 +276,7 @@ public sealed class PostgresOutboxProcessor
 
     private void LogIfRepeatedlyFailed(Guid id, MessageEnvelope? envelope, int timesSent)
     {
-        if (timesSent % CriticalAttemptInterval == 0)
+        if (timesSent % _options.CriticalAttemptInterval == 0)
         {
             _logger.OutboxMessageFailedRepeatedly(
                 id,

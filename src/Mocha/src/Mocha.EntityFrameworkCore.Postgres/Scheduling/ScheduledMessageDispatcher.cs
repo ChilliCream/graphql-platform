@@ -16,15 +16,6 @@ namespace Mocha.Scheduling;
 /// </summary>
 public sealed class ScheduledMessageDispatcher
 {
-    // A Critical entry is logged every time the attempt count of a message reaches a multiple of this value.
-    private const int CriticalAttemptInterval = 10;
-
-    // The pause before the dispatcher looks again for a due message that another dispatcher holds.
-    private static readonly TimeSpan s_heldMessagePollingInterval = TimeSpan.FromSeconds(1);
-
-    // The pause of the dispatcher after a failed dispatch, which is as long as the retry delay of the message.
-    private static readonly TimeSpan s_failurePause = TimeSpan.FromSeconds(ScheduledMessageQueries.RetryDelaySeconds);
-
     private readonly ILogger<ScheduledMessageDispatcher> _logger;
     private readonly IServiceProvider _services;
     private readonly IMessagingRuntime _runtime;
@@ -88,7 +79,7 @@ public sealed class ScheduledMessageDispatcher
                 {
                     // A signal does not end the pause, so that a transport that is down is not called
                     // for every message that is scheduled meanwhile.
-                    await Task.Delay(s_failurePause, _timeProvider, cancellationToken);
+                    await Task.Delay(_options.FailurePause, _timeProvider, cancellationToken);
                 }
                 else if (result.NextWakeTime is { } nextWakeTime)
                 {
@@ -147,7 +138,7 @@ public sealed class ScheduledMessageDispatcher
         if (secondsUntilDue <= 0)
         {
             // The claim did not return the message that is due, so another dispatcher holds it.
-            return now + s_heldMessagePollingInterval;
+            return now + _options.HeldMessagePollingInterval;
         }
 
         return secondsUntilDue < (DateTimeOffset.MaxValue - now).TotalSeconds
@@ -279,7 +270,7 @@ public sealed class ScheduledMessageDispatcher
 
     private void LogIfRepeatedlyFailed(Guid id, MessageEnvelope? envelope, int timesSent)
     {
-        if (timesSent % CriticalAttemptInterval == 0)
+        if (timesSent % _options.CriticalAttemptInterval == 0)
         {
             _logger.ScheduledMessageFailedRepeatedly(
                 id,
