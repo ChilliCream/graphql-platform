@@ -17,9 +17,12 @@ const containerStyle: React.CSSProperties = {
   height: 480,
   borderRadius: 8,
   overflow: "hidden",
-  border: "1px solid #30363d",
+  border: "1px solid var(--color-cc-card-border)",
+  backgroundColor: "var(--color-cc-code-bg)",
   margin: "24px 0",
   position: "relative",
+  printColorAdjust: "exact",
+  WebkitPrintColorAdjust: "exact",
 };
 
 const overlayStyle: React.CSSProperties = {
@@ -38,8 +41,8 @@ const popupStyle: React.CSSProperties = {
   height: "88vh",
   borderRadius: 12,
   overflow: "hidden",
-  border: "1px solid #30363d",
-  backgroundColor: "#0d1117",
+  border: "1px solid var(--color-cc-card-border)",
+  backgroundColor: "var(--color-cc-code-bg)",
   position: "relative",
   boxShadow: "0 24px 48px rgba(0, 0, 0, 0.4)",
 };
@@ -55,9 +58,9 @@ const iconButtonStyle: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   borderRadius: 6,
-  border: "1px solid #30363d",
-  backgroundColor: "#161b22",
-  color: "#8b949e",
+  border: "1px solid var(--color-cc-card-border)",
+  backgroundColor: "var(--color-cc-code-header)",
+  color: "var(--color-cc-ink-dim)",
   cursor: "pointer",
   padding: 0,
   lineHeight: 1,

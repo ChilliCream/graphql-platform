@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { AppWindow } from "@/src/components/AppWindow";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { DotGridSurface } from "@/src/components/DotGridSurface";
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 import { StatusChip } from "@/src/components/StatusChip";
 import type { ChangeStatus } from "@/src/components/StatusChip";
@@ -240,7 +241,7 @@ function HeroDiffMock() {
 
 export function HeroSection() {
   return (
-    <DotGridSurface className="border-cc-card-border/50 bg-cc-surface/25 relative left-1/2 -mt-14 w-screen -translate-x-1/2 overflow-hidden border-b py-16 sm:py-24">
+    <DotGridSurface className="border-cc-card-border/50 bg-cc-band relative left-1/2 -mt-14 w-screen -translate-x-1/2 overflow-hidden border-b py-16 sm:py-24">
       <PageSection className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         <div className="min-w-0">
           <h1 className="font-heading text-h2 text-cc-heading font-bold tracking-tight">
@@ -267,8 +268,7 @@ export function HeroSection() {
             aria-hidden
             className="absolute -inset-6 -z-10 rounded-3xl opacity-60 blur-2xl"
             style={{
-              background:
-                "radial-gradient(60% 60% at 70% 20%, rgba(124,146,198,0.18), transparent 70%)",
+              background: `radial-gradient(60% 60% at 70% 20%, ${lightDark("rgba(139,92,246,0.28)", "rgba(124,146,198,0.18)")}, transparent 70%)`,
             }}
           />
           <HeroDiffMock />

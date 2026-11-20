@@ -2,27 +2,28 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { ArrowLink } from "@/src/components/ArrowLink";
+import { lightDark } from "@/src/components/lightDark";
 import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 
 const HEX = {
-  accent: "#5eead4",
-  coral: "#f0786a",
-  navLabel: "#94a3b8",
-  page: "#0b0f1a",
-  slo: "rgba(245, 241, 234, 0.30)",
+  accent: lightDark("#0d9488", "#5eead4"),
+  coral: lightDark("#d14a3a", "#f0786a"),
+  navLabel: lightDark("var(--color-cc-nav-label)", "#94a3b8"),
+  page: lightDark("var(--color-cc-card-bg)", "#0b0f1a"),
+  slo: lightDark("rgba(15, 23, 42, 0.45)", "rgba(245, 241, 234, 0.30)"),
 } as const;
 
-const TRACK = "rgba(245, 241, 234, 0.1)";
+const TRACK = lightDark("rgba(15, 23, 42, 0.12)", "rgba(245, 241, 234, 0.1)");
 
 const MONO =
   'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace';
 
 type Status = "firing" | "investigating" | "healthy";
 
-const STATUS_HEX: Record<Status, string> = {
-  firing: "#f0786a",
-  investigating: "#fbbf24",
-  healthy: "#34d399",
+const STATUS_COLOR: Record<Status, string> = {
+  firing: "var(--color-cc-status-firing)",
+  investigating: "var(--color-cc-status-investigating)",
+  healthy: "var(--color-cc-status-healthy)",
 };
 
 const STATUS_TEXT: Record<Status, string> = {
@@ -131,7 +132,7 @@ function ImpactFacet() {
               }`}
               style={
                 pinned
-                  ? { boxShadow: `inset 2px 0 0 ${STATUS_HEX.firing}` }
+                  ? { boxShadow: `inset 2px 0 0 ${STATUS_COLOR.firing}` }
                   : undefined
               }
             >
@@ -562,7 +563,7 @@ interface StatusDotProps {
 }
 
 function StatusDot({ status }: StatusDotProps) {
-  const color = STATUS_HEX[status];
+  const color = STATUS_COLOR[status];
   return (
     <svg
       width={12}
@@ -575,7 +576,7 @@ function StatusDot({ status }: StatusDotProps) {
         cx={7}
         cy={7}
         r={5}
-        fill={`${color}22`}
+        fill={`color-mix(in srgb, ${color} 13.333%, transparent)`}
         stroke={color}
         strokeWidth={1}
       />
@@ -618,7 +619,7 @@ function ImpactBar({ status, impact }: ImpactBarProps) {
         width={impact}
         height={5}
         rx={2.5}
-        fill={STATUS_HEX[status]}
+        fill={STATUS_COLOR[status]}
       />
     </svg>
   );

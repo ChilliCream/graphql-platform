@@ -2,14 +2,17 @@ import {
   Children,
   isValidElement,
   type ComponentPropsWithoutRef,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import { codeToHtml, type BundledTheme } from "shiki";
 import { ClipboardButton } from "@/src/components/ClipboardButton";
-import { CODE_THEME, LANGUAGES, STEP_PALETTE } from "./languages";
+import { getSiteThemeOptions } from "./codeThemes";
+import { LANGUAGES, STEP_PALETTE } from "./languages";
 import { parseCodeBlockMeta } from "@/src/helpers/parseCodeBlockMeta";
 
 type CodeBlockProps = ComponentPropsWithoutRef<"pre"> & {
+  /** Fixed dark Shiki theme. The block keeps dark chrome in both site themes. */
   theme?: BundledTheme;
 };
 
@@ -42,7 +45,7 @@ function extract(children: ReactNode): ExtractedCode | null {
 export async function CodeBlock({
   children,
   className = "",
-  theme = CODE_THEME,
+  theme,
 }: CodeBlockProps) {
   const extracted = extract(children);
   if (!extracted) {
@@ -55,11 +58,13 @@ export async function CodeBlock({
   const descriptor = LANGUAGES[language];
   const shikiLang = descriptor?.shiki ?? language;
 
+  const themeOptions = theme ? { theme } : await getSiteThemeOptions();
+
   let html: string;
   try {
     html = await codeToHtml(code, {
       lang: shikiLang,
-      theme,
+      ...themeOptions,
       transformers: [
         {
           line(node, line) {
@@ -125,11 +130,14 @@ export async function CodeBlock({
       ],
     });
   } catch {
-    html = await codeToHtml(code, { lang: "text", theme });
+    html = await codeToHtml(code, { lang: "text", ...themeOptions });
   }
 
   return (
-    <figure className="ring-cc-card-border bg-cc-code-bg relative my-6 overflow-hidden rounded-lg shadow-md ring-1">
+    <figure
+      className="ring-cc-card-border bg-cc-code-bg relative my-6 overflow-hidden rounded-lg shadow-md ring-1"
+      data-code-island={theme ? "" : undefined}
+    >
       <ClipboardButton
         value={code}
         label="Copy code"
@@ -143,11 +151,8 @@ export async function CodeBlock({
         <figcaption className="border-cc-card-border bg-cc-code-header flex min-h-11 items-center gap-3 border-b px-4 py-2 pr-12 text-xs">
           {descriptor ? (
             <span
-              className="rounded px-2 py-0.5 font-semibold tracking-wider uppercase"
-              style={{
-                color: descriptor.color,
-                backgroundColor: `${descriptor.color}1f`,
-              }}
+              className="code-lang-badge rounded px-2 py-0.5 font-semibold tracking-wider uppercase"
+              style={{ "--lang-color": descriptor.color } as CSSProperties}
             >
               {descriptor.label}
             </span>

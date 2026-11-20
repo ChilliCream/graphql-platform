@@ -20,6 +20,8 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { lightDark } from "@/src/components/lightDark";
+import { useColorScheme } from "@/src/components/useColorScheme";
 import { NitroReel } from "@/src/nitro";
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
@@ -141,7 +143,7 @@ interface NitroCanvasProps {
 function NitroCanvas({ children, className, style }: NitroCanvasProps) {
   return (
     <NitroTheme
-      theme="dark"
+      theme="auto"
       className={className}
       style={
         {
@@ -255,6 +257,14 @@ function Showcase({
   );
 }
 
+const CYAN = lightDark("6,182,212", "22,185,228");
+const CYAN_SOFT = lightDark("6,182,212", "140,214,240");
+const PALE_A = lightDark("6,182,212", "170,222,244");
+const PALE_B = lightDark("6,182,212", "205,240,255");
+const CORAL = lightDark("251,113,133", "240,120,106");
+const VIOLET = lightDark("139,92,246", "124,146,198");
+const MAUVE = lightDark("217,70,239", "182,129,169");
+
 const CONES: readonly {
   readonly halfAngle: number;
   readonly color: string;
@@ -262,10 +272,10 @@ const CONES: readonly {
   readonly mid: number;
   readonly blur: number;
 }[] = [
-  { halfAngle: 37, color: "240,120,106", peak: 0.4, mid: 0.18, blur: 50 },
-  { halfAngle: 30, color: "182,129,169", peak: 0.52, mid: 0.24, blur: 44 },
-  { halfAngle: 22, color: "124,146,198", peak: 0.58, mid: 0.28, blur: 36 },
-  { halfAngle: 15, color: "22,185,228", peak: 0.66, mid: 0.32, blur: 28 },
+  { halfAngle: 37, color: CORAL, peak: 0.4, mid: 0.18, blur: 50 },
+  { halfAngle: 30, color: MAUVE, peak: 0.52, mid: 0.24, blur: 44 },
+  { halfAngle: 22, color: VIOLET, peak: 0.58, mid: 0.28, blur: 36 },
+  { halfAngle: 15, color: CYAN, peak: 0.66, mid: 0.32, blur: 28 },
   { halfAngle: 9, color: "196,236,247", peak: 0.9, mid: 0.46, blur: 20 },
 ];
 
@@ -281,21 +291,21 @@ const CURTAINS: readonly {
     width: 3,
     height: 470,
     opacity: 0.24,
-    hue: "rgba(240,120,106,0.6)",
+    hue: `rgba(${CORAL},0.6)`,
   },
   {
     rot: -18,
     width: 3,
     height: 510,
     opacity: 0.34,
-    hue: "rgba(182,129,169,0.68)",
+    hue: `rgba(${MAUVE},0.68)`,
   },
   {
     rot: -10,
     width: 2.5,
     height: 545,
     opacity: 0.44,
-    hue: "rgba(22,185,228,0.8)",
+    hue: `rgba(${CYAN},0.8)`,
   },
   {
     rot: -4,
@@ -316,23 +326,30 @@ const CURTAINS: readonly {
     width: 2.5,
     height: 545,
     opacity: 0.44,
-    hue: "rgba(22,185,228,0.78)",
+    hue: `rgba(${CYAN},0.78)`,
   },
   {
     rot: 18,
     width: 3,
     height: 510,
     opacity: 0.34,
-    hue: "rgba(124,146,198,0.68)",
+    hue: `rgba(${VIOLET},0.68)`,
   },
   {
     rot: 27,
     width: 3,
     height: 470,
     opacity: 0.24,
-    hue: "rgba(240,120,106,0.6)",
+    hue: `rgba(${CORAL},0.6)`,
   },
 ];
+
+const GLOW_BLEND = lightDark(
+  "multiply",
+  "screen",
+) as CSSProperties["mixBlendMode"];
+
+const GLOW_OPACITY = lightDark("0.4", "1");
 
 const STRIKE_X_OFFSET = 288;
 const STRIKE_Y = 577;
@@ -345,6 +362,14 @@ const MOTE_TINTS = [
   { fill: "222,240,246", glow: "143,201,221" },
 ] as const;
 
+const MOTE_TINTS_LIGHT = [
+  { fill: "244,63,94", glow: "251,113,133" },
+  { fill: "139,92,246", glow: "167,139,250" },
+  { fill: "217,70,239", glow: "232,121,249" },
+  { fill: "244,63,94", glow: "251,113,133" },
+  { fill: "6,182,212", glow: "34,211,238" },
+] as const;
+
 interface HeroSparksProps {
   readonly reduced: boolean;
   readonly className?: string;
@@ -353,6 +378,7 @@ interface HeroSparksProps {
 function HeroSparks({ reduced, className }: HeroSparksProps) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const inView = useInView(ref, { amount: 0.01 });
+  const tints = useColorScheme() === "light" ? MOTE_TINTS_LIGHT : MOTE_TINTS;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -383,7 +409,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       base: 0.32 + rand(i * 9 + 7) * 0.52,
       phase: rand(i * 9 + 8) * Math.PI * 2,
       twSpeed: 0.6 + rand(i * 9 + 9) * 1.4,
-      tint: MOTE_TINTS[Math.floor(rand(i * 9 + 10) * MOTE_TINTS.length)],
+      tint: tints[Math.floor(rand(i * 9 + 10) * tints.length)],
     }));
 
     const smoothstep = (a: number, b: number, x: number) => {
@@ -463,7 +489,7 @@ function HeroSparks({ reduced, className }: HeroSparksProps) {
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [inView, reduced]);
+  }, [inView, reduced, tints]);
 
   return (
     <canvas
@@ -481,7 +507,7 @@ interface HeroAuroraProps {
 
 function HeroAurora({ reduced }: HeroAuroraProps) {
   const baseY = 602;
-  const screen = { mixBlendMode: "screen" as const };
+  const screen = { mixBlendMode: GLOW_BLEND, opacity: GLOW_OPACITY };
   return (
     <div
       aria-hidden="true"
@@ -510,8 +536,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
         className="absolute inset-0"
         style={{
           ...screen,
-          background:
-            "radial-gradient(130% 80% at 50% -12%, rgba(22,185,228,0.24), transparent 58%), radial-gradient(58% 50% at 86% 6%, rgba(240,120,106,0.24), transparent 64%), radial-gradient(52% 44% at 8% 6%, rgba(124,146,198,0.22), transparent 62%)",
+          background: `radial-gradient(130% 80% at 50% -12%, rgba(${CYAN},0.24), transparent 58%), radial-gradient(58% 50% at 86% 6%, rgba(${CORAL},0.24), transparent 64%), radial-gradient(52% 44% at 8% 6%, rgba(${VIOLET},0.22), transparent 62%)`,
         }}
       />
       <div
@@ -523,8 +548,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
           width: 820,
           height: 580,
           filter: "blur(88px)",
-          background:
-            "radial-gradient(48% 48% at 62% 32%, rgba(22,185,228,0.13), transparent 72%), radial-gradient(40% 40% at 88% 60%, rgba(240,120,106,0.11), transparent 74%)",
+          background: `radial-gradient(48% 48% at 62% 32%, rgba(${CYAN},0.13), transparent 72%), radial-gradient(40% 40% at 88% 60%, rgba(${CORAL},0.11), transparent 74%)`,
         }}
       />
 
@@ -605,8 +629,8 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: baseY,
             width: 6,
             filter: "blur(4px)",
-            background:
-              "linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(196,236,247,0.7) 46%, rgba(22,185,228,0.55) 100%)",
+            opacity: 1,
+            background: `linear-gradient(to bottom, ${lightDark("rgba(6,182,212,0.85)", "rgba(255,255,255,0.9)")} 0%, ${lightDark("rgba(6,182,212,0.65)", "rgba(196,236,247,0.7)")} 46%, ${lightDark("rgba(6,182,212,0.5)", "rgba(22,185,228,0.55)")} 100%)`,
           }}
         />
         <div
@@ -616,8 +640,8 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: baseY - 20,
             width: 2,
             filter: "blur(0.5px)",
-            background:
-              "linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(226,244,250,0.9) 55%, rgba(226,244,250,0.4) 100%)",
+            opacity: 1,
+            background: `linear-gradient(to bottom, ${lightDark("rgba(6,182,212,1)", "rgba(255,255,255,1)")} 0%, ${lightDark("rgba(6,182,212,0.8)", "rgba(226,244,250,0.9)")} 55%, ${lightDark("rgba(6,182,212,0.3)", "rgba(226,244,250,0.4)")} 100%)`,
           }}
         />
 
@@ -629,8 +653,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 300,
             width: 1120,
             filter: "blur(90px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(22,185,228,0.42), rgba(240,120,106,0.16) 52%, transparent 80%)",
+            background: `radial-gradient(ellipse 100% 100% at 50% 100%, rgba(${CYAN},0.42), rgba(${CORAL},0.16) 52%, transparent 80%)`,
           }}
         />
         <div
@@ -641,8 +664,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 280,
             width: 600,
             filter: "blur(78px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(240,120,106,0.5), rgba(182,129,169,0.24) 46%, transparent 78%)",
+            background: `radial-gradient(ellipse 100% 100% at 50% 100%, rgba(${CORAL},0.5), rgba(${MAUVE},0.24) 46%, transparent 78%)`,
           }}
         />
         <div
@@ -653,8 +675,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 260,
             width: 560,
             filter: "blur(78px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(124,146,198,0.44), transparent 78%)",
+            background: `radial-gradient(ellipse 100% 100% at 50% 100%, rgba(${VIOLET},0.44), transparent 78%)`,
           }}
         />
         <div
@@ -665,8 +686,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 280,
             width: 840,
             filter: "blur(70px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(22,185,228,0.58), transparent 74%)",
+            background: `radial-gradient(ellipse 100% 100% at 50% 100%, rgba(${CYAN},0.58), transparent 74%)`,
           }}
         />
         <div
@@ -677,8 +697,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 250,
             width: 620,
             filter: "blur(50px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(22,185,228,0.7), rgba(124,146,198,0.34) 44%, transparent 74%)",
+            background: `radial-gradient(ellipse 100% 100% at 50% 100%, rgba(${CYAN},0.7), rgba(${VIOLET},0.34) 44%, transparent 74%)`,
           }}
         />
         <div
@@ -689,8 +708,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 220,
             width: 620,
             filter: "blur(64px)",
-            background:
-              "radial-gradient(ellipse 100% 100% at 50% 100%, rgba(255,255,255,0.9), rgba(22,185,228,0.5) 40%, transparent 72%)",
+            background: `radial-gradient(ellipse 100% 100% at 50% 100%, rgba(255,255,255,0.9), rgba(${CYAN},0.5) 40%, transparent 72%)`,
           }}
         />
         <div
@@ -701,8 +719,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 300,
             width: 740,
             filter: "blur(38px)",
-            background:
-              "radial-gradient(ellipse 50% 46% at 50% 50%, rgba(255,255,255,0.5), rgba(22,185,228,0.42) 30%, rgba(124,146,198,0.26) 52%, rgba(240,120,106,0.14) 70%, transparent 84%)",
+            background: `radial-gradient(ellipse 50% 46% at 50% 50%, rgba(255,255,255,0.5), rgba(${CYAN},0.42) 30%, rgba(${VIOLET},0.26) 52%, rgba(${CORAL},0.14) 70%, transparent 84%)`,
           }}
         />
         <div
@@ -749,8 +766,7 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 120,
             width: 560,
             filter: "blur(20px)",
-            background:
-              "radial-gradient(ellipse 100% 50% at 50% 0%, rgba(255,255,255,0.9), rgba(22,185,228,0.5) 42%, transparent 72%)",
+            background: `radial-gradient(ellipse 100% 50% at 50% 0%, rgba(255,255,255,0.9), rgba(${CYAN},0.5) 42%, transparent 72%)`,
           }}
         />
         <div
@@ -761,8 +777,8 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
             height: 18,
             width: 900,
             filter: "blur(6px)",
-            background:
-              "linear-gradient(90deg, transparent 0%, rgba(126,206,236,0.55) 26%, rgba(255,255,255,0.98) 50%, rgba(126,206,236,0.55) 74%, transparent 100%)",
+            opacity: 1,
+            background: `linear-gradient(90deg, transparent 0%, ${lightDark("rgba(6,182,212,0.5)", "rgba(126,206,236,0.55)")} 26%, ${lightDark("rgba(6,182,212,0.95)", "rgba(255,255,255,0.98)")} 50%, ${lightDark("rgba(6,182,212,0.5)", "rgba(126,206,236,0.55)")} 74%, transparent 100%)`,
           }}
         />
       </div>
@@ -772,11 +788,10 @@ function HeroAurora({ reduced }: HeroAuroraProps) {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(120% 90% at 50% 8%, transparent 46%, rgba(11,15,26,0.55) 78%, #0b0f1a 100%)",
+          background: `radial-gradient(120% 90% at 50% 8%, transparent 46%, ${lightDark("rgba(252,251,248,0.55)", "rgba(11,15,26,0.55)")} 78%, var(--color-cc-bg) 100%)`,
         }}
       />
-      <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-b from-transparent to-[#0b0f1a]" />
+      <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-b from-transparent to-(--color-cc-bg)" />
     </div>
   );
 }
@@ -1160,7 +1175,9 @@ function SignalsBento() {
             <div className="flex items-baseline gap-2">
               <span
                 className="font-heading text-h4 tabular-nums"
-                style={{ color: "#f0786a" }}
+                style={{
+                  color: lightDark("var(--color-cc-danger)", "#f0786a"),
+                }}
               >
                 0.31%
               </span>
@@ -1321,7 +1338,12 @@ function DeliveryBand() {
                 </div>
                 <div className="border-cc-card-border bg-cc-card-bg rounded-lg border p-3 font-mono text-xs">
                   <div className="text-cc-ink-dim">POST /graphql</div>
-                  <div className="mt-1 truncate" style={{ color: "#16b9e4" }}>
+                  <div
+                    className="mt-1 truncate"
+                    style={{
+                      color: lightDark("var(--color-cc-accent)", "#16b9e4"),
+                    }}
+                  >
                     documentId: sha256:7f3a9b2e…
                   </div>
                   <div className="text-cc-success mt-1">
@@ -1360,7 +1382,7 @@ function Hero({ reduced }: HeroProps) {
             <span
               aria-hidden="true"
               className="h-px w-16 rounded-full"
-              style={{ background: "#16b9e4" }}
+              style={{ background: lightDark("#06b6d4", "#16b9e4") }}
             />
             <Eyebrow
               as="span"
@@ -1373,8 +1395,7 @@ function Hero({ reduced }: HeroProps) {
           <h1
             className="font-heading text-h1 text-balance"
             style={{
-              backgroundImage:
-                "linear-gradient(105deg, #f5f0ea 24%, #8fd3ec 58%, #16b9e4 82%, #7c92c6 100%)",
+              backgroundImage: `linear-gradient(105deg, ${lightDark("#0b0f1a", "#f5f0ea")} 24%, ${lightDark("#0891b2", "#8fd3ec")} 58%, ${lightDark("#0e7490", "#16b9e4")} 82%, ${lightDark("#7c3aed", "#7c92c6")} 100%)`,
               backgroundClip: "text",
               WebkitBackgroundClip: "text",
               color: "transparent",
@@ -1420,9 +1441,8 @@ function Hero({ reduced }: HeroProps) {
                   width: 300,
                   height: 120,
                   filter: "blur(16px)",
-                  mixBlendMode: "screen",
-                  background:
-                    "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(140,214,240,0.55), rgba(22,185,228,0.26) 52%, transparent 80%)",
+                  mixBlendMode: GLOW_BLEND,
+                  background: `radial-gradient(ellipse 50% 50% at 50% 50%, rgba(${CYAN_SOFT},0.55), rgba(${CYAN},0.26) 52%, transparent 80%)`,
                 }}
               />
               <div
@@ -1434,9 +1454,8 @@ function Hero({ reduced }: HeroProps) {
                   width: 460,
                   height: 18,
                   filter: "blur(7px)",
-                  mixBlendMode: "screen",
-                  background:
-                    "linear-gradient(90deg, transparent, rgba(170,222,244,0.75) 40%, rgba(255,255,255,0.95) 50%, rgba(170,222,244,0.75) 60%, transparent)",
+                  mixBlendMode: GLOW_BLEND,
+                  background: `linear-gradient(90deg, transparent, rgba(${PALE_A},0.75) 40%, rgba(255,255,255,0.95) 50%, rgba(${PALE_A},0.75) 60%, transparent)`,
                 }}
               />
               <div
@@ -1448,9 +1467,8 @@ function Hero({ reduced }: HeroProps) {
                   width: 640,
                   height: 3,
                   filter: "blur(1px)",
-                  mixBlendMode: "screen",
-                  background:
-                    "linear-gradient(90deg, transparent, rgba(140,214,240,0.5) 24%, rgba(255,255,255,1) 50%, rgba(140,214,240,0.5) 76%, transparent)",
+                  mixBlendMode: GLOW_BLEND,
+                  background: `linear-gradient(90deg, transparent, rgba(${CYAN_SOFT},0.5) 24%, rgba(255,255,255,1) 50%, rgba(${CYAN_SOFT},0.5) 76%, transparent)`,
                 }}
               />
               <div
@@ -1462,9 +1480,8 @@ function Hero({ reduced }: HeroProps) {
                   width: 64,
                   height: 64,
                   filter: "blur(5px)",
-                  mixBlendMode: "screen",
-                  background:
-                    "radial-gradient(circle, rgba(255,255,255,1), rgba(205,240,255,0.7) 30%, transparent 68%)",
+                  mixBlendMode: GLOW_BLEND,
+                  background: `radial-gradient(circle, rgba(255,255,255,1), rgba(${PALE_B},0.7) 30%, transparent 68%)`,
                 }}
               />
               <div
@@ -1476,9 +1493,8 @@ function Hero({ reduced }: HeroProps) {
                   width: 300,
                   height: 130,
                   filter: "blur(16px)",
-                  mixBlendMode: "screen",
-                  background:
-                    "linear-gradient(to bottom, rgba(205,240,255,0.42), rgba(22,185,228,0.16) 45%, transparent 82%)",
+                  mixBlendMode: GLOW_BLEND,
+                  background: `linear-gradient(to bottom, rgba(${PALE_B},0.42), rgba(${CYAN},0.16) 45%, transparent 82%)`,
                 }}
               />
             </div>

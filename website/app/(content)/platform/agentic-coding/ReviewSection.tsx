@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Card } from "@/src/design-system/Card";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { lightDark } from "@/src/components/lightDark";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { BranchGlyph } from "@/src/icons/BranchGlyph";
 import { CheckGlyph } from "@/src/icons/CheckGlyph";
@@ -76,11 +77,15 @@ interface TimeBar {
 // A qualitative comparison of review effort when agents follow a known pattern
 // instead of introducing an unfamiliar structure.
 const TIME_BARS: readonly TimeBar[] = [
-  { label: "patterned change", width: 24, fill: "var(--color-cc-accent)" },
+  {
+    label: "patterned change",
+    width: 24,
+    fill: "var(--color-cc-accent-vivid)",
+  },
   {
     label: "invented structure",
     width: 84,
-    fill: "rgba(245, 241, 234, 0.13)",
+    fill: lightDark("rgba(251, 113, 133, 0.75)", "rgba(245, 241, 234, 0.13)"),
   },
 ];
 
@@ -581,7 +586,12 @@ export function ReviewSection() {
                 </Eyebrow>
                 <span
                   className="h-2 flex-1 overflow-hidden rounded-full"
-                  style={{ background: "rgba(245, 241, 234, 0.06)" }}
+                  style={{
+                    background: lightDark(
+                      "rgba(6, 182, 212, 0.14)",
+                      "rgba(245, 241, 234, 0.06)",
+                    ),
+                  }}
                 >
                   <span
                     className="block h-full rounded-full"

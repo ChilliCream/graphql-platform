@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef } from "react";
 import { codeToHtml } from "shiki";
-import { CODE_THEME, LANGUAGES } from "./languages";
+import { getSiteThemeOptions } from "./codeThemes";
+import { LANGUAGES } from "./languages";
 
 interface InlineCodeProps extends ComponentPropsWithoutRef<"code"> {
   readonly "data-language"?: string;
@@ -60,7 +61,7 @@ async function HighlightedInlineCode({
   try {
     html = await codeToHtml(code, {
       lang: shikiLang,
-      theme: CODE_THEME,
+      ...(await getSiteThemeOptions()),
       structure: "inline",
     });
   } catch {
@@ -73,7 +74,7 @@ async function HighlightedInlineCode({
 
   return (
     <code
-      className={`bg-cc-code-bg ring-cc-card-border rounded px-1.5 py-0.5 font-mono text-[0.875em] ring-1 ${className}`.trim()}
+      className={`shiki-themes bg-cc-code-bg ring-cc-card-border rounded px-1.5 py-0.5 font-mono text-[0.875em] ring-1 ${className}`.trim()}
       {...props}
       dangerouslySetInnerHTML={{ __html: html }}
     />

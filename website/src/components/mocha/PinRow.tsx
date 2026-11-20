@@ -1,10 +1,12 @@
+import { lightDark } from "@/src/components/lightDark";
+
 export interface Pin {
   readonly x: number;
   readonly y: number;
   readonly side: "left" | "right" | "top" | "bottom";
 }
 
-const PAD_FILL = "rgba(158,176,204,0.34)";
+const PAD_FILL = lightDark("rgba(6,182,212,0.5)", "rgba(158,176,204,0.34)");
 
 interface PinRowProps {
   readonly pin: Pin;

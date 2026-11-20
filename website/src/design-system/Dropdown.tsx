@@ -35,14 +35,14 @@ export function Dropdown({
           aria-labelledby={label ? labelId : undefined}
           className={[
             "flex w-full cursor-pointer list-none items-center gap-2 select-none",
-            "border-cc-card-border rounded-md border bg-white/5 px-3 py-2.5",
+            "border-cc-control-border bg-cc-control-bg rounded-md border px-3 py-2.5",
             "text-cc-ink text-left text-sm transition-colors",
             // Hover affordance only while closed, so it can't override the
             // accent border below (group-open has lower specificity in v4).
             "[details:not([open])>&:hover]:border-cc-card-border-hover",
             // Accent highlight while open, mirroring an input's focus state.
-            "group-open:border-cc-accent group-open:ring-cc-accent/30 group-open:ring-2",
-            "focus-visible:border-cc-accent focus-visible:ring-cc-accent/30 focus-visible:ring-2 focus-visible:outline-hidden",
+            "group-open:border-cc-accent group-open:ring-cc-accent-vivid/30 group-open:ring-2",
+            "focus-visible:border-cc-accent focus-visible:ring-cc-accent-vivid/30 focus-visible:ring-2 focus-visible:outline-hidden",
             "[&::-webkit-details-marker]:hidden",
           ].join(" ")}
         >
@@ -96,7 +96,9 @@ export function DropdownItem({
 }: DropdownItemProps) {
   const className = [
     "block w-full cursor-pointer rounded px-3 py-2 text-left no-underline transition-colors",
-    active ? "bg-cc-accent/10 text-cc-accent" : "text-cc-ink hover:bg-cc-hover",
+    active
+      ? "bg-cc-accent-vivid/10 text-cc-selected-text"
+      : "text-cc-ink hover:bg-cc-hover",
   ].join(" ");
 
   const content = (
@@ -104,7 +106,7 @@ export function DropdownItem({
       <div className="text-sm font-medium">{children}</div>
       {description && (
         <div
-          className={`text-xs ${active ? "text-cc-accent/80" : "text-cc-ink-dim"}`}
+          className={`text-xs ${active ? "text-cc-selected-description" : "text-cc-ink-dim"}`}
         >
           {description}
         </div>

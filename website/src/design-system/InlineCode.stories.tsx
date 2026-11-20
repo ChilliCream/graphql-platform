@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import type { ReactElement } from "react";
+import { expect } from "storybook/test";
+import { lowestContrast, storyTheme } from "./codeBlockStoryUtils";
 import { InlineCode } from "./InlineCode";
 
 const meta = {
@@ -78,4 +80,24 @@ export const UnknownLanguage: Story = {
       {loaded.code as ReactElement}.
     </p>
   ),
+};
+
+export const HighlightedLight: Story = {
+  ...Highlighted,
+  beforeEach: storyTheme("light"),
+  play: async ({ canvasElement }) => {
+    expect(lowestContrast(canvasElement, "code span")).toBeGreaterThanOrEqual(
+      4.5,
+    );
+  },
+};
+
+export const InProseLight: Story = {
+  ...InProse,
+  beforeEach: storyTheme("light"),
+};
+
+export const UnknownLanguageLight: Story = {
+  ...UnknownLanguage,
+  beforeEach: storyTheme("light"),
 };

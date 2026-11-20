@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Eyebrow } from "@/src/design-system/Eyebrow";
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 import { CoffeeTray } from "@/src/icons/CoffeeTray";
 import { Fusion } from "@/src/icons/Fusion";
@@ -14,6 +15,8 @@ import { DrinkIcon } from "./DrinkIcon";
 /** Brand spectrum (cyan -> violet -> coral), the card's pitch background. */
 const CARD_GRADIENT =
   "linear-gradient(100deg,#16b9e4 0%,#7c92c6 36%,#b681a9 64%,#f0786a 100%)";
+
+const CARD_SHADOW = `0 24px 50px ${lightDark("rgba(60,48,30,0.22)", "rgba(0,0,0,0.4)")}`;
 
 const PRODUCTS = [
   {
@@ -59,7 +62,10 @@ const PRODUCTS = [
 export function BuildYourWay() {
   return (
     <PageSection className="py-8">
-      <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl shadow-[0_24px_50px_rgba(0,0,0,0.4)]">
+      <div
+        className="mx-auto max-w-7xl overflow-hidden rounded-3xl"
+        style={{ boxShadow: CARD_SHADOW }}
+      >
         {/* Pitch region (top of the card). */}
         <div
           className="px-8 pt-12 pb-12 text-[#0b1018] sm:px-12 sm:pt-14 lg:px-16"

@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 
+import { lightDark } from "@/src/components/lightDark";
 import { PageSection } from "@/src/components/PageSection";
 import { BrowserIcon } from "@/src/icons/BrowserIcon";
 import { HandshakeIcon } from "@/src/icons/HandshakeIcon";
@@ -16,6 +17,24 @@ interface Protocol {
   readonly subtitle: string;
   readonly tags: readonly string[];
 }
+
+const linkStroke = (glow: string) =>
+  lightDark(
+    `color-mix(in srgb, var(${glow}) 80%, transparent)`,
+    "rgba(245,241,234,0.22)",
+  );
+
+const LINK_STROKES = [
+  linkStroke("--cc-glow-cyan"),
+  linkStroke("--cc-glow-magenta"),
+  linkStroke("--cc-glow-violet"),
+  linkStroke("--cc-glow-coral"),
+] as const;
+
+const scrim = (alpha: number) =>
+  lightDark(`rgba(252,251,248,${alpha})`, `rgba(11,15,26,${alpha})`);
+
+const SCRIM = `radial-gradient(ellipse 50% 50% at 50% 50%, ${scrim(0.92)} 0%, ${scrim(0.8)} 42%, ${scrim(0.45)} 68%, ${scrim(0)} 88%)`;
 
 const CHIPS = ["gRPC", "GraphQL", "OpenAPI", "MCP"] as const;
 
@@ -76,6 +95,7 @@ const LINKS = PROTOCOLS.flatMap((card, to) =>
       const mid = LINK_Y / 2;
       return {
         key: `${from}-${to}`,
+        from,
         d: `M ${x0} 0 C ${x0} ${mid} ${x1} ${mid} ${x1} ${LINK_Y}`,
       };
     }),
@@ -133,7 +153,7 @@ export function ProtocolCards() {
             <path
               key={link.key}
               d={link.d}
-              stroke="rgba(245,241,234,0.22)"
+              style={{ stroke: LINK_STROKES[link.from] }}
               strokeWidth={1.5}
               vectorEffect="non-scaling-stroke"
             />
@@ -145,8 +165,7 @@ export function ProtocolCards() {
             aria-hidden="true"
             className="pointer-events-none absolute top-1/2 left-1/2 h-[74%] w-[min(980px,96vw)] -translate-x-1/2 -translate-y-1/2"
             style={{
-              background:
-                "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,15,26,0.92) 0%, rgba(11,15,26,0.8) 42%, rgba(11,15,26,0.45) 68%, rgba(11,15,26,0) 88%)",
+              background: SCRIM,
             }}
           />
           <div className="relative">

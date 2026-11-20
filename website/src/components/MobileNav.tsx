@@ -8,6 +8,7 @@ import { BarsIcon } from "@/src/icons/Bars";
 import { ChilliCream } from "@/src/icons/ChilliCream";
 import { XmarkIcon } from "@/src/icons/Xmark";
 import { Search } from "./Search";
+import { ThemeSelector } from "./ThemeSelector";
 
 type Item = { href: string; label: string };
 
@@ -44,7 +45,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
         open={open}
         onOpenChange={setOpen}
         header={
-          <div className="border-cc-white/10 flex h-18 flex-none items-center justify-between border-b px-4">
+          <div className="border-cc-card-border flex h-18 flex-none items-center justify-between border-b px-4">
             <Link
               href="/"
               aria-label="ChilliCream Home"
@@ -70,7 +71,7 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
               <Link
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="border-cc-white/10 text-cc-heading flex h-18 w-full items-center border-b px-6 text-lg font-medium no-underline"
+                className="border-cc-card-border text-cc-heading flex h-18 w-full items-center border-b px-6 text-lg font-medium no-underline"
               >
                 {item.label}
               </Link>
@@ -87,6 +88,9 @@ export function MobileNav({ items, demoHref, nitroHref }: MobileNavProps) {
             <SolidButton href={nitroHref} className="h-10 py-0">
               Launch Nitro
             </SolidButton>
+          </li>
+          <li className="flex flex-none items-center justify-center px-6 pb-8">
+            <ThemeSelector size="comfortable" />
           </li>
         </ol>
       </MobileDrawer>

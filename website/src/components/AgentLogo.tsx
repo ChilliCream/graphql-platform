@@ -1,3 +1,5 @@
+import { lightDark } from "@/src/components/lightDark";
+
 interface Agent {
   readonly name: string;
   readonly slug: string;
@@ -5,8 +7,7 @@ interface Agent {
 
 /**
  * The coding agents shown across the agentic-coding surfaces. Every entry has
- * an official brand SVG in public/agent-logos/<slug>.svg (see the README
- * there), so the mark renders as-is on the dark navy surface.
+ * an official brand SVG in public/agent-logos/<slug>.svg.
  */
 export const AGENTS: readonly Agent[] = [
   { name: "Claude", slug: "claude" },
@@ -24,19 +25,29 @@ interface AgentLogoProps {
 }
 
 /**
- * One agent brand mark, loaded from /public/agent-logos/<slug>.svg. Brand
- * logos stay as static assets (not inline icons) because they are third-party
- * marks used verbatim, never tinted via currentColor. The mark is decorative
- * (every call site pairs it with the visible agent name), so alt stays empty;
- * if a standalone usage ever appears, give it a real alt at that point.
+ * One agent brand mark, loaded from /public/agent-logos/<slug>.svg. The
+ * assets are single-color cream marks, so each renders as a mask filled with
+ * the page ink of the resolved appearance. The mark is decorative (every call
+ * site pairs it with the visible agent name).
  */
 export function AgentLogo({ agent, className }: AgentLogoProps) {
+  const mask = `url(/agent-logos/${agent.slug}.svg)`;
+
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`/agent-logos/${agent.slug}.svg`}
-      alt=""
-      className={["object-contain", className].filter(Boolean).join(" ")}
+    <span
+      aria-hidden="true"
+      className={["inline-block", className].filter(Boolean).join(" ")}
+      style={{
+        backgroundColor: lightDark("#0b0f1a", "#f5f0ea"),
+        WebkitMaskImage: mask,
+        maskImage: mask,
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskPosition: "center",
+        maskPosition: "center",
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+      }}
     />
   );
 }

@@ -11,13 +11,16 @@ import {
   AMBER,
   CORAL,
   CORAL_SOFT,
+  CORAL_SOFT_TEXT,
   CYAN,
+  CYAN_TEXT,
   MONO_FONT,
-  NAVY,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import { lightDark } from "@/src/components/lightDark";
 
+const NAVY = lightDark("#fff", "#0b0f1a");
 const T = 15000;
 const REST_T = 7150;
 const CYCLE = 7500;
@@ -33,17 +36,20 @@ const COMPRESS = 450;
 const TRAVEL = 1500;
 const ARRIVE = FLUSH + COMPRESS + TRAVEL;
 
-const INK = "#a1a3af";
-const ACCENT = "#5eead4";
-const SURFACE = "#0c1322";
-const HAIR = "rgba(139,160,188,0.22)";
-const PANEL_STROKE = "rgba(158,176,204,0.44)";
-const LANE_STROKE = "rgba(139,160,188,0.4)";
-const VIA_STROKE = "rgba(164,180,208,0.55)";
-const PAD_FILL = "rgba(158,176,204,0.34)";
-const SILK = "rgba(154,172,200,0.75)";
-const SILK_SOFT = "rgba(154,172,200,0.7)";
-const GRID_DOT = "rgba(150,166,194,0.10)";
+const INK = lightDark("#334155", "#a1a3af");
+const ACCENT = lightDark("#0f766e", "#5eead4");
+const SURFACE = lightDark("#fff", "#0c1322");
+const HAIR = lightDark("rgba(139,92,246,0.35)", "rgba(139,160,188,0.22)");
+const PANEL_STROKE = lightDark(
+  "rgba(139,92,246,0.7)",
+  "rgba(158,176,204,0.44)",
+);
+const LANE_STROKE = lightDark("rgba(6,182,212,0.85)", "rgba(139,160,188,0.4)");
+const VIA_STROKE = lightDark("rgba(6,182,212,0.95)", "rgba(164,180,208,0.55)");
+const PAD_FILL = lightDark("rgba(6,182,212,0.5)", "rgba(158,176,204,0.34)");
+const SILK = lightDark("rgba(51,65,85,0.85)", "rgba(154,172,200,0.75)");
+const SILK_SOFT = lightDark("rgba(51,65,85,0.75)", "rgba(154,172,200,0.7)");
+const GRID_DOT = lightDark("rgba(6,182,212,0.28)", "rgba(150,166,194,0.10)");
 
 const MID_Y = 78;
 const SLOT_W = 140;
@@ -370,7 +376,7 @@ export function BatchVisual() {
           </text>
 
           <text x={L.slotL} y={MID_Y - 20} fontFamily={MONO_FONT} fontSize={10}>
-            <tspan ref={set("cnt")} fill={CORAL_SOFT}>
+            <tspan ref={set("cnt")} fill={CORAL_SOFT_TEXT}>
               48
             </tspan>
             <tspan fill={SILK_SOFT}>{" / 100"}</tspan>
@@ -408,7 +414,7 @@ export function BatchVisual() {
             width={PANEL_W}
             height={PANEL_H}
             rx={3}
-            fill="rgba(139,160,188,0.03)"
+            fill={lightDark("rgba(139,92,246,0.07)", "rgba(139,160,188,0.03)")}
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
@@ -519,7 +525,7 @@ export function BatchVisual() {
               y={ROW_Y + 21}
               fontFamily={MONO_FONT}
               fontSize={10}
-              fill={CORAL_SOFT}
+              fill={CORAL_SOFT_TEXT}
             >
               {ROW_SEGS.map((s) => s.t).join("")}
             </text>
@@ -570,7 +576,7 @@ export function BatchVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.04em"
-            fill={CYAN}
+            fill={CYAN_TEXT}
             opacity={0}
           >
             HandleAsync(batch · 100)

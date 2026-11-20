@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CARD_WASH_CLASS, CARD_WASH_STYLE } from "@/src/components/cardWash";
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { formatDate } from "@/src/helpers/formatDate";
 import { formatEpisode, type VideoSummary } from "@/src/helpers/videos";
@@ -16,7 +17,8 @@ export function VideoCard({ video }: VideoCardProps) {
       <Link
         href={video.href}
         prefetch={false}
-        className="border-cc-ink-faint bg-cc-white/2.5 hover:border-cc-card-border-hover hover:bg-cc-white/5 flex h-full flex-col overflow-hidden rounded-2xl border no-underline transition-[background-color,border-color] duration-150"
+        className={`border-cc-ink-faint ${CARD_WASH_CLASS} hover:border-cc-card-border-hover flex h-full flex-col overflow-hidden rounded-2xl border no-underline transition-[background-color,border-color] duration-150`}
+        style={CARD_WASH_STYLE}
       >
         <VideoPoster
           videoId={video.youtubeId}

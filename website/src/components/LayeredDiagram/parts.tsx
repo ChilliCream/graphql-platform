@@ -22,6 +22,7 @@ interface CardProps {
   readonly badgeColor?: string;
   readonly lit: boolean;
   readonly tone: string;
+  readonly glow: string;
   /** Fusion's opt-in dense mode: tighter padding and a smaller wide-mode title. */
   readonly dense?: boolean;
 }
@@ -33,6 +34,7 @@ export function Card({
   badgeColor,
   lit,
   tone,
+  glow,
   dense = false,
 }: CardProps) {
   const tight = dense
@@ -63,8 +65,8 @@ export function Card({
       className={`rounded-lg border px-2 py-1.5 text-center transition-colors duration-500 md:py-2 ${tight}`}
       style={{
         background: MC.panel,
-        borderColor: lit ? wash(tone, 80) : MC.panelEdge,
-        boxShadow: lit ? `0 0 22px ${wash(tone, 20)}` : "none",
+        borderColor: lit ? wash(glow, 80) : MC.panelEdge,
+        boxShadow: lit ? `0 0 22px ${wash(glow, 20)}` : "none",
       }}
     >
       <p className={titleClass} style={titleStyle}>
@@ -104,12 +106,12 @@ export function Card({
 interface ElbowProps {
   readonly lane: Lane;
   readonly flow: BandFlow;
-  readonly tone: string;
+  readonly glow: string;
 }
 
 /** A rounded corner drawn as two borders of one box spanning the lane's column to the gateway centre line. */
-export function Elbow({ lane, flow, tone }: ElbowProps) {
-  const color = lane.lit ? wash(tone, 85) : MC.line;
+export function Elbow({ lane, flow, glow }: ElbowProps) {
+  const color = lane.lit ? wash(glow, 85) : MC.line;
   const down = flow === "to-gateway";
 
   const shape: CSSProperties =
@@ -145,12 +147,12 @@ export function Elbow({ lane, flow, tone }: ElbowProps) {
 
 interface PulseProps {
   readonly lane: Lane;
-  readonly tone: string;
+  readonly glow: string;
   readonly animation: string;
   readonly busY: number;
 }
 
-export function Pulse({ lane, tone, animation, busY }: PulseProps) {
+export function Pulse({ lane, glow, animation, busY }: PulseProps) {
   return (
     <span
       className="absolute block h-[9px] w-[9px] rounded-full"
@@ -162,8 +164,8 @@ export function Pulse({ lane, tone, animation, busY }: PulseProps) {
           top: `${busY}%`,
           marginLeft: -4.5,
           marginTop: -4.5,
-          background: tone,
-          boxShadow: `0 0 12px ${wash(tone, 70)}`,
+          background: glow,
+          boxShadow: `0 0 12px ${wash(glow, 70)}`,
           animation,
         } as CSSProperties
       }
