@@ -348,6 +348,31 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal([1], storedMessages);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OutboxPublishAsync_Should_DisposeStagedEnvelope_When_ContextLeaseEnds(bool pooled)
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal(), pooled: pooled);
+        await EnsureCreatedAsync(provider);
+        JsonDocument envelope;
+
+        // act
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+            await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+            await db.SaveChangesAsync(TestToken);
+            envelope = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
+        }
+
+        // assert
+        Assert.Throws<ObjectDisposedException>(envelope.RootElement.GetRawText);
+    }
+
     [Fact]
     public async Task SaveChangesAsync_Should_StoreEnvelopeTextUnchanged_When_BodyHasWhitespaceAndNonAsciiText()
     {

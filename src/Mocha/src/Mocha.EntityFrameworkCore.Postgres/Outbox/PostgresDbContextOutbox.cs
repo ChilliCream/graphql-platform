@@ -10,11 +10,17 @@ using Mocha.Utils;
 
 namespace Mocha.Outbox;
 
-internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) : IDbContextOutboxSink, IDisposable
+/// <summary>
+/// Stages message envelopes as <see cref="OutboxMessage"/> entities of its context. The documents of the staged
+/// envelopes are released when the context is disposed or returned to its pool.
+/// </summary>
+internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext)
+    : IDbContextOutboxSink, IResettableService, IDisposable
 {
     private TimeProvider? _timeProvider;
     private PooledArrayWriter? _arrayWriter;
     private Utf8JsonWriter? _jsonWriter;
+    private List<JsonDocument>? _documents;
 
     public EntityEntry Stage(MessageEnvelope envelope)
     {
@@ -35,6 +41,7 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) 
             var entry = Add(
                 context,
                 new OutboxMessage(OutboxMessageIdGenerator.Next(), document, _timeProvider.GetUtcNow().UtcDateTime));
+            (_documents ??= []).Add(document);
             document = null;
 
             return entry;
@@ -47,8 +54,30 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) 
         }
     }
 
+    public void ResetState()
+    {
+        if (_documents is null)
+        {
+            return;
+        }
+
+        foreach (var document in _documents)
+        {
+            document.Dispose();
+        }
+
+        _documents.Clear();
+    }
+
+    public Task ResetStateAsync(CancellationToken cancellationToken = default)
+    {
+        ResetState();
+        return Task.CompletedTask;
+    }
+
     public void Dispose()
     {
+        ResetState();
         _jsonWriter?.Dispose();
         _arrayWriter?.Dispose();
     }

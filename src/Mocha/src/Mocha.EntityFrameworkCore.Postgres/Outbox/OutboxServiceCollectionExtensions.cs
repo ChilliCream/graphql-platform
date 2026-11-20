@@ -106,8 +106,9 @@ public static class OutboxServiceCollectionExtensions
 
         builder.ConfigureEntityFrameworkServices(static services =>
         {
-            services.AddScoped<IDbContextOutboxSink>(
-                static sp => new PostgresDbContextOutbox(sp.GetRequiredService<ICurrentDbContext>()));
+            services.AddScoped(static sp => new PostgresDbContextOutbox(sp.GetRequiredService<ICurrentDbContext>()));
+            services.AddScoped<IDbContextOutboxSink>(static sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddScoped<IResettableService>(static sp => sp.GetRequiredService<PostgresDbContextOutbox>());
             services.AddSingleton<IInterceptor, OutboxAtomicSaveInterceptor>();
         });
 
