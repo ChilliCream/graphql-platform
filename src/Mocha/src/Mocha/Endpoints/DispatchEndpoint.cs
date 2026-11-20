@@ -210,7 +210,8 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
                 [DispatchMiddlewares.Instrumentation],
                 Transport.GetDispatchMiddlewares(),
                 Configuration.DispatchMiddlewares,
-                [DispatchMiddlewares.Serialization, DispatchMiddlewares.Scheduling]
+                [DispatchMiddlewares.Serialization, DispatchMiddlewares.Scheduling],
+                context.GetOutboxDispatchStage()
             ],
             [Transport.GetDispatchPipelineModifiers(), Configuration.DispatchPipelineModifiers]);
 
@@ -301,5 +302,10 @@ file static class Extensions
         this IFeatureProvider provider)
     {
         return provider.Features.Get<MiddlewareFeature>()?.DispatchPipelineModifiers ?? [];
+    }
+
+    public static IReadOnlyList<DispatchMiddlewareConfiguration> GetOutboxDispatchStage(this IFeatureProvider provider)
+    {
+        return provider.Features.Get<OutboxDispatchStageFeature>() is { } feature ? [feature.Middleware] : [];
     }
 }
