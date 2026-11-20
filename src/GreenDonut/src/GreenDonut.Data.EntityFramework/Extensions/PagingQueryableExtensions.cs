@@ -145,7 +145,9 @@ public static class PagingQueryableExtensions
                 totalCount ??= cursor.TotalCount;
             }
 
-            if (cursor.IsRelative)
+            // a relative cursor with an offset of 0 (a start or end cursor) skips no page,
+            // so it can be combined with `before` like a regular cursor.
+            if (cursor.IsRelative && cursor.Offset != 0)
             {
                 usesRelativeCursors = true;
             }
@@ -161,6 +163,15 @@ public static class PagingQueryableExtensions
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
+
+            // the same rule the other way round: a relative cursor with an offset in `before`
+            // cannot be combined with `after`.
+            if (arguments.After is not null && cursor.IsRelative && cursor.Offset != 0)
+            {
+                throw new ArgumentException(
+                    "You cannot use `before` and `after` with relative cursors at the same time.",
+                    nameof(arguments));
+            }
             var (whereExpr, cursorOffset) = BuildWhereExpression<T>(
                 keys,
                 cursor,
@@ -688,14 +699,14 @@ public static class PagingQueryableExtensions
     {
         var (hasNext, hasPrevious) = CreatePageFlags(arguments, fetchCount);
 
-        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
+        if (arguments.EnableRelativeCursors && index is not null && totalCount is not null && requestedPageSize is not null)
         {
             return new ValueCursorPage<T>(
                 entries,
                 hasNext,
                 hasPrevious,
                 entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
-                index ?? 1,
+                index.Value,
                 requestedPageSize.Value,
                 totalCount.Value,
                 items);
@@ -722,7 +733,7 @@ public static class PagingQueryableExtensions
     {
         var (hasNext, hasPrevious) = CreatePageFlags(arguments, fetchCount);
 
-        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
+        if (arguments.EnableRelativeCursors && index is not null && totalCount is not null && requestedPageSize is not null)
         {
             return new ElementCursorPage<TElement, TValue>(
                 entries,
@@ -730,7 +741,7 @@ public static class PagingQueryableExtensions
                 hasNext,
                 hasPrevious,
                 entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
-                index ?? 1,
+                index.Value,
                 requestedPageSize.Value,
                 totalCount.Value);
         }
@@ -792,6 +803,20 @@ public static class PagingQueryableExtensions
             return Math.Max(1, (int)Math.Ceiling(totalCount.Value / (double)arguments.Last.Value));
         }
 
+        if (arguments.After is null && arguments.Before is null)
+        {
+            // the first page
+            return 1;
+        }
+
+        if (arguments.After is not null && arguments.Before is not null)
+        {
+            // a window between two cursors is not a numbered page.
+            return null;
+        }
+
+        // the page index is only known from a relative cursor: after a regular cursor,
+        // the page has no index and no relative cursors rather than wrong ones.
         if (cursor?.IsRelative != true)
         {
             return null;
