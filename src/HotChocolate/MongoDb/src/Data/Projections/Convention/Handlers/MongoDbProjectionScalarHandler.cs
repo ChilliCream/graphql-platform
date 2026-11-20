@@ -20,7 +20,14 @@ public class MongoDbProjectionScalarHandler
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
-        context.Path.Push(field.GetName());
+
+        if (field.Name is "__typename")
+        {
+            action = SelectionVisitor.SkipAndLeave;
+            return true;
+        }
+
+        context.Path.Push(field.GetProjectionName());
         context.Projections.Push(
             new MongoDbIncludeProjectionOperation(context.GetPath()));
         context.Path.Pop();
