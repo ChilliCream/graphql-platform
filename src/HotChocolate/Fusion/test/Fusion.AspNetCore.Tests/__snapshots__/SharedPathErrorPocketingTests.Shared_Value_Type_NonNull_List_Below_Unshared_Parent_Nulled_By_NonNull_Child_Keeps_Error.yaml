@@ -18,7 +18,10 @@ response:
         {
           "message": "Cannot return null for non-nullable field.",
           "path": [
-            "itemPage"
+            "itemPage",
+            "items",
+            0,
+            "name"
           ],
           "extensions": {
             "code": "HC0018"

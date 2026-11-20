@@ -1,0 +1,153 @@
+title: Execute_Should_UseMatchingFragment_When_MembersShareAnAlias
+request:
+  document: |
+    {
+      item {
+        ... on Book {
+          details: author {
+            name
+          }
+        }
+        ... on Photo {
+          details: camera {
+            model
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": null
+      },
+      "errors": [
+        {
+          "message": "failed",
+          "path": [
+            "item",
+            "details",
+            "model"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        item: Item
+      }
+
+      type Author {
+        name: String
+      }
+
+      type Book {
+        author: Author
+      }
+
+      type Camera {
+        model: String
+      }
+
+      type Photo {
+        camera: Camera
+      }
+
+      union Item = Book | Photo
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_055fb49a_1 {
+              item {
+                __typename
+                ... on Book {
+                  details: author {
+                    name
+                  }
+                }
+                ... on Photo {
+                  details: camera {
+                    model
+                  }
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "failed",
+                    "path": [
+                      "item",
+                      "details",
+                      "model"
+                    ]
+                  }
+                ],
+                "data": {
+                  "item": null
+                }
+              }
+operationPlan:
+  id: ecbd0ecc68c90b15fb2370f57921b6eebf481d6df8f6dd61ad63c7cfb80a7b20
+  operation:
+    - document: |
+        {
+          item {
+            __typename @fusion__requirement
+            ... on Book {
+              details: author {
+                name
+              }
+            }
+            ... on Photo {
+              details: camera {
+                model
+              }
+            }
+          }
+        }
+      kind: Query
+      id: 7617e3e63b3c19f20832150531008ea3
+      hash: 055fb49a015a9d3e277c0272ac90f9b5
+      shortHash: 055fb49a
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_055fb49a_1
+        kind: Query
+        document: |
+          query Op_055fb49a_1 {
+            item {
+              __typename
+              ... on Book {
+                details: author {
+                  name
+                }
+              }
+              ... on Photo {
+                details: camera {
+                  model
+                }
+              }
+            }
+          }
+        hash: 1ea5395a66045f4a4eed67743c7bee11b39de08a344fb2cb95de8da9d010cae1
+        shortHash: 1ea5395a
+        xxHash: 15378576093029284592
+      resultSelectionSet: >-
+        { item }

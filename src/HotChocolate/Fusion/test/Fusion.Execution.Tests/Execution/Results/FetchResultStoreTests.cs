@@ -4253,8 +4253,10 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """);
     }
 
-    [Fact]
-    public void AddPartialResult_Should_CompleteRepeatedTargets_When_SourceResultHasErrors()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AddPartialResult_Should_CompleteRepeatedTargets_When_SourceResultHasErrors(bool duplicatePaths)
     {
         // arrange
         var schema = ComposeSchema(
@@ -4284,6 +4286,13 @@ public sealed class FetchResultStoreTests : FusionTestBase
                 SelectionPath.Root.AppendField("foos"),
                 [],
                 [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]));
+
+        if (duplicatePaths)
+        {
+            var second = entry.AdditionalPaths[0];
+            entry = WithAdditionalPaths(entry, entry.Path, second, second);
+        }
+
         var resultSelectionSet = ResultSelectionSet.Create(
             Utf8GraphQLParser.Parse("{ name code }")
                 .Definitions

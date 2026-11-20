@@ -1,0 +1,156 @@
+title: Execute_Should_KeepFragmentAlias_When_UnionListElementIsNull
+request:
+  document: |
+    {
+      rows: items {
+        __typename
+        ... on Named {
+          name: title
+        }
+        ... on Photo {
+          id
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "rows": [
+          {
+            "__typename": "Book",
+            "name": "Good"
+          },
+          null,
+          {
+            "__typename": "Photo",
+            "id": "1"
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "failed",
+          "path": [
+            "rows",
+            1,
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        items: [Item]
+      }
+
+      type Book implements Named {
+        title: String!
+      }
+
+      type Photo {
+        id: ID!
+      }
+
+      interface Named {
+        title: String!
+      }
+
+      union Item = Book | Photo
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0c53670f_1 {
+              rows: items {
+                __typename
+                ... on Named {
+                  __typename
+                  name: title
+                }
+                ... on Photo {
+                  id
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "failed",
+                    "path": [
+                      "rows",
+                      1,
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "rows": [
+                    {
+                      "__typename": "Book",
+                      "name": "Good"
+                    },
+                    null,
+                    {
+                      "__typename": "Photo",
+                      "id": "1"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  id: 0788818f35d61828882279f242daba5417af281bfb239b8295541ddd864c2c1f
+  operation:
+    - document: |
+        {
+          rows: items {
+            __typename
+            ... on Named {
+              name: title
+            }
+            ... on Photo {
+              id
+            }
+          }
+        }
+      kind: Query
+      id: a493fffc3440fd1802b0c150405d67d7
+      hash: 0c53670faccb8fd64dde2ce8a4763bba
+      shortHash: 0c53670f
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_0c53670f_1
+        kind: Query
+        document: |
+          query Op_0c53670f_1 {
+            rows: items {
+              __typename
+              ... on Named {
+                __typename
+                name: title
+              }
+              ... on Photo {
+                id
+              }
+            }
+          }
+        hash: 060f06437325929809f6a318da89c8bf2cf20d2f1c89f8b90b4a6583872a12ff
+        shortHash: 060f0643
+        xxHash: 15287965517335091453
+      resultSelectionSet: >-
+        { rows }

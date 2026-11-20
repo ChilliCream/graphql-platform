@@ -80,7 +80,7 @@ internal static class RepresentationShapeBuilder
                 }
 
                 var responseName = segment.Name;
-                var sourceResponseName = resultLevel.TryMapResponseName(responseName, out var mapping)
+                var sourceResponseName = resultLevel.TryMapResponseName(responseName, objectType: null, out var mapping)
                     ? mapping.SourceResponseName
                     : responseName;
                 var field = GetField(operationLevel, sourceResponseName);

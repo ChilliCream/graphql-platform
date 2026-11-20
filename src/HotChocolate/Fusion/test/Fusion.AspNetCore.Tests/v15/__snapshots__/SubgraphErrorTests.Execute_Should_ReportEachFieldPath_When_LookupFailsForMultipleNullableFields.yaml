@@ -1,0 +1,182 @@
+title: Execute_Should_ReportEachFieldPath_When_LookupFailsForMultipleNullableFields
+request:
+  document: |
+    {
+      p: product {
+        id
+        n: name
+        spare
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "p": {
+          "id": 1,
+          "n": null,
+          "spare": null
+        }
+      },
+      "errors": [
+        {
+          "message": "lookup failed",
+          "path": [
+            "p",
+            "n"
+          ]
+        },
+        {
+          "message": "lookup failed",
+          "path": [
+            "p",
+            "spare"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_bad2a4b6_1 {
+              p: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "p": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String
+        spare: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_bad2a4b6_2($__fusion_1_id: Int!) {
+              byId(id: $__fusion_1_id) {
+                n: name
+                spare
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "lookup failed",
+                    "path": [
+                      "byId"
+                    ]
+                  }
+                ],
+                "data": {
+                  "byId": null
+                }
+              }
+operationPlan:
+  id: b161ff403920380c7a2cd51e47e653a3fe66158bd026a92fba1bdeecf7ba3faf
+  operation:
+    - document: |
+        {
+          p: product {
+            id
+            id @fusion__requirement
+            n: name
+            spare
+          }
+        }
+      kind: Query
+      id: ebf043ec746dcc68cab2afadb1b659ae
+      hash: bad2a4b68dfa124b5f0fb1ec002af7a2
+      shortHash: bad2a4b6
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_bad2a4b6_1
+        kind: Query
+        document: |
+          query Op_bad2a4b6_1 {
+            p: product {
+              id
+            }
+          }
+        hash: acd75ae47e0755b3bb4fdfc7d0d1a0f76c897154d08e66c7f0d733288b21f8c1
+        shortHash: acd75ae4
+        xxHash: 15598694395428695626
+      resultSelectionSet: >-
+        { p }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_bad2a4b6_2
+        kind: Query
+        document: |
+          query Op_bad2a4b6_2($__fusion_1_id: Int!) {
+            byId(id: $__fusion_1_id) {
+              n: name
+              spare
+            }
+          }
+        hash: 0e57f9d41bb68cef20373414799da756d684473922388cf634585c81c949e588
+        shortHash: 0e57f9d4
+        xxHash: 15866300266967802388
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { n spare }
+      source: $.byId
+      target: $.p
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.p
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

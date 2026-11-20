@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
@@ -19,6 +20,7 @@ internal sealed class ResultSelectionSet
     private readonly string[] _allResponseNames;
     private readonly SourceResponseNameMapping[]? _sourceResponseNameMappings;
     private readonly Dictionary<string, ResultSelectionSet?>? _childLookup;
+    private readonly ConcurrentDictionary<IComplexTypeDefinition, Dictionary<string, ResultSelectionSet?>>? _selectionsByType;
 
     private ResultSelectionSet(
         ResultSelection[] selections,
@@ -28,6 +30,7 @@ internal sealed class ResultSelectionSet
     {
         _selections = selections;
         _fragments = fragments;
+        _selectionsByType = fragments.Length == 0 ? null : new();
         _allResponseNames = allResponseNames;
         _sourceResponseNameMappings = sourceResponseNameMappings;
 
@@ -35,17 +38,14 @@ internal sealed class ResultSelectionSet
             sourceResponseNameMappings is not null
             || fragments.Any(static fragment => fragment.Body.HasSourceResponseNameMappings);
 
-        if (selections.Length >= SmallThreshold)
+        if (selections.Length >= SmallThreshold
+            || (fragments.Length == 0 && allResponseNames.Length < selections.Length))
         {
             var lookup = new Dictionary<string, ResultSelectionSet?>(
                 selections.Length,
                 StringComparer.Ordinal);
 
-            for (var i = 0; i < selections.Length; i++)
-            {
-                lookup[selections[i].ResponseName] = selections[i].Child;
-            }
-
+            AddFields(lookup, selections);
             _childLookup = lookup;
         }
     }
@@ -86,44 +86,20 @@ internal sealed class ResultSelectionSet
     internal bool UsesDictionaryLookup => _childLookup is not null;
 
     /// <summary>
-    /// Gets the child selection set for a given response name (type-unaware).
-    /// Searches direct selections first, then fragments (first match wins).
-    /// Used at the <c>BuildResult</c> level where the runtime type isn't resolved yet.
+    /// Gets the first matching child when the runtime type is unknown.
     /// </summary>
     public ResultSelectionSet? TryGetChild(string responseName)
     {
-        if (_childLookup is null)
-        {
-            var selections = _selections;
-
-            for (var i = 0; i < selections.Length; i++)
-            {
-                if (string.Equals(
-                    selections[i].ResponseName,
-                    responseName,
-                    StringComparison.Ordinal))
-                {
-                    return selections[i].Child;
-                }
-            }
-        }
-        else if (_childLookup.TryGetValue(responseName, out var child))
+        if (TryGetDirectSelection(responseName, out var child))
         {
             return child;
         }
 
-        var fragments = _fragments;
-
-        if (fragments.Length == 0)
+        foreach (var fragment in _fragments)
         {
-            return null;
-        }
-
-        for (var i = 0; i < fragments.Length; i++)
-        {
-            if (fragments[i].Body.TryGetChild(responseName) is { } result)
+            if (fragment.Body.TryGetChild(responseName) is { } nested)
             {
-                return result;
+                return nested;
             }
         }
 
@@ -131,62 +107,112 @@ internal sealed class ResultSelectionSet
     }
 
     /// <summary>
-    /// Gets the child selection set for a given response name, filtered by type condition.
-    /// Searches direct selections first, then only fragments whose type condition
-    /// is <c>null</c> or is assignable from <paramref name="objectType"/>.
-    /// Used in <c>TryCompleteObjectValue</c> where the runtime type is known.
+    /// Gets the children selected under a response name by all fragments applicable to the runtime type.
     /// </summary>
-    public ResultSelectionSet? TryGetChild(string responseName, IComplexTypeDefinition objectType)
-    {
-        if (_childLookup is null)
-        {
-            var selections = _selections;
+    public ResultSelectionSet? TryGetChild(string responseName, IComplexTypeDefinition? objectType)
+        => TryGetSelection(responseName, objectType, out var child) ? child : null;
 
-            for (var i = 0; i < selections.Length; i++)
+    internal bool TryGetSelection(
+        string responseName,
+        IComplexTypeDefinition? objectType,
+        out ResultSelectionSet? child)
+    {
+        if (_selectionsByType is null)
+        {
+            return TryGetDirectSelection(responseName, out child);
+        }
+
+        if (objectType is null)
+        {
+            child = TryGetChild(responseName);
+
+            return child is not null || _allResponseNames.AsSpan().Contains(responseName);
+        }
+
+        var selections = _selectionsByType.GetOrAdd(
+            objectType,
+            static (type, set) => set.CollectSelections(type),
+            this);
+
+        return selections.TryGetValue(responseName, out child);
+    }
+
+    private bool TryGetDirectSelection(string name, out ResultSelectionSet? child)
+    {
+        if (_childLookup is not null)
+        {
+            return _childLookup.TryGetValue(name, out child);
+        }
+
+        foreach (var selection in _selections)
+        {
+            if (selection.ResponseName == name)
             {
-                if (string.Equals(
-                    selections[i].ResponseName,
-                    responseName,
-                    StringComparison.Ordinal))
+                child = selection.Child;
+
+                return true;
+            }
+        }
+
+        child = null;
+
+        return false;
+    }
+
+    private Dictionary<string, ResultSelectionSet?> CollectSelections(IComplexTypeDefinition objectType)
+    {
+        var fields = new Dictionary<string, ResultSelectionSet?>(StringComparer.Ordinal);
+        Collect(this);
+
+        return fields;
+
+        void Collect(ResultSelectionSet set)
+        {
+            AddFields(fields, set._selections);
+            foreach (var fragment in set._fragments)
+            {
+                if (fragment.TypeCondition?.IsAssignableFrom(objectType) != false)
                 {
-                    return selections[i].Child;
+                    Collect(fragment.Body);
                 }
             }
         }
-        else if (_childLookup.TryGetValue(responseName, out var child))
+    }
+
+    private static void AddFields(Dictionary<string, ResultSelectionSet?> fields, ResultSelection[] selections)
+    {
+        foreach (var selection in selections)
         {
-            return child;
-        }
-
-        var fragments = _fragments;
-
-        if (fragments.Length == 0)
-        {
-            return null;
-        }
-
-        for (var i = 0; i < fragments.Length; i++)
-        {
-            ref readonly var fragment = ref fragments[i];
-
-            if (fragment.TypeCondition?.IsAssignableFrom(objectType) == false)
+            if (!fields.TryAdd(selection.ResponseName, selection.Child) && selection.Child is { } child)
             {
-                continue;
-            }
-
-            var result = fragment.Body.TryGetChild(responseName, objectType);
-
-            if (result is not null)
-            {
-                return result;
+                fields[selection.ResponseName] = fields[selection.ResponseName] is { } previous
+                    ? Merge(previous, child)
+                    : child;
             }
         }
+    }
 
-        return null;
+    private static ResultSelectionSet Merge(ResultSelectionSet first, ResultSelectionSet second)
+    {
+        var fields = new Dictionary<string, ResultSelectionSet?>(StringComparer.Ordinal);
+        AddFields(fields, first._selections);
+        AddFields(fields, second._selections);
+
+        return new ResultSelectionSet(
+            fields.Select(t => new ResultSelection(t.Key, t.Value)).ToArray(),
+            [.. first._fragments, .. second._fragments],
+            [.. first._allResponseNames.Union(second._allResponseNames, StringComparer.Ordinal)],
+            first._sourceResponseNameMappings is null
+                ? second._sourceResponseNameMappings
+                : [.. first._sourceResponseNameMappings, .. second._sourceResponseNameMappings ?? []])
+        {
+            ProducesOpaqueElements = first.ProducesOpaqueElements || second.ProducesOpaqueElements
+        };
     }
 
     public bool TryMapSourceResponseName(
         SourceResultProperty property,
+        IComplexTypeDefinition? objectType,
         out SourceResponseNameMapping mapping)
     {
         var sourceResponseNameMappings = _sourceResponseNameMappings;
@@ -213,7 +239,10 @@ internal sealed class ResultSelectionSet
 
         for (var i = 0; i < fragments.Length; i++)
         {
-            if (fragments[i].Body.TryMapSourceResponseName(property, out mapping))
+            var fragment = fragments[i];
+
+            if ((objectType is null || fragment.TypeCondition?.IsAssignableFrom(objectType) != false)
+                && fragment.Body.TryMapSourceResponseName(property, objectType, out mapping))
             {
                 return true;
             }
@@ -223,8 +252,45 @@ internal sealed class ResultSelectionSet
         return false;
     }
 
+    internal string GetResponseName(string sourceName, IComplexTypeDefinition? objectType)
+    {
+        if (!HasSourceResponseNameMappings)
+        {
+            return sourceName;
+        }
+
+        if (_sourceResponseNameMappings is not null)
+        {
+            foreach (var mapping in _sourceResponseNameMappings)
+            {
+                if (mapping.SourceResponseName == sourceName)
+                {
+                    return mapping.ResponseName;
+                }
+            }
+        }
+
+        foreach (var fragment in _fragments)
+        {
+            if (objectType is not null && fragment.TypeCondition?.IsAssignableFrom(objectType) == false)
+            {
+                continue;
+            }
+
+            var mapped = fragment.Body.GetResponseName(sourceName, objectType);
+
+            if (mapped != sourceName)
+            {
+                return mapped;
+            }
+        }
+
+        return sourceName;
+    }
+
     internal bool TryMapResponseName(
         string responseName,
+        IComplexTypeDefinition? objectType,
         out SourceResponseNameMapping mapping)
     {
         var sourceResponseNameMappings = _sourceResponseNameMappings;
@@ -248,7 +314,10 @@ internal sealed class ResultSelectionSet
 
         for (var i = 0; i < fragments.Length; i++)
         {
-            if (fragments[i].Body.TryMapResponseName(responseName, out mapping))
+            var fragment = fragments[i];
+
+            if ((objectType is null || fragment.TypeCondition?.IsAssignableFrom(objectType) != false)
+                && fragment.Body.TryMapResponseName(responseName, objectType, out mapping))
             {
                 return true;
             }

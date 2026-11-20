@@ -618,6 +618,10 @@ AddErrors_Next:
         return true;
     }
 
+    internal bool IsSelectionActive(Selection selection)
+        => selection.IsIncluded(_includeFlags, _wideIncludeFlags)
+            && !selection.IsDeferred(_deferFlags, _wideDeferFlags);
+
     internal void PocketError(Path path, IError error)
     {
         _pocketedErrors ??= [];
@@ -765,8 +769,14 @@ AddErrors_Next:
             return false;
         }
 
+        HashSet<CompactPath>? reportedTargets = errorTrie is not null && additionalTargets.Length > 0 ? [path] : null;
         for (var i = 0; i < additionalTargets.Length; i++)
         {
+            if (reportedTargets?.Add(additionalPaths[i]) == false)
+            {
+                continue;
+            }
+
             if (!SaveSafeResult(resultData, additionalTargets, i, dataElement, errorTrie, resultSelectionSet))
             {
                 return false;
