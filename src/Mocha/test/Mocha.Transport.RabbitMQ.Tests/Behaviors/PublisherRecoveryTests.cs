@@ -39,43 +39,6 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
     }
 
     [Fact]
-    public async Task PublishAsync_Should_Deliver_When_ConnectionClosedWhileAwaitingConfirm()
-    {
-        // arrange
-        await using var vhost = await fixture.CreateVhostAsync();
-        var orders = new MessageRecorder();
-        await using var bus = await new ServiceCollection()
-            .AddSingleton(vhost.ConnectionFactory)
-            .AddSingleton(orders)
-            .AddMessageBus()
-            .AddEventHandler<OrderCreatedHandler>()
-            .AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderCreatedHandler>())
-            .BuildTestBusAsync();
-        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-1" });
-        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
-        var dispatcherConnectionLost = await ObserveDispatcherConnectionLossAsync(bus);
-
-        // act
-        // the broker holds back the confirm of a blocked publish, so the connection closes while it is awaited
-        Task publish;
-        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
-        {
-            publish = PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" });
-            await vhost.Broker.WaitForBlockedPublisherAsync();
-            await vhost.Faults.CloseConnectionsAsync();
-            await dispatcherConnectionLost.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-        }
-
-        await publish.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-        await Wait.UntilAsync(() => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"));
-
-        // assert
-        Assert.Equal(
-            ["ORD-1", "ORD-2"],
-            orders.Messages.Cast<OrderCreated>().Select(order => order.OrderId).Distinct().Order());
-    }
-
-    [Fact]
     public async Task PublishAsync_Should_Cancel_When_BrokerRemainsOffline()
     {
         // arrange
@@ -126,40 +89,6 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
         Assert.True(await Condition.WaitAsync(
             () => orders.Messages.Cast<OrderCreated>().Any(order => order.OrderId == "ORD-2"),
             TestTimeouts.Signal));
-    }
-
-    [Fact]
-    public async Task PublishAsync_Should_DeliverEveryMessage_When_ConnectionDropsDuringConcurrentPublishes()
-    {
-        // arrange
-        const int count = 500;
-        await using var vhost = await fixture.CreateVhostAsync();
-        var orders = new MessageRecorder();
-        await using var bus = await CreateOrdersBusAsync(vhost, orders);
-        await PublishAsync(bus, new OrderCreated { OrderId = "ORD-0" });
-        Assert.True(await orders.WaitAsync(TestTimeouts.Signal));
-        var dispatcherConnectionLost = await ObserveDispatcherConnectionLossAsync(bus);
-
-        // act
-        Task[] publishes;
-        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
-        {
-            publishes = Enumerable.Range(1, count)
-                .Select(i => PublishAsync(bus, new OrderCreated { OrderId = $"ORD-{i}" }))
-                .ToArray();
-            await vhost.Broker.WaitForBlockedPublisherAsync();
-            await vhost.Faults.CloseConnectionsAsync();
-            await dispatcherConnectionLost.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-        }
-
-        await Task.WhenAll(publishes).WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-        await Wait.UntilAsync(
-            () => orders.Messages.Cast<OrderCreated>().Select(o => o.OrderId).Distinct().Count() == count + 1);
-
-        // assert
-        Assert.Equal(
-            Enumerable.Range(0, count + 1).Select(i => $"ORD-{i}").Order(),
-            orders.Messages.Cast<OrderCreated>().Select(o => o.OrderId).Distinct().Order());
     }
 
     [Fact]
@@ -260,15 +189,6 @@ public sealed class PublisherRecoveryTests(RabbitMQFixture fixture)
             .AddEventHandler<OrderCreatedHandler>()
             .AddRabbitMQ(t => t.Endpoint("orders").Handler<OrderCreatedHandler>())
             .BuildTestBusAsync();
-
-    /// <summary>
-    /// Returns a task that completes once the client has seen the current connection of the dispatcher shut down.
-    /// </summary>
-    private static async Task<Task> ObserveDispatcherConnectionLossAsync(TestBus bus)
-    {
-        var connection = await bus.Transport.Dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
-        return connection.WhenShutdownAsync();
-    }
 
     private static async Task PublishAsync(TestBus bus, OrderCreated message, TimeSpan? timeout = null)
     {

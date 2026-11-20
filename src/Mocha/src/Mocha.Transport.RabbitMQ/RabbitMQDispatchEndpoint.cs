@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using Mocha.Middlewares;
-using Mocha.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using static System.StringSplitOptions;
@@ -15,14 +13,6 @@ namespace Mocha.Transport.RabbitMQ;
 public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transport)
     : DispatchEndpoint<RabbitMQDispatchEndpointConfiguration>(transport)
 {
-    // What a header frame holds beyond the properties of the message: 20 bytes of framing, the 29 bytes of the
-    // sequence number header and, when a listener records the publish, the trace context the client adds
-    // (a traceparent and a tracestate of at most 512 characters need 600 bytes).
-    private const int HeaderFrameReserve = 1024;
-
-    private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromMilliseconds(250);
-    private static readonly TimeSpan s_maxRetryDelay = TimeSpan.FromSeconds(5);
-
     private volatile bool _isProvisioned;
 
     /// <summary>
@@ -39,148 +29,35 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
     {
         var envelope = context.Envelope ?? throw ThrowHelper.EnvelopeRequired();
         var dispatcher = transport.Dispatcher;
-        var callerToken = context.CancellationToken;
+        var cancellationToken = context.CancellationToken;
 
         // The services of the caller's scope are read before the first wait, because the caller can dispose the
         // scope while the publish is in flight.
         var timeProvider = context.Services.GetTimeProvider();
-        var started = Stopwatch.GetTimestamp();
-        var attempt = 1;
-        var isWritten = false;
-        Exception? lastFailure = null;
 
-        var deadline = dispatcher.StartPublish(callerToken);
-        var cancellationToken = deadline?.Token ?? callerToken;
+        using var lease = await dispatcher.RentChannelAsync(cancellationToken);
 
-        try
-        {
-            while (true)
-            {
-                try
-                {
-                    var lease = await PrepareChannelAsync(cancellationToken);
-
-                    // The attempt writes the message from here on. A failure before this point means that
-                    // the broker did not receive it.
-                    isWritten = true;
-                    await PublishOnceAsync(envelope, lease, timeProvider, cancellationToken);
-                    break;
-                }
-                catch (Exception ex) when (dispatcher.CanRetry(ex, cancellationToken))
-                {
-                    // The message may have reached the broker, so the next attempt can deliver it twice.
-                    lastFailure = ex;
-                    var delay = ExponentialBackoff.CalculateDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
-                    dispatcher.LogPublishRetry(context, ex, attempt, delay);
-
-                    // The next attempt waits for a connection by itself. The delay keeps a publish that fails
-                    // on a ready connection from spinning.
-                    await Task.Delay(delay, cancellationToken);
-                    attempt++;
-                }
-            }
-
-            dispatcher.LogPublishConfirmed(context, attempt, started);
-        }
-        catch (Exception ex)
-        {
-            if (callerToken.IsCancellationRequested)
-            {
-                dispatcher.LogPublishCancelled(context, attempt, started);
-                if (ex is OperationCanceledException)
-                {
-                    throw ThrowHelper.PublishCancelled(ex, callerToken);
-                }
-
-                throw;
-            }
-
-            if (deadline is { IsCancellationRequested: true } && !dispatcher.IsDisposed)
-            {
-                var timedOut = lastFailure is PublishException { IsReturn: false }
-                    ? ThrowHelper.PublishRejected(dispatcher.PublishTimeout, lastFailure)
-                    : isWritten
-                        ? ThrowHelper.PublishTimedOut(dispatcher.PublishTimeout, lastFailure ?? ex)
-                        : ThrowHelper.PublishNotSent(dispatcher.PublishTimeout, lastFailure ?? ex);
-                dispatcher.LogPublishFailed(context, timedOut, attempt, started);
-                throw timedOut;
-            }
-
-            dispatcher.LogPublishFailed(context, ex, attempt, started);
-            throw;
-        }
-        finally
-        {
-            dispatcher.FinishPublish(deadline);
-        }
-    }
-
-    /// <summary>
-    /// Leases a channel for one attempt of a publish, and declares the destination of the endpoint when
-    /// that is still to do. Nothing of the message is written to the broker.
-    /// </summary>
-    private async ValueTask<PublisherLease> PrepareChannelAsync(CancellationToken cancellationToken)
-    {
-        var dispatcher = transport.Dispatcher;
-
-        var lease = await dispatcher.RentChannelAsync(cancellationToken);
         try
         {
             await EnsureProvisionedAsync(lease, cancellationToken);
-            return lease;
+
+            var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, timeProvider);
+            properties.EnsureHeadersFit(lease.Connection);
+            await PublishAsync(lease.Channel, envelope, properties, cancellationToken);
+
+            // The channel is used again only when the broker answered the publish. A late answer must not
+            // arrive during the next publish on the channel.
+            lease.IsReusable = true;
         }
-        catch
+        catch (PublishException)
         {
-            dispatcher.Return(lease, reusable: false);
+            // The broker answered with a rejection or a return.
+            lease.IsReusable = true;
             throw;
         }
     }
 
-    /// <summary>
-    /// Publishes the message on a leased channel and waits for the broker's answer. The channel goes back
-    /// to the pool only when the broker answered: with a confirmation, a rejection or a return.
-    /// </summary>
-    private async ValueTask PublishOnceAsync(
-        MessageEnvelope envelope,
-        PublisherLease lease,
-        TimeProvider timeProvider,
-        CancellationToken cancellationToken)
-    {
-        var dispatcher = transport.Dispatcher;
-
-        // The channel is reusable as long as nothing is written on it, and again when the broker answered.
-        var isChannelReusable = true;
-        try
-        {
-            var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, timeProvider);
-            EnsureHeadersFit(properties, lease.Connection);
-            isChannelReusable = false;
-
-            try
-            {
-                await PublishAsync(lease.Channel, envelope, properties, cancellationToken);
-                isChannelReusable = true;
-            }
-            catch (PublishException ex)
-            {
-                isChannelReusable = true;
-                if (Exchange is { } exchange && envelope.Headers?.GetMessageKind() == MessageKind.Publish)
-                {
-                    // An event goes to every queue that is bound to the exchange. The queues that accepted it
-                    // have it, and another attempt would give each of them a copy.
-                    throw ThrowHelper.PublishRejectedByExchange(exchange.Name, ex);
-                }
-
-                throw;
-            }
-        }
-        finally
-        {
-            dispatcher.Return(lease, isChannelReusable);
-        }
-    }
-
-    private async ValueTask EnsureProvisionedAsync(PublisherLease lease, CancellationToken cancellationToken)
+    private async ValueTask EnsureProvisionedAsync(ChannelLease lease, CancellationToken cancellationToken)
     {
         if (_isProvisioned)
         {
@@ -208,32 +85,12 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
     /// <summary>
     /// Declares a queue, its bindings and the exchanges they start at.
     /// </summary>
-    private Task ProvisionQueueAsync(PublisherLease lease, RabbitMQQueue queue, CancellationToken cancellationToken)
+    private Task ProvisionQueueAsync(ChannelLease lease, RabbitMQQueue queue, CancellationToken cancellationToken)
     {
         var provisioner = new RabbitMQTopologyProvisioner(transport.Topology, lease.Connection);
         return provisioner
             .ProvisionQueueAsync(queue, lease.Channel, cancellationToken)
             .WaitOrAbandonAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// Throws when the header frame of the message can exceed the frame size of the connection. The broker
-    /// closes a connection that sends such a frame, which fails every publish in flight on it.
-    /// </summary>
-    private static void EnsureHeadersFit(BasicProperties properties, IConnection connection)
-    {
-        // A frame size of zero means that the connection has no limit.
-        var frameMax = connection.FrameMax;
-        if (frameMax == 0)
-        {
-            return;
-        }
-
-        var size = ((IAmqpWriteable)properties).GetRequiredBufferSize();
-        if (size + HeaderFrameReserve > frameMax)
-        {
-            throw ThrowHelper.MessageHeadersTooLarge(size, HeaderFrameReserve, frameMax);
-        }
     }
 
     private ValueTask PublishAsync(
@@ -356,5 +213,34 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             Exchange as TopologyResource
             ?? Queue as TopologyResource
             ?? throw new InvalidOperationException("Destination is not set");
+    }
+}
+
+file static class Extensions
+{
+    /// <summary>
+    /// The bytes that a header frame holds in addition to the properties of the message: 20 bytes of framing,
+    /// 29 bytes for the sequence number header and up to 600 bytes for the trace context that the client adds.
+    /// </summary>
+    private const int HeaderFrameReserve = 1024;
+
+    /// <summary>
+    /// Throws when the header frame of the message can exceed the frame size of the connection. The broker
+    /// closes a connection that sends such a frame, which fails every publish in flight on it.
+    /// </summary>
+    public static void EnsureHeadersFit(this BasicProperties properties, IConnection connection)
+    {
+        // A frame size of zero means that the connection has no limit.
+        var frameMax = connection.FrameMax;
+        if (frameMax == 0)
+        {
+            return;
+        }
+
+        var size = ((IAmqpWriteable)properties).GetRequiredBufferSize();
+        if (size + HeaderFrameReserve > frameMax)
+        {
+            throw ThrowHelper.MessageHeadersTooLarge(size, HeaderFrameReserve, frameMax);
+        }
     }
 }

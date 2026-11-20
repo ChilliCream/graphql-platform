@@ -152,19 +152,7 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <inheritdoc />
     public IRabbitMQMessagingTransportDescriptor StartTimeout(TimeSpan timeout)
     {
-        RabbitMQTransportConfiguration.ValidateStartTimeout(timeout, nameof(timeout));
-
         Configuration.StartTimeout = timeout;
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public IRabbitMQMessagingTransportDescriptor PublishTimeout(TimeSpan timeout)
-    {
-        RabbitMQTransportConfiguration.ValidatePublishTimeout(timeout, nameof(timeout));
-
-        Configuration.PublishTimeout = timeout;
 
         return this;
     }

@@ -106,7 +106,7 @@ public sealed class HealthCheckTests(RabbitMQFixture fixture)
                 .PublishAsync(new OrderCreated { OrderId = "blocked" }, TestContext.Current.CancellationToken)
                 .AsTask();
             await vhost.Broker.WaitForBlockedPublisherAsync();
-            await Wait.UntilAsync(() => transport.Dispatcher.Connection.IsBlocked);
+            await Wait.UntilAsync(() => transport.Dispatcher.IsBlocked);
             blocked = await healthChecks.CheckHealthAsync(TestContext.Current.CancellationToken);
         }
 

@@ -66,12 +66,27 @@ internal static class TestManagers
         return [.. context.Failures.Select(failure => failure.Reason)];
     }
 
+    /// <summary>
+    /// Returns the connection that the dispatcher publishes on, through a lease of one of its channels.
+    /// </summary>
+    public static async Task<IConnection> GetConnectionAsync(this RabbitMQDispatcher dispatcher)
+    {
+        using var lease = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        lease.IsReusable = true;
+        return lease.Connection;
+    }
+
     public static RabbitMQDispatcher CreateDispatcher(
         Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
         Func<IConnection, CancellationToken, Task> setUpConnectionAsync)
+        => CreateDispatcher(connectionFactory, setUpConnectionAsync, new RabbitMQDispatcherOptions());
+
+    public static RabbitMQDispatcher CreateDispatcher(
+        Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
+        Func<IConnection, CancellationToken, Task> setUpConnectionAsync,
+        RabbitMQDispatcherOptions options)
         => new(
-            NullLogger.Instance,
-            TimeProvider.System,
+            options,
             new RabbitMQConnectionManager(
                 new RabbitMQConnectionLogger(NullLogger.Instance, RabbitMQConnectionRole.Dispatcher),
                 TimeProvider.System,

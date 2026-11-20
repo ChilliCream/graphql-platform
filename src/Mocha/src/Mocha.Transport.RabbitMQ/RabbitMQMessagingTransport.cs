@@ -57,8 +57,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         var configuration = (RabbitMQTransportConfiguration)Configuration;
 
-        // The descriptor and the configuration can both set the timeouts, and both end here.
-        configuration.ValidateTimeouts();
+        configuration.ValidateStartTimeout();
 
         Connection =
             configuration.ConnectionProvider?.Invoke(context.Services)
@@ -104,22 +103,14 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         var timeProvider = context.Services.GetTimeProvider();
         var logger = RabbitMQConnectionScopedLogger.Create(context, Name, Connection, RabbitMQConnectionRole.Dispatcher);
 
-        var dispatcher = new RabbitMQDispatcher(
-            logger,
-            timeProvider,
+        return new RabbitMQDispatcher(
+            new RabbitMQDispatcherOptions(),
             new RabbitMQConnectionManager(
                 new RabbitMQConnectionLogger(logger, RabbitMQConnectionRole.Dispatcher),
                 timeProvider,
                 CreateConnectionManagerOptions(context, configuration),
                 cancellationToken => Connection.CreateAsync(logger.ConnectionName, cancellationToken),
                 ProvisionTopologyAsync));
-
-        if (configuration.PublishTimeout is { } publishTimeout)
-        {
-            dispatcher.PublishTimeout = publishTimeout;
-        }
-
-        return dispatcher;
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken cancellationToken)
         {

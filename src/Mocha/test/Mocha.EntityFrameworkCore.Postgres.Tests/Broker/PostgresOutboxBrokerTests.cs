@@ -92,7 +92,6 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
             new DeliveryRecorder(),
             static t =>
             {
-                t.PublishTimeout(TimeSpan.FromSeconds(2));
                 t.DeclareQueue("stock").WithArgument("x-max-length", 1).WithArgument("x-overflow", "reject-publish");
                 t.DispatchEndpoint("stock-send").ToQueue("stock").Send<ReserveStock>();
             });

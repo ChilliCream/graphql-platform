@@ -20,7 +20,7 @@ internal sealed class RabbitMQDispatcherHealthCheck(RabbitMQMessagingTransport t
         {
             context.ReportUnhealthy(transport.Name, "The dispatcher connection is unavailable.");
         }
-        else if (dispatcher.Connection.IsBlocked)
+        else if (dispatcher.IsBlocked)
         {
             context.ReportUnhealthy(transport.Name, "The broker blocks the dispatcher connection.");
         }

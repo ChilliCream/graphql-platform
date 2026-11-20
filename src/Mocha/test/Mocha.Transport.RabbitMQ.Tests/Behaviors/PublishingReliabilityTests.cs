@@ -31,8 +31,10 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
             .Transports.OfType<RabbitMQMessagingTransport>().Single().Dispatcher;
         var first = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
         var second = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
-        dispatcher.Return(first, reusable: true);
-        dispatcher.Return(second, reusable: true);
+        first.IsReusable = true;
+        first.Dispose();
+        second.IsReusable = true;
+        second.Dispose();
         await DeleteExchangeAsync(vhost, "orders");
 
         // act
@@ -55,53 +57,25 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task SendAsync_Should_Deliver_When_QueueRejectsMessageUntilItHasRoom(bool targetsQueue)
+    public async Task SendAsync_Should_ThrowPublishException_When_QueueRejectsMessage(bool targetsQueue)
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
-        await using var bus = await CreateBoundedBusAsync(vhost, TestTimeouts.Signal, targetsQueue);
+        await using var bus = await CreateBoundedBusAsync(vhost, targetsQueue);
         await SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
 
         // act
         // the bounded queue holds one message and rejects every further one with a basic.nack
-        var send = SendAsync(bus, new ProcessPayment { OrderId = "ORD-2", Amount = 1 });
-        await Assert.ThrowsAsync<TimeoutException>(
-            () => send.WaitAsync(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken));
-        var whileFull = await ReadOrderIdsAsync(vhost, "bounded");
-        await send;
-        var afterRoom = await ReadOrderIdsAsync(vhost, "bounded");
-
-        // assert
-        Assert.Equal(["ORD-1"], whileFull);
-        Assert.Equal(["ORD-2"], afterRoom);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SendAsync_Should_ThrowTransportUnavailable_When_QueueRejectsMessageLongerThanPublishTimeout(
-        bool targetsQueue)
-    {
-        // arrange
-        await using var vhost = await fixture.CreateVhostAsync();
-        await using var bus = await CreateBoundedBusAsync(vhost, TimeSpan.FromSeconds(2), targetsQueue);
-        await SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 });
-
-        // act
-        var exception = await Assert.ThrowsAsync<TimeoutException>(
+        var exception = await Assert.ThrowsAsync<PublishException>(
             () => SendAsync(bus, new ProcessPayment { OrderId = "ORD-2", Amount = 1 }));
 
         // assert
-        Assert.Equal(
-            "The broker rejected the message until the publish timeout of 00:00:02 elapsed. "
-            + "This can happen when a queue is at its length limit.",
-            exception.Message);
-        Assert.False(Assert.IsType<PublishException>(exception.InnerException).IsReturn);
+        Assert.False(exception.IsReturn);
         Assert.Equal(["ORD-1"], await ReadOrderIdsAsync(vhost, "bounded"));
     }
 
     [Fact]
-    public async Task PublishAsync_Should_FailWithoutPublishingAgain_When_QueueOfTheExchangeRejectsMessage()
+    public async Task PublishAsync_Should_ThrowPublishException_When_QueueOfTheExchangeRejectsMessage()
     {
         // arrange
         // the exchange routes to a bounded queue and to an audit queue without a limit
@@ -125,16 +99,11 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
 
         // act
         // the bounded queue is full and rejects the message, the audit queue accepts it
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+        var exception = await Assert.ThrowsAsync<PublishException>(
             () => PublishAsync(bus, new OrderCreated { OrderId = "ORD-2" }));
 
         // assert
-        Assert.Equal(
-            "The broker rejected the message that was published to exchange 'orders'. "
-            + "The queues that accepted it have received it, so it is not published again. "
-            + "This can happen when a queue that is bound to the exchange is at its length limit.",
-            exception.Message);
-        Assert.False(Assert.IsType<PublishException>(exception.InnerException).IsReturn);
+        Assert.False(exception.IsReturn);
         Assert.Equal(["ORD-1", "ORD-2"], await ReadOrderIdsAsync(vhost, "audit"));
     }
 
@@ -242,13 +211,12 @@ public sealed class PublishingReliabilityTests(RabbitMQFixture fixture)
     /// Creates a bus whose payments go to a queue that holds one message and rejects every further one: through
     /// a dispatch endpoint for the queue, or through the exchange that the naming convention gives the command.
     /// </summary>
-    private static Task<TestBus> CreateBoundedBusAsync(VhostContext vhost, TimeSpan publishTimeout, bool targetsQueue)
+    private static Task<TestBus> CreateBoundedBusAsync(VhostContext vhost, bool targetsQueue)
         => new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
             .AddMessageBus()
             .AddRabbitMQ(t =>
             {
-                t.PublishTimeout(publishTimeout);
                 t.DeclareQueue("bounded")
                     .WithArgument("x-max-length", 1)
                     .WithArgument("x-overflow", "reject-publish");

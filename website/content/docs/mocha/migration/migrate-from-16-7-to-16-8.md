@@ -34,38 +34,28 @@ What you will observe:
 
 - A call that returns means that RabbitMQ has the message. A message for an exchange reached every queue that the exchange routes to. When no binding matches, RabbitMQ drops the message and the call still completes, as in 16.7. A message for a queue address reached that queue.
 - Every call takes at least one round trip to the broker. A loop that awaits each call sends one message per round trip. To send faster, start several calls and await them together.
-- While RabbitMQ cannot be reached, or blocks the connection during a memory or disk alarm, a call waits. It fails when `PublishTimeout` elapses, after two minutes by default.
+- While RabbitMQ cannot be reached, or blocks the connection during a memory or disk alarm, a call waits until its cancellation token is cancelled. See [A RabbitMQ send or publish waits while the broker is unavailable](#a-rabbitmq-send-or-publish-waits-while-the-broker-is-unavailable).
 - A handler that sends or publishes keeps its concurrency slot while the call waits.
 
 See [Publisher confirms](../transports/rabbitmq.md#publisher-confirms).
 
-## RabbitMQ sends and publishes are repeated after a connection loss
-
-When the connection or the channel is lost before the confirmation arrives, Mocha waits for the next connection and sends the message again. The delay between attempts is about 250 milliseconds to 5 seconds, and the attempts end when `PublishTimeout` elapses. 16.7 sent every message once.
-
-RabbitMQ may already have the message of the interrupted attempt, so a consumer can receive the same message twice, with the same message ID. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](../reliability.md#deduplicate-messages-with-the-transactional-inbox) in the consuming service.
-
-The log entry `PublishRetryScheduled` names the message and the reason. It is written at Information for the first retry of a publish and at Debug for further retries. See [A message is handled twice](../transports/rabbitmq.md#a-message-is-handled-twice).
-
 ## RabbitMQ sends and publishes fail when the broker does not accept the message
 
-In 16.7 a send or publish completed whether or not RabbitMQ accepted the message. In 16.8 the answer of the broker decides how the call ends.
+In 16.7 a send or publish completed whether or not RabbitMQ accepted the message. In 16.8 the answer of the broker decides how the call ends. Mocha does not send a failed message again.
 
-RabbitMQ answers with a negative acknowledgement when a queue rejects the message. This can happen when the queue is at its length limit and uses `x-overflow: reject-publish`. The outcome depends on whether the message was sent or published. A sent message, such as a command, a request, a reply, or a fault, has one destination queue. A published event is copied into every queue that is bound to its exchange, and RabbitMQ rejects it when one of those queues rejects it, while the other queues keep their copy.
-
-| Answer of the broker                                                                                                                                                                        | Outcome                                                                                                                                                                                                         |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| RabbitMQ rejects a sent message with a negative acknowledgement.                                                                                                                            | Mocha sends the message again until the queue accepts it. When `PublishTimeout` elapses first, the call throws `TimeoutException`.                                                                              |
-| RabbitMQ rejects a published event with a negative acknowledgement.                                                                                                                         | The call throws `InvalidOperationException` at once. Mocha does not publish the event again, because the queues that accepted it have it.                                                                       |
-| The broker closes the channel with a reply code, for example `406 PRECONDITION_FAILED` for a message above the size limit, `404 NOT_FOUND` for a missing exchange, or `403 ACCESS_REFUSED`. | The call throws the exception of the RabbitMQ client (`AlreadyClosedException` or `OperationInterruptedException`) with the reply code and text of the broker. The message is not delivered and not sent again. |
-| The headers of the message do not fit into one frame of the connection.                                                                                                                     | The call throws `InvalidOperationException` before the message is sent.                                                                                                                                         |
+| What happens                                                                                                                                                                                | Outcome                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RabbitMQ rejects the message with a negative acknowledgement. This can happen when a queue is at its length limit and uses `x-overflow: reject-publish`.                                    | The call throws the `PublishException` of the RabbitMQ client. RabbitMQ rejects a published event when one of the queues of its exchange rejects it, and the other queues keep their copy. |
+| The broker closes the channel with a reply code, for example `406 PRECONDITION_FAILED` for a message above the size limit, `404 NOT_FOUND` for a missing exchange, or `403 ACCESS_REFUSED`. | The call throws the exception of the RabbitMQ client (`AlreadyClosedException` or `OperationInterruptedException`) with the reply code and text of the broker.                             |
+| The connection or the channel is lost before the confirmation arrives.                                                                                                                      | The call throws the exception of the RabbitMQ client. RabbitMQ may or may not have the message.                                                                                            |
+| The headers of the message do not fit into one frame of the connection.                                                                                                                     | The call throws `InvalidOperationException` before the message is sent.                                                                                                                    |
 
 What to do:
 
 - Handle these exceptions where the application sends or publishes.
-- After the `InvalidOperationException` of a rejected event, publishing the event again delivers it once more to every queue that accepted it.
-- For a subscriber queue that must not miss events, use `x-overflow: drop-head` or a dead-letter exchange instead of `reject-publish`. A queue with `reject-publish` suits a queue that receives sent messages, where the sender waits until the queue has room.
-- Through the Postgres outbox, a sent message that its queue keeps rejecting is released without counting an attempt. The other three outcomes count as attempts. For a rejected event, every attempt delivers the event once more to the queues that accepted it. See [The Postgres outbox no longer counts an unavailable transport as an attempt](#the-postgres-outbox-no-longer-counts-an-unavailable-transport-as-an-attempt).
+- Sending a message again after a lost connection can deliver it twice. Publishing a rejected event again delivers it once more to every queue that accepted it. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](../reliability.md#deduplicate-messages-with-the-transactional-inbox) in the consuming service.
+- For a subscriber queue that must not miss events, use `x-overflow: drop-head` or a dead-letter exchange instead of `reject-publish`.
+- Through the Postgres outbox, each of these outcomes counts as an attempt, and the outbox dispatches the message again. See [The Postgres outbox no longer stops retrying a message](#the-postgres-outbox-no-longer-stops-retrying-a-message).
 
 ## A failed RabbitMQ message is acknowledged only after it was moved
 
@@ -77,7 +67,7 @@ When the send fails:
 2. Mocha moves the received message to the skipped queue of its endpoint, and the log shows `MessageSkipped` (Warning).
 3. When that send fails as well, the received message returns to its source queue and RabbitMQ delivers it again.
 
-Each of these sends can wait until `PublishTimeout` elapses, and the message keeps its concurrency slot for that time.
+Each of these sends waits while RabbitMQ cannot be reached or blocks the connection, and the message keeps its concurrency slot for that time.
 
 ## RabbitMQ receive endpoints attach again on their own
 
@@ -125,11 +115,9 @@ Outbox message <id> (message ID <message id>, type <type>) to <destination> fail
 
 ## A Postgres outbox dispatch keeps its transaction open until the broker confirms
 
-An outbox worker claims a message in a database transaction, dispatches it, and deletes the row in the same transaction. With RabbitMQ a dispatch now waits for the broker's confirmation, so the transaction, its row lock, and its database connection are held for the whole dispatch, up to `PublishTimeout`, two minutes by default. In 16.7 a dispatch to RabbitMQ completed when the message was written to the connection.
+An outbox worker claims a message in a database transaction, dispatches it, and deletes the row in the same transaction. With RabbitMQ a dispatch now waits for the broker's confirmation, so the transaction, its row lock, and its database connection are held for the whole dispatch. While RabbitMQ cannot be reached or blocks the connection, the dispatch waits. In 16.7 a dispatch to RabbitMQ completed when the message was written to the connection.
 
-The session is idle in transaction while the dispatch runs. When `idle_in_transaction_session_timeout` in PostgreSQL, or the idle transaction timeout of a connection pooler, is shorter than a dispatch, the database ends the session during the dispatch. If the broker has accepted the message by then, the row cannot be deleted and the message is dispatched again. Keep these timeouts above `PublishTimeout`.
-
-A message can also arrive more than once when a dispatch fails after `PublishTimeout` and RabbitMQ accepts its message later. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](../reliability.md#deduplicate-messages-with-the-transactional-inbox).
+The session is idle in transaction while the dispatch runs. When `idle_in_transaction_session_timeout` in PostgreSQL, or the idle transaction timeout of a connection pooler, is shorter than a dispatch, the database ends the session during the dispatch. If the broker accepts the message, the row cannot be deleted and the message is dispatched again. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](../reliability.md#deduplicate-messages-with-the-transactional-inbox).
 
 ## The Postgres scheduler no longer stops retrying a scheduled message
 
@@ -154,36 +142,23 @@ In 16.7 the scheduler stopped dispatching a scheduled message after 10 attempts 
 
 See [Retry behavior](../scheduling.md#retry-behavior).
 
-## A RabbitMQ send or publish fails after the publish timeout
+## A RabbitMQ send or publish waits while the broker is unavailable
 
-A send or publish waits for at most `PublishTimeout`, two minutes by default. The time includes the wait for a connection, the wait for a free channel, the wait of a request for its reply consumer, and every retry. After that the call throws `TimeoutException`. In 16.7 a call that found no connection threw the exception of the RabbitMQ client after five connection attempts.
-
-The text of the exception says what is known about the message:
-
-- When the message was written at least once, the text says that the broker may or may not have received it. Sending the message again can deliver it twice.
-- When the message was never written, because there was no connection or no free channel, the text says that the message was not sent.
+While RabbitMQ cannot be reached, a send or publish waits for the next connection until its cancellation token is cancelled. Then it throws `OperationCanceledException`. In 16.7 a call that found no connection threw the exception of the RabbitMQ client after five connection attempts.
 
 What to do:
 
-- Catch `TimeoutException` where the application reacts to an unreachable broker. Exceptions of the RabbitMQ client no longer report it.
-- A caller that must not wait for two minutes, such as an HTTP request, passes a cancellation token or uses a shorter timeout:
-
-  ```csharp
-  builder.Services
-      .AddMessageBus()
-      .AddRabbitMQ(transport => transport.PublishTimeout(TimeSpan.FromSeconds(30)));
-  ```
-
-- `Timeout.InfiniteTimeSpan` waits until the caller cancels. A cancelled call throws `OperationCanceledException`, and the broker may or may not have the message.
+- A caller that must not wait, such as an HTTP request, passes a cancellation token with a time limit.
+- A call that is cancelled while it waits for its confirmation throws `OperationCanceledException`, and the broker may or may not have the message.
 
 ## At most 100 RabbitMQ sends and publishes are in flight per transport
 
-Each send or publish uses a channel of its own on the dispatcher connection until RabbitMQ has answered. One transport instance runs at most 100 sends and publishes at the same time, or fewer when the broker allows fewer channels per connection. Further calls wait for a free channel, and the wait counts towards `PublishTimeout`. 16.7 had no such limit and kept at most 10 idle channels.
+Each send or publish uses a channel of its own on the dispatcher connection until RabbitMQ has answered. One transport instance runs at most 100 sends and publishes at the same time, or fewer when the broker allows fewer channels per connection. Further calls wait for a free channel. 16.7 had no such limit and kept at most 10 idle channels.
 
 What you will observe:
 
 - The dispatcher connection shows up to 100 channels in the RabbitMQ management UI. The channels stay open for the next sends.
-- Code that starts many calls at once, for example with `Task.WhenAll` over a large batch, has at most 100 of them in flight. A call that waits for a free channel for longer than `PublishTimeout` fails without having been sent. Limit the number of concurrent calls in the application, or raise `PublishTimeout`.
+- Code that starts many calls at once, for example with `Task.WhenAll` over a large batch, has at most 100 of them in flight. The other calls wait for a free channel.
 - In measurements against a single RabbitMQ node, throughput rose up to about 32 calls in flight and not beyond.
 
 ## RequestAsync cancels a dispatch that outlasts the response timeout

@@ -104,14 +104,14 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
         await using var bus = await CreatePaymentsBusAsync(vhost);
         await SendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
         var dispatcher = bus.Transport.Dispatcher;
-        var original = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var original = await dispatcher.GetConnectionAsync();
 
         // act
         // the broker closes the connection of a header frame above the frame size, so the frame is not sent
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 }, headerSize: 200_000));
         await SendAsync(bus, new ProcessPayment { OrderId = "ORD-2", Amount = 1 });
-        var current = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var current = await dispatcher.GetConnectionAsync();
 
         // assert
         Assert.Matches(
@@ -132,7 +132,7 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
         await using var bus = await CreatePaymentsBusAsync(vhost);
         await SendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
         var dispatcher = bus.Transport.Dispatcher;
-        var original = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var original = await dispatcher.GetConnectionAsync();
         var refused = await Assert.ThrowsAsync<InvalidOperationException>(
             () => SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 }, headerSize: 200_000));
         var reported = int.Parse(refused.Message.Split(' ')[6], CultureInfo.InvariantCulture);
@@ -144,7 +144,7 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
         await SendAsync(bus, new ProcessPayment { OrderId = "ORD-2", Amount = 1 }, headerSize: largest);
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => SendAsync(bus, new ProcessPayment { OrderId = "ORD-3", Amount = 1 }, headerSize: largest + 1));
-        var current = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var current = await dispatcher.GetConnectionAsync();
 
         // assert
         Assert.Same(original, current);
@@ -160,7 +160,7 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
         await using var bus = await CreatePaymentsBusAsync(vhost);
         await SendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
         var dispatcher = bus.Transport.Dispatcher;
-        var original = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var original = await dispatcher.GetConnectionAsync();
         var failures = new ConcurrentQueue<Exception>();
         var oversizedFailures = new ConcurrentQueue<Exception>();
 
@@ -181,7 +181,7 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
                 (isOversized ? oversizedFailures : failures).Enqueue(ex);
             }
         }));
-        var current = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var current = await dispatcher.GetConnectionAsync();
 
         // assert
         Assert.Empty(failures);
@@ -199,7 +199,7 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
         await using var bus = await CreatePaymentsBusAsync(vhost);
         await SendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
         var dispatcher = bus.Transport.Dispatcher;
-        var original = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var original = await dispatcher.GetConnectionAsync();
         List<Task> sends;
 
         // act
@@ -215,7 +215,7 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
         }
 
         await Task.WhenAll(sends).WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-        var current = await dispatcher.Connection.GetConnectionAsync(TestContext.Current.CancellationToken);
+        var current = await dispatcher.GetConnectionAsync();
 
         // assert
         Assert.Same(original, current);
@@ -243,7 +243,7 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
             await vhost.Broker.WaitForAlarmAsync();
             first = SendAsync(bus, new ProcessPayment { OrderId = "A", Amount = 1 });
             await vhost.Broker.WaitForBlockedPublisherAsync();
-            await Wait.UntilAsync(() => bus.Transport.Dispatcher.Connection.IsBlocked);
+            await Wait.UntilAsync(() => bus.Transport.Dispatcher.IsBlocked);
             cancelled = await Task.WhenAll(new[] { "B", "C", "D" }.Select(async orderId =>
             {
                 try
@@ -271,69 +271,34 @@ public sealed class PublishIsolationTests(RabbitMQFixture fixture)
     }
 
     [Fact]
-    public async Task SendAsync_Should_ThrowTransportUnavailable_When_BrokerDoesNotConfirmWithinPublishTimeout()
+    public async Task SendAsync_Should_Deliver_When_PreviousSendWasCancelledWhileBrokerWasDown()
     {
         // arrange
         await using var vhost = await fixture.CreateVhostAsync();
-        await using var bus = await CreatePaymentsBusAsync(vhost, TimeSpan.FromSeconds(2));
-        await SendAsync(bus, new ProcessPayment { OrderId = "warmup", Amount = 1 });
-        TimeoutException exception;
+        await using var bus = await CreatePaymentsBusAsync(vhost);
 
         // act
-        // a broker under a memory alarm takes no message from a publishing connection
-        await using (await fixture.Faults.RaiseMemoryAlarmAsync())
-        {
-            exception = await Assert.ThrowsAsync<TimeoutException>(
-                () => SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 }));
-        }
-
-        // assert
-        Assert.Equal(
-            "The broker did not confirm the message within the publish timeout of 00:00:02. "
-            + "The broker may or may not have received the message.",
-            exception.Message);
-    }
-
-    [Fact]
-    public async Task SendAsync_Should_ThrowTransportUnavailable_When_BrokerStaysDownLongerThanPublishTimeout()
-    {
-        // arrange
-        await using var vhost = await fixture.CreateVhostAsync();
-        await using var bus = await CreatePaymentsBusAsync(vhost, TimeSpan.FromSeconds(2));
-        TimeoutException exception;
-
-        // act
-        // the send waits for a connection until the publish timeout elapses
+        // the send waits for a connection until its caller cancels it
         await using (await fixture.Faults.StopBrokerAsync())
         {
             await Wait.UntilAsync(() => !bus.Transport.Dispatcher.IsConnected);
-            exception = await Assert.ThrowsAsync<TimeoutException>(
-                () => SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 }));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => SendAsync(bus, new ProcessPayment { OrderId = "ORD-1", Amount = 1 }, TimeSpan.FromSeconds(2)));
         }
 
-        // the next attempt to reconnect can come later than the publish timeout allows a send to wait
         await Wait.UntilAsync(() => bus.Transport.Dispatcher.IsConnected);
         await SendAsync(bus, new ProcessPayment { OrderId = "ORD-2", Amount = 1 });
 
         // assert
-        Assert.Equal(
-            "The message could not be sent within the publish timeout of 00:00:02. "
-            + "It was not written to the broker.",
-            exception.Message);
         Assert.Equal(["ORD-2"], await ReadOrderIdsAsync(vhost, "payments"));
     }
 
-    private static Task<TestBus> CreatePaymentsBusAsync(VhostContext vhost, TimeSpan? publishTimeout = null)
+    private static Task<TestBus> CreatePaymentsBusAsync(VhostContext vhost)
         => new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
             .AddMessageBus()
             .AddRabbitMQ(t =>
             {
-                if (publishTimeout is { } timeout)
-                {
-                    t.PublishTimeout(timeout);
-                }
-
                 t.DeclareQueue("payments");
                 t.DispatchEndpoint("payment-send").ToQueue("payments").Send<ProcessPayment>();
             })

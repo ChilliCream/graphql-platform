@@ -99,8 +99,7 @@ public class ConnectionRecoveryTests
             new ProcessPayment { OrderId = "ORD-1", Amount = 50.00m },
             TestContext.Current.CancellationToken);
         Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Handler did not receive message 1");
-        var dispatcherConnection = await bus.Transport.Dispatcher.Connection.GetConnectionAsync(
-            TestContext.Current.CancellationToken);
+        var dispatcherConnection = await bus.Transport.Dispatcher.GetConnectionAsync();
         var dispatcherConnectionLost = dispatcherConnection.WhenShutdownAsync();
 
         // act

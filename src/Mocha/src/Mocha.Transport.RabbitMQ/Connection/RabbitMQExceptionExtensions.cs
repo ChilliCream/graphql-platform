@@ -60,25 +60,5 @@ internal static class RabbitMQExceptionExtensions
                     or OperationInterruptedException
                     or ConnectFailureException);
         }
-
-        /// <summary>
-        /// Gets a short text for the failure: the reason the broker gave for a shutdown, or the type and the
-        /// message of the innermost exception.
-        /// </summary>
-        public string DescribeFailure()
-        {
-            var innermost = exception;
-            for (var current = exception; current is not null; current = current.InnerException)
-            {
-                if (current is OperationInterruptedException { ShutdownReason: { } reason })
-                {
-                    return $"{reason.ReplyCode} {reason.ReplyText} (initiator {reason.Initiator})";
-                }
-
-                innermost = current;
-            }
-
-            return $"{innermost.GetType().Name}: {innermost.Message.TrimEnd('.')}";
-        }
     }
 }
