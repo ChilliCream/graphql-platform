@@ -80,12 +80,11 @@ public sealed class PostgresOutboxProcessor
             while (!cancellationToken.IsCancellationRequested)
             {
                 var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
-                var delay = nextPollingInterval is { } interval && interval < _pollingInterval
-                    ? interval
-                    : _pollingInterval;
+                var delay = _pollingInterval;
 
-                if (nextPollingInterval is not null)
+                if (nextPollingInterval is { } interval && interval < _pollingInterval)
                 {
+                    delay = interval;
                     _logger.OutboxProcessorSleeping(delay);
                 }
 
