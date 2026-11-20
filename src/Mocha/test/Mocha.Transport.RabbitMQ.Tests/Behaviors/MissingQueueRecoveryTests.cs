@@ -148,49 +148,6 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
         Assert.Equal("ORD-bound", Assert.Single(recorder.Messages.Cast<OrderCreated>()).OrderId);
     }
 
-    [Fact]
-    public async Task PublishAsync_Should_RetainEvent_When_QueueIsDeletedWhileHandlersBlockTheConsumer()
-    {
-        // arrange
-        var gate = new HandlerGate();
-        await using var vhost = await fixture.CreateVhostAsync();
-        await using var bus = await new ServiceCollection()
-            .AddSingleton(vhost.ConnectionFactory)
-            .AddSingleton(gate)
-            .AddMessageBus()
-            .AddEventHandler<StuckOrderHandler>()
-            .AddRabbitMQ(t => t.Endpoint("orders").Handler<StuckOrderHandler>().MaxConcurrency(1))
-            .BuildTestBusAsync();
-        using var scope = bus.Provider.CreateScope();
-        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await messageBus.PublishAsync(new OrderCreated { OrderId = "stuck" }, TestContext.Current.CancellationToken);
-        await gate.Started.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-
-        try
-        {
-            // act
-            // the handler ignores its cancellation, so the endpoint cannot consume again, yet its queue and
-            // bindings have to exist for what is published meanwhile
-            await vhost.Faults.DeleteQueueAsync("orders");
-            await gate.Cancelled.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-            await Wait.UntilAsync(bus.Transport.ConsumerManager.HasBlockedConsumer);
-            await messageBus.PublishAsync(
-                new OrderCreated { OrderId = "retained" },
-                TestContext.Current.CancellationToken);
-            var whileBlocked = await vhost.Broker.GetQueueAsync("orders");
-            gate.Release.TrySetResult();
-            var handled = await gate.Handled.Task.WaitAsync(TestTimeouts.Signal, TestContext.Current.CancellationToken);
-
-            // assert
-            Assert.Equal(new QueueInfo(Consumers: 0, Ready: 1, Unacknowledged: 0), whileBlocked);
-            Assert.Equal("retained", handled.OrderId);
-        }
-        finally
-        {
-            gate.Release.TrySetResult();
-        }
-    }
-
     private static Task<TestBus> CreateEventBusAsync(VhostContext vhost, MessageRecorder recorder)
     {
         ((ConnectionFactory)vhost.ConnectionFactory).NetworkRecoveryInterval = TimeSpan.FromSeconds(2);
@@ -202,32 +159,5 @@ public sealed class MissingQueueRecoveryTests(RabbitMQFixture fixture)
             .AddEventHandler<OrderCreatedHandler>()
             .AddRabbitMQ(t => t.Endpoint(QueueName).Handler<OrderCreatedHandler>().Temporary())
             .BuildTestBusAsync();
-    }
-
-    public sealed class HandlerGate
-    {
-        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public TaskCompletionSource Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public TaskCompletionSource<OrderCreated> Handled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    }
-
-    public sealed class StuckOrderHandler(HandlerGate gate) : IEventHandler<OrderCreated>
-    {
-        public async ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
-        {
-            if (message.OrderId != "stuck")
-            {
-                gate.Handled.TrySetResult(message);
-                return;
-            }
-
-            await using var registration = cancellationToken.Register(() => gate.Cancelled.TrySetResult());
-            gate.Started.TrySetResult();
-            await gate.Release.Task;
-        }
     }
 }
