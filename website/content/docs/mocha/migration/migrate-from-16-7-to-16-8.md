@@ -1,6 +1,6 @@
 ---
 title: Migrate Mocha from 16.7 to 16.8
-description: "Migration guide for Mocha v16.7 to v16.8: RabbitMQ publisher confirms, publish and start timeouts, connection and consumer recovery, Postgres outbox retry rules, dispatch middleware ordering, delivery of stored messages, keyed outbox processors, Entity Framework Core registration changes, and the health check, log, and trace changes that monitoring depends on."
+description: "Migration guide for Mocha v16.7 to v16.8: RabbitMQ publisher confirms, publish and start timeouts, connection and consumer recovery, Postgres outbox retry rules, dispatch middleware ordering, delivery of stored messages, keyed outbox processors, Entity Framework Core registration changes, source generator changes, and the health check, log, and trace changes that monitoring depends on."
 ---
 
 Update every `Mocha.*` package in the application to version 16.8 before applying these changes.
@@ -48,7 +48,15 @@ var processor = serviceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>
     typeof(AppDbContext));
 ```
 
-The host runs an outbox processor for each context registered with `UsePostgresOutbox()`. `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers, use the outbox of the first context registered with `UsePostgresOutbox()`.
+The host runs an outbox processor for each context registered with `UsePostgresOutbox()`. In 16.7 it ran only the outbox processor of the context registered last. `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers, use the outbox of the first context registered with `UsePostgresOutbox()`.
+
+## The in-memory transport no longer depends on `Mocha.Outbox`
+
+The `Mocha.Transport.InMemory` package no longer references the `Mocha.Outbox` package. An application that uses types from `Mocha.Outbox`, such as `SkipOutbox()`, `IOutboxSignal`, or `UseOutboxCore()`, and gets the package only through the in-memory transport, adds the reference itself:
+
+```shell
+dotnet add package Mocha.Outbox
+```
 
 # Behavioral breaking changes
 
@@ -302,16 +310,21 @@ What you will observe:
 
 ## Stored messages bypass middleware during delivery
 
-Dispatch middleware runs when a message is published or sent, including scheduled messages. After commit, the outbox processor sends immediate messages directly through the transport and hands scheduled messages to the native scheduling store or configured fallback. Scheduler delivery also uses the stored envelope. Dispatch middleware does not run again during handoff, delivery, or retries.
+Dispatch middleware runs when a message is published or sent, including scheduled messages. After commit, the outbox processor sends immediate messages directly through the transport and hands messages scheduled through `dbContext.Outbox(bus)` to the native scheduling store or configured fallback. Scheduler delivery also uses the stored envelope. Dispatch middleware does not run again during handoff, delivery, or retries.
 
-Dispatch spans and metrics are therefore emitted when a stored (outboxed or scheduled) message is staged or stored, not when it is delivered. The delivery itself is traced by the `outbox send` and `scheduler send` spans, which record failures.
+- Middleware anchored after `DispatchMiddlewares.Scheduling.Key` does not run for scheduled messages, and middleware anchored after `OutboxDispatchMiddlewares.Outbox.Key` does not run for messages that the outbox stores. In 16.7 such middleware ran when the outbox processor or a scheduler worker delivered the message. Move it before `DispatchMiddlewares.Scheduling` to run it when the message is stored.
+- For a stored message, `await next(context)` returns once the message is staged or stored. Code after it, and a `catch` around it, do not observe the transport send or a failed delivery.
+
+Dispatch spans and metrics, and the `Dispatch` and `DispatchError` calls of an `IMessagingDiagnosticEventListener`, happen when a stored (outboxed or scheduled) message is staged or stored, not when it is delivered. The delivery itself is traced by the `outbox send` and `scheduler send` spans, which record failures.
 
 ## Dispatch middleware ordering
 
 The dispatch pipeline runs `DispatchMiddlewares.Instrumentation`, transport and application middleware, `DispatchMiddlewares.Serialization`, `DispatchMiddlewares.Scheduling`, and `OutboxDispatchMiddlewares.Outbox` when the outbox is enabled. The scheduling and outbox middleware persist the serialized message and do not call the next middleware.
 
 - Middleware registered without an anchor now runs before serialization, so `context.Envelope` is not set yet. Change the message and headers before calling `next(context)`. Changes made after `await next(context)` do not affect the sent or stored message.
+- Middleware registered without an anchor that reads `context.Envelope` throws a `NullReferenceException` where it dereferences the envelope, and silently skips work that it applies only when the envelope is set, such as signing or encryption. Anchor such middleware with `after: DispatchMiddlewares.Serialization.Key`.
 - Middleware anchored before or after `DispatchMiddlewares.Serialization.Key` runs for every message, including scheduled and outboxed messages. Use `after: DispatchMiddlewares.Serialization.Key` for middleware that works on the serialized envelope.
+- `OutboxDispatchMiddlewares.Outbox`, `DispatchOutboxMiddleware.Create()`, or `DispatchMiddlewares.Scheduling` registered by hand without an anchor runs before serialization, and a message that it stores throws an `InvalidOperationException` with the message `Envelope is not set`. Register the outbox middleware with `UseOutboxCore()` or `UsePostgresOutbox()`, which add it after `DispatchMiddlewares.Scheduling`. The dispatch pipeline always contains the scheduling middleware.
 - The RabbitMQ routing key and Azure Service Bus message property middleware run before `DispatchMiddlewares.Serialization`, after application middleware registered without an anchor or on the bus, and keep a value whose header is already set. Middleware overrides a value by setting its header (`x-routing-key`, or a key from `AzureServiceBusMessageHeaders`) and reads the extracted values when it is anchored `after: DispatchMiddlewares.Serialization.Key`.
 
 ## `UseTransaction()` uses its own DbContext
@@ -320,7 +333,19 @@ The dispatch pipeline runs `DispatchMiddlewares.Instrumentation`, transport and 
 
 ## The outbox processor checks for messages when idle
 
-Each outbox processor now checks the database for new messages when it has not been notified for `PollingInterval`, ten seconds by default. This delivers messages committed outside Entity Framework Core, for example by another process. Configure the interval with `UsePostgresOutbox(options => options.PollingInterval = ...)`.
+Each outbox processor now checks the database for new messages when it has not been notified for `PollingInterval`, ten seconds by default. This delivers messages committed outside Entity Framework Core, for example by another process. On .NET 8, where Mocha's Entity Framework Core interceptors are not applied, it also delivers messages written in an Entity Framework Core transaction. Configure the interval with `UsePostgresOutbox(options => options.PollingInterval = ...)`.
+
+## Entity Framework Core services are shared across hosts
+
+Contexts registered with `AddEntityFramework<TContext>` now share Entity Framework Core's internal service provider, and with it the model cache, across the hosts in one process, under the same rules as contexts without Mocha. In 16.7 each host had its own internal service provider.
+
+When `OnModelCreating` depends on a value that differs per host, for example a schema injected into the context, every host uses the model that was built first, and the outbox processor of every host uses the outbox table of that model. Replace Entity Framework Core's `IModelCacheKeyFactory` with one that adds the value to the cache key. See [Alternating between multiple models with the same DbContext type](https://learn.microsoft.com/ef/core/modeling/dynamic-model).
+
+## The source generator registers message types differently
+
+- An assembly that publishes or sends messages through `IMessageBus` or `dbContext.Outbox(bus)` but has no handlers or sagas now gets a generated `Add{Module}()` method, which registers the message types it publishes or sends. See [Module naming](../handler-registration.md#module-naming).
+- The generated method no longer registers message types that the assembly dispatches only through the mediator (`ISender`, `IPublisher`).
+- The generated method skips message types that generated code cannot reference: types that are not accessible from the whole assembly, such as private or protected nested types, file-local types, anonymous types, and types that contain a type parameter. The bus registers such a type when it is first published or sent. With `IsAotCompatible` set, that publish throws an `InvalidOperationException`.
 
 # Health check, log, and trace changes
 
@@ -463,3 +488,5 @@ The tag `messaging.message.conversation_id` of the receive span now holds the co
 Version 16.8 adds `dbContext.Outbox(bus)`, which writes published and sent messages in the same transaction as the entity changes of the context. Existing `IMessageBus.PublishAsync` calls keep their behavior. See [Publish with SaveChanges](../reliability.md#publish-with-savechanges) and [Schedule with SaveChanges](../scheduling.md#schedule-with-savechanges).
 
 `SkipOutbox()` keeps working for `IMessageBus` publishes and sends. It throws an `InvalidOperationException` when it is called for a message published or sent through `dbContext.Outbox(bus)`, scheduled or not. See [Skip the outbox for specific dispatches](../reliability.md#skip-the-outbox-for-specific-dispatches).
+
+During a rolling upgrade, a 16.7 instance that processes the same outbox table sends a message scheduled through `dbContext.Outbox(bus)` at once, without waiting for its scheduled time. Upgrade every instance that processes the outbox table before you schedule messages through `dbContext.Outbox(bus)`.
