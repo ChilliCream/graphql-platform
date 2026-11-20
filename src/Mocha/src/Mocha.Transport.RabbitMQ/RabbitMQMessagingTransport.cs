@@ -25,7 +25,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     private RabbitMQMessagingTopology _topology = null!;
 
     /// <inheritdoc />
-    public override MessagingTopology Topology => _topology;
+    public override RabbitMQMessagingTopology Topology => _topology;
 
     /// <summary>
     /// Gets the consumer manager responsible for registering and maintaining queue consumers with automatic reconnection.
@@ -118,7 +118,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             {
                 if (exchange.AutoProvision ?? autoProvision)
                 {
-                    await exchange.ProvisionAsync(channel, ct);
+                    await exchange.ProvisionAsync(channel, connection, ct);
                 }
             }
 
@@ -126,7 +126,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             {
                 if (queue.AutoProvision ?? autoProvision)
                 {
-                    await queue.ProvisionAsync(channel, ct);
+                    await queue.ProvisionAsync(channel, connection, ct);
                 }
             }
 
@@ -134,7 +134,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             {
                 if (binding.AutoProvision ?? autoProvision)
                 {
-                    await binding.ProvisionAsync(channel, ct);
+                    await binding.ProvisionAsync(channel, connection, ct);
                 }
             }
         }
@@ -149,7 +149,6 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
         var entities = new List<TopologyEntityDescription>();
         var links = new List<TopologyLinkDescription>();
-        var autoProvision = _topology.AutoProvision;
 
         foreach (var exchange in _topology.Exchanges)
         {
@@ -165,7 +164,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["type"] = exchange.Type,
                         ["durable"] = exchange.Durable,
                         ["autoDelete"] = exchange.AutoDelete,
-                        ["autoProvision"] = exchange.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(exchange),
                         ["origin"] = exchange.Origin
                     }));
         }
@@ -184,7 +183,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["durable"] = queue.Durable,
                         ["exclusive"] = queue.Exclusive,
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(queue),
                         ["origin"] = queue.Origin
                     }));
         }
@@ -210,7 +209,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     new Dictionary<string, object?>
                     {
                         ["routingKey"] = string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
-                        ["autoProvision"] = binding.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(binding),
                         ["origin"] = binding.Origin
                     }));
         }

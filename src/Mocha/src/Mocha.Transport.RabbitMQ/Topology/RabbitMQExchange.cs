@@ -88,8 +88,9 @@ public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfigur
     /// Declares this exchange on the broker using the specified channel.
     /// </summary>
     /// <param name="channel">The RabbitMQ channel to use for declaring the exchange.</param>
+    /// <param name="connection">The connection that owns the channel.</param>
     /// <param name="cancellationToken">A token to cancel the provisioning operation.</param>
-    public async Task ProvisionAsync(IChannel channel, CancellationToken cancellationToken)
+    public async Task ProvisionAsync(IChannel channel, IConnection connection, CancellationToken cancellationToken)
     {
         await channel.ExchangeDeclareAsync(
             CachedName.Value,
