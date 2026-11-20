@@ -833,9 +833,9 @@ app.MapPost("/orders/{id:guid}/cancel", async (
 
 Publish before you save. A message published after the last `SaveChanges` stays in the context and is not written. Inside a handler that uses `UseTransaction()`, call `SaveChanges` after publishing as well: the middleware commits the transaction but does not save for you.
 
-`PublishAsync` runs the dispatch middleware with the supplied bus's messaging services. Use `outbox.SendAsync` for a message routed to one destination.
+`outbox.PublishAsync` runs your dispatch middleware with the services of the `bus` you pass in. Use `outbox.SendAsync` for a message routed to one destination. Pass the `IMessageBus` resolved from the service provider that registers the outbox of the context: `dbContext.Outbox(bus)` throws an `InvalidOperationException` for any other bus.
 
-Use `dbContext.Outbox(bus)` when the message belongs to a unit of work on a specific DbContext instance, including contexts from a factory or pool and code outside a message handler. Inside a handler that uses `UseTransaction()`, or in other code with an open transaction on the registered context, `IMessageBus` writes the message to the outbox table right away as part of that transaction (see [Transaction requirements](#transaction-requirements)).
+Use `dbContext.Outbox(bus)` when you call `SaveChanges` without opening a transaction yourself: in endpoints and jobs, with contexts from a factory or pool, and with any context other than the first one registered with `UsePostgresOutbox()`. When a transaction is already open on that first context, through `UseTransaction()` or `BeginTransactionAsync`, `bus.PublishAsync` works as well and writes the message to the outbox table right away, as part of that transaction (see [Transaction requirements](#transaction-requirements)).
 
 ### Supported contexts
 
