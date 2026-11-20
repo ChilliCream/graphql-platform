@@ -947,7 +947,7 @@ bus.UseDispatch(
     before: OutboxDispatchMiddlewares.Outbox.Key);
 ```
 
-This applies to `IMessageBus` publishes and sends. A message published through `dbContext.Outbox(bus)` cannot skip the outbox, because it would be sent before the transaction commits, and `SkipOutbox()` throws an `InvalidOperationException` for it. Scheduled messages are stored by the scheduler before the outbox runs and ignore the flag.
+This applies to `IMessageBus` publishes and sends. Scheduled messages are stored by the scheduler before the outbox runs and ignore the flag. For a message published or sent through `dbContext.Outbox(bus)`, `SkipOutbox()` throws an `InvalidOperationException`, including a scheduled message when the middleware runs before `DispatchMiddlewares.Scheduling`.
 
 # Deduplicate messages with the transactional inbox
 

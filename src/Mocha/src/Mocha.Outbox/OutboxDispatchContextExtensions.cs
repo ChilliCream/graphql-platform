@@ -9,11 +9,18 @@ public static class OutboxDispatchContextExtensions
 {
     /// <summary>
     /// Sends the message to the transport instead of the outbox.
-    /// A message published through a DbContext outbox cannot skip it.
     /// </summary>
     /// <param name="context">The dispatch context to modify.</param>
+    /// <exception cref="InvalidOperationException">
+    /// The message is published or sent through a DbContext outbox.
+    /// </exception>
     public static void SkipOutbox(this IDispatchContext context)
     {
+        if (context.Features.Get<IMessageOutbox>() is not null)
+        {
+            throw ThrowHelper.SkipOutboxNotSupportedForDbContextOutbox();
+        }
+
         var feature = context.Features.GetOrSet<OutboxMiddlewareFeature>();
         feature.SkipOutbox = true;
     }
