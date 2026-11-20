@@ -69,6 +69,14 @@ public sealed class ReplyRecoveryTests(RabbitMQFixture fixture)
             }
         }
 
+        // the transport reconnects on the clock of the application, which only this test moves
+        var transport = GetTransport(bus);
+        await Wait.UntilAsync(() =>
+        {
+            timeProvider.Advance(TimeSpan.FromSeconds(1));
+            return transport.IsHealthy();
+        });
+
         using var deadline = CreateTimeout();
         var response = await messageBus.RequestAsync(new GetOrderStatus { OrderId = "recovered" }, deadline.Token);
         Assert.Equal("recovered", response.OrderId);

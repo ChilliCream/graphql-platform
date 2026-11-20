@@ -133,7 +133,7 @@ public sealed class RequestReadinessTests(RabbitMQFixture fixture)
         var remaining = await channel.MessageCountAsync("outbound", deadline.Token);
 
         // assert
-        Assert.False(transport.ConsumerManager.IsHealthy);
+        Assert.False(transport.ConsumerManager.AreConsumersAttached());
         Assert.Equal(options.ReplyEndpoint?.ToString(), first!.BasicProperties.ReplyTo);
         Assert.Equal(options.ReplyEndpoint?.ToString(), second!.BasicProperties.ReplyTo);
         Assert.Equal(0u, remaining);

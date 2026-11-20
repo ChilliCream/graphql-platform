@@ -34,6 +34,12 @@ internal static class ThrowHelper
             + $"{frameMax} bytes, of which {reserve} bytes are kept for what the client adds. "
             + "The message was not sent.");
 
+    public static InvalidOperationException ConsumerStopped(string queueName)
+        => new($"The consumer for queue '{queueName}' is stopped.");
+
+    public static InvalidOperationException ReplyEndpointNotStarted()
+        => new("The RabbitMQ reply endpoint is not started.");
+
     public static Exception BeforeAndAfterConflict()
         => Mocha.ThrowHelper.BeforeAndAfterConflict();
 

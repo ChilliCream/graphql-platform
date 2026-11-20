@@ -56,6 +56,15 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
 
     private RabbitMQConsumer? _consumer;
 
+    /// <summary>
+    /// Waits until the consumer of the endpoint is attached. Fails with
+    /// <see cref="InvalidOperationException"/> when the endpoint is not started or its consumer is stopped.
+    /// </summary>
+    internal ValueTask WaitUntilAttachedAsync(CancellationToken cancellationToken)
+        => _consumer is { } consumer
+            ? consumer.WaitUntilAttachedAsync(cancellationToken)
+            : throw ThrowHelper.ReplyEndpointNotStarted();
+
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
