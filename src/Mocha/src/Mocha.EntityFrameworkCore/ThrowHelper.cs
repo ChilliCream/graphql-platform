@@ -25,7 +25,7 @@ internal static class ThrowHelper
     public static InvalidOperationException OutboxBusNotSupported(Type type)
         => new(
             $"The message bus '{type.Name}' does not support preparing messages for a "
-            + $"{nameof(DbContext)} outbox.");
+            + $"{nameof(DbContext)} outbox. Pass the {nameof(IMessageBus)} resolved from dependency injection.");
 
     public static InvalidOperationException OutboxBusFromOtherApplication(Type type)
         => new(
