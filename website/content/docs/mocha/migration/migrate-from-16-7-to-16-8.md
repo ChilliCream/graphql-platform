@@ -26,13 +26,7 @@ Assemblies that call or implement these methods must be recompiled against 16.8.
 
 ## `SkipScheduler()` is removed
 
-`SkipScheduler()` and `SchedulingMiddlewareFeature` are removed. Stored scheduled messages are now delivered without running dispatch middleware again, so the scheduler no longer needs the flag. Remove calls that set it.
-
-`SkipOutbox()` remains available for `IMessageBus` publishes and sends. A message published through `dbContext.Outbox(bus)` cannot skip the outbox, because it would be sent before the transaction commits, and `SkipOutbox()` throws an `InvalidOperationException` for it.
-
-## `DispatchSchedulingMiddleware` is internal
-
-`DispatchSchedulingMiddleware` is no longer public. To position your middleware relative to scheduling, anchor it to the `DispatchMiddlewares.Scheduling` key, for example `UseDispatch(config, before: DispatchMiddlewares.Scheduling.Key)`.
+`SkipScheduler()` and `SchedulingMiddlewareFeature` are removed. To dispatch a message that has a scheduled time right away, set `context.ScheduledTime = null` in dispatch middleware registered without an anchor. The message is then serialized without a scheduled time and dispatched like a message that was not scheduled.
 
 ## `ConfigureEntityFrameworkServices` and `MessagingDbContextOptions` are internal
 
@@ -54,7 +48,7 @@ var processor = serviceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>
     typeof(AppDbContext));
 ```
 
-The host starts an outbox worker for each registered context automatically. Each outbox context has its own relay. `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers, use the outbox of the first context registered with `UsePostgresOutbox()`.
+The host runs an outbox processor for each context registered with `UsePostgresOutbox()`. `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers, use the outbox of the first context registered with `UsePostgresOutbox()`.
 
 # Behavioral breaking changes
 
@@ -324,9 +318,9 @@ The dispatch pipeline runs `DispatchMiddlewares.Instrumentation`, transport and 
 
 `UseTransaction()` opens the consumer transaction on the DbContext of the `AddEntityFramework<TContext>` call it is configured on. Previously it used the context of the last `AddEntityFramework<TContext>` call.
 
-## The outbox relay checks for messages when idle
+## The outbox processor checks for messages when idle
 
-Each outbox relay now checks the database for new messages when it has not been notified for `PollingInterval`, ten seconds by default. This delivers messages committed outside Entity Framework Core, for example by another process. Configure the interval with `UsePostgresOutbox(options => options.PollingInterval = ...)`.
+Each outbox processor now checks the database for new messages when it has not been notified for `PollingInterval`, ten seconds by default. This delivers messages committed outside Entity Framework Core, for example by another process. Configure the interval with `UsePostgresOutbox(options => options.PollingInterval = ...)`.
 
 # Health check, log, and trace changes
 
@@ -467,3 +461,5 @@ The tag `messaging.message.conversation_id` of the receive span now holds the co
 # Publish and schedule with SaveChanges
 
 Version 16.8 adds `dbContext.Outbox(bus)`, which writes published and sent messages in the same transaction as the entity changes of the context. Existing `IMessageBus.PublishAsync` calls keep their behavior. See [Publish with SaveChanges](../reliability.md#publish-with-savechanges) and [Schedule with SaveChanges](../scheduling.md#schedule-with-savechanges).
+
+`SkipOutbox()` keeps working for `IMessageBus` publishes and sends. It throws an `InvalidOperationException` when it is called for a message published or sent through `dbContext.Outbox(bus)`, scheduled or not. See [Skip the outbox for specific dispatches](../reliability.md#skip-the-outbox-for-specific-dispatches).

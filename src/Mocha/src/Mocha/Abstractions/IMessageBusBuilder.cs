@@ -127,7 +127,7 @@ public interface IMessageBusBuilder
     /// <summary>
     /// Adds a dispatch middleware configuration to the dispatch pipeline.
     /// When neither <paramref name="before"/> nor <paramref name="after"/> is specified, the
-    /// middleware is appended to the end of the pipeline.
+    /// middleware runs before serialization.
     /// When <paramref name="before"/> is specified, the middleware is inserted immediately before
     /// the middleware with the given key.
     /// When <paramref name="after"/> is specified, the middleware is inserted immediately after

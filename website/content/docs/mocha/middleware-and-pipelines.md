@@ -299,7 +299,7 @@ Each pipeline type has a single registration method with optional `before` and `
 | `UseReceive(config)`               | Receive  | Append to the pipeline                          |
 | `UseReceive(config, before: key)`  | Receive  | Insert before the middleware with the given key |
 | `UseReceive(config, after: key)`   | Receive  | Insert after the middleware with the given key  |
-| `UseDispatch(config)`              | Dispatch | Append to the pipeline                          |
+| `UseDispatch(config)`              | Dispatch | Insert before serialization                     |
 | `UseDispatch(config, before: key)` | Dispatch | Insert before the middleware with the given key |
 | `UseDispatch(config, after: key)`  | Dispatch | Insert after the middleware with the given key  |
 | `UseConsume(config)`               | Consumer | Append to the pipeline                          |
@@ -308,7 +308,9 @@ Each pipeline type has a single registration method with optional `before` and `
 
 Only one of `before` or `after` can be specified at the same time. If neither is specified, the middleware is appended to the configured middleware list.
 
-The built-in middleware are exposed as configurations whose `Key` is the anchor: `ReceiveMiddlewares`, `DispatchMiddlewares`, and `ConsumerMiddlewares` in Mocha, `OutboxDispatchMiddlewares` and `InboxConsumerMiddlewares` in the outbox and inbox packages, and classes such as `RabbitMQDispatchMiddlewares` in the transports. The dispatch pipeline contains `DispatchMiddlewares.Instrumentation`, `DispatchMiddlewares.Serialization`, `DispatchMiddlewares.Scheduling`, and `OutboxDispatchMiddlewares.Outbox` when the outbox is enabled. For example, `UseDispatch(config, after: DispatchMiddlewares.Serialization.Key)` places middleware after serialization and before scheduling and outbox persistence. Middleware after a step that short-circuits does not run for that message. Referencing a key that has not been registered throws during bus initialization.
+The built-in middleware are exposed as configurations whose `Key` is the anchor: `ReceiveMiddlewares`, `DispatchMiddlewares`, and `ConsumerMiddlewares` in Mocha, `OutboxDispatchMiddlewares` and `InboxConsumerMiddlewares` in the outbox and inbox packages, and classes such as `RabbitMQDispatchMiddlewares` in the transports. The dispatch pipeline contains `DispatchMiddlewares.Instrumentation`, `DispatchMiddlewares.Serialization`, `DispatchMiddlewares.Scheduling`, and `OutboxDispatchMiddlewares.Outbox` when the outbox is enabled. For example, `UseDispatch(config, after: DispatchMiddlewares.Serialization.Key)` places middleware after serialization and before scheduling and outbox persistence. Middleware after a step that short-circuits does not run for that message.
+
+In the dispatch and receive pipelines, anchors are applied in registration order: bus anchors first, then transport anchors, then endpoint anchors. Referencing a key that is not in the pipeline at that point throws an `InvalidOperationException` when the pipeline is built. A transport adds its own middleware, such as `RabbitMQDispatchMiddlewares.RoutingKey`, with a transport anchor, so anchor to its keys with the `UseDispatch` or `UseReceive` of that transport or of one of its endpoints. A bus anchor to a transport key throws.
 
 Middleware is compiled once at startup into a single delegate chain. Register all middleware during bus configuration, before the service provider is built. Middleware added after the bus starts has no effect.
 
