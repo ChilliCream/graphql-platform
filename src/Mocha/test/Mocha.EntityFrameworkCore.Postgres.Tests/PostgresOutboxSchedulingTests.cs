@@ -1,4 +1,5 @@
 #if NET9_0_OR_GREATER
+using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -65,10 +66,11 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         // act
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
         var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
+        await WaitForEmptyTablesAsync(connectionString, Scheduler.Postgres);
 
         // assert
         Assert.InRange(delivered.ReceivedAt, scheduledTime, DateTimeOffset.MaxValue);
-        Assert.Equal("scheduled", delivered.Payload);
+        Assert.Equal(["scheduled"], recorder.Deliveries.Select(delivery => delivery.Payload));
         Assert.Equal(1, recorder.MiddlewareCalls);
     }
 
@@ -159,11 +161,11 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
 
         // act
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
-        var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
-        await WaitForEmptyOutboxAsync(connectionString);
+        await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
+        await WaitForEmptyTablesAsync(connectionString, Scheduler.Postgres);
 
         // assert
-        Assert.Equal("retried", delivered.Payload);
+        Assert.Equal(["retried"], recorder.Deliveries.Select(delivery => delivery.Payload));
         Assert.Equal(1, recorder.MiddlewareCalls);
         Assert.False(await db.Set<OutboxMessage>().AnyAsync(TestToken));
     }
@@ -240,10 +242,11 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         // act
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
         var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
+        await WaitForEmptyTablesAsync(connectionString, Scheduler.Fallback);
 
         // assert
         Assert.InRange(delivered.ReceivedAt, scheduledTime, DateTimeOffset.MaxValue);
-        Assert.Equal("fallback", delivered.Payload);
+        Assert.Equal(["fallback"], recorder.Deliveries.Select(delivery => delivery.Payload));
         Assert.Equal(1, recorder.MiddlewareCalls);
     }
 
@@ -374,6 +377,17 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         }
     }
 
+    // Waits until the outbox and the scheduler table hold no rows.
+    private static async Task WaitForEmptyTablesAsync(string connectionString, Scheduler scheduler)
+    {
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+        cancellation.CancelAfter(s_timeout);
+        while (await ReadCountsAsync(connectionString, scheduler) != "outbox=0,scheduled=0")
+        {
+            await Task.Delay(20, cancellation.Token);
+        }
+    }
+
     private static async Task ExecuteAsync(string connectionString, string sql)
     {
         await using var connection = new NpgsqlConnection(connectionString);
@@ -408,7 +422,15 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
     {
         public int MiddlewareCalls { get; set; }
 
+        public ConcurrentQueue<Delivery> Deliveries { get; } = new();
+
         public TaskCompletionSource<Delivery> Delivered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Record(Delivery delivery)
+        {
+            Deliveries.Enqueue(delivery);
+            Delivered.TrySetResult(delivery);
+        }
     }
 
     // Records the exception of the first failed dispatch that the relay logs.
@@ -439,7 +461,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
     {
         public ValueTask HandleAsync(ReminderDueEvent message, CancellationToken cancellationToken)
         {
-            recorder.Delivered.TrySetResult(new Delivery(message.Payload, DateTimeOffset.UtcNow));
+            recorder.Record(new Delivery(message.Payload, DateTimeOffset.UtcNow));
             return default;
         }
     }
@@ -448,7 +470,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
     {
         public ValueTask HandleAsync(SendReminderCommand message, CancellationToken cancellationToken)
         {
-            recorder.Delivered.TrySetResult(new Delivery(message.Payload, DateTimeOffset.UtcNow));
+            recorder.Record(new Delivery(message.Payload, DateTimeOffset.UtcNow));
             return default;
         }
     }

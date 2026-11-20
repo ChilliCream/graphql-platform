@@ -142,6 +142,40 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
     }
 
     [Fact]
+    public async Task OutboxPublishAsync_Should_DiscardSave_When_TransactionOutsideEntityFrameworkIsRolledBack()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMilliseconds(100),
+            TimeProvider.System,
+            static _ => { });
+        var polls = ObserveOutboxPolls(provider);
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await db.Database.OpenConnectionAsync(TestToken);
+        var connection = (NpgsqlConnection)db.Database.GetDbConnection();
+        await using var transaction = await connection.BeginTransactionAsync(TestToken);
+        await db.Database.UseTransactionAsync(transaction, TestToken);
+
+        // act
+        db.Orders.Add(new Order { Id = 1, Attempt = 1 });
+        await db.Outbox(bus).PublishAsync(new OrderPlaced(1, 1), TestToken);
+        await db.SaveChangesAsync(TestToken);
+        await transaction.RollbackAsync(TestToken);
+        await WaitForPollStartedAfterNowAsync(polls);
+        var afterRollback = await CountRowsAsync(provider);
+
+        // assert
+        Assert.Equal((0, 0), afterRollback);
+        Assert.Empty(recorder.Messages);
+    }
+
+    [Fact]
     public async Task OutboxPublishAsync_Should_DiscardBothSaves_When_TransactionIsRolledBack()
     {
         // arrange
