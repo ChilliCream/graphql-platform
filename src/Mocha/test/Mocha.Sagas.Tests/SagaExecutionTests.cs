@@ -1142,9 +1142,34 @@ public sealed class SagaExecutionTests
     }
 
     [Fact]
-    public async Task HandleEvent_Should_ReturnFalse_When_CorrelatedStateNotFound()
+    public async Task HandleEvent_Should_ReturnFalse_When_SagaIdHeaderStateNotFound()
     {
-        // Arrange
+        // arrange
+        var saga =
+            Saga.Create<TestState>(x =>
+            {
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TestState()).TransitionTo("Started");
+                x.During("Started").OnEvent<TriggerEvent>().TransitionTo("Triggered");
+                x.During("Triggered").OnEvent<EndEvent>().TransitionTo("Ended");
+                x.Finally("Ended");
+            });
+        Initialize(saga);
+
+        // Set saga-id via header (not ICorrelatable), no state in store
+        var context = CreateContext(saga, new TriggerEvent());
+        context.MutableHeaders.Set("saga-id", Guid.NewGuid().ToString("D"));
+
+        // act
+        var result = await saga.HandleEvent(context);
+
+        // assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task HandleEvent_Should_ThrowSagaInstanceNotFound_When_CorrelatedStateNotFound()
+    {
+        // arrange
         var saga =
             Saga.Create<TestState>(x =>
             {
@@ -1156,12 +1181,63 @@ public sealed class SagaExecutionTests
         Initialize(saga);
 
         // No state in store
+        var correlationId = Guid.NewGuid();
+        var context = CreateContext(saga, new CorrelatedEvent { CorrelationId = correlationId, Payload = "test" });
+
+        // act
+        var ex = await Assert.ThrowsAsync<SagaInstanceNotFoundException>(() => saga.HandleEvent(context));
+
+        // assert
+        Assert.Same(saga, ex.Saga);
+        Assert.Equal(correlationId, ex.CorrelationId);
+    }
+
+    [Fact]
+    public async Task HandleEvent_Should_ThrowSagaInstanceNotFound_When_InitialEventHasCorrelationId()
+    {
+        // arrange
+        var saga =
+            Saga.Create<TestState>(x =>
+            {
+                x.Initially().OnEvent<CorrelatedEvent>().StateFactory(_ => new TestState()).TransitionTo("Started");
+                x.During("Started").OnEvent<EndEvent>().TransitionTo("Ended");
+                x.Finally("Ended");
+            });
+        Initialize(saga);
+
+        var correlationId = Guid.NewGuid();
+        var context = CreateContext(saga, new CorrelatedEvent { CorrelationId = correlationId, Payload = "test" });
+
+        // act
+        var ex = await Assert.ThrowsAsync<SagaInstanceNotFoundException>(() => saga.HandleEvent(context));
+
+        // assert
+        Assert.Equal(correlationId, ex.CorrelationId);
+        Assert.Empty(_store.States);
+    }
+
+    [Fact]
+    public async Task HandleEvent_Should_ReturnFalse_When_CorrelatedStateNotFoundAndIgnored()
+    {
+        // arrange
+        var saga =
+            Saga.Create<TestState>(x =>
+            {
+                x.OnMissingInstance(SagaMissingInstanceBehavior.Ignore);
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TestState()).TransitionTo("Started");
+                x.During("Started").OnEvent<CorrelatedEvent>().TransitionTo("Processed");
+                x.During("Processed").OnEvent<EndEvent>().TransitionTo("Ended");
+                x.Finally("Ended");
+            });
+        Initialize(saga);
+
+        // No state in store
         var context = CreateContext(saga, new CorrelatedEvent { CorrelationId = Guid.NewGuid(), Payload = "test" });
 
-        // Act
+        // act
         var result = await saga.HandleEvent(context);
 
-        // Assert
+        // assert
         Assert.False(result);
     }
 

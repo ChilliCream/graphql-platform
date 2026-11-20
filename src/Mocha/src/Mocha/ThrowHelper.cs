@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Mocha.Sagas;
 using Mocha.Scheduling;
 
 namespace Mocha;
@@ -267,6 +268,13 @@ internal static class ThrowHelper
 
     public static Exception SagaNotInitialized()
         => new InvalidOperationException("Saga is not initialized.");
+
+    public static Exception SagaInstanceNotFound(Saga saga, Type eventType, Guid correlationId)
+        => new SagaInstanceNotFoundException(
+            saga,
+            correlationId,
+            $"No instance of saga '{saga.Name}' exists for correlation id '{correlationId}', "
+            + $"so the event '{eventType.Name}' cannot be applied.");
 
     public static Exception SagaEventIsRequest(Type eventType)
         => new InvalidOperationException(
