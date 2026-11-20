@@ -245,7 +245,7 @@ internal static class MessagingTestHelper
                     s,
                     path: sourcePaths is not null && i < sourcePaths.Length ? sourcePaths[i] : "")),
             references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
     }
 
     private static GeneratorDriver CreateDriver(

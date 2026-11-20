@@ -66,7 +66,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
         if (knownSymbols.IPublisher is not null
             && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IPublisher))
         {
-            return TryHandlePublisher(methodSymbol, invocation, cancellationToken, out syntaxInfo);
+            return TryHandlePublisher(methodSymbol, invocation, semanticModel, cancellationToken, out syntaxInfo);
         }
 
         return false;
@@ -120,7 +120,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                     argTypeName,
                     kind,
                     argLocation,
-                    DeclaredMessageType: argType.ToDeclaredTypeInfo(cancellationToken));
+                    DeclaredMessageType: argType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken));
                 return true;
             }
 
@@ -157,7 +157,9 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                     responseTypeName = methodSymbol
                         .TypeArguments[0]
                         .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    declaredResponseType = methodSymbol.TypeArguments[0].ToDeclaredTypeInfo(cancellationToken);
+                    declaredResponseType = methodSymbol.TypeArguments[0].ToDeclaredTypeInfo(
+                        semanticModel.Compilation,
+                        cancellationToken);
                 }
 
                 syntaxInfo = new CallSiteMessageTypeInfo(
@@ -165,7 +167,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                     kind,
                     location,
                     responseTypeName,
-                    firstArgType.ToDeclaredTypeInfo(cancellationToken),
+                    firstArgType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken),
                     declaredResponseType);
                 return true;
             }
@@ -184,7 +186,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             typeName,
             kind,
             locationInfo,
-            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
+            DeclaredMessageType: messageType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken));
         return true;
     }
 
@@ -239,13 +241,14 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             typeName,
             kind,
             locationInfo,
-            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
+            DeclaredMessageType: messageType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken));
         return true;
     }
 
     private static bool TryHandlePublisher(
         IMethodSymbol methodSymbol,
         InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
         CancellationToken cancellationToken,
         out SyntaxInfo? syntaxInfo)
     {
@@ -274,7 +277,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             typeName,
             CallSiteKind.MediatorPublish,
             locationInfo,
-            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
+            DeclaredMessageType: messageType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken));
         return true;
     }
 
