@@ -26,6 +26,29 @@ Outbox message <id> (message ID <message id>, type <type>) to <destination> fail
 - A message that cannot be read, has an unknown message type, or matches no endpoint is retried in the same way. Its Critical entry shows `(null)` for the message ID, the type, and the destination when the stored envelope cannot be read.
 - A failed dispatch no longer ends the processing run. The processor logs the exception at Error with the text `The dispatch of outbox message <id> (message ID <message id>, type <type>) to <destination> failed on attempt <n>. The message is retried.` and continues with the next message. In 16.7 the failure was logged as `An unexpected error occurred while processing outbox event`. Change alert rules that match that text for a failed dispatch.
 
+## The Postgres scheduler no longer stops retrying a scheduled message
+
+This entry applies to the Postgres-backed scheduled message store that `UsePostgresScheduling()` registers. With RabbitMQ it stores scheduled messages and [redeliveries](../reliability.md#redeliver-failed-messages).
+
+In 16.7 the scheduler stopped dispatching a scheduled message after 10 attempts and delayed each attempt twice as long as the one before. In 16.8 the scheduler dispatches a message until the transport accepts it.
+
+- A message that fails is dispatched again after 10 seconds. The delay does not grow with the number of attempts.
+- After a failed dispatch the scheduler pauses for 10 seconds before it dispatches the next message. Other due messages can be up to 10 seconds late while a message fails.
+- The `times_sent` column still counts the attempts. The `max_attempts` column is no longer applied.
+- A message that failed 10 times in 16.7 stays in the table and is dispatched after the update. Delete the rows that must not be sent before you update:
+
+  ```sql
+  DELETE FROM scheduled_messages
+  WHERE times_sent >= max_attempts;
+  ```
+
+- A scheduled message can be cancelled at any attempt count. In 16.7 a message that had used all attempts could not be cancelled.
+- When the attempt count of a message is a multiple of 10, the dispatcher writes the Critical entry `Scheduled message <id> (message ID <message id>, type <type>) to <destination> failed on attempt <n>. The message is retried.` The 16.7 entry `Scheduled message <id> exhausted all 10 retry attempts and will not be retried.` is no longer written. Change alert rules that match it.
+- The index on `scheduled_time` no longer has the filter `"times_sent" < "max_attempts"`. Add an EF Core migration to apply the change. Without it the scheduler works, but its queries do not use the index.
+- The scheduler wakes at the time the next message is due. In 16.7 it woke 1 second late for a new message and later for a retry.
+
+See [Retry behavior](../scheduling.md#retry-behavior).
+
 ## RequestAsync cancels a dispatch that outlasts the response timeout
 
 The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).

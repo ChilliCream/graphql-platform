@@ -9,14 +9,20 @@ namespace Mocha.Scheduling;
 internal sealed class ScheduledMessageQueries
 {
     /// <summary>
+    /// The number of seconds after a failed dispatch before the message is dispatched again.
+    /// </summary>
+    public const int RetryDelaySeconds = 10;
+
+    /// <summary>
     /// Gets or sets the SQL statement to insert a new scheduled message into the table.
     /// </summary>
     public string InsertMessage { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the SQL query to retrieve the earliest scheduled time that is due for dispatch.
+    /// Gets or sets the SQL query that returns the seconds until the earliest pending message is due. The
+    /// result is not positive when a message is due, and null when no message is pending.
     /// </summary>
-    public string NextWakeTime { get; set; } = null!;
+    public string NextWakeInterval { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the SQL statement that locks a single scheduled message row for processing,
@@ -35,8 +41,7 @@ internal sealed class ScheduledMessageQueries
     public string UpdateLastError { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the SQL statement to cancel a scheduled message by deleting it if it has not
-    /// exceeded its maximum delivery attempts.
+    /// Gets or sets the SQL statement to cancel a scheduled message by deleting it.
     /// </summary>
     public string CancelMessage { get; set; } = null!;
 
@@ -54,20 +59,19 @@ internal sealed class ScheduledMessageQueries
                 VALUES (@id, @envelope, @scheduled_time, 0, 10, NOW());
                 """,
 
-            NextWakeTime = $"""
-                SELECT MIN("{t.ScheduledTime}" + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")) AS "NextWakeTime"
-                FROM {t.QualifiedTableName}
-                WHERE "{t.TimesSent}" < "{t.MaxAttempts}";
+            NextWakeInterval = $"""
+                SELECT (EXTRACT(EPOCH FROM MIN("{t.ScheduledTime}")) - EXTRACT(EPOCH FROM NOW()))::double precision
+                    AS "SecondsUntilDue"
+                FROM {t.QualifiedTableName};
                 """,
 
             ProcessMessage = $"""
                 UPDATE {t.QualifiedTableName}
                 SET "{t.TimesSent}" = "{t.TimesSent}" + 1,
-                    "{t.ScheduledTime}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
+                    "{t.ScheduledTime}" = NOW() + INTERVAL '{RetryDelaySeconds} seconds'
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < "{t.MaxAttempts}"
-                      AND "{t.ScheduledTime}" <= NOW()
+                    WHERE "{t.ScheduledTime}" <= NOW()
                     ORDER BY "{t.ScheduledTime}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1
@@ -75,8 +79,7 @@ internal sealed class ScheduledMessageQueries
                 RETURNING
                     "{t.Id}",
                     "{t.Envelope}",
-                    "{t.TimesSent}",
-                    "{t.MaxAttempts}";
+                    "{t.TimesSent}";
                 """,
 
             DeleteMessage = $"""
@@ -93,7 +96,6 @@ internal sealed class ScheduledMessageQueries
             CancelMessage = $"""
                 DELETE FROM {t.QualifiedTableName}
                 WHERE "{t.Id}" = @id
-                  AND "{t.TimesSent}" < "{t.MaxAttempts}"
                 RETURNING "{t.Id}";
                 """
         };
